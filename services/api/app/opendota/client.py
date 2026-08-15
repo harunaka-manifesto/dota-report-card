@@ -1,0 +1,249 @@
+from __future__ import annotations
+
+import asyncio
+import logging
+import random
+from collections.abc import Awaitable, Callable, Mapping
+from typing import Any
+
+import httpx
+
+from app.core.config import MATCH_HISTORY_LIMIT, Settings, get_settings
+from app.core.errors import OpenDotaRateLimited, OpenDotaUnavailable, ProfileUnavailable
+from app.core.security import safe_endpoint
+from app.opendota.cache import MemoryCache
+
+logger = logging.getLogger(__name__)
+Sleep = Callable[[float], Awaitable[None]]
+
+
+class OpenDotaClient:
+    """Authenticated server-side OpenDota client.
+
+    The API key is deliberately only materialized in request headers. The client has
+    no method for the replay parse endpoint, which keeps the v1 no-auto-parse rule
+    enforceable at the transport boundary.
+    """
+
+    def __init__(
+        self,
+        settings: Settings | None = None,
+        *,
+        http_client: httpx.AsyncClient | None = None,
+        cache: MemoryCache | None = None,
+        sleep: Sleep = asyncio.sleep,
+        rng: Callable[[], float] = random.random,
+    ) -> None:
+        self.settings = settings or get_settings()
+        self._http = http_client
+        self._owns_http = http_client is None
+        self.cache = cache or MemoryCache()
+        self._sleep = sleep
+        self._rng = rng
+        self._inflight: dict[str, asyncio.Task[Any]] = {}
+
+    async def __aenter__(self) -> OpenDotaClient:
+        if self._http is None:
+            self._http = httpx.AsyncClient(timeout=self.settings.opendota_timeout_seconds)
+        return self
+
+    async def __aexit__(self, *_exc: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        if self._http is not None and self._owns_http:
+            await self._http.aclose()
+            self._http = None
+
+    @property
+    def auth_headers(self) -> dict[str, str]:
+        if not self.settings.opendota_api_key:
+            return {}
+        return {"Authorization": f"Bearer {self.settings.opendota_api_key}"}
+
+    async def _request_json(
+        self,
+        endpoint: str,
+        *,
+        params: Mapping[str, Any] | None = None,
+        cache_key: str | None = None,
+        cache_ttl: int | None = None,
+        immutable: bool = False,
+    ) -> Any:
+        if cache_key:
+            cached = self.cache.get(cache_key)
+            if cached is not None:
+                return cached
+            inflight = self._inflight.get(cache_key)
+            if inflight is not None:
+                return await asyncio.shield(inflight)
+            inflight = asyncio.create_task(
+                self._request_json_uncached(
+                    endpoint,
+                    params=params,
+                    cache_key=cache_key,
+                    cache_ttl=cache_ttl,
+                    immutable=immutable,
+                )
+            )
+            self._inflight[cache_key] = inflight
+            def clear_inflight(completed: asyncio.Task[Any]) -> None:
+                if self._inflight.get(cache_key) is inflight:
+                    self._inflight.pop(cache_key, None)
+
+            inflight.add_done_callback(clear_inflight)
+            return await asyncio.shield(inflight)
+        return await self._request_json_uncached(
+            endpoint,
+            params=params,
+            cache_key=cache_key,
+            cache_ttl=cache_ttl,
+            immutable=immutable,
+        )
+
+    async def _request_json_uncached(
+        self,
+        endpoint: str,
+        *,
+        params: Mapping[str, Any] | None = None,
+        cache_key: str | None = None,
+        cache_ttl: int | None = None,
+        immutable: bool = False,
+    ) -> Any:
+        if self._http is None:
+            self._http = httpx.AsyncClient(timeout=self.settings.opendota_timeout_seconds)
+
+        url = f"{self.settings.opendota_base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+        retries = max(0, self.settings.opendota_max_retries)
+        for attempt in range(retries + 1):
+            try:
+                response = await self._http.get(
+                    url,
+                    params=dict(params or {}),
+                    headers=self.auth_headers,
+                )
+            except (httpx.TimeoutException, httpx.NetworkError) as exc:
+                if attempt >= retries:
+                    raise OpenDotaUnavailable("OpenDota is unavailable") from exc
+                await self._backoff(attempt)
+                continue
+
+            if response.status_code == 429:
+                if attempt >= retries:
+                    raise OpenDotaRateLimited("OpenDota rate limit reached")
+                await self._backoff(attempt, retry_after=response.headers.get("Retry-After"))
+                continue
+            if response.status_code >= 500:
+                if attempt >= retries:
+                    raise OpenDotaUnavailable("OpenDota is unavailable")
+                await self._backoff(attempt)
+                continue
+            if response.status_code == 404:
+                raise ProfileUnavailable("OpenDota resource was not found")
+            if response.status_code >= 400:
+                raise OpenDotaUnavailable("OpenDota rejected the request")
+
+            try:
+                value = response.json()
+            except ValueError as exc:
+                raise OpenDotaUnavailable("OpenDota returned invalid JSON") from exc
+            if cache_key:
+                self.cache.set(cache_key, value, cache_ttl, immutable=immutable)
+            logger.info(
+                "opendota_request endpoint=%s status=%s",
+                safe_endpoint(endpoint),
+                response.status_code,
+            )
+            return value
+
+        raise OpenDotaUnavailable("OpenDota request failed")
+
+    async def _backoff(self, attempt: int, retry_after: str | None = None) -> None:
+        if retry_after:
+            try:
+                delay = min(float(retry_after), 30.0)
+            except ValueError:
+                delay = 0.0
+        else:
+            delay = min(2**attempt, 30) + self._rng() * 0.25
+        await self._sleep(delay)
+
+    async def get_player(self, account_id: int) -> dict[str, Any]:
+        return await self._request_json(
+            f"/players/{account_id}",
+            cache_key=f"player:{account_id}",
+            cache_ttl=300,
+        )
+
+    async def get_matches(
+        self, account_id: int, *, limit: int = MATCH_HISTORY_LIMIT
+    ) -> list[dict[str, Any]]:
+        effective_limit = min(limit, MATCH_HISTORY_LIMIT)
+        value = await self._request_json(
+            f"/players/{account_id}/matches",
+            params={"limit": effective_limit},
+            cache_key=f"matches:{account_id}:{effective_limit}",
+            cache_ttl=120,
+        )
+        return list(value or [])[:effective_limit]
+
+    async def get_match(self, match_id: int) -> dict[str, Any]:
+        return await self._request_json(
+            f"/matches/{match_id}",
+            cache_key=f"match:{match_id}",
+            cache_ttl=None,
+            immutable=True,
+        )
+
+    async def get_constants(self, resource: str) -> Any:
+        if not resource or "/" in resource or "?" in resource:
+            raise ValueError("Invalid constants resource")
+        return await self._request_json(
+            f"/constants/{resource}",
+            cache_key=f"constants:{resource}",
+            cache_ttl=None,
+            immutable=True,
+        )
+
+    async def get_hero_stats(self) -> list[dict[str, Any]]:
+        return list(
+            await self._request_json(
+                "/heroStats",
+                cache_key="hero_stats",
+                cache_ttl=3600,
+                immutable=True,
+            )
+            or []
+        )
+
+    async def get_benchmarks(self, hero_id: int) -> dict[str, Any]:
+        return dict(
+            await self._request_json(
+                "/benchmarks",
+                params={"hero_id": hero_id},
+                cache_key=f"benchmarks:{hero_id}",
+                cache_ttl=3600,
+                immutable=True,
+            )
+            or {}
+        )
+
+    async def get_public_matches(
+        self,
+        *,
+        limit: int = 100,
+        less_than_match_id: int | None = None,
+        min_rank: int | None = None,
+        max_rank: int | None = None,
+    ) -> list[dict[str, Any]]:
+        params = {
+            key: value
+            for key, value in {
+                "less_than_match_id": less_than_match_id,
+                "min_rank": min_rank,
+                "max_rank": max_rank,
+                "limit": limit,
+            }.items()
+            if value is not None
+        }
+        return list(await self._request_json("/publicMatches", params=params) or [])[:limit]

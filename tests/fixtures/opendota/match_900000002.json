@@ -1,0 +1,16 @@
+{
+  "match_id": 900000002,
+  "start_time": 1709989200,
+  "duration": 1740,
+  "game_mode": 1,
+  "lobby_type": 7,
+  "radiant_win": false,
+  "patch": "7.36c",
+  "players": [
+    {"account_id": 193875165, "player_slot": 0, "hero_id": 25, "lane_role": 2, "rank_tier": 45, "kills": 4, "deaths": 8, "assists": 9, "last_hits": 160, "denies": 5, "gold_per_min": 475, "xp_per_min": 520, "net_worth": 12500, "gold_spent": 11800, "hero_damage": 14500, "tower_damage": 700, "hero_healing": 0, "obs_placed": 0, "sen_placed": 0, "party_size": 2, "item_0": 36, "item_1": 63, "item_2": 1, "item_3": 0, "item_4": 0, "item_5": 0, "leaver_status": 0},
+    {"account_id": 193875166, "player_slot": 1, "hero_id": 1, "lane_role": 1, "kills": 3, "deaths": 9, "assists": 8, "last_hits": 220, "gold_per_min": 540, "net_worth": 14000},
+    {"account_id": 193875167, "player_slot": 2, "hero_id": 3, "lane_role": 3, "kills": 5, "deaths": 8, "assists": 10, "last_hits": 140, "gold_per_min": 430, "net_worth": 12000},
+    {"account_id": 193875168, "player_slot": 3, "hero_id": 4, "lane_role": 4, "kills": 2, "deaths": 10, "assists": 12, "last_hits": 60, "gold_per_min": 250, "net_worth": 6500},
+    {"account_id": 193875169, "player_slot": 4, "hero_id": 5, "lane_role": 4, "kills": 1, "deaths": 11, "assists": 13, "last_hits": 45, "gold_per_min": 230, "net_worth": 6000}
+  ]
+}

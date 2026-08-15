@@ -1,0 +1,83 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    environment:
+      APP_ENV: production
+      OPENDOTA_SOURCE: live
+      OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
+      DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
+      REDIS_URL: redis://redis:6379/0
+      CORS_ORIGINS: ${CORS_ORIGINS-http://localhost:3000}
+      STORAGE_BACKEND: database
+      ANALYSIS_EXECUTION_BACKEND: celery
+      HISTORY_LIMIT: 50
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    command: celery -A app.workers.tasks.celery_app worker --loglevel=INFO
+    environment:
+      APP_ENV: production
+      OPENDOTA_SOURCE: live
+      OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
+      DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
+      REDIS_URL: redis://redis:6379/0
+      HISTORY_LIMIT: 50
+      STORAGE_BACKEND: database
+      ANALYSIS_EXECUTION_BACKEND: celery
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ..
+      dockerfile: infra/docker/web.Dockerfile
+    environment:
+      API_BASE_URL: http://api:8000
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dota_report_card
+      POSTGRES_USER: dota
+      POSTGRES_PASSWORD: dota
+    ports:
+      - "5432:5432"
+    volumes:
+      - dota-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dota -d dota_report_card"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  dota-postgres:
