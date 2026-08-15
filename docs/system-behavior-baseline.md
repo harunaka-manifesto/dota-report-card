@@ -147,7 +147,7 @@ The history request is broad but bounded:
 
 ### Eligibility handling
 
-The default eligibility rules include ranked, standard All Pick, non-abandoned, valid-duration, known-outcome matches with a usable match ID. Pro/league, Turbo, other modes, malformed rows, missing outcomes, invalid durations, and missing player rows in a hydrated detail are excluded.
+The default eligibility rules include standard All Pick and Ranked All Pick, non-abandoned, valid-duration, known-outcome matches with a usable match ID. Pro/league, Turbo, other modes, malformed rows, missing outcomes, invalid durations, and missing player rows in a hydrated detail are excluded.
 
 Eligibility is not silent. Every exclusion has a machine-readable reason and contributes to the report’s evidence scope.
 

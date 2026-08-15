@@ -13,18 +13,25 @@ def base_match() -> dict[str, object]:
     }
 
 
-def test_ranked_all_pick_is_eligible() -> None:
+def test_non_ranked_all_pick_is_eligible() -> None:
     result = assess_match(base_match(), account_id=42)
     assert result.eligible
     assert result.reasons == ()
 
 
-def test_turbo_and_unranked_rows_are_excluded_with_reasons() -> None:
+def test_ranked_all_pick_is_eligible() -> None:
+    value = base_match()
+    value.update({"game_mode": 22, "lobby_type": 7})
+    result = assess_match(value, account_id=42)
+    assert result.eligible
+    assert result.reasons == ()
+
+
+def test_turbo_rows_are_excluded_with_reasons() -> None:
     value = base_match()
     value.update({"game_mode": 23, "lobby_type": 0})
     result = assess_match(value, account_id=42)
     assert not result.eligible
-    assert ExclusionReason.NON_RANKED in result.reasons
     assert ExclusionReason.NON_STANDARD_MODE in result.reasons
 
 

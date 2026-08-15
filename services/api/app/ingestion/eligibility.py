@@ -30,9 +30,9 @@ class EligibilityResult:
         }
 
 
-RANKED_LOBBY = 7
 ALL_PICK_MODE = 1
-TURBO_MODE = 23
+RANKED_ALL_PICK_MODE = 22
+SUPPORTED_ALL_PICK_MODES = frozenset({ALL_PICK_MODE, RANKED_ALL_PICK_MODE})
 
 
 def assess_match(
@@ -48,9 +48,7 @@ def assess_match(
 
     if match_id is None:
         reasons.append(ExclusionReason.MALFORMED)
-    if merged.get("lobby_type") != RANKED_LOBBY:
-        reasons.append(ExclusionReason.NON_RANKED)
-    if merged.get("game_mode") != ALL_PICK_MODE or merged.get("game_mode") == TURBO_MODE:
+    if _as_int(merged.get("game_mode")) not in SUPPORTED_ALL_PICK_MODES:
         reasons.append(ExclusionReason.NON_STANDARD_MODE)
     if merged.get("leagueid") or merged.get("league_id"):
         reasons.append(ExclusionReason.PRO_OR_LEAGUE)
