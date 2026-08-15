@@ -4,7 +4,10 @@ import { FormEvent, useState } from "react";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+// Browser requests stay on the web origin. The Next.js server proxies /v1 to
+// the private API_BASE_URL, so the OpenDota credential and API topology never
+// become browser configuration.
+const API_BASE_URL = "";
 
 type AnalysisStatus = {
   job_id: string;

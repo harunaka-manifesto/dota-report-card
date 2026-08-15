@@ -15,6 +15,19 @@ The default .env.example source is the sanitized fixture adapter. Set OPENDOTA_S
 
 The recorded example account is 193875165. Open http://localhost:8000/docs for the API or run the web app with pnpm --dir apps/web dev.
 
+## Deployment
+
+The Next.js web app and FastAPI analysis service are separate deployments. On
+the Vercel web project, set `API_BASE_URL` to the public HTTPS origin of the
+deployed FastAPI service (for example, `https://api.example.com`). Browser calls
+use the web app's same-origin `/v1` proxy; do not expose the OpenDota key through
+a `NEXT_PUBLIC_` variable.
+
+On the API deployment, set `OPENDOTA_SOURCE=live` and `OPENDOTA_API_KEY`. The API
+also needs its production persistence/execution dependencies (`DATABASE_URL`
+and `REDIS_URL`) when `APP_ENV=production`. Adding only `OPENDOTA_API_KEY` to the
+Vercel web project does not deploy or configure the FastAPI service.
+
 Player DNA reads up to 200 cheap summary rows by default. Deep Scan has separate configurable ceilings (`MAX_DEEP_MATCHES`, `MAX_PARSE_REQUESTS`, and `MAX_DATA_COST_PER_REPORT`) and never hydrates every history row. The default parse budget is zero; parsing remains an explicit capability behind the budget boundary.
 
 For the expected-behavior contract used by bug-busting agents, see [the system behavior baseline](docs/system-behavior-baseline.md).

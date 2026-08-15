@@ -76,6 +76,23 @@ test("non-2xx queue responses become actionable errors", async ({ page }) => {
   await expect(page.locator("p.error")).toContainText("temporarily unavailable");
 });
 
+test("missing server API configuration becomes an actionable error", async ({ page }) => {
+  await page.route("**/v1/analyses", async (route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({
+        code: "API_NOT_CONFIGURED",
+        message: "The report service is not configured. Set API_BASE_URL on the web deployment."
+      })
+    });
+  });
+  await page.goto("/");
+  await page.getByLabel("OpenDota profile or Steam32 ID").fill("193875165");
+  await page.getByRole("button", { name: "Build report" }).click();
+  await expect(page.locator("p.error")).toContainText("Set API_BASE_URL");
+});
+
 test("completed analysis navigates to its report", async ({ page }) => {
   await page.route("**/v1/analyses", async (route) => {
     await route.fulfill({
