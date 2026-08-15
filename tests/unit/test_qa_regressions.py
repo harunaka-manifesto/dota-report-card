@@ -80,12 +80,12 @@ def test_configured_coverage_threshold_is_used_by_publication_gate() -> None:
     assert "INSUFFICIENT_PARSE_COVERAGE" in result.reasons
 
 
-def test_analysis_history_limit_is_hard_capped_at_fifty() -> None:
+def test_analysis_history_limit_uses_broad_summary_cap() -> None:
     source = EmptySource()
     service = AnalysisService(source, settings=Settings(history_limit=200))
     job, _ = asyncio.run(service.create_analysis("193875165", enqueue=False))
     asyncio.run(service.run_job(job))
-    assert source.history_limits == [50]
+    assert source.history_limits == [200]
 
 
 def test_inflight_jobs_are_atomically_reused() -> None:

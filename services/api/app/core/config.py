@@ -7,7 +7,18 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-MATCH_HISTORY_LIMIT = 50
+# Keep broad history and deep acquisition limits separate.  The old name is
+# retained as a compatibility alias for callers that still import it, but it
+# no longer represents the deep-analysis budget.
+FREE_HISTORY_LIMIT = 200
+MAX_FREE_HISTORY_LIMIT = 200
+MATCH_HISTORY_LIMIT = FREE_HISTORY_LIMIT
+DEFAULT_MAX_DEEP_MATCHES = 25
+DEFAULT_MAX_PARSE_REQUESTS = 0
+DEFAULT_MAX_DATA_COST_PER_REPORT = 50.0
+DEFAULT_MIN_MARGINAL_INFORMATION_GAIN = 0.05
+DEFAULT_MAX_PRIMARY_HYPOTHESES = 3
+DEFAULT_SESSION_GAP_MINUTES = 90
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -36,9 +47,18 @@ class Settings:
     analysis_max_concurrency: int = 4
     opendota_max_retries: int = 3
     opendota_timeout_seconds: float = 15.0
-    # Experiment guardrail: keep every source and transport bounded to the
-    # latest 50 matches until the larger history policy is validated.
-    history_limit: int = MATCH_HISTORY_LIMIT
+    # Broad summary reads and deep evidence acquisition have independent
+    # budgets.  ``history_limit`` is a deprecated constructor alias kept for
+    # existing integrations; new code should use ``free_history_limit``.
+    free_history_limit: int = FREE_HISTORY_LIMIT
+    history_limit: int | None = None
+    max_deep_matches: int = DEFAULT_MAX_DEEP_MATCHES
+    max_parse_requests: int = DEFAULT_MAX_PARSE_REQUESTS
+    max_data_cost_per_report: float = DEFAULT_MAX_DATA_COST_PER_REPORT
+    min_marginal_information_gain: float = DEFAULT_MIN_MARGINAL_INFORMATION_GAIN
+    max_primary_hypotheses: int = DEFAULT_MAX_PRIMARY_HYPOTHESES
+    session_gap_minutes: int = DEFAULT_SESSION_GAP_MINUTES
+    default_analysis_mode: str = "free"
     compatible_analysis_ttl_seconds: int = 3600
     replay_coverage_threshold: float = 0.60
     summary_coverage_threshold: float = 0.60
@@ -79,7 +99,42 @@ class Settings:
             opendota_timeout_seconds=float(
                 os.getenv("OPENDOTA_TIMEOUT_SECONDS", str(cls.opendota_timeout_seconds))
             ),
-            history_limit=int(os.getenv("HISTORY_LIMIT", str(cls.history_limit))),
+            free_history_limit=int(
+                os.getenv(
+                    "FREE_HISTORY_LIMIT",
+                    os.getenv("HISTORY_LIMIT", str(cls.free_history_limit)),
+                )
+            ),
+            max_deep_matches=int(
+                os.getenv("MAX_DEEP_MATCHES", str(cls.max_deep_matches))
+            ),
+            max_parse_requests=int(
+                os.getenv("MAX_PARSE_REQUESTS", str(cls.max_parse_requests))
+            ),
+            max_data_cost_per_report=float(
+                os.getenv(
+                    "MAX_DATA_COST_PER_REPORT",
+                    str(cls.max_data_cost_per_report),
+                )
+            ),
+            min_marginal_information_gain=float(
+                os.getenv(
+                    "MIN_MARGINAL_INFORMATION_GAIN",
+                    str(cls.min_marginal_information_gain),
+                )
+            ),
+            max_primary_hypotheses=int(
+                os.getenv(
+                    "MAX_PRIMARY_HYPOTHESES",
+                    str(cls.max_primary_hypotheses),
+                )
+            ),
+            session_gap_minutes=int(
+                os.getenv("SESSION_GAP_MINUTES", str(cls.session_gap_minutes))
+            ),
+            default_analysis_mode=os.getenv(
+                "DEFAULT_ANALYSIS_MODE", cls.default_analysis_mode
+            ).lower(),
             compatible_analysis_ttl_seconds=int(
                 os.getenv(
                     "COMPATIBLE_ANALYSIS_TTL_SECONDS",
@@ -105,7 +160,38 @@ class Settings:
 
     @property
     def effective_history_limit(self) -> int:
-        return max(1, min(self.history_limit, MATCH_HISTORY_LIMIT))
+        """Backward-compatible alias for the broad summary limit."""
+
+        return self.effective_free_history_limit
+
+    @property
+    def effective_free_history_limit(self) -> int:
+        requested = self.history_limit if self.history_limit is not None else self.free_history_limit
+        return max(1, min(requested, MAX_FREE_HISTORY_LIMIT))
+
+    @property
+    def effective_max_deep_matches(self) -> int:
+        return max(0, self.max_deep_matches)
+
+    @property
+    def effective_max_parse_requests(self) -> int:
+        return max(0, self.max_parse_requests)
+
+    @property
+    def effective_max_data_cost_per_report(self) -> float:
+        return max(0.0, self.max_data_cost_per_report)
+
+    @property
+    def effective_min_marginal_information_gain(self) -> float:
+        return max(0.0, self.min_marginal_information_gain)
+
+    @property
+    def effective_max_primary_hypotheses(self) -> int:
+        return max(1, self.max_primary_hypotheses)
+
+    @property
+    def effective_session_gap_minutes(self) -> int:
+        return max(1, self.session_gap_minutes)
 
     @property
     def effective_storage_backend(self) -> str:

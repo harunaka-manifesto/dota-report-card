@@ -50,6 +50,34 @@ class ParseCoverage:
         }
 
 
+def missing_required_families(
+    coverage: ParseCoverage,
+    requirements: set[str] | frozenset[str] | tuple[str, ...],
+    *,
+    minimum_value: float = 1.0,
+) -> frozenset[str]:
+    """Return only the evidence families a hypothesis still lacks."""
+
+    return frozenset(
+        family
+        for family in requirements
+        if coverage.by_family.get(family, 0.0) < minimum_value
+    )
+
+
+def has_required_families(
+    coverage: ParseCoverage,
+    requirements: set[str] | frozenset[str] | tuple[str, ...],
+    *,
+    minimum_value: float = 1.0,
+) -> bool:
+    return not missing_required_families(
+        coverage,
+        requirements,
+        minimum_value=minimum_value,
+    )
+
+
 def coverage_for_match(
     detail: dict[str, Any], target_player: dict[str, Any] | None
 ) -> ParseCoverage:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -8,11 +8,13 @@ from pydantic import BaseModel, ConfigDict, Field
 class CreateAnalysisRequest(BaseModel):
     player: str = Field(min_length=1, max_length=300)
     refresh: bool = False
+    mode: Literal["free", "deep_scan"] = "free"
 
 
 class CreateAnalysisResponse(BaseModel):
     job_id: str
     status: str
+    analysis_mode: str = "free"
     reused: bool
     events_url: str
 
@@ -22,6 +24,7 @@ class AnalysisStatusResponse(BaseModel):
 
     job_id: str
     account_id: int
+    analysis_mode: Literal["free", "deep_scan"] = "free"
     status: str
     stage: str
     processed_matches: int

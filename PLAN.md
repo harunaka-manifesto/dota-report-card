@@ -1,6 +1,6 @@
 # OpenDota Insight System — Architecture and Implementation Plan
 
-> Experiment override: the active implementation requests only the latest 50 matches. The 200-match depth below remains the production target after the experiment is validated.
+> Cost-aware implementation: broad Player DNA reads up to 200 summary rows; Deep Scan has independent match, parse, and data-cost budgets.
 
 > Intended repository path: `docs/open-dota-insight-system-plan.md`  
 > Status: Approved implementation plan  
@@ -12,7 +12,7 @@
 Build a production-oriented web application that:
 
 1. Accepts a public OpenDota player URL or Steam32 account ID.
-2. Fetches and caches the player’s latest 50 matches through the OpenDota API during the experiment phase.
+2. Fetches and caches up to 200 cheap player-history summaries through the OpenDota API.
 3. Normalizes summary and replay-parsed data into auditable facts.
 4. Computes evidence-backed behavioral insights from the 22 MVP families defined in the research.
 5. Compares the player with the narrowest statistically valid cohort.
@@ -44,7 +44,7 @@ A successful implementation must:
 - Background processing: Celery with Redis.
 - Primary database: PostgreSQL.
 - Report access: anonymous public-profile lookup.
-- Match depth: latest 50 matches during the experiment, filtered for eligibility; 200 remains the production target.
+- Match depth: broad history up to 200 summaries; Deep Scan selects at most the configured deep-match budget.
 - Insight scope: all 12 MVP-A and 10 MVP-B families.
 - Narrative: deterministic, approved, versioned templates.
 - Replay parsing: consume existing parsed data; never request parsing automatically.
@@ -73,17 +73,19 @@ flowchart LR
 
 1. Validate and normalize the submitted player identifier.
 2. Reuse a compatible completed analysis or create a new job.
-3. Fetch the profile and latest 50 match-list records during the experiment.
+3. Fetch the profile and up to 200 cheap match-list records for Player DNA.
 4. Filter eligible matches and record exclusion reasons.
-5. Hydrate missing or stale match details.
-6. Normalize participants, events, time series, objectives, inventory, and parse coverage.
-7. Infer role and calculate match-level features.
-8. Select valid cohorts and calculate adjusted metrics.
-9. Evaluate all registered insight candidates.
-10. Apply statistical, coverage, holdout, and redundancy gates.
-11. Rank surviving evidence using Insight Value Score.
-12. Render approved narrative templates.
-13. Persist the report and publish its unguessable report URL.
+5. Detect summary-only Player DNA patterns and generate deterministic hypotheses.
+6. In Deep Scan mode, select a globally deduplicated, budgeted match set.
+7. Hydrate only selected or locally cached match details.
+8. Normalize participants, events, time series, objectives, inventory, and parse coverage.
+9. Infer role and calculate match-level features.
+10. Select valid cohorts and calculate adjusted metrics.
+11. Evaluate registered insight candidates.
+12. Apply statistical, coverage, holdout, and redundancy gates.
+13. Rank surviving evidence using Insight Value Score.
+14. Render approved narrative templates.
+15. Persist the report and publish its unguessable report URL.
 
 ## 5. Repository and File Boundaries
 
@@ -169,7 +171,8 @@ Stages:
 - `validating_player`
 - `fetching_history`
 - `filtering_matches`
-- `hydrating_matches`
+- `detecting_patterns`
+- `hydrating_selected_matches`
 - `normalizing`
 - `computing_features`
 - `building_cohorts`
@@ -213,7 +216,7 @@ Operational details remain server-side.
 ### Required endpoints
 
 - `/players/{account_id}`
-- `/players/{account_id}/matches?limit=50` during the experiment (`200` production target).
+- `/players/{account_id}/matches?limit=200` for the broad summary pass.
 - `/matches/{match_id}`
 - `/constants/{resource}`
 - `/heroStats`
@@ -551,7 +554,7 @@ Tooling behind the commands:
 - [ ] A public OpenDota URL and raw Steam32 ID resolve to the same account.
 - [ ] A malformed identifier is rejected before any OpenDota request.
 - [ ] A private/unavailable profile produces the correct empty state.
-- [ ] The latest 50 history rows are fetched during the experiment and eligibility reasons are recorded.
+- [x] Up to 200 history rows are fetched for the summary pass and eligibility reasons are recorded.
 - [ ] Match hydration is resumable and does not refetch immutable cached details.
 - [ ] Re-running unchanged input reuses the compatible completed analysis.
 - [ ] Every evidence object links to raw and normalized provenance.
@@ -596,7 +599,7 @@ These do not block implementation but must be validated during integration:
 
 ### Objective
 
-Deliver an anonymous Next.js + FastAPI report app that ingests 50 OpenDota matches during the experiment, evaluates 22 gated insight families, and publishes deterministic evidence-backed reports.
+Deliver an anonymous Next.js + FastAPI report app that ingests up to 200 OpenDota summaries, selectively hydrates Deep Scan evidence, evaluates gated insight families, and publishes deterministic evidence-backed reports.
 
 ### Non-negotiable invariants
 

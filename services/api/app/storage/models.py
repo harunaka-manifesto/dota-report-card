@@ -140,6 +140,7 @@ class AnalysisJobRecord(Base):
     job_id: Mapped[str] = mapped_column(String(36), primary_key=True)
     account_id: Mapped[int] = mapped_column(Integer, index=True)
     canonical_player: Mapped[str] = mapped_column(String(300))
+    analysis_mode: Mapped[str] = mapped_column(String(32), default="free")
     active_key: Mapped[str | None] = mapped_column(String(128), unique=True, index=True)
     status: Mapped[str] = mapped_column(String(32))
     stage: Mapped[str] = mapped_column(String(64))

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, Protocol
 
-from app.core.config import MATCH_HISTORY_LIMIT
+from app.core.config import FREE_HISTORY_LIMIT
 from app.core.errors import ProfileUnavailable
 
 
@@ -12,7 +12,7 @@ class AnalysisSource(Protocol):
     async def get_player(self, account_id: int) -> dict[str, Any]: ...
 
     async def get_matches(
-        self, account_id: int, *, limit: int = MATCH_HISTORY_LIMIT
+        self, account_id: int, *, limit: int = FREE_HISTORY_LIMIT, project: str | None = None
     ) -> list[dict[str, Any]]: ...
 
     async def get_match(self, match_id: int) -> dict[str, Any]: ...
@@ -34,13 +34,13 @@ class FixtureOpenDotaSource:
         )
 
     async def get_matches(
-        self, account_id: int, *, limit: int = MATCH_HISTORY_LIMIT
+        self, account_id: int, *, limit: int = FREE_HISTORY_LIMIT, project: str | None = None
     ) -> list[dict[str, Any]]:
         self.requests.append(("matches", account_id))
         value = self._read_first(
             f"matches_{account_id}.json", f"history_{account_id}.json", fallback=[]
         )
-        return list(value or [])[: min(limit, MATCH_HISTORY_LIMIT)]
+        return list(value or [])[: min(limit, FREE_HISTORY_LIMIT)]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:
         self.requests.append(("match", match_id))
@@ -77,9 +77,9 @@ class MappingSource:
         return self.player
 
     async def get_matches(
-        self, account_id: int, *, limit: int = MATCH_HISTORY_LIMIT
+        self, account_id: int, *, limit: int = FREE_HISTORY_LIMIT, project: str | None = None
     ) -> list[dict[str, Any]]:
-        return self.matches[: min(limit, MATCH_HISTORY_LIMIT)]
+        return self.matches[: min(limit, FREE_HISTORY_LIMIT)]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:
         return self.details[match_id]

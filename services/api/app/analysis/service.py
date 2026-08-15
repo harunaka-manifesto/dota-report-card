@@ -6,6 +6,12 @@ from collections.abc import Iterable
 from dataclasses import asdict
 from typing import Any
 
+from app.analysis.budget import CostPolicy, DataCostLedger
+from app.analysis.deep_scan import (
+    acquire_selected_matches,
+    evaluate_deep_hypotheses,
+    plan_deep_scan,
+)
 from app.analysis.source import AnalysisSource
 from app.cohorts.selector import CohortSelection, select_narrowest_cohort
 from app.core.config import Settings, get_settings
@@ -13,10 +19,14 @@ from app.core.errors import AppError, InsufficientMatchHistory, ProfileUnavailab
 from app.core.security import PlayerIdentifier, parse_player_identifier
 from app.features.calculators import calculate_match_features
 from app.features.models import MatchFeature
+from app.features.summary_calculators import calculate_summary_features
+from app.features.summary_models import SummaryFeatureSet
+from app.ingestion.coverage import coverage_for_match
 from app.ingestion.eligibility import assess_match
-from app.ingestion.normalize import NormalizedMatch, normalize_match
+from app.ingestion.normalize import NormalizedMatch
 from app.insights.evaluator import InsightContext, evaluate_insights
-from app.reports.assembly import assemble_report
+from app.patterns.detector import detect_patterns
+from app.reports.assembly import assemble_player_dna_report, assemble_report
 from app.storage.repository import AnalysisJob, InMemoryRepository
 
 logger = logging.getLogger(__name__)
@@ -45,12 +55,15 @@ class AnalysisService:
         *,
         refresh: bool = False,
         enqueue: bool = True,
+        mode: str | None = None,
     ) -> tuple[AnalysisJob, bool]:
         identifier = parse_player_identifier(player)
+        analysis_mode = _analysis_mode(mode or self.settings.default_analysis_mode)
         if not refresh:
             existing = self.repository.find_compatible_completed(
                 identifier.account_id,
                 self.settings.model_version,
+                analysis_mode=analysis_mode,
                 max_age_seconds=self.settings.compatible_analysis_ttl_seconds,
             )
             if existing is not None:
@@ -59,6 +72,7 @@ class AnalysisService:
             identifier.account_id,
             identifier.canonical_url,
             self.settings.model_version,
+            analysis_mode,
         )
         if enqueue:
             self._enqueue(job, identifier)
@@ -134,9 +148,12 @@ class AnalysisService:
         self.repository.update_job(
             job, stage="fetching_history", message="Fetching latest match history"
         )
-        history_limit = self.settings.effective_history_limit
+        history_limit = self.settings.effective_free_history_limit
+        cost_ledger = DataCostLedger()
+        cost_policy = CostPolicy()
         history = await self.source.get_matches(identifier.account_id, limit=history_limit)
         history = list(history[:history_limit])
+        cost_ledger.record("history", policy=cost_policy)
         self.repository.persist_raw_payload(
             f"/players/{identifier.account_id}/matches",
             str(identifier.account_id),
@@ -149,60 +166,205 @@ class AnalysisService:
         self.repository.update_job(
             job, stage="filtering_matches", message="Applying match eligibility rules"
         )
-        candidates: list[dict[str, Any]] = []
+        summary_candidates: list[dict[str, Any]] = []
         exclusion_ledger: list[dict[str, Any]] = []
         for summary in history[:history_limit]:
             result = assess_match(summary, account_id=identifier.account_id)
             if result.eligible:
-                candidates.append(summary)
+                summary_candidates.append(summary)
             else:
                 exclusion_ledger.append(result.as_dict())
-        job.eligible_matches = len(candidates)
+        job.eligible_matches = len(summary_candidates)
+        summary_feature_set = calculate_summary_features(
+            summary_candidates,
+            account_id=identifier.account_id,
+            session_gap_minutes=self.settings.effective_session_gap_minutes,
+        )
+        if not summary_feature_set.matches:
+            raise InsufficientMatchHistory("No eligible summary matches were returned")
+        job.eligible_matches = len(summary_feature_set.matches)
         self.repository.record_event(
-            job, f"{len(exclusion_ledger)} history rows excluded before hydration"
+            job, f"{len(exclusion_ledger)} history rows excluded before summary analysis"
         )
 
         self.repository.update_job(
-            job, stage="hydrating_matches", message="Hydrating eligible match details"
+            job,
+            stage="detecting_patterns",
+            message="Detecting broad Player DNA patterns without match hydration",
         )
-        normalized: list[NormalizedMatch] = []
-        for summary in candidates:
-            match_id = int(summary["match_id"])
-            detail = await self.source.get_match(match_id)
-            self.repository.persist_raw_payload(f"/matches/{match_id}", str(match_id), detail)
-            result = assess_match(summary, detail=detail, account_id=identifier.account_id)
-            if not result.eligible:
-                exclusion_ledger.append(result.as_dict())
-                job.eligible_matches -= 1
-                continue
-            normalized_match = normalize_match(
-                detail, account_id=identifier.account_id, eligibility=result
+        patterns = detect_patterns(summary_feature_set)
+        available_families = _available_families(
+            self.repository,
+            summary_feature_set,
+            identifier.account_id,
+        )
+        hypotheses, selection_plan = plan_deep_scan(
+            patterns,
+            summary_feature_set,
+            max_primary_hypotheses=self.settings.effective_max_primary_hypotheses,
+            max_deep_matches=self.settings.effective_max_deep_matches,
+            max_parse_requests=self.settings.effective_max_parse_requests,
+            max_data_cost=max(
+                0.0,
+                self.settings.effective_max_data_cost_per_report
+                - cost_policy.units_for("history"),
+            ),
+            min_marginal_information_gain=self.settings.effective_min_marginal_information_gain,
+            available_families_by_match=available_families,
+        )
+
+        if job.analysis_mode == "free":
+            await self._save_player_dna(
+                job,
+                identifier,
+                profile,
+                summary_feature_set,
+                patterns,
+                hypotheses,
+                selection_plan,
+                cost_ledger,
+                exclusion_ledger,
+                history_limit,
             )
-            normalized.append(normalized_match)
-            self.repository.save_normalized_match(match_id, _normalized_record(normalized_match))
+            return
 
-        if not normalized:
-            raise InsufficientMatchHistory("No eligible, identifiable matches were hydrated")
-        self.repository.update_job(
-            job, stage="normalizing", message="Normalized facts and parse coverage recorded"
+        await self._run_deep_scan(
+            job=job,
+            identifier=identifier,
+            profile=profile,
+            summary_feature_set=summary_feature_set,
+            patterns=patterns,
+            hypotheses=hypotheses,
+            selection_plan=selection_plan,
+            cost_ledger=cost_ledger,
+            cost_policy=cost_policy,
+            exclusion_ledger=exclusion_ledger,
+            history_limit=history_limit,
         )
 
+    async def _save_player_dna(
+        self,
+        job: AnalysisJob,
+        identifier: PlayerIdentifier,
+        profile: dict[str, Any],
+        feature_set: SummaryFeatureSet,
+        patterns: list[Any],
+        hypotheses: list[Any],
+        selection_plan: Any,
+        cost_ledger: DataCostLedger,
+        exclusion_ledger: list[dict[str, Any]],
+        history_limit: int,
+    ) -> None:
         self.repository.update_job(
-            job, stage="computing_features", message="Computing reusable match features"
+            job,
+            stage="rendering_report",
+            message="Rendering deterministic Player DNA report",
+        )
+        report, evidence = assemble_player_dna_report(
+            account_id=identifier.account_id,
+            profile=_profile_for_report(profile, identifier.account_id),
+            feature_set=feature_set,
+            patterns=patterns,
+            hypotheses=hypotheses,
+            selection_plan=selection_plan,
+            cost_ledger=cost_ledger,
+            processed_matches=job.processed_matches,
+            eligible_matches=job.eligible_matches,
+            history_limit=history_limit,
+            model_version=self.settings.model_version,
+            template_version=self.settings.template_version,
+        )
+        report["evidence_scope"]["exclusion_reasons"] = _reason_counts(exclusion_ledger)
+        report["telemetry"] = {
+            "summary_matches_considered": job.processed_matches,
+            "eligible_summary_matches": job.eligible_matches,
+            "patterns_detected": len(patterns),
+            "deep_scan_patterns": sum(item.unexplained for item in patterns),
+            "hypotheses_generated": len(hypotheses),
+            "candidate_matches": len(selection_plan.candidates),
+            "deep_matches_selected": len(selection_plan.selected),
+            "stopping_reason": selection_plan.stopping_reason,
+        }
+        report_id = self.repository.save_report(
+            account_id=identifier.account_id,
+            data_cutoff=max((item.start_time or 0 for item in feature_set.matches), default=None),
+            model_version=self.settings.model_version,
+            template_version=self.settings.template_version,
+            report=report,
+            evidence=evidence,
+        )
+        self.repository.complete_job(job, report_id)
+
+    async def _run_deep_scan(
+        self,
+        *,
+        job: AnalysisJob,
+        identifier: PlayerIdentifier,
+        profile: dict[str, Any],
+        summary_feature_set: SummaryFeatureSet,
+        patterns: list[Any],
+        hypotheses: list[Any],
+        selection_plan: Any,
+        cost_ledger: DataCostLedger,
+        cost_policy: CostPolicy,
+        exclusion_ledger: list[dict[str, Any]],
+        history_limit: int,
+    ) -> None:
+        self.repository.update_job(
+            job,
+            stage="hydrating_selected_matches",
+            message=f"Hydrating {len(selection_plan.selected)} globally selected matches",
+        )
+        normalized = await acquire_selected_matches(
+            selection_plan,
+            source=self.source,
+            repository=self.repository,
+            account_id=identifier.account_id,
+            ledger=cost_ledger,
+            policy=cost_policy,
+        )
+        if not normalized:
+            self.repository.add_warning(
+                job,
+                "No selected deep matches were available; returning the summary findings.",
+            )
+            await self._save_player_dna(
+                job,
+                identifier,
+                profile,
+                summary_feature_set,
+                patterns,
+                hypotheses,
+                selection_plan,
+                cost_ledger,
+                exclusion_ledger,
+                history_limit,
+            )
+            return
+
+        self.repository.update_job(
+            job,
+            stage="computing_features",
+            message="Computing reusable features for selected deep matches",
         )
         features = calculate_match_features(normalized)
         for feature in features:
             self.repository.save_derived_feature(feature.match_id, feature.as_dict())
+        deep_findings = evaluate_deep_hypotheses(hypotheses, selection_plan, features)
 
         self.repository.update_job(
-            job, stage="building_cohorts", message="Selecting the narrowest supported cohort"
+            job,
+            stage="building_cohorts",
+            message="Selecting the narrowest supported cohort",
         )
         cohort = _select_cohort(features, self.cohort_population)
         if cohort is None or not cohort.valid:
             self.repository.add_warning(job, "No valid internal comparison cohort was available")
 
         self.repository.update_job(
-            job, stage="evaluating_insights", message="Evaluating registered insight families"
+            job,
+            stage="evaluating_insights",
+            message="Evaluating registered insight families",
         )
         context = InsightContext(
             account_id=identifier.account_id,
@@ -220,7 +382,9 @@ class AnalysisService:
         evidence = evaluate_insights(context)
 
         self.repository.update_job(
-            job, stage="rendering_report", message="Rendering deterministic report"
+            job,
+            stage="rendering_report",
+            message="Rendering deterministic Deep Scan report",
         )
         report = assemble_report(
             context=context,
@@ -229,6 +393,28 @@ class AnalysisService:
             processed_matches=job.processed_matches,
             eligible_matches=job.eligible_matches,
         )
+        report["report_variant"] = "deep_scan"
+        report["deep_scan"] = {
+            "patterns": [item.as_dict() for item in patterns],
+            "hypotheses": [item.as_dict() for item in hypotheses],
+            "selection": selection_plan.as_dict(),
+            "findings": [item.as_dict() for item in deep_findings],
+        }
+        report["cost"] = cost_ledger.as_dict()
+        report["telemetry"] = {
+            "summary_matches_considered": job.processed_matches,
+            "eligible_summary_matches": job.eligible_matches,
+            "patterns_detected": len(patterns),
+            "deep_scan_patterns": sum(item.unexplained for item in patterns),
+            "hypotheses_investigated": len(hypotheses),
+            "hypotheses_resolved": sum(item.status == "resolved" for item in deep_findings),
+            "candidate_matches": len(selection_plan.candidates),
+            "deep_matches_selected": len(selection_plan.selected),
+            "detail_requests": cost_ledger.detail_requests,
+            "parse_requests": cost_ledger.parse_requests,
+            "estimated_data_cost_units": cost_ledger.estimated_cost_units,
+            "stopping_reason": selection_plan.stopping_reason,
+        }
         report_id = self.repository.save_report(
             account_id=identifier.account_id,
             data_cutoff=context.data_cutoff,
@@ -284,6 +470,58 @@ def _profile_for_report(profile: dict[str, Any], account_id: int) -> dict[str, A
         "rank_tier": nested.get("rank_tier"),
         "profile_url": f"https://www.opendota.com/players/{account_id}",
     }
+
+
+def _analysis_mode(value: str) -> str:
+    normalized = value.strip().lower()
+    if normalized not in {"free", "deep_scan"}:
+        raise ValueError("Analysis mode must be 'free' or 'deep_scan'")
+    return normalized
+
+
+def _available_families(
+    repository: Any,
+    feature_set: SummaryFeatureSet,
+    account_id: int,
+) -> dict[int, frozenset[str]]:
+    getter = getattr(repository, "get_cached_raw_payload", None)
+    if getter is None:
+        return {}
+    available: dict[int, frozenset[str]] = {}
+    for feature in feature_set.matches:
+        detail = getter(f"/matches/{feature.match_id}", str(feature.match_id))
+        if not isinstance(detail, dict):
+            continue
+        target = next(
+            (
+                row
+                for row in detail.get("players") or []
+                if isinstance(row, dict) and _as_int(row.get("account_id")) == account_id
+            ),
+            None,
+        )
+        coverage = coverage_for_match(detail, target)
+        families = frozenset(
+            family for family, value in coverage.by_family.items() if value >= 1.0
+        )
+        if families:
+            available[feature.match_id] = families
+    return available
+
+
+def _reason_counts(ledger: list[dict[str, Any]]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for entry in ledger:
+        for reason in entry.get("reasons", []):
+            counts[reason] = counts.get(reason, 0) + 1
+    return dict(sorted(counts.items()))
+
+
+def _as_int(value: Any) -> int | None:
+    try:
+        return int(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
 
 
 def _normalized_record(match: NormalizedMatch) -> dict[str, Any]:

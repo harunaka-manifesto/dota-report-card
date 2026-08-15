@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 
-from app.core.config import MATCH_HISTORY_LIMIT, Settings, get_settings
+from app.core.config import FREE_HISTORY_LIMIT, Settings, get_settings
 from app.core.errors import OpenDotaRateLimited, OpenDotaUnavailable, ProfileUnavailable
 from app.core.security import safe_endpoint
 from app.opendota.cache import MemoryCache
@@ -41,6 +41,8 @@ class OpenDotaClient:
         self._sleep = sleep
         self._rng = rng
         self._inflight: dict[str, asyncio.Task[Any]] = {}
+        self.request_counts: dict[str, int] = {}
+        self.cache_hits = 0
 
     async def __aenter__(self) -> OpenDotaClient:
         if self._http is None:
@@ -73,6 +75,7 @@ class OpenDotaClient:
         if cache_key:
             cached = self.cache.get(cache_key)
             if cached is not None:
+                self.cache_hits += 1
                 return cached
             inflight = self._inflight.get(cache_key)
             if inflight is not None:
@@ -149,6 +152,7 @@ class OpenDotaClient:
                 raise OpenDotaUnavailable("OpenDota returned invalid JSON") from exc
             if cache_key:
                 self.cache.set(cache_key, value, cache_ttl, immutable=immutable)
+            self.request_counts[endpoint] = self.request_counts.get(endpoint, 0) + 1
             logger.info(
                 "opendota_request endpoint=%s status=%s",
                 safe_endpoint(endpoint),
@@ -176,13 +180,20 @@ class OpenDotaClient:
         )
 
     async def get_matches(
-        self, account_id: int, *, limit: int = MATCH_HISTORY_LIMIT
+        self,
+        account_id: int,
+        *,
+        limit: int = FREE_HISTORY_LIMIT,
+        project: str | None = None,
     ) -> list[dict[str, Any]]:
-        effective_limit = min(limit, MATCH_HISTORY_LIMIT)
+        effective_limit = max(1, min(limit, self.settings.effective_free_history_limit))
+        params: dict[str, Any] = {"limit": effective_limit}
+        if project:
+            params["project"] = project
         value = await self._request_json(
             f"/players/{account_id}/matches",
-            params={"limit": effective_limit},
-            cache_key=f"matches:{account_id}:{effective_limit}",
+            params=params,
+            cache_key=f"matches:{account_id}:{effective_limit}:{project or ''}",
             cache_ttl=120,
         )
         return list(value or [])[:effective_limit]

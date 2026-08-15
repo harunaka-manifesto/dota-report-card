@@ -1,13 +1,19 @@
-export type CreateAnalysisRequest = { player: string; refresh?: boolean };
+export type CreateAnalysisRequest = {
+  player: string;
+  refresh?: boolean;
+  mode?: "free" | "deep_scan";
+};
 export type CreateAnalysisResponse = {
   job_id: string;
   status: string;
+  analysis_mode: string;
   reused: boolean;
   events_url: string;
 };
 export type AnalysisStatus = {
   job_id: string;
   account_id: number;
+  analysis_mode: "free" | "deep_scan";
   status: string;
   stage: string;
   processed_matches: number;

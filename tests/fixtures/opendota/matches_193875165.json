@@ -11,6 +11,12 @@
     "hero_id": 8,
     "lane_role": 2,
     "rank_tier": 45,
+    "average_rank": 45,
+    "party_size": 1,
+    "kills": 9,
+    "deaths": 4,
+    "assists": 20,
+    "version": 7,
     "leaver_status": 0
   },
   {
@@ -25,6 +31,12 @@
     "hero_id": 8,
     "lane_role": 2,
     "rank_tier": 45,
+    "average_rank": 45,
+    "party_size": 1,
+    "kills": 7,
+    "deaths": 5,
+    "assists": 16,
+    "version": 7,
     "leaver_status": 0
   },
   {
@@ -39,6 +51,12 @@
     "hero_id": 25,
     "lane_role": 2,
     "rank_tier": 45,
+    "average_rank": 45,
+    "party_size": 1,
+    "kills": 5,
+    "deaths": 6,
+    "assists": 14,
+    "version": 7,
     "leaver_status": 0
   },
   {
@@ -53,6 +71,12 @@
     "hero_id": 25,
     "lane_role": 2,
     "rank_tier": 45,
+    "average_rank": 45,
+    "party_size": 2,
+    "kills": 10,
+    "deaths": 4,
+    "assists": 17,
+    "version": 7,
     "leaver_status": 0
   },
   {
@@ -67,6 +91,12 @@
     "hero_id": 25,
     "lane_role": 2,
     "rank_tier": 45,
+    "average_rank": 45,
+    "party_size": 2,
+    "kills": 4,
+    "deaths": 8,
+    "assists": 9,
+    "version": 7,
     "leaver_status": 0
   },
   {
@@ -81,6 +111,12 @@
     "hero_id": 25,
     "lane_role": 2,
     "rank_tier": 45,
+    "average_rank": 45,
+    "party_size": 2,
+    "kills": 12,
+    "deaths": 3,
+    "assists": 18,
+    "version": 7,
     "leaver_status": 0
   }
 ]

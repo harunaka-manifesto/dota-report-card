@@ -3,7 +3,7 @@ from app.analysis.source import FixtureOpenDotaSource
 from app.core.config import Settings
 
 
-async def test_low_replay_coverage_publishes_summary_and_suppresses_replay() -> None:
+async def test_free_report_publishes_summary_observation_without_replay_reads() -> None:
     service = AnalysisService(
         FixtureOpenDotaSource("tests/fixtures/opendota"),
         settings=Settings(),
@@ -16,7 +16,6 @@ async def test_low_replay_coverage_publishes_summary_and_suppresses_replay() -> 
     assert report is not None
     appendix = report["evidence_appendix"]
     assert any(item["publication_status"] == "published" for item in appendix)
-    replay = [item for item in appendix if item["insight_id"] == "advantage_conversion"][0]
-    assert replay["publication_status"] == "suppressed"
-    assert "INSUFFICIENT_PARSE_COVERAGE" in replay["publication_reason"]
-    assert report["evidence_scope"]["replay_evidence_status"] == "not_enough_evidence"
+    assert all(item["publication_status"] == "published" for item in appendix)
+    assert report["report_variant"] == "free_player_dna"
+    assert report["evidence_scope"]["replay_evidence_status"] == "not_requested"

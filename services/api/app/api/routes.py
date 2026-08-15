@@ -32,10 +32,15 @@ async def create_analysis(
     client_ip = request.client.host if request.client else "unknown"
     if not _rate_limiter.allow(client_ip, identifier.account_id):
         raise AnalysisRateLimited("Too many analysis requests; try again later")
-    job, reused = await _service(request).create_analysis(payload.player, refresh=payload.refresh)
+    job, reused = await _service(request).create_analysis(
+        payload.player,
+        refresh=payload.refresh,
+        mode=payload.mode,
+    )
     return CreateAnalysisResponse(
         job_id=job.job_id,
         status=job.status,
+        analysis_mode=job.analysis_mode,
         reused=reused,
         events_url=f"/v1/analyses/{job.job_id}/events",
     )

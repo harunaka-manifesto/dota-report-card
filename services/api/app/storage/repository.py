@@ -49,6 +49,7 @@ class AnalysisJob:
     job_id: str
     account_id: int
     canonical_player: str
+    analysis_mode: str = "free"
     status: str = "queued"
     stage: str = "validating_player"
     processed_matches: int = 0
@@ -66,6 +67,7 @@ class AnalysisJob:
         return {
             "job_id": self.job_id,
             "account_id": self.account_id,
+            "analysis_mode": self.analysis_mode,
             "status": self.status,
             "stage": self.stage,
             "processed_matches": self.processed_matches,
@@ -91,17 +93,33 @@ class InMemoryRepository:
         self.raw_payloads: list[dict[str, Any]] = []
         self.normalized_matches: dict[int, dict[str, Any]] = {}
         self.derived_features: dict[int, dict[str, Any]] = {}
-        self._completed: dict[tuple[int, str], str] = {}
+        self._completed: dict[tuple[int, str, str], str] = {}
         self._raw_payload_index: set[tuple[str, str, str]] = set()
 
-    def create_job(self, account_id: int, canonical_player: str, model_version: str) -> AnalysisJob:
-        job = AnalysisJob(str(uuid4()), account_id, canonical_player, model_version=model_version)
+    def create_job(
+        self,
+        account_id: int,
+        canonical_player: str,
+        model_version: str,
+        analysis_mode: str = "free",
+    ) -> AnalysisJob:
+        job = AnalysisJob(
+            str(uuid4()),
+            account_id,
+            canonical_player,
+            analysis_mode=analysis_mode,
+            model_version=model_version,
+        )
         with self._lock:
             self.jobs[job.job_id] = job
         return job
 
     def get_or_create_inflight_job(
-        self, account_id: int, canonical_player: str, model_version: str
+        self,
+        account_id: int,
+        canonical_player: str,
+        model_version: str,
+        analysis_mode: str = "free",
     ) -> tuple[AnalysisJob, bool]:
         """Atomically coalesce queued/running work for one account and model."""
 
@@ -111,11 +129,18 @@ class InMemoryRepository:
                 for job in self.jobs.values()
                 if job.account_id == account_id
                 and job.model_version == model_version
+                and job.analysis_mode == analysis_mode
                 and job.status in {"queued", "running"}
             ]
             if candidates:
                 return max(candidates, key=lambda item: item.created_at), True
-            job = AnalysisJob(str(uuid4()), account_id, canonical_player, model_version=model_version)
+            job = AnalysisJob(
+                str(uuid4()),
+                account_id,
+                canonical_player,
+                analysis_mode=analysis_mode,
+                model_version=model_version,
+            )
             self.jobs[job.job_id] = job
             return job, False
 
@@ -124,10 +149,11 @@ class InMemoryRepository:
         account_id: int,
         model_version: str,
         *,
+        analysis_mode: str = "free",
         max_age_seconds: int | None = None,
     ) -> AnalysisJob | None:
         with self._lock:
-            job_id = self._completed.get((account_id, model_version))
+            job_id = self._completed.get((account_id, model_version, analysis_mode))
             job = self.jobs.get(job_id) if job_id else None
             if job is None or max_age_seconds is None:
                 return job
@@ -195,7 +221,7 @@ class InMemoryRepository:
                     job.eligible_matches,
                 )
             )
-            self._completed[(job.account_id, job.model_version)] = job.job_id
+            self._completed[(job.account_id, job.model_version, job.analysis_mode)] = job.job_id
 
     def record_event(self, job: AnalysisJob, message: str) -> None:
         with self._lock:
@@ -223,6 +249,13 @@ class InMemoryRepository:
                 self.raw_payloads.append(record)
                 self._raw_payload_index.add(key)
         return record
+
+    def get_cached_raw_payload(self, endpoint: str, source_id: str) -> Any | None:
+        with self._lock:
+            for record in reversed(self.raw_payloads):
+                if record["endpoint"] == endpoint and record["source_id"] == str(source_id):
+                    return record["payload"]
+        return None
 
     def save_normalized_match(self, match_id: int, value: dict[str, Any]) -> None:
         with self._lock:
@@ -278,8 +311,8 @@ class SqlAlchemyRepository:
         self._lock = threading.RLock()
 
     @staticmethod
-    def _active_key(account_id: int, model_version: str) -> str:
-        return f"{account_id}:{model_version}"
+    def _active_key(account_id: int, model_version: str, analysis_mode: str = "free") -> str:
+        return f"{account_id}:{model_version}:{analysis_mode}"
 
     def _job_from_record(self, record: AnalysisJobRecord) -> AnalysisJob:
         events = [
@@ -299,6 +332,7 @@ class SqlAlchemyRepository:
             job_id=record.job_id,
             account_id=record.account_id,
             canonical_player=record.canonical_player,
+            analysis_mode=getattr(record, "analysis_mode", "free") or "free",
             status=record.status,
             stage=record.stage,
             processed_matches=record.processed_matches or 0,
@@ -319,8 +353,9 @@ class SqlAlchemyRepository:
             return
         record.account_id = job.account_id
         record.canonical_player = job.canonical_player
+        record.analysis_mode = job.analysis_mode
         record.active_key = (
-            self._active_key(job.account_id, job.model_version)
+            self._active_key(job.account_id, job.model_version, job.analysis_mode)
             if job.status in {"queued", "running"}
             else None
         )
@@ -335,15 +370,28 @@ class SqlAlchemyRepository:
         record.updated_at = job.updated_at
         record.events_json = [event.as_dict() for event in job.events]
 
-    def create_job(self, account_id: int, canonical_player: str, model_version: str) -> AnalysisJob:
-        job = AnalysisJob(str(uuid4()), account_id, canonical_player, model_version=model_version)
+    def create_job(
+        self,
+        account_id: int,
+        canonical_player: str,
+        model_version: str,
+        analysis_mode: str = "free",
+    ) -> AnalysisJob:
+        job = AnalysisJob(
+            str(uuid4()),
+            account_id,
+            canonical_player,
+            analysis_mode=analysis_mode,
+            model_version=model_version,
+        )
         with self._session_factory() as session:
             session.add(
                 AnalysisJobRecord(
                     job_id=job.job_id,
                     account_id=account_id,
                     canonical_player=canonical_player,
-                    active_key=self._active_key(account_id, model_version),
+                    analysis_mode=analysis_mode,
+                    active_key=self._active_key(account_id, model_version, analysis_mode),
                     status=job.status,
                     stage=job.stage,
                     warnings_json=[],
@@ -357,9 +405,13 @@ class SqlAlchemyRepository:
         return job
 
     def get_or_create_inflight_job(
-        self, account_id: int, canonical_player: str, model_version: str
+        self,
+        account_id: int,
+        canonical_player: str,
+        model_version: str,
+        analysis_mode: str = "free",
     ) -> tuple[AnalysisJob, bool]:
-        key = self._active_key(account_id, model_version)
+        key = self._active_key(account_id, model_version, analysis_mode)
         with self._lock:
             with self._session_factory() as session:
                 record = session.scalar(
@@ -371,13 +423,18 @@ class SqlAlchemyRepository:
                 if record is not None:
                     return self._job_from_record(record), True
                 job = AnalysisJob(
-                    str(uuid4()), account_id, canonical_player, model_version=model_version
+                    str(uuid4()),
+                    account_id,
+                    canonical_player,
+                    analysis_mode=analysis_mode,
+                    model_version=model_version,
                 )
                 session.add(
                     AnalysisJobRecord(
                         job_id=job.job_id,
                         account_id=account_id,
                         canonical_player=canonical_player,
+                        analysis_mode=analysis_mode,
                         active_key=key,
                         status=job.status,
                         stage=job.stage,
@@ -405,6 +462,7 @@ class SqlAlchemyRepository:
         account_id: int,
         model_version: str,
         *,
+        analysis_mode: str = "free",
         max_age_seconds: int | None = None,
     ) -> AnalysisJob | None:
         with self._session_factory() as session:
@@ -413,6 +471,7 @@ class SqlAlchemyRepository:
                 .where(
                     AnalysisJobRecord.account_id == account_id,
                     AnalysisJobRecord.model_version == model_version,
+                    AnalysisJobRecord.analysis_mode == analysis_mode,
                     AnalysisJobRecord.status == "completed",
                 )
                 .order_by(AnalysisJobRecord.updated_at.desc())
@@ -540,6 +599,18 @@ class SqlAlchemyRepository:
                 )
                 session.commit()
         return record
+
+    def get_cached_raw_payload(self, endpoint: str, source_id: str) -> Any | None:
+        with self._session_factory() as session:
+            record = session.scalar(
+                select(RawPayloadRecord)
+                .where(
+                    RawPayloadRecord.endpoint == endpoint,
+                    RawPayloadRecord.source_id == str(source_id),
+                )
+                .order_by(RawPayloadRecord.fetched_at.desc())
+            )
+            return record.payload_json if record is not None else None
 
     def save_normalized_match(self, match_id: int, value: dict[str, Any]) -> None:
         with self._session_factory() as session:

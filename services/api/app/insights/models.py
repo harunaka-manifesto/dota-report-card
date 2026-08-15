@@ -53,6 +53,7 @@ class EvidenceObject:
     definition_version: str
     statement_template_id: str
     action_template_id: str
+    investigation: dict[str, Any] | None = None
 
     @property
     def published(self) -> bool:
@@ -86,4 +87,5 @@ class EvidenceObject:
             "definition_version": self.definition_version,
             "statement_template_id": self.statement_template_id,
             "action_template_id": self.action_template_id,
+            "investigation": dict(self.investigation) if self.investigation else None,
         }

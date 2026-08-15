@@ -3,6 +3,7 @@ import asyncio
 import httpx
 from app.core.config import Settings
 from app.opendota.client import OpenDotaClient
+from app.opendota.parse_client import OpenDotaParseClient
 
 
 async def test_api_key_is_sent_only_as_a_bearer_header() -> None:
@@ -25,20 +26,20 @@ async def test_api_key_is_sent_only_as_a_bearer_header() -> None:
     assert seen[0].headers["Authorization"] == "Bearer fixture-secret"
 
 
-async def test_match_history_transport_caps_limit_at_fifty() -> None:
+async def test_match_history_transport_supports_two_hundred_summary_rows() -> None:
     seen: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen.append(request)
-        return httpx.Response(200, json=[{"match_id": index} for index in range(100)])
+        return httpx.Response(200, json=[{"match_id": index} for index in range(300)])
 
     transport = httpx.MockTransport(handler)
     async with httpx.AsyncClient(transport=transport) as http_client:
         client = OpenDotaClient(Settings(), http_client=http_client)
         matches = await client.get_matches(42, limit=200)
 
-    assert len(matches) == 50
-    assert seen[0].url.params["limit"] == "50"
+    assert len(matches) == 200
+    assert seen[0].url.params["limit"] == "200"
 
 
 async def test_concurrent_cache_misses_share_one_transport_request() -> None:
@@ -60,3 +61,19 @@ async def test_concurrent_cache_misses_share_one_transport_request() -> None:
 
 def test_transport_has_no_replay_parse_method() -> None:
     assert not hasattr(OpenDotaClient, "request_parse")
+
+
+async def test_parse_transport_is_explicit_and_separate() -> None:
+    seen: list[tuple[str, str]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append((request.method, request.url.path))
+        return httpx.Response(200, json={"job": "ok"})
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as http_client:
+        client = OpenDotaParseClient(Settings(), http_client=http_client)
+        assert await client.request_parse(123) == {"job": "ok"}
+        assert await client.get_parse_request("job_1") == {"job": "ok"}
+
+    assert seen == [("POST", "/api/request/123"), ("GET", "/api/request/job_1")]

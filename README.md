@@ -15,7 +15,9 @@ The default .env.example source is the sanitized fixture adapter. Set OPENDOTA_S
 
 The recorded example account is 193875165. Open http://localhost:8000/docs for the API or run the web app with pnpm --dir apps/web dev.
 
-During the experiment phase, player history requests are hard-capped at the latest 50 matches. The cap applies even if `HISTORY_LIMIT` is set higher; expand it only after the larger-history experiment is validated.
+Player DNA reads up to 200 cheap summary rows by default. Deep Scan has separate configurable ceilings (`MAX_DEEP_MATCHES`, `MAX_PARSE_REQUESTS`, and `MAX_DATA_COST_PER_REPORT`) and never hydrates every history row. The default parse budget is zero; parsing remains an explicit capability behind the budget boundary.
+
+For the expected-behavior contract used by bug-busting agents, see [the system behavior baseline](docs/system-behavior-baseline.md).
 
 ## Architecture
 
@@ -23,11 +25,13 @@ During the experiment phase, player history requests are hard-capped at the late
 - services/api/app/ingestion filters and normalizes source records while retaining coverage and exclusion reasons.
 - services/api/app/features calculates facts without publishing conclusions.
 - services/api/app/cohorts selects the narrowest valid comparison or fails closed.
-- services/api/app/insights evaluates all 22 registered MVP families, applies gates, ranks evidence, and renders approved templates.
+- services/api/app/patterns detects summary-only Player DNA observations and app/hypotheses maps them to deterministic explanations.
+- services/api/app/selection globally deduplicates diagnostic match candidates using marginal information gain and cost.
+- services/api/app/insights evaluates the existing rich families, applies gates, ranks evidence, and renders approved templates.
 - services/api/app/reports assembles the read-only report.
 - apps/web only submits identifiers, polls analysis status, and renders API responses.
 
-The default local repository is in-memory so the full path is runnable without infrastructure. PostgreSQL models and an Alembic migration are included for deployment; Celery task wiring is included behind the same orchestration boundary. No replay parse request is ever submitted.
+The default local repository is in-memory so the full path is runnable without infrastructure. PostgreSQL models and Alembic migrations are included for deployment; Celery task wiring is included behind the same orchestration boundary. Free analysis submits no replay parse request and performs no individual-match reads.
 
 ## Verification
 
