@@ -4,6 +4,9 @@ export const dynamic = "force-dynamic";
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
+  // fetch transparently decodes compressed upstream bodies; forwarding the
+  // original encoding header would make the client decode plain bytes again.
+  "content-encoding",
   "content-length",
   "host",
   "keep-alive",
@@ -58,7 +61,11 @@ async function proxy(
     });
     const responseHeaders = new Headers(upstream.headers);
     for (const header of HOP_BY_HOP_HEADERS) responseHeaders.delete(header);
-    return new Response(upstream.body, {
+    // Buffer the upstream response before crossing the Vercel function
+    // boundary. Passing the fetch stream through directly can produce a 200
+    // response with an empty body for GET requests on the hosted runtime.
+    const body = await upstream.arrayBuffer();
+    return new Response(body, {
       status: upstream.status,
       headers: responseHeaders
     });
