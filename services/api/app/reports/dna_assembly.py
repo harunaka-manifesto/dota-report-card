@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlparse
@@ -9,9 +10,14 @@ from app.content.catalog import copy_version
 from app.content.renderer import resolve_dimension_copy, resolve_page_copy
 from app.dna.baselines import BASELINE_VERSION
 from app.dna.pipeline import DNA_SCORING_VERSION, DnaAnalysisResult
+from app.findings.conflicts import select_story_findings
+from app.findings.models import FindingCandidate, StorySelection
+from app.findings.ranking import RANKING_VERSION
+from app.findings.registry import FINDING_VERSION
+from app.findings.story import STORY_VERSION
 from app.share.service import RENDERER_VERSION
 
-REPORT_SCHEMA_VERSION = "free-dna-report-1.0.0"
+REPORT_SCHEMA_VERSION = "free-dna-report-2.0.0"
 COPY_VERSION = copy_version()
 
 
@@ -28,6 +34,8 @@ def assemble_free_dna_report(
     template_version: str,
     cost_ledger: DataCostLedger | None = None,
     analysis_version_fingerprint: str = "free-analysis-unknown",
+    findings: Iterable[FindingCandidate] = (),
+    story_selection: StorySelection | None = None,
 ) -> dict[str, Any]:
     """Build only the intentional frontend-facing Free DNA contract.
 
@@ -48,6 +56,12 @@ def assemble_free_dna_report(
     history_tier = "limited" if 30 <= eligible_matches < 60 else "normal"
     created_at = datetime.now(UTC).isoformat()
     cost = _public_cost(cost_ledger)
+    published_findings = tuple(
+        item for item in findings if item.publication_status == "published"
+    )
+    selection = story_selection or select_story_findings(published_findings)
+    public_findings = [_public_finding(item) for item in published_findings]
+    finding_by_key = {item["key"]: item for item in public_findings}
     return {
         "schema_version": REPORT_SCHEMA_VERSION,
         "report_variant": "free_dna_report",
@@ -78,6 +92,9 @@ def assemble_free_dna_report(
             "hero_identity": analysis.heroes.identity_version,
             "hero_taxonomy": analysis.heroes.taxonomy_version or "unavailable",
             "recommendations": "hero-recommendations-1.1.0",
+            "findings": FINDING_VERSION,
+            "finding_ranking": RANKING_VERSION,
+            "story": STORY_VERSION,
             "copy": COPY_VERSION,
             "model": model_version,
             "template": template_version,
@@ -94,8 +111,10 @@ def assemble_free_dna_report(
         "dimensions": dimensions,
         "archetype": analysis.archetype.as_dict(),
         "heroes": analysis.heroes.as_dict(),
-        "pages": _pages(analysis, display_name),
-        "shares": _shares(analysis, display_name, eligible_matches),
+        "findings": public_findings,
+        "story": _story(selection, analysis, display_name, finding_by_key),
+        "pages": _pages_v2(analysis, display_name, published_findings, selection),
+        "shares": _shares_v2(analysis, display_name, eligible_matches, published_findings, selection),
         "deep_dive": {
             "available": True,
             "cta_label": resolve_page_copy("deep_dive")["title"],
@@ -109,6 +128,7 @@ def assemble_free_dna_report(
             "notes": [
                 "One bounded player-history read was used for this report.",
                 "No match-detail reads or replay parses were requested.",
+                "Findings combine deterministic summary signals and retain the eight DNA dimensions as evidence.",
             ],
         },
         "cost": cost,
@@ -194,7 +214,12 @@ def _public_avatar_url(value: Any, account_id: int | None) -> str | None:
     return value
 
 
-def _pages(analysis: DnaAnalysisResult, display_name: str) -> list[dict[str, Any]]:
+def _pages_v2(
+    analysis: DnaAnalysisResult,
+    display_name: str,
+    findings: tuple[FindingCandidate, ...],
+    selection: StorySelection,
+) -> list[dict[str, Any]]:
     def page(key: str, **params: str) -> dict[str, str]:
         return resolve_page_copy(key, **params)
 
@@ -202,50 +227,141 @@ def _pages(analysis: DnaAnalysisResult, display_name: str) -> list[dict[str, Any
     player_found = page("player_found", display_name=display_name)
     analysis_page = page("analysis")
     reveal = page("report_reveal")
-    dna_intro = page("dna_intro")
-    dna_summary = page("dna_summary")
-    archetype_page = page("archetype")
-    heroes_intro = page("heroes_intro")
-    signature = page("signature_hero")
-    comfort = page("comfort_picks")
-    pattern = page("hero_pattern")
-    recommendations = page("hero_recommendations")
-    heroes_summary = page("heroes_summary")
-    final = page("final_card")
     deep_dive = page("deep_dive")
+    findings_by_key = {item.key: item for item in findings}
     pages: list[dict[str, Any]] = [
         {"id": "steam-input", "kind": "input", "section": "intro", **steam_input},
         {"id": "player-found", "kind": "player_found", "section": "intro", **player_found},
         {"id": "analysis", "kind": "analysis", "section": "intro", **analysis_page},
         {"id": "report-reveal", "kind": "reveal", "section": "intro", **reveal},
-        {"id": "dna-intro", "kind": "section_intro", "section": "dna", **dna_intro},
     ]
-    for dimension in analysis.dimensions:
-        dimension_copy = resolve_dimension_copy(dimension.key, dimension.status)
+    for key in selection.ordered_finding_keys:
+        finding = findings_by_key.get(key)
+        if finding is None:
+            continue
         pages.append({
-            "id": dimension.key,
-            "kind": "dimension",
-            "section": "dna",
-            "title": dimension_copy["headline"],
-            "body": dimension_copy["body"],
-            "evidence_keys": [item.key for item in dimension.evidence],
+            "id": f"finding-{finding.key}",
+            "kind": "finding",
+            "section": "findings",
+            "title": finding.headline,
+            "body": finding.body,
+            "evidence_keys": [item.key for item in finding.evidence],
+            "finding_key": finding.key,
         })
+    experiment_key = selection.experiment_key
+    experiment_finding = next(
+        (
+            item
+            for item in findings
+            if item.experiment is not None and item.experiment.key == experiment_key
+        ),
+        None,
+    )
+    if experiment_finding is not None and experiment_finding.experiment is not None:
+        experiment = experiment_finding.experiment
+        pages.append({
+            "id": f"experiment-{experiment.key}",
+            "kind": "experiment",
+            "section": "findings",
+            "title": experiment.title,
+            "body": experiment.instruction,
+            "evidence_keys": [item.key for item in experiment_finding.evidence],
+            "finding_key": experiment_finding.key,
+            "experiment_key": experiment.key,
+        })
+    thesis = findings_by_key.get(selection.thesis_key or "")
     pages.extend([
-        {"id": "archetype", "kind": "archetype", "section": "dna", "title": analysis.archetype.label, "body": archetype_page["body"]},
-        {"id": "dna-summary", "kind": "summary", "section": "dna", **dna_summary},
-        {"id": "heroes-intro", "kind": "section_intro", "section": "heroes", **heroes_intro},
-        {"id": "signature-hero", "kind": "signature_hero", "section": "heroes", **signature},
-        {"id": "comfort-picks", "kind": "comfort", "section": "heroes", **comfort},
-        {"id": "hero-pattern", "kind": "hero_pattern", "section": "heroes", **pattern, "body": analysis.heroes.patterns[0].get("label") if analysis.heroes.patterns else pattern["body"]},
-        {"id": "hero-recommendations", "kind": "recommendations", "section": "heroes", **recommendations},
-        {"id": "heroes-summary", "kind": "summary", "section": "heroes", **heroes_summary},
-        {"id": "final-card", "kind": "final_card", "section": "finale", "title": final["title"], "body": final["body"]},
+        {
+            "id": "identity-card",
+            "kind": "identity_card",
+            "section": "finale",
+            "title": analysis.archetype.label,
+            "body": thesis.headline if thesis else f"{display_name}, this is your bounded Dota DNA read.",
+            "evidence_keys": [item.key for item in thesis.evidence] if thesis else [],
+            "finding_key": thesis.key if thesis else None,
+        },
+        {
+            "id": "dna-xray",
+            "kind": "dna_xray",
+            "section": "dna",
+            "title": "Your full DNA",
+            "body": "All eight dimensions remain available as the evidence behind the findings.",
+            "evidence_keys": [dimension.key for dimension in analysis.dimensions],
+        },
         {"id": "deep-dive", "kind": "deep_dive", "section": "finale", **deep_dive},
     ])
     return pages
 
 
-def _shares(analysis: DnaAnalysisResult, display_name: str, eligible_matches: int) -> dict[str, Any]:
+def _story(
+    selection: StorySelection,
+    analysis: DnaAnalysisResult,
+    display_name: str,
+    findings: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    page_ids = ["steam-input", "player-found", "analysis", "report-reveal"]
+    page_ids.extend(f"finding-{key}" for key in selection.ordered_finding_keys if key in findings)
+    if selection.experiment_key:
+        page_ids.append(f"experiment-{selection.experiment_key}")
+    page_ids.extend(["identity-card", "dna-xray", "deep-dive"])
+    return {
+        "version": STORY_VERSION,
+        "thesis_key": selection.thesis_key,
+        "strength_key": selection.strength_key,
+        "contradiction_key": selection.contradiction_key,
+        "edge_key": selection.edge_key,
+        "leak_key": selection.leak_key,
+        "experiment_key": selection.experiment_key,
+        "ordered_pages": page_ids,
+    }
+
+
+def _public_finding(finding: FindingCandidate) -> dict[str, Any]:
+    return {
+        "key": finding.key,
+        "kind": finding.kind,
+        "headline": finding.headline,
+        "body": finding.body,
+        "interpretation": finding.interpretation,
+        "confidence": finding.confidence,
+        "receipts": [
+            {
+                "key": item.receipt_key,
+                "label": item.receipt_label,
+                "value": item.public_receipt,
+                "context": item.family,
+                "confidence": item.confidence,
+            }
+            for item in finding.evidence[:4]
+        ],
+        "related_dimensions": list(finding.related_dimensions),
+        "related_heroes": list(finding.related_heroes),
+        "experiment": _public_experiment(finding),
+        "share_copy": finding.share_copy,
+    }
+
+
+def _public_experiment(finding: FindingCandidate) -> dict[str, Any] | None:
+    if finding.experiment is None:
+        return None
+    experiment = finding.experiment
+    return {
+        "key": experiment.key,
+        "title": experiment.title,
+        "instruction": experiment.instruction,
+        "hypothesis": experiment.hypothesis,
+        "measurement": experiment.measurement,
+        "window": experiment.window,
+    }
+
+
+def _shares_v2(
+    analysis: DnaAnalysisResult,
+    display_name: str,
+    eligible_matches: int,
+    findings: tuple[FindingCandidate, ...],
+    selection: StorySelection,
+) -> dict[str, Any]:
     strong = [
         {
             "key": item.key,
@@ -262,7 +378,34 @@ def _shares(analysis: DnaAnalysisResult, display_name: str, eligible_matches: in
         "descriptors": list(analysis.archetype.descriptors),
         "match_count": eligible_matches,
     }
+    public = {item.key: _public_finding(item) for item in findings}
+    thesis = public.get(selection.thesis_key or "") or next(iter(public.values()), None)
+    exposed = public.get(selection.contradiction_key or "") or public.get(selection.leak_key or "") or thesis
+    strength = public.get(selection.strength_key or "") or thesis
+    identity = {
+        "finding_key": thesis.get("key") if thesis else None,
+        "headline": thesis.get("headline") if thesis else analysis.archetype.label,
+        "archetype": analysis.archetype.label,
+        "receipts": [item["value"] for item in (thesis.get("receipts", []) if thesis else [])[:2]],
+    }
+    exposed_card = {
+        "finding_key": exposed.get("key") if exposed else None,
+        "headline": exposed.get("share_copy") or exposed.get("headline") if exposed else "Your Dota pattern",
+        "archetype": analysis.archetype.label,
+        "receipts": [item["value"] for item in (exposed.get("receipts", []) if exposed else [])[:2]],
+    }
+    strength_card = {
+        "finding_key": strength.get("key") if strength else None,
+        "headline": strength.get("share_copy") or strength.get("headline") if strength else "A supported Dota strength",
+        "archetype": analysis.archetype.label,
+        "receipts": [item["value"] for item in (strength.get("receipts", []) if strength else [])[:2]],
+    }
     return {
+        "identity": identity,
+        "exposed": exposed_card,
+        "strength": strength_card,
+        # Keep aliases so older clients can continue to request a report card
+        # while v2 clients use the finding-oriented cards above.
         "dna": {**common, "spectra": strong[:3]},
         "heroes": {
             "signature": analysis.heroes.signature.as_dict() if analysis.heroes.signature else None,

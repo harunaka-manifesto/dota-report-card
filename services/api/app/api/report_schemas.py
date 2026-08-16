@@ -303,9 +303,180 @@ class FreeDnaReportSchema(PublicModel):
             raise ValueError("Free DNA share cards cannot enable raw IDs")
         return self
 
+# ---------------------------------------------------------------------------
+# Free DNA report v2
+# ---------------------------------------------------------------------------
+
+FindingKind = Literal[
+    "thesis", "strength", "contradiction", "edge", "leak", "trajectory", "identity"
+]
+FindingConfidence = Literal["limited", "moderate", "high"]
+
+
+class FindingReceiptSchema(PublicModel):
+    key: str
+    label: str
+    value: str
+    context: str | None = None
+    confidence: FindingConfidence
+
+
+class FindingExperimentSchema(PublicModel):
+    key: str
+    title: str
+    instruction: str
+    hypothesis: str
+    measurement: str
+    window: str
+
+
+class PublicFindingSchema(PublicModel):
+    key: str
+    kind: FindingKind
+    headline: str
+    body: str
+    interpretation: str | None = None
+    confidence: FindingConfidence
+    receipts: list[FindingReceiptSchema] = Field(min_length=2, max_length=4)
+    related_dimensions: list[DimensionKey] = Field(default_factory=list)
+    related_heroes: list[int] = Field(default_factory=list)
+    experiment: FindingExperimentSchema | None = None
+    share_copy: str | None = None
+
+
+class StoryDefinitionSchema(PublicModel):
+    version: str
+    thesis_key: str | None = None
+    strength_key: str | None = None
+    contradiction_key: str | None = None
+    edge_key: str | None = None
+    leak_key: str | None = None
+    experiment_key: str | None = None
+    ordered_pages: list[str] = Field(min_length=7, max_length=14)
+
+
+V2PageKind = Literal[
+    "input", "player_found", "analysis", "reveal", "finding", "experiment",
+    "identity_card", "dna_xray", "deep_dive",
+]
+
+
+class V2PageSchema(PublicModel):
+    id: str
+    kind: V2PageKind
+    section: Literal["intro", "findings", "dna", "finale"]
+    title: str
+    body: str | None = None
+    evidence_keys: list[str] = Field(default_factory=list)
+    finding_key: str | None = None
+    experiment_key: str | None = None
+
+
+class FindingShareSchema(PublicModel):
+    finding_key: str | None = None
+    headline: str
+    archetype: str | None = None
+    receipts: list[str] = Field(default_factory=list, max_length=4)
+
+
+class SharesV2Schema(PublicModel):
+    identity: FindingShareSchema
+    exposed: FindingShareSchema
+    strength: FindingShareSchema
+    # Backward-compatible aliases are retained in the immutable snapshot for
+    # old share URLs; v2 UI copy uses the three finding-oriented cards above.
+    dna: ShareDnaSchema
+    heroes: ShareHeroesSchema
+    final: ShareFinalSchema
+    privacy_defaults: PrivacyDefaultsSchema
+
+
+class VersionMapV2Schema(VersionMapSchema):
+    findings: str
+    finding_ranking: str
+    story: str
+
+
+class FreeDnaReportV2Schema(PublicModel):
+    report_id: str | None = None
+    schema_version: Literal["free-dna-report-2.0.0"]
+    report_variant: Literal["free_dna_report"]
+    noindex: Literal[True]
+    identity: IdentitySchema
+    metadata: MetadataSchema
+    versions: VersionMapV2Schema
+    quality: QualitySchema
+    dimensions: list[DimensionResultSchema] = Field(min_length=8, max_length=8)
+    archetype: ArchetypeSchema
+    heroes: HeroesSchema
+    findings: list[PublicFindingSchema] = Field(max_length=12)
+    story: StoryDefinitionSchema
+    pages: list[V2PageSchema] = Field(min_length=7, max_length=14)
+    shares: SharesV2Schema
+    deep_dive: DeepDiveSchema
+    methodology: MethodologySchema
+    cost: CostSchema
+
+    @model_validator(mode="after")
+    def validate_v2_contract(self) -> FreeDnaReportV2Schema:
+        dimension_keys = [item.key for item in self.dimensions]
+        expected_dimensions = {
+            "breadth", "role", "adaptability", "activity",
+            "orientation", "resilience", "endurance", "rhythm",
+        }
+        if set(dimension_keys) != expected_dimensions or len(dimension_keys) != len(set(dimension_keys)):
+            raise ValueError("Free DNA reports must contain each of the eight dimensions once")
+        finding_keys = [item.key for item in self.findings]
+        if len(finding_keys) != len(set(finding_keys)):
+            raise ValueError("Free DNA finding keys must be unique")
+        page_ids = [item.id for item in self.pages]
+        if len(page_ids) != len(set(page_ids)):
+            raise ValueError("Free DNA v2 story page IDs must be unique")
+        if page_ids != self.story.ordered_pages:
+            raise ValueError("Story ordering must match the public page sequence")
+        finding_map = {item.key: item for item in self.findings}
+        for page in self.pages:
+            if page.finding_key is not None and page.finding_key not in finding_map:
+                raise ValueError(f"Story page references unknown finding: {page.finding_key}")
+            if page.kind == "finding" and page.finding_key is None:
+                raise ValueError("Finding pages must reference a finding")
+            if page.kind == "experiment":
+                if page.finding_key is None or page.experiment_key is None:
+                    raise ValueError("Experiment pages must reference a finding and experiment")
+                finding = finding_map.get(page.finding_key)
+                if finding is None or finding.experiment is None or finding.experiment.key != page.experiment_key:
+                    raise ValueError("Experiment page does not resolve to its finding experiment")
+        if not any(page.kind == "identity_card" for page in self.pages):
+            raise ValueError("Free DNA v2 story must include an identity card")
+        if not any(page.kind == "dna_xray" for page in self.pages):
+            raise ValueError("Free DNA v2 story must include the DNA X-ray")
+        if not any(page.kind == "deep_dive" for page in self.pages):
+            raise ValueError("Free DNA v2 story must include a Deep Dive CTA")
+        for key in (
+            self.story.thesis_key,
+            self.story.strength_key,
+            self.story.contradiction_key,
+            self.story.edge_key,
+            self.story.leak_key,
+        ):
+            if key is not None and key not in finding_map:
+                raise ValueError(f"Story slot references unknown finding: {key}")
+        if self.story.experiment_key is not None and not any(
+            page.experiment_key == self.story.experiment_key for page in self.pages
+        ):
+            raise ValueError("Story experiment slot does not resolve to a page")
+        if self.shares.privacy_defaults.show_raw_id is not False:
+            raise ValueError("Free DNA share cards cannot enable raw IDs")
+        return self
+
 
 def validate_free_dna_report(report: dict[str, Any]) -> dict[str, Any]:
-    """Validate and return the JSON-compatible public snapshot."""
+    """Validate either immutable Free DNA v1 or v2 snapshots.
 
-    validated = FreeDnaReportSchema.model_validate(report)
-    return validated.model_dump(mode="json", by_alias=True)
+    Existing v1 links remain immutable and continue through their original
+    strict contract; new analysis snapshots use the finding-led v2 contract.
+    """
+
+    if report.get("schema_version") == "free-dna-report-2.0.0":
+        return FreeDnaReportV2Schema.model_validate(report).model_dump(mode="json", by_alias=True)
+    return FreeDnaReportSchema.model_validate(report).model_dump(mode="json", by_alias=True)

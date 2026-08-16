@@ -143,7 +143,49 @@ export type Heroes = {
   identity_version: string;
 };
 
-export type StoryPage = {
+export type FindingKind =
+  | "thesis"
+  | "strength"
+  | "contradiction"
+  | "edge"
+  | "leak"
+  | "trajectory"
+  | "identity";
+
+export type FindingConfidence = "limited" | "moderate" | "high";
+
+export type FindingReceipt = {
+  key: string;
+  label: string;
+  value: string;
+  context: string | null;
+  confidence: FindingConfidence;
+};
+
+export type FindingExperiment = {
+  key: string;
+  title: string;
+  instruction: string;
+  hypothesis: string;
+  measurement: string;
+  window: string;
+};
+
+export type PublicFinding = {
+  key: string;
+  kind: FindingKind;
+  headline: string;
+  body: string;
+  interpretation: string | null;
+  confidence: FindingConfidence;
+  receipts: FindingReceipt[];
+  related_dimensions: DimensionKey[];
+  related_heroes: number[];
+  experiment: FindingExperiment | null;
+  share_copy: string | null;
+};
+
+export type StoryPageV1 = {
   id: string;
   kind:
     | "input"
@@ -166,6 +208,28 @@ export type StoryPage = {
   evidence_keys: string[];
 };
 
+export type StoryPageV2 = {
+  id: string;
+  kind:
+    | "input"
+    | "player_found"
+    | "analysis"
+    | "reveal"
+    | "finding"
+    | "experiment"
+    | "identity_card"
+    | "dna_xray"
+    | "deep_dive";
+  section: "intro" | "findings" | "dna" | "finale";
+  title: string;
+  body: string | null;
+  evidence_keys: string[];
+  finding_key?: string | null;
+  experiment_key?: string | null;
+};
+
+export type StoryPage = StoryPageV1 | StoryPageV2;
+
 export type ShareDimension = {
   key: DimensionKey;
   label: string | null;
@@ -180,7 +244,14 @@ export type ShareCommon = {
   match_count: number;
 };
 
-export type Shares = {
+export type FindingShare = {
+  finding_key: string | null;
+  headline: string;
+  archetype: string | null;
+  receipts: string[];
+};
+
+export type SharesV1 = {
   dna: ShareCommon & { spectra: ShareDimension[] };
   heroes: {
     signature: HeroCard | null;
@@ -201,9 +272,37 @@ export type Shares = {
   };
 };
 
-export type FreeDnaReport = {
+export type Shares = SharesV1 & {
+  identity?: FindingShare;
+  exposed?: FindingShare;
+  strength?: FindingShare;
+};
+
+export type ReportVersionsV1 = {
+  eligibility: string;
+  sessions: string;
+  features: string;
+  dna_scoring: string;
+  baselines: string;
+  archetype: string;
+  hero_identity: string;
+  hero_taxonomy: string;
+  recommendations: string;
+  copy: string;
+  model: string;
+  template: string;
+  share_renderer: string;
+  analysis_version_fingerprint: string;
+};
+
+export type ReportVersionsV2 = ReportVersionsV1 & {
+  findings: string;
+  finding_ranking: string;
+  story: string;
+};
+
+export type FreeDnaReportBase = {
   report_id?: string;
-  schema_version: "free-dna-report-1.0.0";
   report_variant: "free_dna_report";
   noindex: true;
   identity: {
@@ -222,22 +321,7 @@ export type FreeDnaReport = {
     raw_history_hash: string;
     history_tier: "limited" | "normal";
   };
-  versions: {
-    eligibility: string;
-    sessions: string;
-    features: string;
-    dna_scoring: string;
-    baselines: string;
-    archetype: string;
-    hero_identity: string;
-    hero_taxonomy: string;
-    recommendations: string;
-    copy: string;
-    model: string;
-    template: string;
-    share_renderer: string;
-    analysis_version_fingerprint: string;
-  };
+  versions: ReportVersionsV1 | ReportVersionsV2;
   quality: {
     overall_confidence: "low" | "moderate" | "high";
     history_tier: "limited" | "normal";
@@ -248,7 +332,6 @@ export type FreeDnaReport = {
   dimensions: DnaDimension[];
   archetype: Archetype;
   heroes: Heroes;
-  pages: StoryPage[];
   shares: Shares;
   deep_dive: {
     available: boolean;
@@ -271,6 +354,39 @@ export type FreeDnaReport = {
     estimated_cost_units: number;
   };
 };
+
+export type FreeDnaReportV1 = FreeDnaReportBase & {
+  schema_version: "free-dna-report-1.0.0";
+  versions: ReportVersionsV1;
+  pages: StoryPageV1[];
+  shares: SharesV1;
+};
+
+export type StoryDefinition = {
+  version: string;
+  thesis_key: string | null;
+  strength_key: string | null;
+  contradiction_key: string | null;
+  edge_key: string | null;
+  leak_key: string | null;
+  experiment_key: string | null;
+  ordered_pages: string[];
+};
+
+export type FreeDnaReportV2 = FreeDnaReportBase & {
+  schema_version: "free-dna-report-2.0.0";
+  versions: ReportVersionsV2;
+  findings: PublicFinding[];
+  story: StoryDefinition;
+  pages: StoryPageV2[];
+  shares: SharesV1 & {
+    identity: FindingShare;
+    exposed: FindingShare;
+    strength: FindingShare;
+  };
+};
+
+export type FreeDnaReport = FreeDnaReportV1 | FreeDnaReportV2;
 
 export async function createAnalysis(
   baseUrl: string,

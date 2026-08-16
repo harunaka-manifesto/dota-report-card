@@ -118,6 +118,9 @@ def test_free_compatibility_fingerprint_changes_with_analytical_versions(
         "app.heroes.taxonomy.TAXONOMY_VERSION",
         "app.reports.dna_assembly.REPORT_SCHEMA_VERSION",
         "app.share.service.RENDERER_VERSION",
+        "app.findings.registry.FINDING_VERSION",
+        "app.findings.ranking.RANKING_VERSION",
+        "app.findings.story.STORY_VERSION",
     )
 
     for target in version_targets:

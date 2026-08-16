@@ -1,4 +1,8 @@
-# Free DNA QA requirement traceability
+# Free DNA QA requirement traceability (v1 baseline)
+
+This matrix remains useful for the underlying Free data/privacy boundary. The
+finding-led v2 delta is tracked in
+[`free-dna-finding-led-qa.md`](free-dna-finding-led-qa.md).
 
 This matrix turns the attached `dota-report-card-full-qa-implementation-plan.md` into repository evidence. Every row names the source-plan section, implementation path, automated evidence, and remaining manual procedure where one is required.
 

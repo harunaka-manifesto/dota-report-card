@@ -16,7 +16,7 @@ from app.api.schemas import (
 from app.core.errors import AnalysisNotFound, AnalysisRateLimited, ReportNotFound
 from app.core.metrics import record_metric
 from app.core.security import RateLimiter, parse_player_identifier
-from app.share.service import build_share_svg
+from app.share.service import RENDERER_VERSION, build_share_svg
 
 router = APIRouter(prefix="/v1")
 _rate_limiter = RateLimiter()
@@ -138,7 +138,7 @@ async def get_share_card(
     except ValueError as exc:
         record_metric("share.render.failed", tags={"card_type": card_type})
         return Response(str(exc), status_code=422, media_type="text/plain")
-    record_metric("share.render.completed", tags={"card_type": card_type, "renderer": "share-svg-1.1.0"})
+    record_metric("share.render.completed", tags={"card_type": card_type, "renderer": RENDERER_VERSION})
     return Response(
         svg,
         media_type="image/svg+xml",

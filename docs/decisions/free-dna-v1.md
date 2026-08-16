@@ -1,5 +1,9 @@
 # Free Dota DNA v1 decisions
 
+This is the historical v1 decision record. The current v2 finding-led contract
+preserves these data and privacy decisions while adding the versioned finding
+story described in [`docs/free-dna-finding-system.md`](../free-dna-finding-system.md).
+
 These decisions are part of the versioned Free DNA contract.
 
 - Orientation uses the global spectrum convention: `0` is Facilitator, `0.5` is neutral, and `1` is Finisher.

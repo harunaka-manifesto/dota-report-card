@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   DnaDimension,
-  FreeDnaReport,
-  StoryPage
+  FreeDnaReportV1,
+  StoryPageV1
 } from "../../../../../../packages/api-client/src";
 import { track } from "../../../lib/analytics";
 import {
@@ -18,9 +18,9 @@ import {
 } from "../../../components/story/primitives";
 import ShareControls from "../../../components/share/share-controls";
 
-export type StoryReport = FreeDnaReport;
+export type StoryReport = FreeDnaReportV1;
 
-const entryPageKinds = new Set<StoryPage["kind"]>(["input", "player_found", "analysis"]);
+const entryPageKinds = new Set<StoryPageV1["kind"]>(["input", "player_found", "analysis"]);
 
 export default function ReportStory({ report }: { report: StoryReport }) {
   // The API returns the complete state machine so a client can resume an
@@ -235,7 +235,7 @@ export default function ReportStory({ report }: { report: StoryReport }) {
   );
 }
 
-function renderPage(page: StoryPage, report: StoryReport, openMethodology: (dimension: DnaDimension) => void) {
+function renderPage(page: StoryPageV1, report: StoryReport, openMethodology: (dimension: DnaDimension) => void) {
   if (page.kind === "section_intro") return <SectionIntro title={page.title} body={page.body} headingId={`${page.id}-heading`} />;
   if (page.kind === "reveal") return <div className="story-hero-copy"><p className="eyebrow">Report reveal</p><h2 id={`${page.id}-heading`}>{page.title}</h2>{page.body && <p>{page.body}</p>}</div>;
   if (page.kind === "dimension") {
@@ -253,7 +253,7 @@ function renderPage(page: StoryPage, report: StoryReport, openMethodology: (dime
   return <div className="story-summary"><p className="eyebrow">Dota DNA</p><h2 id={`${page.id}-heading`}>{page.title}</h2><div className="descriptor-list">{report.archetype.descriptors.map((item) => <span key={item.key}>{item.label}</span>)}</div><p>{page.body}</p></div>;
 }
 
-function DimensionPage({ page, dimension, onMethodology }: { page: StoryPage; dimension: DnaDimension; onMethodology: () => void }) {
+function DimensionPage({ page, dimension, onMethodology }: { page: StoryPageV1; dimension: DnaDimension; onMethodology: () => void }) {
   const left = dimension.copy?.left_label ?? "Lower";
   const right = dimension.copy?.right_label ?? "Higher";
   return <div className={`dimension-page is-${dimension.status}`}><p className="eyebrow">DNA signal · {dimension.confidence}</p><h2 id={`${page.id}-heading`}>{page.title}</h2><p className="dimension-label">{dimension.label ?? "Signal faint"}</p><Spectrum score={dimension.score} left={left} right={right} disabled={dimension.score === null} /><EvidenceReceipt evidence={dimension.evidence} />{dimension.status === "unavailable" ? <p className="muted">{page.body}</p> : <p>{page.body}</p>}<button className="methodology-button" type="button" onClick={onMethodology}>How is this read?</button></div>;

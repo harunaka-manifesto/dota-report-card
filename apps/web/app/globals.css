@@ -115,6 +115,32 @@ html[data-report-story="true"] { scroll-snap-type: y proximity; scroll-padding-t
 .deep-dive-teaser p { color: #c9c3b8; }
 .story-link { color: #f7f2e8; font-weight: 700; }
 .final-card { display: grid; max-width: 700px; gap: 18px; }
+.finding-page, .experiment-page, .identity-card, .dna-xray { max-width: 760px; }
+.finding-page h2, .experiment-page h2, .identity-card h2, .dna-xray h2 { margin: 14px 0 22px; font-size: clamp(42px, 8vw, 82px); line-height: .94; letter-spacing: -.065em; }
+.finding-body, .experiment-instruction, .identity-card > p:not(.eyebrow), .dna-xray > p:not(.eyebrow) { max-width: 620px; color: #6e685d; font-size: 18px; }
+.finding-receipts { display: grid; max-width: 720px; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 24px 0; }
+.finding-receipts span { display: flex; min-height: 86px; flex-direction: column; justify-content: space-between; padding: 13px; border: 1px solid #d4cbbb; background: rgba(255,255,255,.42); }
+.finding-receipts strong { font-size: 16px; line-height: 1.25; }
+.finding-receipts small { color: #7e776b; font-size: 11px; text-transform: capitalize; }
+.finding-interpretation { max-width: 620px; margin: 24px 0; padding: 18px 20px; border-left: 3px solid var(--accent); background: #efe4d3; }
+.finding-interpretation span { color: var(--accent-dark); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.finding-interpretation p { margin: 8px 0 0; }
+.finding-evidence-details { max-width: 720px; margin-top: 18px; }
+.finding-details-body { padding: 14px 0; }
+.finding-details-body > div { margin: 14px 0 20px; }
+.experiment-facts { display: grid; max-width: 680px; gap: 0; margin: 24px 0; border-top: 1px solid #d4cbbb; }
+.experiment-facts div { display: grid; grid-template-columns: 100px 1fr; gap: 18px; padding: 14px 0; border-bottom: 1px solid #d4cbbb; }
+.experiment-facts dt { color: var(--accent-dark); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.experiment-facts dd { margin: 0; color: #6e685d; }
+.identity-card { display: grid; gap: 14px; padding: 30px; border: 1px solid #d4cbbb; background: #e5dbc9; }
+.identity-card .finding-receipts { margin: 8px 0; }
+.identity-archetype { margin: 0; color: var(--accent-dark); font-size: 22px; font-weight: 700; }
+.dna-xray-list { display: grid; max-width: 740px; gap: 10px; margin-top: 22px; }
+.dna-xray-row { display: grid; grid-template-columns: 150px 1fr auto; align-items: center; gap: 14px; padding: 12px; border: 1px solid #d4cbbb; background: rgba(255,255,255,.35); }
+.dna-xray-row > div { display: grid; gap: 4px; }
+.dna-xray-row small { color: #7e776b; font-size: 11px; }
+.dna-xray-row .spectrum { margin: 0; }
+.dna-xray-row .methodology-button { white-space: nowrap; }
 .share-controls { display: grid; max-width: 460px; gap: 10px; margin-top: 12px; padding: 16px; border: 1px solid #d4cbbb; background: rgba(255,255,255,.42); }
 .share-preview { max-width: 260px; aspect-ratio: 4 / 5; overflow: hidden; border: 1px solid #d4cbbb; background: #f7f2e8; }
 .share-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -138,6 +164,10 @@ html[data-report-story="true"] { scroll-snap-type: y proximity; scroll-padding-t
   .story-progress { gap: 8px; padding-top: max(10px, env(safe-area-inset-top)); }
   .story-progress-link { display: none; }
   .receipt, .hero-grid { grid-template-columns: 1fr; }
+  .finding-receipts { grid-template-columns: 1fr; }
+  .experiment-facts div { grid-template-columns: 1fr; gap: 6px; }
+  .dna-xray-row { grid-template-columns: 1fr; gap: 8px; }
+  .dna-xray-row .methodology-button { justify-self: start; }
   .hero-portrait-card.is-featured { grid-template-columns: 112px 1fr; gap: 14px; }
-  .story-hero-copy h2, .story-intro h2, .story-summary h2, .archetype-reveal h2, .pattern-card h2, .dimension-page h2, .deep-dive-teaser h2 { font-size: clamp(42px, 14vw, 72px); }
+  .story-hero-copy h2, .story-intro h2, .story-summary h2, .archetype-reveal h2, .pattern-card h2, .dimension-page h2, .deep-dive-teaser h2, .finding-page h2, .experiment-page h2, .identity-card h2, .dna-xray h2 { font-size: clamp(42px, 14vw, 72px); }
 }

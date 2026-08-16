@@ -32,15 +32,18 @@ Player DNA reads up to 500 cheap summary rows by default. Deep Scan has separate
 
 For the expected-behavior contract used by bug-busting agents, see [the system behavior baseline](docs/system-behavior-baseline.md).
 
-The Free DNA contract is intentionally strict: it publishes a versioned, noindex
-summary snapshot with eight dimensions and 23 story states, while keeping raw
-identifiers, match rows, session internals, and legacy payloads private. A
-completed report enters at `report-reveal`; the earlier input, player-found, and
-analysis states are included for clients that render the full journey. Share
-cards use the deterministic `share-svg-1.1.0` renderer until a pinned image
-renderer is introduced. Hero taxonomy snapshots are validated in CI, and
-summary `lane_role` values are treated as role hints; a spatial lane field does
-not manufacture a role.
+The Free DNA contract is intentionally strict: `free-dna-report-2.0.0` publishes
+a noindex finding-led summary snapshot with eight dimensions retained as
+supporting evidence. Public findings carry deterministic receipts, neutral copy,
+and player-observable experiments; raw identifiers, match rows, session
+internals, and legacy/deep payloads stay private. Completed reports enter at
+`report-reveal`, while input/player-found/analysis pages remain in the payload
+for full-journey clients. The identity, exposed-finding, and strength cards use
+the deterministic `share-svg-2.0.0` renderer; the legacy DNA/Heroes/Final card
+aliases remain available. v1 validation and rendering are retained for existing
+snapshots. Hero taxonomy snapshots are validated in CI, and summary `lane_role`
+values are treated as role hints; a spatial lane field does not manufacture a
+role.
 
 ## Architecture
 
@@ -49,6 +52,7 @@ not manufacture a role.
 - services/api/app/features calculates facts without publishing conclusions.
 - services/api/app/cohorts selects the narrowest valid comparison or fails closed.
 - services/api/app/patterns detects summary-only Player DNA observations and app/hypotheses maps them to deterministic explanations.
+- services/api/app/findings derives deterministic cross-signal findings from the same Free summary corpus and selects the public story.
 - services/api/app/selection globally deduplicates diagnostic match candidates using marginal information gain and cost.
 - services/api/app/insights evaluates the existing rich families, applies gates, ranks evidence, and renders approved templates.
 - services/api/app/reports assembles the read-only report.

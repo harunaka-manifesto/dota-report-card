@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -114,7 +115,7 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     assert source.requests == [("player", 42), ("matches", 42)]
     report = repository.get_report(job.report_id or "")
     assert report is not None
-    assert report["schema_version"] == "free-dna-report-1.0.0"
+    assert report["schema_version"] == "free-dna-report-2.0.0"
     assert report["report_variant"] == "free_dna_report"
     assert report["noindex"] is True
     assert "account_id" not in report
@@ -122,12 +123,17 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     assert "legacy_summary" not in report
     assert report["cost"]["history_requests"] == 1
     assert report["cost"]["detail_requests"] == 0
+    assert report["cost"]["parse_requests"] == 0
+    assert report["cost"]["parse_status_requests"] == 0
     assert len(report["dimensions"]) == 8
-    assert len(report["pages"]) == 23
-    assert {page["id"] for page in report["pages"]} >= {
-        "breadth", "role", "adaptability", "activity",
-        "orientation", "resilience", "endurance", "rhythm",
-    }
+    assert 7 <= len(report["pages"]) <= 14
+    assert report["findings"]
+    assert all(len(finding["receipts"]) >= 2 for finding in report["findings"])
+    assert {finding["kind"] for finding in report["findings"]} >= {"strength", "contradiction"}
+    assert any(finding["experiment"] for finding in report["findings"])
+    assert all(report["shares"][key]["finding_key"] for key in ("identity", "exposed", "strength"))
+    assert report["story"]["ordered_pages"] == [page["id"] for page in report["pages"]]
+    assert {page["kind"] for page in report["pages"]} >= {"finding", "identity_card", "dna_xray", "deep_dive"}
     assert report["metadata"]["history_tier"] == "limited"
     assert all(
         key not in report
@@ -137,7 +143,7 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     assert "account_id" not in str(report["shares"])
     assert "account_id" not in str(report["pages"])
 
-    for card_type in ("dna", "heroes", "final"):
+    for card_type in ("identity", "exposed", "strength", "dna", "heroes", "final"):
         svg, _ = build_share_svg(report, card_type=card_type, show_name=False, show_avatar=False)
         assert str(42) not in svg
         assert "<svg" in svg
@@ -164,12 +170,12 @@ def test_public_report_route_sets_noindex_and_returns_strict_free_contract() -> 
     assert response.status_code == 200
     assert response.headers["x-robots-tag"] == "noindex, nofollow, noarchive"
     body = response.json()
-    assert body["schema_version"] == "free-dna-report-1.0.0"
+    assert body["schema_version"] == "free-dna-report-2.0.0"
     assert body["report_variant"] == "free_dna_report"
     validate_free_dna_report(body)
 
 
-def test_free_cache_miss_never_calls_match_details_or_deep_detection(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_free_cache_miss_never_calls_match_details_or_parse_requests() -> None:
     history = [_summary(900_110_000 + index, index) for index in range(35)]
 
     class NoDetailSource(MappingSource):
@@ -181,18 +187,16 @@ def test_free_cache_miss_never_calls_match_details_or_deep_detection(monkeypatch
         matches=history,
         details={},
     )
-    monkeypatch.setattr(
-        "app.analysis.service.detect_patterns",
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(
-            AssertionError("Free DNA invoked Deep Scan pattern detection")
-        ),
-    )
     service = AnalysisService(source, settings=Settings())
     job, _ = asyncio.run(service.create_analysis("42", enqueue=False))
     asyncio.run(service.run_job(job))
 
     assert job.status == "completed"
     assert source.requests == [("player", 42), ("matches", 42)]
+    report = service.repository.get_report(job.report_id or "")
+    assert report is not None
+    assert report["cost"]["detail_requests"] == 0
+    assert report["cost"]["parse_requests"] == 0
 
 
 def test_public_free_report_rejects_internal_and_legacy_fields() -> None:
@@ -218,6 +222,54 @@ def test_public_free_report_rejects_internal_and_legacy_fields() -> None:
             **report,
             "identity": {**report["identity"], "account_id": 42},
         })
+
+
+def test_v2_contract_rejects_invalid_receipts_and_story_references() -> None:
+    history = [_summary(900_125_000 + index, index) for index in range(35)]
+    source = MappingSource(
+        player={"profile": {"account_id": 42, "personaname": "Fixture player"}},
+        matches=history,
+        details={},
+    )
+    repository = InMemoryRepository()
+    service = AnalysisService(source, repository=repository, settings=Settings())
+    job, _ = asyncio.run(service.create_analysis("42", enqueue=False))
+    asyncio.run(service.run_job(job))
+    report = repository.get_report(job.report_id or "")
+    assert report is not None
+
+    one_receipt = copy.deepcopy(report)
+    one_receipt["findings"][0]["receipts"] = one_receipt["findings"][0]["receipts"][:1]
+    with pytest.raises(ValueError):
+        validate_free_dna_report(one_receipt)
+
+    unknown_finding = copy.deepcopy(report)
+    finding_page = next(page for page in unknown_finding["pages"] if page["kind"] == "finding")
+    finding_page["finding_key"] = "missing-finding"
+    with pytest.raises(ValueError):
+        validate_free_dna_report(unknown_finding)
+
+    duplicate_page = copy.deepcopy(report)
+    duplicate_page["pages"][1]["id"] = duplicate_page["pages"][0]["id"]
+    duplicate_page["story"]["ordered_pages"][1] = duplicate_page["story"]["ordered_pages"][0]
+    with pytest.raises(ValueError):
+        validate_free_dna_report(duplicate_page)
+
+    unknown_experiment = copy.deepcopy(report)
+    experiment_finding = next(finding for finding in unknown_experiment["findings"] if finding["experiment"])
+    unknown_experiment["pages"].append({
+        "id": "experiment-invalid",
+        "kind": "experiment",
+        "section": "findings",
+        "title": "Invalid experiment",
+        "body": "Invalid experiment",
+        "evidence_keys": [],
+        "finding_key": experiment_finding["key"],
+        "experiment_key": "missing-experiment",
+    })
+    unknown_experiment["story"]["ordered_pages"].append("experiment-invalid")
+    with pytest.raises(ValueError):
+        validate_free_dna_report(unknown_experiment)
 
 
 def test_public_free_report_sanitizes_identifier_shaped_identity_fields() -> None:

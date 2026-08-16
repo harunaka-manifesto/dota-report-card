@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { FreeDnaReport } from "../../../../../packages/api-client/src";
 import ReportStory, { type StoryReport } from "./dna/report-story";
+import ReportStoryV2 from "./dna/report-story-v2";
 
 export const revalidate = 60;
 
@@ -80,6 +81,9 @@ export default async function ReportPage({ params }: { params: { reportId: strin
   const report = await getReport(params.reportId);
   if (report.report_variant === "free_dna_report" && report.schema_version === "free-dna-report-1.0.0") {
     return <ReportStory report={report as StoryReport} />;
+  }
+  if (report.report_variant === "free_dna_report" && report.schema_version === "free-dna-report-2.0.0") {
+    return <ReportStoryV2 report={report as Extract<FreeDnaReport, { schema_version: "free-dna-report-2.0.0" }>} />;
   }
   const sections = report.sections;
   return (

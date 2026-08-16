@@ -36,6 +36,9 @@ from app.features.calculators import calculate_match_features
 from app.features.models import MatchFeature
 from app.features.summary_calculators import calculate_summary_features
 from app.features.summary_models import SummaryFeatureSet
+from app.findings.conflicts import select_story_findings
+from app.findings.context import build_free_finding_context, summary_features_for_free
+from app.findings.evaluator import evaluate_free_findings
 from app.heroes.identity import select_hero_identity
 from app.identity.steam import SteamVanityResolver
 from app.ingestion.coverage import coverage_for_match
@@ -130,6 +133,9 @@ class AnalysisService:
             from app.dna.features.models import FEATURE_VERSION
             from app.dna.pipeline import DNA_SCORING_VERSION
             from app.dna.sessions import SESSION_VERSION
+            from app.findings.ranking import RANKING_VERSION
+            from app.findings.registry import FINDING_VERSION
+            from app.findings.story import STORY_VERSION
             from app.heroes.identity import HERO_IDENTITY_VERSION
             from app.heroes.taxonomy import TAXONOMY_VERSION
             from app.reports.dna_assembly import REPORT_SCHEMA_VERSION
@@ -145,6 +151,9 @@ class AnalysisService:
                 "hero_identity": HERO_IDENTITY_VERSION,
                 "hero_taxonomy": TAXONOMY_VERSION,
                 "recommendations": "hero-recommendations-1.1.0",
+                "findings": FINDING_VERSION,
+                "finding_ranking": RANKING_VERSION,
+                "story": STORY_VERSION,
                 "copy": copy_version(),
                 "report_schema": REPORT_SCHEMA_VERSION,
                 "model": self.settings.model_version,
@@ -394,7 +403,9 @@ class AnalysisService:
             message="Rebuilding your play sessions",
         )
         policy = SessionPolicy(gap_minutes=self.settings.effective_session_gap_minutes)
-        sessions = infer_sessions(normalized.matches, policy)
+        # Free DNA and finding synthesis must share one eligible population.
+        # Ineligible rows remain available only to the private exclusion ledger.
+        sessions = infer_sessions(normalized.eligible_matches, policy)
 
         self.repository.update_job(
             job,
@@ -436,6 +447,35 @@ class AnalysisService:
 
         self.repository.update_job(
             job,
+            stage="finding_patterns",
+            message="Looking for patterns that only appear when the signals are read together",
+        )
+        summary_feature_set = summary_features_for_free(
+            normalized.eligible_matches,
+            session_gap_minutes=self.settings.effective_session_gap_minutes,
+        )
+        if len(summary_feature_set.matches) != job.eligible_matches:
+            raise InsufficientMatchHistory("Summary finding context did not match eligible history")
+        patterns = detect_patterns(summary_feature_set)
+
+        self.repository.update_job(
+            job,
+            stage="finding_synthesis",
+            message="Checking which findings are strong enough to show",
+        )
+        finding_context = build_free_finding_context(
+            dna=dna_analysis,
+            summary_features=summary_feature_set,
+            patterns=patterns,
+            processed_matches=job.processed_matches,
+            eligible_matches=job.eligible_matches,
+            history_limit=history_limit,
+        )
+        findings = evaluate_free_findings(finding_context)
+        story_selection = select_story_findings(findings)
+
+        self.repository.update_job(
+            job,
             stage="rendering_report",
             message="Building your Dota DNA",
         )
@@ -451,6 +491,8 @@ class AnalysisService:
             template_version=self.settings.template_version,
             cost_ledger=cost_ledger,
             analysis_version_fingerprint=job.model_version,
+            findings=findings,
+            story_selection=story_selection,
         )
         report = validate_free_dna_report(report)
         report_id = self.repository.save_report(

@@ -50,32 +50,26 @@ const hero = {
   portrait_asset_version: "fixture-1"
 };
 
-const page = (id, kind, section, title, body = null) => ({
-  id, kind, section, title, body, evidence_keys: []
+const page = (id, kind, section, title, body = null, extra = {}) => ({
+  id, kind, section, title, body, evidence_keys: [], ...extra
 });
 
 const pages = [
   page("steam-input", "input", "intro", "Enter a player"),
   page("player-found", "player_found", "intro", "Player found"),
   page("analysis", "analysis", "intro", "Reading history"),
-  page("report-reveal", "reveal", "intro", "Your Dota DNA", "A bounded summary-history snapshot."),
-  page("dna-intro", "section_intro", "dna", "Eight signals"),
-  ...dimensions.map((item) => page(item.key, "dimension", "dna", `${item.key} signal`, `Fixture evidence for ${item.key}.`)),
-  page("archetype", "archetype", "dna", "The Adapter", "Your history shows several observable patterns."),
-  page("dna-summary", "summary", "dna", "DNA summary"),
-  page("heroes-intro", "section_intro", "heroes", "The heroes you return to"),
-  page("signature-hero", "signature_hero", "heroes", "Signature hero", "A hero identity snapshot."),
-  page("comfort-picks", "comfort", "heroes", "Comfort picks", "Heroes with repeated evidence."),
-  page("hero-pattern", "hero_pattern", "heroes", "Hero pattern", "The explorer pattern."),
-  page("hero-recommendations", "recommendations", "heroes", "Hero recommendations", "Taste adjacency with guardrails."),
-  page("heroes-summary", "summary", "heroes", "Heroes summary"),
-  page("final-card", "final_card", "finale", "Final fingerprint", "A privacy-safe share card."),
+  page("report-reveal", "reveal", "intro", "Your Dota DNA", "We found the patterns that only show up when the signals are read together."),
+  page("finding-contrast", "finding", "findings", "Your hero pool is wide. Your safety zone is not.", "You explore broadly overall, but your history becomes more concentrated around familiar heroes when results are less stable.", { finding_key: "contrast" }),
+  page("finding-strength", "finding", "findings", "Your strongest habit travels across the history.", "A positive pattern with two deterministic receipts.", { finding_key: "strength" }),
+  page("experiment-adjacent", "experiment", "findings", "Test the edge of your comfort zone", "In your next 5 post-loss queues, choose one adjacent comfort hero.", { finding_key: "contrast", experiment_key: "adjacent_pick_after_loss" }),
+  page("identity-card", "identity_card", "finale", "Your hero pool is wide. Your safety zone is not.", "The Adapter", { finding_key: "contrast" }),
+  page("dna-xray", "dna_xray", "dna", "Your full DNA", "All eight dimensions remain available as evidence."),
   page("deep-dive", "deep_dive", "finale", "Explore Deep Dive", "A separate, opt-in product.")
 ];
 
 const report = {
   report_id: reportId,
-  schema_version: "free-dna-report-1.0.0",
+  schema_version: "free-dna-report-2.0.0",
   report_variant: "free_dna_report",
   noindex: true,
   identity: { display_name: "Fixture player", avatar_url: null, rank_tier: null },
@@ -100,6 +94,9 @@ const report = {
     hero_identity: "hero-identity-1.1.0",
     hero_taxonomy: "fixture-taxonomy",
     recommendations: "hero-recommendations-1.1.0",
+    findings: "free-findings-1.0.0",
+    finding_ranking: "free-finding-ranking-1.0.0",
+    story: "free-story-2.0.0",
     copy: "copy-1.0.0",
     model: "fixture-model",
     template: "free-dna-template-1.0.0",
@@ -138,8 +135,62 @@ const report = {
     limitations: [],
     identity_version: "hero-identity-1.1.0"
   },
+  findings: [
+    {
+      key: "contrast",
+      kind: "contradiction",
+      headline: "Your hero pool is wide. Your safety zone is not.",
+      body: "You explore broadly overall, but your history becomes more concentrated around familiar heroes when results are less stable.",
+      interpretation: "You do not avoid experimentation. You appear to rely on familiarity more selectively.",
+      confidence: "high",
+      receipts: [
+        { key: "pool", label: "Hero pool", value: "31 heroes · n=60", context: "dna_feature", confidence: "high" },
+        { key: "trust", label: "Familiar picks after losses", value: "61% vs 43% after wins", context: "derived_summary", confidence: "moderate" }
+      ],
+      related_dimensions: ["breadth", "resilience"],
+      related_heroes: [],
+      experiment: {
+        key: "adjacent_pick_after_loss",
+        title: "Test the edge of your comfort zone",
+        instruction: "In your next 5 post-loss queues, choose one adjacent comfort hero.",
+        hypothesis: "Your playable pool may be wider than the first familiar pick after a loss.",
+        measurement: "Notice whether activity and result quality stay close to your normal comfort games.",
+        window: "5 matches"
+      },
+      share_copy: "My hero pool is wide. Apparently my safety zone is not."
+    },
+    {
+      key: "strength",
+      kind: "strength",
+      headline: "Your strongest habit travels across the history.",
+      body: "Activity and role evidence stay visible across the bounded sample.",
+      interpretation: "This is the clearest positive pattern available in the fixture history.",
+      confidence: "moderate",
+      receipts: [
+        { key: "activity", label: "Typical activity", value: "18.2 involvement/min · n=60", context: "dna_feature", confidence: "moderate" },
+        { key: "role", label: "Dominant role share", value: "62% · n=60", context: "dimension", confidence: "moderate" }
+      ],
+      related_dimensions: ["activity", "role"],
+      related_heroes: [],
+      experiment: null,
+      share_copy: "One of my strongest Dota habits holds up."
+    }
+  ],
+  story: {
+    version: "free-story-2.0.0",
+    thesis_key: "contrast",
+    strength_key: "strength",
+    contradiction_key: null,
+    edge_key: null,
+    leak_key: null,
+    experiment_key: "adjacent_pick_after_loss",
+    ordered_pages: pages.map((item) => item.id)
+  },
   pages,
   shares: {
+    identity: { finding_key: "contrast", headline: "Your hero pool is wide. Your safety zone is not.", archetype: "The Adapter", receipts: ["31 heroes · n=60", "61% vs 43% after wins"] },
+    exposed: { finding_key: "contrast", headline: "My hero pool is wide. Apparently my safety zone is not.", archetype: "The Adapter", receipts: ["31 heroes · n=60", "61% vs 43% after wins"] },
+    strength: { finding_key: "strength", headline: "One of my strongest Dota habits holds up.", archetype: "The Adapter", receipts: ["18.2 involvement/min · n=60", "62% · n=60"] },
     dna: { archetype: "The Adapter", descriptors: [], match_count: 60, spectra: [] },
     heroes: { signature: hero, comfort: [hero], pattern: null, recommendations: [] },
     final: { archetype: "The Adapter", descriptors: [], match_count: 60, display_name: "Fixture player", signature: "Anti-Mage", pattern: "Explorer", rhythm: "Grinder" },

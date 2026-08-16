@@ -14,8 +14,8 @@ import json
 from typing import Any
 from urllib.parse import urlparse
 
-RENDERER_VERSION = "share-svg-1.1.0"
-CARD_TYPES = frozenset({"dna", "heroes", "final"})
+RENDERER_VERSION = "share-svg-2.0.0"
+CARD_TYPES = frozenset({"identity", "exposed", "strength", "dna", "heroes", "final"})
 
 
 def share_cache_key(
@@ -82,10 +82,16 @@ def _card_content(report: dict[str, Any], card_type: str, *, show_name: bool, sh
     shares = report.get("shares") or {}
     card = dict(shares.get(card_type) or {})
     identity = report.get("identity") or {}
-    if card_type == "dna":
+    facts: list[Any] = []
+    if card_type in {"identity", "exposed", "strength"}:
+        title = card.get("headline") or "Your Dota pattern"
+        facts = [value for value in card.get("receipts", []) if isinstance(value, str)]
+        subtitle = card.get("archetype") or "A finding from the patterns in your recent matches."
+    elif card_type == "dna":
         title = card.get("archetype") or "Your Dota DNA"
         descriptors = [item.get("label") for item in card.get("descriptors", []) if isinstance(item, dict)]
         facts = descriptors + ([f"{card.get('match_count')} eligible matches"] if card.get("match_count") is not None else [])
+        subtitle = card.get("archetype") or "A snapshot of the patterns in your recent matches."
     elif card_type == "heroes":
         signature = card.get("signature") or {}
         title = signature.get("name") or "Your hero identity"
@@ -95,12 +101,14 @@ def _card_content(report: dict[str, Any], card_type: str, *, show_name: bool, sh
         facts = ["Signature hero", pattern.get("label") if isinstance(pattern, dict) else pattern]
         if recommendation_name:
             facts.append(f"Try next: {recommendation_name}")
+        subtitle = card.get("archetype") or "A snapshot of the heroes in your recent matches."
     else:
         title = identity.get("display_name") if show_name else card.get("archetype") or "Your Dota DNA"
         facts = [card.get("archetype"), card.get("signature"), card.get("pattern"), card.get("rhythm")]
+        subtitle = card.get("archetype") or "A snapshot of the patterns in your recent matches."
     return {
         "title": title,
-        "subtitle": card.get("archetype") or "A snapshot of the patterns in your recent matches.",
+        "subtitle": subtitle,
         "facts": [value for value in facts if value],
         "show_avatar": show_avatar,
         "show_name": show_name,

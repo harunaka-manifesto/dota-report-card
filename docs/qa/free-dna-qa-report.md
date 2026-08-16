@@ -1,4 +1,8 @@
-# Free DNA QA report
+# Free DNA QA report (v1 baseline)
+
+This document records the earlier v1 QA baseline and its historical waivers.
+The current finding-led v2 implementation and acceptance matrix are in
+[`free-dna-finding-led-qa.md`](free-dna-finding-led-qa.md).
 
 Audited commit: `0249ed7a759bb28b5fd99a46a97075a02661b117` (`revise pass 1`); remediation is in the current working tree and is not committed.
 
