@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import urlparse
 
 from app.analysis.budget import DataCostLedger
 from app.content.catalog import copy_version
@@ -38,7 +39,12 @@ def assemble_free_dna_report(
 
     dimensions = [_public_dimension(item.as_dict()) for item in analysis.dimensions]
     dates = [item.started_at for item in analysis.matches if item.started_at is not None]
-    display_name = str(profile.get("personaname") or profile.get("display_name") or "Anonymous player")
+    display_name = _public_display_name(
+        profile.get("personaname") or profile.get("display_name"), account_id
+    )
+    avatar_url = _public_avatar_url(
+        profile.get("avatarfull") or profile.get("avatar_url"), account_id
+    )
     history_tier = "limited" if 30 <= eligible_matches < 60 else "normal"
     created_at = datetime.now(UTC).isoformat()
     cost = _public_cost(cost_ledger)
@@ -48,7 +54,7 @@ def assemble_free_dna_report(
         "noindex": True,
         "identity": {
             "display_name": display_name,
-            "avatar_url": profile.get("avatarfull") or profile.get("avatar_url"),
+            "avatar_url": avatar_url,
             "rank_tier": profile.get("rank_tier"),
         },
         "metadata": {
@@ -164,6 +170,28 @@ def _public_cost(ledger: DataCostLedger | None) -> dict[str, Any]:
         "cache_hits": int(value["cache_hits"]),
         "estimated_cost_units": float(value["estimated_cost_units"]),
     }
+
+
+def _public_display_name(value: Any, account_id: int | None) -> str:
+    candidate = str(value or "Anonymous player").strip()
+    # A profile name that is exactly the internal account ID is not useful
+    # identity copy and would reintroduce the identifier into the public
+    # report/share boundary.
+    return "Anonymous player" if account_id is not None and candidate == str(account_id) else candidate
+
+
+def _public_avatar_url(value: Any, account_id: int | None) -> str | None:
+    if not isinstance(value, str) or not value:
+        return None
+    parsed = urlparse(value)
+    if parsed.scheme != "https" or parsed.hostname not in {
+        "steamcdn-a.akamaihd.net",
+        "avatars.akamai.steamstatic.com",
+    }:
+        return None
+    if parsed.query or parsed.fragment or (account_id is not None and str(account_id) in parsed.path):
+        return None
+    return value
 
 
 def _pages(analysis: DnaAnalysisResult, display_name: str) -> list[dict[str, Any]]:

@@ -86,6 +86,11 @@ def classify(
         if not active_weight:
             continue
         covered_groups = {_dimension_group(item["key"]) for item in contributions}
+        if required_groups and not required_groups.issubset(covered_groups):
+            # A prototype is only meaningful when every declared evidence
+            # group contributed.  Do not let a partial match win by treating
+            # an absent group as a neutral signal.
+            continue
         missing_group_fraction = (
             len(required_groups - covered_groups) / len(required_groups)
             if required_groups else 0.0

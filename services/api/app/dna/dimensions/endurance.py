@@ -29,7 +29,10 @@ def score(features: DnaFeatureSet):
         ]
         if len(rows) < 2:
             continue
-        xs = [min(index + 1, 4) for index, _item in enumerate(rows)]
+        xs = [
+            min(item.session_index or index + 1, 4)
+            for index, item in enumerate(rows)
+        ]
         ys = [features.performance_by_match[item.match_id] for item in rows]
         mean_x = sum(xs) / len(xs)
         mean_y = sum(ys) / len(ys)
@@ -42,8 +45,10 @@ def score(features: DnaFeatureSet):
         late_count += sum(x >= 3 for x in xs)
         game4_count += sum(x >= 4 for x in xs)
         for x, item in zip(xs, rows, strict=True):
-            if item.role_hint:
-                (early_roles if x == 1 else late_roles)[item.role_hint] += 1
+            if item.role_hint and x == 1:
+                early_roles[item.role_hint] += 1
+            elif item.role_hint and x >= 3:
+                late_roles[item.role_hint] += 1
     independent_sessions = len(slopes)
     sample = first_count + late_count
     if independent_sessions < 12 or first_count < 15 or late_count < 12:

@@ -79,7 +79,7 @@ export default function AnalysisForm() {
         const stage = event.stage;
         setStatus((current) => ({
           ...(current ?? {
-            job_id: body.job_id,
+            job_id: jobId,
             status: event.status ?? "running",
             stage,
             warnings: [],
@@ -209,6 +209,7 @@ function stageCopy(stage: string): string {
     fetching_history: "Finding your recent matches.",
     filtering_matches: "Sorting the matches we can read.",
     normalizing_history: "Sorting the matches we can read.",
+    feature_extraction: "Mapping hero, role, and session evidence.",
     hero_features: "Mapping your hero habits.",
     role_features: "Reading your role patterns.",
     session_inference: "Rebuilding your play sessions.",

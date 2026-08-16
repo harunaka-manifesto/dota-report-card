@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from app.analysis.budget import BudgetState, CostPolicy, DataCostLedger
 from app.analysis.deep_scan import plan_deep_scan
+from app.dna.sessions import infer_sessions
 from app.features.summary_calculators import calculate_summary_features
 from app.ingestion.coverage import ParseCoverage, has_required_families, missing_required_families
+from app.ingestion.summary_normalize import normalize_summary_rows
 from app.patterns.detector import detect_patterns
 
 
@@ -47,6 +49,27 @@ def test_summary_fields_stay_nullable_and_sessionization_is_order_invariant() ->
     assert first.matches[0].gold_per_min is None
     assert [session.match_ids for session in first.sessions] == [(1, 2), (3,)]
     assert first.matches[1].session_index == 2
+
+
+def test_session_gap_boundary_midnight_and_undated_rows_are_deterministic() -> None:
+    first_start = 1_704_153_540  # 2024-01-01 23:59 UTC
+    rows = [
+        _summary(1, start_time=first_start, hero_id=1, won=True),
+        # Queue gap is exactly 90 minutes, so the second match stays in-session.
+        _summary(2, start_time=first_start + 1_800 + 90 * 60, hero_id=2, won=False),
+        # One second beyond the threshold starts a new session.
+        _summary(3, start_time=first_start + 1_800 + 90 * 60 + 1_800 + 90 * 60 + 1, hero_id=3, won=True),
+        # A missing timestamp is retained for non-session dimensions but never
+        # bridges or joins a dated session.
+        _summary(4, start_time=first_start, hero_id=4, won=True),
+    ]
+    rows[-1]["start_time"] = None  # type: ignore[assignment]
+
+    normalized = normalize_summary_rows(rows, account_id=42)
+    session_result = infer_sessions(normalized.matches)
+
+    assert [session.match_ids for session in session_result.sessions] == [(1, 2), (3,)]
+    assert session_result.matches[-1].session_id is None
 
 
 def test_summary_detector_finds_hero_overperformance_without_detail_data() -> None:

@@ -15,9 +15,12 @@ def score(features: DnaFeatureSet):
     rows = sorted(
         (
             item for item in features.matches
-            if item.hero_id is not None and item.won is not None and item.started_at is not None
+            if item.hero_id is not None and item.won is not None
         ),
-        key=lambda item: (item.started_at or 0, item.match_id),
+        # Timestamped rows use chronological order. Undated rows remain
+        # eligible for this hero/outcome comparison and fall back to the
+        # stable match ID order so input ordering cannot change the split.
+        key=lambda item: (item.started_at is None, item.started_at or 0, item.match_id),
     )
     if len(rows) < 40:
         return result(
@@ -31,7 +34,11 @@ def score(features: DnaFeatureSet):
     evaluation = rows[split:]
     familiar_eval = [item for item in evaluation if item.hero_id in familiar]
     off_pool_eval = [item for item in evaluation if item.hero_id not in familiar]
-    methodology = "time_split_70_30"
+    methodology = (
+        "time_split_70_30"
+        if all(item.started_at is not None for item in rows)
+        else "stable_match_id_split_missing_timestamps"
+    )
     if len(familiar_eval) < 20 or len(off_pool_eval) < 20:
         # A leave-one-window-out fallback still keeps familiarity outcome-free.
         methodology = "leave_one_window_out_fallback"
@@ -83,7 +90,7 @@ def score(features: DnaFeatureSet):
         effective_sample_size=min(len(familiar_eval), len(off_pool_eval)) * 2,
         coverage=(len(familiar_eval) + len(off_pool_eval)) / max(features.sample_size, 1),
         minimum_sample=40,
-        stability=0.85 if methodology == "time_split_70_30" else 0.65,
+        stability=0.85 if methodology == "time_split_70_30" else 0.60,
         quality=quality,
         evidence=tuple(evidence),
         confounders=tuple(confounders),

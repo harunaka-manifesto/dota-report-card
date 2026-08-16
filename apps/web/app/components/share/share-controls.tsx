@@ -3,15 +3,24 @@
 import { useMemo, useState } from "react";
 import { track } from "../../lib/analytics";
 
+type CardType = "dna" | "heroes" | "final";
+
+const CARD_LABELS: Record<CardType, string> = {
+  dna: "DNA snapshot",
+  heroes: "Hero identity",
+  final: "Final fingerprint"
+};
+
 export default function ShareControls({ reportId }: { reportId: string }) {
+  const [cardType, setCardType] = useState<CardType>("final");
   const [showName, setShowName] = useState(true);
   const [showAvatar, setShowAvatar] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
   const cardUrl = useMemo(() => {
     const params = new URLSearchParams({ show_name: String(showName), show_avatar: String(showAvatar) });
-    return `/v1/reports/${encodeURIComponent(reportId)}/share/final?${params.toString()}`;
-  }, [reportId, showAvatar, showName]);
+    return `/v1/reports/${encodeURIComponent(reportId)}/share/${cardType}?${params.toString()}`;
+  }, [cardType, reportId, showAvatar, showName]);
 
   const reportPermalink = () => `${window.location.origin}/report/${encodeURIComponent(reportId)}`;
 
@@ -19,7 +28,7 @@ export default function ShareControls({ reportId }: { reportId: string }) {
     const permalink = reportPermalink();
     const canShareFiles = typeof navigator.canShare === "function";
     track("share.initiated.v1", {
-      card_type: "final",
+      card_type: cardType,
       aspect_ratio: "4:5",
       channel: "share",
       show_name: showName,
@@ -30,23 +39,23 @@ export default function ShareControls({ reportId }: { reportId: string }) {
       const response = await fetch(cardUrl);
       if (!response.ok) throw new Error("share-card-failed");
       const blob = await response.blob();
-      const file = new File([blob], "dota-dna.svg", { type: blob.type || "image/svg+xml" });
+      const file = new File([blob], `dota-dna-${cardType}.svg`, { type: blob.type || "image/svg+xml" });
       if (navigator.share && canShareFiles && navigator.canShare({ files: [file] })) {
         await navigator.share({ title: "My Dota DNA", text: "My Dota DNA report", url: permalink, files: [file] });
-        track("share.completed.v1", { card_type: "final", channel: "native_file", show_name: showName, show_avatar: showAvatar });
+        track("share.completed.v1", { card_type: cardType, channel: "native_file", show_name: showName, show_avatar: showAvatar });
         return;
       }
       if (navigator.share) {
         await navigator.share({ title: "My Dota DNA", text: "My Dota DNA report", url: permalink });
-        track("share.completed.v1", { card_type: "final", channel: "native_link", show_name: showName, show_avatar: showAvatar });
+        track("share.completed.v1", { card_type: cardType, channel: "native_link", show_name: showName, show_avatar: showAvatar });
         return;
       }
       await navigator.clipboard.writeText(permalink);
       setMessage("Report link copied.");
-      track("share.link_copied.v1", { card_type: "final", channel: "clipboard", show_name: showName, show_avatar: showAvatar });
+      track("share.link_copied.v1", { card_type: cardType, channel: "clipboard", show_name: showName, show_avatar: showAvatar });
     } catch {
       setMessage("Copy the report link from your browser to share it.");
-      track("share.failed.v1", { card_type: "final", channel: "share", show_name: showName, show_avatar: showAvatar });
+      track("share.failed.v1", { card_type: cardType, channel: "share", show_name: showName, show_avatar: showAvatar });
     }
   }
 
@@ -58,21 +67,25 @@ export default function ShareControls({ reportId }: { reportId: string }) {
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = objectUrl;
-      anchor.download = "dota-dna.svg";
+      anchor.download = `dota-dna-${cardType}.svg`;
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
       setMessage("Card download started.");
-      track("share.image_saved.v1", { card_type: "final", aspect_ratio: "4:5", channel: "download", show_name: showName, show_avatar: showAvatar });
+      track("share.image_saved.v1", { card_type: cardType, aspect_ratio: "4:5", channel: "download", show_name: showName, show_avatar: showAvatar });
     } catch {
       setMessage("The share card could not be generated.");
-      track("share.failed.v1", { card_type: "final", channel: "download", show_name: showName, show_avatar: showAvatar });
+      track("share.failed.v1", { card_type: cardType, channel: "download", show_name: showName, show_avatar: showAvatar });
     }
   }
 
   return (
     <div className="share-controls" aria-label="Share your Dota DNA">
       <p className="eyebrow">Share preview</p>
-      <div className="share-preview"><img src={cardUrl} alt="Preview of the privacy-safe Dota DNA share card" /></div>
+      <label htmlFor="share-card-type">Card</label>
+      <select id="share-card-type" value={cardType} onChange={(event) => setCardType(event.target.value as CardType)}>
+        {Object.entries(CARD_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+      </select>
+      <div className="share-preview"><img src={cardUrl} alt={`Preview of the privacy-safe ${CARD_LABELS[cardType]} share card`} /></div>
       <label><input type="checkbox" checked={showName} onChange={(event) => setShowName(event.target.checked)} /> Include name</label>
       <label><input type="checkbox" checked={showAvatar} onChange={(event) => setShowAvatar(event.target.checked)} /> Include avatar</label>
       <div className="share-actions">

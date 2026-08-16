@@ -5,7 +5,7 @@ from app.dna.features.models import DnaFeatureSet, FeatureEvidence
 
 
 def score(features: DnaFeatureSet):
-    sample = features.sample_size
+    sample = sum(item.hero_id is not None for item in features.matches)
     effective = features.effective_hero_count
     if sample == 0 or not features.hero_counts:
         return result(
@@ -24,7 +24,7 @@ def score(features: DnaFeatureSet):
         score=value,
         sample_size=sample,
         effective_sample_size=effective,
-        coverage=len([item for item in features.matches if item.hero_id is not None]) / sample,
+        coverage=sample / max(features.sample_size, 1),
         minimum_sample=30,
         stability=_window_stability(features),
         evidence=(

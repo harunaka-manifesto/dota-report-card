@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   DnaDimension,
   FreeDnaReport,
@@ -41,7 +41,7 @@ export default function ReportStory({ report }: { report: StoryReport }) {
   const completedRef = useRef(false);
   const reducedMotion = useRef(false);
 
-  const pageIndex = (id: string) => pages.findIndex((page) => page.id === id);
+  const pageIndex = useCallback((id: string) => pages.findIndex((page) => page.id === id), [pages]);
   const dwellMs = () => activeElapsedMs.current + (
     hiddenRef.current ? 0 : Math.max(0, Date.now() - activeStartedAt.current)
   );
@@ -178,7 +178,7 @@ export default function ReportStory({ report }: { report: StoryReport }) {
     };
     // The report is immutable; observer setup should run once per report.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [report.report_id, pages]);
+  }, [pageIndex, report.report_id, pages]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -199,7 +199,7 @@ export default function ReportStory({ report }: { report: StoryReport }) {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [activePage, pages]);
+  }, [activePage, pageIndex, pages]);
 
   const openMethodology = (dimension: DnaDimension) => {
     track("report.methodology_opened.v1", { dimension: dimension.key });

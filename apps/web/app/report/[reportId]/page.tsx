@@ -30,6 +30,7 @@ type Card = {
 };
 
 type LegacyReport = {
+  report_variant: "free_player_dna" | "deep_scan";
   identity: { account_id: number; personaname: string; rank_tier: number | null };
   evidence_scope: {
     processed_matches: number;
@@ -49,7 +50,7 @@ type LegacyReport = {
   };
 };
 
-type Report = FreeDnaReport | (LegacyReport & { schema_version?: string; report_variant?: string });
+type Report = FreeDnaReport | (LegacyReport & { schema_version?: string });
 
 export async function generateMetadata(): Promise<Metadata> {
   return {

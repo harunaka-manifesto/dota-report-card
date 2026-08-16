@@ -1,0 +1,53 @@
+name: Free DNA QA
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend contract and regression QA
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --extra dev
+      - run: uv run ruff check services/api tests
+      - run: uv run mypy
+      - run: make test
+      - run: make test-contract
+      - run: make test-integration
+      - run: make taxonomy-validate
+      - run: make api-client
+      - run: git diff --exit-code -- packages/api-client/src/index.ts
+
+  web:
+    name: Web build and browser QA
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: corepack enable
+      - run: corepack prepare pnpm@11.19.0 --activate
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: ./node_modules/.bin/next lint
+      - run: ./node_modules/.bin/tsc --noEmit
+      - run: ./node_modules/.bin/next build
+      - run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
+      - run: ./node_modules/.bin/playwright test

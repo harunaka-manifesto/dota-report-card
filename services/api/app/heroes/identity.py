@@ -69,7 +69,21 @@ def select_hero_identity(
     features: DnaFeatureSet,
     taxonomy: HeroTaxonomy | None = None,
 ) -> HeroIdentityResult:
-    taxonomy = taxonomy or load_default_taxonomy()
+    if taxonomy is None:
+        try:
+            taxonomy = load_default_taxonomy()
+        except (OSError, ValueError, TypeError):
+            # Hero taxonomy is editorial enrichment. A malformed/missing
+            # snapshot must not turn an otherwise valid DNA report into a
+            # failed analysis.
+            return HeroIdentityResult(
+                None,
+                (),
+                (),
+                (),
+                None,
+                ("hero_taxonomy_unavailable",),
+            )
     if not features.hero_counts:
         return HeroIdentityResult(None, (), (), (), taxonomy.version, ("no_valid_hero_history",))
     dated = sorted(
@@ -117,14 +131,23 @@ def select_hero_identity(
     )
     if not comfort:
         comfort = (signature,)
-    from app.heroes.patterns import extract_hero_patterns
-    from app.heroes.recommendations import recommend_heroes
-
-    patterns = extract_hero_patterns(signature, comfort, taxonomy)
-    recommendations = recommend_heroes(comfort, features, taxonomy)
     limitations: list[str] = []
     if len(dated) < features.sample_size * 0.6:
         limitations.append("recency and persistence are based on partial timestamps")
+    try:
+        from app.heroes.patterns import extract_hero_patterns
+
+        patterns = extract_hero_patterns(signature, comfort, taxonomy)
+    except (KeyError, TypeError, ValueError):
+        patterns = []
+        limitations.append("hero_pattern_unavailable")
+    try:
+        from app.heroes.recommendations import recommend_heroes
+
+        recommendations = recommend_heroes(comfort, features, taxonomy)
+    except (KeyError, TypeError, ValueError):
+        recommendations = []
+        limitations.append("hero_recommendations_unavailable")
     return HeroIdentityResult(
         signature=signature,
         comfort_picks=comfort,

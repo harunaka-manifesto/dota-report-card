@@ -115,8 +115,9 @@ def _safe_avatar_url(value: Any) -> str | None:
     if parsed.scheme != "https" or parsed.hostname not in {
         "steamcdn-a.akamaihd.net",
         "avatars.akamai.steamstatic.com",
-        "steamcommunity.com",
     }:
+        return None
+    if parsed.query or parsed.fragment:
         return None
     return value
 

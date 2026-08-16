@@ -4,13 +4,17 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 
 import httpx
+import pytest
 from app.analysis.service import AnalysisService
 from app.analysis.source import MappingSource
+from app.api.report_schemas import validate_free_dna_report
 from app.core.config import Settings
 from app.core.security import parse_player_identifier
 from app.identity.steam import SteamWebResolver
+from app.main import create_app
 from app.share.service import build_share_svg
 from app.storage.repository import InMemoryRepository
+from fastapi.testclient import TestClient
 
 _PRIVATE_KEYS = {
     "account_id",
@@ -120,6 +124,10 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     assert report["cost"]["detail_requests"] == 0
     assert len(report["dimensions"]) == 8
     assert len(report["pages"]) == 23
+    assert {page["id"] for page in report["pages"]} >= {
+        "breadth", "role", "adaptability", "activity",
+        "orientation", "resilience", "endurance", "rhythm",
+    }
     assert report["metadata"]["history_tier"] == "limited"
     assert all(
         key not in report
@@ -129,13 +137,114 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     assert "account_id" not in str(report["shares"])
     assert "account_id" not in str(report["pages"])
 
-    svg, _ = build_share_svg(report, card_type="final", show_name=False, show_avatar=False)
-    assert str(42) not in svg
-    assert "<svg" in svg
+    for card_type in ("dna", "heroes", "final"):
+        svg, _ = build_share_svg(report, card_type=card_type, show_name=False, show_avatar=False)
+        assert str(42) not in svg
+        assert "<svg" in svg
 
     now = datetime.now(UTC)
     assert repository.purge_expired(now=now + timedelta(days=31)) == 1
     assert repository.get_report(job.report_id or "") is None
+
+
+def test_public_report_route_sets_noindex_and_returns_strict_free_contract() -> None:
+    history = [_summary(900_105_000 + index, index) for index in range(35)]
+    source = MappingSource(
+        player={"profile": {"account_id": 42, "personaname": "Fixture player"}},
+        matches=history,
+        details={},
+    )
+    app = create_app(Settings(), source=source)
+    service = app.state.analysis_service
+    job, _ = asyncio.run(service.create_analysis("42", enqueue=False))
+    asyncio.run(service.run_job(job))
+
+    response = TestClient(app).get(f"/v1/reports/{job.report_id}")
+
+    assert response.status_code == 200
+    assert response.headers["x-robots-tag"] == "noindex, nofollow, noarchive"
+    body = response.json()
+    assert body["schema_version"] == "free-dna-report-1.0.0"
+    assert body["report_variant"] == "free_dna_report"
+    validate_free_dna_report(body)
+
+
+def test_free_cache_miss_never_calls_match_details_or_deep_detection(monkeypatch: pytest.MonkeyPatch) -> None:
+    history = [_summary(900_110_000 + index, index) for index in range(35)]
+
+    class NoDetailSource(MappingSource):
+        async def get_match(self, match_id: int) -> dict[str, object]:
+            raise AssertionError(f"Free DNA requested detail match {match_id}")
+
+    source = NoDetailSource(
+        player={"profile": {"account_id": 42, "personaname": "Fixture player"}},
+        matches=history,
+        details={},
+    )
+    monkeypatch.setattr(
+        "app.analysis.service.detect_patterns",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("Free DNA invoked Deep Scan pattern detection")
+        ),
+    )
+    service = AnalysisService(source, settings=Settings())
+    job, _ = asyncio.run(service.create_analysis("42", enqueue=False))
+    asyncio.run(service.run_job(job))
+
+    assert job.status == "completed"
+    assert source.requests == [("player", 42), ("matches", 42)]
+
+
+def test_public_free_report_rejects_internal_and_legacy_fields() -> None:
+    history = [_summary(900_120_000 + index, index) for index in range(35)]
+    source = MappingSource(
+        player={"profile": {"account_id": 42, "personaname": "Fixture player"}},
+        matches=history,
+        details={},
+    )
+    repository = InMemoryRepository()
+    service = AnalysisService(source, repository=repository, settings=Settings())
+    job, _ = asyncio.run(service.create_analysis("42", enqueue=False))
+    asyncio.run(service.run_job(job))
+    report = repository.get_report(job.report_id or "")
+    assert report is not None
+
+    for field in ("dna", "legacy_summary", "player_dna", "raw_matches"):
+        invalid = {**report, field: {}}
+        with pytest.raises(ValueError):
+            validate_free_dna_report(invalid)
+    with pytest.raises(ValueError):
+        validate_free_dna_report({
+            **report,
+            "identity": {**report["identity"], "account_id": 42},
+        })
+
+
+def test_public_free_report_sanitizes_identifier_shaped_identity_fields() -> None:
+    history = [_summary(900_130_000 + index, index) for index in range(35)]
+    source = MappingSource(
+        player={
+            "profile": {
+                "account_id": 42,
+                "personaname": "42",
+                "avatarfull": "https://steamcommunity.com/profiles/42/avatar",
+            }
+        },
+        matches=history,
+        details={},
+    )
+    repository = InMemoryRepository()
+    service = AnalysisService(source, repository=repository, settings=Settings())
+    job, _ = asyncio.run(service.create_analysis("42", enqueue=False))
+    asyncio.run(service.run_job(job))
+
+    report = repository.get_report(job.report_id or "")
+    assert report is not None
+    assert report["identity"] == {
+        "display_name": "Anonymous player",
+        "avatar_url": None,
+        "rank_tier": None,
+    }
 
 
 def test_free_history_boundaries_are_29_fail_30_limited_and_60_normal() -> None:

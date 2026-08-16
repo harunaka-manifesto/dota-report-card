@@ -205,8 +205,16 @@ def _transition_values(
         for previous_id, current_id in zip(session.match_ids, session.match_ids[1:], strict=False):
             previous = by_id[previous_id]
             current = by_id[current_id]
-            if previous.session_corrupt or current.session_corrupt or current_id not in performance:
-                previous_losses = 0 if previous.won else previous_losses + 1
+            # Missing/short/corrupt rows cannot establish a valid transition.
+            # Reset the streak so a later valid game is never attributed to an
+            # unseen result.
+            if (
+                previous.session_corrupt
+                or current.session_corrupt
+                or previous_id not in performance
+                or current_id not in performance
+            ):
+                previous_losses = 0
                 continue
             if previous.won:
                 after_win.append(performance[current_id])
