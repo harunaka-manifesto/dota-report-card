@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -115,13 +116,20 @@ class RateLimiter:
         self.window = timedelta(seconds=window_seconds)
         self._lock = RLock()
         self._ip_hits: dict[str, list[datetime]] = {}
-        self._account_hits: dict[int, list[datetime]] = {}
+        self._account_hits: dict[str, list[datetime]] = {}
 
-    def allow(self, ip: str, account_id: int) -> bool:
+    def allow(self, ip: str, account_id: int, *, unresolved_key: str | None = None) -> bool:
         now = datetime.now(UTC)
         with self._lock:
             ip_hits = self._prune(self._ip_hits.setdefault(ip, []), now)
-            account_hits = self._prune(self._account_hits.setdefault(account_id, []), now)
+            if account_id > 0:
+                bucket = f"account:{account_id}"
+            else:
+                # Vanity URLs are unresolved until after this gate. Hash the
+                # safe input so distinct vanity names do not share account 0.
+                safe_key = (unresolved_key or "unknown").strip().casefold()
+                bucket = "vanity:" + hashlib.sha256(safe_key.encode()).hexdigest()
+            account_hits = self._prune(self._account_hits.setdefault(bucket, []), now)
             if len(ip_hits) >= self.max_per_ip or len(account_hits) >= self.max_per_account:
                 return False
             ip_hits.append(now)

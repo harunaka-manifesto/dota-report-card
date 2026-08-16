@@ -1,5 +1,5 @@
 {
-  "copy_version": "free-dna-copy-1.0.0",
+  "copy_version": "free-dna-copy-1.0.1",
   "dimension": {
     "available": "This signal has enough readable history to make a useful directional call.",
     "limited": "The shape is visible, but this signal is still provisional.",
@@ -14,6 +14,23 @@
     "resilience": {"headline": "What changes after the last result?", "left": "Resetting", "right": "Outcome-sensitive"},
     "endurance": {"headline": "What happens as the session stretches?", "left": "Front-loaded", "right": "Sustained"},
     "rhythm": {"headline": "What does a normal session look like?", "left": "Short-burst", "right": "Grinder"}
+  },
+  "pages": {
+    "steam_input": {"title": "What kind of Dota player are you?", "body": "Enter a public profile to start a summary-history read."},
+    "player_found": {"title": "Found {display_name}.", "body": "The public player profile is ready for a bounded history read."},
+    "analysis": {"title": "Reading your recent matches.", "body": "Sorting the fields that the summary history can support."},
+    "report_reveal": {"title": "We found your pattern.", "body": "A summary-history read of the way your matches tend to look."},
+    "dna_intro": {"title": "Your Dota DNA", "body": "Eight signals that describe how your matches tend to look."},
+    "dna_summary": {"title": "The fingerprint", "body": "A compact view of the signals that stood out."},
+    "archetype": {"title": "Your archetype", "body": "A synthesis of the signals that cleared their evidence gates."},
+    "heroes_intro": {"title": "The heroes that make it yours", "body": "Familiarity, recurrence, and role fit shape this section."},
+    "signature_hero": {"title": "Your Signature Hero", "body": "The hero that most consistently represents this history."},
+    "comfort_picks": {"title": "Comfort Picks", "body": "The heroes you keep returning to."},
+    "hero_pattern": {"title": "Your Hero Pattern", "body": "Your comfort pool points toward a toolkit, not a verdict."},
+    "hero_recommendations": {"title": "Recommended expansion heroes", "body": "Taste adjacency, not a meta list."},
+    "heroes_summary": {"title": "The cast around your style", "body": "A small, stable hero identity snapshot."},
+    "final_card": {"title": "Your fingerprint", "body": "A shareable snapshot of the patterns in your recent matches."},
+    "deep_dive": {"title": "See what drives it", "body": "A deeper read is available when you want to inspect the evidence."}
   },
   "hero_pattern_mixed": "Your comfort pool spans several different toolsets.",
   "hero_pattern_trait_cluster": "Your comfort pool clusters around a recognizable toolkit.",

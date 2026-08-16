@@ -7,7 +7,7 @@ from typing import Any
 
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
-SESSION_VERSION = "sessions-1.0.0"
+SESSION_VERSION = "sessions-1.1.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,6 +28,7 @@ class Session:
     start_time: int
     end_time: int
     corrupt: bool = False
+    corrupt_match_ids: tuple[int, ...] = ()
 
     @property
     def match_count(self) -> int:
@@ -46,6 +47,7 @@ class Session:
             "elapsed_seconds": self.elapsed_seconds,
             "match_count": self.match_count,
             "corrupt": self.corrupt,
+            "corrupt_match_ids": list(self.corrupt_match_ids),
         }
 
 
@@ -90,14 +92,17 @@ def infer_sessions(
     for index, group in enumerate(groups, start=1):
         session_id = f"session-{index}"
         ids = tuple(item.match_id for item in group)
-        corrupt = any(item.match_id in corrupt_ids for item in group)
+        corrupt_match_ids = tuple(item.match_id for item in group if item.match_id in corrupt_ids)
+        # A clock-overlap invalidates only the affected rows/transitions. The
+        # rest of a long session remains usable evidence.
+        corrupt = len(corrupt_match_ids) == len(group)
         first = group[0]
         last = group[-1]
         start = first.started_at or 0
         end = last.ended_at if last.ended_at is not None else last.started_at or start
-        sessions.append(Session(session_id, ids, start, max(start, end), corrupt))
+        sessions.append(Session(session_id, ids, start, max(start, end), corrupt, corrupt_match_ids))
         for position, item in enumerate(group, start=1):
-            assignments[item.match_id] = (session_id, position, corrupt or item.match_id in corrupt_ids)
+            assignments[item.match_id] = (session_id, position, item.match_id in corrupt_ids)
 
     assigned: list[NormalizedSummaryMatch] = []
     for item in ordered:

@@ -40,7 +40,19 @@ def _window_stability(features: DnaFeatureSet) -> float:
     dated = [item for item in features.matches if item.started_at is not None]
     if len(dated) < 20:
         return 0.65
-    half = max(1, len(dated) // 2)
-    first = len({item.hero_id for item in dated[:half] if item.hero_id is not None})
-    second = len({item.hero_id for item in dated[half:] if item.hero_id is not None})
-    return 1.0 if abs(first - second) <= max(2, half // 4) else 0.65
+    windows = [dated[-min(50, len(dated)):], dated[-min(100, len(dated)):], dated]
+    scores = []
+    for window in windows:
+        counts: dict[int, int] = {}
+        for item in window:
+            if item.hero_id is not None:
+                counts[item.hero_id] = counts.get(item.hero_id, 0) + 1
+        if not counts:
+            continue
+        total = len(window)
+        top5 = sum(sorted(counts.values(), reverse=True)[:5]) / total
+        scores.append(1.0 - top5)
+    if len(scores) < 2:
+        return 0.65
+    spread = max(scores) - min(scores)
+    return clamp(1.0 - spread * 2.0, 0.55, 1.0)

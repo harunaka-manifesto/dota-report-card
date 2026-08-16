@@ -8,7 +8,7 @@ from typing import Any
 from app.dna.sessions import Session
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
-FEATURE_VERSION = "dna-features-1.0.0"
+FEATURE_VERSION = "dna-features-1.1.0"
 
 
 def _median(values: Any) -> float | None:
@@ -93,6 +93,7 @@ class DnaFeatureSet:
     off_pool_match_ids: tuple[int, ...] = ()
     familiar_roles: frozenset[str] = frozenset()
     session_sensitivity: dict[int, tuple[tuple[int, ...], ...]] = field(default_factory=dict)
+    session_sensitivity_scores: dict[int, dict[str, float | None]] = field(default_factory=dict)
 
     @property
     def dated_coverage(self) -> float:
@@ -211,6 +212,13 @@ class DnaFeatureSet:
             "session_sensitivity": {
                 str(gap): [list(group) for group in groups]
                 for gap, groups in self.session_sensitivity.items()
+            },
+            "session_sensitivity_scores": {
+                str(gap): {
+                    key: round(value, 6) if value is not None else None
+                    for key, value in scores.items()
+                }
+                for gap, scores in self.session_sensitivity_scores.items()
             },
             "source_match_ids": list(self.source_match_ids),
         }

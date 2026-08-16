@@ -6,7 +6,7 @@ MYPY ?= uv run mypy
 PNPM ?= pnpm
 WEB_BIN ?= apps/web/node_modules/.bin
 
-.PHONY: install infra-up infra-down db-migrate dev lint typecheck test test-contract test-integration test-e2e test-live-smoke api-client
+.PHONY: install infra-up infra-down db-migrate dev lint typecheck test test-contract test-integration test-e2e test-live-smoke api-client taxonomy-validate
 
 install:
 	uv sync --extra dev
@@ -50,3 +50,6 @@ test-live-smoke:
 
 api-client:
 	$(PYTHON) scripts/generate_api_client.py
+
+taxonomy-validate:
+	$(PYTHON) scripts/validate_hero_taxonomy.py

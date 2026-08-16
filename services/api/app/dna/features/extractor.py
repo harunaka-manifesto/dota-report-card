@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from collections import Counter, defaultdict
+from dataclasses import replace
 from statistics import median
 from typing import Any
 
@@ -15,6 +16,8 @@ from app.ingestion.summary_normalize import NormalizedSummaryMatch
 def extract_dna_features(
     matches: tuple[NormalizedSummaryMatch, ...] | list[NormalizedSummaryMatch],
     sessions: SessionResult,
+    *,
+    include_sensitivity: bool = True,
 ) -> DnaFeatureSet:
     corpus = tuple(
         sorted(
@@ -84,7 +87,7 @@ def extract_dna_features(
         role for role, count in role_counts.items() if count >= 3
     )
 
-    return DnaFeatureSet(
+    base = DnaFeatureSet(
         matches=corpus,
         sessions=sessions.sessions,
         sample_size=len(corpus),
@@ -121,6 +124,31 @@ def extract_dna_features(
         familiar_roles=familiar_roles,
         session_sensitivity=sessions.sensitivity,
     )
+    if not include_sensitivity:
+        return base
+
+    # Session sensitivity reruns the session-dependent feature/scoring path at
+    # each policy gap. It compares score direction, not exact partition IDs.
+    from app.dna.dimensions.service import score_dimensions
+    from app.dna.sessions import SessionPolicy, infer_sessions
+
+    sensitivity_scores: dict[int, dict[str, float | None]] = {}
+    for gap in (60, 90, 120):
+        alternate_sessions = infer_sessions(
+            corpus,
+            SessionPolicy(gap_minutes=gap),
+            sensitivity_gaps=(),
+        )
+        alternate_features = extract_dna_features(
+            alternate_sessions.matches,
+            alternate_sessions,
+            include_sensitivity=False,
+        )
+        sensitivity_scores[gap] = {
+            item.key: item.centered_score
+            for item in score_dimensions(alternate_features)
+        }
+    return replace(base, session_sensitivity_scores=sensitivity_scores)
 
 
 def _familiar_heroes(counts: Counter[int], sample_size: int) -> set[int]:
@@ -196,10 +224,11 @@ def _endurance_values(
 ) -> dict[int, tuple[float, ...]]:
     values: dict[int, list[float]] = defaultdict(list)
     for session in sessions.sessions:
-        if session.corrupt or len(session.match_ids) < 2:
+        if len(session.match_ids) < 2:
             continue
         for position, match_id in enumerate(session.match_ids, start=1):
-            if match_id in performance:
+            row = next((item for item in sessions.matches if item.match_id == match_id), None)
+            if match_id in performance and row is not None and not row.session_corrupt:
                 values[min(position, 4)].append(performance[match_id])
     return {key: tuple(value) for key, value in sorted(values.items())}
 

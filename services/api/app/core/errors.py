@@ -24,7 +24,7 @@ class ProfileUnavailable(AppError):
 
 
 class InsufficientMatchHistory(AppError):
-    code = "INSUFFICIENT_MATCH_HISTORY"
+    code = "INSUFFICIENT_HISTORY"
     status_code = 422
 
 

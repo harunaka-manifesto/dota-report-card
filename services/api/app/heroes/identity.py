@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from statistics import mean
 from typing import Any
 
 from app.dna.features.models import DnaFeatureSet
 from app.heroes.taxonomy import HeroTaxonomy, HeroTaxonomyEntry, load_default_taxonomy
+
+HERO_IDENTITY_VERSION = "hero-identity-1.1.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,7 +51,7 @@ class HeroIdentityResult:
     recommendations: tuple[dict[str, Any], ...]
     taxonomy_version: str | None
     limitations: tuple[str, ...] = ()
-    identity_version: str = "hero-identity-1.0.0"
+    identity_version: str = HERO_IDENTITY_VERSION
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -99,9 +101,22 @@ def select_hero_identity(
         )
 
     candidates.sort(key=lambda item: (-item.score, -item.matches, item.hero_id))
-    signature = candidates[0]
-    limit = 3 if features.sample_size < 60 else min(5, len(candidates))
-    comfort = tuple(candidates[:limit])
+    signature = replace(_stable_signature_candidate(candidates), reason_key="signature_identity")
+    comfort_candidates = [
+        item for item in candidates if _comfort_eligible(item, dated_count=len(dated))
+    ]
+    comfort_candidates.sort(key=lambda item: (-_comfort_score(item), -item.matches, item.hero_id))
+    limit = 3 if features.sample_size < 60 else min(5, len(comfort_candidates))
+    comfort = tuple(
+        replace(
+            item,
+            score=_comfort_score(item),
+            reason_key="signature_identity" if item.hero_id == signature.hero_id else "comfort_pick",
+        )
+        for item in comfort_candidates[:limit]
+    )
+    if not comfort:
+        comfort = (signature,)
     from app.heroes.patterns import extract_hero_patterns
     from app.heroes.recommendations import recommend_heroes
 
@@ -173,6 +188,36 @@ def _weighted_score(components: dict[str, float], *, taxonomy_available: bool) -
     return sum(weights[key] * components[key] for key in weights)
 
 
+def _stable_signature_candidate(candidates: list[HeroCard]) -> HeroCard:
+    best_score = candidates[0].score
+    tie_window = [item for item in candidates if best_score - item.score <= 0.02]
+    return max(
+        tie_window,
+        key=lambda item: (
+            item.component_scores.get("repeat", 0.0),
+            item.component_scores.get("persistence", 0.0),
+            item.matches,
+            -item.hero_id,
+        ),
+    )
+
+
+def _comfort_score(item: HeroCard) -> float:
+    components = item.component_scores
+    return (
+        0.35 * components.get("frequency", 0.0)
+        + 0.20 * components.get("recency", 0.0)
+        + 0.20 * components.get("repeat", 0.0)
+        + 0.10 * components.get("role_fit", 0.0)
+        + 0.15 * components.get("comfort_output", 0.0)
+    )
+
+
+def _comfort_eligible(item: HeroCard, *, dated_count: int) -> bool:
+    # With a short observed date range, recurrence cannot be measured fairly.
+    return dated_count < 20 or item.component_scores.get("repeat", 0.0) >= 0.50
+
+
 def _card(
     hero: HeroTaxonomyEntry,
     score: float,
@@ -195,7 +240,7 @@ def _card(
         roles=hero.roles,
         traits=tuple(sorted(key for key, value in hero.traits.items() if value >= 0.65)),
         receipts=receipts,
-        reason_key="signature_identity" if rows and hero.hero_id == max(features.hero_counts, key=lambda hero_id: features.hero_counts[hero_id]) else "comfort_pick",
+        reason_key="comfort_pick",
         confidence="high" if len(rows) >= 8 and components["repeat"] >= 0.5 else "moderate",
         portrait_asset_version=hero.portrait_asset_version,
     )

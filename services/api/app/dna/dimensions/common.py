@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 from app.dna.confidence import confidence_label, confidence_score, status_for
@@ -24,6 +25,7 @@ def result(
     copy: dict[str, Any] | None = None,
     source_match_ids: tuple[int, ...] = (),
     neutral: bool = False,
+    descriptor_eligible: bool = True,
 ) -> DimensionResult:
     available = score is not None and sample_size >= minimum_sample and coverage >= minimum_coverage
     confidence = confidence_score(
@@ -56,6 +58,19 @@ def result(
         missing_reasons=missing_reasons if not available else (),
         copy=copy,
         source_match_ids=source_match_ids,
+        descriptor_eligible=descriptor_eligible,
+    )
+
+
+def cap_confidence(value: DimensionResult, maximum: float) -> DimensionResult:
+    """Cap a provisional claim without changing its observed direction."""
+
+    capped = max(0.0, min(maximum, value.confidence_score))
+    return replace(
+        value,
+        confidence_score=capped,
+        confidence=confidence_label(capped, unavailable=value.status == "unavailable"),
+        status=status_for(capped, available=value.score is not None, limited=capped < 0.50),
     )
 
 
@@ -75,9 +90,23 @@ def clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
     return max(lower, min(upper, value))
 
 
-def session_sensitivity_stability(features: Any) -> float:
-    """Return the plan's 60/90/120-minute agreement multiplier."""
+def session_sensitivity_stability(features: Any, dimension: str | None = None) -> float:
+    """Return the 60/90/120 score-direction agreement multiplier."""
 
+    score_runs = getattr(features, "session_sensitivity_scores", {}) or {}
+    if score_runs and dimension:
+        baseline = score_runs.get(90, {}).get(dimension)
+        if baseline is not None:
+            baseline_direction = _score_direction(baseline)
+            agreements = sum(
+                _score_direction(scores.get(dimension)) == baseline_direction
+                for gap, scores in score_runs.items()
+                if gap in {60, 90, 120} and scores.get(dimension) is not None
+            )
+            return 1.0 if agreements >= 3 else 0.8 if agreements == 2 else 0.6
+
+    # Backward-compatible fallback for old feature fixtures that only carry
+    # the partition map.
     sensitivity = getattr(features, "session_sensitivity", {}) or {}
     baseline = sensitivity.get(90)
     if baseline is None:
@@ -88,6 +117,12 @@ def session_sensitivity_stability(features: Any) -> float:
         if sensitivity.get(gap) is not None
     )
     return 1.0 if agreements >= 3 else 0.8 if agreements == 2 else 0.6
+
+
+def _score_direction(value: float | None) -> int:
+    if value is None or abs(value) < 0.08:
+        return 0
+    return 1 if value > 0 else -1
 
 
 def _label(key: DimensionKey, score: float | None, *, neutral: bool = False) -> str | None:

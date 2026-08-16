@@ -1,6 +1,6 @@
 import pytest
 from app.core.errors import InvalidPlayerIdentifier
-from app.core.security import parse_player_identifier, redact
+from app.core.security import RateLimiter, parse_player_identifier, redact
 
 
 def test_url_and_raw_id_resolve_to_same_account() -> None:
@@ -33,3 +33,11 @@ def test_redaction_removes_credentials_from_nested_values() -> None:
     )
     assert "super-secret" not in str(value)
     assert value["Authorization"] == "[REDACTED]"
+
+
+def test_unresolved_vanity_inputs_use_separate_rate_limit_buckets() -> None:
+    limiter = RateLimiter(max_per_ip=10, max_per_account=1)
+
+    assert limiter.allow("127.0.0.1", 0, unresolved_key="first_player")
+    assert limiter.allow("127.0.0.1", 0, unresolved_key="second_player")
+    assert not limiter.allow("127.0.0.1", 0, unresolved_key="first_player")

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import threading
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -52,7 +54,7 @@ class AnalysisJob:
     canonical_player: str
     analysis_mode: str = "free"
     status: str = "queued"
-    stage: str = "validating_player"
+    stage: str = "resolving_player"
     processed_matches: int = 0
     eligible_matches: int = 0
     warnings: list[str] = field(default_factory=list)
@@ -92,6 +94,7 @@ class InMemoryRepository:
         self._lock = threading.RLock()
         self.jobs: dict[str, AnalysisJob] = {}
         self.reports: dict[str, dict[str, Any]] = {}
+        self._report_private: dict[str, dict[str, Any]] = {}
         self.evidence: dict[str, list[dict[str, Any]]] = {}
         self.raw_payloads: list[dict[str, Any]] = []
         self.normalized_matches: dict[int, dict[str, Any]] = {}
@@ -155,12 +158,23 @@ class InMemoryRepository:
         *,
         analysis_mode: str = "free",
         max_age_seconds: int | None = None,
+        raw_history_hash: str | None = None,
+        identity_fingerprint: str | None = None,
     ) -> AnalysisJob | None:
         with self._lock:
             job_id = self._completed.get((account_id, model_version, analysis_mode))
             job = self.jobs.get(job_id) if job_id else None
             if job is not None and job.report_id and self.get_report(job.report_id) is None:
                 return None
+            if raw_history_hash is not None and job is not None and job.report_id:
+                report = self.reports.get(job.report_id)
+                stored_hash = ((report or {}).get("metadata") or {}).get("raw_history_hash")
+                if stored_hash != raw_history_hash:
+                    return None
+            if identity_fingerprint is not None and job is not None and job.report_id:
+                report = self.reports.get(job.report_id) or {}
+                if _report_identity_fingerprint(report) != identity_fingerprint:
+                    return None
             if job is None or max_age_seconds is None:
                 return job
             age = (datetime.now(UTC) - job.updated_at).total_seconds()
@@ -299,6 +313,12 @@ class InMemoryRepository:
             self.reports[report_id] = {
                 **deepcopy(report),
                 "report_id": report_id,
+            }
+            self.reports[report_id]["metadata"] = {
+                **dict(self.reports[report_id].get("metadata") or {}),
+                "expires_at": expires_at.isoformat(),
+            }
+            self._report_private[report_id] = {
                 "account_id": account_id,
                 "data_cutoff": data_cutoff,
                 "model_version": model_version,
@@ -314,8 +334,9 @@ class InMemoryRepository:
             report = self.reports.get(report_id)
             if report is None:
                 return None
-            if _expired(report.get("expires_at")):
+            if _expired((report.get("metadata") or {}).get("expires_at")):
                 self.reports.pop(report_id, None)
+                self._report_private.pop(report_id, None)
                 self.evidence.pop(report_id, None)
                 return None
             return deepcopy(report)
@@ -326,10 +347,11 @@ class InMemoryRepository:
             expired_reports = [
                 report_id
                 for report_id, report in self.reports.items()
-                if _expired(report.get("expires_at"), now=cutoff)
+                if _expired((report.get("metadata") or {}).get("expires_at"), now=cutoff)
             ]
             for report_id in expired_reports:
                 self.reports.pop(report_id, None)
+                self._report_private.pop(report_id, None)
                 self.evidence.pop(report_id, None)
             raw_cutoff = cutoff - self.report_retention
             retained_payloads: list[dict[str, Any]] = []
@@ -525,6 +547,8 @@ class SqlAlchemyRepository:
         *,
         analysis_mode: str = "free",
         max_age_seconds: int | None = None,
+        raw_history_hash: str | None = None,
+        identity_fingerprint: str | None = None,
     ) -> AnalysisJob | None:
         with self._session_factory() as session:
             record = session.scalar(
@@ -540,6 +564,15 @@ class SqlAlchemyRepository:
             if record is None:
                 return None
             job = self._job_from_record(record)
+            if raw_history_hash is not None and job.report_id:
+                report = self.get_report(job.report_id)
+                stored_hash = ((report or {}).get("metadata") or {}).get("raw_history_hash")
+                if stored_hash != raw_history_hash:
+                    return None
+            if identity_fingerprint is not None and job.report_id:
+                report = self.get_report(job.report_id) or {}
+                if _report_identity_fingerprint(report) != identity_fingerprint:
+                    return None
             if max_age_seconds is not None:
                 age = (datetime.now(UTC) - job.updated_at).total_seconds()
                 if age > max_age_seconds:
@@ -749,7 +782,6 @@ class SqlAlchemyRepository:
         created_at = datetime.now(UTC)
         expires_at = created_at + self.report_retention
         report_json = deepcopy(report)
-        report_json["expires_at"] = expires_at.isoformat()
         report_json["metadata"] = {
             **dict(report_json.get("metadata") or {}),
             "expires_at": expires_at.isoformat(),
@@ -785,19 +817,13 @@ class SqlAlchemyRepository:
             record = session.get(ReportRecord, report_id)
             if record is None:
                 return None
-            if _expired((record.report_json or {}).get("expires_at")) or (
+            if _expired((record.report_json or {}).get("metadata", {}).get("expires_at")) or (
                 _as_aware(record.created_at) + self.report_retention <= datetime.now(UTC)
             ):
                 return None
             return {
                 **dict(record.report_json or {}),
                 "report_id": record.report_id,
-                "account_id": record.account_id,
-                "data_cutoff": record.data_cutoff,
-                "model_version": record.model_version,
-                "template_version": record.template_version,
-                "created_at": _as_aware(record.created_at).isoformat(),
-                "expires_at": (record.report_json or {}).get("expires_at"),
             }
 
     def purge_expired(self, *, now: datetime | None = None) -> int:
@@ -808,7 +834,7 @@ class SqlAlchemyRepository:
             expired = [
                 record.report_id
                 for record in reports
-                if _expired((record.report_json or {}).get("expires_at"), now=current)
+                if _expired((record.report_json or {}).get("metadata", {}).get("expires_at"), now=current)
                 or _as_aware(record.created_at) < cutoff
             ]
             if expired:
@@ -851,3 +877,15 @@ def _parse_datetime(value: Any) -> datetime | None:
 def _expired(value: Any, *, now: datetime | None = None) -> bool:
     parsed = _parse_datetime(value)
     return parsed is not None and parsed <= (now or datetime.now(UTC))
+
+
+def _report_identity_fingerprint(report: dict[str, Any]) -> str:
+    identity = report.get("identity") or {}
+    public = {
+        "display_name": identity.get("display_name") or identity.get("personaname") or "Anonymous player",
+        "avatar_url": identity.get("avatar_url") or identity.get("avatarfull"),
+        "rank_tier": identity.get("rank_tier"),
+    }
+    return hashlib.sha256(
+        json.dumps(public, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()

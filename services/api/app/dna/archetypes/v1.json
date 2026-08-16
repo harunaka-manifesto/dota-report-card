@@ -1,5 +1,5 @@
 {
-  "version": "archetypes-1.0.0",
+  "version": "archetypes-1.1.0",
   "prototypes": [
     {"key":"craftsman","label":"Craftsman","meaning_key":"craftsman","expected":{"breadth":0.18,"role":0.18,"adaptability":0.25,"activity":0.52,"orientation":0.5,"resilience":0.55,"endurance":0.55,"rhythm":0.55},"weights":{"breadth":1.2,"role":1.0,"adaptability":1.0,"activity":0.4},"groups":["hero_identity","session_response"]},
     {"key":"specialist_playmaker","label":"Specialist Playmaker","meaning_key":"specialist_playmaker","expected":{"breadth":0.18,"role":0.18,"adaptability":0.25,"activity":0.82,"orientation":0.78,"resilience":0.5,"endurance":0.5,"rhythm":0.55},"weights":{"breadth":1.1,"role":0.8,"adaptability":1.0,"activity":1.0,"orientation":0.8},"groups":["hero_identity","combat_expression"]},

@@ -3,9 +3,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from app.analysis.budget import DataCostLedger
 from app.content.catalog import copy_version
+from app.content.renderer import resolve_dimension_copy, resolve_page_copy
 from app.dna.baselines import BASELINE_VERSION
-from app.dna.pipeline import DnaAnalysisResult
+from app.dna.pipeline import DNA_SCORING_VERSION, DnaAnalysisResult
+from app.share.service import RENDERER_VERSION
 
 REPORT_SCHEMA_VERSION = "free-dna-report-1.0.0"
 COPY_VERSION = copy_version()
@@ -13,7 +16,7 @@ COPY_VERSION = copy_version()
 
 def assemble_free_dna_report(
     *,
-    account_id: int,
+    account_id: int | None = None,
     profile: dict[str, Any],
     analysis: DnaAnalysisResult,
     processed_matches: int,
@@ -22,60 +25,64 @@ def assemble_free_dna_report(
     history_limit: int,
     model_version: str,
     template_version: str,
-    legacy_report: dict[str, Any] | None = None,
+    cost_ledger: DataCostLedger | None = None,
+    analysis_version_fingerprint: str = "free-analysis-unknown",
 ) -> dict[str, Any]:
-    dimensions = [item.as_dict() for item in analysis.dimensions]
-    available = [item for item in dimensions if item["score"] is not None and item["confidence_score"] >= 0.50]
+    """Build only the intentional frontend-facing Free DNA contract.
+
+    ``account_id`` remains an internal call-site argument for compatibility,
+    but it is never copied into this public object. Normalized rows, sessions,
+    legacy summary cards, and Deep Scan payloads stay in internal memory or
+    private evidence storage.
+    """
+
+    dimensions = [_public_dimension(item.as_dict()) for item in analysis.dimensions]
     dates = [item.started_at for item in analysis.matches if item.started_at is not None]
-    display_name = profile.get("personaname") or "Anonymous player"
-    payload: dict[str, Any] = {
+    display_name = str(profile.get("personaname") or profile.get("display_name") or "Anonymous player")
+    history_tier = "limited" if 30 <= eligible_matches < 60 else "normal"
+    created_at = datetime.now(UTC).isoformat()
+    cost = _public_cost(cost_ledger)
+    return {
         "schema_version": REPORT_SCHEMA_VERSION,
-        # ``free_player_dna`` remains the wire-level compatibility value for
-        # existing clients.  ``dna_report_variant`` and the schema version are
-        # the new contract; the web dispatches on either field.
-        "report_variant": "free_player_dna",
-        "dna_report_variant": "free_dna_report",
-        "legacy_report_variant": "free_player_dna",
+        "report_variant": "free_dna_report",
         "noindex": True,
         "identity": {
-            # Retained for server-side compatibility with the existing report
-            # store; story/share contracts use account_id_masked only.
-            "account_id": account_id,
-            "account_id_masked": _mask_account_id(account_id),
-            "personaname": display_name,
             "display_name": display_name,
-            "avatarfull": profile.get("avatarfull"),
-            "avatar_url": profile.get("avatarfull"),
-            "profile_url": profile.get("profile_url"),
+            "avatar_url": profile.get("avatarfull") or profile.get("avatar_url"),
             "rank_tier": profile.get("rank_tier"),
         },
         "metadata": {
-            "created_at": datetime.now(UTC).isoformat(),
+            "created_at": created_at,
+            "expires_at": None,
             "data_from": datetime.fromtimestamp(min(dates), UTC).isoformat() if dates else None,
             "data_to": datetime.fromtimestamp(max(dates), UTC).isoformat() if dates else None,
-            "processed_matches": processed_matches,
-            "eligible_matches": eligible_matches,
-            "history_limit": history_limit,
-            "raw_payload_hash": raw_payload_hash,
+            "processed_matches": max(0, processed_matches),
+            "eligible_matches": max(0, eligible_matches),
+            "history_limit": max(1, min(500, history_limit)),
+            "raw_history_hash": raw_payload_hash,
+            "history_tier": history_tier,
         },
         "versions": {
-            "eligibility": "summary-eligibility-1.0.0",
+            "eligibility": "summary-eligibility-1.1.0",
             "sessions": analysis.sessions.policy.version,
             "features": analysis.features.feature_version,
-            "dna_scoring": "dna-scoring-1.0.0",
+            "dna_scoring": DNA_SCORING_VERSION,
             "baselines": BASELINE_VERSION,
             "archetype": analysis.archetype.classifier_version,
-            "hero_taxonomy": analysis.heroes.taxonomy_version,
-            "recommendations": "hero-recommendations-1.0.0" if analysis.heroes.recommendations else None,
+            "hero_identity": analysis.heroes.identity_version,
+            "hero_taxonomy": analysis.heroes.taxonomy_version or "unavailable",
+            "recommendations": "hero-recommendations-1.1.0",
             "copy": COPY_VERSION,
             "model": model_version,
             "template": template_version,
-            "share_renderer": "share-svg-1.0.0",
+            "share_renderer": RENDERER_VERSION,
+            "analysis_version_fingerprint": analysis_version_fingerprint,
         },
         "quality": {
             "overall_confidence": analysis.overall_confidence,
+            "history_tier": history_tier,
             "missing_data_flags": [item["key"] for item in dimensions if item["status"] == "unavailable"],
-            "partial": bool(analysis.warnings),
+            "partial": bool(analysis.warnings) or history_tier == "limited",
             "warnings": list(analysis.warnings),
         },
         "dimensions": dimensions,
@@ -85,77 +92,143 @@ def assemble_free_dna_report(
         "shares": _shares(analysis, display_name, eligible_matches),
         "deep_dive": {
             "available": True,
-            "cta_label": "See what drives it",
-            # Deep Scan deliberately does not echo a raw account ID into a
-            # link. The user can choose the player again on the input screen.
+            "cta_label": resolve_page_copy("deep_dive")["title"],
             "href": "/?mode=deep_scan",
-            "copy": "Deep Dive can inspect a small set of matches in more detail.",
+            "copy": resolve_page_copy("deep_dive")["body"],
         },
-        "dna": analysis.as_dict(),
-        "evidence_scope": {
-            "processed_matches": processed_matches,
-            "eligible_matches": eligible_matches,
-            "normalized_matches": len(analysis.matches),
-            "excluded_matches": max(0, processed_matches - eligible_matches),
-            "summary_parse_coverage": _summary_coverage(analysis),
-            "replay_parse_coverage": 0.0,
-            "replay_evidence_status": "not_requested",
-            "replay_limitation": "Deep evidence was not requested for this Player DNA report.",
-            "role_confidence": analysis.features.role_coverage,
-            "role_status": "available" if analysis.features.role_coverage >= 0.40 else "limited",
-            "published_insight_count": len(available),
-            "suppressed_insight_count": len(dimensions) - len(available),
-            "missing_feature_families": [item["key"] for item in dimensions if item["status"] == "unavailable"],
+        "methodology": {
+            "free_summary_only": True,
+            "session_gap_minutes": analysis.sessions.policy.gap_minutes,
+            "session_policy_version": analysis.sessions.policy.version,
+            "notes": [
+                "One bounded player-history read was used for this report.",
+                "No match-detail reads or replay parses were requested.",
+            ],
         },
-        "cost": {"history_requests": 1, "detail_requests": 0, "parse_requests": 0, "requested_history_limit": history_limit},
+        "cost": cost,
     }
-    if legacy_report:
-        payload["legacy_summary"] = legacy_report
-        # Keep the old cards/evidence available to older consumers while the
-        # new variant is adopted.  New UI code reads only the fields above.
-        payload.setdefault("sections", legacy_report.get("sections", {}))
-        payload.setdefault("evidence_appendix", legacy_report.get("evidence_appendix", []))
-        payload.setdefault("player_dna", legacy_report.get("player_dna", {}))
-        payload.setdefault("deep_scan_legacy", legacy_report.get("deep_scan"))
-    return payload
+
+
+def _public_dimension(value: dict[str, Any]) -> dict[str, Any]:
+    evidence = [
+        {
+            "key": item.get("key", ""),
+            "value": item.get("value"),
+            "unit": item.get("unit", ""),
+            "denominator": max(0, int(item.get("denominator", 0) or 0)),
+        }
+        for item in value.get("evidence", [])
+    ]
+    resolved_copy = resolve_dimension_copy(value["key"], value["status"])
+    return {
+        "key": value["key"],
+        "status": value["status"],
+        "score": value.get("score"),
+        "centered_score": value.get("centered_score"),
+        "label": value.get("label"),
+        "confidence": value.get("confidence", "unavailable"),
+        "confidence_score": value.get("confidence_score", 0.0),
+        "sample_size": value.get("sample_size", 0),
+        "effective_sample_size": value.get("effective_sample_size", 0.0),
+        "coverage": value.get("coverage", 0.0),
+        "evidence": evidence,
+        "confounders": list(value.get("confounders", [])),
+        "missing_reasons": list(value.get("missing_reasons", [])),
+        "copy": {
+            key: resolved_copy[key]
+            for key in (
+                "headline_key", "receipt_key", "receipt_params", "left_label", "right_label"
+            )
+        },
+        "methodology_version": value.get("methodology_version", "dna-scoring-1.1.0"),
+        "descriptor_eligible": bool(value.get("descriptor_eligible", True)),
+    }
+
+
+def _public_cost(ledger: DataCostLedger | None) -> dict[str, Any]:
+    if ledger is None:
+        return {
+            "history_requests": 0,
+            "detail_requests": 0,
+            "parse_requests": 0,
+            "parse_status_requests": 0,
+            "cache_hits": 0,
+            "estimated_cost_units": 0.0,
+        }
+    value = ledger.as_dict()
+    return {
+        "history_requests": int(value["history_requests"]),
+        "detail_requests": 0,
+        "parse_requests": 0,
+        "parse_status_requests": int(value["parse_status_requests"]),
+        "cache_hits": int(value["cache_hits"]),
+        "estimated_cost_units": float(value["estimated_cost_units"]),
+    }
 
 
 def _pages(analysis: DnaAnalysisResult, display_name: str) -> list[dict[str, Any]]:
+    def page(key: str, **params: str) -> dict[str, str]:
+        return resolve_page_copy(key, **params)
+
+    steam_input = page("steam_input")
+    player_found = page("player_found", display_name=display_name)
+    analysis_page = page("analysis")
+    reveal = page("report_reveal")
+    dna_intro = page("dna_intro")
+    dna_summary = page("dna_summary")
+    archetype_page = page("archetype")
+    heroes_intro = page("heroes_intro")
+    signature = page("signature_hero")
+    comfort = page("comfort_picks")
+    pattern = page("hero_pattern")
+    recommendations = page("hero_recommendations")
+    heroes_summary = page("heroes_summary")
+    final = page("final_card")
+    deep_dive = page("deep_dive")
     pages: list[dict[str, Any]] = [
-        {"id": "steam-input", "kind": "input", "section": "intro", "title": "What kind of Dota player are you?"},
-        {"id": "player-found", "kind": "player_found", "section": "intro", "title": f"Found {display_name}."},
-        {"id": "analysis", "kind": "analysis", "section": "intro", "title": "Reading your recent matches."},
-        {"id": "report-reveal", "kind": "reveal", "section": "intro", "title": "We found your pattern."},
-        {"id": "dna-intro", "kind": "section_intro", "section": "dna", "title": "Your Dota DNA", "body": "Eight signals that describe how your matches tend to look."},
+        {"id": "steam-input", "kind": "input", "section": "intro", **steam_input},
+        {"id": "player-found", "kind": "player_found", "section": "intro", **player_found},
+        {"id": "analysis", "kind": "analysis", "section": "intro", **analysis_page},
+        {"id": "report-reveal", "kind": "reveal", "section": "intro", **reveal},
+        {"id": "dna-intro", "kind": "section_intro", "section": "dna", **dna_intro},
     ]
     for dimension in analysis.dimensions:
+        dimension_copy = resolve_dimension_copy(dimension.key, dimension.status)
         pages.append({
             "id": dimension.key,
             "kind": "dimension",
             "section": "dna",
-            "title": _dimension_title(dimension.key),
-            "body": _dimension_body(dimension),
+            "title": dimension_copy["headline"],
+            "body": dimension_copy["body"],
             "evidence_keys": [item.key for item in dimension.evidence],
         })
     pages.extend([
-        {"id": "archetype", "kind": "archetype", "section": "dna", "title": analysis.archetype.label, "body": "Your archetype is a synthesis of the signals that cleared their evidence gates."},
-        {"id": "dna-summary", "kind": "summary", "section": "dna", "title": "The fingerprint", "body": "A compact view of the signals that stood out."},
-        {"id": "heroes-intro", "kind": "section_intro", "section": "heroes", "title": "The heroes that make it yours", "body": "Familiarity, recurrence, and role fit shape this section."},
-        {"id": "signature-hero", "kind": "signature_hero", "section": "heroes", "title": "Your Signature Hero", "body": analysis.heroes.signature.name if analysis.heroes.signature else "No signature hero cleared the stability gate."},
-        {"id": "comfort-picks", "kind": "comfort", "section": "heroes", "title": "Comfort Picks", "body": "The heroes you keep returning to."},
-        {"id": "hero-pattern", "kind": "hero_pattern", "section": "heroes", "title": "Your Hero Pattern", "body": analysis.heroes.patterns[0].get("label") if analysis.heroes.patterns else "Your comfort pool is still forming."},
-        {"id": "hero-recommendations", "kind": "recommendations", "section": "heroes", "title": "Recommended expansion heroes", "body": "Taste adjacency, not a meta list."},
-        {"id": "heroes-summary", "kind": "summary", "section": "heroes", "title": "The cast around your style"},
-        {"id": "final-card", "kind": "final_card", "section": "finale", "title": display_name, "body": analysis.archetype.label},
-        {"id": "deep-dive", "kind": "deep_dive", "section": "finale", "title": "See what drives it", "body": "A deeper read is available when you want to inspect the evidence."},
+        {"id": "archetype", "kind": "archetype", "section": "dna", "title": analysis.archetype.label, "body": archetype_page["body"]},
+        {"id": "dna-summary", "kind": "summary", "section": "dna", **dna_summary},
+        {"id": "heroes-intro", "kind": "section_intro", "section": "heroes", **heroes_intro},
+        {"id": "signature-hero", "kind": "signature_hero", "section": "heroes", **signature},
+        {"id": "comfort-picks", "kind": "comfort", "section": "heroes", **comfort},
+        {"id": "hero-pattern", "kind": "hero_pattern", "section": "heroes", **pattern, "body": analysis.heroes.patterns[0].get("label") if analysis.heroes.patterns else pattern["body"]},
+        {"id": "hero-recommendations", "kind": "recommendations", "section": "heroes", **recommendations},
+        {"id": "heroes-summary", "kind": "summary", "section": "heroes", **heroes_summary},
+        {"id": "final-card", "kind": "final_card", "section": "finale", "title": final["title"], "body": final["body"]},
+        {"id": "deep-dive", "kind": "deep_dive", "section": "finale", **deep_dive},
     ])
-    # The inventory is 23 states, including the input/loading states so a
-    # fixture payload can exercise the complete story without another schema.
     return pages
 
 
 def _shares(analysis: DnaAnalysisResult, display_name: str, eligible_matches: int) -> dict[str, Any]:
-    strong = [item.as_dict() for item in analysis.dimensions if item.score is not None and item.confidence_score >= 0.50]
+    strong = [
+        {
+            "key": item.key,
+            "label": item.label,
+            "score": item.score,
+            "centered_score": item.centered_score,
+            "confidence": item.confidence,
+        }
+        for item in analysis.dimensions
+        if item.score is not None and item.confidence_score >= 0.50
+    ]
     common = {
         "archetype": analysis.archetype.label,
         "descriptors": list(analysis.archetype.descriptors),
@@ -167,6 +240,7 @@ def _shares(analysis: DnaAnalysisResult, display_name: str, eligible_matches: in
             "signature": analysis.heroes.signature.as_dict() if analysis.heroes.signature else None,
             "comfort": [item.as_dict() for item in analysis.heroes.comfort_picks[:3]],
             "pattern": analysis.heroes.patterns[0] if analysis.heroes.patterns else None,
+            "recommendations": list(analysis.heroes.recommendations[:3]),
         },
         "final": {
             **common,
@@ -177,36 +251,3 @@ def _shares(analysis: DnaAnalysisResult, display_name: str, eligible_matches: in
         },
         "privacy_defaults": {"show_name": True, "show_avatar": True, "show_raw_id": False},
     }
-
-
-def _dimension_title(key: str) -> str:
-    return {
-        "breadth": "How wide is your pool?",
-        "role": "Your role is part of your identity.",
-        "adaptability": "Does your play travel with you?",
-        "activity": "How often are you in the action?",
-        "orientation": "Do you finish or connect?",
-        "resilience": "What changes after the last result?",
-        "endurance": "What happens as the session stretches?",
-        "rhythm": "What does a normal session look like?",
-    }.get(key, key.replace("_", " ").title())
-
-
-def _dimension_body(dimension: Any) -> str:
-    if dimension.status == "unavailable":
-        return "The signal is faint here because the history is missing a required field or sample."
-    if dimension.status == "limited":
-        return "The direction is visible, but more history would make it steadier."
-    return dimension.label or "A readable signal from your history."
-
-
-def _summary_coverage(analysis: DnaAnalysisResult) -> float:
-    if not analysis.matches:
-        return 0.0
-    fields = ("hero_id", "started_at", "duration_seconds", "won", "side")
-    return sum(sum(getattr(item, field) is not None for field in fields) / len(fields) for item in analysis.matches) / len(analysis.matches)
-
-
-def _mask_account_id(account_id: int) -> str:
-    text = str(account_id)
-    return "••••••" + text[-3:]

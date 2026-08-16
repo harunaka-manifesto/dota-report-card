@@ -18,8 +18,16 @@ def score(features: DnaFeatureSet):
     median_length = float(median(lengths))
     share_long = sum(length >= 5 for length in lengths) / len(lengths)
     duration_hours = median(features.session_durations) / 3600 if features.session_durations else 0.0
-    value = clamp(0.5 * (median_length - 2.0) / 3.0 + 0.3 * share_long + 0.2 * (duration_hours - 2.0) / 3.0)
-    sensitivity = session_sensitivity_stability(features)
+    # Three matches over roughly three hours is deliberately neutral. Two
+    # matches over two hours reads as a short burst; five over five hours as a
+    # grinder. The signal uses only session shape, never outcomes.
+    value = clamp(
+        0.5
+        + 0.35 * (median_length - 3.0) / 2.0
+        + 0.20 * (duration_hours - 3.0) / 2.0
+        + 0.15 * (share_long - 0.5)
+    )
+    sensitivity = session_sensitivity_stability(features, "rhythm")
     return result(
         "rhythm",
         score=value,
@@ -33,6 +41,7 @@ def score(features: DnaFeatureSet):
             FeatureEvidence("share_five_plus_sessions", round(share_long, 4), "share", len(lengths), features.dated_match_ids),
             FeatureEvidence("median_session_duration", round(duration_hours, 2), "hours", len(lengths), features.dated_match_ids),
             FeatureEvidence("session_gap_agreement", sensitivity, "agreement", 3),
+            FeatureEvidence("boundary_session_caveat", "oldest_or_newest_window_boundary", "method", sample),
         ),
         confounders=("the history limit can truncate the oldest session",),
         source_match_ids=features.dated_match_ids,

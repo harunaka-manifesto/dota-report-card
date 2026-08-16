@@ -14,7 +14,7 @@ import json
 from typing import Any
 from urllib.parse import urlparse
 
-RENDERER_VERSION = "share-svg-1.0.0"
+RENDERER_VERSION = "share-svg-1.1.0"
 CARD_TYPES = frozenset({"dna", "heroes", "final"})
 
 
@@ -28,12 +28,14 @@ def share_cache_key(
 ) -> str:
     content = _card_content(report, card_type, show_name=show_name, show_avatar=show_avatar)
     value = {
+        "report_id": report.get("report_id"),
         "report_schema": report.get("schema_version"),
         "card_type": card_type,
         "aspect_ratio": aspect_ratio,
         "show_name": show_name,
         "show_avatar": show_avatar,
         "renderer": RENDERER_VERSION,
+        "asset_manifest_hash": _asset_manifest_hash(report),
         "content": content,
     }
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -88,7 +90,11 @@ def _card_content(report: dict[str, Any], card_type: str, *, show_name: bool, sh
         signature = card.get("signature") or {}
         title = signature.get("name") or "Your hero identity"
         pattern = card.get("pattern") or {}
+        recommendation = (card.get("recommendations") or [{}])[0]
+        recommendation_name = recommendation.get("name") if isinstance(recommendation, dict) else None
         facts = ["Signature hero", pattern.get("label") if isinstance(pattern, dict) else pattern]
+        if recommendation_name:
+            facts.append(f"Try next: {recommendation_name}")
     else:
         title = identity.get("display_name") if show_name else card.get("archetype") or "Your Dota DNA"
         facts = [card.get("archetype"), card.get("signature"), card.get("pattern"), card.get("rhythm")]
@@ -98,7 +104,7 @@ def _card_content(report: dict[str, Any], card_type: str, *, show_name: bool, sh
         "facts": [value for value in facts if value],
         "show_avatar": show_avatar,
         "show_name": show_name,
-        "avatar_url": _safe_avatar_url(identity.get("avatarfull")) if show_avatar else None,
+        "avatar_url": _safe_avatar_url(identity.get("avatar_url") or identity.get("avatarfull")) if show_avatar else None,
     }
 
 
@@ -113,3 +119,18 @@ def _safe_avatar_url(value: Any) -> str | None:
     }:
         return None
     return value
+
+
+def _asset_manifest_hash(report: dict[str, Any]) -> str:
+    heroes = report.get("heroes") or {}
+    cards = [heroes.get("signature"), *(heroes.get("comfort_picks") or [])]
+    versions = sorted(
+        str(card.get("portrait_asset_version"))
+        for card in cards
+        if isinstance(card, dict) and card.get("portrait_asset_version")
+    )
+    value = {
+        "taxonomy_version": heroes.get("taxonomy_version"),
+        "portrait_versions": versions,
+    }
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()

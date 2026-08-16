@@ -20,6 +20,9 @@ const HOP_BY_HOP_HEADERS = new Set([
 
 function apiBaseUrl(): URL | null {
   const configured = process.env.API_BASE_URL?.trim();
+  if (!configured && process.env.NODE_ENV === "development") {
+    return new URL("http://localhost:8000/");
+  }
   if (!configured) return null;
   try {
     return new URL(configured.endsWith("/") ? configured : configured + "/");

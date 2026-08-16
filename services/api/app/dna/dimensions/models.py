@@ -36,6 +36,7 @@ class DimensionResult:
     copy: dict[str, Any] | None = None
     methodology_version: str = "dna-scoring-1.0.0"
     source_match_ids: tuple[int, ...] = ()
+    descriptor_eligible: bool = True
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -57,4 +58,5 @@ class DimensionResult:
             "copy": self.copy,
             "methodology_version": self.methodology_version,
             "source_match_ids": list(self.source_match_ids),
+            "descriptor_eligible": self.descriptor_eligible,
         }

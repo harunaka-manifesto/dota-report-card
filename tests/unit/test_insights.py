@@ -3,7 +3,7 @@ from app.analysis.source import FixtureOpenDotaSource
 from app.core.config import Settings
 
 
-async def test_free_report_publishes_summary_observation_without_replay_reads() -> None:
+async def test_free_report_fails_closed_without_thirty_eligible_matches() -> None:
     service = AnalysisService(
         FixtureOpenDotaSource("tests/fixtures/opendota"),
         settings=Settings(),
@@ -11,11 +11,6 @@ async def test_free_report_publishes_summary_observation_without_replay_reads() 
     job, reused = await service.create_analysis("193875165", enqueue=False)
     assert not reused
     await service.run_job(job)
-    assert job.status == "completed"
-    report = service.repository.get_report(job.report_id or "")
-    assert report is not None
-    appendix = report["evidence_appendix"]
-    assert any(item["publication_status"] == "published" for item in appendix)
-    assert all(item["publication_status"] == "published" for item in appendix)
-    assert report["report_variant"] == "free_player_dna"
-    assert report["evidence_scope"]["replay_evidence_status"] == "not_requested"
+    assert job.status == "failed"
+    assert job.failure_code == "INSUFFICIENT_HISTORY"
+    assert job.report_id is None

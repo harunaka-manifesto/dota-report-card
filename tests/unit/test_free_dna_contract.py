@@ -12,6 +12,30 @@ from app.identity.steam import SteamWebResolver
 from app.share.service import build_share_svg
 from app.storage.repository import InMemoryRepository
 
+_PRIVATE_KEYS = {
+    "account_id",
+    "steam_id",
+    "steamid",
+    "steam64",
+    "account_id_masked",
+    "source_match_ids",
+    "normalized_match_refs",
+    "derived_feature_refs",
+    "raw_payload_refs",
+    "match_ids",
+    "legacy_summary",
+    "deep_scan_legacy",
+    "player_dna",
+}
+
+
+def _keys(value: object) -> set[str]:
+    if isinstance(value, dict):
+        return set(value) | {key for child in value.values() for key in _keys(child)}
+    if isinstance(value, list):
+        return {key for child in value for key in _keys(child)}
+    return set()
+
 
 def test_steam64_and_numeric_profile_url_convert_to_same_account() -> None:
     numeric = parse_player_identifier("76561198154040957")
@@ -87,13 +111,23 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     report = repository.get_report(job.report_id or "")
     assert report is not None
     assert report["schema_version"] == "free-dna-report-1.0.0"
-    assert report["dna_report_variant"] == "free_dna_report"
+    assert report["report_variant"] == "free_dna_report"
+    assert report["noindex"] is True
+    assert "account_id" not in report
+    assert "dna" not in report
+    assert "legacy_summary" not in report
     assert report["cost"]["history_requests"] == 1
     assert report["cost"]["detail_requests"] == 0
     assert len(report["dimensions"]) == 8
     assert len(report["pages"]) == 23
-    assert str(42) not in str(report["shares"])
-    assert str(42) not in str(report["pages"])
+    assert report["metadata"]["history_tier"] == "limited"
+    assert all(
+        key not in report
+        for key in ("account_id", "account_id_masked", "source_match_ids", "raw_payload_refs")
+    )
+    assert not (_keys(report) & _PRIVATE_KEYS)
+    assert "account_id" not in str(report["shares"])
+    assert "account_id" not in str(report["pages"])
 
     svg, _ = build_share_svg(report, card_type="final", show_name=False, show_avatar=False)
     assert str(42) not in svg
@@ -102,3 +136,25 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     now = datetime.now(UTC)
     assert repository.purge_expired(now=now + timedelta(days=31)) == 1
     assert repository.get_report(job.report_id or "") is None
+
+
+def test_free_history_boundaries_are_29_fail_30_limited_and_60_normal() -> None:
+    def run(count: int) -> dict[str, object] | None:
+        source = MappingSource(
+            player={"profile": {"account_id": 42, "personaname": "Fixture player"}},
+            matches=[_summary(901_000_000 + index, index) for index in range(count)],
+            details={},
+        )
+        repository = InMemoryRepository()
+        service = AnalysisService(source, repository=repository, settings=Settings())
+        job, _ = asyncio.run(service.create_analysis("42", enqueue=False))
+        asyncio.run(service.run_job(job))
+        return repository.get_report(job.report_id or "") if job.report_id else None
+
+    assert run(29) is None
+    limited = run(30)
+    normal = run(60)
+    assert limited is not None and limited["metadata"]["history_tier"] == "limited"  # type: ignore[index]
+    assert normal is not None and normal["metadata"]["history_tier"] == "normal"  # type: ignore[index]
+    assert limited["quality"]["partial"] is True  # type: ignore[index]
+    assert normal["quality"]["history_tier"] == "normal"  # type: ignore[index]

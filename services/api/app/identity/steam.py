@@ -3,11 +3,14 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 import httpx
 
 from app.core.errors import InvalidPlayerIdentifier, SteamIdentityUnavailable
+
+if TYPE_CHECKING:
+    from app.opendota.cache import CacheBackend
 
 STEAM64_OFFSET = 76561197960265728
 STEAM_VANITY_CACHE_SECONDS = 30 * 24 * 60 * 60
@@ -50,17 +53,23 @@ class SteamWebResolver:
         base_url: str = "https://api.steampowered.com",
         http_client: httpx.AsyncClient | None = None,
         cache_ttl_seconds: int = STEAM_VANITY_CACHE_SECONDS,
+        cache: CacheBackend | None = None,
     ) -> None:
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self._http = http_client
         self._owns_http = http_client is None
         self.cache_ttl_seconds = max(60, cache_ttl_seconds)
+        self._shared_cache = cache
         self._cache: dict[str, _CacheEntry] = {}
         self._inflight: dict[str, asyncio.Task[int]] = {}
 
     async def resolve(self, vanity: str) -> int:
         key = _validate_vanity(vanity)
+        if self._shared_cache is not None:
+            shared = self._shared_cache.get(f"vanity:{key}")
+            if isinstance(shared, int) and shared > 0:
+                return shared
         cached = self._cache.get(key)
         now = asyncio.get_running_loop().time()
         if cached and cached.expires_at > now:
@@ -105,6 +114,10 @@ class SteamWebResolver:
             account_id=account_id,
             expires_at=asyncio.get_running_loop().time() + self.cache_ttl_seconds,
         )
+        if self._shared_cache is not None:
+            self._shared_cache.set(
+                f"vanity:{vanity}", account_id, ttl_seconds=self.cache_ttl_seconds
+            )
         return account_id
 
     async def aclose(self) -> None:

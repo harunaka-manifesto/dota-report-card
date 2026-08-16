@@ -5,7 +5,7 @@ import json
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 
 from app.api.schemas import (
     AnalysisStatusResponse,
@@ -14,6 +14,7 @@ from app.api.schemas import (
     HealthResponse,
 )
 from app.core.errors import AnalysisNotFound, AnalysisRateLimited, ReportNotFound
+from app.core.metrics import record_metric
 from app.core.security import RateLimiter, parse_player_identifier
 from app.share.service import build_share_svg
 
@@ -31,7 +32,9 @@ async def create_analysis(
 ) -> CreateAnalysisResponse:
     identifier = parse_player_identifier(payload.player)
     client_ip = request.client.host if request.client else "unknown"
-    if not _rate_limiter.allow(client_ip, identifier.account_id):
+    if not _rate_limiter.allow(
+        client_ip, identifier.account_id, unresolved_key=identifier.vanity
+    ):
         raise AnalysisRateLimited("Too many analysis requests; try again later")
     job, reused = await _service(request).create_analysis(
         payload.player,
@@ -96,11 +99,14 @@ async def analysis_events(job_id: str, request: Request) -> StreamingResponse:
 
 
 @router.get("/reports/{report_id}")
-async def get_report(report_id: str, request: Request) -> dict[str, Any]:
+async def get_report(report_id: str, request: Request) -> Response:
     report = _service(request).repository.get_report(report_id)
     if report is None:
         raise ReportNotFound("Report was not found")
-    return report
+    return JSONResponse(
+        content=report,
+        headers={"X-Robots-Tag": "noindex, nofollow, noarchive"},
+    )
 
 
 @router.get("/reports/{report_id}/evidence/{insight_id}")
@@ -130,11 +136,17 @@ async def get_share_card(
             show_avatar=show_avatar,
         )
     except ValueError as exc:
+        record_metric("share.render.failed", tags={"card_type": card_type})
         return Response(str(exc), status_code=422, media_type="text/plain")
+    record_metric("share.render.completed", tags={"card_type": card_type, "renderer": "share-svg-1.1.0"})
     return Response(
         svg,
         media_type="image/svg+xml",
-        headers={"Cache-Control": "public, max-age=3600, immutable", "ETag": cache_key},
+        headers={
+            "Cache-Control": "public, max-age=3600, immutable",
+            "ETag": cache_key,
+            "X-Robots-Tag": "noindex, nofollow, noarchive",
+        },
     )
 
 

@@ -1,24 +1,32 @@
-"""Reviewed, deterministic hero facts used by the Free DNA runtime.
+"""Stable, checked-in hero taxonomy used by Free DNA.
 
-The supplied ``heroes_metadata`` corpus is research input only.  Runtime code
-uses this frozen ID-keyed snapshot and never scrapes or parses those Markdown
-files while serving a report.
+The runtime deliberately does not infer hero identity from the research-file
+order, filenames, or hero names. Factual identity comes from the frozen
+OpenDota/Valve-compatible snapshot and editorial traits come from a separate
+reviewed snapshot. The Markdown research corpus is build-time input only.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-TAXONOMY_VERSION = "hero-taxonomy-1.0.0"
+TAXONOMY_VERSION = "hero-taxonomy-2026-08-16"
+FACTUAL_VERSION = "factual-2026-08-16"
+EDITORIAL_VERSION = "editorial-2026-08-16"
 TRAITS = (
     "initiation", "mobility", "pickoff", "teamfight", "save", "sustain",
     "burst", "sustained_damage", "wave_clear", "push", "frontline", "scaling",
     "farm_dependency", "global_presence", "micro_intensity", "complexity", "repositioning",
 )
+ROLES = frozenset({"carry", "mid", "offlane", "soft_support", "hard_support", "roamer", "jungle"})
+_DATA_ROOT = Path(__file__).with_name("data")
+_FACTUAL_PATH = _DATA_ROOT / "factual" / "2026-08-16.json"
+_EDITORIAL_PATH = _DATA_ROOT / "editorial" / "2026-08-16.json"
+_MANIFEST_PATH = _DATA_ROOT / "taxonomy-manifest.json"
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,7 +39,7 @@ class HeroTaxonomyEntry:
     portrait_url: str
     available: bool = True
     provenance: dict[str, Any] | None = None
-    portrait_asset_version: str = "hero-assets-1.0.0"
+    portrait_asset_version: str = "hero-assets-2026-08-16"
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -58,6 +66,13 @@ class HeroTaxonomy:
 
     def validate(self) -> tuple[str, ...]:
         errors: list[str] = []
+        manifest_status = self.manifest.get("review_status")
+        if not self.manifest.get("reviewer") or manifest_status not in {"reviewed", "reviewed_snapshot"}:
+            errors.append("missing_manifest_review_status")
+        for checksum_key in ("factual_checksum", "editorial_checksum"):
+            checksum = self.manifest.get(checksum_key)
+            if not isinstance(checksum, str) or len(checksum) != 64:
+                errors.append(f"invalid_manifest_checksum:{checksum_key}")
         seen_keys: set[str] = set()
         for hero_id, hero in self.heroes.items():
             if hero.hero_id != hero_id:
@@ -67,11 +82,25 @@ class HeroTaxonomy:
             seen_keys.add(hero.key)
             if not hero.provenance:
                 errors.append(f"missing_provenance:{hero_id}")
-            unknown = set(hero.traits) - set(TRAITS)
-            if unknown:
-                errors.append(f"unknown_traits:{hero_id}:{','.join(sorted(unknown))}")
+            elif (
+                not hero.provenance.get("source")
+                or not hero.provenance.get("research_file")
+                or not hero.provenance.get("editorial")
+                or not hero.provenance.get("review_status")
+            ):
+                errors.append(f"incomplete_provenance:{hero_id}")
+            if not hero.portrait_url:
+                errors.append(f"missing_portrait:{hero_id}")
+            if not set(hero.roles).issubset(ROLES):
+                errors.append(f"unknown_roles:{hero_id}")
+            if set(hero.traits) != set(TRAITS):
+                errors.append(f"incomplete_traits:{hero_id}")
             if any(value < 0 or value > 1 for value in hero.traits.values()):
                 errors.append(f"trait_out_of_range:{hero_id}")
+        if int(self.manifest.get("source_file_coverage_count", 0) or 0) != 127:
+            errors.append("incomplete_research_file_coverage")
+        if len(self.heroes) != 127:
+            errors.append("incomplete_active_roster")
         return tuple(errors)
 
     def as_dict(self) -> dict[str, Any]:
@@ -83,28 +112,63 @@ class HeroTaxonomy:
 
 
 def load_default_taxonomy() -> HeroTaxonomy:
-    entries = {
-        hero_id: _entry(hero_id, name)
-        for hero_id, name in HERO_NAMES.items()
+    """Load only immutable checked-in snapshots; never scrape at report time."""
+
+    factual = _read_json(_FACTUAL_PATH)
+    editorial = _read_json(_EDITORIAL_PATH)
+    manifest = _read_json(_MANIFEST_PATH)
+    factual_list = factual.get("heroes", [])
+    editorial_list = editorial.get("entries", [])
+    if not isinstance(factual_list, list) or not isinstance(editorial_list, list):
+        raise ValueError("Hero taxonomy snapshots must contain list records")
+    factual_ids = [int(row["hero_id"]) for row in factual_list]
+    editorial_ids = [int(row["hero_id"]) for row in editorial_list]
+    if len(factual_ids) != len(set(factual_ids)) or len(editorial_ids) != len(set(editorial_ids)):
+        raise ValueError("Hero taxonomy snapshots contain duplicate IDs")
+    factual_rows = {int(row["hero_id"]): row for row in factual_list}
+    editorial_rows = {int(row["hero_id"]): row for row in editorial_list}
+    if set(factual_rows) != set(editorial_rows):
+        raise ValueError("Hero taxonomy factual/editorial IDs do not match")
+
+    heroes: dict[int, HeroTaxonomyEntry] = {}
+    for hero_id in sorted(factual_rows):
+        factual_row = factual_rows[hero_id]
+        editorial_row = editorial_rows[hero_id]
+        roles = tuple(str(role) for role in editorial_row.get("roles", factual_row.get("roles", [])))
+        provenance = {
+            **dict(factual_row.get("provenance", {})),
+            "research_file": factual_row.get("research_file"),
+            "editorial": dict(editorial_row.get("provenance", {})),
+            "review_status": editorial_row.get("review_status"),
+        }
+        heroes[hero_id] = HeroTaxonomyEntry(
+            hero_id=hero_id,
+            key=str(factual_row["key"]),
+            name=str(factual_row["name"]),
+            roles=roles,
+            traits={str(key): float(value) for key, value in editorial_row["traits"].items()},
+            portrait_url=str(factual_row.get("portrait_ref", "")),
+            available=bool(factual_row.get("available", True)),
+            provenance=provenance,
+        )
+    combined_manifest = {
+        **manifest,
+        "factual_version": factual.get("version", FACTUAL_VERSION),
+        "editorial_version": editorial.get("version", EDITORIAL_VERSION),
+        "factual_checksum": _sha256(_FACTUAL_PATH),
+        "editorial_checksum": _sha256(_EDITORIAL_PATH),
     }
-    return HeroTaxonomy(
-        version=TAXONOMY_VERSION,
-        heroes=entries,
-        manifest={
-            "schema_version": "hero-taxonomy-1.0.0",
-            "factual_version": "factual-1.0.0",
-            "editorial_version": "editorial-1.0.0",
-            "effective_patch": "7.41e",
-            "source_corpus": "heroes_metadata/ (127 research files)",
-            "source_file_count": 127,
-            "review_ledger_version": "hero-review-1.0.0",
-            "review_status": "checked-in-runtime-snapshot",
-        },
-    )
+    taxonomy = HeroTaxonomy(TAXONOMY_VERSION, heroes, combined_manifest)
+    errors = taxonomy.validate()
+    if errors:
+        raise ValueError("Invalid hero taxonomy: " + ", ".join(errors))
+    return taxonomy
 
 
 def load_taxonomy(path: str | Path) -> HeroTaxonomy:
-    value = json.loads(Path(path).read_text(encoding="utf-8"))
+    """Load an aggregate taxonomy fixture while preserving strict validation."""
+
+    value = _read_json(Path(path))
     heroes = {
         int(hero_id): HeroTaxonomyEntry(
             hero_id=int(item["hero_id"]),
@@ -112,10 +176,10 @@ def load_taxonomy(path: str | Path) -> HeroTaxonomy:
             name=str(item["name"]),
             roles=tuple(str(role) for role in item.get("roles", [])),
             traits={str(key): float(trait) for key, trait in item.get("traits", {}).items()},
-            portrait_url=str(item.get("portrait_url", "")),
+            portrait_url=str(item.get("portrait_url", item.get("portrait_ref", ""))),
             available=bool(item.get("available", True)),
             provenance=dict(item.get("provenance", {})),
-            portrait_asset_version=str(item.get("portrait_asset_version", "hero-assets-1.0.0")),
+            portrait_asset_version=str(item.get("portrait_asset_version", "hero-assets-2026-08-16")),
         )
         for hero_id, item in value.get("heroes", {}).items()
     }
@@ -126,79 +190,15 @@ def load_taxonomy(path: str | Path) -> HeroTaxonomy:
     return taxonomy
 
 
-def _entry(hero_id: int, name: str) -> HeroTaxonomyEntry:
-    key = _slug(name)
-    source_slug = _source_slug(name)
-    text = name.lower()
-    roles = _roles_for_name(text)
-    traits = _traits_for_name(text, roles)
-    return HeroTaxonomyEntry(
-        hero_id=hero_id,
-        key=key,
-        name=name,
-        roles=roles,
-        traits=traits,
-        portrait_url=f"https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/{key}.png",
-        provenance={
-            "source": "heroes_metadata/ (research-only)",
-            "source_url": f"https://dotacoach.gg/en/heroes/{source_slug}",
-            "source_file": f"heroes_metadata/{hero_id:03d}-{source_slug}.md",
-            "effective_patch": "7.41e",
-            "reviewed_at": "2026-08-16",
-            "source_hash": "research-only-runtime-snapshot",
-        },
-        portrait_asset_version="hero-assets-1.0.0",
-    )
+def _read_json(path: Path) -> dict[str, Any]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ValueError(f"Hero taxonomy snapshot is missing: {path}") from exc
+    if not isinstance(value, dict):
+        raise ValueError(f"Hero taxonomy snapshot must be an object: {path}")
+    return value
 
 
-def _traits_for_name(name: str, roles: tuple[str, ...]) -> dict[str, float]:
-    values = {trait: 0.5 for trait in TRAITS}
-    if any(word in name for word in ("spirit", "puck", "weaver", "windranger", "storm")):
-        values.update(mobility=0.85, repositioning=0.85, pickoff=0.68)
-    if any(word in name for word in ("earthshaker", "enigma", "magnus", "tidehunter", "faceless", "lion")):
-        values.update(initiation=0.86, teamfight=0.85)
-    if any(word in name for word in ("dazzle", "oracle", "io", "omniknight", "shadow demon", "vengeful", "winter")):
-        values.update(save=0.88, sustain=0.74, teamfight=0.68)
-    if any(word in name for word in ("anti-mage", "phantom", "spectre", "terrorblade", "medusa", "luna")):
-        values.update(scaling=0.88, farm_dependency=0.82, sustained_damage=0.76)
-    if any(word in name for word in ("assassin", "clinkz", "slark", "bounty", "riki", "queen")):
-        values.update(pickoff=0.86, burst=0.75, mobility=0.72)
-    if any(word in name for word in ("pudge", "axe", "centaur", "bristle", "underlord", "mars", "primal")):
-        values.update(frontline=0.88, initiation=0.72, teamfight=0.75)
-    if any(word in name for word in ("chen", "meepo", "lone druid", "beastmaster", "broodmother", "arc warden")):
-        values.update(micro_intensity=0.9, complexity=0.9, push=0.72)
-    if any(word in name for word in ("zeus", "invoker", "tinker", "sniper", "skywrath", "lina")):
-        values.update(burst=0.8, wave_clear=0.78, repositioning=0.58)
-    if "support" in " ".join(roles):
-        values["farm_dependency"] = min(values["farm_dependency"], 0.35)
-        values["save"] = max(values["save"], 0.55)
-    return values
-
-
-def _roles_for_name(name: str) -> tuple[str, ...]:
-    support_words = ("crystal", "bane", "chen", "dazzle", "disruptor", "jakiro", "keeper", "lich", "lion", "oracle", "omniknight", "shadow demon", "shadow shaman", "silencer", "skywrath", "treant", "undying", "vengeful", "venomancer", "warlock", "witch doctor", "winter", "io", "rubick", "tusk", "earth spirit")
-    carry_words = ("anti-mage", "juggernaut", "faceless", "drow", "luna", "medusa", "morphling", "phantom assassin", "phantom lancer", "slark", "spectre", "terrorblade", "troll", "ursa", "weaver", "wraith", "sniper", "sven")
-    roles: list[str] = []
-    if any(word in name for word in carry_words):
-        roles.append("carry")
-    if any(word in name for word in ("spirit", "invoker", "queen", "storm", "shadow fiend", "templar", "puck", "leshrac", "lina", "death prophet", "void", "od")):
-        roles.append("mid")
-    if any(word in name for word in ("axe", "beastmaster", "bristle", "centaur", "dark seer", "doom", "dragon", "enigma", "legion", "mars", "night stalker", "offlane", "primal", "slardar", "tide", "timber", "underlord", "under")):
-        roles.append("offlane")
-    if any(word in name for word in support_words):
-        roles.extend(["soft_support", "hard_support"])
-    return tuple(dict.fromkeys(roles or ["carry", "mid", "offlane"]))
-
-
-def _slug(name: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
-
-
-def _source_slug(name: str) -> str:
-    normalized = name.lower().replace("'", "")
-    return re.sub(r"[^a-z0-9]+", "-", normalized).strip("-")
-
-
-HERO_NAMES = {
-    1:"Abaddon",2:"Alchemist",3:"Ancient Apparition",4:"Anti-Mage",5:"Arc Warden",6:"Axe",7:"Bane",8:"Batrider",9:"Beastmaster",10:"Bloodseeker",11:"Bounty Hunter",12:"Brewmaster",13:"Bristleback",14:"Broodmother",15:"Centaur Warrunner",16:"Chaos Knight",17:"Chen",18:"Clinkz",19:"Clockwerk",20:"Crystal Maiden",21:"Dark Seer",22:"Dark Willow",23:"Dawnbreaker",24:"Dazzle",25:"Death Prophet",26:"Disruptor",27:"Doom",28:"Dragon Knight",29:"Drow Ranger",30:"Earth Spirit",31:"Earthshaker",32:"Elder Titan",33:"Ember Spirit",34:"Enchantress",35:"Enigma",36:"Faceless Void",37:"Grimstroke",38:"Gyrocopter",39:"Hoodwink",40:"Huskar",41:"Invoker",42:"Io",43:"Jakiro",44:"Juggernaut",45:"Keeper of the Light",46:"Kez",47:"Kunkka",48:"Largo",49:"Legion Commander",50:"Leshrac",51:"Lich",52:"Lifestealer",53:"Lina",54:"Lion",55:"Lone Druid",56:"Luna",57:"Lycan",58:"Magnus",59:"Marci",60:"Mars",61:"Medusa",62:"Meepo",63:"Mirana",64:"Monkey King",65:"Morphling",66:"Muerta",67:"Naga Siren",68:"Nature's Prophet",69:"Necrophos",70:"Night Stalker",71:"Nyx Assassin",72:"Ogre Magi",73:"Omniknight",74:"Oracle",75:"Outworld Destroyer",76:"Pangolier",77:"Phantom Assassin",78:"Phantom Lancer",79:"Phoenix",80:"Primal Beast",81:"Puck",82:"Pudge",83:"Pugna",84:"Queen of Pain",85:"Razor",86:"Riki",87:"Ringmaster",88:"Rubick",89:"Sand King",90:"Shadow Demon",91:"Shadow Fiend",92:"Shadow Shaman",93:"Silencer",94:"Skywrath Mage",95:"Slardar",96:"Slark",97:"Snapfire",98:"Sniper",99:"Spectre",100:"Spirit Breaker",101:"Storm Spirit",102:"Sven",103:"Techies",104:"Templar Assassin",105:"Terrorblade",106:"Tidehunter",107:"Timbersaw",108:"Tinker",109:"Tiny",110:"Treant Protector",111:"Troll Warlord",112:"Tusk",113:"Underlord",114:"Undying",115:"Ursa",116:"Vengeful Spirit",117:"Venomancer",118:"Viper",119:"Visage",120:"Void Spirit",121:"Warlock",122:"Weaver",123:"Windranger",124:"Winter Wyvern",125:"Witch Doctor",126:"Wraith King",127:"Zeus"
-}
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()

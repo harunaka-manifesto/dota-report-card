@@ -6,11 +6,18 @@ from celery import Celery
 
 from app.analysis.service import AnalysisService
 from app.core.config import get_settings
+from app.core.metrics import record_metric
 from app.core.security import PlayerIdentifier
 
 celery_app = Celery(
     "dota-report-card", broker=get_settings().redis_url, backend=get_settings().redis_url
 )
+celery_app.conf.beat_schedule = {
+    "purge-expired-report-data-hourly": {
+        "task": "dota_report_card.purge_expired",
+        "schedule": 3600.0,
+    }
+}
 _service: AnalysisService | None = None
 
 
@@ -34,3 +41,19 @@ def run_analysis_task(job_id: str, account_id: int, canonical_player: str) -> No
     asyncio.run(
         service.run_job(job, PlayerIdentifier(account_id, canonical_player))
     )
+
+
+@celery_app.task(name="dota_report_card.purge_expired")
+def purge_expired_task() -> int:
+    service = _service
+    if service is None:
+        from app.main import create_app
+
+        service = create_app().state.analysis_service
+    try:
+        deleted = int(service.repository.purge_expired())
+        record_metric("retention.purged", value=deleted)
+        return deleted
+    except Exception:
+        record_metric("retention.failed")
+        raise

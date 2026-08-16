@@ -1,0 +1,17 @@
+{
+  "schema_version": "hero-taxonomy-manifest-1.0.0",
+  "factual_version": "factual-2026-08-16",
+  "editorial_version": "editorial-2026-08-16",
+  "effective_patch": "7.41e",
+  "effective_date": "2026-08-16",
+  "source_provenance": {
+    "factual": "OpenDota dotaconstants build/heroes.json",
+    "editorial": "checked-in heroes_metadata/*.md review corpus"
+  },
+  "reviewer": "product-editorial-snapshot",
+  "review_status": "reviewed_snapshot",
+  "source_file_coverage_count": 127,
+  "generator_code_version": "hero-taxonomy-generator-1.1.0",
+  "factual_checksum": "56b0c0fb2f9f1e75d3649b655780197d12a845edb26ccb0d2645370b42e2cb89",
+  "editorial_checksum": "394190d3a4c8b067b9eda04975d8d7c1b19092a9f1c9a39d46266bfec5533e0d"
+}

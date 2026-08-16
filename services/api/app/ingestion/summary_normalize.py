@@ -24,12 +24,16 @@ EligibilityKey = Literal[
 ]
 
 ROLE_HINTS = {
+    # OpenDota lane_role is a lane/context enum, not a position-1..5 enum.
+    # The summary endpoint can identify safe/mid/off lane and roaming, but it
+    # cannot reliably split hard vs soft support without detail evidence.
     1: "carry",
     2: "mid",
     3: "offlane",
-    4: "soft_support",
-    5: "hard_support",
+    4: "jungle",
+    5: "roamer",
 }
+SUPPORTED_LOBBY_TYPES = frozenset({0, 7})  # public unranked / ranked matchmaking
 
 SUPPORTED_ALL_PICK_MODES = frozenset({1, 22})
 _MATERIAL_ABANDON_STATUSES = frozenset({2, 3, 4, 5})
@@ -69,6 +73,7 @@ class NormalizedSummaryMatch:
     role_hint: str | None
     role_confidence: float | None
     patch: str | None
+    source_version: str | None
     skill_bracket: int | None
     region: int | None
     session_id: str | None = None
@@ -128,6 +133,7 @@ class NormalizedSummaryMatch:
             "role_hint": self.role_hint,
             "role_confidence": self.role_confidence,
             "patch": self.patch,
+            "source_version": self.source_version,
             "skill_bracket": self.skill_bracket,
             "region": self.region,
             "session_id": self.session_id,
@@ -193,7 +199,11 @@ def normalize_summary_rows(
             continue
         previous_score = _nonnull_score(previous_row)
         current_score = _nonnull_score(row)
-        if current_score > previous_score:
+        current_fingerprint = _row_fingerprint(row)
+        previous_fingerprint = _row_fingerprint(previous_row)
+        if current_score > previous_score or (
+            current_score == previous_score and current_fingerprint < previous_fingerprint
+        ):
             chosen[match_id] = (source_index, row)
             kept_index = source_index
         else:
@@ -262,6 +272,7 @@ def _normalize_row(
     lobby_type = _as_int(row.get("lobby_type"))
     leaver_status = _as_int(row.get("leaver_status"))
     pro_or_league = bool(row.get("leagueid") or row.get("league_id"))
+    invalid_numeric_reasons = _invalid_numeric_reasons(row)
     eligibility = _eligibility(
         match_id=match_id,
         hero_id=hero_id,
@@ -277,6 +288,7 @@ def _normalize_row(
         kills=_as_nonnegative_int(row.get("kills")),
         assists=_as_nonnegative_int(row.get("assists")),
         pro_or_league=pro_or_league,
+        invalid_numeric_reasons=invalid_numeric_reasons,
     )
     return NormalizedSummaryMatch(
         match_id=match_id,
@@ -301,10 +313,11 @@ def _normalize_row(
         is_roaming=is_roaming,
         role_hint=role_hint,
         role_confidence=role_confidence,
-        patch=_as_str(row.get("patch") or row.get("version")),
+        patch=_as_str(row.get("patch")),
         skill_bracket=_as_int(row.get("skill_bracket") or row.get("skill")),
         region=_as_int(row.get("region")),
         eligibility=eligibility,
+        source_version=_as_str(row.get("version")),
     )
 
 
@@ -324,8 +337,9 @@ def _eligibility(
     kills: int | None,
     assists: int | None,
     pro_or_league: bool,
+    invalid_numeric_reasons: tuple[str, ...] = (),
 ) -> dict[str, EligibilityFlag]:
-    common_reasons: list[str] = []
+    common_reasons: list[str] = list(invalid_numeric_reasons)
     if match_id <= 0:
         common_reasons.append("invalid_match_id")
     if hero_id is None or hero_id <= 0:
@@ -340,10 +354,11 @@ def _eligibility(
         common_reasons.append("invalid_duration")
     if leaver_status in _MATERIAL_ABANDON_STATUSES:
         common_reasons.append("abandoned")
-    if lobby_type == 4:
-        common_reasons.append("bot_lobby")
+    if lobby_type not in SUPPORTED_LOBBY_TYPES:
+        common_reasons.append("unsupported_lobby_type")
     if pro_or_league:
         common_reasons.append("pro_or_league")
+    common_reasons = list(dict.fromkeys(common_reasons))
 
     common = not common_reasons
     flags: dict[str, EligibilityFlag] = {
@@ -351,7 +366,9 @@ def _eligibility(
         "breadth": EligibilityFlag(common and hero_id is not None, tuple(common_reasons)),
         "role": EligibilityFlag(
             common and role_hint is not None and (role_confidence or 0.0) >= 0.60,
-            tuple(common_reasons) + (() if role_hint else ("missing_role_hint",)),
+            tuple(common_reasons)
+            + (("low_role_confidence",) if role_hint and (role_confidence or 0.0) < 0.60 else ())
+            + (() if role_hint else ("missing_role_hint",)),
         ),
         "adaptability": EligibilityFlag(common and hero_id is not None and won is not None, tuple(common_reasons)),
         "activity": EligibilityFlag(
@@ -378,9 +395,9 @@ def _role_hint(
         return "roamer", 0.72
     if lane_role in ROLE_HINTS:
         return ROLE_HINTS[lane_role], 0.86
-    lane_roles = {1: "carry", 2: "mid", 3: "offlane"}
-    if lane in lane_roles:
-        return lane_roles[lane], 0.62
+    # ``lane`` is a spatial lane enum, not a player-position enum. Without a
+    # trustworthy lane_role/roaming signal, retain the row but do not invent a
+    # role from lane placement alone.
     return None, None
 
 
@@ -389,7 +406,23 @@ def _row_fingerprint(row: dict[str, Any]) -> tuple[tuple[str, str], ...]:
 
 
 def _nonnull_score(row: dict[str, Any]) -> int:
-    return sum(value is not None for value in row.values())
+    required = (
+        "match_id", "start_time", "duration", "hero_id", "player_slot",
+        "radiant_win", "won", "game_mode", "lobby_type", "kills", "deaths", "assists",
+    )
+    useful = sum(row.get(key) is not None for key in required)
+    return useful * 10 + sum(value is not None for value in row.values())
+
+
+def _invalid_numeric_reasons(row: dict[str, Any]) -> tuple[str, ...]:
+    reasons: list[str] = []
+    for field in ("kills", "deaths", "assists", "duration", "duration_seconds"):
+        if field not in row or row.get(field) is None:
+            continue
+        parsed = _as_int(row.get(field))
+        if parsed is None or parsed < 0:
+            reasons.append(f"invalid_{field}")
+    return tuple(dict.fromkeys(reasons))
 
 
 def _as_int(value: Any) -> int | None:

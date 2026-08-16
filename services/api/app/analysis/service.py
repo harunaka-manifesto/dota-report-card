@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import logging
 from collections.abc import Iterable
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from typing import Any
 
 from app.analysis.budget import CostPolicy, DataCostLedger
@@ -22,12 +24,19 @@ from app.core.errors import (
     ProfileUnavailable,
     SteamIdentityUnavailable,
 )
+from app.core.metrics import record_metric
 from app.core.security import PlayerIdentifier, parse_player_identifier
-from app.dna.pipeline import analyze_dna
+from app.dna.archetypes.classifier import classify
+from app.dna.archetypes.descriptors import choose_descriptors
+from app.dna.dimensions.service import score_dimensions
+from app.dna.features.extractor import extract_dna_features
+from app.dna.pipeline import DnaAnalysisResult
+from app.dna.sessions import SessionPolicy, infer_sessions
 from app.features.calculators import calculate_match_features
 from app.features.models import MatchFeature
 from app.features.summary_calculators import calculate_summary_features
 from app.features.summary_models import SummaryFeatureSet
+from app.heroes.identity import select_hero_identity
 from app.identity.steam import SteamVanityResolver
 from app.ingestion.coverage import coverage_for_match
 from app.ingestion.eligibility import assess_match
@@ -74,14 +83,35 @@ class AnalysisService:
         analysis_mode = _analysis_mode(mode or self.settings.default_analysis_mode)
         compatibility_version = self._compatibility_model_version(analysis_mode)
         if not refresh:
-            existing = self.repository.find_compatible_completed(
-                identifier.account_id,
-                compatibility_version,
-                analysis_mode=analysis_mode,
-                max_age_seconds=self.settings.compatible_analysis_ttl_seconds,
-            )
-            if existing is not None:
-                return existing, True
+            raw_history_hash = None
+            identity_fingerprint = None
+            if analysis_mode == "free" and hasattr(self.repository, "get_cached_raw_payload"):
+                cached_profile = self.repository.get_cached_raw_payload(
+                    f"/players/{identifier.account_id}", str(identifier.account_id)
+                )
+                if isinstance(cached_profile, dict):
+                    identity_fingerprint = _identity_fingerprint(cached_profile)
+                cached = self.repository.get_cached_raw_payload(
+                    f"/players/{identifier.account_id}/matches", str(identifier.account_id)
+                )
+                if isinstance(cached, list):
+                    raw_history_hash = payload_hash(cached[: self.settings.effective_free_history_limit])
+            # Free reports may only reuse a completed snapshot after the
+            # bounded history identity is known. Otherwise a retained report
+            # could outlive its upstream history cache and be reused blindly.
+            if analysis_mode != "free" or (
+                raw_history_hash is not None and identity_fingerprint is not None
+            ):
+                existing = self.repository.find_compatible_completed(
+                    identifier.account_id,
+                    compatibility_version,
+                    analysis_mode=analysis_mode,
+                    max_age_seconds=self.settings.compatible_analysis_ttl_seconds,
+                    raw_history_hash=raw_history_hash,
+                    identity_fingerprint=identity_fingerprint,
+                )
+                if existing is not None:
+                    return existing, True
         job, reused = self.repository.get_or_create_inflight_job(
             identifier.account_id,
             identifier.canonical_url,
@@ -94,9 +124,35 @@ class AnalysisService:
 
     def _compatibility_model_version(self, analysis_mode: str) -> str:
         if analysis_mode == "free":
+            from app.content.catalog import copy_version
+            from app.dna.archetypes.classifier import CLASSIFIER_VERSION
+            from app.dna.baselines import BASELINE_VERSION
+            from app.dna.features.models import FEATURE_VERSION
+            from app.dna.pipeline import DNA_SCORING_VERSION
+            from app.dna.sessions import SESSION_VERSION
+            from app.heroes.identity import HERO_IDENTITY_VERSION
+            from app.heroes.taxonomy import TAXONOMY_VERSION
             from app.reports.dna_assembly import REPORT_SCHEMA_VERSION
+            from app.share.service import RENDERER_VERSION
 
-            return f"{self.settings.model_version}:{REPORT_SCHEMA_VERSION}"
+            versions = {
+                "eligibility": "summary-eligibility-1.1.0",
+                "sessions": SESSION_VERSION,
+                "features": FEATURE_VERSION,
+                "dna_scoring": DNA_SCORING_VERSION,
+                "baselines": BASELINE_VERSION,
+                "archetype": CLASSIFIER_VERSION,
+                "hero_identity": HERO_IDENTITY_VERSION,
+                "hero_taxonomy": TAXONOMY_VERSION,
+                "recommendations": "hero-recommendations-1.1.0",
+                "copy": copy_version(),
+                "report_schema": REPORT_SCHEMA_VERSION,
+                "model": self.settings.model_version,
+                "template": self.settings.template_version,
+                "share_renderer": RENDERER_VERSION,
+            }
+            digest = hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest()
+            return f"free-analysis-{digest[:48]}"
         return self.settings.model_version
 
     async def _resolve_identifier(self, player: str) -> PlayerIdentifier:
@@ -159,20 +215,34 @@ class AnalysisService:
         identifier = identifier or PlayerIdentifier(job.account_id, job.canonical_player)
         try:
             await self._run(job, identifier)
+            record_metric(
+                "analysis.completed",
+                tags={
+                    "mode": job.analysis_mode,
+                    "history_tier": "limited" if 30 <= job.eligible_matches < 60 else "normal",
+                    "model": job.model_version,
+                },
+            )
         except asyncio.CancelledError:
             self.repository.fail_job(job, "ANALYSIS_CANCELLED", "The analysis was cancelled")
+            record_metric("analysis.failed", tags={"code": "ANALYSIS_CANCELLED", "mode": job.analysis_mode})
             raise
         except AppError as exc:
             self.repository.fail_job(job, exc.code, exc.message)
+            record_metric("analysis.failed", tags={"code": exc.code, "mode": job.analysis_mode})
         except Exception:
             logger.exception("analysis_failed job_id=%s account_id=%s", job.job_id, job.account_id)
             self.repository.fail_job(job, "ANALYSIS_FAILED", "Unexpected analysis failure")
+            record_metric("analysis.failed", tags={"code": "ANALYSIS_FAILED", "mode": job.analysis_mode})
 
     async def _run(self, job: AnalysisJob, identifier: PlayerIdentifier) -> None:
         self.repository.update_job(
-            job, status="running", stage="validating_player", message="Identifier accepted"
+            job, status="running", stage="resolving_player", message="Resolving the public player profile"
         )
-        profile = await self.source.get_player(identifier.account_id)
+        cached_profile = self.repository.get_cached_raw_payload(
+            f"/players/{identifier.account_id}", str(identifier.account_id)
+        ) if hasattr(self.repository, "get_cached_raw_payload") else None
+        profile = cached_profile if isinstance(cached_profile, dict) else await self.source.get_player(identifier.account_id)
         if not profile or not _profile_account_id(profile, identifier.account_id):
             raise ProfileUnavailable("Public profile is unavailable")
         self.repository.persist_raw_payload(
@@ -181,6 +251,9 @@ class AnalysisService:
             profile,
             {"adapter_version": "opendota-player-1.0.0"},
         )
+        self.repository.update_job(
+            job, stage="player_found", message="Public player profile resolved"
+        )
 
         self.repository.update_job(
             job, stage="fetching_history", message="Fetching latest match history"
@@ -188,9 +261,16 @@ class AnalysisService:
         history_limit = self.settings.effective_free_history_limit
         cost_ledger = DataCostLedger()
         cost_policy = CostPolicy()
-        history = await self.source.get_matches(identifier.account_id, limit=history_limit)
-        history = list(history[:history_limit])
-        cost_ledger.record("history", policy=cost_policy)
+        cached_history = self.repository.get_cached_raw_payload(
+            f"/players/{identifier.account_id}/matches", str(identifier.account_id)
+        ) if hasattr(self.repository, "get_cached_raw_payload") else None
+        if isinstance(cached_history, list):
+            history = list(cached_history[:history_limit])
+            cost_ledger.record("history", policy=cost_policy, cache_hit=True, units=0.0)
+        else:
+            history = await self.source.get_matches(identifier.account_id, limit=history_limit)
+            history = list(history[:history_limit])
+            cost_ledger.record("history", policy=cost_policy)
         self.repository.persist_raw_payload(
             f"/players/{identifier.account_id}/matches",
             str(identifier.account_id),
@@ -205,6 +285,17 @@ class AnalysisService:
         if not history:
             raise InsufficientMatchHistory("No match history was returned")
         job.processed_matches = len(history)
+
+        if job.analysis_mode == "free":
+            await self._save_player_dna(
+                job,
+                identifier,
+                profile,
+                history=history,
+                history_limit=history_limit,
+                cost_ledger=cost_ledger,
+            )
+            return
 
         self.repository.update_job(
             job, stage="filtering_matches", message="Applying match eligibility rules"
@@ -229,21 +320,6 @@ class AnalysisService:
         self.repository.record_event(
             job, f"{len(exclusion_ledger)} history rows excluded before summary analysis"
         )
-
-        # Free DNA ends at the summary boundary.  It intentionally does not
-        # construct hypotheses or a deep-selection plan; Deep Scan keeps the
-        # existing path below and owns those additional reads.
-        if job.analysis_mode == "free":
-            await self._save_player_dna(
-                job,
-                identifier,
-                profile,
-                summary_feature_set,
-                history=history,
-                exclusion_ledger=exclusion_ledger,
-                history_limit=history_limit,
-            )
-            return
 
         self.repository.update_job(
             job,
@@ -290,11 +366,10 @@ class AnalysisService:
         job: AnalysisJob,
         identifier: PlayerIdentifier,
         profile: dict[str, Any],
-        feature_set: SummaryFeatureSet,
         *,
         history: list[dict[str, Any]],
-        exclusion_ledger: list[dict[str, Any]],
         history_limit: int,
+        cost_ledger: DataCostLedger,
     ) -> None:
         self.repository.update_job(
             job,
@@ -307,36 +382,58 @@ class AnalysisService:
             f"Normalized {len(normalized.matches)} unique summary rows",
         )
         job.eligible_matches = len(normalized.eligible_matches)
+        if job.eligible_matches < 30:
+            raise InsufficientMatchHistory(
+                "At least 30 common eligible matches are required to build Free Dota DNA"
+            )
+        history_tier = "limited" if job.eligible_matches < 60 else "normal"
 
-        self.repository.update_job(job, stage="hero_features", message="Mapping your hero habits")
-        self.repository.update_job(job, stage="role_features", message="Reading your role patterns")
-        self.repository.update_job(job, stage="session_inference", message="Rebuilding your play sessions")
-        dna_analysis = analyze_dna(
-            normalized.matches,
-            session_gap_minutes=self.settings.effective_session_gap_minutes,
+        self.repository.update_job(
+            job,
+            stage="session_inference",
+            message="Rebuilding your play sessions",
         )
-        self.repository.update_job(job, stage="dimension_scoring", message="Finding your eight DNA signals")
-        self.repository.update_job(job, stage="archetype_classification", message="Turning the patterns into an archetype")
-        self.repository.update_job(job, stage="hero_identity", message="Finding the heroes that define you")
-        self.repository.update_job(job, stage="hero_recommendations", message="Looking for heroes that fit your cast")
+        policy = SessionPolicy(gap_minutes=self.settings.effective_session_gap_minutes)
+        sessions = infer_sessions(normalized.matches, policy)
 
-        # Keep the current summary cards available to older consumers during
-        # the report contract migration; they are not used for DNA scoring.
-        patterns = detect_patterns(feature_set)
-        legacy_report, evidence = assemble_player_dna_report(
-            account_id=identifier.account_id,
-            profile=_profile_for_report(profile, identifier.account_id),
-            feature_set=feature_set,
-            patterns=patterns,
-            hypotheses=[],
-            selection_plan=None,
-            cost_ledger=DataCostLedger(),
-            processed_matches=job.processed_matches,
-            eligible_matches=job.eligible_matches,
-            history_limit=history_limit,
-            model_version=self.settings.model_version,
-            template_version=self.settings.template_version,
+        self.repository.update_job(
+            job,
+            stage="feature_extraction",
+            message="Mapping hero, role, and session evidence",
         )
+        features = extract_dna_features(sessions.matches, sessions)
+
+        self.repository.update_job(
+            job,
+            stage="dimension_scoring",
+            message="Finding your eight DNA signals",
+        )
+        dimensions = score_dimensions(features)
+
+        self.repository.update_job(
+            job,
+            stage="archetype_classification",
+            message="Turning the patterns into an archetype",
+        )
+        archetype = classify(dimensions)
+        archetype = replace(archetype, descriptors=choose_descriptors(dimensions, archetype_key=archetype.key))
+
+        self.repository.update_job(
+            job,
+            stage="hero_identity",
+            message="Finding the heroes that define you",
+        )
+        heroes = select_hero_identity(features)
+        dna_analysis = DnaAnalysisResult(
+            matches=sessions.matches,
+            sessions=sessions,
+            features=features,
+            dimensions=dimensions,
+            archetype=archetype,
+            heroes=heroes,
+            history_tier=history_tier,
+        )
+
         self.repository.update_job(
             job,
             stage="rendering_report",
@@ -352,36 +449,17 @@ class AnalysisService:
             history_limit=history_limit,
             model_version=self.settings.model_version,
             template_version=self.settings.template_version,
-            legacy_report=legacy_report,
+            cost_ledger=cost_ledger,
+            analysis_version_fingerprint=job.model_version,
         )
-        report["evidence_scope"]["exclusion_reasons"] = _reason_counts(exclusion_ledger)
-        report["evidence_scope"]["normalization"] = {
-            "source_count": normalized.source_count,
-            "unique_count": len(normalized.matches),
-            "duplicate_conflicts": list(normalized.duplicate_conflicts),
-            "exclusion_ledger": list(normalized.exclusion_ledger),
-        }
-        report["telemetry"] = {
-            "summary_matches_considered": job.processed_matches,
-            "eligible_summary_matches": job.eligible_matches,
-            "patterns_detected": len(patterns),
-            "deep_scan_patterns": 0,
-            "hypotheses_generated": 0,
-            "candidate_matches": 0,
-            "deep_matches_selected": 0,
-            "detail_requests": 0,
-            "parse_requests": 0,
-            "history_requests": 1,
-            "stopping_reason": "free_summary_boundary",
-        }
         report = validate_free_dna_report(report)
         report_id = self.repository.save_report(
             account_id=identifier.account_id,
-            data_cutoff=max((item.start_time or 0 for item in feature_set.matches), default=None),
-            model_version=self.settings.model_version,
+            data_cutoff=max((item.start_time or 0 for item in dna_analysis.matches), default=None),
+            model_version=job.model_version,
             template_version=self.settings.template_version,
             report=report,
-            evidence=evidence,
+            evidence=[],
         )
         self.repository.complete_job(job, report_id)
 
@@ -573,6 +651,20 @@ def _profile_for_report(profile: dict[str, Any], account_id: int) -> dict[str, A
         "rank_tier": nested.get("rank_tier"),
         "profile_url": f"https://www.opendota.com/players/{account_id}",
     }
+
+
+def _identity_fingerprint(profile: dict[str, Any]) -> str:
+    """Hash only the public identity projection used by a Free report."""
+
+    nested = profile.get("profile")
+    if not isinstance(nested, dict):
+        nested = profile
+    public = {
+        "display_name": str(nested.get("personaname") or nested.get("display_name") or "Anonymous player"),
+        "avatar_url": nested.get("avatarfull") or nested.get("avatar_url"),
+        "rank_tier": nested.get("rank_tier"),
+    }
+    return hashlib.sha256(json.dumps(public, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
 
 def _analysis_mode(value: str) -> str:

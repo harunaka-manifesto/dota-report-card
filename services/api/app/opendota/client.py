@@ -10,8 +10,9 @@ import httpx
 
 from app.core.config import FREE_HISTORY_LIMIT, Settings, get_settings
 from app.core.errors import OpenDotaRateLimited, OpenDotaUnavailable, ProfileUnavailable
+from app.core.metrics import record_metric
 from app.core.security import safe_endpoint
-from app.opendota.cache import MemoryCache
+from app.opendota.cache import CacheBackend, MemoryCache, RedisCache
 
 logger = logging.getLogger(__name__)
 Sleep = Callable[[float], Awaitable[None]]
@@ -30,14 +31,18 @@ class OpenDotaClient:
         settings: Settings | None = None,
         *,
         http_client: httpx.AsyncClient | None = None,
-        cache: MemoryCache | None = None,
+        cache: CacheBackend | None = None,
         sleep: Sleep = asyncio.sleep,
         rng: Callable[[], float] = random.random,
     ) -> None:
         self.settings = settings or get_settings()
         self._http = http_client
         self._owns_http = http_client is None
-        self.cache = cache or MemoryCache()
+        self.cache = cache or (
+            RedisCache(self.settings.redis_url, prefix="dota:opendota")
+            if self.settings.app_env == "production"
+            else MemoryCache()
+        )
         self._sleep = sleep
         self._rng = rng
         self._inflight: dict[str, asyncio.Task[Any]] = {}
@@ -76,9 +81,11 @@ class OpenDotaClient:
             cached = self.cache.get(cache_key)
             if cached is not None:
                 self.cache_hits += 1
+                record_metric("opendota.cache.hit", tags={"key": cache_key.split(":", 1)[0]})
                 return cached
             inflight = self._inflight.get(cache_key)
             if inflight is not None:
+                record_metric("opendota.cache.singleflight", tags={"key": cache_key.split(":", 1)[0]})
                 return await asyncio.shield(inflight)
             inflight = asyncio.create_task(
                 self._request_json_uncached(
@@ -119,6 +126,7 @@ class OpenDotaClient:
         url = f"{self.settings.opendota_base_url.rstrip('/')}/{endpoint.lstrip('/')}"
         retries = max(0, self.settings.opendota_max_retries)
         for attempt in range(retries + 1):
+            record_metric("opendota.request.attempt", tags={"endpoint": safe_endpoint(endpoint)})
             try:
                 response = await self._http.get(
                     url,
@@ -126,24 +134,29 @@ class OpenDotaClient:
                     headers=self.auth_headers,
                 )
             except (httpx.TimeoutException, httpx.NetworkError) as exc:
+                record_metric("opendota.request.error", tags={"endpoint": safe_endpoint(endpoint), "kind": type(exc).__name__})
                 if attempt >= retries:
                     raise OpenDotaUnavailable("OpenDota is unavailable") from exc
                 await self._backoff(attempt)
                 continue
 
             if response.status_code == 429:
+                record_metric("opendota.response", tags={"endpoint": safe_endpoint(endpoint), "status": 429})
                 if attempt >= retries:
                     raise OpenDotaRateLimited("OpenDota rate limit reached")
                 await self._backoff(attempt, retry_after=response.headers.get("Retry-After"))
                 continue
             if response.status_code >= 500:
+                record_metric("opendota.response", tags={"endpoint": safe_endpoint(endpoint), "status": response.status_code})
                 if attempt >= retries:
                     raise OpenDotaUnavailable("OpenDota is unavailable")
                 await self._backoff(attempt)
                 continue
             if response.status_code == 404:
+                record_metric("opendota.response", tags={"endpoint": safe_endpoint(endpoint), "status": 404})
                 raise ProfileUnavailable("OpenDota resource was not found")
             if response.status_code >= 400:
+                record_metric("opendota.response", tags={"endpoint": safe_endpoint(endpoint), "status": response.status_code})
                 raise OpenDotaUnavailable("OpenDota rejected the request")
 
             try:
@@ -152,6 +165,7 @@ class OpenDotaClient:
                 raise OpenDotaUnavailable("OpenDota returned invalid JSON") from exc
             if cache_key:
                 self.cache.set(cache_key, value, cache_ttl, immutable=immutable)
+            record_metric("opendota.response", tags={"endpoint": safe_endpoint(endpoint), "status": response.status_code, "cache": "miss"})
             self.request_counts[endpoint] = self.request_counts.get(endpoint, 0) + 1
             logger.info(
                 "opendota_request endpoint=%s status=%s",

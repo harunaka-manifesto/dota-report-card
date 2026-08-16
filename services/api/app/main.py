@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Iterable
 from contextlib import asynccontextmanager
 from typing import Any, cast
@@ -14,8 +15,10 @@ from app.api.routes import router
 from app.core.config import Settings, get_settings
 from app.core.errors import AppError
 from app.core.logging import configure_logging
+from app.core.metrics import record_metric
 from app.features.models import MatchFeature
 from app.identity.steam import SteamWebResolver
+from app.opendota.cache import RedisCache
 from app.opendota.client import OpenDotaClient
 from app.storage.repository import InMemoryRepository, SqlAlchemyRepository
 
@@ -47,6 +50,11 @@ def create_app(
         SteamWebResolver(
             settings.steam_api_key,
             base_url=settings.steam_resolver_base_url,
+            cache=(
+                RedisCache(settings.redis_url, prefix="dota:steam")
+                if settings.app_env == "production"
+                else None
+            ),
         )
         if settings.steam_api_key
         else None
@@ -62,11 +70,18 @@ def create_app(
     async def lifespan(_app: FastAPI) -> Any:
         if hasattr(repository, "purge_expired"):
             repository.purge_expired()
+        retention_task = asyncio.create_task(_retention_loop(repository)) if hasattr(repository, "purge_expired") else None
         if isinstance(source, OpenDotaClient):
             await source.__aenter__()
         try:
             yield
         finally:
+            if retention_task is not None:
+                retention_task.cancel()
+                try:
+                    await retention_task
+                except asyncio.CancelledError:
+                    pass
             await service.shutdown()
             if isinstance(source, OpenDotaClient):
                 await source.aclose()
@@ -114,6 +129,18 @@ def create_app(
 
     app.include_router(router)
     return app
+
+
+async def _retention_loop(repository: Any) -> None:
+    """Keep report/raw-payload retention enforced after process startup."""
+
+    while True:
+        await asyncio.sleep(3600)
+        try:
+            deleted = repository.purge_expired()
+            record_metric("retention.purged", value=deleted)
+        except Exception:
+            record_metric("retention.failed")
 
 
 app = create_app()

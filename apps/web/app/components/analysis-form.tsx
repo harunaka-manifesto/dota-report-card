@@ -66,10 +66,15 @@ export default function AnalysisForm() {
         signal: controller.signal
       });
       const body = await readResponseBody(response);
-      if (!response.ok) throw new Error(body.message ?? "The analysis could not be queued.");
-      if (!body.job_id) throw new Error("The analysis did not return a job ID.");
-      track("analysis.started.v1", { reused: Boolean(body.reused), input_type: classifyInput(value), mode: requestedMode });
-      await streamEvents(body.job_id, controller.signal, (event) => {
+      if (!response.ok) {
+        throw new Error(
+          typeof body.message === "string" ? body.message : "The analysis could not be queued."
+        );
+      }
+      const jobId = typeof body.job_id === "string" ? body.job_id : null;
+      if (!jobId) throw new Error("The analysis did not return a job ID.");
+      track("analysis.started.v1", { reused: body.reused === true, input_type: classifyInput(value), mode: requestedMode });
+      await streamEvents(jobId, controller.signal, (event) => {
         if (!mountedRef.current || !event.stage) return;
         const stage = event.stage;
         setStatus((current) => ({
@@ -87,7 +92,7 @@ export default function AnalysisForm() {
         }));
         track("analysis.stage.v1", { stage: event.stage, status: event.status ?? "running" });
       });
-      await poll(body.job_id, controller.signal);
+      await poll(jobId, controller.signal);
     } catch (caught) {
       if (controller.signal.aborted || !mountedRef.current) return;
       setError(caught instanceof Error ? caught.message : "The analysis could not be queued.");
@@ -108,14 +113,16 @@ export default function AnalysisForm() {
         cache: "no-store",
         signal
       });
-      const body = (await readResponseBody(response)) as Partial<AnalysisStatus>;
+      const body = await readResponseBody(response);
       if (!response.ok) {
-        throw new Error(body.message ?? "The analysis status could not be loaded.");
+        throw new Error(
+          typeof body.message === "string" ? body.message : "The analysis status could not be loaded."
+        );
       }
       if (typeof body.status !== "string" || typeof body.stage !== "string") {
         throw new Error("The analysis returned an invalid status response.");
       }
-      const status = body as AnalysisStatus;
+      const status = body as unknown as AnalysisStatus;
       setStatus(status);
       track("analysis.stage.v1", { stage: status.stage, status: status.status });
       if (status.status === "completed" && status.report_id) {
@@ -197,7 +204,8 @@ async function streamEvents(
 
 function stageCopy(stage: string): string {
   const copy: Record<string, string> = {
-    validating_player: "Found your player.",
+    resolving_player: "Resolving your public player profile.",
+    player_found: "Found your player.",
     fetching_history: "Finding your recent matches.",
     filtering_matches: "Sorting the matches we can read.",
     normalizing_history: "Sorting the matches we can read.",
@@ -223,10 +231,10 @@ function classifyInput(value: string): string {
   return "other_url";
 }
 
-async function readResponseBody(response: Response): Promise<Record<string, any>> {
+async function readResponseBody(response: Response): Promise<Record<string, unknown>> {
   try {
     const body = await response.json();
-    return body && typeof body === "object" ? body as Record<string, any> : {};
+    return body && typeof body === "object" ? body as Record<string, unknown> : {};
   } catch {
     return {};
   }

@@ -6,5 +6,6 @@ export const apiPaths = [
   "/v1/analyses/{job_id}/events",
   "/v1/health",
   "/v1/reports/{report_id}",
-  "/v1/reports/{report_id}/evidence/{insight_id}"
+  "/v1/reports/{report_id}/evidence/{insight_id}",
+  "/v1/reports/{report_id}/share/{card_type}"
 ] as const;

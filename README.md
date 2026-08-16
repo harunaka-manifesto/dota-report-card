@@ -32,6 +32,16 @@ Player DNA reads up to 500 cheap summary rows by default. Deep Scan has separate
 
 For the expected-behavior contract used by bug-busting agents, see [the system behavior baseline](docs/system-behavior-baseline.md).
 
+The Free DNA contract is intentionally strict: it publishes a versioned, noindex
+summary snapshot with eight dimensions and 23 story states, while keeping raw
+identifiers, match rows, session internals, and legacy payloads private. A
+completed report enters at `report-reveal`; the earlier input, player-found, and
+analysis states are included for clients that render the full journey. Share
+cards use the deterministic `share-svg-1.1.0` renderer until a pinned image
+renderer is introduced. Hero taxonomy snapshots are validated in CI, and
+summary `lane_role` values are treated as role hints; a spatial lane field does
+not manufacture a role.
+
 ## Architecture
 
 - services/api/app/opendota is the only layer that knows OpenDota transport details.

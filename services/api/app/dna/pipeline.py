@@ -14,7 +14,7 @@ from app.heroes.identity import HeroIdentityResult, select_hero_identity
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
-DNA_SCORING_VERSION = "dna-scoring-1.0.0"
+DNA_SCORING_VERSION = "dna-scoring-1.1.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,6 +25,7 @@ class DnaAnalysisResult:
     dimensions: tuple[DimensionResult, ...]
     archetype: ArchetypeResult
     heroes: HeroIdentityResult
+    history_tier: str = "normal"
 
     @property
     def overall_confidence(self) -> str:
@@ -32,6 +33,8 @@ class DnaAnalysisResult:
         if not values:
             return "low"
         average = sum(values) / len(values)
+        if self.history_tier == "limited":
+            return "moderate" if average >= 0.35 else "low"
         return "high" if average >= 0.75 else "moderate" if average >= 0.50 else "low"
 
     @property
@@ -40,7 +43,7 @@ class DnaAnalysisResult:
         unavailable = [item.key for item in self.dimensions if item.status == "unavailable"]
         if unavailable:
             warnings.append("Signals with missing fields remain visible as limited or unavailable: " + ", ".join(unavailable))
-        if self.features.sample_size < 30:
+        if 30 <= self.features.sample_size < 60 or self.history_tier == "limited":
             warnings.append("This is a limited-history report; more matches will make the pattern steadier.")
         warnings.extend(self.heroes.limitations)
         return tuple(dict.fromkeys(warnings))
@@ -65,13 +68,14 @@ def analyze_dna(
     *,
     session_gap_minutes: int = 90,
     taxonomy: HeroTaxonomy | None = None,
+    history_tier: str | None = None,
 ) -> DnaAnalysisResult:
     policy = SessionPolicy(gap_minutes=max(1, session_gap_minutes))
     sessions = infer_sessions(matches, policy)
     features = extract_dna_features(sessions.matches, sessions)
     dimensions = score_dimensions(features)
     archetype = classify(dimensions)
-    archetype = replace(archetype, descriptors=choose_descriptors(dimensions))
+    archetype = replace(archetype, descriptors=choose_descriptors(dimensions, archetype_key=archetype.key))
     heroes = select_hero_identity(features, taxonomy)
     return DnaAnalysisResult(
         matches=sessions.matches,
@@ -80,4 +84,5 @@ def analyze_dna(
         dimensions=dimensions,
         archetype=archetype,
         heroes=heroes,
+        history_tier=history_tier or ("limited" if 30 <= features.sample_size < 60 else "normal"),
     )

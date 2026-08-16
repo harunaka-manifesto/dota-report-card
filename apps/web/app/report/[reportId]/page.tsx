@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import type { FreeDnaReport } from "../../../../../packages/api-client/src";
 import ReportStory, { type StoryReport } from "./dna/report-story";
 
 export const revalidate = 60;
@@ -47,10 +49,13 @@ type LegacyReport = {
   };
 };
 
-type Report = LegacyReport & Partial<StoryReport> & {
-  schema_version?: string;
-  dna_report_variant?: string;
-};
+type Report = FreeDnaReport | (LegacyReport & { schema_version?: string; report_variant?: string });
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    robots: { index: false, follow: false }
+  };
+}
 
 async function getReport(reportId: string): Promise<Report> {
   const response = await fetch(API_BASE_URL + "/v1/reports/" + reportId, {
@@ -72,8 +77,8 @@ async function getReport(reportId: string): Promise<Report> {
 
 export default async function ReportPage({ params }: { params: { reportId: string } }) {
   const report = await getReport(params.reportId);
-  if (report.dna_report_variant === "free_dna_report" || report.schema_version === "free-dna-report-1.0.0") {
-    return <ReportStory report={report as unknown as StoryReport} />;
+  if (report.report_variant === "free_dna_report" && report.schema_version === "free-dna-report-1.0.0") {
+    return <ReportStory report={report as StoryReport} />;
   }
   const sections = report.sections;
   return (
