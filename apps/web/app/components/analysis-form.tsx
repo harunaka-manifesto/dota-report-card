@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { track } from "../lib/analytics";
 
 // Browser requests stay on the web origin. The Next.js server proxies /v1 to
 // the private API_BASE_URL, so the OpenDota credential and API topology never
@@ -17,6 +18,7 @@ type AnalysisStatus = {
   report_id: string | null;
   failure_code: string | null;
   message: string | null;
+  completed_stages?: string[];
 };
 
 const POLL_TIMEOUT_MS = 5 * 60 * 1000;
@@ -25,6 +27,7 @@ const MAX_POLL_DELAY_MS = 10_000;
 
 export default function AnalysisForm() {
   const router = useRouter();
+  const [requestedMode, setRequestedMode] = useState<"free" | "deep_scan">("free");
   const [player, setPlayer] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<AnalysisStatus | null>(null);
@@ -33,6 +36,7 @@ export default function AnalysisForm() {
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    setRequestedMode(new URLSearchParams(window.location.search).get("mode") === "deep_scan" ? "deep_scan" : "free");
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
@@ -44,7 +48,7 @@ export default function AnalysisForm() {
     event.preventDefault();
     const value = player.trim();
     if (!value) {
-      setError("Enter a public OpenDota profile or Steam32 account ID.");
+      setError("Enter a public OpenDota profile, Steam ID, or Steam profile URL.");
       return;
     }
     controllerRef.current?.abort();
@@ -53,16 +57,36 @@ export default function AnalysisForm() {
     setBusy(true);
     setError(null);
     setStatus(null);
+    track("identity.input_submitted.v1", { input_type: classifyInput(value) });
     try {
       const response = await fetch(API_BASE_URL + "/v1/analyses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player: value, refresh: false }),
+        body: JSON.stringify({ player: value, refresh: false, mode: requestedMode }),
         signal: controller.signal
       });
       const body = await readResponseBody(response);
       if (!response.ok) throw new Error(body.message ?? "The analysis could not be queued.");
       if (!body.job_id) throw new Error("The analysis did not return a job ID.");
+      track("analysis.started.v1", { reused: Boolean(body.reused), input_type: classifyInput(value), mode: requestedMode });
+      await streamEvents(body.job_id, controller.signal, (event) => {
+        if (!mountedRef.current || !event.stage) return;
+        const stage = event.stage;
+        setStatus((current) => ({
+          ...(current ?? {
+            job_id: body.job_id,
+            status: event.status ?? "running",
+            stage,
+            warnings: [],
+            report_id: null,
+            failure_code: null,
+            message: null
+          }),
+          status: event.status ?? current?.status ?? "running",
+          stage
+        }));
+        track("analysis.stage.v1", { stage: event.stage, status: event.status ?? "running" });
+      });
       await poll(body.job_id, controller.signal);
     } catch (caught) {
       if (controller.signal.aborted || !mountedRef.current) return;
@@ -75,8 +99,11 @@ export default function AnalysisForm() {
   async function poll(jobId: string, signal: AbortSignal) {
     const deadline = Date.now() + POLL_TIMEOUT_MS;
     let delay = INITIAL_POLL_DELAY_MS;
+    let firstRequest = true;
     while (Date.now() < deadline) {
       await waitUntilVisible(signal);
+      if (!firstRequest) await wait(delay, signal);
+      firstRequest = false;
       const response = await fetch(API_BASE_URL + "/v1/analyses/" + jobId, {
         cache: "no-store",
         signal
@@ -90,6 +117,7 @@ export default function AnalysisForm() {
       }
       const status = body as AnalysisStatus;
       setStatus(status);
+      track("analysis.stage.v1", { stage: status.stage, status: status.status });
       if (status.status === "completed" && status.report_id) {
         router.push("/report/" + status.report_id);
         return;
@@ -97,7 +125,6 @@ export default function AnalysisForm() {
       if (status.status === "failed") {
         throw new Error(status.message ?? status.failure_code ?? "The analysis failed.");
       }
-      await wait(delay, signal);
       delay = Math.min(Math.round(delay * 1.5), MAX_POLL_DELAY_MS);
     }
     throw new Error("The analysis is taking longer than expected. Please try again.");
@@ -105,11 +132,12 @@ export default function AnalysisForm() {
 
   return (
     <form className="lookup" onSubmit={submit}>
-      <label htmlFor="player">OpenDota profile or Steam32 ID</label>
+      <label htmlFor="player">OpenDota profile, Steam ID, or Steam profile URL</label>
       <div className="lookup-row">
         <input
           id="player"
           name="player"
+          aria-label="OpenDota profile or Steam32 ID"
           value={player}
           onChange={(event) => setPlayer(event.target.value)}
           placeholder="193875165"
@@ -117,14 +145,82 @@ export default function AnalysisForm() {
           required
         />
         <button type="submit" disabled={busy}>
-          {busy ? "Reading matches…" : "Build report"}
+          {busy ? "Reading matches…" : requestedMode === "deep_scan" ? "Start Deep Scan" : "Build report"}
         </button>
       </div>
       <p className="hint">Try 193875165 for the recorded sample account.</p>
-      {status && <p className="status" aria-live="polite">{status.stage.replaceAll("_", " ")}.</p>}
+      {status && <p className="status" aria-live="polite">{stageCopy(status.stage)}</p>}
       {error && <p className="error" role="alert">{error}</p>}
     </form>
   );
+}
+
+async function streamEvents(
+  jobId: string,
+  signal: AbortSignal,
+  onEvent: (event: { stage: string; status?: string }) => void
+): Promise<void> {
+  try {
+    const response = await fetch(API_BASE_URL + "/v1/analyses/" + jobId + "/events", {
+      cache: "no-store",
+      signal,
+      headers: { Accept: "text/event-stream" }
+    });
+    if (!response.ok || !response.body) return;
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const chunks = buffer.split("\n\n");
+      buffer = chunks.pop() ?? "";
+      for (const chunk of chunks) {
+        const line = chunk.split("\n").find((item) => item.startsWith("data:"));
+        if (!line) continue;
+        try {
+          const event = JSON.parse(line.slice(5).trim()) as { stage?: string; status?: string };
+          if (event.stage) {
+            onEvent({ stage: event.stage, status: event.status });
+            window.dispatchEvent(new CustomEvent("dota-report-analysis-stage", { detail: event }));
+          }
+        } catch {
+          // Polling remains the authoritative fallback when an event chunk is partial.
+        }
+      }
+    }
+  } catch {
+    // The visibility-aware status poll below is the supported fallback.
+  }
+}
+
+function stageCopy(stage: string): string {
+  const copy: Record<string, string> = {
+    validating_player: "Found your player.",
+    fetching_history: "Finding your recent matches.",
+    filtering_matches: "Sorting the matches we can read.",
+    normalizing_history: "Sorting the matches we can read.",
+    hero_features: "Mapping your hero habits.",
+    role_features: "Reading your role patterns.",
+    session_inference: "Rebuilding your play sessions.",
+    dimension_scoring: "Finding your eight DNA signals.",
+    archetype_classification: "Turning the patterns into an archetype.",
+    hero_identity: "Finding the heroes that define you.",
+    hero_recommendations: "Looking for heroes that fit your cast.",
+    rendering_report: "Building your Dota DNA.",
+    completed: "We found your pattern.",
+    failed: "The analysis failed."
+  };
+  return copy[stage] ?? `${stage.replaceAll("_", " ")}.`;
+}
+
+function classifyInput(value: string): string {
+  if (/^\d+$/.test(value)) return value.length > 10 ? "steam64" : "steam32";
+  if (value.includes("/id/")) return "steam_vanity_url";
+  if (value.includes("/profiles/")) return "steam_profile_url";
+  if (value.includes("opendota")) return "opendota_url";
+  return "other_url";
 }
 
 async function readResponseBody(response: Response): Promise<Record<string, any>> {

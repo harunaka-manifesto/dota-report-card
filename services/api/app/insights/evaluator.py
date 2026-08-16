@@ -7,6 +7,7 @@ from statistics import median
 
 from app.cohorts.selector import CohortSelection
 from app.cohorts.statistics import normal_interval, wilson_interval
+from app.core.config import FREE_HISTORY_LIMIT
 from app.features.models import MatchFeature
 from app.insights.gates import GateResult, apply_publication_gates
 from app.insights.models import EvidenceObject, MetricObservation
@@ -26,7 +27,7 @@ class InsightContext:
     role_confidence_threshold: float = 0.60
     replay_coverage_threshold: float = 0.60
     summary_coverage_threshold: float = 0.60
-    history_limit: int = 200
+    history_limit: int = FREE_HISTORY_LIMIT
 
     @property
     def role_confidence(self) -> float:

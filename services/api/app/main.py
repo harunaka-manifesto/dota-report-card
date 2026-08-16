@@ -15,6 +15,7 @@ from app.core.config import Settings, get_settings
 from app.core.errors import AppError
 from app.core.logging import configure_logging
 from app.features.models import MatchFeature
+from app.identity.steam import SteamWebResolver
 from app.opendota.client import OpenDotaClient
 from app.storage.repository import InMemoryRepository, SqlAlchemyRepository
 
@@ -27,7 +28,7 @@ def create_app(
     cohort_population: Iterable[MatchFeature] = (),
 ) -> FastAPI:
     settings = settings or get_settings()
-    configure_logging(settings.log_level, (settings.opendota_api_key,))
+    configure_logging(settings.log_level, (settings.opendota_api_key, settings.steam_api_key))
     if source is None:
         source = (
             FixtureOpenDotaSource(settings.effective_fixture_dir)
@@ -38,16 +39,29 @@ def create_app(
         repository = (
             SqlAlchemyRepository(settings)
             if settings.effective_storage_backend == "database"
-            else InMemoryRepository()
+            else InMemoryRepository(
+                report_retention_days=settings.effective_report_retention_days
+            )
         )
+    identity_resolver = (
+        SteamWebResolver(
+            settings.steam_api_key,
+            base_url=settings.steam_resolver_base_url,
+        )
+        if settings.steam_api_key
+        else None
+    )
     service = AnalysisService(
         cast(AnalysisSource, source),
         repository=repository,
         settings=settings,
         cohort_population=cohort_population,
+        identity_resolver=identity_resolver,
     )
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> Any:
+        if hasattr(repository, "purge_expired"):
+            repository.purge_expired()
         if isinstance(source, OpenDotaClient):
             await source.__aenter__()
         try:
@@ -56,6 +70,8 @@ def create_app(
             await service.shutdown()
             if isinstance(source, OpenDotaClient):
                 await source.aclose()
+            if identity_resolver is not None:
+                await identity_resolver.aclose()
 
     app = FastAPI(
         title="OpenDota Insight System",

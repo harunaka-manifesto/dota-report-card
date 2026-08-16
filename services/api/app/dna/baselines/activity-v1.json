@@ -1,0 +1,25 @@
+{
+  "version": "activity-v1.0.0",
+  "activity_by_role": {
+    "carry": 0.95,
+    "mid": 0.95,
+    "offlane": 0.9,
+    "soft_support": 0.85,
+    "hard_support": 0.78,
+    "roamer": 0.95,
+    "default": 0.88
+  },
+  "kill_share_by_role": {
+    "carry": 0.55,
+    "mid": 0.52,
+    "offlane": 0.42,
+    "soft_support": 0.34,
+    "hard_support": 0.25,
+    "roamer": 0.4,
+    "default": 0.4
+  },
+  "limitations": [
+    "These are provisional role cells, not population percentiles.",
+    "Summary history has no team-kill denominator or replay context."
+  ]
+}

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import threading
+from copy import deepcopy
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -62,6 +63,7 @@ class AnalysisJob:
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     events: list[AnalysisEvent] = field(default_factory=list)
+    completed_stages: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -79,13 +81,14 @@ class AnalysisJob:
             "events_url": f"/v1/analyses/{self.job_id}/events",
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "completed_stages": list(self.completed_stages),
         }
 
 
 class InMemoryRepository:
     """Deterministic local store mirroring the production persistence seams."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, report_retention_days: int = 30) -> None:
         self._lock = threading.RLock()
         self.jobs: dict[str, AnalysisJob] = {}
         self.reports: dict[str, dict[str, Any]] = {}
@@ -95,6 +98,7 @@ class InMemoryRepository:
         self.derived_features: dict[int, dict[str, Any]] = {}
         self._completed: dict[tuple[int, str, str], str] = {}
         self._raw_payload_index: set[tuple[str, str, str]] = set()
+        self.report_retention = timedelta(days=max(1, report_retention_days))
 
     def create_job(
         self,
@@ -155,6 +159,8 @@ class InMemoryRepository:
         with self._lock:
             job_id = self._completed.get((account_id, model_version, analysis_mode))
             job = self.jobs.get(job_id) if job_id else None
+            if job is not None and job.report_id and self.get_report(job.report_id) is None:
+                return None
             if job is None or max_age_seconds is None:
                 return job
             age = (datetime.now(UTC) - job.updated_at).total_seconds()
@@ -178,6 +184,8 @@ class InMemoryRepository:
         message: str | None = None,
     ) -> None:
         with self._lock:
+            if stage and stage != job.stage:
+                _mark_stage_complete(job, job.stage)
             job.stage = stage or job.stage
             job.status = status or job.status
             job.updated_at = datetime.now(UTC)
@@ -199,6 +207,7 @@ class InMemoryRepository:
 
     def fail_job(self, job: AnalysisJob, code: str, detail: str) -> None:
         with self._lock:
+            _mark_stage_complete(job, job.stage)
             job.status = "failed"
             job.stage = "failed"
             job.failure_code = code
@@ -208,6 +217,7 @@ class InMemoryRepository:
 
     def complete_job(self, job: AnalysisJob, report_id: str) -> None:
         with self._lock:
+            _mark_stage_complete(job, job.stage)
             job.status = "completed"
             job.stage = "completed"
             job.report_id = report_id
@@ -235,12 +245,19 @@ class InMemoryRepository:
                 )
             )
 
-    def persist_raw_payload(self, endpoint: str, source_id: str, payload: Any) -> dict[str, Any]:
+    def persist_raw_payload(
+        self,
+        endpoint: str,
+        source_id: str,
+        payload: Any,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         record = {
             "endpoint": endpoint,
             "source_id": str(source_id),
             "payload_hash": payload_hash(payload),
             "payload": payload,
+            "metadata": dict(metadata or {}),
             "fetched_at": datetime.now(UTC).isoformat(),
         }
         with self._lock:
@@ -276,22 +293,56 @@ class InMemoryRepository:
         evidence: list[EvidenceObject],
     ) -> str:
         report_id = str(uuid4())
+        created_at = datetime.now(UTC)
+        expires_at = created_at + self.report_retention
         with self._lock:
             self.reports[report_id] = {
-                **report,
+                **deepcopy(report),
                 "report_id": report_id,
                 "account_id": account_id,
                 "data_cutoff": data_cutoff,
                 "model_version": model_version,
                 "template_version": template_version,
-                "created_at": datetime.now(UTC).isoformat(),
+                "created_at": created_at.isoformat(),
+                "expires_at": expires_at.isoformat(),
             }
             self.evidence[report_id] = [item.as_dict() for item in evidence]
         return report_id
 
     def get_report(self, report_id: str) -> dict[str, Any] | None:
         with self._lock:
-            return self.reports.get(report_id)
+            report = self.reports.get(report_id)
+            if report is None:
+                return None
+            if _expired(report.get("expires_at")):
+                self.reports.pop(report_id, None)
+                self.evidence.pop(report_id, None)
+                return None
+            return deepcopy(report)
+
+    def purge_expired(self, *, now: datetime | None = None) -> int:
+        cutoff = now or datetime.now(UTC)
+        with self._lock:
+            expired_reports = [
+                report_id
+                for report_id, report in self.reports.items()
+                if _expired(report.get("expires_at"), now=cutoff)
+            ]
+            for report_id in expired_reports:
+                self.reports.pop(report_id, None)
+                self.evidence.pop(report_id, None)
+            raw_cutoff = cutoff - self.report_retention
+            retained_payloads: list[dict[str, Any]] = []
+            for item in self.raw_payloads:
+                fetched_at = _parse_datetime(item.get("fetched_at"))
+                if fetched_at is None or fetched_at >= raw_cutoff:
+                    retained_payloads.append(item)
+            self.raw_payloads[:] = retained_payloads
+            self._raw_payload_index = {
+                (item["endpoint"], item["source_id"], item["payload_hash"])
+                for item in self.raw_payloads
+            }
+            return len(expired_reports)
 
     def get_evidence(self, report_id: str, insight_id: str | None = None) -> list[dict[str, Any]]:
         with self._lock:
@@ -309,6 +360,9 @@ class SqlAlchemyRepository:
         Base.metadata.create_all(self.engine)
         self._session_factory = sessionmaker(bind=self.engine, expire_on_commit=False)
         self._lock = threading.RLock()
+        self.report_retention = timedelta(
+            days=max(1, int(getattr(settings, "effective_report_retention_days", 30)))
+        )
 
     @staticmethod
     def _active_key(account_id: int, model_version: str, analysis_mode: str = "free") -> str:
@@ -345,6 +399,13 @@ class SqlAlchemyRepository:
             created_at=created_at,
             updated_at=updated_at,
             events=events,
+            completed_stages=list(
+                dict.fromkeys(
+                    event.stage
+                    for event in events
+                    if event.stage not in {"completed", "failed"}
+                )
+            ),
         )
 
     def _write_job(self, session: Session, job: AnalysisJob) -> None:
@@ -506,6 +567,8 @@ class SqlAlchemyRepository:
             record = session.get(AnalysisJobRecord, job.job_id)
             if record is None:
                 return
+            if stage and stage != job.stage:
+                _mark_stage_complete(job, job.stage)
             job.stage = stage or job.stage
             job.status = status or job.status
             job.updated_at = datetime.now(UTC)
@@ -529,6 +592,7 @@ class SqlAlchemyRepository:
         self._save_job(job)
 
     def fail_job(self, job: AnalysisJob, code: str, detail: str) -> None:
+        _mark_stage_complete(job, job.stage)
         job.status = "failed"
         job.stage = "failed"
         job.failure_code = code
@@ -538,6 +602,7 @@ class SqlAlchemyRepository:
         self._save_job(job)
 
     def complete_job(self, job: AnalysisJob, report_id: str) -> None:
+        _mark_stage_complete(job, job.stage)
         job.status = "completed"
         job.stage = "completed"
         job.report_id = report_id
@@ -571,12 +636,19 @@ class SqlAlchemyRepository:
             self._write_job(session, job)
             session.commit()
 
-    def persist_raw_payload(self, endpoint: str, source_id: str, payload: Any) -> dict[str, Any]:
+    def persist_raw_payload(
+        self,
+        endpoint: str,
+        source_id: str,
+        payload: Any,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         record = {
             "endpoint": endpoint,
             "source_id": str(source_id),
             "payload_hash": payload_hash(payload),
             "payload": payload,
+            "metadata": dict(metadata or {}),
             "fetched_at": datetime.now(UTC).isoformat(),
         }
         with self._session_factory() as session:
@@ -594,6 +666,7 @@ class SqlAlchemyRepository:
                         source_id=str(source_id),
                         payload_hash=record["payload_hash"],
                         payload_json=payload,
+                        metadata_json=dict(metadata or {}),
                         fetched_at=datetime.now(UTC),
                     )
                 )
@@ -674,6 +747,13 @@ class SqlAlchemyRepository:
     ) -> str:
         report_id = str(uuid4())
         created_at = datetime.now(UTC)
+        expires_at = created_at + self.report_retention
+        report_json = deepcopy(report)
+        report_json["expires_at"] = expires_at.isoformat()
+        report_json["metadata"] = {
+            **dict(report_json.get("metadata") or {}),
+            "expires_at": expires_at.isoformat(),
+        }
         with self._session_factory() as session:
             session.add(
                 ReportRecord(
@@ -682,7 +762,7 @@ class SqlAlchemyRepository:
                     data_cutoff=data_cutoff,
                     model_version=model_version,
                     template_version=template_version,
-                    report_json=report,
+                    report_json=report_json,
                     created_at=created_at,
                 )
             )
@@ -705,6 +785,10 @@ class SqlAlchemyRepository:
             record = session.get(ReportRecord, report_id)
             if record is None:
                 return None
+            if _expired((record.report_json or {}).get("expires_at")) or (
+                _as_aware(record.created_at) + self.report_retention <= datetime.now(UTC)
+            ):
+                return None
             return {
                 **dict(record.report_json or {}),
                 "report_id": record.report_id,
@@ -713,7 +797,30 @@ class SqlAlchemyRepository:
                 "model_version": record.model_version,
                 "template_version": record.template_version,
                 "created_at": _as_aware(record.created_at).isoformat(),
+                "expires_at": (record.report_json or {}).get("expires_at"),
             }
+
+    def purge_expired(self, *, now: datetime | None = None) -> int:
+        current = now or datetime.now(UTC)
+        cutoff = current - self.report_retention
+        with self._session_factory() as session:
+            reports = session.scalars(select(ReportRecord)).all()
+            expired = [
+                record.report_id
+                for record in reports
+                if _expired((record.report_json or {}).get("expires_at"), now=current)
+                or _as_aware(record.created_at) < cutoff
+            ]
+            if expired:
+                session.execute(
+                    delete(EvidenceObjectRecord).where(
+                        EvidenceObjectRecord.report_id.in_(expired)
+                    )
+                )
+                session.execute(delete(ReportRecord).where(ReportRecord.report_id.in_(expired)))
+            session.execute(delete(RawPayloadRecord).where(RawPayloadRecord.fetched_at < cutoff))
+            session.commit()
+            return len(expired)
 
     def get_evidence(self, report_id: str, insight_id: str | None = None) -> list[dict[str, Any]]:
         with self._session_factory() as session:
@@ -725,3 +832,22 @@ class SqlAlchemyRepository:
 
 def _as_aware(value: datetime) -> datetime:
     return value.replace(tzinfo=UTC) if value.tzinfo is None else value
+
+
+def _mark_stage_complete(job: AnalysisJob, stage: str | None) -> None:
+    if stage and stage not in {"queued", "completed", "failed"} and stage not in job.completed_stages:
+        job.completed_stages.append(stage)
+
+
+def _parse_datetime(value: Any) -> datetime | None:
+    if not isinstance(value, str):
+        return None
+    try:
+        return _as_aware(datetime.fromisoformat(value))
+    except ValueError:
+        return None
+
+
+def _expired(value: Any, *, now: datetime | None = None) -> bool:
+    parsed = _parse_datetime(value)
+    return parsed is not None and parsed <= (now or datetime.now(UTC))

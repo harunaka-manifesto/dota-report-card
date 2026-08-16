@@ -13,20 +13,31 @@ from app.analysis.deep_scan import (
     plan_deep_scan,
 )
 from app.analysis.source import AnalysisSource
+from app.api.report_schemas import validate_free_dna_report
 from app.cohorts.selector import CohortSelection, select_narrowest_cohort
 from app.core.config import Settings, get_settings
-from app.core.errors import AppError, InsufficientMatchHistory, ProfileUnavailable
+from app.core.errors import (
+    AppError,
+    InsufficientMatchHistory,
+    ProfileUnavailable,
+    SteamIdentityUnavailable,
+)
 from app.core.security import PlayerIdentifier, parse_player_identifier
+from app.dna.pipeline import analyze_dna
 from app.features.calculators import calculate_match_features
 from app.features.models import MatchFeature
 from app.features.summary_calculators import calculate_summary_features
 from app.features.summary_models import SummaryFeatureSet
+from app.identity.steam import SteamVanityResolver
 from app.ingestion.coverage import coverage_for_match
 from app.ingestion.eligibility import assess_match
 from app.ingestion.normalize import NormalizedMatch
+from app.ingestion.summary_normalize import normalize_summary_rows
 from app.insights.evaluator import InsightContext, evaluate_insights
+from app.opendota.cache import payload_hash
 from app.patterns.detector import detect_patterns
 from app.reports.assembly import assemble_player_dna_report, assemble_report
+from app.reports.dna_assembly import assemble_free_dna_report
 from app.storage.repository import AnalysisJob, InMemoryRepository
 
 logger = logging.getLogger(__name__)
@@ -40,11 +51,13 @@ class AnalysisService:
         repository: Any | None = None,
         settings: Settings | None = None,
         cohort_population: Iterable[MatchFeature] = (),
+        identity_resolver: SteamVanityResolver | None = None,
     ) -> None:
         self.source = source
         self.repository = repository or InMemoryRepository()
         self.settings = settings or get_settings()
         self.cohort_population = tuple(cohort_population)
+        self.identity_resolver = identity_resolver
         self._tasks: set[asyncio.Task[None]] = set()
         self._scheduled_job_ids: set[str] = set()
         self._semaphore: asyncio.Semaphore | None = None
@@ -57,12 +70,13 @@ class AnalysisService:
         enqueue: bool = True,
         mode: str | None = None,
     ) -> tuple[AnalysisJob, bool]:
-        identifier = parse_player_identifier(player)
+        identifier = await self._resolve_identifier(player)
         analysis_mode = _analysis_mode(mode or self.settings.default_analysis_mode)
+        compatibility_version = self._compatibility_model_version(analysis_mode)
         if not refresh:
             existing = self.repository.find_compatible_completed(
                 identifier.account_id,
-                self.settings.model_version,
+                compatibility_version,
                 analysis_mode=analysis_mode,
                 max_age_seconds=self.settings.compatible_analysis_ttl_seconds,
             )
@@ -71,12 +85,34 @@ class AnalysisService:
         job, reused = self.repository.get_or_create_inflight_job(
             identifier.account_id,
             identifier.canonical_url,
-            self.settings.model_version,
+            compatibility_version,
             analysis_mode,
         )
         if enqueue:
             self._enqueue(job, identifier)
         return job, reused
+
+    def _compatibility_model_version(self, analysis_mode: str) -> str:
+        if analysis_mode == "free":
+            from app.reports.dna_assembly import REPORT_SCHEMA_VERSION
+
+            return f"{self.settings.model_version}:{REPORT_SCHEMA_VERSION}"
+        return self.settings.model_version
+
+    async def _resolve_identifier(self, player: str) -> PlayerIdentifier:
+        identifier = parse_player_identifier(player)
+        if not identifier.vanity:
+            return identifier
+        if self.identity_resolver is None:
+            raise SteamIdentityUnavailable(
+                "Steam vanity URL resolution is not configured",
+                detail="Set STEAM_API_KEY or provide an identity resolver.",
+            )
+        account_id = await self.identity_resolver.resolve(identifier.vanity)
+        return PlayerIdentifier(
+            account_id,
+            f"https://www.opendota.com/players/{account_id}",
+        )
 
     def _enqueue(self, job: AnalysisJob, identifier: PlayerIdentifier) -> None:
         if job.job_id in self._scheduled_job_ids or job.status != "queued":
@@ -143,6 +179,7 @@ class AnalysisService:
             f"/players/{identifier.account_id}",
             str(identifier.account_id),
             profile,
+            {"adapter_version": "opendota-player-1.0.0"},
         )
 
         self.repository.update_job(
@@ -158,6 +195,12 @@ class AnalysisService:
             f"/players/{identifier.account_id}/matches",
             str(identifier.account_id),
             history,
+            {
+                "requested_limit": history_limit,
+                "actual_count": len(history),
+                "projection": None,
+                "adapter_version": "opendota-summary-1.0.0",
+            },
         )
         if not history:
             raise InsufficientMatchHistory("No match history was returned")
@@ -187,6 +230,21 @@ class AnalysisService:
             job, f"{len(exclusion_ledger)} history rows excluded before summary analysis"
         )
 
+        # Free DNA ends at the summary boundary.  It intentionally does not
+        # construct hypotheses or a deep-selection plan; Deep Scan keeps the
+        # existing path below and owns those additional reads.
+        if job.analysis_mode == "free":
+            await self._save_player_dna(
+                job,
+                identifier,
+                profile,
+                summary_feature_set,
+                history=history,
+                exclusion_ledger=exclusion_ledger,
+                history_limit=history_limit,
+            )
+            return
+
         self.repository.update_job(
             job,
             stage="detecting_patterns",
@@ -213,21 +271,6 @@ class AnalysisService:
             available_families_by_match=available_families,
         )
 
-        if job.analysis_mode == "free":
-            await self._save_player_dna(
-                job,
-                identifier,
-                profile,
-                summary_feature_set,
-                patterns,
-                hypotheses,
-                selection_plan,
-                cost_ledger,
-                exclusion_ledger,
-                history_limit,
-            )
-            return
-
         await self._run_deep_scan(
             job=job,
             identifier=identifier,
@@ -248,43 +291,90 @@ class AnalysisService:
         identifier: PlayerIdentifier,
         profile: dict[str, Any],
         feature_set: SummaryFeatureSet,
-        patterns: list[Any],
-        hypotheses: list[Any],
-        selection_plan: Any,
-        cost_ledger: DataCostLedger,
+        *,
+        history: list[dict[str, Any]],
         exclusion_ledger: list[dict[str, Any]],
         history_limit: int,
     ) -> None:
         self.repository.update_job(
             job,
-            stage="rendering_report",
-            message="Rendering deterministic Player DNA report",
+            stage="normalizing_history",
+            message="Sorting the matches we can read",
         )
-        report, evidence = assemble_player_dna_report(
+        normalized = normalize_summary_rows(history, identifier.account_id)
+        self.repository.record_event(
+            job,
+            f"Normalized {len(normalized.matches)} unique summary rows",
+        )
+        job.eligible_matches = len(normalized.eligible_matches)
+
+        self.repository.update_job(job, stage="hero_features", message="Mapping your hero habits")
+        self.repository.update_job(job, stage="role_features", message="Reading your role patterns")
+        self.repository.update_job(job, stage="session_inference", message="Rebuilding your play sessions")
+        dna_analysis = analyze_dna(
+            normalized.matches,
+            session_gap_minutes=self.settings.effective_session_gap_minutes,
+        )
+        self.repository.update_job(job, stage="dimension_scoring", message="Finding your eight DNA signals")
+        self.repository.update_job(job, stage="archetype_classification", message="Turning the patterns into an archetype")
+        self.repository.update_job(job, stage="hero_identity", message="Finding the heroes that define you")
+        self.repository.update_job(job, stage="hero_recommendations", message="Looking for heroes that fit your cast")
+
+        # Keep the current summary cards available to older consumers during
+        # the report contract migration; they are not used for DNA scoring.
+        patterns = detect_patterns(feature_set)
+        legacy_report, evidence = assemble_player_dna_report(
             account_id=identifier.account_id,
             profile=_profile_for_report(profile, identifier.account_id),
             feature_set=feature_set,
             patterns=patterns,
-            hypotheses=hypotheses,
-            selection_plan=selection_plan,
-            cost_ledger=cost_ledger,
+            hypotheses=[],
+            selection_plan=None,
+            cost_ledger=DataCostLedger(),
             processed_matches=job.processed_matches,
             eligible_matches=job.eligible_matches,
             history_limit=history_limit,
             model_version=self.settings.model_version,
             template_version=self.settings.template_version,
         )
+        self.repository.update_job(
+            job,
+            stage="rendering_report",
+            message="Building your Dota DNA",
+        )
+        report = assemble_free_dna_report(
+            account_id=identifier.account_id,
+            profile=_profile_for_report(profile, identifier.account_id),
+            analysis=dna_analysis,
+            processed_matches=job.processed_matches,
+            eligible_matches=job.eligible_matches,
+            raw_payload_hash=payload_hash(history),
+            history_limit=history_limit,
+            model_version=self.settings.model_version,
+            template_version=self.settings.template_version,
+            legacy_report=legacy_report,
+        )
         report["evidence_scope"]["exclusion_reasons"] = _reason_counts(exclusion_ledger)
+        report["evidence_scope"]["normalization"] = {
+            "source_count": normalized.source_count,
+            "unique_count": len(normalized.matches),
+            "duplicate_conflicts": list(normalized.duplicate_conflicts),
+            "exclusion_ledger": list(normalized.exclusion_ledger),
+        }
         report["telemetry"] = {
             "summary_matches_considered": job.processed_matches,
             "eligible_summary_matches": job.eligible_matches,
             "patterns_detected": len(patterns),
-            "deep_scan_patterns": sum(item.unexplained for item in patterns),
-            "hypotheses_generated": len(hypotheses),
-            "candidate_matches": len(selection_plan.candidates),
-            "deep_matches_selected": len(selection_plan.selected),
-            "stopping_reason": selection_plan.stopping_reason,
+            "deep_scan_patterns": 0,
+            "hypotheses_generated": 0,
+            "candidate_matches": 0,
+            "deep_matches_selected": 0,
+            "detail_requests": 0,
+            "parse_requests": 0,
+            "history_requests": 1,
+            "stopping_reason": "free_summary_boundary",
         }
+        report = validate_free_dna_report(report)
         report_id = self.repository.save_report(
             account_id=identifier.account_id,
             data_cutoff=max((item.start_time or 0 for item in feature_set.matches), default=None),
@@ -328,18 +418,31 @@ class AnalysisService:
                 job,
                 "No selected deep matches were available; returning the summary findings.",
             )
-            await self._save_player_dna(
-                job,
-                identifier,
-                profile,
-                summary_feature_set,
-                patterns,
-                hypotheses,
-                selection_plan,
-                cost_ledger,
-                exclusion_ledger,
-                history_limit,
+            report, evidence = assemble_player_dna_report(
+                account_id=identifier.account_id,
+                profile=_profile_for_report(profile, identifier.account_id),
+                feature_set=summary_feature_set,
+                patterns=patterns,
+                hypotheses=hypotheses,
+                selection_plan=selection_plan,
+                cost_ledger=cost_ledger,
+                processed_matches=job.processed_matches,
+                eligible_matches=job.eligible_matches,
+                history_limit=history_limit,
+                model_version=self.settings.model_version,
+                template_version=self.settings.template_version,
             )
+            report["report_variant"] = "deep_scan"
+            report["evidence_scope"]["exclusion_reasons"] = _reason_counts(exclusion_ledger)
+            report_id = self.repository.save_report(
+                account_id=identifier.account_id,
+                data_cutoff=max((item.start_time or 0 for item in summary_feature_set.matches), default=None),
+                model_version=self.settings.model_version,
+                template_version=self.settings.template_version,
+                report=report,
+                evidence=evidence,
+            )
+            self.repository.complete_job(job, report_id)
             return
 
         self.repository.update_job(

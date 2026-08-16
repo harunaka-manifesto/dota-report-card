@@ -7,7 +7,7 @@ from app.features.summary_models import PlayerSession, SummaryFeatureSet, Summar
 
 
 def calculate_summary_feature(
-    summary: dict[str, Any], *, account_id: int | None = None
+    summary: dict[str, Any], *, account_id: int | None = None, source_index: int = 0
 ) -> SummaryMatchFeature | None:
     """Convert one player-history row without requiring a detail request."""
 
@@ -41,6 +41,18 @@ def calculate_summary_feature(
         gold_per_min=_as_optional_float(summary.get("gold_per_min")),
         xp_per_min=_as_optional_float(summary.get("xp_per_min")),
         lane_role=_as_optional_int(summary.get("lane_role")),
+        source_index=source_index,
+        account_id=account_id,
+        hero_variant=_as_optional_int(summary.get("hero_variant")),
+        lane=_as_optional_int(summary.get("lane")),
+        is_roaming=_as_bool(summary.get("is_roaming")),
+        role_hint=_role_hint(summary),
+        role_confidence=_role_confidence(summary),
+        patch=_as_optional_str(summary.get("patch") or summary.get("version")),
+        skill_bracket=_as_optional_int(summary.get("skill_bracket") or summary.get("skill")),
+        region=_as_optional_int(summary.get("region")),
+        leaver_status=_as_optional_int(summary.get("leaver_status")),
+        ended_at=start_time + duration if start_time is not None else None,
     )
 
 
@@ -58,11 +70,17 @@ def calculate_summary_features(
 
     features = [
         feature
-        for summary in summaries
+        for index, summary in enumerate(summaries)
         if isinstance(summary, dict)
-        and (feature := calculate_summary_feature(summary, account_id=account_id)) is not None
+        and (feature := calculate_summary_feature(
+            summary, account_id=account_id, source_index=index
+        )) is not None
     ]
     features.sort(key=_chronological_key)
+    # The legacy summary feature set has always promised order invariance.  A
+    # source-order provenance index belongs to the richer DNA normalizer; keep
+    # this compatibility view stable across equivalent input permutations.
+    features = [replace(feature, source_index=index) for index, feature in enumerate(features)]
     sessions: list[PlayerSession] = []
     current: list[SummaryMatchFeature] = []
     gap_seconds = max(1, session_gap_minutes) * 60
@@ -131,6 +149,34 @@ def _as_optional_float(value: Any) -> float | None:
         return float(value) if value is not None else None
     except (TypeError, ValueError):
         return None
+
+
+def _as_optional_str(value: Any) -> str | None:
+    return str(value) if value is not None else None
+
+
+def _role_hint(summary: dict[str, Any]) -> str | None:
+    if summary.get("is_roaming") is True:
+        return "roamer"
+    lane_role = _as_int(summary.get("lane_role"))
+    if lane_role is None:
+        lane = _as_int(summary.get("lane"))
+        return {1: "carry", 2: "mid", 3: "offlane"}.get(lane) if lane is not None else None
+    return {
+        1: "carry",
+        2: "mid",
+        3: "offlane",
+        4: "soft_support",
+        5: "hard_support",
+    }.get(lane_role)
+
+
+def _role_confidence(summary: dict[str, Any]) -> float | None:
+    if _role_hint(summary) is not None:
+        if _as_int(summary.get("lane_role")) is not None:
+            return 0.86
+        return 0.62 if _as_int(summary.get("lane")) is not None else 0.72
+    return None
 
 
 def _as_bool(value: Any) -> bool | None:

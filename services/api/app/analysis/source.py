@@ -70,8 +70,10 @@ class MappingSource:
         self.player = player
         self.matches = matches
         self.details = details
+        self.requests: list[tuple[str, int]] = []
 
     async def get_player(self, account_id: int) -> dict[str, Any]:
+        self.requests.append(("player", account_id))
         if not self.player:
             raise ProfileUnavailable("Profile is unavailable")
         return self.player
@@ -79,7 +81,9 @@ class MappingSource:
     async def get_matches(
         self, account_id: int, *, limit: int = FREE_HISTORY_LIMIT, project: str | None = None
     ) -> list[dict[str, Any]]:
+        self.requests.append(("matches", account_id))
         return self.matches[: min(limit, FREE_HISTORY_LIMIT)]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:
+        self.requests.append(("match", match_id))
         return self.details[match_id]

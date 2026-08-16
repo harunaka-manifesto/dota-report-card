@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 # Keep broad history and deep acquisition limits separate.  The old name is
 # retained as a compatibility alias for callers that still import it, but it
 # no longer represents the deep-analysis budget.
-FREE_HISTORY_LIMIT = 200
-MAX_FREE_HISTORY_LIMIT = 200
+FREE_HISTORY_LIMIT = 500
+MAX_FREE_HISTORY_LIMIT = 500
 MATCH_HISTORY_LIMIT = FREE_HISTORY_LIMIT
 DEFAULT_MAX_DEEP_MATCHES = 25
 DEFAULT_MAX_PARSE_REQUESTS = 0
@@ -19,6 +19,8 @@ DEFAULT_MAX_DATA_COST_PER_REPORT = 50.0
 DEFAULT_MIN_MARGINAL_INFORMATION_GAIN = 0.05
 DEFAULT_MAX_PRIMARY_HYPOTHESES = 3
 DEFAULT_SESSION_GAP_MINUTES = 90
+DEFAULT_REPORT_RETENTION_DAYS = 30
+DEFAULT_STEAM_RESOLVER_BASE_URL = "https://api.steampowered.com"
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -38,6 +40,8 @@ class Settings:
     opendota_source: str = "fixture"
     opendota_base_url: str = "https://api.opendota.com/api"
     opendota_api_key: str | None = None
+    steam_api_key: str | None = None
+    steam_resolver_base_url: str = DEFAULT_STEAM_RESOLVER_BASE_URL
     fixture_dir: Path = Path("tests/fixtures/opendota")
     database_url: str = "postgresql+psycopg://dota:dota@localhost:5432/dota_report_card"
     redis_url: str = "redis://localhost:6379/0"
@@ -60,6 +64,7 @@ class Settings:
     session_gap_minutes: int = DEFAULT_SESSION_GAP_MINUTES
     default_analysis_mode: str = "free"
     compatible_analysis_ttl_seconds: int = 3600
+    report_retention_days: int = DEFAULT_REPORT_RETENTION_DAYS
     replay_coverage_threshold: float = 0.60
     summary_coverage_threshold: float = 0.60
     cors_origins: tuple[str, ...] = DEFAULT_CORS_ORIGINS
@@ -82,6 +87,10 @@ class Settings:
             opendota_source=os.getenv("OPENDOTA_SOURCE", "fixture").lower(),
             opendota_base_url=os.getenv("OPENDOTA_BASE_URL", cls.opendota_base_url),
             opendota_api_key=api_key,
+            steam_api_key=os.getenv("STEAM_API_KEY") or None,
+            steam_resolver_base_url=os.getenv(
+                "STEAM_RESOLVER_BASE_URL", cls.steam_resolver_base_url
+            ),
             fixture_dir=Path(os.getenv("OPENDOTA_FIXTURE_DIR", str(cls.fixture_dir))),
             database_url=os.getenv("DATABASE_URL", cls.database_url),
             redis_url=os.getenv("REDIS_URL", cls.redis_url),
@@ -141,6 +150,9 @@ class Settings:
                     str(cls.compatible_analysis_ttl_seconds),
                 )
             ),
+            report_retention_days=int(
+                os.getenv("REPORT_RETENTION_DAYS", str(cls.report_retention_days))
+            ),
             replay_coverage_threshold=float(
                 os.getenv("REPLAY_COVERAGE_THRESHOLD", str(cls.replay_coverage_threshold))
             ),
@@ -192,6 +204,10 @@ class Settings:
     @property
     def effective_session_gap_minutes(self) -> int:
         return max(1, self.session_gap_minutes)
+
+    @property
+    def effective_report_retention_days(self) -> int:
+        return max(1, self.report_retention_days)
 
     @property
     def effective_storage_backend(self) -> str:

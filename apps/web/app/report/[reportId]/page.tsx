@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import ReportStory, { type StoryReport } from "./dna/report-story";
 
 export const revalidate = 60;
 
@@ -26,7 +27,7 @@ type Card = {
   provenance: { raw_payload_refs: string[]; normalized_match_refs: string[]; derived_feature_refs: string[] };
 };
 
-type Report = {
+type LegacyReport = {
   identity: { account_id: number; personaname: string; rank_tier: number | null };
   evidence_scope: {
     processed_matches: number;
@@ -44,6 +45,11 @@ type Report = {
     highest_value_weaknesses: Card[];
     next_rank: { status: string; reason: string };
   };
+};
+
+type Report = LegacyReport & Partial<StoryReport> & {
+  schema_version?: string;
+  dna_report_variant?: string;
 };
 
 async function getReport(reportId: string): Promise<Report> {
@@ -66,6 +72,9 @@ async function getReport(reportId: string): Promise<Report> {
 
 export default async function ReportPage({ params }: { params: { reportId: string } }) {
   const report = await getReport(params.reportId);
+  if (report.dna_report_variant === "free_dna_report" || report.schema_version === "free-dna-report-1.0.0") {
+    return <ReportStory report={report as unknown as StoryReport} />;
+  }
   const sections = report.sections;
   return (
     <main className="shell report-shell">

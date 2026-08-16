@@ -7,12 +7,14 @@ services:
       APP_ENV: production
       OPENDOTA_SOURCE: live
       OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
+      STEAM_API_KEY: ${STEAM_API_KEY-}
       DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS-http://localhost:3000}
       STORAGE_BACKEND: database
       ANALYSIS_EXECUTION_BACKEND: celery
-      HISTORY_LIMIT: 50
+      FREE_HISTORY_LIMIT: 500
+      REPORT_RETENTION_DAYS: 30
     ports:
       - "8000:8000"
     depends_on:
@@ -30,9 +32,11 @@ services:
       APP_ENV: production
       OPENDOTA_SOURCE: live
       OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
+      STEAM_API_KEY: ${STEAM_API_KEY-}
       DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
       REDIS_URL: redis://redis:6379/0
-      HISTORY_LIMIT: 50
+      FREE_HISTORY_LIMIT: 500
+      REPORT_RETENTION_DAYS: 30
       STORAGE_BACKEND: database
       ANALYSIS_EXECUTION_BACKEND: celery
     depends_on:

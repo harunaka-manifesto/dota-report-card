@@ -34,6 +34,7 @@ class AnalysisStatusResponse(BaseModel):
     message: str | None
     report_id: str | None
     events_url: str
+    completed_stages: list[str] = Field(default_factory=list)
 
 
 class ErrorResponse(BaseModel):

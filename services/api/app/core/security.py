@@ -8,16 +8,19 @@ from typing import Any
 from urllib.parse import urlparse
 
 from app.core.errors import InvalidPlayerIdentifier
+from app.identity.steam import steam64_to_account_id
 
 STEAM32_MAX = 2**32 - 1
 _STEAM32 = re.compile(r"^[0-9]{1,10}$")
 _ALLOWED_HOSTS = {"www.opendota.com", "opendota.com"}
+_STEAM_HOSTS = {"steamcommunity.com", "www.steamcommunity.com"}
 
 
 @dataclass(frozen=True, slots=True)
 class PlayerIdentifier:
     account_id: int
     canonical_url: str
+    vanity: str | None = None
 
 
 def parse_player_identifier(raw: str) -> PlayerIdentifier:
@@ -27,11 +30,14 @@ def parse_player_identifier(raw: str) -> PlayerIdentifier:
         if 0 < account_id <= STEAM32_MAX:
             return PlayerIdentifier(account_id, f"https://www.opendota.com/players/{account_id}")
         raise InvalidPlayerIdentifier("Steam32 account ID is out of range")
+    if value.isdigit() and len(value) > 10:
+        account_id = steam64_to_account_id(value)
+        return PlayerIdentifier(account_id, f"https://www.opendota.com/players/{account_id}")
 
     parsed = urlparse(value)
     if (
         parsed.scheme not in {"http", "https"}
-        or parsed.hostname not in _ALLOWED_HOSTS
+        or parsed.hostname not in _ALLOWED_HOSTS | _STEAM_HOSTS
         or parsed.username
         or parsed.password
         or parsed.query
@@ -40,6 +46,16 @@ def parse_player_identifier(raw: str) -> PlayerIdentifier:
         raise InvalidPlayerIdentifier("Use a Steam32 ID or an OpenDota player URL")
 
     parts = [part for part in parsed.path.split("/") if part]
+    if parsed.hostname in _STEAM_HOSTS:
+        if len(parts) != 2:
+            raise InvalidPlayerIdentifier("Use a Steam profile or vanity URL")
+        kind, value_part = parts[0].lower(), parts[1]
+        if kind == "profiles" and value_part.isdigit():
+            account_id = steam64_to_account_id(value_part)
+            return PlayerIdentifier(account_id, f"https://www.opendota.com/players/{account_id}")
+        if kind == "id" and _STEAM_VANITY.fullmatch(value_part):
+            return PlayerIdentifier(0, f"https://steamcommunity.com/id/{value_part}", value_part.lower())
+        raise InvalidPlayerIdentifier("Use a numeric Steam profile or vanity URL")
     if len(parts) != 2 or parts[0].lower() != "players" or not _STEAM32.fullmatch(parts[1]):
         raise InvalidPlayerIdentifier("Use a Steam32 ID or an OpenDota player URL")
 
@@ -47,6 +63,9 @@ def parse_player_identifier(raw: str) -> PlayerIdentifier:
     if not 0 < account_id <= STEAM32_MAX:
         raise InvalidPlayerIdentifier("Steam32 account ID is out of range")
     return PlayerIdentifier(account_id, f"https://www.opendota.com/players/{account_id}")
+
+
+_STEAM_VANITY = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 
 def redact(value: Any, secrets: tuple[str | None, ...] = ()) -> Any:

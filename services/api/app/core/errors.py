@@ -43,6 +43,11 @@ class OpenDotaUnavailable(AppError):
     status_code = 503
 
 
+class SteamIdentityUnavailable(AppError):
+    code = "STEAM_IDENTITY_UNAVAILABLE"
+    status_code = 503
+
+
 class ReportNotFound(AppError):
     code = "REPORT_NOT_FOUND"
     status_code = 404

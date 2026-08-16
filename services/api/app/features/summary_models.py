@@ -32,6 +32,18 @@ class SummaryMatchFeature:
     lane_role: int | None = None
     session_id: str | None = None
     session_index: int | None = None
+    source_index: int = 0
+    account_id: int | None = None
+    hero_variant: int | None = None
+    lane: int | None = None
+    is_roaming: bool | None = None
+    role_hint: str | None = None
+    role_confidence: float | None = None
+    patch: str | None = None
+    skill_bracket: int | None = None
+    region: int | None = None
+    leaver_status: int | None = None
+    ended_at: int | None = None
 
     @property
     def duration_minutes(self) -> float:
@@ -77,6 +89,18 @@ class SummaryMatchFeature:
             "lane_role": self.lane_role,
             "session_id": self.session_id,
             "session_index": self.session_index,
+            "source_index": self.source_index,
+            "account_id": self.account_id,
+            "hero_variant": self.hero_variant,
+            "lane": self.lane,
+            "is_roaming": self.is_roaming,
+            "role_hint": self.role_hint,
+            "role_confidence": self.role_confidence,
+            "patch": self.patch,
+            "skill_bracket": self.skill_bracket,
+            "region": self.region,
+            "leaver_status": self.leaver_status,
+            "ended_at": self.ended_at,
         }
 
 

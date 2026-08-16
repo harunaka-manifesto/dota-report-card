@@ -6,6 +6,7 @@ from typing import Any
 
 
 class ExclusionReason(StrEnum):
+    UNSUPPORTED_MODE = "non_standard_mode"
     NON_RANKED = "non_ranked"
     NON_STANDARD_MODE = "non_standard_mode"
     ABANDONED = "abandoned"
@@ -56,7 +57,7 @@ def assess_match(
     duration = _as_int(merged.get("duration"))
     if duration is None or duration < 300:
         reasons.append(ExclusionReason.INVALID_DURATION)
-    if merged.get("radiant_win") is None:
+    if merged.get("radiant_win") is None and merged.get("won") is None:
         reasons.append(ExclusionReason.MISSING_OUTCOME)
 
     if account_id is not None and detail:

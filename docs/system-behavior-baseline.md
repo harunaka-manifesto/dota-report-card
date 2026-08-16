@@ -50,7 +50,7 @@ flowchart TD
     U["User submits player identifier"] --> V["Validate and canonicalize identifier"]
     V --> R["Reuse compatible job or create job"]
     R --> P["Fetch and persist public profile"]
-    P --> H["Fetch up to 200 summary rows"]
+    P --> H["Fetch up to 500 summary rows"]
     H --> F["Filter eligibility and preserve exclusions"]
     F --> S["Build nullable summary features and sessions"]
     S --> D["Detect descriptive patterns"]
@@ -77,7 +77,7 @@ The profile and history pass is shared by both modes. The branches differ only a
 
 Expected behavior:
 
-- Fetch the profile once and up to `FREE_HISTORY_LIMIT` summary rows. The hard maximum is 200.
+- Fetch the profile once and up to `FREE_HISTORY_LIMIT` summary rows. The hard maximum is 500.
 - Apply summary eligibility rules before analysis.
 - Build summary features, session groupings, hero counts, win rate, and summary coverage.
 - Detect descriptive patterns such as hero overperformance, long-game differences, session decline, recent trajectory, specialization, and consistency changes.
@@ -114,7 +114,7 @@ The default parse budget is zero. The OpenDota transport client intentionally ha
 
 | Behavior | Free | Deep Scan |
 | --- | --- | --- |
-| Summary history | Up to 200 rows | Up to 200 rows |
+| Summary history | Up to 500 rows | Up to 500 rows |
 | Profile read | Required | Required |
 | Detail reads | None | Selected/cached details only |
 | Automatic replay parsing | Never | Never by default; explicit capability only |
@@ -129,7 +129,7 @@ The default parse budget is zero. The OpenDota transport client intentionally ha
 
 ### Identifier handling
 
-The API accepts a valid OpenDota player URL or a valid Steam32 account ID. The service must canonicalize both forms to the same integer account ID. Malformed identifiers must fail before any OpenDota request.
+The API accepts a valid OpenDota player URL, Steam32/Steam64 account ID, numeric Steam profile URL, or Steam vanity URL when the separate Steam resolver is configured. Numeric forms are converted locally; vanity resolution is cached separately and never duplicates the one OpenDota history request. Malformed identifiers must fail before any OpenDota request.
 
 ### Profile handling
 
@@ -139,7 +139,7 @@ The profile response must contain a matching public `profile.account_id`. A miss
 
 The history request is broad but bounded:
 
-- `FREE_HISTORY_LIMIT` defaults to 200 and cannot exceed 200.
+- `FREE_HISTORY_LIMIT` defaults to 500 and cannot exceed 500.
 - The source/client may return fewer rows; the service must analyze what was returned.
 - An empty history or no eligible summary matches fails with `INSUFFICIENT_MATCH_HISTORY`.
 - The raw profile and raw history payload are persisted before report assembly.
@@ -248,7 +248,7 @@ Raw payloads, normalized facts, derived features, reports, and evidence are sepa
 
 The free report should contain:
 
-- `schema_version`, `report_variant=free_player_dna`, `noindex`, and identity.
+- `schema_version=free-dna-report-1.0.0`, `dna_report_variant=free_dna_report`, the compatibility `report_variant=free_player_dna`, `noindex`, and identity.
 - `evidence_scope` with processed/eligible counts, summary coverage, replay status, missing replay families, and exclusion reasons.
 - `player_dna` with archetype, strongest traits, hero identity, session/game shape, and recent trajectory.
 - `deep_scan.opportunities` and serialized hypotheses/selection metadata when opportunities exist.
@@ -300,7 +300,7 @@ The response includes `job_id`, `status`, `analysis_mode`, `reused`, and an SSE 
 
 ### Read status
 
-`GET /v1/analyses/{job_id}` returns the same `analysis_mode` that was requested, along with status, stage, processed/eligible counts, warnings, failure code, message, report ID, and events URL.
+`GET /v1/analyses/{job_id}` returns the same `analysis_mode` that was requested, along with status, stage, completed stages, processed/eligible counts, warnings, failure code, message, report ID, and events URL.
 
 The job mode is part of both in-flight coalescing and completed-result reuse. A completed Free report must not satisfy a Deep Scan request, and vice versa.
 
@@ -331,7 +331,7 @@ The following defaults define expected local behavior:
 | --- | ---: | --- |
 | `OPENDOTA_SOURCE` | `fixture` | Use recorded fixtures locally; use `live` for a real source |
 | `OPENDOTA_API_KEY` | empty | Server-only bearer credential for live OpenDota calls |
-| `FREE_HISTORY_LIMIT` | `200` | Broad summary read ceiling; hard-capped at 200 |
+| `FREE_HISTORY_LIMIT` | `500` | Broad summary read ceiling; hard-capped at 500 |
 | `MAX_DEEP_MATCHES` | `25` | Deep detail-match ceiling |
 | `MAX_PARSE_REQUESTS` | `0` | Explicit parse-request ceiling |
 | `MAX_DATA_COST_PER_REPORT` | `50` | Relative data-cost budget |
@@ -339,14 +339,17 @@ The following defaults define expected local behavior:
 | `MAX_PRIMARY_HYPOTHESES` | `3` | Number of primary hypothesis tracks |
 | `SESSION_GAP_MINUTES` | `90` | Session break threshold |
 | `DEFAULT_ANALYSIS_MODE` | `free` | Mode used when a caller omits one |
+| `REPORT_RETENTION_DAYS` | `30` | Report, raw anonymous payload, and share-link retention window |
+| `STEAM_API_KEY` | empty | Optional server-only key for Steam vanity resolution |
 
 The legacy `HISTORY_LIMIT` environment name may be accepted as a compatibility fallback, but new configuration and documentation should use `FREE_HISTORY_LIMIT`.
 
 ## 13. Security and privacy baseline
 
-- The API key belongs in the server-side `.env`/secret store as `OPENDOTA_API_KEY`.
+- Provider keys belong in the server-side `.env`/secret store as `OPENDOTA_API_KEY` and, when vanity URLs are enabled, `STEAM_API_KEY`.
 - Live use also requires `OPENDOTA_SOURCE=live`.
-- The key is sent in an `Authorization: Bearer` header only.
+- The OpenDota key is sent in an `Authorization: Bearer` header only; the Steam resolver key is sent only to Steam's resolver endpoint over HTTPS.
+- Steam vanity resolution is cached separately for 30 days and its key never reaches the browser.
 - No browser request, URL, fixture, report, database record, structured log, or exception should contain the key.
 - External profile HTML is treated as data, not rendered as trusted markup.
 - API errors expose stable codes and safe messages, not stack traces.
@@ -374,7 +377,7 @@ For every suspected defect, check the mode first, then verify the following inva
 ### Acquisition and cost
 
 - [ ] Free mode made no individual-match source calls.
-- [ ] History was capped at 200 even if the source returned more.
+- [ ] History was capped at 500 even if the source returned more.
 - [ ] Deep mode selected no duplicate match IDs.
 - [ ] Deep mode never exceeded the configured match or data-cost budget.
 - [ ] Cached/existing evidence was not charged as a new external read.

@@ -28,7 +28,7 @@ also needs its production persistence/execution dependencies (`DATABASE_URL`
 and `REDIS_URL`) when `APP_ENV=production`. Adding only `OPENDOTA_API_KEY` to the
 Vercel web project does not deploy or configure the FastAPI service.
 
-Player DNA reads up to 200 cheap summary rows by default. Deep Scan has separate configurable ceilings (`MAX_DEEP_MATCHES`, `MAX_PARSE_REQUESTS`, and `MAX_DATA_COST_PER_REPORT`) and never hydrates every history row. The default parse budget is zero; parsing remains an explicit capability behind the budget boundary.
+Player DNA reads up to 500 cheap summary rows by default. Deep Scan has separate configurable ceilings (`MAX_DEEP_MATCHES`, `MAX_PARSE_REQUESTS`, and `MAX_DATA_COST_PER_REPORT`) and never hydrates every history row. The default parse budget is zero; parsing remains an explicit capability behind the budget boundary.
 
 For the expected-behavior contract used by bug-busting agents, see [the system behavior baseline](docs/system-behavior-baseline.md).
 

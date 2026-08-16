@@ -5,7 +5,7 @@ import json
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 
 from app.api.schemas import (
     AnalysisStatusResponse,
@@ -15,6 +15,7 @@ from app.api.schemas import (
 )
 from app.core.errors import AnalysisNotFound, AnalysisRateLimited, ReportNotFound
 from app.core.security import RateLimiter, parse_player_identifier
+from app.share.service import build_share_svg
 
 router = APIRouter(prefix="/v1")
 _rate_limiter = RateLimiter()
@@ -108,6 +109,33 @@ async def get_evidence(report_id: str, insight_id: str, request: Request) -> dic
     if not values:
         raise ReportNotFound("Evidence was not found")
     return values[0]
+
+
+@router.get("/reports/{report_id}/share/{card_type}")
+async def get_share_card(
+    report_id: str,
+    card_type: str,
+    request: Request,
+) -> Response:
+    report = _service(request).repository.get_report(report_id)
+    if report is None:
+        raise ReportNotFound("Report was not found")
+    show_name = request.query_params.get("show_name", "true").lower() in {"1", "true", "yes"}
+    show_avatar = request.query_params.get("show_avatar", "true").lower() in {"1", "true", "yes"}
+    try:
+        svg, cache_key = build_share_svg(
+            report,
+            card_type=card_type,
+            show_name=show_name,
+            show_avatar=show_avatar,
+        )
+    except ValueError as exc:
+        return Response(str(exc), status_code=422, media_type="text/plain")
+    return Response(
+        svg,
+        media_type="image/svg+xml",
+        headers={"Cache-Control": "public, max-age=3600, immutable", "ETag": cache_key},
+    )
 
 
 @router.get("/health", response_model=HealthResponse)

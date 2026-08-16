@@ -1,0 +1,21 @@
+{
+  "copy_version": "free-dna-copy-1.0.0",
+  "dimension": {
+    "available": "This signal has enough readable history to make a useful directional call.",
+    "limited": "The shape is visible, but this signal is still provisional.",
+    "unavailable": "This signal stays quiet because the history does not contain enough of the fields it needs."
+  },
+  "dimensions": {
+    "breadth": {"headline": "How wide is your pool?", "left": "Focused", "right": "Exploratory"},
+    "role": {"headline": "Your role is part of your identity.", "left": "Anchored", "right": "Fluid"},
+    "adaptability": {"headline": "Does your play travel with you?", "left": "Comfort-bound", "right": "Transferable"},
+    "activity": {"headline": "How often are you in the action?", "left": "Reserved", "right": "Involved"},
+    "orientation": {"headline": "Do you finish or connect?", "left": "Facilitator", "right": "Finisher"},
+    "resilience": {"headline": "What changes after the last result?", "left": "Resetting", "right": "Outcome-sensitive"},
+    "endurance": {"headline": "What happens as the session stretches?", "left": "Front-loaded", "right": "Sustained"},
+    "rhythm": {"headline": "What does a normal session look like?", "left": "Short-burst", "right": "Grinder"}
+  },
+  "hero_pattern_mixed": "Your comfort pool spans several different toolsets.",
+  "hero_pattern_trait_cluster": "Your comfort pool clusters around a recognizable toolkit.",
+  "deep_dive": "Want to understand what drives the pattern? Deep Dive can inspect a small set of matches in more detail."
+}
