@@ -5,12 +5,29 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from app.behavior.models import (
+    BehaviorQualitySummary,
+    ContextArchetypeResult,
+    ElementResult,
+    PatternResult,
+)
 from app.dna.pipeline import DnaAnalysisResult
 from app.features.summary_calculators import calculate_summary_features
 from app.features.summary_models import SummaryFeatureSet
 from app.heroes.taxonomy import load_default_taxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 from app.patterns.models import PatternCandidate
+
+
+@dataclass(frozen=True, slots=True)
+class BehaviorStoryContext:
+    """Editorial-only v3 context: upstream semantics, never raw matches."""
+
+    elements: Mapping[str, ElementResult]
+    patterns: Mapping[str, PatternResult]
+    archetypes: Mapping[str, ContextArchetypeResult]
+    hero_identity: object | None
+    quality: BehaviorQualitySummary
 
 
 @dataclass(frozen=True, slots=True)

@@ -6,7 +6,7 @@ MYPY ?= uv run mypy
 PNPM ?= pnpm
 WEB_BIN ?= apps/web/node_modules/.bin
 
-.PHONY: install infra-up infra-down db-migrate dev lint typecheck test test-contract test-integration test-e2e test-live-smoke api-client taxonomy-validate
+.PHONY: install infra-up infra-down db-migrate dev lint typecheck test test-contract test-integration test-e2e test-live-smoke api-client taxonomy-validate dna-catalog dna-catalog-check docs-check
 
 install:
 	uv sync --extra dev
@@ -53,3 +53,12 @@ api-client:
 
 taxonomy-validate:
 	$(PYTHON) scripts/validate_hero_taxonomy.py
+
+dna-catalog:
+	$(PYTHON) scripts/generate_dna_model_catalog.py
+
+dna-catalog-check:
+	$(PYTHON) scripts/generate_dna_model_catalog.py --check
+
+docs-check:
+	$(PYTHON) scripts/check_docs.py

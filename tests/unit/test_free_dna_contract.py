@@ -121,7 +121,7 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     assert source.requests == [("player", 42), ("matches", 42)]
     report = repository.get_report(job.report_id or "")
     assert report is not None
-    assert report["schema_version"] == "free-dna-report-2.0.0"
+    assert report["schema_version"] == "free-dna-report-3.0.0"
     assert report["report_variant"] == "free_dna_report"
     assert report["noindex"] is True
     assert "account_id" not in report
@@ -131,15 +131,14 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     assert report["cost"]["detail_requests"] == 0
     assert report["cost"]["parse_requests"] == 0
     assert report["cost"]["parse_status_requests"] == 0
-    assert len(report["dimensions"]) == 8
+    assert len(report["dimensions"]) == 10
+    assert len(report["elements"]) == 23
     assert 7 <= len(report["pages"]) <= 14
     assert report["findings"]
-    assert all(len(finding["receipts"]) >= 2 for finding in report["findings"])
-    assert {finding["kind"] for finding in report["findings"]} >= {"strength", "contradiction"}
-    assert any(finding["experiment"] for finding in report["findings"])
-    assert all(report["shares"][key]["finding_key"] for key in ("identity", "exposed", "strength"))
+    assert all(len(finding["receipts"]) >= 1 for finding in report["findings"])
+    assert all(report["shares"][key]["finding_key"] for key in ("identity", "strongest", "pattern"))
     assert report["story"]["ordered_pages"] == [page["id"] for page in report["pages"]]
-    assert {page["kind"] for page in report["pages"]} >= {"finding", "identity_card", "dna_xray", "deep_dive"}
+    assert {page["kind"] for page in report["pages"]} >= {"finding", "archetypes", "dna_xray", "deep_dive"}
     assert report["metadata"]["history_tier"] == "limited"
     assert all(
         key not in report
@@ -149,12 +148,10 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
     assert "account_id" not in str(report["shares"])
     assert "account_id" not in str(report["pages"])
 
-    for card_type in ("identity", "exposed", "strength", "dna", "heroes", "final"):
+    for card_type in ("identity", "strongest", "pattern", "archetypes"):
         svg, _ = build_share_svg(report, card_type=card_type, show_name=False, show_avatar=False)
         assert str(42) not in svg
         assert "<svg" in svg
-    hero_svg, _ = build_share_svg(report, card_type="heroes", show_name=False, show_avatar=False)
-    assert "<image" in hero_svg
 
     now = datetime.now(UTC)
     assert repository.purge_expired(now=now + timedelta(days=31)) == 1
@@ -178,7 +175,7 @@ def test_public_report_route_sets_noindex_and_returns_strict_free_contract() -> 
     assert response.status_code == 200
     assert response.headers["x-robots-tag"] == "noindex, nofollow, noarchive"
     body = response.json()
-    assert body["schema_version"] == "free-dna-report-2.0.0"
+    assert body["schema_version"] == "free-dna-report-3.0.0"
     assert body["report_variant"] == "free_dna_report"
     validate_free_dna_report(body)
 
@@ -232,7 +229,7 @@ def test_public_free_report_rejects_internal_and_legacy_fields() -> None:
         })
 
 
-def test_v2_contract_rejects_invalid_receipts_and_story_references() -> None:
+def test_v3_contract_rejects_invalid_receipts_and_story_references() -> None:
     history = [_summary(900_125_000 + index, index) for index in range(35)]
     source = MappingSource(
         player={"profile": {"account_id": 42, "personaname": "Fixture player"}},
@@ -247,7 +244,7 @@ def test_v2_contract_rejects_invalid_receipts_and_story_references() -> None:
     assert report is not None
 
     one_receipt = copy.deepcopy(report)
-    one_receipt["findings"][0]["receipts"] = one_receipt["findings"][0]["receipts"][:1]
+    one_receipt["findings"][0]["receipts"] = []
     with pytest.raises(ValueError):
         validate_free_dna_report(one_receipt)
 
@@ -264,7 +261,15 @@ def test_v2_contract_rejects_invalid_receipts_and_story_references() -> None:
         validate_free_dna_report(duplicate_page)
 
     unknown_experiment = copy.deepcopy(report)
-    experiment_finding = next(finding for finding in unknown_experiment["findings"] if finding["experiment"])
+    experiment_finding = unknown_experiment["findings"][0]
+    experiment_finding["experiment"] = {
+        "key": "known-experiment",
+        "title": "A bounded test",
+        "instruction": "Try the test.",
+        "hypothesis": "The signal moves.",
+        "measurement": "Compare two windows.",
+        "window": "next 5 matches",
+    }
     unknown_experiment["pages"].append({
         "id": "experiment-invalid",
         "kind": "experiment",

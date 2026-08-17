@@ -106,6 +106,8 @@ html[data-report-story="true"] { scroll-snap-type: y proximity; scroll-padding-t
 .hero-portrait-frame span { font-size: 40px; font-weight: 700; }
 .pattern-card { max-width: 680px; padding: 28px; border: 1px solid #d4cbbb; background: #e5dbc9; transform: rotate(-1deg); }
 .pattern-card h2 { font-size: clamp(36px, 6vw, 64px); }
+.archetype-grid { display: grid; max-width: 760px; gap: 14px; }
+.archetype-grid .pattern-card { max-width: none; transform: none; }
 .recommendation-list { display: grid; max-width: 650px; gap: 10px; }
 .recommendation { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; padding: 16px; border: 1px solid #d4cbbb; background: rgba(255,255,255,.4); }
 .recommendation span, .recommendation small { color: #7e776b; font-size: 12px; }

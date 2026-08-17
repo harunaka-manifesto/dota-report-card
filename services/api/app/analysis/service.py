@@ -31,9 +31,8 @@ from app.features.calculators import calculate_match_features
 from app.features.models import MatchFeature
 from app.features.summary_calculators import calculate_summary_features
 from app.features.summary_models import SummaryFeatureSet
-from app.findings.conflicts import select_story_findings
-from app.findings.context import build_free_finding_context, summary_features_for_free
-from app.findings.evaluator import evaluate_free_findings
+from app.findings.behavior import evaluate_behavior_findings, select_behavior_story
+from app.findings.context import BehaviorStoryContext
 from app.identity.steam import SteamVanityResolver
 from app.ingestion.coverage import coverage_for_match
 from app.ingestion.eligibility import assess_match
@@ -43,7 +42,7 @@ from app.insights.evaluator import InsightContext, evaluate_insights
 from app.opendota.cache import payload_hash
 from app.patterns.detector import detect_patterns
 from app.reports.assembly import assemble_player_dna_report, assemble_report
-from app.reports.dna_assembly import assemble_free_dna_report
+from app.reports.dna_assembly import assemble_free_dna_report_v3
 from app.storage.repository import AnalysisJob, InMemoryRepository
 
 logger = logging.getLogger(__name__)
@@ -121,6 +120,15 @@ class AnalysisService:
 
     def _compatibility_model_version(self, analysis_mode: str) -> str:
         if analysis_mode == "free":
+            from app.behavior.archetypes.registry import ARCHETYPE_REGISTRY_VERSION
+            from app.behavior.elements.registry import ELEMENT_REGISTRY_VERSION
+            from app.behavior.patterns.registry import PATTERN_REGISTRY_VERSION
+            from app.behavior.service import (
+                BEHAVIOR_MODEL_VERSION,
+                V3_FINDING_RANKING_VERSION,
+                V3_FINDING_VERSION,
+                V3_STORY_VERSION,
+            )
             from app.content.catalog import copy_version
             from app.dna.archetypes.classifier import CLASSIFIER_VERSION
             from app.dna.baselines import BASELINE_VERSION
@@ -153,6 +161,13 @@ class AnalysisService:
                 "model": self.settings.model_version,
                 "template": self.settings.template_version,
                 "share_renderer": RENDERER_VERSION,
+                "behavior_model": BEHAVIOR_MODEL_VERSION,
+                "element_registry": ELEMENT_REGISTRY_VERSION,
+                "pattern_registry": PATTERN_REGISTRY_VERSION,
+                "archetype_registry": ARCHETYPE_REGISTRY_VERSION,
+                "finding_registry": V3_FINDING_VERSION,
+                "finding_ranking_v3": V3_FINDING_RANKING_VERSION,
+                "story_v3": V3_STORY_VERSION,
             }
             digest = hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest()
             return f"free-analysis-{digest[:48]}"
@@ -402,41 +417,30 @@ class AnalysisService:
             ),
         )
 
-        self.repository.update_job(
-            job,
-            stage="finding_patterns",
-            message="Looking for patterns that only appear when the signals are read together",
-        )
-        summary_feature_set = summary_features_for_free(
-            normalized.eligible_matches,
-            session_gap_minutes=dna_analysis.sessions.policy.gap_minutes,
-        )
-        if len(summary_feature_set.matches) != job.eligible_matches:
-            raise InsufficientMatchHistory("Summary finding context did not match eligible history")
-        patterns = detect_patterns(summary_feature_set)
-
+        behavior = dna_analysis.behavior
+        if behavior is None:
+            raise InsufficientMatchHistory("Behavior model did not produce a result")
         self.repository.update_job(
             job,
             stage="finding_synthesis",
-            message="Checking which findings are strong enough to show",
+            message="Choosing the relationships worth showing",
         )
-        finding_context = build_free_finding_context(
-            dna=dna_analysis,
-            summary_features=summary_feature_set,
-            patterns=patterns,
-            processed_matches=job.processed_matches,
-            eligible_matches=job.eligible_matches,
-            history_limit=history_limit,
+        story_context = BehaviorStoryContext(
+            elements=behavior.element_map,
+            patterns=behavior.pattern_map,
+            archetypes=behavior.archetype_map,
+            hero_identity=dna_analysis.heroes,
+            quality=behavior.quality,
         )
-        findings = evaluate_free_findings(finding_context)
-        story_selection = select_story_findings(findings)
+        findings = evaluate_behavior_findings(story_context)
+        story_selection = select_behavior_story(findings)
 
         self.repository.update_job(
             job,
             stage="rendering_report",
             message="Building your Dota DNA",
         )
-        report = assemble_free_dna_report(
+        report = assemble_free_dna_report_v3(
             account_id=identifier.account_id,
             profile=_profile_for_report(profile, identifier.account_id),
             analysis=dna_analysis,

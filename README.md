@@ -1,75 +1,79 @@
 # Dota Report Card
 
-An anonymous OpenDota player report that separates raw payloads, normalized facts, reusable features, cohort comparisons, and deterministic evidence-backed narratives.
+An anonymous OpenDota player report that turns one bounded summary-history read
+into observable Dota patterns with receipts. The current Free report is layered:
+
+`summary observations → 23 Elements → finite Patterns → three context Archetypes → editorial Findings → story`
+
+The copy is deliberately specific about what the data can support. Summary
+history can describe recurring match behavior. It cannot prove a motive, a
+psychological state, or a replay-level cause.
 
 ## Local start
 
-~~~bash
+```bash
 cp .env.example .env
 make install
 make test
 make dev
-~~~
+```
 
-The default .env.example source is the sanitized fixture adapter. Set OPENDOTA_SOURCE=live and provide OPENDOTA_API_KEY only for a live run. The key is sent in an Authorization Bearer header by the server and is never accepted from the browser.
+The default `.env.example` source is the sanitized fixture adapter. Set
+`OPENDOTA_SOURCE=live` and provide `OPENDOTA_API_KEY` only for a live run. The
+key is sent in an Authorization Bearer header by the server and is never
+accepted from the browser.
 
-The recorded example account is 193875165. Open http://localhost:8000/docs for the API or run the web app with pnpm --dir apps/web dev.
+The recorded example account is `193875165`. Open
+`http://localhost:8000/docs` for the API, or run the web app with
+`pnpm --dir apps/web dev`.
 
-## Deployment
+## Free and Deep Scan
 
-The Next.js web app and FastAPI analysis service are separate deployments. On
-the Vercel web project, set `API_BASE_URL` to the public HTTPS origin of the
-deployed FastAPI service (for example, `https://api.example.com`). Browser calls
-use the web app's same-origin `/v1` proxy; do not expose the OpenDota key through
-a `NEXT_PUBLIC_` variable.
+Free mode reads the public profile plus one bounded history window of up to 500
+summary rows. It performs zero match-detail reads and zero replay-parse
+requests. Missing fields remain missing, and every report carries the cost and
+quality metadata for the run.
 
-On the API deployment, set `OPENDOTA_SOURCE=live` and `OPENDOTA_API_KEY`. The API
-also needs its production persistence/execution dependencies (`DATABASE_URL`
-and `REDIS_URL`) when `APP_ENV=production`. Adding only `OPENDOTA_API_KEY` to the
-Vercel web project does not deploy or configure the FastAPI service.
+Deep Scan is an explicit, separate mode. It may inspect selected match details
+under its configured budgets; it does not turn Free’s summary observations into
+causal claims by default.
 
-Player DNA reads up to 500 cheap summary rows by default. Deep Scan has separate configurable ceilings (`MAX_DEEP_MATCHES`, `MAX_PARSE_REQUESTS`, and `MAX_DATA_COST_PER_REPORT`) and never hydrates every history row. The default parse budget is zero; parsing remains an explicit capability behind the budget boundary.
-
-For the expected-behavior contract used by bug-busting agents, see [the system behavior baseline](docs/system-behavior-baseline.md).
-
-The Free DNA contract is intentionally strict: `free-dna-report-2.0.0` publishes
-a noindex finding-led summary snapshot with eight dimensions retained as
-supporting evidence. Public findings carry deterministic receipts, neutral copy,
-and player-observable experiments; raw identifiers, match rows, session
-internals, and legacy/deep payloads stay private. Completed reports enter at
-`report-reveal`, while input/player-found/analysis pages remain in the payload
-for full-journey clients. The identity card also surfaces the factual hero
-identity, comfort picks, reviewed hero pattern, and adjacent picks when the
-history supports them. The identity, exposed-finding, and strength cards use
-the deterministic `share-svg-2.1.0` renderer; the legacy DNA/Heroes/Final card
-aliases remain available. v1 validation and rendering are retained for existing
-snapshots. Hero taxonomy snapshots are validated in CI, and summary `lane_role`
-values are treated as role hints; a spatial lane field does not manufacture a
-role.
+New Free analyses publish the strict `free-dna-report-3.0.0` contract. Existing
+v1/v2 snapshots remain readable. The API client and web route select the story
+renderer by schema version.
 
 ## Architecture
 
-- services/api/app/opendota is the only layer that knows OpenDota transport details.
-- services/api/app/ingestion filters and normalizes source records while retaining coverage and exclusion reasons.
-- services/api/app/features calculates facts without publishing conclusions.
-- services/api/app/cohorts selects the narrowest valid comparison or fails closed.
-- services/api/app/patterns detects summary-only Player DNA observations and app/hypotheses maps them to deterministic explanations.
-- services/api/app/findings derives deterministic cross-signal findings from the same Free summary corpus and selects the public story.
-- services/api/app/selection globally deduplicates diagnostic match candidates using marginal information gain and cost.
-- services/api/app/insights evaluates the existing rich families, applies gates, ranks evidence, and renders approved templates.
-- services/api/app/reports assembles the read-only report.
-- apps/web only submits identifiers, polls analysis status, and renders API responses.
-
-The default local repository is in-memory so the full path is runnable without infrastructure. PostgreSQL models and Alembic migrations are included for deployment; Celery task wiring is included behind the same orchestration boundary. Free analysis submits no replay parse request and performs no individual-match reads.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — short system map and invariants.
+- [`docs/architecture/system-overview.md`](docs/architecture/system-overview.md) — pipeline ownership, evidence rules, and compatibility.
+- [`docs/architecture/free-dna-model-guide.md`](docs/architecture/free-dna-model-guide.md) — the complete human-readable explanation of every active Element, Pattern, and context Archetype.
+- [`docs/architecture/model-catalog.md`](docs/architecture/model-catalog.md) — generated registry catalog for the active Free model.
+- [`docs/evidence-contract.md`](docs/evidence-contract.md) — evidence and provenance requirements.
+- [`docs/opendota-data-inventory.md`](docs/opendota-data-inventory.md) — source fields and their limits.
+- [`tone_of_voice.md`](tone_of_voice.md) — user-facing copy rules.
 
 ## Verification
 
-~~~bash
+```bash
 make lint
 make typecheck
 make test
 make test-contract
 make test-integration
-~~~
+make dna-catalog-check
+make docs-check
+```
 
-make test-live-smoke is opt-in and requires OPENDOTA_API_KEY; it is not part of ordinary CI.
+`make test-live-smoke` is opt-in and requires `OPENDOTA_API_KEY`; it is not part
+of ordinary CI.
+
+## Deployment
+
+The Next.js web app and FastAPI analysis service are separate deployments. On
+the Vercel web project, set `API_BASE_URL` to the public HTTPS origin of the
+FastAPI service. Browser calls use the web app’s same-origin `/v1` proxy; do not
+expose the OpenDota key through a `NEXT_PUBLIC_` variable.
+
+On the API deployment, set `OPENDOTA_SOURCE=live` and `OPENDOTA_API_KEY`. The
+API also needs its production persistence/execution dependencies
+(`DATABASE_URL` and `REDIS_URL`) when `APP_ENV=production`.

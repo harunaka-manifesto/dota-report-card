@@ -29,7 +29,7 @@ def score(features: DnaFeatureSet):
     # or worse player grade. Score the magnitude and keep direction in the
     # receipt so either side of the contrast is treated symmetrically.
     magnitude = abs(delta)
-    value = clamp(magnitude / 0.50)
+    value = round(clamp(magnitude / 0.50), 6)
     sensitivity = session_sensitivity_stability(features, "resilience")
     receipt_gating = len(features.transitions_after_two_losses) >= 8
     return result(

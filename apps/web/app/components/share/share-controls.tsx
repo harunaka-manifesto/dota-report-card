@@ -3,12 +3,15 @@
 import { useMemo, useState } from "react";
 import { track } from "../../lib/analytics";
 
-type CardType = "identity" | "exposed" | "strength" | "dna" | "heroes" | "final";
+type CardType = "identity" | "exposed" | "strength" | "strongest" | "pattern" | "archetypes" | "dna" | "heroes" | "final";
 
 const CARD_LABELS: Record<CardType, string> = {
   identity: "Identity",
   exposed: "Finding: exposed",
   strength: "Finding: strength",
+  strongest: "Strongest supported signal",
+  pattern: "Pattern",
+  archetypes: "Context archetypes",
   dna: "DNA snapshot",
   heroes: "Hero identity",
   final: "Final fingerprint"
@@ -19,6 +22,9 @@ export default function ShareControls({ reportId, defaultCardType = "final", fin
   const [showName, setShowName] = useState(true);
   const [showAvatar, setShowAvatar] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const cardLabels = reportSchema === "free-dna-report-3.0.0"
+    ? { identity: CARD_LABELS.identity, strongest: CARD_LABELS.strongest, pattern: CARD_LABELS.pattern, archetypes: CARD_LABELS.archetypes }
+    : CARD_LABELS;
 
   const cardUrl = useMemo(() => {
     const params = new URLSearchParams({ show_name: String(showName), show_avatar: String(showAvatar) });
@@ -92,7 +98,7 @@ export default function ShareControls({ reportId, defaultCardType = "final", fin
       <p className="eyebrow">Share preview</p>
       <label htmlFor="share-card-type">Card</label>
       <select id="share-card-type" value={cardType} onChange={(event) => setCardType(event.target.value as CardType)}>
-        {Object.entries(CARD_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        {Object.entries(cardLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select>
       <div className="share-preview"><img src={cardUrl} alt={`Preview of the privacy-safe ${CARD_LABELS[cardType]} share card`} /></div>
       <label><input type="checkbox" checked={showName} onChange={(event) => setShowName(event.target.checked)} /> Include name</label>

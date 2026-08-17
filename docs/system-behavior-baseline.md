@@ -82,9 +82,9 @@ Expected behavior:
 - Build summary features, session groupings, hero counts, win rate, and summary coverage.
 - Detect descriptive patterns such as hero overperformance, long-game differences, session decline, recent trajectory, specialization, and consistency changes.
 - Derive deterministic cross-signal findings from the same eligible summary population, then apply evidence-family, confidence, privacy, copy, ranking, and redundancy gates.
-- Assemble an immutable `free-dna-report-2.0.0` story with findings, experiments, eight-dimension supporting evidence, identity, DNA X-ray, and privacy-safe share variants.
-- Run the dedicated DNA pipeline in visible stages: session inference, hero features, role features, dimension scoring, archetype classification, hero identity, hero recommendations, finding synthesis, and report rendering. The browser receives those job events; it never recomputes the signals.
-- Include factual Signature and Comfort hero results, a reviewed hero pattern, and up to three adjacent hero recommendations in the v2 identity card when the bounded history supports them. Recommendations are adjacent-pick suggestions, not meta, counter, or coaching claims.
+- Assemble an immutable `free-dna-report-3.0.0` story with 23 Elements, finite Patterns, three context Archetypes, editorial Findings, experiments where a diagnostic handoff exists, and privacy-safe share variants.
+- Run the dedicated DNA pipeline in visible stages: session inference, hero features, role features, dimension scoring, behavior Elements, behavior Patterns, context Archetypes, hero identity, hero recommendations, finding synthesis, and report rendering. The browser receives those job events; it never recomputes the signals.
+- Include factual Signature and Comfort hero results, a reviewed hero pattern, and up to three adjacent hero recommendations when the bounded history supports them. Recommendations are adjacent-pick suggestions, not meta, counter, or coaching claims.
 - Publish the summary-level Player DNA report without calling `get_match` for any history row.
 - Do not normalize match details, calculate deep match features, request a replay parse, or publish replay-dependent findings.
 - Mark replay evidence as `not_requested` and list replay families as missing.
@@ -96,9 +96,9 @@ and “less after a loss” are both treated as observable shifts rather than be
 worse player grades.
 
 The report variant is `free_dna_report`; `free_player_dna` remains a compatibility
-value only for older v1 snapshots. Its finding receipts are descriptive and its
-experiment text directs the reader to test an interpretation rather than claim
-that a cause is proven.
+value only for older v1 snapshots. New snapshots use the v3 contract. Element
+and Pattern receipts are descriptive, and experiment text directs the reader to
+test an interpretation rather than claim that a cause is proven.
 
 ### 4.2 Explicit Deep Scan
 
@@ -133,7 +133,7 @@ The default parse budget is zero. The OpenDota transport client intentionally ha
 | Pattern detection | Yes | Yes |
 | Hypothesis generation | Included as opportunities | Investigated when selected |
 | Rich replay insight evaluation | No | Yes, subject to coverage/gates |
-| Report variant | `free_dna_report` (v2; v1 accepted) | `deep_scan` |
+| Report variant | `free_dna_report` (v3; v1/v2 accepted for stored snapshots) | `deep_scan` |
 | Expected normalized matches | 0 | At most selected eligible details |
 | Job reuse key | account + model + `free` | account + model + `deep_scan` |
 
@@ -260,18 +260,21 @@ Raw payloads, normalized facts, derived features, reports, and evidence are sepa
 
 The current free report contains:
 
-- `schema_version=free-dna-report-2.0.0`, `report_variant=free_dna_report`, `noindex`, identity, and version metadata.
-- `evidence_scope` with processed/eligible counts, summary coverage, replay status, missing replay families, and exclusion reasons.
-- `dimensions` containing all eight DNA dimensions as supporting evidence rather than the primary story unit.
-- `findings` containing only gated public receipts, neutral interpretation, related dimensions, and optional player-observable experiments.
-- `story` and ordered `pages` for the reveal, finding-led narrative, experiment, identity card, DNA X-ray, and Deep Scan handoff.
-- `shares.identity`, `shares.exposed`, and `shares.strength`, plus the legacy `dna`, `heroes`, and `final` aliases.
+- `schema_version=free-dna-report-3.0.0`, `report_variant=free_dna_report`, `noindex`, identity, and version metadata.
+- `metadata`, `quality`, `methodology`, and `cost` with processed/eligible counts, summary coverage, missing-data flags, and the Free request boundary.
+- `dimensions` containing ten organizational dimensions, with the active Elements and qualified Patterns carried separately.
+- `elements` containing all 23 registered Free Elements, including status, score, confidence, coverage, receipts, confounders, and missing reasons.
+- `patterns` containing only qualified finite relationships; each public Pattern names at least two upstream Elements.
+- `archetypes` containing one result for each of the three context groups; close or under-supported groups may remain unclassified.
+- `findings` containing editorial copy with supporting Element keys, source Pattern keys, receipts, limitations, and optional player-observable experiments.
+- `story` and ordered `pages` for the reveal, finding-led narrative, experiment, context Archetypes, Element X-ray, heroes, and Deep Scan handoff.
+- `shares.identity`, `shares.strongest`, `shares.pattern`, and `shares.archetypes` with raw IDs disabled.
 - `cost` and identifier-free telemetry.
 
-The v1 validator and renderer remain available for existing snapshots; new
-reports use the v2 contract. Private source match IDs may remain in internal
-finding candidates for QA and debugging but never cross the public report
-boundary.
+The v1 and v2 validators and renderers remain available for existing snapshots;
+new reports use the v3 contract. Private source match IDs and raw Element
+metrics may remain in internal results for QA and debugging but never cross the
+public report boundary.
 
 ### Deep report
 
@@ -328,8 +331,8 @@ Expected stages are:
 - `fetching_history`
 - Free: `normalizing_history`, `session_inference`, `hero_features`,
   `role_features`, `dimension_scoring`, `archetype_classification`,
-  `hero_identity`, `hero_recommendations`, `finding_patterns`, and
-  `finding_synthesis`
+  `hero_identity`, `behavior_elements`, `behavior_patterns`,
+  `behavior_archetypes`, `hero_recommendations`, and `finding_synthesis`
 - Deep Scan: `filtering_matches`, `detecting_patterns`,
   `hydrating_selected_matches`, `computing_features`, `building_cohorts`,
   and `evaluating_insights`
@@ -385,7 +388,7 @@ The following are intentional and should not be filed as bugs by themselves:
 - Deep Scan only hydrates selected matches, not every eligible history row.
 - Summary patterns do not claim to explain themselves.
 - A low-coverage or underpowered deep hypothesis is reported as insufficient evidence or suppressed.
-- Next-Rank Gap, stable archetype clustering, post-won-fight overreach, automatic parse orchestration, signed-in histories, and prospective coaching experiments are deferred.
+- Next-Rank Gap, paid economy/map-objective Elements, post-won-fight overreach, automatic parse orchestration, signed-in histories, and prospective coaching experiments are deferred.
 - The default local source is fixtures and may not reflect current live OpenDota counts.
 - The browser is a renderer/client, not a second analytics implementation.
 
@@ -420,7 +423,7 @@ For every suspected defect, check the mode first, then verify the following inva
 - [ ] Source match IDs point to real raw payloads or summary-history provenance.
 - [ ] Report cards and templates agree with persisted evidence values and confidence.
 - [ ] Free report evidence says replay evidence was not requested, not that it was absent after a failed request.
-- [ ] Every public finding has at least two receipts from at least two evidence families.
+- [ ] Every public v3 finding has at least one receipt and at least one supporting Element; stronger findings may carry several receipts.
 - [ ] Public findings, story pages, and share cards contain no account IDs, raw rows, source match IDs, or legacy/deep payloads.
 
 ### Jobs and API
@@ -462,7 +465,7 @@ For live-source validation, configure the server-side key and run the opt-in smo
 ## 17. Source-of-truth references
 
 - [Repository README](../README.md) — local setup, source selection, and architecture overview.
-- [Implementation plan](../PLAN.md) — broader product architecture, deferred work, and acceptance context.
+- [Implementation plan](../free-dna-elements-patterns-archetypes-implementation-plan.md) — broader product architecture, deferred work, and acceptance context.
 - [Evidence contract](evidence-contract.md) — evidence-object and template invariants.
 - [Analysis service](../services/api/app/analysis/service.py) — lifecycle orchestration.
 - [Deep Scan orchestration](../services/api/app/analysis/deep_scan.py) — parse boundary, selection plan, hydration, and deep findings.

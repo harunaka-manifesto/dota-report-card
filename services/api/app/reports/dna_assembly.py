@@ -6,10 +6,17 @@ from typing import Any
 from urllib.parse import urlparse
 
 from app.analysis.budget import DataCostLedger
+from app.behavior.evidence import public_receipt_value
+from app.behavior.models import (
+    ContextArchetypeResult,
+    ElementResult,
+    PatternResult,
+)
 from app.content.catalog import copy_version
 from app.content.renderer import resolve_dimension_copy, resolve_page_copy
 from app.dna.baselines import BASELINE_VERSION
 from app.dna.pipeline import DNA_SCORING_VERSION, DnaAnalysisResult
+from app.findings.behavior import BehaviorFinding, BehaviorStorySelection, select_behavior_story
 from app.findings.conflicts import select_story_findings
 from app.findings.models import FindingCandidate, StorySelection
 from app.findings.ranking import RANKING_VERSION
@@ -17,7 +24,8 @@ from app.findings.registry import FINDING_VERSION
 from app.findings.story import STORY_VERSION
 from app.share.service import RENDERER_VERSION
 
-REPORT_SCHEMA_VERSION = "free-dna-report-2.0.0"
+REPORT_SCHEMA_VERSION_V2 = "free-dna-report-2.0.0"
+REPORT_SCHEMA_VERSION = "free-dna-report-3.0.0"
 COPY_VERSION = copy_version()
 
 
@@ -63,7 +71,7 @@ def assemble_free_dna_report(
     public_findings = [_public_finding(item) for item in published_findings]
     finding_by_key = {item["key"]: item for item in public_findings}
     return {
-        "schema_version": REPORT_SCHEMA_VERSION,
+        "schema_version": REPORT_SCHEMA_VERSION_V2,
         "report_variant": "free_dna_report",
         "noindex": True,
         "identity": {
@@ -420,5 +428,255 @@ def _shares_v2(
             "pattern": analysis.heroes.patterns[0].get("label") if analysis.heroes.patterns else None,
             "rhythm": next((item.label for item in analysis.dimensions if item.key == "rhythm"), None),
         },
+        "privacy_defaults": {"show_name": True, "show_avatar": True, "show_raw_id": False},
+    }
+
+
+def assemble_free_dna_report_v3(
+    *,
+    account_id: int | None = None,
+    profile: dict[str, Any],
+    analysis: DnaAnalysisResult,
+    processed_matches: int,
+    eligible_matches: int,
+    raw_payload_hash: str,
+    history_limit: int,
+    model_version: str,
+    template_version: str,
+    cost_ledger: DataCostLedger | None = None,
+    analysis_version_fingerprint: str = "free-analysis-unknown",
+    findings: tuple[BehaviorFinding, ...] | list[BehaviorFinding] = (),
+    story_selection: BehaviorStorySelection | None = None,
+) -> dict[str, Any]:
+    """Build the immutable v3 public contract from upstream behavior results."""
+
+    behavior = analysis.behavior
+    if behavior is None:
+        raise ValueError("v3 report assembly requires BehaviorAnalysisResult")
+    dates = [item.started_at for item in analysis.matches if item.started_at is not None]
+    display_name = _public_display_name(profile.get("personaname") or profile.get("display_name"), account_id)
+    avatar_url = _public_avatar_url(profile.get("avatarfull") or profile.get("avatar_url"), account_id)
+    history_tier = "limited" if 30 <= eligible_matches < 60 else "normal"
+    public_findings = [_public_behavior_finding(item) for item in findings]
+    selection = story_selection or select_behavior_story(tuple(findings))
+    pages = _pages_v3(analysis, display_name, tuple(findings), selection)
+    public_elements = [_public_behavior_element(item) for item in behavior.elements]
+    public_patterns = [
+        _public_behavior_pattern(item)
+        for item in behavior.patterns
+        if item.status == "qualified"
+    ]
+    public_archetypes = [_public_archetype(item) for item in behavior.archetypes]
+    return {
+        "schema_version": REPORT_SCHEMA_VERSION,
+        "report_variant": "free_dna_report",
+        "noindex": True,
+        "identity": {
+            "display_name": display_name,
+            "avatar_url": avatar_url,
+            "rank_tier": profile.get("rank_tier"),
+        },
+        "metadata": {
+            "created_at": datetime.now(UTC).isoformat(),
+            "expires_at": None,
+            "data_from": datetime.fromtimestamp(min(dates), UTC).isoformat() if dates else None,
+            "data_to": datetime.fromtimestamp(max(dates), UTC).isoformat() if dates else None,
+            "processed_matches": max(0, processed_matches),
+            "eligible_matches": max(0, eligible_matches),
+            "history_limit": max(1, min(500, history_limit)),
+            "raw_history_hash": raw_payload_hash,
+            "history_tier": history_tier,
+        },
+        "versions": {
+            "eligibility": "summary-eligibility-1.1.0",
+            "sessions": analysis.sessions.policy.version,
+            "features": analysis.features.feature_version,
+            "dna_scoring": DNA_SCORING_VERSION,
+            "baselines": BASELINE_VERSION,
+            "archetype": analysis.archetype.classifier_version,
+            "hero_identity": analysis.heroes.identity_version,
+            "hero_taxonomy": analysis.heroes.taxonomy_version or "unavailable",
+            "recommendations": "hero-recommendations-1.1.0",
+            "findings": "free-findings-3.0.0",
+            "finding_ranking": "free-finding-ranking-3.0.0",
+            "story": "free-story-3.0.0",
+            "copy": COPY_VERSION,
+            "model": model_version,
+            "template": template_version,
+            "share_renderer": RENDERER_VERSION,
+            "analysis_version_fingerprint": analysis_version_fingerprint,
+            **behavior.versions.as_dict(),
+        },
+        "quality": {
+            "overall_confidence": behavior.quality.overall_confidence,
+            "history_tier": history_tier,
+            "missing_data_flags": [item.key for item in behavior.elements if item.status == "unavailable"],
+            "partial": bool(behavior.quality.warnings) or history_tier == "limited",
+            "warnings": list(behavior.quality.warnings),
+            "available_elements": behavior.quality.available_elements,
+            "limited_elements": behavior.quality.limited_elements,
+            "unavailable_elements": behavior.quality.unavailable_elements,
+            "qualified_patterns": behavior.quality.qualified_patterns,
+        },
+        "dimensions": [item.as_dict() for item in behavior.dimensions],
+        "elements": public_elements,
+        "patterns": public_patterns,
+        "archetypes": public_archetypes,
+        "heroes": analysis.heroes.as_dict(),
+        "findings": public_findings,
+        "story": _story_v3(selection, pages),
+        "pages": pages,
+        "shares": _shares_v3(analysis, display_name, eligible_matches, tuple(findings), selection, public_archetypes),
+        "deep_dive": {
+            "available": True,
+            "cta_label": resolve_page_copy("deep_dive")["title"],
+            "href": "/?mode=deep_scan",
+            "copy": resolve_page_copy("deep_dive")["body"],
+        },
+        "methodology": {
+            "free_summary_only": True,
+            "session_gap_minutes": analysis.sessions.policy.gap_minutes,
+            "session_policy_version": analysis.sessions.policy.version,
+            "notes": [
+                "One bounded player-history read was used for this report.",
+                "No match-detail reads or replay parses were requested.",
+                "Elements measure narrow observable tendencies; Patterns qualify relationships between them.",
+                "Context Archetypes describe one style per context group. Unavailable evidence is not treated as neutral.",
+            ],
+        },
+        "cost": _public_cost(cost_ledger),
+    }
+
+
+def _public_behavior_element(element: ElementResult) -> dict[str, Any]:
+    value = element.as_dict(public=True)
+    value.pop("raw_metrics", None)
+    value["axis"] = {"left": element.axis_left, "right": element.axis_right}
+    value["receipts"] = [
+        {
+            "key": receipt.key,
+            "value": public_receipt_value(receipt),
+            "unit": receipt.unit,
+            "denominator": receipt.denominator,
+            "coverage": receipt.coverage,
+            "confidence_score": receipt.confidence_score,
+            "comparison": receipt.comparison,
+        }
+        for receipt in element.evidence[:4]
+    ]
+    return value
+
+
+def _public_behavior_pattern(pattern: PatternResult) -> dict[str, Any]:
+    return {
+        "key": pattern.key,
+        "label": pattern.label,
+        "kind": pattern.kind,
+        "strength": pattern.strength,
+        "confidence": pattern.confidence,
+        "confidence_score": pattern.confidence_score,
+        "element_keys": list(pattern.element_keys),
+        "receipts": [
+            {
+                "key": receipt.key,
+                "value": public_receipt_value(receipt),
+                "unit": receipt.unit,
+                "denominator": receipt.denominator,
+                "coverage": receipt.coverage,
+                "confidence_score": receipt.confidence_score,
+                "comparison": receipt.comparison,
+            }
+            for receipt in pattern.evidence[:4]
+        ],
+        "confounders": list(pattern.confounders),
+    }
+
+
+def _public_archetype(archetype: ContextArchetypeResult) -> dict[str, Any]:
+    return {
+        "group_key": archetype.group_key,
+        "group_label": archetype.group_label,
+        "key": archetype.key,
+        "label": archetype.label,
+        "fit": archetype.fit,
+        "confidence": archetype.confidence,
+        "runner_up": dict(archetype.runner_up) if archetype.runner_up else None,
+        "descriptors": [dict(item) for item in archetype.descriptors],
+        "contributing_element_keys": [str(item.get("key")) for item in archetype.contributing_elements],
+        "contributing_pattern_keys": list(archetype.contributing_patterns),
+        "explanation_evidence": list(archetype.explanation_evidence),
+        "classifier_version": archetype.classifier_version,
+    }
+
+
+def _public_behavior_finding(finding: BehaviorFinding) -> dict[str, Any]:
+    return finding.as_dict()
+
+
+def _pages_v3(
+    analysis: DnaAnalysisResult,
+    display_name: str,
+    findings: tuple[BehaviorFinding, ...],
+    selection: BehaviorStorySelection,
+) -> list[dict[str, Any]]:
+    finding_by_key = {item.key: item for item in findings}
+    pages: list[dict[str, Any]] = [
+        {"id": "report-reveal", "kind": "reveal", "section": "intro", "title": "Your Dota pattern, with the receipts.", "body": "A bounded summary-history read of the way your matches tend to look."},
+        {"id": "model-summary", "kind": "summary", "section": "intro", "title": "The report has layers.", "body": "Elements measure one tendency. Patterns connect them. Archetypes keep the context honest."},
+    ]
+    for key in selection.ordered_finding_keys:
+        finding = finding_by_key.get(key)
+        if finding is None:
+            continue
+        pages.append({"id": f"finding-{key}", "kind": "finding", "section": "findings", "title": finding.headline, "body": finding.body, "evidence_keys": list(finding.supporting_element_keys), "finding_key": key})
+        if finding.experiment is not None:
+            pages.append({"id": f"experiment-{finding.experiment['key']}", "kind": "experiment", "section": "findings", "title": str(finding.experiment["title"]), "body": str(finding.experiment["instruction"]), "evidence_keys": list(finding.supporting_element_keys), "finding_key": key, "experiment_key": str(finding.experiment["key"])})
+    pages.extend(
+        [
+            {"id": "archetypes", "kind": "archetypes", "section": "finale", "title": "Three contexts. Three useful angles.", "body": f"{display_name}, no single label gets to summarize the whole match history."},
+            {"id": "dna-xray", "kind": "dna_xray", "section": "dna", "title": "The Elements underneath", "body": "A score is a position on an observable axis — not a grade and not a percentile."},
+            {"id": "heroes", "kind": "heroes", "section": "heroes", "title": "The heroes that make it yours", "body": "Hero identity stays factual: recurrence, range, toolkit, and role context."},
+            {"id": "deep-dive", "kind": "deep_dive", "section": "finale", "title": "See what drives it", "body": "Deep Analysis can inspect selected matches when you want the richer evidence behind a Free Pattern."},
+        ]
+    )
+    return pages
+
+
+def _story_v3(selection: BehaviorStorySelection, pages: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "version": selection.story_version,
+        "thesis_key": selection.thesis_key,
+        "strongest_key": selection.strongest_key,
+        "experiment_key": selection.experiment_key,
+        "ordered_pages": [item["id"] for item in pages],
+    }
+
+
+def _shares_v3(
+    analysis: DnaAnalysisResult,
+    display_name: str,
+    eligible_matches: int,
+    findings: tuple[BehaviorFinding, ...],
+    selection: BehaviorStorySelection,
+    archetypes: list[dict[str, Any]],
+) -> dict[str, Any]:
+    public = {item.key: _public_behavior_finding(item) for item in findings}
+    thesis = public.get(selection.thesis_key or "") or next(iter(public.values()), None)
+    strongest = public.get(selection.strongest_key or "") or thesis
+    pattern = thesis or strongest or {"key": None, "headline": "A Dota pattern worth keeping", "receipts": [], "archetype_group_keys": []}
+
+    def card(item: dict[str, Any] | None, fallback: str) -> dict[str, Any]:
+        return {
+            "finding_key": item.get("key") if item else None,
+            "headline": item.get("share_copy") or item.get("headline") if item else fallback,
+            "archetype_groups": item.get("archetype_group_keys", []) if item else [],
+            "receipts": [receipt["value"] for receipt in (item.get("receipts", []) if item else [])[:2]],
+        }
+
+    return {
+        "identity": card(thesis, f"{display_name}'s Dota pattern"),
+        "strongest": card(strongest, "A supported Dota signal"),
+        "pattern": card(pattern, "A Dota pattern worth keeping"),
+        "archetypes": archetypes,
         "privacy_defaults": {"show_name": True, "show_avatar": True, "show_raw_id": False},
     }

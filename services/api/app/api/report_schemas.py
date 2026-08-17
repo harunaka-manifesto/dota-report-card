@@ -470,13 +470,289 @@ class FreeDnaReportV2Schema(PublicModel):
         return self
 
 
-def validate_free_dna_report(report: dict[str, Any]) -> dict[str, Any]:
-    """Validate either immutable Free DNA v1 or v2 snapshots.
+# ---------------------------------------------------------------------------
+# Free DNA report v3 — Elements → Patterns → context Archetypes → Findings
+# ---------------------------------------------------------------------------
 
-    Existing v1 links remain immutable and continue through their original
-    strict contract; new analysis snapshots use the finding-led v2 contract.
+BehaviorDimensionKey = Literal[
+    "hero_identity",
+    "role_identity",
+    "combat_expression",
+    "economy",
+    "map_objectives",
+    "risk_survival",
+    "adaptability",
+    "consistency_form",
+    "session_response",
+    "progression",
+]
+
+
+class BehaviorDimensionSchema(PublicModel):
+    key: BehaviorDimensionKey
+    label: str
+    element_keys: list[str]
+    qualified_pattern_keys: list[str]
+    available_elements: int = Field(ge=0)
+    total_free_elements: int = Field(ge=0)
+    confidence: Literal["low", "moderate", "high", "unavailable"]
+
+
+class BehaviorAxisSchema(PublicModel):
+    left: str | None
+    right: str | None
+
+
+class BehaviorReceiptSchema(PublicModel):
+    key: str
+    value: str
+    unit: str
+    denominator: int = Field(ge=0)
+    coverage: float = Field(ge=0, le=1)
+    confidence_score: float = Field(ge=0, le=1)
+    comparison: str | None = None
+
+
+class BehaviorElementSchema(PublicModel):
+    key: str
+    label: str
+    dimension_key: BehaviorDimensionKey
+    status: Literal["available", "limited", "unavailable"]
+    score: float | None = Field(default=None, ge=0, le=1)
+    centered_score: float | None = Field(default=None, ge=-1, le=1)
+    axis: BehaviorAxisSchema
+    confidence: Literal["low", "moderate", "high", "unavailable"]
+    confidence_score: float = Field(ge=0, le=1)
+    sample_size: int = Field(ge=0)
+    effective_sample_size: float = Field(ge=0)
+    coverage: float = Field(ge=0, le=1)
+    receipts: list[BehaviorReceiptSchema] = Field(default_factory=list)
+    confounders: list[str] = Field(default_factory=list)
+    missing_reasons: list[str] = Field(default_factory=list)
+    methodology_version: str
+
+
+BehaviorPatternKind = Literal["identity", "contradiction", "edge", "leak", "trajectory", "style"]
+BehaviorFindingKind = Literal[
+    "identity",
+    "contradiction",
+    "edge",
+    "leak",
+    "trajectory",
+    "style",
+    "strength",
+]
+
+
+class BehaviorPatternSchema(PublicModel):
+    key: str
+    label: str
+    kind: BehaviorPatternKind
+    strength: float = Field(ge=0, le=1)
+    confidence: Literal["low", "moderate", "high", "unavailable"]
+    confidence_score: float = Field(ge=0, le=1)
+    element_keys: list[str] = Field(min_length=2)
+    receipts: list[BehaviorReceiptSchema] = Field(min_length=2)
+    confounders: list[str] = Field(default_factory=list)
+
+
+class ContextArchetypeSchema(PublicModel):
+    group_key: str
+    group_label: str
+    key: str
+    label: str
+    fit: float = Field(ge=0, le=1)
+    confidence: Literal["low", "moderate", "high", "unavailable"]
+    runner_up: RunnerUpSchema | None = None
+    descriptors: list[DescriptorSchema] = Field(default_factory=list, max_length=3)
+    contributing_element_keys: list[str] = Field(default_factory=list)
+    contributing_pattern_keys: list[str] = Field(default_factory=list)
+    explanation_evidence: list[str] = Field(default_factory=list)
+    classifier_version: str
+
+
+class BehaviorFindingSchema(PublicModel):
+    key: str
+    kind: BehaviorFindingKind
+    headline: str
+    body: str
+    interpretation: str
+    confidence: Literal["low", "moderate", "high"]
+    confidence_score: float = Field(ge=0, le=1)
+    source_pattern_keys: list[str] = Field(default_factory=list)
+    supporting_element_keys: list[str] = Field(min_length=1)
+    archetype_group_keys: list[str] = Field(default_factory=list)
+    receipts: list[FindingReceiptSchema] = Field(min_length=1, max_length=4)
+    experiment: FindingExperimentSchema | None = None
+    share_copy: str | None = None
+    limitations: list[str] = Field(default_factory=list)
+
+
+class StoryDefinitionV3Schema(PublicModel):
+    version: str
+    thesis_key: str | None = None
+    strongest_key: str | None = None
+    experiment_key: str | None = None
+    ordered_pages: list[str] = Field(min_length=7, max_length=14)
+
+
+V3PageKind = Literal[
+    "reveal", "finding", "experiment", "archetypes", "dna_xray", "heroes", "deep_dive", "summary"
+]
+
+
+class V3PageSchema(PublicModel):
+    id: str
+    kind: V3PageKind
+    section: Literal["intro", "findings", "dna", "heroes", "finale"]
+    title: str
+    body: str | None = None
+    evidence_keys: list[str] = Field(default_factory=list)
+    finding_key: str | None = None
+    experiment_key: str | None = None
+
+
+class V3ShareCardSchema(PublicModel):
+    finding_key: str | None = None
+    headline: str
+    archetype_groups: list[str] = Field(default_factory=list)
+    receipts: list[str] = Field(default_factory=list, max_length=4)
+
+
+class SharesV3Schema(PublicModel):
+    identity: V3ShareCardSchema
+    strongest: V3ShareCardSchema
+    pattern: V3ShareCardSchema
+    archetypes: list[ContextArchetypeSchema]
+    privacy_defaults: PrivacyDefaultsSchema
+
+
+class VersionMapV3Schema(VersionMapV2Schema):
+    behavior_model: str
+    dimension_registry: str
+    element_registry: str
+    pattern_registry: str
+    archetype_registry: str
+    finding_registry: str
+
+
+class BehaviorQualitySchema(PublicModel):
+    overall_confidence: Literal["low", "moderate", "high", "unavailable"]
+    history_tier: Literal["limited", "normal"]
+    missing_data_flags: list[str]
+    partial: bool
+    warnings: list[str]
+    available_elements: int = Field(ge=0)
+    limited_elements: int = Field(ge=0)
+    unavailable_elements: int = Field(ge=0)
+    qualified_patterns: int = Field(ge=0)
+
+
+class FreeDnaReportV3Schema(PublicModel):
+    report_id: str | None = None
+    schema_version: Literal["free-dna-report-3.0.0"]
+    report_variant: Literal["free_dna_report"]
+    noindex: Literal[True]
+    identity: IdentitySchema
+    metadata: MetadataSchema
+    versions: VersionMapV3Schema
+    quality: BehaviorQualitySchema
+    dimensions: list[BehaviorDimensionSchema] = Field(min_length=10, max_length=10)
+    elements: list[BehaviorElementSchema] = Field(min_length=23, max_length=23)
+    patterns: list[BehaviorPatternSchema] = Field(max_length=15)
+    archetypes: list[ContextArchetypeSchema] = Field(min_length=3, max_length=3)
+    heroes: HeroesSchema
+    findings: list[BehaviorFindingSchema] = Field(min_length=1, max_length=12)
+    story: StoryDefinitionV3Schema
+    pages: list[V3PageSchema] = Field(min_length=7, max_length=14)
+    shares: SharesV3Schema
+    deep_dive: DeepDiveSchema
+    methodology: MethodologySchema
+    cost: CostSchema
+
+    @model_validator(mode="after")
+    def validate_v3_contract(self) -> FreeDnaReportV3Schema:
+        # Import the registries lazily so the schema module remains a leaf
+        # during application startup; validation still checks the public
+        # snapshot against the same production catalog that scored it.
+        from app.behavior.archetypes.registry import ARCHETYPE_GROUP_REGISTRY
+        from app.behavior.dimensions import DIMENSIONS_BY_KEY
+        from app.behavior.elements.registry import ELEMENT_REGISTRY
+        from app.behavior.patterns.registry import PATTERN_REGISTRY
+
+        dimension_keys = [item.key for item in self.dimensions]
+        if set(dimension_keys) != set(DIMENSIONS_BY_KEY) or len(dimension_keys) != len(set(dimension_keys)):
+            raise ValueError("Free DNA v3 must contain each registered dimension once")
+        element_keys = [item.key for item in self.elements]
+        if set(element_keys) != set(ELEMENT_REGISTRY) or len(element_keys) != len(set(element_keys)):
+            raise ValueError("Free DNA v3 must contain the registered 23 unique Elements")
+        pattern_keys = [item.key for item in self.patterns]
+        if len(pattern_keys) != len(set(pattern_keys)):
+            raise ValueError("Free DNA v3 Pattern keys must be unique")
+        if not set(pattern_keys).issubset(PATTERN_REGISTRY):
+            raise ValueError("Free DNA v3 contains an unknown Pattern")
+        for pattern in self.patterns:
+            if len(set(pattern.element_keys)) < 2:
+                raise ValueError("A published v3 Pattern must reference at least two Elements")
+            if not set(pattern.element_keys).issubset(element_keys):
+                raise ValueError(f"Pattern {pattern.key} references an unknown Element")
+        archetype_groups = [item.group_key for item in self.archetypes]
+        if set(archetype_groups) != set(ARCHETYPE_GROUP_REGISTRY) or len(archetype_groups) != len(set(archetype_groups)):
+            raise ValueError("Free DNA v3 must contain each registered context group once")
+        finding_keys = [item.key for item in self.findings]
+        if len(finding_keys) != len(set(finding_keys)):
+            raise ValueError("Free DNA v3 finding keys must be unique")
+        pattern_map = set(pattern_keys)
+        for finding in self.findings:
+            if not set(finding.supporting_element_keys).issubset(element_keys):
+                raise ValueError(f"Finding {finding.key} references an unknown Element")
+            if not set(finding.source_pattern_keys).issubset(pattern_map):
+                raise ValueError(f"Finding {finding.key} references an unknown Pattern")
+        for archetype in self.archetypes:
+            if not set(archetype.contributing_element_keys).issubset(element_keys):
+                raise ValueError(f"Archetype {archetype.group_key} references an unknown Element")
+            if not set(archetype.contributing_pattern_keys).issubset(pattern_map):
+                raise ValueError(f"Archetype {archetype.group_key} references an unknown Pattern")
+        page_ids = [item.id for item in self.pages]
+        if len(page_ids) != len(set(page_ids)) or page_ids != self.story.ordered_pages:
+            raise ValueError("Free DNA v3 story ordering must match unique public pages")
+        finding_map = set(finding_keys)
+        experiment_keys = {
+            finding.experiment.key
+            for finding in self.findings
+            if finding.experiment is not None
+        }
+        for page in self.pages:
+            if page.finding_key is not None and page.finding_key not in finding_map:
+                raise ValueError(f"Story page references unknown v3 finding: {page.finding_key}")
+            if not set(page.evidence_keys).issubset(element_keys):
+                raise ValueError(f"Story page {page.id} references an unknown Element")
+            if page.kind == "finding" and page.finding_key is None:
+                raise ValueError("v3 finding pages must reference a finding")
+            if page.kind == "experiment":
+                if page.finding_key is None or page.experiment_key is None:
+                    raise ValueError("v3 experiment pages must reference a finding and experiment")
+                if page.experiment_key not in experiment_keys:
+                    raise ValueError(f"Story page references unknown v3 experiment: {page.experiment_key}")
+        for key in (self.story.thesis_key, self.story.strongest_key):
+            if key is not None and key not in finding_map:
+                raise ValueError(f"v3 story slot references unknown finding: {key}")
+        if self.story.experiment_key is not None and self.story.experiment_key not in experiment_keys:
+            raise ValueError(f"v3 story slot references unknown experiment: {self.story.experiment_key}")
+        if self.shares.privacy_defaults.show_raw_id is not False:
+            raise ValueError("Free DNA v3 share cards cannot enable raw IDs")
+        return self
+
+
+def validate_free_dna_report(report: dict[str, Any]) -> dict[str, Any]:
+    """Validate an immutable Free DNA v1, v2, or v3 snapshot.
+
+    Existing v1/v2 links remain immutable and continue through their original
+    strict contracts; new analysis snapshots use the Elements-led v3 contract.
     """
 
+    if report.get("schema_version") == "free-dna-report-3.0.0":
+        return FreeDnaReportV3Schema.model_validate(report).model_dump(mode="json", by_alias=True)
     if report.get("schema_version") == "free-dna-report-2.0.0":
         return FreeDnaReportV2Schema.model_validate(report).model_dump(mode="json", by_alias=True)
     return FreeDnaReportSchema.model_validate(report).model_dump(mode="json", by_alias=True)

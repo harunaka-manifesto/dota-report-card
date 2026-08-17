@@ -386,7 +386,160 @@ export type FreeDnaReportV2 = FreeDnaReportBase & {
   };
 };
 
-export type FreeDnaReport = FreeDnaReportV1 | FreeDnaReportV2;
+export type BehaviorDimensionKey =
+  | "hero_identity"
+  | "role_identity"
+  | "combat_expression"
+  | "economy"
+  | "map_objectives"
+  | "risk_survival"
+  | "adaptability"
+  | "consistency_form"
+  | "session_response"
+  | "progression";
+
+export type BehaviorConfidence = "low" | "moderate" | "high" | "unavailable";
+
+export type BehaviorDimension = {
+  key: BehaviorDimensionKey;
+  label: string;
+  element_keys: string[];
+  qualified_pattern_keys: string[];
+  available_elements: number;
+  total_free_elements: number;
+  confidence: BehaviorConfidence;
+};
+
+export type BehaviorElementReceipt = {
+  key: string;
+  value: string;
+  unit: string;
+  denominator: number;
+  coverage: number;
+  confidence_score: number;
+  comparison: string | null;
+};
+
+export type BehaviorElement = {
+  key: string;
+  label: string;
+  dimension_key: BehaviorDimensionKey;
+  status: "available" | "limited" | "unavailable";
+  score: number | null;
+  centered_score: number | null;
+  axis: { left: string | null; right: string | null };
+  confidence: BehaviorConfidence;
+  confidence_score: number;
+  sample_size: number;
+  effective_sample_size: number;
+  coverage: number;
+  receipts: BehaviorElementReceipt[];
+  confounders: string[];
+  missing_reasons: string[];
+  methodology_version: string;
+};
+
+export type BehaviorPattern = {
+  key: string;
+  label: string;
+  kind: "identity" | "contradiction" | "edge" | "leak" | "trajectory" | "style";
+  strength: number;
+  confidence: BehaviorConfidence;
+  confidence_score: number;
+  element_keys: string[];
+  receipts: BehaviorElementReceipt[];
+  confounders: string[];
+};
+
+export type ContextArchetype = {
+  group_key: string;
+  group_label: string;
+  key: string;
+  label: string;
+  fit: number;
+  confidence: BehaviorConfidence;
+  runner_up: { key: string; fit: number } | null;
+  descriptors: Descriptor[];
+  contributing_element_keys: string[];
+  contributing_pattern_keys: string[];
+  explanation_evidence: string[];
+  classifier_version: string;
+};
+
+export type BehaviorFinding = {
+  key: string;
+  kind: "identity" | "contradiction" | "edge" | "leak" | "trajectory" | "style" | "strength";
+  headline: string;
+  body: string;
+  interpretation: string;
+  confidence: "low" | "moderate" | "high";
+  confidence_score: number;
+  source_pattern_keys: string[];
+  supporting_element_keys: string[];
+  archetype_group_keys: string[];
+  receipts: FindingReceipt[];
+  experiment: FindingExperiment | null;
+  share_copy: string | null;
+  limitations: string[];
+};
+
+export type StoryPageV3 = {
+  id: string;
+  kind: "reveal" | "summary" | "finding" | "experiment" | "archetypes" | "dna_xray" | "heroes" | "deep_dive";
+  section: "intro" | "findings" | "dna" | "heroes" | "finale";
+  title: string;
+  body: string | null;
+  evidence_keys: string[];
+  finding_key?: string | null;
+  experiment_key?: string | null;
+};
+
+export type ReportVersionsV3 = ReportVersionsV2 & {
+  behavior_model: string;
+  dimension_registry: string;
+  element_registry: string;
+  pattern_registry: string;
+  archetype_registry: string;
+  finding_registry: string;
+};
+
+export type FreeDnaReportV3 = Omit<FreeDnaReportBase, "versions" | "quality" | "dimensions" | "archetype" | "shares"> & {
+  schema_version: "free-dna-report-3.0.0";
+  versions: ReportVersionsV3;
+  quality: {
+    overall_confidence: BehaviorConfidence;
+    history_tier: "limited" | "normal";
+    missing_data_flags: string[];
+    partial: boolean;
+    warnings: string[];
+    available_elements: number;
+    limited_elements: number;
+    unavailable_elements: number;
+    qualified_patterns: number;
+  };
+  dimensions: BehaviorDimension[];
+  elements: BehaviorElement[];
+  patterns: BehaviorPattern[];
+  archetypes: ContextArchetype[];
+  findings: BehaviorFinding[];
+  story: {
+    version: string;
+    thesis_key: string | null;
+    strongest_key: string | null;
+    experiment_key: string | null;
+    ordered_pages: string[];
+  };
+  pages: StoryPageV3[];
+  shares: {
+    identity: { finding_key: string | null; headline: string; archetype_groups: string[]; receipts: string[] };
+    strongest: { finding_key: string | null; headline: string; archetype_groups: string[]; receipts: string[] };
+    pattern: { finding_key: string | null; headline: string; archetype_groups: string[]; receipts: string[] };
+    archetypes: ContextArchetype[];
+    privacy_defaults: { show_name: boolean; show_avatar: boolean; show_raw_id: false };
+  };
+};
+
+export type FreeDnaReport = FreeDnaReportV1 | FreeDnaReportV2 | FreeDnaReportV3;
 
 export async function createAnalysis(
   baseUrl: string,

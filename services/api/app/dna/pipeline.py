@@ -4,6 +4,9 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import Any
 
+from app.behavior.elements.service import SummaryBehaviorContext
+from app.behavior.models import BehaviorAnalysisResult
+from app.behavior.service import analyze_behavior
 from app.dna.archetypes.classifier import ArchetypeResult, classify
 from app.dna.archetypes.descriptors import choose_descriptors
 from app.dna.dimensions.models import DimensionResult
@@ -12,7 +15,7 @@ from app.dna.features.extractor import extract_dna_features
 from app.dna.features.models import DnaFeatureSet
 from app.dna.sessions import SessionPolicy, SessionResult, infer_sessions
 from app.heroes.identity import HeroIdentityResult, select_hero_identity
-from app.heroes.taxonomy import HeroTaxonomy
+from app.heroes.taxonomy import HeroTaxonomy, load_default_taxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
 DNA_SCORING_VERSION = "dna-scoring-1.2.0"
@@ -28,6 +31,7 @@ class DnaAnalysisResult:
     archetype: ArchetypeResult
     heroes: HeroIdentityResult
     history_tier: str = "normal"
+    behavior: BehaviorAnalysisResult | None = None
 
     @property
     def overall_confidence(self) -> str:
@@ -60,6 +64,7 @@ class DnaAnalysisResult:
             "dimensions": [item.as_dict() for item in self.dimensions],
             "archetype": self.archetype.as_dict(),
             "heroes": self.heroes.as_dict(),
+            "behavior": self.behavior.as_dict(public=False) if self.behavior else None,
             "overall_confidence": self.overall_confidence,
             "warnings": list(self.warnings),
         }
@@ -86,13 +91,30 @@ def analyze_dna(
     # Role coverage is extracted alongside hero and session features. Keeping
     # a separate completed stage makes that nullable boundary visible to the
     # progress stream without inventing a second calculation.
-    stage("dimension_scoring", "Finding your eight DNA signals.")
+    stage("dimension_scoring", "Keeping the legacy signals available for older reports.")
     dimensions = score_dimensions(features)
-    stage("archetype_classification", "Turning the patterns into an archetype.")
+    stage("archetype_classification", "Keeping the legacy archetype readable for older reports.")
     archetype = classify(dimensions)
     archetype = replace(archetype, descriptors=choose_descriptors(dimensions, archetype_key=archetype.key))
     stage("hero_identity", "Finding the heroes that define you.")
     heroes = select_hero_identity(features, taxonomy)
+    behavior_taxonomy = taxonomy
+    if behavior_taxonomy is None:
+        try:
+            behavior_taxonomy = load_default_taxonomy()
+        except (OSError, TypeError, ValueError):
+            behavior_taxonomy = None
+    stage("behavior_elements", "Measuring the small tendencies behind the report.")
+    behavior_context = SummaryBehaviorContext(
+        matches=sessions.matches,
+        sessions=sessions,
+        features=features,
+        taxonomy=behavior_taxonomy,
+        history_tier=history_tier or ("limited" if 30 <= features.sample_size < 60 else "normal"),
+    )
+    behavior = analyze_behavior(behavior_context)
+    stage("behavior_patterns", "Checking which relationships survive the evidence gates.")
+    stage("behavior_archetypes", "Finding a style for each context, not one label for everything.")
     stage("hero_recommendations", "Looking for heroes that fit your cast.")
     return DnaAnalysisResult(
         matches=sessions.matches,
@@ -102,4 +124,5 @@ def analyze_dna(
         archetype=archetype,
         heroes=heroes,
         history_tier=history_tier or ("limited" if 30 <= features.sample_size < 60 else "normal"),
+        behavior=behavior,
     )

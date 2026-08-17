@@ -15,7 +15,10 @@ from typing import Any
 from urllib.parse import urlparse
 
 RENDERER_VERSION = "share-svg-2.1.0"
-CARD_TYPES = frozenset({"identity", "exposed", "strength", "dna", "heroes", "final"})
+CARD_TYPES = frozenset({
+    "identity", "exposed", "strength", "strongest", "pattern", "archetypes",
+    "dna", "heroes", "final",
+})
 
 
 def share_cache_key(
@@ -87,13 +90,21 @@ def build_share_svg(
 
 def _card_content(report: dict[str, Any], card_type: str, *, show_name: bool, show_avatar: bool) -> dict[str, Any]:
     shares = report.get("shares") or {}
-    card = dict(shares.get(card_type) or {})
+    raw_card = shares.get(card_type)
+    card = dict(raw_card) if isinstance(raw_card, dict) else {}
     identity = report.get("identity") or {}
     facts: list[Any] = []
-    if card_type in {"identity", "exposed", "strength"}:
+    if card_type in {"identity", "exposed", "strength", "strongest", "pattern"}:
         title = card.get("headline") or "Your Dota pattern"
         facts = [value for value in card.get("receipts", []) if isinstance(value, str)]
-        subtitle = card.get("archetype") or "A finding from the patterns in your recent matches."
+        groups = card.get("archetype_groups") or []
+        subtitle = card.get("archetype") or (" · ".join(groups) if groups else "A finding from the patterns in your recent matches.")
+    elif card_type == "archetypes":
+        archetypes = [item for item in (shares.get("archetypes") or []) if isinstance(item, dict)]
+        first = archetypes[0] if archetypes else {}
+        title = first.get("label") or "Your context archetypes"
+        facts = [item.get("label") for item in archetypes[1:4] if item.get("label")]
+        subtitle = first.get("group_label") or "Three context views from the same summary history."
     elif card_type == "dna":
         title = card.get("archetype") or "Your Dota DNA"
         descriptors = [item.get("label") for item in card.get("descriptors", []) if isinstance(item, dict)]
