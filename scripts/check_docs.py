@@ -11,7 +11,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-from app.behavior.archetypes.registry import ARCHETYPE_GROUP_REGISTRY  # noqa: E402
 from app.behavior.elements.registry import ELEMENT_REGISTRY  # noqa: E402
 from app.behavior.patterns.registry import PATTERN_REGISTRY  # noqa: E402
 
@@ -20,8 +19,12 @@ ACTIVE_DOCS = (
     ROOT / "ARCHITECTURE.md",
     ROOT / "docs" / "README.md",
     ROOT / "docs" / "architecture" / "README.md",
-    ROOT / "docs" / "architecture" / "system-overview.md",
-    ROOT / "docs" / "architecture" / "free-dna-model-guide.md",
+    ROOT / "docs" / "architecture" / "free-dna-system.md",
+    ROOT / "docs" / "architecture" / "elements.md",
+    ROOT / "docs" / "architecture" / "patterns.md",
+    ROOT / "docs" / "architecture" / "hero-portfolio.md",
+    ROOT / "docs" / "architecture" / "report-flow.md",
+    ROOT / "docs" / "architecture" / "data-provenance.md",
     ROOT / "docs" / "architecture" / "model-catalog.md",
     ROOT / "docs" / "evidence-contract.md",
     ROOT / "docs" / "opendota-data-inventory.md",
@@ -31,11 +34,10 @@ ACTIVE_DOCS = (
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 FORBIDDEN_ACTIVE_PHRASES = (
     "free-dna-report-2.0.0",
-    "eight primary dimensions",
-    "one global archetype",
+    "free-dna-report-3.0.0",
+    "23 elements",
+    "15 patterns",
     "psychological diagnosis",
-    "unlock your potential",
-    "game-changing insights",
 )
 
 
@@ -64,7 +66,7 @@ def main() -> int:
                 failures.append(f"broken link in {path.relative_to(ROOT)}: {raw_target}")
 
     catalog = (ROOT / "docs" / "architecture" / "model-catalog.md").read_text(encoding="utf-8")
-    for key in (*ELEMENT_REGISTRY, *PATTERN_REGISTRY, *ARCHETYPE_GROUP_REGISTRY):
+    for key in (*ELEMENT_REGISTRY, *PATTERN_REGISTRY):
         if re.search(rf"(?<![A-Za-z0-9_]){re.escape(key)}(?![A-Za-z0-9_])", catalog) is None:
             failures.append(f"registry key missing from model catalog: {key}")
 
@@ -77,7 +79,7 @@ def main() -> int:
         check=False,
     )
     if result.returncode:
-        failures.append(result.stdout.strip() or result.stderr.strip() or "generated model catalog is stale")
+        failures.append(result.stdout.strip() or result.stderr.strip() or "generated catalog is stale")
 
     if failures:
         print("docs-check: failed")

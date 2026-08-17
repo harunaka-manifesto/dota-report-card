@@ -1,9 +1,4 @@
-"""Strict public schemas for immutable Free DNA reports.
-
-Internal analysis snapshots intentionally have different Python types and are
-never serialized through this module.  Keeping this boundary strict prevents
-raw match rows and compatibility payloads from reaching the web client.
-"""
+"""Strict public schema for the immutable Free DNA v4 report."""
 
 from __future__ import annotations
 
@@ -34,16 +29,18 @@ class MetadataSchema(PublicModel):
     history_tier: Literal["limited", "normal"]
 
 
-class VersionMapSchema(PublicModel):
+class VersionMapV4Schema(PublicModel):
     eligibility: str
     sessions: str
     features: str
-    dna_scoring: str
-    baselines: str
-    archetype: str
-    hero_identity: str
+    behavior_model: str
+    element_registry: str
+    pattern_registry: str
+    pattern_ranking: str
     hero_taxonomy: str
-    recommendations: str
+    hero_portfolio: str
+    hero_mirror: str
+    story: str
     copy_: str = Field(alias="copy")
     model: str
     template: str
@@ -52,185 +49,207 @@ class VersionMapSchema(PublicModel):
 
 
 class QualitySchema(PublicModel):
-    overall_confidence: Literal["low", "moderate", "high"]
+    overall_confidence: Literal["low", "moderate", "high", "unavailable"]
     history_tier: Literal["limited", "normal"]
     missing_data_flags: list[str]
     partial: bool
     warnings: list[str]
+    available_elements: int = Field(ge=0)
+    limited_elements: int = Field(ge=0)
+    unavailable_elements: int = Field(ge=0)
+    qualified_patterns: int = Field(ge=0)
 
 
-class EvidenceSchema(PublicModel):
+class BehaviorReceiptSchema(PublicModel):
     key: str
-    value: float | int | str | None
+    value: float | int | str | bool | None
     unit: str
     denominator: int = Field(ge=0)
+    coverage: float = Field(ge=0, le=1)
+    confidence_score: float = Field(ge=0, le=1)
+    comparison: str | None = None
 
 
-class CopySchema(PublicModel):
-    headline_key: str
-    receipt_key: str
-    receipt_params: dict[str, str | int | float | bool] = Field(default_factory=dict)
-    left_label: str | None = None
-    right_label: str | None = None
+BehaviorConfidence = Literal["low", "moderate", "high", "unavailable"]
 
 
-DimensionKey = Literal[
-    "breadth", "role", "adaptability", "activity", "orientation",
-    "resilience", "endurance", "rhythm",
-]
-
-
-class DimensionResultSchema(PublicModel):
-    key: DimensionKey
+class BehaviorElementSchema(PublicModel):
+    key: str
+    label: str
+    dimension_key: str
     status: Literal["available", "limited", "unavailable"]
-    score: float | None = None
-    centered_score: float | None = None
-    label: str | None = None
-    confidence: Literal["low", "moderate", "high", "unavailable"]
+    score: float | None = Field(default=None, ge=0, le=1)
+    centered_score: float | None = Field(default=None, ge=-1, le=1)
+    axis: dict[str, str | None]
+    zone: str | None = None
+    confidence: BehaviorConfidence
     confidence_score: float = Field(ge=0, le=1)
     sample_size: int = Field(ge=0)
     effective_sample_size: float = Field(ge=0)
     coverage: float = Field(ge=0, le=1)
-    evidence: list[EvidenceSchema] = Field(default_factory=list)
+    receipts: list[BehaviorReceiptSchema] = Field(default_factory=list)
     confounders: list[str] = Field(default_factory=list)
     missing_reasons: list[str] = Field(default_factory=list)
-    copy_: CopySchema | None = Field(default=None, alias="copy")
     methodology_version: str
-    descriptor_eligible: bool = True
 
 
-class DescriptorSchema(PublicModel):
+class BehaviorPatternSchema(PublicModel):
     key: str
     label: str
-    dimension: str
+    kind: Literal["identity", "contradiction", "edge", "leak", "trajectory", "style"]
+    status: Literal["qualified", "suppressed", "unavailable"]
+    direction: str | None = None
+    strength: float = Field(ge=0, le=1)
+    relationship_strength: float = Field(ge=0, le=1)
+    confidence: BehaviorConfidence
+    confidence_score: float = Field(ge=0, le=1)
+    evidence_coverage: float = Field(ge=0, le=1)
+    qualification_quality: float = Field(ge=0, le=1)
+    element_keys: list[str] = Field(min_length=2)
+    modifier_element_keys: list[str] = Field(default_factory=list)
+    family: str
+    tier: Literal["A", "B"]
+    receipts: list[BehaviorReceiptSchema] = Field(default_factory=list)
+    confounders: list[str] = Field(default_factory=list)
+    suppression_reasons: list[str] = Field(default_factory=list)
+    methodology_version: str
 
 
-class RunnerUpSchema(PublicModel):
-    key: str
-    fit: float = Field(ge=0, le=1)
+class HighlightsSchema(PublicModel):
+    element_keys: list[str] = Field(max_length=3)
+    pattern_keys: list[str] = Field(max_length=3)
 
 
-class ContributionSchema(PublicModel):
-    key: str
-    weight: float = Field(ge=0)
-    contribution: float = Field(ge=0)
-
-
-class ArchetypeSchema(PublicModel):
-    key: str
-    label: str
-    fit: float = Field(ge=0, le=1)
-    runner_up: RunnerUpSchema | None = None
-    descriptors: list[DescriptorSchema] = Field(min_length=3, max_length=3)
-    contributing_dimensions: list[ContributionSchema]
-    confidence: Literal["low", "moderate", "high"]
-    explanation_evidence: list[str]
-    classifier_version: str
-
-    @model_validator(mode="after")
-    def validate_descriptors(self) -> ArchetypeSchema:
-        keys = [item.key for item in self.descriptors]
-        if len(keys) != len(set(keys)):
-            raise ValueError("Archetype descriptors must be unique")
-        return self
-
-
-class HeroCardSchema(PublicModel):
-    hero_id: int = Field(gt=0)
-    name: str
-    portrait_url: str | None = None
-    score: float = Field(ge=0, le=1)
-    component_scores: dict[str, float]
-    matches: int = Field(ge=0)
-    roles: list[str]
-    traits: list[str]
-    receipts: list[str]
-    reason_key: str
-    confidence: Literal["low", "moderate", "high"]
-    portrait_asset_version: str
-
-
-class HeroPatternSchema(PublicModel):
+class ChoiceOptionSchema(PublicModel):
     key: str
     label: str
-    copy_key: str
-    traits: list[str]
-    role_traits: list[str] = Field(default_factory=list)
-    contributors: list[str]
-    scores: dict[str, float] = Field(default_factory=dict)
+    hero_id: int | None = Field(default=None, gt=0)
 
 
-class HeroRecommendationSchema(PublicModel):
-    hero_id: int = Field(gt=0)
-    name: str
-    portrait_url: str | None = None
-    portrait_asset_version: str
-    fit_band: Literal["strong", "good", "exploratory"]
-    score: float = Field(ge=0, le=1)
-    familiar_traits: list[str]
-    new_traits: list[str]
-    plausible_roles: list[str]
-    role_change: bool
-    reason_key: str
-    recommendation_version: str
-
-
-class HeroesSchema(PublicModel):
-    signature: HeroCardSchema | None
-    comfort_picks: list[HeroCardSchema]
-    patterns: list[HeroPatternSchema]
-    recommendations: list[HeroRecommendationSchema]
-    taxonomy_version: str | None
+class CommonThreadSchema(PublicModel):
+    status: Literal["available", "unavailable"]
+    trait_key: str | None = None
+    trait_label: str | None = None
+    weighted_coverage: float = Field(ge=0, le=1)
+    hero_count: int = Field(ge=0)
+    denominator: int = Field(ge=0)
+    secondary_traits: list[str]
+    options: list[ChoiceOptionSchema]
+    correct_option_key: str | None = None
+    confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
-    identity_version: str
 
 
-PageKind = Literal[
-    "input", "player_found", "analysis", "reveal", "section_intro", "dimension",
-    "archetype", "summary", "signature_hero", "comfort", "hero_pattern",
-    "recommendations", "final_card", "deep_dive",
+class ExceptionSchema(PublicModel):
+    status: Literal["available", "no_clear_exception", "unavailable"]
+    hero_id: int | None = Field(default=None, gt=0)
+    hero_name: str | None = None
+    pool_traits: list[str]
+    exception_traits: list[str]
+    options: list[ChoiceOptionSchema]
+    correct_option_key: str | None = None
+    distance: float | None = Field(default=None, ge=0)
+    margin: float | None = None
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
+class EvolutionSchema(PublicModel):
+    status: Literal["available", "unavailable"]
+    variant: Literal[
+        "new_heroes_new_toolkit", "new_heroes_same_toolkit", "stable_core_new_branch", "broadly_stable"
+    ] | None = None
+    earlier_hero_ids: list[int]
+    recent_hero_ids: list[int]
+    earlier_traits: list[str]
+    recent_traits: list[str]
+    hero_distribution_shift: float | None = Field(default=None, ge=0, le=1)
+    toolkit_distribution_shift: float | None = Field(default=None, ge=0, le=1)
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
+class HeroMirrorSchema(PublicModel):
+    status: Literal["available", "no_clear_mirror", "unavailable"]
+    hero_id: int | None = Field(default=None, gt=0)
+    hero_name: str | None = None
+    similarity_score: float | None = Field(default=None, ge=0, le=1)
+    runner_up_hero_id: int | None = Field(default=None, gt=0)
+    margin: float | None = None
+    player_behavior: dict[str, str]
+    hero_behavior: dict[str, str]
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
+class HeroPortfolioSchema(PublicModel):
+    common_thread: CommonThreadSchema
+    exception: ExceptionSchema
+    evolution: EvolutionSchema
+    hero_mirror: HeroMirrorSchema
+    version: str
+
+
+class StorySchema(PublicModel):
+    version: str
+    ordered_pages: list[str]
+
+
+StoryPageKindV4 = Literal[
+    "element_scan",
+    "element_highlight",
+    "pattern_highlight",
+    "hero_common_thread_question",
+    "hero_exception_question",
+    "pool_evolution_question",
+    "pool_evolution_reveal",
+    "hero_mirror_reveal",
+    "final_card",
+    "deep_dive",
 ]
 
 
-class PageSchema(PublicModel):
+class StoryPageV4Schema(PublicModel):
     id: str
-    kind: PageKind
-    section: Literal["intro", "dna", "heroes", "finale"]
+    kind: StoryPageKindV4
+    section: Literal["elements", "patterns", "hero_portfolio", "finale"]
     title: str
     body: str | None = None
     evidence_keys: list[str] = Field(default_factory=list)
+    element_key: str | None = None
+    pattern_key: str | None = None
+    portfolio_key: str | None = None
+    options: list[ChoiceOptionSchema] = Field(default_factory=list)
 
 
-class ShareDimensionSchema(PublicModel):
-    key: DimensionKey
-    label: str | None
-    score: float | None
-    centered_score: float | None
-    confidence: Literal["low", "moderate", "high", "unavailable"]
+class ShareElementSchema(PublicModel):
+    key: str
+    label: str
+    zone: str | None = None
 
 
-class ShareCommonSchema(PublicModel):
-    archetype: str
-    descriptors: list[DescriptorSchema]
-    match_count: int = Field(ge=0)
+class SharePatternSchema(PublicModel):
+    key: str
+    label: str
 
 
-class ShareDnaSchema(ShareCommonSchema):
-    spectra: list[ShareDimensionSchema]
+class SharePortfolioSchema(PublicModel):
+    common_thread: str | None = None
+    exception_hero: str | None = None
+    pool_direction: str | None = None
 
 
-class ShareHeroesSchema(PublicModel):
-    signature: HeroCardSchema | None
-    comfort: list[HeroCardSchema]
-    pattern: HeroPatternSchema | None
-    recommendations: list[HeroRecommendationSchema]
+class ShareMirrorSchema(PublicModel):
+    hero_id: int = Field(gt=0)
+    hero_name: str
 
 
-class ShareFinalSchema(ShareCommonSchema):
-    display_name: str
-    signature: str | None
-    pattern: str | None
-    rhythm: str | None
+class ShareV4Schema(PublicModel):
+    display_name: str | None = None
+    strongest_elements: list[ShareElementSchema]
+    strongest_patterns: list[SharePatternSchema]
+    hero_portfolio: SharePortfolioSchema
+    hero_mirror: ShareMirrorSchema | None = None
 
 
 class PrivacyDefaultsSchema(PublicModel):
@@ -239,10 +258,8 @@ class PrivacyDefaultsSchema(PublicModel):
     show_raw_id: Literal[False]
 
 
-class SharesSchema(PublicModel):
-    dna: ShareDnaSchema
-    heroes: ShareHeroesSchema
-    final: ShareFinalSchema
+class SharesV4Schema(PublicModel):
+    final: ShareV4Schema
     privacy_defaults: PrivacyDefaultsSchema
 
 
@@ -255,7 +272,7 @@ class DeepDiveSchema(PublicModel):
 
 class MethodologySchema(PublicModel):
     free_summary_only: Literal[True]
-    session_gap_minutes: int
+    session_gap_minutes: int = Field(ge=1)
     session_policy_version: str
     notes: list[str]
 
@@ -269,490 +286,73 @@ class CostSchema(PublicModel):
     estimated_cost_units: float = Field(ge=0)
 
 
-class FreeDnaReportSchema(PublicModel):
+class FreeDnaReportV4Schema(PublicModel):
     report_id: str | None = None
-    schema_version: Literal["free-dna-report-1.0.0"]
+    schema_version: Literal["free-dna-report-4.0.0"]
     report_variant: Literal["free_dna_report"]
     noindex: Literal[True]
     identity: IdentitySchema
     metadata: MetadataSchema
-    versions: VersionMapSchema
+    versions: VersionMapV4Schema
     quality: QualitySchema
-    dimensions: list[DimensionResultSchema] = Field(min_length=8, max_length=8)
-    archetype: ArchetypeSchema
-    heroes: HeroesSchema
-    pages: list[PageSchema] = Field(min_length=23, max_length=23)
-    shares: SharesSchema
+    elements: list[BehaviorElementSchema] = Field(min_length=17, max_length=17)
+    patterns: list[BehaviorPatternSchema] = Field(min_length=14, max_length=14)
+    highlights: HighlightsSchema
+    hero_portfolio: HeroPortfolioSchema
+    story: StorySchema
+    pages: list[StoryPageV4Schema]
+    shares: SharesV4Schema
     deep_dive: DeepDiveSchema
     methodology: MethodologySchema
     cost: CostSchema
 
     @model_validator(mode="after")
-    def validate_free_contract(self) -> FreeDnaReportSchema:
-        keys = [item.key for item in self.dimensions]
-        expected = {
-            "breadth", "role", "adaptability", "activity",
-            "orientation", "resilience", "endurance", "rhythm",
-        }
-        if set(keys) != expected or len(keys) != len(set(keys)):
-            raise ValueError("Free DNA reports must contain each of the eight dimensions once")
-        page_ids = [item.id for item in self.pages]
-        if len(page_ids) != 23 or len(page_ids) != len(set(page_ids)):
-            raise ValueError("Free DNA reports must contain exactly 23 unique story pages")
-        if self.shares.privacy_defaults.show_raw_id is not False:
-            raise ValueError("Free DNA share cards cannot enable raw IDs")
-        return self
-
-# ---------------------------------------------------------------------------
-# Free DNA report v2
-# ---------------------------------------------------------------------------
-
-FindingKind = Literal[
-    "thesis", "strength", "contradiction", "edge", "leak", "trajectory", "identity"
-]
-FindingConfidence = Literal["limited", "moderate", "high"]
-
-
-class FindingReceiptSchema(PublicModel):
-    key: str
-    label: str
-    value: str
-    context: str | None = None
-    confidence: FindingConfidence
-
-
-class FindingExperimentSchema(PublicModel):
-    key: str
-    title: str
-    instruction: str
-    hypothesis: str
-    measurement: str
-    window: str
-
-
-class PublicFindingSchema(PublicModel):
-    key: str
-    kind: FindingKind
-    headline: str
-    body: str
-    interpretation: str | None = None
-    confidence: FindingConfidence
-    receipts: list[FindingReceiptSchema] = Field(min_length=2, max_length=4)
-    related_dimensions: list[DimensionKey] = Field(default_factory=list)
-    related_heroes: list[int] = Field(default_factory=list)
-    experiment: FindingExperimentSchema | None = None
-    share_copy: str | None = None
-
-
-class StoryDefinitionSchema(PublicModel):
-    version: str
-    thesis_key: str | None = None
-    strength_key: str | None = None
-    contradiction_key: str | None = None
-    edge_key: str | None = None
-    leak_key: str | None = None
-    experiment_key: str | None = None
-    ordered_pages: list[str] = Field(min_length=7, max_length=14)
-
-
-V2PageKind = Literal[
-    "input", "player_found", "analysis", "reveal", "finding", "experiment",
-    "identity_card", "dna_xray", "deep_dive",
-]
-
-
-class V2PageSchema(PublicModel):
-    id: str
-    kind: V2PageKind
-    section: Literal["intro", "findings", "dna", "finale"]
-    title: str
-    body: str | None = None
-    evidence_keys: list[str] = Field(default_factory=list)
-    finding_key: str | None = None
-    experiment_key: str | None = None
-
-
-class FindingShareSchema(PublicModel):
-    finding_key: str | None = None
-    headline: str
-    archetype: str | None = None
-    receipts: list[str] = Field(default_factory=list, max_length=4)
-
-
-class SharesV2Schema(PublicModel):
-    identity: FindingShareSchema
-    exposed: FindingShareSchema
-    strength: FindingShareSchema
-    # Backward-compatible aliases are retained in the immutable snapshot for
-    # old share URLs; v2 UI copy uses the three finding-oriented cards above.
-    dna: ShareDnaSchema
-    heroes: ShareHeroesSchema
-    final: ShareFinalSchema
-    privacy_defaults: PrivacyDefaultsSchema
-
-
-class VersionMapV2Schema(VersionMapSchema):
-    findings: str
-    finding_ranking: str
-    story: str
-
-
-class FreeDnaReportV2Schema(PublicModel):
-    report_id: str | None = None
-    schema_version: Literal["free-dna-report-2.0.0"]
-    report_variant: Literal["free_dna_report"]
-    noindex: Literal[True]
-    identity: IdentitySchema
-    metadata: MetadataSchema
-    versions: VersionMapV2Schema
-    quality: QualitySchema
-    dimensions: list[DimensionResultSchema] = Field(min_length=8, max_length=8)
-    archetype: ArchetypeSchema
-    heroes: HeroesSchema
-    findings: list[PublicFindingSchema] = Field(max_length=12)
-    story: StoryDefinitionSchema
-    pages: list[V2PageSchema] = Field(min_length=7, max_length=14)
-    shares: SharesV2Schema
-    deep_dive: DeepDiveSchema
-    methodology: MethodologySchema
-    cost: CostSchema
-
-    @model_validator(mode="after")
-    def validate_v2_contract(self) -> FreeDnaReportV2Schema:
-        dimension_keys = [item.key for item in self.dimensions]
-        expected_dimensions = {
-            "breadth", "role", "adaptability", "activity",
-            "orientation", "resilience", "endurance", "rhythm",
-        }
-        if set(dimension_keys) != expected_dimensions or len(dimension_keys) != len(set(dimension_keys)):
-            raise ValueError("Free DNA reports must contain each of the eight dimensions once")
-        finding_keys = [item.key for item in self.findings]
-        if len(finding_keys) != len(set(finding_keys)):
-            raise ValueError("Free DNA finding keys must be unique")
-        page_ids = [item.id for item in self.pages]
-        if len(page_ids) != len(set(page_ids)):
-            raise ValueError("Free DNA v2 story page IDs must be unique")
-        if page_ids != self.story.ordered_pages:
-            raise ValueError("Story ordering must match the public page sequence")
-        finding_map = {item.key: item for item in self.findings}
-        for page in self.pages:
-            if page.finding_key is not None and page.finding_key not in finding_map:
-                raise ValueError(f"Story page references unknown finding: {page.finding_key}")
-            if page.kind == "finding" and page.finding_key is None:
-                raise ValueError("Finding pages must reference a finding")
-            if page.kind == "experiment":
-                if page.finding_key is None or page.experiment_key is None:
-                    raise ValueError("Experiment pages must reference a finding and experiment")
-                finding = finding_map.get(page.finding_key)
-                if finding is None or finding.experiment is None or finding.experiment.key != page.experiment_key:
-                    raise ValueError("Experiment page does not resolve to its finding experiment")
-        if not any(page.kind == "identity_card" for page in self.pages):
-            raise ValueError("Free DNA v2 story must include an identity card")
-        if not any(page.kind == "dna_xray" for page in self.pages):
-            raise ValueError("Free DNA v2 story must include the DNA X-ray")
-        if not any(page.kind == "deep_dive" for page in self.pages):
-            raise ValueError("Free DNA v2 story must include a Deep Dive CTA")
-        for key in (
-            self.story.thesis_key,
-            self.story.strength_key,
-            self.story.contradiction_key,
-            self.story.edge_key,
-            self.story.leak_key,
-        ):
-            if key is not None and key not in finding_map:
-                raise ValueError(f"Story slot references unknown finding: {key}")
-        if self.story.experiment_key is not None and not any(
-            page.experiment_key == self.story.experiment_key for page in self.pages
-        ):
-            raise ValueError("Story experiment slot does not resolve to a page")
-        if self.shares.privacy_defaults.show_raw_id is not False:
-            raise ValueError("Free DNA share cards cannot enable raw IDs")
-        return self
-
-
-# ---------------------------------------------------------------------------
-# Free DNA report v3 — Elements → Patterns → context Archetypes → Findings
-# ---------------------------------------------------------------------------
-
-BehaviorDimensionKey = Literal[
-    "hero_identity",
-    "role_identity",
-    "combat_expression",
-    "economy",
-    "map_objectives",
-    "risk_survival",
-    "adaptability",
-    "consistency_form",
-    "session_response",
-    "progression",
-]
-
-
-class BehaviorDimensionSchema(PublicModel):
-    key: BehaviorDimensionKey
-    label: str
-    element_keys: list[str]
-    qualified_pattern_keys: list[str]
-    available_elements: int = Field(ge=0)
-    total_free_elements: int = Field(ge=0)
-    confidence: Literal["low", "moderate", "high", "unavailable"]
-
-
-class BehaviorAxisSchema(PublicModel):
-    left: str | None
-    right: str | None
-
-
-class BehaviorReceiptSchema(PublicModel):
-    key: str
-    value: str
-    unit: str
-    denominator: int = Field(ge=0)
-    coverage: float = Field(ge=0, le=1)
-    confidence_score: float = Field(ge=0, le=1)
-    comparison: str | None = None
-
-
-class BehaviorElementSchema(PublicModel):
-    key: str
-    label: str
-    dimension_key: BehaviorDimensionKey
-    status: Literal["available", "limited", "unavailable"]
-    score: float | None = Field(default=None, ge=0, le=1)
-    centered_score: float | None = Field(default=None, ge=-1, le=1)
-    axis: BehaviorAxisSchema
-    confidence: Literal["low", "moderate", "high", "unavailable"]
-    confidence_score: float = Field(ge=0, le=1)
-    sample_size: int = Field(ge=0)
-    effective_sample_size: float = Field(ge=0)
-    coverage: float = Field(ge=0, le=1)
-    receipts: list[BehaviorReceiptSchema] = Field(default_factory=list)
-    confounders: list[str] = Field(default_factory=list)
-    missing_reasons: list[str] = Field(default_factory=list)
-    methodology_version: str
-
-
-BehaviorPatternKind = Literal["identity", "contradiction", "edge", "leak", "trajectory", "style"]
-BehaviorFindingKind = Literal[
-    "identity",
-    "contradiction",
-    "edge",
-    "leak",
-    "trajectory",
-    "style",
-    "strength",
-]
-
-
-class BehaviorPatternSchema(PublicModel):
-    key: str
-    label: str
-    kind: BehaviorPatternKind
-    strength: float = Field(ge=0, le=1)
-    confidence: Literal["low", "moderate", "high", "unavailable"]
-    confidence_score: float = Field(ge=0, le=1)
-    element_keys: list[str] = Field(min_length=2)
-    receipts: list[BehaviorReceiptSchema] = Field(min_length=2)
-    confounders: list[str] = Field(default_factory=list)
-
-
-class ContextArchetypeSchema(PublicModel):
-    group_key: str
-    group_label: str
-    key: str
-    label: str
-    fit: float = Field(ge=0, le=1)
-    confidence: Literal["low", "moderate", "high", "unavailable"]
-    runner_up: RunnerUpSchema | None = None
-    descriptors: list[DescriptorSchema] = Field(default_factory=list, max_length=3)
-    contributing_element_keys: list[str] = Field(default_factory=list)
-    contributing_pattern_keys: list[str] = Field(default_factory=list)
-    explanation_evidence: list[str] = Field(default_factory=list)
-    classifier_version: str
-
-
-class BehaviorFindingSchema(PublicModel):
-    key: str
-    kind: BehaviorFindingKind
-    headline: str
-    body: str
-    interpretation: str
-    confidence: Literal["low", "moderate", "high"]
-    confidence_score: float = Field(ge=0, le=1)
-    source_pattern_keys: list[str] = Field(default_factory=list)
-    supporting_element_keys: list[str] = Field(min_length=1)
-    archetype_group_keys: list[str] = Field(default_factory=list)
-    receipts: list[FindingReceiptSchema] = Field(min_length=1, max_length=4)
-    experiment: FindingExperimentSchema | None = None
-    share_copy: str | None = None
-    limitations: list[str] = Field(default_factory=list)
-
-
-class StoryDefinitionV3Schema(PublicModel):
-    version: str
-    thesis_key: str | None = None
-    strongest_key: str | None = None
-    experiment_key: str | None = None
-    ordered_pages: list[str] = Field(min_length=7, max_length=14)
-
-
-V3PageKind = Literal[
-    "reveal", "finding", "experiment", "archetypes", "dna_xray", "heroes", "deep_dive", "summary"
-]
-
-
-class V3PageSchema(PublicModel):
-    id: str
-    kind: V3PageKind
-    section: Literal["intro", "findings", "dna", "heroes", "finale"]
-    title: str
-    body: str | None = None
-    evidence_keys: list[str] = Field(default_factory=list)
-    finding_key: str | None = None
-    experiment_key: str | None = None
-
-
-class V3ShareCardSchema(PublicModel):
-    finding_key: str | None = None
-    headline: str
-    archetype_groups: list[str] = Field(default_factory=list)
-    receipts: list[str] = Field(default_factory=list, max_length=4)
-
-
-class SharesV3Schema(PublicModel):
-    identity: V3ShareCardSchema
-    strongest: V3ShareCardSchema
-    pattern: V3ShareCardSchema
-    archetypes: list[ContextArchetypeSchema]
-    privacy_defaults: PrivacyDefaultsSchema
-
-
-class VersionMapV3Schema(VersionMapV2Schema):
-    behavior_model: str
-    dimension_registry: str
-    element_registry: str
-    pattern_registry: str
-    archetype_registry: str
-    finding_registry: str
-
-
-class BehaviorQualitySchema(PublicModel):
-    overall_confidence: Literal["low", "moderate", "high", "unavailable"]
-    history_tier: Literal["limited", "normal"]
-    missing_data_flags: list[str]
-    partial: bool
-    warnings: list[str]
-    available_elements: int = Field(ge=0)
-    limited_elements: int = Field(ge=0)
-    unavailable_elements: int = Field(ge=0)
-    qualified_patterns: int = Field(ge=0)
-
-
-class FreeDnaReportV3Schema(PublicModel):
-    report_id: str | None = None
-    schema_version: Literal["free-dna-report-3.0.0"]
-    report_variant: Literal["free_dna_report"]
-    noindex: Literal[True]
-    identity: IdentitySchema
-    metadata: MetadataSchema
-    versions: VersionMapV3Schema
-    quality: BehaviorQualitySchema
-    dimensions: list[BehaviorDimensionSchema] = Field(min_length=10, max_length=10)
-    elements: list[BehaviorElementSchema] = Field(min_length=23, max_length=23)
-    patterns: list[BehaviorPatternSchema] = Field(max_length=15)
-    archetypes: list[ContextArchetypeSchema] = Field(min_length=3, max_length=3)
-    heroes: HeroesSchema
-    findings: list[BehaviorFindingSchema] = Field(min_length=1, max_length=12)
-    story: StoryDefinitionV3Schema
-    pages: list[V3PageSchema] = Field(min_length=7, max_length=14)
-    shares: SharesV3Schema
-    deep_dive: DeepDiveSchema
-    methodology: MethodologySchema
-    cost: CostSchema
-
-    @model_validator(mode="after")
-    def validate_v3_contract(self) -> FreeDnaReportV3Schema:
-        # Import the registries lazily so the schema module remains a leaf
-        # during application startup; validation still checks the public
-        # snapshot against the same production catalog that scored it.
-        from app.behavior.archetypes.registry import ARCHETYPE_GROUP_REGISTRY
-        from app.behavior.dimensions import DIMENSIONS_BY_KEY
+    def validate_v4_contract(self) -> FreeDnaReportV4Schema:
         from app.behavior.elements.registry import ELEMENT_REGISTRY
         from app.behavior.patterns.registry import PATTERN_REGISTRY
 
-        dimension_keys = [item.key for item in self.dimensions]
-        if set(dimension_keys) != set(DIMENSIONS_BY_KEY) or len(dimension_keys) != len(set(dimension_keys)):
-            raise ValueError("Free DNA v3 must contain each registered dimension once")
         element_keys = [item.key for item in self.elements]
         if set(element_keys) != set(ELEMENT_REGISTRY) or len(element_keys) != len(set(element_keys)):
-            raise ValueError("Free DNA v3 must contain the registered 23 unique Elements")
+            raise ValueError("Free DNA v4 must contain each of the 17 registered Elements once")
         pattern_keys = [item.key for item in self.patterns]
-        if len(pattern_keys) != len(set(pattern_keys)):
-            raise ValueError("Free DNA v3 Pattern keys must be unique")
-        if not set(pattern_keys).issubset(PATTERN_REGISTRY):
-            raise ValueError("Free DNA v3 contains an unknown Pattern")
+        if set(pattern_keys) != set(PATTERN_REGISTRY) or len(pattern_keys) != len(set(pattern_keys)):
+            raise ValueError("Free DNA v4 must contain each of the 14 registered Patterns once")
+        if len(self.highlights.element_keys) != len(set(self.highlights.element_keys)):
+            raise ValueError("Element highlights must be unique")
+        if len(self.highlights.pattern_keys) != len(set(self.highlights.pattern_keys)):
+            raise ValueError("Pattern highlights must be unique")
+        if not set(self.highlights.element_keys).issubset(element_keys):
+            raise ValueError("Element highlight references an unknown Element")
+        if not set(self.highlights.pattern_keys).issubset(pattern_keys):
+            raise ValueError("Pattern highlight references an unknown Pattern")
         for pattern in self.patterns:
-            if len(set(pattern.element_keys)) < 2:
-                raise ValueError("A published v3 Pattern must reference at least two Elements")
             if not set(pattern.element_keys).issubset(element_keys):
-                raise ValueError(f"Pattern {pattern.key} references an unknown Element")
-        archetype_groups = [item.group_key for item in self.archetypes]
-        if set(archetype_groups) != set(ARCHETYPE_GROUP_REGISTRY) or len(archetype_groups) != len(set(archetype_groups)):
-            raise ValueError("Free DNA v3 must contain each registered context group once")
-        finding_keys = [item.key for item in self.findings]
-        if len(finding_keys) != len(set(finding_keys)):
-            raise ValueError("Free DNA v3 finding keys must be unique")
-        pattern_map = set(pattern_keys)
-        for finding in self.findings:
-            if not set(finding.supporting_element_keys).issubset(element_keys):
-                raise ValueError(f"Finding {finding.key} references an unknown Element")
-            if not set(finding.source_pattern_keys).issubset(pattern_map):
-                raise ValueError(f"Finding {finding.key} references an unknown Pattern")
-        for archetype in self.archetypes:
-            if not set(archetype.contributing_element_keys).issubset(element_keys):
-                raise ValueError(f"Archetype {archetype.group_key} references an unknown Element")
-            if not set(archetype.contributing_pattern_keys).issubset(pattern_map):
-                raise ValueError(f"Archetype {archetype.group_key} references an unknown Pattern")
+                raise ValueError(f"Pattern {pattern.key} references an unknown required Element")
+            if not set(pattern.modifier_element_keys).issubset(element_keys):
+                raise ValueError(f"Pattern {pattern.key} references an unknown modifier Element")
+            if set(pattern.element_keys) & set(pattern.modifier_element_keys):
+                raise ValueError(f"Pattern {pattern.key} overlaps required and modifier Elements")
         page_ids = [item.id for item in self.pages]
-        if len(page_ids) != len(set(page_ids)) or page_ids != self.story.ordered_pages:
-            raise ValueError("Free DNA v3 story ordering must match unique public pages")
-        finding_map = set(finding_keys)
-        experiment_keys = {
-            finding.experiment.key
-            for finding in self.findings
-            if finding.experiment is not None
-        }
+        if page_ids != self.story.ordered_pages or len(page_ids) != len(set(page_ids)):
+            raise ValueError("Free DNA v4 story ordering must match unique public pages")
         for page in self.pages:
-            if page.finding_key is not None and page.finding_key not in finding_map:
-                raise ValueError(f"Story page references unknown v3 finding: {page.finding_key}")
+            if page.element_key is not None and page.element_key not in element_keys:
+                raise ValueError(f"Story page references unknown Element: {page.element_key}")
+            if page.pattern_key is not None and page.pattern_key not in pattern_keys:
+                raise ValueError(f"Story page references unknown Pattern: {page.pattern_key}")
             if not set(page.evidence_keys).issubset(element_keys):
                 raise ValueError(f"Story page {page.id} references an unknown Element")
-            if page.kind == "finding" and page.finding_key is None:
-                raise ValueError("v3 finding pages must reference a finding")
-            if page.kind == "experiment":
-                if page.finding_key is None or page.experiment_key is None:
-                    raise ValueError("v3 experiment pages must reference a finding and experiment")
-                if page.experiment_key not in experiment_keys:
-                    raise ValueError(f"Story page references unknown v3 experiment: {page.experiment_key}")
-        for key in (self.story.thesis_key, self.story.strongest_key):
-            if key is not None and key not in finding_map:
-                raise ValueError(f"v3 story slot references unknown finding: {key}")
-        if self.story.experiment_key is not None and self.story.experiment_key not in experiment_keys:
-            raise ValueError(f"v3 story slot references unknown experiment: {self.story.experiment_key}")
         if self.shares.privacy_defaults.show_raw_id is not False:
-            raise ValueError("Free DNA v3 share cards cannot enable raw IDs")
+            raise ValueError("Free DNA share cards cannot enable raw IDs")
+        if self.cost.detail_requests != 0 or self.cost.parse_requests != 0:
+            raise ValueError("Free DNA v4 cannot require match-detail or replay-parse requests")
         return self
 
 
 def validate_free_dna_report(report: dict[str, Any]) -> dict[str, Any]:
-    """Validate an immutable Free DNA v1, v2, or v3 snapshot.
+    """Validate a new immutable v4 snapshot at the public API boundary."""
 
-    Existing v1/v2 links remain immutable and continue through their original
-    strict contracts; new analysis snapshots use the Elements-led v3 contract.
-    """
+    return FreeDnaReportV4Schema.model_validate(report).model_dump(mode="json", by_alias=True)
 
-    if report.get("schema_version") == "free-dna-report-3.0.0":
-        return FreeDnaReportV3Schema.model_validate(report).model_dump(mode="json", by_alias=True)
-    if report.get("schema_version") == "free-dna-report-2.0.0":
-        return FreeDnaReportV2Schema.model_validate(report).model_dump(mode="json", by_alias=True)
-    return FreeDnaReportSchema.model_validate(report).model_dump(mode="json", by_alias=True)
+
+__all__ = ["FreeDnaReportV4Schema", "validate_free_dna_report"]

@@ -7,6 +7,7 @@ import logging
 from collections.abc import Iterable
 from dataclasses import asdict
 from typing import Any
+from urllib.parse import urlparse
 
 from app.analysis.budget import CostPolicy, DataCostLedger
 from app.analysis.deep_scan import (
@@ -31,8 +32,6 @@ from app.features.calculators import calculate_match_features
 from app.features.models import MatchFeature
 from app.features.summary_calculators import calculate_summary_features
 from app.features.summary_models import SummaryFeatureSet
-from app.findings.behavior import evaluate_behavior_findings, select_behavior_story
-from app.findings.context import BehaviorStoryContext
 from app.identity.steam import SteamVanityResolver
 from app.ingestion.coverage import coverage_for_match
 from app.ingestion.eligibility import assess_match
@@ -42,7 +41,7 @@ from app.insights.evaluator import InsightContext, evaluate_insights
 from app.opendota.cache import payload_hash
 from app.patterns.detector import detect_patterns
 from app.reports.assembly import assemble_player_dna_report, assemble_report
-from app.reports.dna_assembly import assemble_free_dna_report_v3
+from app.reports.dna_assembly import assemble_free_dna_report_v4
 from app.storage.repository import AnalysisJob, InMemoryRepository
 
 logger = logging.getLogger(__name__)
@@ -120,42 +119,27 @@ class AnalysisService:
 
     def _compatibility_model_version(self, analysis_mode: str) -> str:
         if analysis_mode == "free":
-            from app.behavior.archetypes.registry import ARCHETYPE_REGISTRY_VERSION
             from app.behavior.elements.registry import ELEMENT_REGISTRY_VERSION
             from app.behavior.patterns.registry import PATTERN_REGISTRY_VERSION
-            from app.behavior.service import (
-                BEHAVIOR_MODEL_VERSION,
-                V3_FINDING_RANKING_VERSION,
-                V3_FINDING_VERSION,
-                V3_STORY_VERSION,
-            )
+            from app.behavior.service import BEHAVIOR_MODEL_VERSION
             from app.content.catalog import copy_version
-            from app.dna.archetypes.classifier import CLASSIFIER_VERSION
-            from app.dna.baselines import BASELINE_VERSION
             from app.dna.features.models import FEATURE_VERSION
             from app.dna.pipeline import DNA_SCORING_VERSION
             from app.dna.sessions import SESSION_VERSION
-            from app.findings.ranking import RANKING_VERSION
-            from app.findings.registry import FINDING_VERSION
-            from app.findings.story import STORY_VERSION
-            from app.heroes.identity import HERO_IDENTITY_VERSION
+            from app.hero_portfolio.version import HERO_MIRROR_VERSION, HERO_PORTFOLIO_VERSION
             from app.heroes.taxonomy import TAXONOMY_VERSION
-            from app.reports.dna_assembly import REPORT_SCHEMA_VERSION
+            from app.reports.dna_assembly import REPORT_SCHEMA_VERSION, REPORT_STORY_VERSION
             from app.share.service import RENDERER_VERSION
 
             versions = {
-                "eligibility": "summary-eligibility-1.1.0",
+                "eligibility": "summary-eligibility-1.0.0",
                 "sessions": SESSION_VERSION,
                 "features": FEATURE_VERSION,
                 "dna_scoring": DNA_SCORING_VERSION,
-                "baselines": BASELINE_VERSION,
-                "archetype": CLASSIFIER_VERSION,
-                "hero_identity": HERO_IDENTITY_VERSION,
                 "hero_taxonomy": TAXONOMY_VERSION,
-                "recommendations": "hero-recommendations-1.1.0",
-                "findings": FINDING_VERSION,
-                "finding_ranking": RANKING_VERSION,
-                "story": STORY_VERSION,
+                "hero_portfolio": HERO_PORTFOLIO_VERSION,
+                "hero_mirror": HERO_MIRROR_VERSION,
+                "story": REPORT_STORY_VERSION,
                 "copy": copy_version(),
                 "report_schema": REPORT_SCHEMA_VERSION,
                 "model": self.settings.model_version,
@@ -164,10 +148,6 @@ class AnalysisService:
                 "behavior_model": BEHAVIOR_MODEL_VERSION,
                 "element_registry": ELEMENT_REGISTRY_VERSION,
                 "pattern_registry": PATTERN_REGISTRY_VERSION,
-                "archetype_registry": ARCHETYPE_REGISTRY_VERSION,
-                "finding_registry": V3_FINDING_VERSION,
-                "finding_ranking_v3": V3_FINDING_RANKING_VERSION,
-                "story_v3": V3_STORY_VERSION,
             }
             digest = hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest()
             return f"free-analysis-{digest[:48]}"
@@ -422,25 +402,10 @@ class AnalysisService:
             raise InsufficientMatchHistory("Behavior model did not produce a result")
         self.repository.update_job(
             job,
-            stage="finding_synthesis",
-            message="Choosing the relationships worth showing",
-        )
-        story_context = BehaviorStoryContext(
-            elements=behavior.element_map,
-            patterns=behavior.pattern_map,
-            archetypes=behavior.archetype_map,
-            hero_identity=dna_analysis.heroes,
-            quality=behavior.quality,
-        )
-        findings = evaluate_behavior_findings(story_context)
-        story_selection = select_behavior_story(findings)
-
-        self.repository.update_job(
-            job,
             stage="rendering_report",
-            message="Building your Dota DNA",
+            message="Building your Elements, Patterns, and Hero Portfolio report",
         )
-        report = assemble_free_dna_report_v3(
+        report = assemble_free_dna_report_v4(
             account_id=identifier.account_id,
             profile=_profile_for_report(profile, identifier.account_id),
             analysis=dna_analysis,
@@ -452,8 +417,6 @@ class AnalysisService:
             template_version=self.settings.template_version,
             cost_ledger=cost_ledger,
             analysis_version_fingerprint=job.model_version,
-            findings=findings,
-            story_selection=story_selection,
         )
         report = validate_free_dna_report(report)
         report_id = self.repository.save_report(
@@ -647,10 +610,23 @@ def _profile_for_report(profile: dict[str, Any], account_id: int) -> dict[str, A
     nested = profile.get("profile")
     if not isinstance(nested, dict):
         nested = {}
+    name = str(nested.get("personaname") or "").strip()
+    if not name or name.isdigit() or name.startswith(("http://", "https://")):
+        name = "Anonymous player"
+    avatar = nested.get("avatarfull")
+    if not isinstance(avatar, str):
+        avatar = None
+    else:
+        parsed = urlparse(avatar)
+        if parsed.scheme != "https" or parsed.hostname not in {
+            "steamcdn-a.akamaihd.net",
+            "avatars.akamai.steamstatic.com",
+        } or parsed.query or parsed.fragment:
+            avatar = None
     return {
         "account_id": account_id,
-        "personaname": nested.get("personaname") or "Anonymous player",
-        "avatarfull": nested.get("avatarfull"),
+        "personaname": name,
+        "avatarfull": avatar,
         "rank_tier": nested.get("rank_tier"),
         "profile_url": f"https://www.opendota.com/players/{account_id}",
     }

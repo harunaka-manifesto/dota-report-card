@@ -1,10 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import type { FreeDnaReport } from "../../../../../packages/api-client/src";
-import ReportStory, { type StoryReport } from "./dna/report-story";
-import ReportStoryV2 from "./dna/report-story-v2";
-import ReportStoryV3 from "./dna/report-story-v3";
+import type { FreeDnaReportV4 } from "../../../../../packages/api-client/src";
+import ReportStoryV4 from "./dna/report-story-v4";
 
 export const revalidate = 60;
 
@@ -31,8 +29,8 @@ type Card = {
   provenance: { raw_payload_refs: string[]; normalized_match_refs: string[]; derived_feature_refs: string[] };
 };
 
-type LegacyReport = {
-  report_variant: "free_player_dna" | "deep_scan";
+type DeepScanReport = {
+  report_variant: "deep_scan";
   identity: { account_id: number; personaname: string; rank_tier: number | null };
   evidence_scope: {
     processed_matches: number;
@@ -52,18 +50,14 @@ type LegacyReport = {
   };
 };
 
-type Report = FreeDnaReport | (LegacyReport & { schema_version?: string });
+type Report = FreeDnaReportV4 | DeepScanReport;
 
 export async function generateMetadata(): Promise<Metadata> {
-  return {
-    robots: { index: false, follow: false }
-  };
+  return { robots: { index: false, follow: false } };
 }
 
 async function getReport(reportId: string): Promise<Report> {
-  const response = await fetch(API_BASE_URL + "/v1/reports/" + reportId, {
-    next: { revalidate: 60 }
-  });
+  const response = await fetch(API_BASE_URL + "/v1/reports/" + reportId, { next: { revalidate: 60 } });
   if (response.status === 404) notFound();
   if (!response.ok) {
     let message = "The report could not be loaded.";
@@ -71,7 +65,7 @@ async function getReport(reportId: string): Promise<Report> {
       const body = await response.json();
       if (body?.message) message = body.message;
     } catch {
-      // Use the safe generic message when the API did not return JSON.
+      // Keep the generic message when the API did not return JSON.
     }
     throw new Error(message);
   }
@@ -80,125 +74,39 @@ async function getReport(reportId: string): Promise<Report> {
 
 export default async function ReportPage({ params }: { params: { reportId: string } }) {
   const report = await getReport(params.reportId);
-  if (report.report_variant === "free_dna_report" && report.schema_version === "free-dna-report-1.0.0") {
-    return <ReportStory report={report as StoryReport} />;
+  if (report.report_variant === "free_dna_report") {
+    if (report.schema_version !== "free-dna-report-4.0.0") notFound();
+    return <ReportStoryV4 report={report} />;
   }
-  if (report.report_variant === "free_dna_report" && report.schema_version === "free-dna-report-2.0.0") {
-    return <ReportStoryV2 report={report as Extract<FreeDnaReport, { schema_version: "free-dna-report-2.0.0" }>} />;
-  }
-  if (report.report_variant === "free_dna_report" && report.schema_version === "free-dna-report-3.0.0") {
-    return <ReportStoryV3 report={report as Extract<FreeDnaReport, { schema_version: "free-dna-report-3.0.0" }>} />;
-  }
+  return <DeepScanReportPage report={report} />;
+}
+
+function DeepScanReportPage({ report }: { report: DeepScanReport }) {
   const sections = report.sections;
   return (
     <main className="shell report-shell">
       <Link className="back-link" href="/">← New report</Link>
-      <header className="report-header">
-        <p className="eyebrow">Player report · {report.identity.account_id}</p>
-        <h1>{report.identity.personaname || "Anonymous player"}</h1>
-        <p className="lede">Evidence scope first. Conclusions only where the data clears the gate.</p>
-      </header>
-
+      <header className="report-header"><p className="eyebrow">Deep Scan · {report.identity.account_id}</p><h1>{report.identity.personaname || "Anonymous player"}</h1><p className="lede">Evidence scope first. Conclusions only where the data clears the gate.</p></header>
       <section className="scope-card">
-        <div>
-          <span className="eyebrow">Evidence scope</span>
-          <strong>{report.evidence_scope.eligible_matches} eligible matches</strong>
-          <p>{report.evidence_scope.normalized_matches} normalized from {report.evidence_scope.processed_matches} history rows.</p>
-        </div>
-        <div>
-          <span className="eyebrow">Replay coverage</span>
-          <strong>{Math.round(report.evidence_scope.replay_parse_coverage * 100)}%</strong>
-          <p>{report.evidence_scope.replay_evidence_status.replaceAll("_", " ")}</p>
-        </div>
-        <div>
-          <span className="eyebrow">Published</span>
-          <strong>{report.evidence_scope.published_insight_count}</strong>
-          <p>{report.evidence_scope.suppressed_insight_count} families suppressed or pending.</p>
-        </div>
+        <div><span className="eyebrow">Evidence scope</span><strong>{report.evidence_scope.eligible_matches} eligible matches</strong><p>{report.evidence_scope.normalized_matches} normalized from {report.evidence_scope.processed_matches} history rows.</p></div>
+        <div><span className="eyebrow">Replay coverage</span><strong>{Math.round(report.evidence_scope.replay_parse_coverage * 100)}%</strong><p>{report.evidence_scope.replay_evidence_status.replaceAll("_", " ")}</p></div>
+        <div><span className="eyebrow">Published</span><strong>{report.evidence_scope.published_insight_count}</strong><p>{report.evidence_scope.suppressed_insight_count} families suppressed or pending.</p></div>
       </section>
-
-      {report.evidence_scope.replay_limitation && (
-        <aside className="notice">{report.evidence_scope.replay_limitation}</aside>
-      )}
-
+      {report.evidence_scope.replay_limitation && <aside className="notice">{report.evidence_scope.replay_limitation}</aside>}
       <ReportSection title="Superpowers" cards={sections.strongest_superpowers} empty="No strength cleared the evidence gates yet." />
       <ReportSection title="Contradictions and context" cards={sections.contradictions} empty="No context split cleared the evidence gates yet." />
       <ReportSection title="Work on next" cards={sections.highest_value_weaknesses} empty="No weakness cleared the evidence gates yet." />
-
-      <section className="deferred">
-        <span className="eyebrow">Next rank</span>
-        <h2>Not available in v1</h2>
-        <p>{sections.next_rank.reason}</p>
-      </section>
+      <section className="deferred"><span className="eyebrow">Next rank</span><h2>Not available in this view</h2><p>{sections.next_rank.reason}</p></section>
     </main>
   );
 }
 
 function ReportSection({ title, cards, empty }: { title: string; cards: Card[]; empty: string }) {
-  return (
-    <section className="report-section">
-      <div className="section-heading">
-        <p className="eyebrow">Report section</p>
-        <h2>{title}</h2>
-      </div>
-      {cards.length ? (
-        <div className="cards">
-          {cards.map((card) => (
-            <article className="insight-card" key={card.insight_id}>
-              <span className="confidence">{card.confidence} confidence</span>
-              <h3>{card.statement}</h3>
-              <p>{card.why_it_matters}</p>
-              <div className="metric-row">
-                <span>{card.denominator.matches} matches</span>
-                <span>{Math.round(card.parse_coverage.relevant * 100)}% coverage</span>
-                <span>{card.denominator.situations} situations</span>
-              </div>
-              <div className="action">
-                <strong>Next: </strong>{card.behavior}
-                <br />
-                <strong>Target: </strong>{card.target} ({card.practice_window})
-              </div>
-              <details>
-                <summary>Limitations</summary>
-                <ul>{card.limitations.map((item) => <li key={item}>{item}</li>)}</ul>
-              </details>
-              <details>
-                <summary>Evidence details</summary>
-                <dl className="evidence-details">
-                  <div><dt>Measured effect</dt><dd>{formatEffect(card.effect)}</dd></div>
-                  <div><dt>Role certainty</dt><dd>{Math.round(card.role_certainty.mean_probability * 100)}% ({card.role_certainty.below_threshold ? "below" : "above"} threshold)</dd></div>
-                  <div><dt>Cohort</dt><dd>{card.selected_cohort?.level ?? "No external cohort"}</dd></div>
-                </dl>
-                {card.evidence_statements.length > 0 && (
-                  <ul>{card.evidence_statements.map((item) => <li key={item}>{item}</li>)}</ul>
-                )}
-                {card.source_match_ids.length > 0 && (
-                  <p className="source-links">
-                    Source matches:{" "}
-                    {card.source_match_ids.map((matchId, index) => (
-                      <span key={matchId}>
-                        {index > 0 ? ", " : ""}
-                        <a href={`https://www.opendota.com/matches/${matchId}`} target="_blank" rel="noreferrer">{matchId}</a>
-                      </span>
-                    ))}
-                  </p>
-                )}
-                <p className="provenance">Provenance: {card.provenance.raw_payload_refs.length} raw payload, {card.provenance.normalized_match_refs.length} normalized, and {card.provenance.derived_feature_refs.length} derived references.</p>
-              </details>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="empty">{empty}</p>
-      )}
-    </section>
-  );
+  return <section className="report-section"><div className="section-heading"><p className="eyebrow">Report section</p><h2>{title}</h2></div>{cards.length ? <div className="cards">{cards.map((card) => <article className="insight-card" key={card.insight_id}><span className="confidence">{card.confidence} confidence</span><h3>{card.statement}</h3><p>{card.why_it_matters}</p><div className="metric-row"><span>{card.denominator.matches} matches</span><span>{Math.round(card.parse_coverage.relevant * 100)}% coverage</span><span>{card.denominator.situations} situations</span></div><div className="action"><strong>Next: </strong>{card.behavior}<br /><strong>Target: </strong>{card.target} ({card.practice_window})</div><details><summary>Limitations</summary><ul>{card.limitations.map((item) => <li key={item}>{item}</li>)}</ul></details><details><summary>Evidence details</summary><dl className="evidence-details"><div><dt>Measured effect</dt><dd>{formatEffect(card.effect)}</dd></div><div><dt>Role certainty</dt><dd>{Math.round(card.role_certainty.mean_probability * 100)}% ({card.role_certainty.below_threshold ? "below" : "above"} threshold)</dd></div><div><dt>Cohort</dt><dd>{card.selected_cohort?.level ?? "No external cohort"}</dd></div></dl>{card.evidence_statements.length > 0 && <ul>{card.evidence_statements.map((item) => <li key={item}>{item}</li>)}</ul>}<p className="provenance">Provenance: {card.provenance.raw_payload_refs.length} raw payload, {card.provenance.normalized_match_refs.length} normalized, and {card.provenance.derived_feature_refs.length} derived references.</p></details></article>)}</div> : <p className="empty">{empty}</p>}</section>;
 }
 
 function formatEffect(effect: Card["effect"]): string {
   if (effect.value === null) return "Not available";
-  const value = effect.unit === "rate" || effect.unit === "win rate"
-    ? `${Math.round(effect.value * 100)}%`
-    : effect.value.toFixed(2);
+  const value = effect.unit === "rate" || effect.unit === "win rate" ? `${Math.round(effect.value * 100)}%` : effect.value.toFixed(2);
   return `${value}${effect.direction ? ` (${effect.direction})` : ""}`;
 }

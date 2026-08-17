@@ -35,7 +35,7 @@ def test_patterns_use_upstream_elements_and_qualify_only_reviewed_pairs() -> Non
     values["toolkit_breadth"] = _element("toolkit_breadth", 0.18)
 
     patterns = {item.key: item for item in evaluate_patterns(tuple(values.values()))}
-    result = patterns["broad_pool_narrow_toolkit"]
+    result = patterns["same_playbook"]
 
     assert result.status == "qualified"
     assert set(result.element_keys) == {"hero_pool_breadth", "toolkit_breadth"}
@@ -48,8 +48,20 @@ def test_pattern_stays_unavailable_when_an_upstream_element_is_missing() -> None
         _element(key, None, status="unavailable") if key == "toolkit_breadth" else _element(key)
         for key in ELEMENT_REGISTRY
     ]
-    result = next(item for item in evaluate_patterns(values) if item.key == "broad_pool_narrow_toolkit")
+    result = next(item for item in evaluate_patterns(values) if item.key == "same_playbook")
 
     assert result.status == "unavailable"
     assert result.strength == 0.0
     assert result.evidence == ()
+
+
+def test_modifier_elements_do_not_block_pattern_qualification() -> None:
+    values = {key: _element(key) for key in ELEMENT_REGISTRY}
+    values["combat_involvement"] = _element("combat_involvement", 0.54)
+    values["finisher_orientation"] = _element("finisher_orientation", 0.82)
+    values["death_exposure"] = _element("death_exposure", None, status="unavailable")
+
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "selective_closer")
+
+    assert result.status == "qualified"
+    assert result.modifier_element_keys == ("death_exposure",)

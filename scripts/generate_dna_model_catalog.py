@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the active Free DNA model catalog from production registries."""
+"""Generate the active Free DNA catalog from production registries."""
 
 from __future__ import annotations
 
@@ -12,19 +12,8 @@ API_ROOT = ROOT / "services" / "api"
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
-from app.behavior.archetypes.registry import (  # noqa: E402
-    ARCHETYPE_GROUP_REGISTRY,
-    ARCHETYPE_REGISTRY_VERSION,
-)
-from app.behavior.dimensions import DIMENSION_DEFINITIONS  # noqa: E402
-from app.behavior.elements.registry import (  # noqa: E402
-    ELEMENT_REGISTRY,
-    ELEMENT_REGISTRY_VERSION,
-)
-from app.behavior.patterns.registry import (  # noqa: E402
-    PATTERN_REGISTRY,
-    PATTERN_REGISTRY_VERSION,
-)
+from app.behavior.elements.registry import ELEMENT_REGISTRY, ELEMENT_REGISTRY_VERSION  # noqa: E402
+from app.behavior.patterns.registry import PATTERN_REGISTRY, PATTERN_REGISTRY_VERSION  # noqa: E402
 
 CATALOG_PATH = ROOT / "docs" / "architecture" / "model-catalog.md"
 BEGIN = "<!-- BEGIN GENERATED MODEL CATALOG -->"
@@ -46,10 +35,7 @@ def _table(headers: tuple[str, ...], rows: list[tuple[object, ...]]) -> list[str
         "| " + " | ".join(headers) + " |",
         "| " + " | ".join("---" for _ in headers) + " |",
     ]
-    lines.extend(
-        "| " + " | ".join(_cell(value) for value in row) + " |"
-        for row in rows
-    )
+    lines.extend("| " + " | ".join(_cell(value) for value in row) + " |" for row in rows)
     return lines
 
 
@@ -61,33 +47,23 @@ def render_generated_catalog() -> str:
         *_table(
             ("Registry", "Version", "Active count"),
             [
-                ("Dimensions", "dimensions-1.0.0", len(DIMENSION_DEFINITIONS)),
                 ("Free Elements", ELEMENT_REGISTRY_VERSION, len(ELEMENT_REGISTRY)),
                 ("Free Patterns", PATTERN_REGISTRY_VERSION, len(PATTERN_REGISTRY)),
-                ("Context Archetypes", ARCHETYPE_REGISTRY_VERSION, len(ARCHETYPE_GROUP_REGISTRY)),
             ],
-        ),
-        "",
-        "## Dimensions",
-        "",
-        *_table(
-            ("Key", "Label", "Question the layer answers"),
-            [(item.key, item.label, item.description) for item in DIMENSION_DEFINITIONS],
         ),
         "",
         "## Free Elements",
         "",
         *_table(
-            ("ID", "Key", "Dimension", "Axis", "Minimum sample", "Coverage", "Required capabilities"),
+            ("ID", "Key", "Label", "Axis", "Minimum sample", "Coverage"),
             [
                 (
                     f"E{index:02d}",
                     item.key,
-                    item.dimension_key,
+                    item.label,
                     f"{item.axis_left or '—'} → {item.axis_right or '—'}",
                     item.minimum_sample,
                     f"{item.minimum_coverage:.0%}",
-                    _list(item.required_capabilities),
                 )
                 for index, item in enumerate(ELEMENT_REGISTRY.values(), start=1)
             ],
@@ -96,32 +72,17 @@ def render_generated_catalog() -> str:
         "## Free Patterns",
         "",
         *_table(
-            ("ID", "Key", "Kind", "Required Elements", "Optional Elements", "Deep diagnostic handoff"),
+            ("ID", "Key", "Family", "Tier", "Required Elements", "Modifier Elements"),
             [
                 (
                     f"P{index:02d}",
                     item.key,
-                    item.kind,
+                    item.family,
+                    item.tier,
                     _list(item.required_elements),
-                    _list(item.optional_elements),
-                    _list(item.required_deep_elements),
+                    _list(item.modifier_elements),
                 )
                 for index, item in enumerate(PATTERN_REGISTRY.values(), start=1)
-            ],
-        ),
-        "",
-        "## Context Archetype groups",
-        "",
-        *_table(
-            ("Group", "Required Elements", "Optional Patterns", "Finite labels"),
-            [
-                (
-                    group.key,
-                    _list(group.required_elements),
-                    _list(group.optional_patterns),
-                    _list(tuple(f"{item.key} — {item.label}" for item in group.prototypes)),
-                )
-                for group in ARCHETYPE_GROUP_REGISTRY.values()
             ],
         ),
         "",
@@ -132,13 +93,13 @@ def render_generated_catalog() -> str:
             [
                 (
                     "Free",
-                    f"{len(ELEMENT_REGISTRY)} Elements · {len(PATTERN_REGISTRY)} Patterns · {len(ARCHETYPE_GROUP_REGISTRY)} context groups",
+                    f"{len(ELEMENT_REGISTRY)} Elements · {len(PATTERN_REGISTRY)} Patterns · Hero Portfolio",
                     "One bounded summary-history read; no match-detail or replay-parse reads",
                 ),
                 (
                     "Deep Scan",
-                    "Selected-match diagnostic families are a separate handoff",
-                    "Explicit opt-in, bounded detail reads, and coverage gates",
+                    "Explicit selected-match analysis",
+                    "Separate opt-in budgets and coverage gates",
                 ),
             ],
         ),
@@ -160,7 +121,6 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if the catalog is stale")
     args = parser.parse_args()
-
     current = CATALOG_PATH.read_text(encoding="utf-8")
     expected = _replace_generated_block(current, render_generated_catalog())
     if args.check:

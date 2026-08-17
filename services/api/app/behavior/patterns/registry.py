@@ -1,10 +1,10 @@
-"""Reviewed v1 Pattern hypotheses; no unrestricted pair mining."""
+"""Canonical reviewed v4 Patterns over upstream Element results."""
 
 from __future__ import annotations
 
 from app.behavior.models import PatternDefinition
 
-PATTERN_REGISTRY_VERSION = "free-patterns-1.0.0"
+PATTERN_REGISTRY_VERSION = "free-patterns-4.0.0"
 
 
 def _pattern(
@@ -16,7 +16,9 @@ def _pattern(
     description: str,
     why: str,
     *,
-    optional: tuple[str, ...] = (),
+    modifiers: tuple[str, ...] = (),
+    family: str,
+    tier: str,
     diagnostic_questions: tuple[str, ...] = (),
     required_deep_elements: tuple[str, ...] = (),
 ) -> PatternDefinition:
@@ -27,7 +29,7 @@ def _pattern(
         kind=kind,  # type: ignore[arg-type]
         dimension_keys=dimensions,
         required_elements=required,
-        optional_elements=optional,
+        modifier_elements=modifiers,
         minimum_element_confidence=0.45,
         evaluator_key=key,
         product_tier="free",
@@ -35,32 +37,118 @@ def _pattern(
         why_it_matters=why,
         copy_guardrails=("Describe the relationship; do not imply psychology or causality.",),
         version=PATTERN_REGISTRY_VERSION,
+        family=family,
+        tier=tier,  # type: ignore[arg-type]
         diagnostic_questions=diagnostic_questions,
         required_deep_elements=required_deep_elements,
     )
 
 
 PATTERNS: tuple[PatternDefinition, ...] = (
-    _pattern("broad_pool_narrow_toolkit", "Broad Pool, Narrow Toolkit", "identity", ("hero_pool_breadth", "toolkit_breadth"), ("hero_identity",), "Many hero picks cluster around fewer recurring tools.", "It separates hero count from the playstyle repeated underneath.",),
-    _pattern("broad_pool_narrow_safety_zone", "Broad Pool, Narrow Safety Zone", "contradiction", ("hero_pool_breadth", "off_pool_performance"), ("hero_identity", "adaptability"), "A broad selection range sits beside a familiar-pool performance edge.", "It shows where exploration and results diverge without calling the difference fear.", optional=("post_loss_familiarity_shift", "signature_dependence")),
-    _pattern("specialist_transferable_style", "Specialist, Transferable Style", "identity", ("hero_pool_breadth", "off_pool_activity_stability"), ("hero_identity", "adaptability"), "A narrow hero pool still carries a similar activity profile outside it.", "It distinguishes preference from an observable activity drop.", optional=("off_pool_performance",)),
-    _pattern("role_anchor_hero_explorer", "Role Anchor, Hero Explorer", "identity", ("role_breadth", "hero_pool_breadth"), ("role_identity", "hero_identity"), "Hero choice varies while credible role context stays concentrated.", "It makes the role context, not one pick, the through-line.",),
-    _pattern("hero_anchor_role_flex", "Hero Anchor, Role Flex", "identity", ("hero_pool_breadth", "role_breadth"), ("hero_identity", "role_identity"), "A smaller hero pool appears across a wider set of role contexts.", "It distinguishes hero identity from role-context variety.",),
-    _pattern("signature_strength_with_tax", "Signature Strength With a Tax", "leak", ("signature_dependence", "off_pool_performance"), ("hero_identity", "adaptability"), "Established heroes are a real performance strength while off-pool results lag.", "It keeps the strength and the constraint in the same frame.", optional=("hero_exploration_rate",)),
-    _pattern("activity_travels_better_than_results", "Activity Travels Better Than Results", "contradiction", ("off_pool_activity_stability", "off_pool_performance"), ("combat_expression", "adaptability"), "Off-pool activity stays closer to familiar activity than off-pool results do.", "It points to a future diagnostic question without pretending summary data explains the gap.", diagnostic_questions=("Does laning efficiency stay stable off-pool?", "Do item timings become more variable?", "Does teamfight arrival shift?"), required_deep_elements=("lane_efficiency", "item_timing_reliability", "teamfight_participation")),
-    _pattern("high_involvement_controlled_exposure", "High Involvement, Controlled Exposure", "style", ("combat_involvement", "death_exposure"), ("combat_expression", "risk_survival"), "The player joins many kill events without a similarly high death rate.", "It describes frequent participation with a separate exposure measure.",),
-    _pattern("high_involvement_high_exposure", "High Involvement, High Exposure", "style", ("combat_involvement", "death_exposure"), ("combat_expression", "risk_survival"), "Frequent participation arrives with frequent deaths relative to time.", "It makes the participation/exposure trade-off visible.", optional=("post_loss_death_shift",), diagnostic_questions=("Which fight timings carry the highest cost?",), required_deep_elements=("death_cost", "teamfight_participation")),
-    _pattern("selective_finisher", "Selective Finisher", "style", ("combat_involvement", "finisher_orientation", "death_exposure"), ("combat_expression", "risk_survival"), "Lower event volume combines with a higher kill share and lower death exposure.", "It describes event distribution, not kill stealing or intent.",),
-    _pattern("losses_change_picks_more_than_pace", "Losses Change Picks More Than Pace", "trajectory", ("post_loss_familiarity_shift", "post_loss_activity_shift"), ("hero_identity", "session_response"), "Hero selection moves after losses while activity stays comparatively close.", "It replaces unsafe trust language with observable selection response.", optional=("post_loss_performance_response",)),
-    _pattern("losses_change_pace_more_than_picks", "Losses Change Pace More Than Picks", "trajectory", ("post_loss_familiarity_shift", "post_loss_activity_shift"), ("hero_identity", "session_response"), "Activity moves after losses while hero familiarity changes little.", "It separates selection response from activity response.", optional=("post_loss_death_shift",)),
-    _pattern("long_session_tax", "Long Session Tax", "leak", ("session_length_tendency", "late_session_performance"), ("session_response",), "Long sessions are common and later-session performance declines.", "It turns a session shape into a testable queue condition, not a permanent label.", optional=("post_loss_performance_response",), diagnostic_questions=("Does a game-four opt-in change the result?",), required_deep_elements=("advantage_protection",)),
-    _pattern("marathon_stability", "Marathon Stability", "edge", ("session_length_tendency", "late_session_performance"), ("session_response",), "Long sessions are common and later-session performance holds or improves.", "It is the strength counterpart to a late-session leak.",),
-    _pattern("form_identity_divergence", "Form Changed, Style Didn’t", "trajectory", ("recent_form_shift", "hero_pool_stability", "recent_activity_shift"), ("consistency_form", "hero_identity"), "Recent performance moves while hero distribution and activity remain comparatively stable.", "It keeps current form separate from a claim that identity changed.",),
+    _pattern(
+        "same_playbook", "Same Playbook", "identity",
+        ("hero_pool_breadth", "toolkit_breadth"), ("hero_identity",),
+        "The player changes hero names more than the kinds of Dota jobs those heroes perform.",
+        "It separates hero-name variety from the toolkit repeated underneath.",
+        family="breadth_toolkit", tier="A",
+    ),
+    _pattern(
+        "comfort_edge", "Comfort Edge", "contradiction",
+        ("hero_pool_breadth", "off_pool_performance"), ("hero_identity", "adaptability"),
+        "The playable pool is wider than the range where current results reliably hold.",
+        "It shows where selection range and result transfer diverge without assigning a motive.",
+        modifiers=("hero_exploration_rate", "post_loss_familiarity_shift"),
+        family="breadth_transfer", tier="A",
+    ),
+    _pattern(
+        "partial_transfer", "Partial Transfer", "contradiction",
+        ("off_pool_activity_stability", "off_pool_performance"), ("combat_expression", "adaptability"),
+        "Fight presence travels off-pool better than results do.",
+        "It weakens the simple explanation that the player merely disappears from fights outside comfort.",
+        family="presence_transfer", tier="A",
+    ),
+    _pattern(
+        "stable_style", "Stable Style", "trajectory",
+        ("recent_form_shift", "hero_pool_stability", "recent_activity_shift"), ("consistency_form", "hero_identity"),
+        "Recent results changed more than the visible hero-pool shape and fight pace did.",
+        "It keeps current form separate from a claim that the player’s whole style changed.",
+        family="form_stability", tier="A",
+    ),
+    _pattern(
+        "versatile_core", "Versatile Core", "identity",
+        ("hero_pool_breadth", "toolkit_breadth"), ("hero_identity",),
+        "A small hero count still covers meaningfully different Dota jobs.",
+        "It distinguishes a focused pool from a narrow functional toolkit.",
+        family="breadth_toolkit", tier="A",
+    ),
+    _pattern(
+        "proven_flexibility", "Proven Flexibility", "edge",
+        ("hero_pool_breadth", "off_pool_performance"), ("hero_identity", "adaptability"),
+        "The player’s broader pool is backed by performance transfer, not only selection variety.",
+        "It makes a broad pool meaningful without treating variety alone as proof.",
+        family="breadth_transfer", tier="A",
+    ),
+    _pattern(
+        "selective_closer", "Selective Closer", "style",
+        ("combat_involvement", "finisher_orientation"), ("combat_expression",),
+        "The player is not everywhere, but their appearances skew toward final kill credit.",
+        "It describes event volume and finishing expression without making deaths part of the gate.",
+        modifiers=("death_exposure",), family="involvement_finishing", tier="B",
+    ),
+    _pattern(
+        "loss_response", "Loss Response", "trajectory",
+        ("post_loss_familiarity_shift", "post_loss_activity_shift"), ("hero_identity", "session_response"),
+        "After a loss, hero familiarity and next-game activity can move together or separately.",
+        "It exposes observable post-loss selection and activity movement without naming a mental state.",
+        family="post_loss", tier="B",
+    ),
+    _pattern(
+        "controlled_presence", "Controlled Presence", "style",
+        ("combat_involvement", "death_exposure"), ("combat_expression", "risk_survival"),
+        "High involvement appears without a similarly high death-exposure signal.",
+        "It describes frequent participation with a separate exposure measure.",
+        modifiers=("finisher_orientation",), family="involvement_deaths", tier="B",
+    ),
+    _pattern(
+        "heavy_exposure", "Heavy Exposure", "leak",
+        ("combat_involvement", "death_exposure"), ("combat_expression", "risk_survival"),
+        "High presence currently carries a visible death cost.",
+        "It makes the participation/exposure trade-off visible without calling it reckless.",
+        modifiers=("finisher_orientation",), family="involvement_deaths", tier="B",
+    ),
+    _pattern(
+        "session_fade", "Session Fade", "leak",
+        ("session_length_tendency", "late_session_performance"), ("session_response",),
+        "Later games in sufficiently long sessions show a repeated weaker result signal.",
+        "It turns session shape into a testable observation without claiming fatigue.",
+        family="session_drift", tier="B",
+    ),
+    _pattern(
+        "session_rise", "Session Rise", "edge",
+        ("session_length_tendency", "late_session_performance"), ("session_response",),
+        "Later-session results improve often enough to stand out.",
+        "It surfaces a late-session improvement pattern without claiming warm-up or resilience.",
+        family="session_drift", tier="B",
+    ),
+    _pattern(
+        "session_hold", "Session Hold", "edge",
+        ("session_length_tendency", "late_session_performance"), ("session_response",),
+        "Long sessions exist without a meaningful late-session result decline.",
+        "It distinguishes a stable long-session result signal from a claim about fatigue resistance.",
+        family="session_drift", tier="B",
+    ),
+    _pattern(
+        "assist_presence", "Assist Presence", "style",
+        ("combat_involvement", "finisher_orientation"), ("combat_expression",),
+        "Meaningful fight involvement is expressed more through assists than final kill credit.",
+        "It describes the visible kill/assist split without inferring duties from assists alone.",
+        modifiers=("death_exposure",), family="involvement_finishing", tier="B",
+    ),
 )
 
 PATTERN_REGISTRY = {item.key: item for item in PATTERNS}
+EXPECTED_PATTERN_KEYS = frozenset(item.key for item in PATTERNS)
+if len(PATTERN_REGISTRY) != 14 or set(PATTERN_REGISTRY) != EXPECTED_PATTERN_KEYS:
+    raise ValueError("The active Free Pattern registry must contain exactly the canonical 14 Patterns")
 
-if len(PATTERN_REGISTRY) != 15:
-    raise ValueError("The active Free Pattern registry must contain exactly 15 Patterns")
-
-__all__ = ["PATTERN_REGISTRY", "PATTERNS", "PATTERN_REGISTRY_VERSION"]
+__all__ = ["PATTERN_REGISTRY", "PATTERNS", "PATTERN_REGISTRY_VERSION", "EXPECTED_PATTERN_KEYS"]

@@ -1,18 +1,14 @@
 # Architecture notes
 
-These pages describe the implementation currently shipped by the repository.
-They keep the useful Dota vocabulary, but the data boundary stays literal:
-summary history can show recurring match behavior; it cannot prove a motive,
-cause, or replay-level explanation.
+Read in order:
 
-## Read in this order
+1. [Free DNA system](free-dna-system.md)
+2. [Elements](elements.md)
+3. [Patterns](patterns.md)
+4. [Hero Portfolio](hero-portfolio.md)
+5. [Report flow](report-flow.md)
+6. [Data provenance](data-provenance.md)
+7. [Model catalog](model-catalog.md)
 
-1. [System overview](system-overview.md) for the pipeline and ownership map.
-2. [Free DNA model guide](free-dna-model-guide.md) for the complete human-readable explanation of the model.
-3. [Model catalog](model-catalog.md) for the compact, generated registry reference.
-4. [Root architecture summary](../../ARCHITECTURE.md) for the short version.
-
-The guide explains what the model means. The catalog’s tables are generated
-from the production registries and explain what is currently registered. If a
-model key changes, update the registry and run `make dna-catalog`; do not
-hand-edit the generated block.
+The catalog is generated from production registries. Change a registry first,
+then run make dna-catalog and make docs-check.

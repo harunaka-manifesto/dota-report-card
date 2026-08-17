@@ -1,29 +1,30 @@
-from __future__ import annotations
-
-from app.behavior.archetypes.registry import ARCHETYPE_GROUP_REGISTRY
 from app.behavior.catalog import validate_behavior_catalog
-from app.behavior.dimensions import DIMENSIONS_BY_KEY
-from app.behavior.elements.registry import ELEMENT_REGISTRY
-from app.behavior.patterns.registry import PATTERN_REGISTRY
+from app.behavior.elements.registry import ELEMENT_REGISTRY, EXPECTED_ELEMENT_KEYS
+from app.behavior.patterns.registry import EXPECTED_PATTERN_KEYS, PATTERN_REGISTRY
 
 
-def test_free_behavior_catalog_has_the_planned_finite_surface() -> None:
+def test_v4_catalog_contains_exactly_17_elements_and_14_patterns() -> None:
     validate_behavior_catalog()
+    assert set(ELEMENT_REGISTRY) == set(EXPECTED_ELEMENT_KEYS)
+    assert set(PATTERN_REGISTRY) == set(EXPECTED_PATTERN_KEYS)
+    assert len(ELEMENT_REGISTRY) == 17
+    assert len(PATTERN_REGISTRY) == 14
 
-    assert len(DIMENSIONS_BY_KEY) == 10
-    assert len(ELEMENT_REGISTRY) == 23
-    assert len(PATTERN_REGISTRY) == 15
-    assert set(ARCHETYPE_GROUP_REGISTRY) == {
-        "hero_identity",
-        "combat_expression",
-        "session_style",
+
+def test_patterns_keep_required_and_modifier_elements_separate() -> None:
+    for pattern in PATTERN_REGISTRY.values():
+        assert len(pattern.required_elements) >= 2
+        assert not set(pattern.required_elements) & set(pattern.modifier_elements)
+        assert all(key in ELEMENT_REGISTRY for key in (*pattern.required_elements, *pattern.modifier_elements))
+
+
+def test_retired_element_keys_are_not_public_registry_entries() -> None:
+    retired = {
+        "signature_dependence",
+        "role_switch_rate",
+        "off_role_performance",
+        "long_game_performance_shift",
+        "post_loss_performance_response",
+        "post_loss_death_shift",
     }
-    assert all(item.product_tier == "free" for item in ELEMENT_REGISTRY.values())
-    assert all(len(item.required_elements) >= 2 for item in PATTERN_REGISTRY.values())
-
-
-def test_every_archetype_prototype_references_registered_elements_and_patterns() -> None:
-    for group in ARCHETYPE_GROUP_REGISTRY.values():
-        for prototype in group.prototypes:
-            assert set(prototype.required_elements) <= set(ELEMENT_REGISTRY)
-            assert set(prototype.optional_patterns) <= set(PATTERN_REGISTRY)
+    assert not retired & set(ELEMENT_REGISTRY)

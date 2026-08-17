@@ -1,140 +1,123 @@
-"""Typed, versioned copy resolution for public Free DNA snapshots."""
+"""Typed, versioned copy resolution for public Free DNA v4 snapshots."""
 
 from __future__ import annotations
 
 from string import Formatter
-from typing import Any, Literal
+from typing import Any
 
+from app.behavior.elements.registry import EXPECTED_ELEMENT_KEYS
+from app.behavior.patterns.registry import EXPECTED_PATTERN_KEYS
 from app.content.catalog import load_free_dna_copy
 
-DimensionStatus = Literal["available", "limited", "unavailable"]
-_DIMENSION_KEYS = (
-    "breadth", "role", "adaptability", "activity", "orientation",
-    "resilience", "endurance", "rhythm",
-)
 _FORBIDDEN_TERMS = ("diagnos", "bad player", "good player", "grade", "personality type")
-_FINDING_KEYS = (
-    "broad_pool_narrow_safety_zone",
-    "many_heroes_same_toolkit",
-    "activity_travels_better_than_results",
-    "losses_change_trust_more_than_pace",
-    "long_session_tax",
-    "long_game_edge",
-    "long_game_leak",
-    "form_identity_divergence",
-    "strength_with_tax",
-    "signature_hero_mechanism",
-    "role_vs_hero_identity",
-    "volatile_results_stable_style",
-    "hidden_strength_fallback",
+_PAGE_KEYS = ("analysis", "report_reveal", "element_scan", "final_card", "deep_dive")
+_PORTFOLIO_KEYS = ("common_thread", "exception", "evolution", "hero_mirror")
+_EVOLUTION_VARIANTS = (
+    "new_heroes_new_toolkit",
+    "new_heroes_same_toolkit",
+    "stable_core_new_branch",
+    "broadly_stable",
 )
-
-
-def resolve_dimension_copy(key: str, status: DimensionStatus) -> dict[str, Any]:
-    if status not in {"available", "limited", "unavailable"}:
-        raise ValueError(f"Unknown Free DNA dimension status: {status}")
-    catalog = validate_copy_catalog()
-    dimension = catalog["dimensions"].get(key)
-    if not isinstance(dimension, dict):
-        raise ValueError(f"Unknown Free DNA dimension copy key: {key}")
-    return {
-        "headline_key": f"free_dna.dimension.{key}.headline",
-        "receipt_key": f"free_dna.dimension.{key}.receipt",
-        "receipt_params": {"status": status},
-        "headline": str(dimension["headline"]),
-        "body": str(catalog["dimension"].get(status, "Signal available.")),
-        "left_label": str(dimension.get("left", "Lower")),
-        "right_label": str(dimension.get("right", "Higher")),
-    }
 
 
 def resolve_page_copy(key: str, **params: str) -> dict[str, str]:
     catalog = validate_copy_catalog()
-    pages = catalog["pages"]
-    page = pages.get(key)
+    page = catalog["pages"].get(key)
     if not isinstance(page, dict) or not isinstance(page.get("title"), str):
         raise ValueError(f"Unknown Free DNA page copy key: {key}")
-    title_template = str(page["title"])
-    body_template = str(page.get("body", ""))
-    fields = {
-        field_name
-        for template in (title_template, body_template)
-        for _, field_name, _, _ in Formatter().parse(template)
-        if field_name
-    }
-    unknown = fields - set(params)
+    return _render_pair(page, params, label="page")
+
+
+def resolve_element_copy(key: str, **params: str) -> dict[str, str]:
+    catalog = validate_copy_catalog()
+    return _resolve_model_copy(catalog, "elements", key, params)
+
+
+def resolve_pattern_copy(key: str, **params: str) -> dict[str, str]:
+    catalog = validate_copy_catalog()
+    return _resolve_model_copy(catalog, "patterns", key, params)
+
+
+def resolve_portfolio_copy(key: str, **params: str) -> str:
+    catalog = validate_copy_catalog()
+    parts = key.split(".", 1)
+    if len(parts) != 2 or parts[0] not in _PORTFOLIO_KEYS:
+        raise ValueError(f"Unknown Hero Portfolio copy key: {key}")
+    value: Any = catalog["portfolio"].get(parts[0])
+    if not isinstance(value, dict) or not isinstance(value.get(parts[1]), str):
+        raise ValueError(f"Unknown Hero Portfolio copy key: {key}")
+    template = value[parts[1]]
+    fields = {name for _, name, _, _ in Formatter().parse(template) if name}
+    missing = fields - set(params)
     extra = set(params) - fields
-    if unknown:
-        raise ValueError(f"Missing copy parameters: {sorted(unknown)}")
+    if missing:
+        raise ValueError(f"Missing copy parameters: {sorted(missing)}")
     if extra:
         raise ValueError(f"Unexpected copy parameters: {sorted(extra)}")
-    title = title_template.format(**params)
-    body = body_template.format(**params)
-    return {"title": title, "body": body}
-
-
-def resolve_finding_copy(key: str, **params: str) -> dict[str, str]:
-    """Resolve one versioned finding template with explicit parameters."""
-
-    catalog = validate_copy_catalog()
-    finding = catalog["findings"].get(key)
-    if not isinstance(finding, dict):
-        raise ValueError(f"Unknown Free DNA finding copy key: {key}")
-    output: dict[str, str] = {}
-    for field in ("eyebrow", "headline", "body", "interpretation", "share"):
-        template = finding.get(field)
-        if not isinstance(template, str):
-            raise ValueError(f"Finding copy is missing {field}: {key}")
-        fields = {
-            field_name
-            for _, field_name, _, _ in Formatter().parse(template)
-            if field_name
-        }
-        unknown = fields - set(params)
-        if unknown:
-            raise ValueError(f"Missing finding copy parameters: {sorted(unknown)}")
-        output[field] = template.format(**params)
-    return output
-
-
-def resolve_experiment_title(key: str) -> str:
-    catalog = validate_copy_catalog()
-    experiment = catalog["experiments"].get(key)
-    if not isinstance(experiment, dict) or not isinstance(experiment.get("title"), str):
-        raise ValueError(f"Unknown Free DNA experiment copy key: {key}")
-    return str(experiment["title"])
+    return template.format(**params)
 
 
 def validate_copy_catalog() -> dict[str, Any]:
     catalog = load_free_dna_copy()
-    dimensions = catalog.get("dimensions")
-    if not isinstance(dimensions, dict) or set(dimensions) != set(_DIMENSION_KEYS):
-        raise ValueError("Free DNA copy catalog must cover all eight dimensions")
     pages = catalog.get("pages")
-    if not isinstance(pages, dict):
-        raise ValueError("Free DNA copy catalog is missing page copy")
-    for key in _DIMENSION_KEYS:
-        dimension = dimensions[key]
-        if not isinstance(dimension, dict) or not dimension.get("headline"):
-            raise ValueError(f"Missing headline copy for dimension: {key}")
-    for key in ("steam_input", "player_found", "analysis", "report_reveal", "dna_intro", "dna_summary", "archetype", "heroes_intro", "signature_hero", "comfort_picks", "hero_pattern", "hero_recommendations", "heroes_summary", "final_card", "deep_dive"):
-        page = pages.get(key)
-        if not isinstance(page, dict) or not page.get("title"):
-            raise ValueError(f"Missing page copy: {key}")
-    findings = catalog.get("findings")
-    if not isinstance(findings, dict) or set(findings) != set(_FINDING_KEYS):
-        raise ValueError("Free DNA copy catalog must cover every registered finding")
-    for key in _FINDING_KEYS:
-        value = findings[key]
-        if not isinstance(value, dict) or any(not isinstance(value.get(field), str) for field in ("eyebrow", "headline", "body", "interpretation", "share")):
-            raise ValueError(f"Incomplete finding copy: {key}")
-        if len(value["headline"]) > 90 or len(value["share"]) > 120:
-            raise ValueError(f"Finding headline/share copy is too long: {key}")
-    experiments = catalog.get("experiments")
-    if not isinstance(experiments, dict):
-        raise ValueError("Free DNA copy catalog is missing experiments")
+    if not isinstance(pages, dict) or set(pages) != set(_PAGE_KEYS):
+        raise ValueError("Free DNA copy catalog must cover every v4 story page family")
+    for key in _PAGE_KEYS:
+        value = pages[key]
+        if not isinstance(value, dict) or not isinstance(value.get("title"), str) or not isinstance(value.get("body"), str):
+            raise ValueError(f"Incomplete page copy: {key}")
+
+    for section, expected in (("elements", EXPECTED_ELEMENT_KEYS), ("patterns", EXPECTED_PATTERN_KEYS)):
+        values = catalog.get(section)
+        if not isinstance(values, dict) or set(values) != set(expected):
+            raise ValueError(f"Free DNA copy catalog must cover every active {section[:-1]}")
+        for key in expected:
+            value = values[key]
+            if not isinstance(value, dict) or not isinstance(value.get("title"), str) or not isinstance(value.get("body"), str):
+                raise ValueError(f"Incomplete {section[:-1]} copy: {key}")
+
+    portfolio = catalog.get("portfolio")
+    if not isinstance(portfolio, dict) or set(portfolio) != set(_PORTFOLIO_KEYS):
+        raise ValueError("Free DNA copy catalog must cover the Hero Portfolio")
+    for key in ("common_thread", "exception"):
+        value = portfolio[key]
+        required = ("question", "correct", "incorrect", "answer", "reveal", "boundary")
+        if not isinstance(value, dict) or any(not isinstance(value.get(item), str) for item in required):
+            raise ValueError(f"Incomplete portfolio copy: {key}")
+    mirror = portfolio["hero_mirror"]
+    if not isinstance(mirror, dict) or any(not isinstance(mirror.get(key), str) for key in ("closed", "available", "unavailable", "qualifier", "guardrail")):
+        raise ValueError("Incomplete portfolio copy: hero_mirror")
+    evolution = portfolio["evolution"]
+    if not isinstance(evolution, dict) or not isinstance(evolution.get("question"), str) or not isinstance(evolution.get("check"), str):
+        raise ValueError("Incomplete portfolio copy: evolution")
+    if any(not isinstance(evolution.get(key), str) for key in _EVOLUTION_VARIANTS):
+        raise ValueError("Evolution copy must cover every public variant")
     _lint_forbidden_terms(catalog)
     return catalog
+
+
+def _resolve_model_copy(
+    catalog: dict[str, Any], section: str, key: str, params: dict[str, str]
+) -> dict[str, str]:
+    value = catalog[section].get(key)
+    if not isinstance(value, dict):
+        raise ValueError(f"Unknown Free DNA {section[:-1]} copy key: {key}")
+    return _render_pair(value, params, label=section[:-1])
+
+
+def _render_pair(value: dict[str, Any], params: dict[str, str], *, label: str) -> dict[str, str]:
+    title = value.get("title")
+    body = value.get("body")
+    if not isinstance(title, str) or not isinstance(body, str):
+        raise ValueError(f"Incomplete {label} copy")
+    fields = {name for template in (title, body) for _, name, _, _ in Formatter().parse(template) if name}
+    missing = fields - set(params)
+    extra = set(params) - fields
+    if missing:
+        raise ValueError(f"Missing copy parameters: {sorted(missing)}")
+    if extra:
+        raise ValueError(f"Unexpected copy parameters: {sorted(extra)}")
+    return {"title": title.format(**params), "body": body.format(**params)}
 
 
 def _lint_forbidden_terms(value: Any) -> None:
@@ -149,3 +132,12 @@ def _lint_forbidden_terms(value: Any) -> None:
     elif isinstance(value, list):
         for child in value:
             _lint_forbidden_terms(child)
+
+
+__all__ = [
+    "resolve_element_copy",
+    "resolve_page_copy",
+    "resolve_pattern_copy",
+    "resolve_portfolio_copy",
+    "validate_copy_catalog",
+]

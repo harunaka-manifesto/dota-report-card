@@ -23,7 +23,7 @@ from app.behavior.comparisons import (
     robust_delta,
     robust_median,
 )
-from app.behavior.elements.registry import ELEMENT_REGISTRY
+from app.behavior.elements.registry import ELEMENT_REGISTRY, zone_for_score
 from app.behavior.evidence import BehaviorEvidence
 from app.behavior.models import Confidence, ElementResult, ElementStatus
 from app.dna.dimensions import activity as legacy_activity
@@ -147,6 +147,7 @@ def _result(
         axis_left=definition.axis_left,
         axis_right=definition.axis_right,
         source_match_ids=source_match_ids,
+        zone=zone_for_score(key, final_score),
     )
 
 
@@ -171,6 +172,7 @@ def _unavailable(key: str, reasons: tuple[str, ...]) -> ElementResult:
         methodology_version=definition.version,
         axis_left=definition.axis_left,
         axis_right=definition.axis_right,
+        zone=None,
     )
 
 
@@ -304,33 +306,6 @@ def _score_toolkit_breadth(context: SummaryBehaviorContext) -> ElementResult:
     )
 
 
-def _score_signature_dependence(context: SummaryBehaviorContext) -> ElementResult:
-    familiar, off_pool, methodology = _evaluation_groups(context)
-    familiar_values = _performance_values(context, familiar)
-    off_values = _performance_values(context, off_pool)
-    if len(familiar_values) < 15 or len(off_values) < 15:
-        return _result("signature_dependence", score=None, sample_size=len(familiar_values) + len(off_values), effective_sample_size=min(len(familiar_values), len(off_values)), coverage=(len(familiar_values) + len(off_values)) / max(len(context.matches), 1), missing_reasons=("familiar_or_comparison_cell_too_small",))
-    delta = robust_delta(off_values, familiar_values) or 0.0
-    return _result(
-        "signature_dependence",
-        score=bounded_delta_score(delta, 0.30),
-        sample_size=len(familiar_values) + len(off_values),
-        effective_sample_size=min(len(familiar_values), len(off_values)) * 2,
-        coverage=(len(familiar_values) + len(off_values)) / max(len(context.matches), 1),
-        stability=0.85 if methodology == "time_split_70_30" else 0.60,
-        quality=0.80,
-        evidence=(
-            BehaviorEvidence("familiar_performance", robust_median(familiar_values), "proxy", len(familiar_values)),
-            BehaviorEvidence("off_pool_performance", robust_median(off_values), "proxy", len(off_values)),
-            BehaviorEvidence("familiar_minus_off_pool_delta", round(delta, 4), "delta", len(familiar_values) + len(off_values)),
-            BehaviorEvidence("evaluation_method", methodology, "method", len(familiar_values) + len(off_values)),
-        ),
-        raw_metrics={"delta": delta, "method": methodology},
-        confounders=("patch, draft quality, and hero learning can differ between windows",),
-        source_match_ids=tuple(item.match_id for item in familiar + off_pool),
-    )
-
-
 def _score_post_loss_familiarity_shift(context: SummaryBehaviorContext) -> ElementResult:
     losses: list[float] = []
     wins: list[float] = []
@@ -391,26 +366,6 @@ def _score_role_breadth(context: SummaryBehaviorContext) -> ElementResult:
         raw_metrics={"dominant_role_share": dominant, "normalized_entropy": features.normalized_role_entropy},
         confounders=("summary lane labels are hints and may miss role swaps",),
         source_match_ids=features.role_match_ids,
-    )
-
-
-def _score_role_switch_rate(context: SummaryBehaviorContext) -> ElementResult:
-    valid = [item for item in context.ordered_matches if item.role_hint is not None and item.started_at is not None]
-    pairs = [(left, right) for left, right in zip(valid, valid[1:], strict=False) if left.session_id == right.session_id or left.session_id is None or right.session_id is None]
-    if len(pairs) < 20:
-        return _result("role_switch_rate", score=None, sample_size=len(pairs), effective_sample_size=len(pairs), coverage=len(valid) / max(len(context.matches), 1), missing_reasons=("insufficient_role_transitions",))
-    switched = sum(left.role_hint != right.role_hint for left, right in pairs)
-    value = switched / len(pairs)
-    return _result(
-        "role_switch_rate",
-        score=value,
-        sample_size=len(pairs),
-        effective_sample_size=len(pairs),
-        coverage=len(valid) / max(len(context.matches), 1),
-        evidence=(BehaviorEvidence("within_history_switch_rate", value, "share", len(pairs), source_match_ids=tuple(item.match_id for pair in pairs for item in pair)), BehaviorEvidence("valid_role_transitions", len(pairs), "transitions", len(pairs))),
-        raw_metrics={"switch_rate": value, "switches": switched, "transitions": len(pairs)},
-        confounders=("missing role hints remove transitions from the denominator",),
-        source_match_ids=tuple(item.match_id for pair in pairs for item in pair),
     )
 
 
@@ -498,35 +453,6 @@ def _score_off_pool_activity_stability(context: SummaryBehaviorContext) -> Eleme
     )
 
 
-def _score_off_role_performance(context: SummaryBehaviorContext) -> ElementResult:
-    ordered = [item for item in context.ordered_matches if item.role_hint is not None and item.won is not None]
-    if len(ordered) < 24 or context.features.role_coverage < 0.50:
-        return _result("off_role_performance", score=None, sample_size=len(ordered), effective_sample_size=len(ordered), coverage=context.features.role_coverage, missing_reasons=("insufficient_credible_role_coverage",))
-    split = max(12, int(len(ordered) * 0.70))
-    counts = Counter(item.role_hint for item in ordered[:split])
-    familiar_roles = {role for role, count in counts.items() if role is not None and count >= 3}
-    evaluation = ordered[split:]
-    familiar = [item for item in evaluation if item.role_hint in familiar_roles]
-    off_role = [item for item in evaluation if item.role_hint not in familiar_roles]
-    left = _performance_values(context, familiar)
-    right = _performance_values(context, off_role)
-    if len(left) < 12 or len(right) < 12:
-        return _result("off_role_performance", score=None, sample_size=len(left) + len(right), effective_sample_size=min(len(left), len(right)), coverage=context.features.role_coverage, missing_reasons=("familiar_or_off_role_cell_too_small",))
-    delta = robust_delta(left, right) or 0.0
-    return _result(
-        "off_role_performance",
-        score=bounded_delta_score(delta, 0.30),
-        sample_size=len(left) + len(right),
-        effective_sample_size=min(len(left), len(right)) * 2,
-        coverage=(len(left) + len(right)) / max(len(context.matches), 1),
-        quality=0.70,
-        evidence=(BehaviorEvidence("familiar_role_performance", robust_median(left), "proxy", len(left)), BehaviorEvidence("off_role_performance", robust_median(right), "proxy", len(right)), BehaviorEvidence("off_role_minus_familiar_delta", round(delta, 4), "delta", len(left) + len(right))),
-        raw_metrics={"delta": delta, "familiar_roles": ",".join(sorted(familiar_roles))},
-        confounders=("summary role hints have a lower evidence ceiling than parsed positions",),
-        source_match_ids=tuple(item.match_id for item in familiar + off_role),
-    )
-
-
 def _score_performance_volatility(context: SummaryBehaviorContext) -> ElementResult:
     values = list(context.features.performance_by_match.values())
     if len(values) < 30:
@@ -569,15 +495,6 @@ def _score_recent_activity_shift(context: SummaryBehaviorContext) -> ElementResu
     return _result("recent_activity_shift", score=bounded_delta_score(delta, 2.0), sample_size=len(recent) + len(prior), effective_sample_size=min(len(recent), len(prior)) * 2, coverage=(len(recent) + len(prior)) / max(len(context.matches), 1), evidence=(BehaviorEvidence("recent_activity", robust_median(recent), "events_per_minute", len(recent)), BehaviorEvidence("prior_activity", robust_median(prior), "events_per_minute", len(prior)), BehaviorEvidence("recent_minus_prior_delta", round(delta, 4), "delta", len(recent) + len(prior))), raw_metrics={"delta": delta}, confounders=("team tempo and role mix may differ between windows",), source_match_ids=tuple(item.match_id for item, _ in values[-60:]))
 
 
-def _score_long_game_performance_shift(context: SummaryBehaviorContext) -> ElementResult:
-    long = [context.features.performance_by_match[item.match_id] for item in context.matches if item.match_id in context.features.performance_by_match and (item.duration_seconds or 0) >= 2700]
-    short = [context.features.performance_by_match[item.match_id] for item in context.matches if item.match_id in context.features.performance_by_match and 0 < (item.duration_seconds or 0) <= 2100]
-    if len(long) < 10 or len(short) < 10:
-        return _result("long_game_performance_shift", score=None, sample_size=len(long) + len(short), effective_sample_size=min(len(long), len(short)), coverage=(len(long) + len(short)) / max(len(context.matches), 1), missing_reasons=("insufficient_long_and_short_game_cells",))
-    delta = robust_delta(short, long) or 0.0
-    return _result("long_game_performance_shift", score=bounded_delta_score(delta, 0.30), sample_size=len(long) + len(short), effective_sample_size=min(len(long), len(short)) * 2, coverage=(len(long) + len(short)) / max(len(context.matches), 1), evidence=(BehaviorEvidence("long_game_performance", robust_median(long), "proxy", len(long)), BehaviorEvidence("short_game_performance", robust_median(short), "proxy", len(short)), BehaviorEvidence("long_minus_short_delta", round(delta, 4), "delta", len(long) + len(short))), raw_metrics={"delta": delta, "long_matches": len(long), "short_matches": len(short)}, confounders=("game duration is shaped by both teams and game state",), source_match_ids=tuple(context.features.performance_by_match))
-
-
 def _score_session_length_tendency(context: SummaryBehaviorContext) -> ElementResult:
     lengths = context.features.session_lengths
     if len(lengths) < 10 or len(context.features.dated_match_ids) < 25:
@@ -612,19 +529,9 @@ def _transition_groups(context: SummaryBehaviorContext, metric: str) -> tuple[li
     return after_win, after_loss
 
 
-def _score_post_loss_performance_response(context: SummaryBehaviorContext) -> ElementResult:
-    after_win, after_loss = _transition_groups(context, "performance")
-    return _signed_transition_result(context, "post_loss_performance_response", after_win, after_loss, 0.30, "proxy")
-
-
 def _score_post_loss_activity_shift(context: SummaryBehaviorContext) -> ElementResult:
     after_win, after_loss = _transition_groups(context, "activity")
     return _signed_transition_result(context, "post_loss_activity_shift", after_win, after_loss, 2.0, "events_per_minute")
-
-
-def _score_post_loss_death_shift(context: SummaryBehaviorContext) -> ElementResult:
-    after_win, after_loss = _transition_groups(context, "death")
-    return _signed_transition_result(context, "post_loss_death_shift", after_win, after_loss, 1.5, "deaths_per_10_minutes")
 
 
 def _signed_transition_result(context: SummaryBehaviorContext, key: str, after_win: list[float], after_loss: list[float], scale: float, unit: str) -> ElementResult:
@@ -769,23 +676,17 @@ _SCORERS = {
     "hero_pool_stability": _score_hero_pool_stability,
     "hero_exploration_rate": _score_hero_exploration_rate,
     "toolkit_breadth": _score_toolkit_breadth,
-    "signature_dependence": _score_signature_dependence,
     "post_loss_familiarity_shift": _score_post_loss_familiarity_shift,
     "role_breadth": _score_role_breadth,
-    "role_switch_rate": _score_role_switch_rate,
     "combat_involvement": _score_combat_involvement,
     "finisher_orientation": _score_finisher_orientation,
     "death_exposure": _score_death_exposure,
     "off_pool_performance": _score_off_pool_performance,
     "off_pool_activity_stability": _score_off_pool_activity_stability,
-    "off_role_performance": _score_off_role_performance,
     "performance_volatility": _score_performance_volatility,
     "recent_form_shift": _score_recent_form_shift,
     "recent_activity_shift": _score_recent_activity_shift,
-    "long_game_performance_shift": _score_long_game_performance_shift,
     "session_length_tendency": _score_session_length_tendency,
     "late_session_performance": _score_late_session_performance,
-    "post_loss_performance_response": _score_post_loss_performance_response,
     "post_loss_activity_shift": _score_post_loss_activity_shift,
-    "post_loss_death_shift": _score_post_loss_death_shift,
 }

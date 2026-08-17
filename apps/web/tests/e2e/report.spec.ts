@@ -1,37 +1,25 @@
 import { test, expect } from "@playwright/test";
 
-test("completed Free DNA report opens at the reveal and exposes finding share cards", async ({ page }) => {
+test("completed Free DNA report opens with the full Element and Portfolio story", async ({ page }) => {
   await page.goto("/report/fixture-report");
-
-  await expect(page.locator("[data-page-kind='reveal']")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Your Dota DNA" })).toBeVisible();
-  await expect(page.locator("[data-page-kind='finding']").first()).toBeVisible();
-  await expect(page.getByText("What this means").first()).toBeVisible();
-
-  await page.locator("#identity-card").scrollIntoViewIfNeeded();
-  await expect(page.getByLabel("Share your Dota DNA")).toBeVisible();
-  await expect(page.getByText("The heroes that make it yours")).toBeVisible();
-  await expect(page.getByText("Hero pattern")).toBeVisible();
-  const cardSelect = page.getByLabel("Card");
-  await expect(cardSelect).toHaveValue("identity");
-
-  for (const card of ["identity", "exposed", "strength"]) {
-    await cardSelect.selectOption(card);
-    await expect(page.locator(".share-preview img")).toHaveAttribute("src", new RegExp(`/share/${card}\\?`));
-  }
+  await expect(page.locator("[data-page-kind='element_scan']")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The pieces of your Dota pattern" })).toBeVisible();
+  await expect(page.locator(".element-tile")).toHaveCount(17);
+  await page.locator("#hero-common-thread").scrollIntoViewIfNeeded();
+  await expect(page.getByText("What keeps showing up across your established heroes?")).toBeVisible();
+  await page.getByRole("button", { name: "Mobility" }).click();
+  await page.locator("#hero-common-thread").getByRole("button", { name: "Reveal" }).click();
+  await expect(page.getByText("Mobility is the strongest recurring functional trait across 5 established heroes.")).toBeVisible();
 });
 
-test("finding evidence and DNA X-ray methodology are accessible", async ({ page }) => {
+test("Hero Mirror and final share controls are keyboard accessible", async ({ page }) => {
   await page.goto("/report/fixture-report");
-  await page.locator("[data-page-kind='finding']").first().scrollIntoViewIfNeeded();
-  await page.getByText("See why").first().click();
-  await expect(
-    page.locator("[data-page-kind='finding']").first().getByText("Receipts use deterministic summary-history evidence.")
-  ).toBeVisible();
-  await page.locator("#dna-xray").scrollIntoViewIfNeeded();
-  await page.locator("#dna-xray").getByRole("button", { name: "How is this read?" }).first().click();
-  await expect(page.getByRole("dialog", { name: "breadth" })).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.getByRole("navigation", { name: "Report progress" })).toBeVisible();
+  await page.locator("#hero-mirror").scrollIntoViewIfNeeded();
+  await expect(page.getByRole("button", { name: "Reveal Hero Mirror" })).toBeVisible();
+  await page.getByRole("button", { name: "Reveal Hero Mirror" }).click();
+  await expect(page.getByText("The closest sufficiently sampled match is Anti-Mage.")).toBeVisible();
+  await page.locator("#final-card").scrollIntoViewIfNeeded();
+  await expect(page.getByLabel("Share your Dota DNA")).toBeVisible();
+  await expect(page.locator(".share-preview img")).toHaveAttribute("src", /\/share\/final\?/);
+  await expect(page.getByText("Include name")).toBeVisible();
 });

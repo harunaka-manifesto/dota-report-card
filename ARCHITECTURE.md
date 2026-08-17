@@ -1,36 +1,28 @@
 # Architecture
 
-Dota Report Card turns one bounded OpenDota summary-history read into a public,
-privacy-safe report. The Free product is deliberately layered:
-
-```mermaid
+~~~mermaid
 flowchart LR
-    S[Summary history] --> N[Normalized observations]
-    N --> F[Private feature set]
-    F --> E[23 Free Elements]
-    E --> P[Finite Patterns]
-    P --> A[Three context Archetype groups]
-    E --> D[Dimension summaries]
-    P --> X[Editorial Findings]
-    A --> X
-    D --> X
-    X --> R[Report assembly and v3 validation]
-    R --> W[Story renderer and share cards]
-```
+    S[Summary history] --> N[Normalized rows]
+    N --> F[Sessions and features]
+    F --> E[17 Elements]
+    E --> P[14 Patterns]
+    F --> H[Hero Portfolio]
+    E --> R[Report assembly]
+    P --> R
+    H --> R
+    R --> V[Strict v4 validation]
+    V --> W[Interactive story and share]
+~~~
 
-Free mode uses summary rows only. It does not read individual matches or ask
-OpenDota to parse replays. Missing fields stay missing; a limited Element is
-not quietly converted into a neutral score. The browser receives the assembled
-report and renders it. It does not calculate the model.
+Free reads one bounded summary-history window. It never hydrates match details
+or requests replay parsing. The browser receives an immutable snapshot and
+does not recompute scores.
 
-The canonical architecture notes live in
-[docs/architecture/system-overview.md](docs/architecture/system-overview.md).
-The complete human-readable model guide is in
-[docs/architecture/free-dna-model-guide.md](docs/architecture/free-dna-model-guide.md).
-The generated registry reference is
-[docs/architecture/model-catalog.md](docs/architecture/model-catalog.md).
-Run `make dna-catalog-check docs-check` before changing a registry or its public
-copy.
+Elements are atomic reviewed measurements. Patterns consume required Elements
+and may include separate modifier Elements. Hero Portfolio is independent of
+Pattern qualification and uses established hero history plus a versioned
+taxonomy. Assembly creates the only public story and share projection.
 
-Historical v1/v2 snapshots remain readable. New Free analyses publish
-`free-dna-report-3.0.0`.
+The public contract is free-dna-report-4.0.0 with exactly 17 Elements and 14
+Patterns, quality metadata, zero detail/parse requests, and privacy-safe share
+data.

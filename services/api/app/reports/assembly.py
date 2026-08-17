@@ -91,7 +91,7 @@ def assemble_player_dna_report(
                 "missing_feature_families": ["time_series", "events", "teamfights", "objectives", "wards"],
             },
             "player_dna": {
-                "archetype": _archetype(published_patterns),
+                "style_summary": _style_summary(published_patterns),
                 "strongest_traits": [
                     item.statement
                     for item in published_patterns
@@ -354,7 +354,7 @@ def _pattern_confidence(pattern: PatternCandidate) -> str:
     return "low"
 
 
-def _archetype(patterns: list[PatternCandidate]) -> str:
+def _style_summary(patterns: list[PatternCandidate]) -> str:
     categories = {item.category for item in patterns if item.unexplained}
     if "strength" in categories and "weakness" in categories:
         return "The adaptive competitor"

@@ -1,143 +1,99 @@
 {
-  "copy_version": "free-dna-copy-2.0.0",
-  "dimension": {
-    "available": "This signal has enough readable history to make a useful directional call.",
-    "limited": "The shape is visible, but this signal is still provisional.",
-    "unavailable": "This signal stays quiet because the history does not contain enough of the fields it needs."
-  },
-  "dimensions": {
-    "breadth": {"headline": "How wide is your pool?", "left": "Focused", "right": "Exploratory"},
-    "role": {"headline": "Your role is part of your identity.", "left": "Anchored", "right": "Fluid"},
-    "adaptability": {"headline": "Does your play travel with you?", "left": "Comfort-bound", "right": "Transferable"},
-    "activity": {"headline": "How often are you in the action?", "left": "Reserved", "right": "Involved"},
-    "orientation": {"headline": "Do you finish or connect?", "left": "Facilitator", "right": "Finisher"},
-    "resilience": {"headline": "What changes after the last result?", "left": "Resetting", "right": "Outcome-sensitive"},
-    "endurance": {"headline": "What happens as the session stretches?", "left": "Front-loaded", "right": "Sustained"},
-    "rhythm": {"headline": "What does a normal session look like?", "left": "Short-burst", "right": "Grinder"}
-  },
+  "copy_version": "free-dna-copy-4.0.0",
   "pages": {
-    "steam_input": {"title": "What kind of Dota player are you?", "body": "Enter a public profile to start a summary-history read."},
-    "player_found": {"title": "Found {display_name}.", "body": "The public player profile is ready for a bounded history read."},
-    "analysis": {"title": "Reading your recent matches.", "body": "Sorting the fields that the summary history can support."},
-    "report_reveal": {"title": "We found your pattern.", "body": "A summary-history read of the way your matches tend to look."},
-    "dna_intro": {"title": "Your Dota DNA", "body": "Eight signals that describe how your matches tend to look."},
-    "dna_summary": {"title": "The fingerprint", "body": "A compact view of the signals that stood out."},
-    "archetype": {"title": "Your archetype", "body": "A synthesis of the signals that cleared their evidence gates."},
-    "heroes_intro": {"title": "The heroes that make it yours", "body": "Familiarity, recurrence, and role fit shape this section."},
-    "signature_hero": {"title": "Your Signature Hero", "body": "The hero that most consistently represents this history."},
-    "comfort_picks": {"title": "Comfort Picks", "body": "The heroes you keep returning to."},
-    "hero_pattern": {"title": "Your Hero Pattern", "body": "Your comfort pool points toward a toolkit, not a verdict."},
-    "hero_recommendations": {"title": "Recommended expansion heroes", "body": "Taste adjacency, not a meta list."},
-    "heroes_summary": {"title": "The cast around your style", "body": "A small, stable hero identity snapshot."},
-    "final_card": {"title": "Your fingerprint", "body": "A shareable snapshot of the patterns in your recent matches."},
-    "deep_dive": {"title": "See what drives it", "body": "A deeper read is available when you want to inspect the evidence."}
-  },
-  "findings": {
-    "broad_pool_narrow_safety_zone": {
-      "eyebrow": "The tension",
-      "headline": "Your hero pool is wide. Your safety zone is not.",
-      "body": "You explore broadly overall, but your history becomes more concentrated around familiar heroes when results are less stable.",
-      "interpretation": "You do not avoid experimentation. You appear to rely on familiarity more selectively.",
-      "share": "My hero pool is wide. Apparently my safety zone is not."
+    "analysis": {
+      "title": "Reading your recent matches.",
+      "body": "Sorting the fields that the summary history can support."
     },
-    "many_heroes_same_toolkit": {
-      "eyebrow": "The hidden pattern",
-      "headline": "You play a lot of heroes. You keep rebuilding the same toolkit.",
-      "body": "{traits} keep showing up even as the hero changes.",
-      "interpretation": "Your pool is broader than a single hero, but the tools you reach for are more stable than the names on the screen.",
-      "share": "I play a lot of heroes. I keep rebuilding the same toolkit."
+    "report_reveal": {
+      "title": "The pattern is in the details.",
+      "body": "A summary-history read of the way your matches tend to look."
     },
-    "activity_travels_better_than_results": {
-      "eyebrow": "The gap",
-      "headline": "Your activity survives new heroes better than your results do.",
-      "body": "Your typical activity is {activity_read}; the larger change appears in the result signal, with familiar heroes ahead by {performance_gap}.",
-      "interpretation": "You keep finding action outside your comfort pool. The gap appears later in converting that activity into results.",
-      "share": "My activity travels farther than my results do."
+    "element_scan": {
+      "title": "The pieces of your Dota pattern",
+      "body": "Seventeen observable Elements make the report legible."
     },
-    "losses_change_trust_more_than_pace": {
-      "eyebrow": "The reset pattern",
-      "headline": "Losses change what you trust more than how much you play.",
-      "body": "Familiar picks rise from {after_win} after wins to {after_loss} after losses, while the available pace signal stays comparatively close.",
-      "interpretation": "The visible change is selection, not a claim about mindset: after a loss, your history leans back toward known heroes.",
-      "share": "Losses change what I trust more than how much I play."
+    "final_card": {
+      "title": "The part worth sharing",
+      "body": "A bounded snapshot of Elements, Patterns, and Hero Portfolio."
     },
-    "long_session_tax": {
-      "eyebrow": "The leak",
-      "headline": "Your Dota changes after game three.",
-      "body": "Your later-session results are {delta} than games 1–3 in the same session, and your history regularly reaches game four or later.",
-      "interpretation": "The pattern is a queue condition worth testing, not a permanent label.",
-      "share": "My Dota changes after game three."
-    },
-    "long_game_edge": {
-      "eyebrow": "The edge",
-      "headline": "Your games age unusually well.",
-      "body": "Your long-game result signal is {delta} than the short-game signal in this history.",
-      "interpretation": "Long games are a context where more of your usual edge appears to survive.",
-      "share": "My games age unusually well."
-    },
-    "long_game_leak": {
-      "eyebrow": "The leak",
-      "headline": "The longer the game goes, the less your normal edge survives.",
-      "body": "Your long-game result signal is {delta} than the short-game signal in this history.",
-      "interpretation": "Duration is a context to simplify decisions around, not proof of a single underlying cause.",
-      "share": "The longer the game goes, the less my normal edge survives."
-    },
-    "form_identity_divergence": {
-      "eyebrow": "The trajectory",
-      "headline": "Your results changed faster than your playstyle.",
-      "body": "Recent form moved, while the style signal changed by only {style_delta}; the result shift is not the same thing as an identity shift.",
-      "interpretation": "Your current results may be moving through a familiar style rather than announcing a new player identity.",
-      "share": "My results changed faster than my playstyle."
-    },
-    "strength_with_tax": {
-      "eyebrow": "The trade-off",
-      "headline": "The thing that gives you {strength} also comes with a cost.",
-      "body": "The same broad behavior that shows up as a strength is paired with {tax} in a different context.",
-      "interpretation": "This is a compatibility pattern, not a causal verdict. Test the trade-off in a small window.",
-      "share": "My strongest habit comes with a tax."
-    },
-    "signature_hero_mechanism": {
-      "eyebrow": "The hero mechanism",
-      "headline": "{hero} is not just your most-played comfort pick.",
-      "body": "It concentrates {traits}, the same tools your comfort pool keeps asking for.",
-      "interpretation": "Your signature hero is useful here as an explanation of the toolkit, not as a permanent identity label.",
-      "share": "My signature hero concentrates the toolkit I keep asking for."
-    },
-    "role_vs_hero_identity": {
-      "eyebrow": "The identity split",
-      "headline": "You change heroes more than you change jobs.",
-      "body": "Your role signal is more stable than the names in your hero pool, so the role is carrying more identity than any one pick.",
-      "interpretation": "Your hero variety does not necessarily mean role variety. The job may be the through-line.",
-      "share": "I change heroes more than I change jobs."
-    },
-    "volatile_results_stable_style": {
-      "eyebrow": "The stable core",
-      "headline": "Your bad games look worse than your actual playstyle changes.",
-      "body": "Results are volatile, while the available style signals stay within a relatively narrow band.",
-      "interpretation": "The history supports a stable style with uneven outcomes, without proving why individual games turn.",
-      "share": "My results swing harder than my playstyle does."
-    },
-    "hidden_strength_fallback": {
-      "eyebrow": "The strength",
-      "headline": "One of your strongest habits holds up across the history.",
-      "body": "{strength} is supported by {support}.",
-      "interpretation": "This is the clearest positive pattern available in the bounded summary history.",
-      "share": "One of my strongest Dota habits holds up across the history."
+    "deep_dive": {
+      "title": "Tell me more",
+      "body": "Selected match-detail analysis can investigate mechanisms behind summary-level discoveries."
     }
   },
-  "experiments": {
-    "adjacent_pick_after_loss": {"title": "Test the edge of your comfort zone"},
-    "adjacent_toolkit_pick": {"title": "Keep the toolkit, change one tool"},
-    "stretch_conversion_rule": {"title": "Track conversion on a stretch hero"},
-    "game_four_opt_in": {"title": "Make game four an opt-in"},
-    "late_game_simplification": {"title": "Simplify one late-game decision"},
-    "late_game_repeat": {"title": "Repeat the long-game edge"},
-    "recent_style_check": {"title": "Check the style under the form"},
-    "strength_tax_check": {"title": "Test the strength and its tax"},
-    "role_toolkit_swap": {"title": "Swap a hero, keep the job"},
-    "stable_style_review": {"title": "Review the stable core"}
+  "elements": {
+    "hero_pool_breadth": {"title": "Breadth", "body": "How wide the meaningful hero pool is."},
+    "hero_pool_stability": {"title": "Stability", "body": "How settled versus shifting the hero pool is."},
+    "hero_exploration_rate": {"title": "Exploration", "body": "How often new or unfamiliar heroes enter the pool."},
+    "toolkit_breadth": {"title": "Toolkit", "body": "How varied the Dota jobs underneath the picks are."},
+    "post_loss_familiarity_shift": {"title": "Familiarity", "body": "Where hero choice moves after a loss."},
+    "role_breadth": {"title": "Role", "body": "How broad the credible role contexts are."},
+    "combat_involvement": {"title": "Involvement", "body": "How often the player appears in kill events per time."},
+    "finisher_orientation": {"title": "Finishing", "body": "How involvement splits between kills and assists."},
+    "death_exposure": {"title": "Deaths", "body": "How exposed the player is to deaths per time."},
+    "off_pool_performance": {"title": "Transfer", "body": "Whether observable performance holds outside the familiar pool."},
+    "off_pool_activity_stability": {"title": "Presence", "body": "Whether combat activity holds outside the familiar pool."},
+    "performance_volatility": {"title": "Volatility", "body": "How variable observable performance is match to match."},
+    "recent_form_shift": {"title": "Form", "body": "How recent observable form moved against an earlier window."},
+    "recent_activity_shift": {"title": "Pace", "body": "How recent combat activity moved against an earlier window."},
+    "session_length_tendency": {"title": "Duration", "body": "What session length tends to appear."},
+    "late_session_performance": {"title": "Drift", "body": "What happens to results later in a session."},
+    "post_loss_activity_shift": {"title": "Tempo", "body": "How next-game activity moves after a loss."}
   },
-  "hero_pattern_mixed": "Your comfort pool spans several different toolsets.",
-  "hero_pattern_trait_cluster": "Your comfort pool clusters around a recognizable toolkit.",
-  "deep_dive": "Want to understand what drives the pattern? Deep Dive can inspect a small set of matches in more detail."
+  "patterns": {
+    "same_playbook": {"title": "Same Playbook", "body": "Hero names change more than the toolkit underneath."},
+    "comfort_edge": {"title": "Comfort Edge", "body": "Selection range and result range diverge."},
+    "partial_transfer": {"title": "Partial Transfer", "body": "Presence travels off-pool better than results do."},
+    "stable_style": {"title": "Stable Style", "body": "Recent results changed more than visible style signals."},
+    "versatile_core": {"title": "Versatile Core", "body": "A focused pool still covers different Dota jobs."},
+    "proven_flexibility": {"title": "Proven Flexibility", "body": "A broad pool is backed by observable transfer."},
+    "selective_closer": {"title": "Selective Closer", "body": "Appearances skew toward final kill credit."},
+    "loss_response": {"title": "Loss Response", "body": "Hero familiarity and next-game activity can move together or separately."},
+    "controlled_presence": {"title": "Controlled Presence", "body": "High involvement appears without a similar death-exposure signal."},
+    "heavy_exposure": {"title": "Heavy Exposure", "body": "High presence carries a visible death cost."},
+    "session_fade": {"title": "Session Fade", "body": "Later games in long sessions show a weaker result signal."},
+    "session_rise": {"title": "Session Rise", "body": "Later-session results improve often enough to stand out."},
+    "session_hold": {"title": "Session Hold", "body": "Long sessions exist without a meaningful result decline."},
+    "assist_presence": {"title": "Assist Presence", "body": "Fight involvement leans toward assists over final credit."}
+  },
+  "portfolio": {
+    "common_thread": {
+      "question": "What keeps showing up across your established heroes?",
+      "correct": "You got it.",
+      "incorrect": "Not quite.",
+      "answer": "A common functional thread runs through the pool: {trait}.",
+      "reveal": "{trait} is the strongest recurring functional trait across {hero_count} established heroes.",
+      "boundary": "This describes what the heroes tend to offer; it does not prove those tools were used correctly in every match."
+    },
+    "exception": {
+      "question": "Which hero gives your pool a different kind of Dota?",
+      "correct": "Yep.",
+      "incorrect": "Good guess — but not this one.",
+      "answer": "{hero} is the clearest functional outlier in this pool.",
+      "reveal": "{hero} breaks the pool’s usual functional shape more clearly than the alternatives.",
+      "boundary": "Different does not mean better or worse."
+    },
+    "evolution": {
+      "question": "How do you think your hero pool has changed recently?",
+      "check": "Let’s check.",
+      "new_heroes_new_toolkit": "New heroes arrived with a meaningfully different toolkit.",
+      "new_heroes_same_toolkit": "New hero names arrived, while the toolkit stayed familiar.",
+      "stable_core_new_branch": "A stable core remains, with a newer branch growing beside it.",
+      "broadly_stable": "The hero distribution and toolkit stayed broadly stable."
+    },
+    "hero_mirror": {
+      "closed": "One last comparison: your observable behavior against a hero-shaped reference.",
+      "available": "The closest sufficiently sampled match is {hero}.",
+      "unavailable": "The current history does not support a stable Hero Mirror yet.",
+      "qualifier": "Not your best hero. Not necessarily your most played.",
+      "guardrail": "This is not a personality test. We are comparing observable behavior, not claiming identity."
+    }
+  },
+  "labels": {
+    "answer": "Answer",
+    "reveal": "Reveal",
+    "no_clear": "No clear answer yet",
+    "summary_only": "Summary history only"
+  }
 }

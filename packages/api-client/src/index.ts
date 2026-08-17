@@ -28,281 +28,161 @@ export type AnalysisStatus = {
   completed_stages: string[];
 };
 
-export type DimensionKey =
-  | "breadth"
-  | "role"
-  | "adaptability"
-  | "activity"
-  | "orientation"
-  | "resilience"
-  | "endurance"
-  | "rhythm";
-
 export type Confidence = "low" | "moderate" | "high" | "unavailable";
-export type DimensionStatus = "available" | "limited" | "unavailable";
+export type ElementStatus = "available" | "limited" | "unavailable";
+export type PatternStatus = "qualified" | "suppressed" | "unavailable";
 
-export type Evidence = {
+export type BehaviorElementReceipt = {
   key: string;
-  value: number | string | null;
+  value: number | string | boolean | null;
   unit: string;
   denominator: number;
+  coverage: number;
+  confidence_score: number;
+  comparison: string | null;
 };
 
-export type DimensionCopy = {
-  headline_key: string;
-  receipt_key: string;
-  receipt_params: Record<string, string | number | boolean>;
-  left_label: string | null;
-  right_label: string | null;
-};
-
-export type DnaDimension = {
-  key: DimensionKey;
-  status: DimensionStatus;
+export type BehaviorElement = {
+  key: string;
+  label: string;
+  dimension_key: string;
+  status: ElementStatus;
   score: number | null;
   centered_score: number | null;
-  label: string | null;
+  axis: { left: string | null; right: string | null };
+  zone: string | null;
   confidence: Confidence;
   confidence_score: number;
   sample_size: number;
   effective_sample_size: number;
   coverage: number;
-  evidence: Evidence[];
+  receipts: BehaviorElementReceipt[];
   confounders: string[];
   missing_reasons: string[];
-  copy: DimensionCopy | null;
   methodology_version: string;
-  descriptor_eligible: boolean;
 };
 
-export type Descriptor = {
+export type BehaviorPattern = {
   key: string;
   label: string;
-  dimension: string;
-};
-
-export type Archetype = {
-  key: string;
-  label: string;
-  fit: number;
-  runner_up: { key: string; fit: number } | null;
-  descriptors: [Descriptor, Descriptor, Descriptor];
-  contributing_dimensions: Array<{ key: string; weight: number; contribution: number }>;
-  confidence: "low" | "moderate" | "high";
-  explanation_evidence: string[];
-  classifier_version: string;
-};
-
-export type HeroCard = {
-  hero_id: number;
-  name: string;
-  portrait_url: string | null;
-  score: number;
-  component_scores: Record<string, number>;
-  matches: number;
-  roles: string[];
-  traits: string[];
-  receipts: string[];
-  reason_key: string;
-  confidence: "low" | "moderate" | "high";
-  portrait_asset_version: string;
-};
-
-export type HeroPattern = {
-  key: string;
-  label: string;
-  copy_key: string;
-  traits: string[];
-  role_traits: string[];
-  contributors: string[];
-  scores?: Record<string, number>;
-};
-
-export type HeroRecommendation = {
-  hero_id: number;
-  name: string;
-  portrait_url: string | null;
-  portrait_asset_version: string;
-  fit_band: "strong" | "good" | "exploratory";
-  score: number;
-  familiar_traits: string[];
-  new_traits: string[];
-  plausible_roles: string[];
-  role_change: boolean;
-  reason_key: string;
-  recommendation_version: string;
-};
-
-export type Heroes = {
-  signature: HeroCard | null;
-  comfort_picks: HeroCard[];
-  patterns: HeroPattern[];
-  recommendations: HeroRecommendation[];
-  taxonomy_version: string | null;
-  limitations: string[];
-  identity_version: string;
-};
-
-export type FindingKind =
-  | "thesis"
-  | "strength"
-  | "contradiction"
-  | "edge"
-  | "leak"
-  | "trajectory"
-  | "identity";
-
-export type FindingConfidence = "limited" | "moderate" | "high";
-
-export type FindingReceipt = {
-  key: string;
-  label: string;
-  value: string;
-  context: string | null;
-  confidence: FindingConfidence;
-};
-
-export type FindingExperiment = {
-  key: string;
-  title: string;
-  instruction: string;
-  hypothesis: string;
-  measurement: string;
-  window: string;
-};
-
-export type PublicFinding = {
-  key: string;
-  kind: FindingKind;
-  headline: string;
-  body: string;
-  interpretation: string | null;
-  confidence: FindingConfidence;
-  receipts: FindingReceipt[];
-  related_dimensions: DimensionKey[];
-  related_heroes: number[];
-  experiment: FindingExperiment | null;
-  share_copy: string | null;
-};
-
-export type StoryPageV1 = {
-  id: string;
-  kind:
-    | "input"
-    | "player_found"
-    | "analysis"
-    | "reveal"
-    | "section_intro"
-    | "dimension"
-    | "archetype"
-    | "summary"
-    | "signature_hero"
-    | "comfort"
-    | "hero_pattern"
-    | "recommendations"
-    | "final_card"
-    | "deep_dive";
-  section: "intro" | "dna" | "heroes" | "finale";
-  title: string;
-  body: string | null;
-  evidence_keys: string[];
-};
-
-export type StoryPageV2 = {
-  id: string;
-  kind:
-    | "input"
-    | "player_found"
-    | "analysis"
-    | "reveal"
-    | "finding"
-    | "experiment"
-    | "identity_card"
-    | "dna_xray"
-    | "deep_dive";
-  section: "intro" | "findings" | "dna" | "finale";
-  title: string;
-  body: string | null;
-  evidence_keys: string[];
-  finding_key?: string | null;
-  experiment_key?: string | null;
-};
-
-export type StoryPage = StoryPageV1 | StoryPageV2;
-
-export type ShareDimension = {
-  key: DimensionKey;
-  label: string | null;
-  score: number | null;
-  centered_score: number | null;
+  kind: "identity" | "contradiction" | "edge" | "leak" | "trajectory" | "style";
+  status: PatternStatus;
+  direction: string | null;
+  strength: number;
+  relationship_strength: number;
   confidence: Confidence;
+  confidence_score: number;
+  evidence_coverage: number;
+  qualification_quality: number;
+  element_keys: string[];
+  modifier_element_keys: string[];
+  family: string;
+  tier: "A" | "B";
+  receipts: BehaviorElementReceipt[];
+  confounders: string[];
+  suppression_reasons: string[];
+  methodology_version: string;
 };
 
-export type ShareCommon = {
-  archetype: string;
-  descriptors: Descriptor[];
-  match_count: number;
+export type ChoiceOption = {
+  key: string;
+  label: string;
+  hero_id: number | null;
 };
 
-export type FindingShare = {
-  finding_key: string | null;
-  headline: string;
-  archetype: string | null;
-  receipts: string[];
+export type CommonThread = {
+  status: "available" | "unavailable";
+  trait_key: string | null;
+  trait_label: string | null;
+  weighted_coverage: number;
+  hero_count: number;
+  denominator: number;
+  secondary_traits: string[];
+  options: ChoiceOption[];
+  correct_option_key: string | null;
+  confidence_score: number;
+  limitations: string[];
 };
 
-export type SharesV1 = {
-  dna: ShareCommon & { spectra: ShareDimension[] };
-  heroes: {
-    signature: HeroCard | null;
-    comfort: HeroCard[];
-    pattern: HeroPattern | null;
-    recommendations: HeroRecommendation[];
-  };
-  final: ShareCommon & {
-    display_name: string;
-    signature: string | null;
-    pattern: string | null;
-    rhythm: string | null;
-  };
-  privacy_defaults: {
-    show_name: boolean;
-    show_avatar: boolean;
-    show_raw_id: false;
-  };
+export type HeroException = {
+  status: "available" | "no_clear_exception" | "unavailable";
+  hero_id: number | null;
+  hero_name: string | null;
+  pool_traits: string[];
+  exception_traits: string[];
+  options: ChoiceOption[];
+  correct_option_key: string | null;
+  distance: number | null;
+  margin: number | null;
+  confidence_score: number;
+  limitations: string[];
 };
 
-export type Shares = SharesV1 & {
-  identity?: FindingShare;
-  exposed?: FindingShare;
-  strength?: FindingShare;
+export type PoolEvolution = {
+  status: "available" | "unavailable";
+  variant: "new_heroes_new_toolkit" | "new_heroes_same_toolkit" | "stable_core_new_branch" | "broadly_stable" | null;
+  earlier_hero_ids: number[];
+  recent_hero_ids: number[];
+  earlier_traits: string[];
+  recent_traits: string[];
+  hero_distribution_shift: number | null;
+  toolkit_distribution_shift: number | null;
+  confidence_score: number;
+  limitations: string[];
 };
 
-export type ReportVersionsV1 = {
-  eligibility: string;
-  sessions: string;
-  features: string;
-  dna_scoring: string;
-  baselines: string;
-  archetype: string;
-  hero_identity: string;
-  hero_taxonomy: string;
-  recommendations: string;
-  copy: string;
-  model: string;
-  template: string;
-  share_renderer: string;
-  analysis_version_fingerprint: string;
+export type HeroMirror = {
+  status: "available" | "no_clear_mirror" | "unavailable";
+  hero_id: number | null;
+  hero_name: string | null;
+  similarity_score: number | null;
+  runner_up_hero_id: number | null;
+  margin: number | null;
+  player_behavior: Record<string, string>;
+  hero_behavior: Record<string, string>;
+  confidence_score: number;
+  limitations: string[];
 };
 
-export type ReportVersionsV2 = ReportVersionsV1 & {
-  findings: string;
-  finding_ranking: string;
-  story: string;
+export type HeroPortfolio = {
+  common_thread: CommonThread;
+  exception: HeroException;
+  evolution: PoolEvolution;
+  hero_mirror: HeroMirror;
+  version: string;
 };
 
-export type FreeDnaReportBase = {
-  report_id?: string;
+export type StoryPageKind =
+  | "element_scan"
+  | "element_highlight"
+  | "pattern_highlight"
+  | "hero_common_thread_question"
+  | "hero_exception_question"
+  | "pool_evolution_question"
+  | "pool_evolution_reveal"
+  | "hero_mirror_reveal"
+  | "final_card"
+  | "deep_dive";
+
+export type StoryPage = {
+  id: string;
+  kind: StoryPageKind;
+  section: "elements" | "patterns" | "hero_portfolio" | "finale";
+  title: string;
+  body: string | null;
+  evidence_keys: string[];
+  element_key?: string | null;
+  pattern_key?: string | null;
+  portfolio_key?: string | null;
+  options: ChoiceOption[];
+};
+
+export type ShareElement = { key: string; label: string; zone: string | null };
+export type SharePattern = { key: string; label: string };
+
+export type FreeDnaReportV4 = {
+  report_id: string | null;
+  schema_version: "free-dna-report-4.0.0";
   report_variant: "free_dna_report";
   noindex: true;
   identity: {
@@ -321,24 +201,56 @@ export type FreeDnaReportBase = {
     raw_history_hash: string;
     history_tier: "limited" | "normal";
   };
-  versions: ReportVersionsV1 | ReportVersionsV2;
+  versions: {
+    eligibility: string;
+    sessions: string;
+    features: string;
+    behavior_model: string;
+    element_registry: string;
+    pattern_registry: string;
+    pattern_ranking: string;
+    hero_taxonomy: string;
+    hero_portfolio: string;
+    hero_mirror: string;
+    story: string;
+    copy: string;
+    model: string;
+    template: string;
+    share_renderer: string;
+    analysis_version_fingerprint: string;
+  };
   quality: {
-    overall_confidence: "low" | "moderate" | "high";
+    overall_confidence: Confidence;
     history_tier: "limited" | "normal";
     missing_data_flags: string[];
     partial: boolean;
     warnings: string[];
+    available_elements: number;
+    limited_elements: number;
+    unavailable_elements: number;
+    qualified_patterns: number;
   };
-  dimensions: DnaDimension[];
-  archetype: Archetype;
-  heroes: Heroes;
-  shares: Shares;
-  deep_dive: {
-    available: boolean;
-    cta_label: string;
-    href: string;
-    copy: string;
+  elements: BehaviorElement[];
+  patterns: BehaviorPattern[];
+  highlights: { element_keys: string[]; pattern_keys: string[] };
+  hero_portfolio: HeroPortfolio;
+  story: { version: string; ordered_pages: string[] };
+  pages: StoryPage[];
+  shares: {
+    final: {
+      display_name: string | null;
+      strongest_elements: ShareElement[];
+      strongest_patterns: SharePattern[];
+      hero_portfolio: {
+        common_thread: string | null;
+        exception_hero: string | null;
+        pool_direction: string | null;
+      };
+      hero_mirror: { hero_id: number; hero_name: string } | null;
+    };
+    privacy_defaults: { show_name: boolean; show_avatar: boolean; show_raw_id: false };
   };
+  deep_dive: { available: boolean; cta_label: string; href: string; copy: string };
   methodology: {
     free_summary_only: true;
     session_gap_minutes: number;
@@ -355,191 +267,7 @@ export type FreeDnaReportBase = {
   };
 };
 
-export type FreeDnaReportV1 = FreeDnaReportBase & {
-  schema_version: "free-dna-report-1.0.0";
-  versions: ReportVersionsV1;
-  pages: StoryPageV1[];
-  shares: SharesV1;
-};
-
-export type StoryDefinition = {
-  version: string;
-  thesis_key: string | null;
-  strength_key: string | null;
-  contradiction_key: string | null;
-  edge_key: string | null;
-  leak_key: string | null;
-  experiment_key: string | null;
-  ordered_pages: string[];
-};
-
-export type FreeDnaReportV2 = FreeDnaReportBase & {
-  schema_version: "free-dna-report-2.0.0";
-  versions: ReportVersionsV2;
-  findings: PublicFinding[];
-  story: StoryDefinition;
-  pages: StoryPageV2[];
-  shares: SharesV1 & {
-    identity: FindingShare;
-    exposed: FindingShare;
-    strength: FindingShare;
-  };
-};
-
-export type BehaviorDimensionKey =
-  | "hero_identity"
-  | "role_identity"
-  | "combat_expression"
-  | "economy"
-  | "map_objectives"
-  | "risk_survival"
-  | "adaptability"
-  | "consistency_form"
-  | "session_response"
-  | "progression";
-
-export type BehaviorConfidence = "low" | "moderate" | "high" | "unavailable";
-
-export type BehaviorDimension = {
-  key: BehaviorDimensionKey;
-  label: string;
-  element_keys: string[];
-  qualified_pattern_keys: string[];
-  available_elements: number;
-  total_free_elements: number;
-  confidence: BehaviorConfidence;
-};
-
-export type BehaviorElementReceipt = {
-  key: string;
-  value: string;
-  unit: string;
-  denominator: number;
-  coverage: number;
-  confidence_score: number;
-  comparison: string | null;
-};
-
-export type BehaviorElement = {
-  key: string;
-  label: string;
-  dimension_key: BehaviorDimensionKey;
-  status: "available" | "limited" | "unavailable";
-  score: number | null;
-  centered_score: number | null;
-  axis: { left: string | null; right: string | null };
-  confidence: BehaviorConfidence;
-  confidence_score: number;
-  sample_size: number;
-  effective_sample_size: number;
-  coverage: number;
-  receipts: BehaviorElementReceipt[];
-  confounders: string[];
-  missing_reasons: string[];
-  methodology_version: string;
-};
-
-export type BehaviorPattern = {
-  key: string;
-  label: string;
-  kind: "identity" | "contradiction" | "edge" | "leak" | "trajectory" | "style";
-  strength: number;
-  confidence: BehaviorConfidence;
-  confidence_score: number;
-  element_keys: string[];
-  receipts: BehaviorElementReceipt[];
-  confounders: string[];
-};
-
-export type ContextArchetype = {
-  group_key: string;
-  group_label: string;
-  key: string;
-  label: string;
-  fit: number;
-  confidence: BehaviorConfidence;
-  runner_up: { key: string; fit: number } | null;
-  descriptors: Descriptor[];
-  contributing_element_keys: string[];
-  contributing_pattern_keys: string[];
-  explanation_evidence: string[];
-  classifier_version: string;
-};
-
-export type BehaviorFinding = {
-  key: string;
-  kind: "identity" | "contradiction" | "edge" | "leak" | "trajectory" | "style" | "strength";
-  headline: string;
-  body: string;
-  interpretation: string;
-  confidence: "low" | "moderate" | "high";
-  confidence_score: number;
-  source_pattern_keys: string[];
-  supporting_element_keys: string[];
-  archetype_group_keys: string[];
-  receipts: FindingReceipt[];
-  experiment: FindingExperiment | null;
-  share_copy: string | null;
-  limitations: string[];
-};
-
-export type StoryPageV3 = {
-  id: string;
-  kind: "reveal" | "summary" | "finding" | "experiment" | "archetypes" | "dna_xray" | "heroes" | "deep_dive";
-  section: "intro" | "findings" | "dna" | "heroes" | "finale";
-  title: string;
-  body: string | null;
-  evidence_keys: string[];
-  finding_key?: string | null;
-  experiment_key?: string | null;
-};
-
-export type ReportVersionsV3 = ReportVersionsV2 & {
-  behavior_model: string;
-  dimension_registry: string;
-  element_registry: string;
-  pattern_registry: string;
-  archetype_registry: string;
-  finding_registry: string;
-};
-
-export type FreeDnaReportV3 = Omit<FreeDnaReportBase, "versions" | "quality" | "dimensions" | "archetype" | "shares"> & {
-  schema_version: "free-dna-report-3.0.0";
-  versions: ReportVersionsV3;
-  quality: {
-    overall_confidence: BehaviorConfidence;
-    history_tier: "limited" | "normal";
-    missing_data_flags: string[];
-    partial: boolean;
-    warnings: string[];
-    available_elements: number;
-    limited_elements: number;
-    unavailable_elements: number;
-    qualified_patterns: number;
-  };
-  dimensions: BehaviorDimension[];
-  elements: BehaviorElement[];
-  patterns: BehaviorPattern[];
-  archetypes: ContextArchetype[];
-  findings: BehaviorFinding[];
-  story: {
-    version: string;
-    thesis_key: string | null;
-    strongest_key: string | null;
-    experiment_key: string | null;
-    ordered_pages: string[];
-  };
-  pages: StoryPageV3[];
-  shares: {
-    identity: { finding_key: string | null; headline: string; archetype_groups: string[]; receipts: string[] };
-    strongest: { finding_key: string | null; headline: string; archetype_groups: string[]; receipts: string[] };
-    pattern: { finding_key: string | null; headline: string; archetype_groups: string[]; receipts: string[] };
-    archetypes: ContextArchetype[];
-    privacy_defaults: { show_name: boolean; show_avatar: boolean; show_raw_id: false };
-  };
-};
-
-export type FreeDnaReport = FreeDnaReportV1 | FreeDnaReportV2 | FreeDnaReportV3;
+export type FreeDnaReport = FreeDnaReportV4;
 
 export async function createAnalysis(
   baseUrl: string,
