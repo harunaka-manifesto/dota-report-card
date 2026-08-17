@@ -106,10 +106,10 @@ links and clients do not break.
 `apps/web/app/report/[reportId]/dna/report-story-v2.tsx` renders one vertical
 story from the API page order. It supports keyboard navigation, hash/session
 resume, finding evidence disclosure, related dimension spectra, experiment
-instructions, identity sharing, the eight-dimension DNA X-ray, and a Deep Scan
-handoff. Telemetry is provider-neutral and identifier-free; finding views,
-evidence opens, experiment views, and finding share starts/completions carry
-the finding key and report schema/version context only.
+instructions, identity sharing, the eight-dimension DNA X-ray, the hero identity
+card, and a Deep Scan handoff. Telemetry is provider-neutral and identifier-free;
+page views/exits, finding views, evidence opens, experiment views, and finding
+share starts/completions carry report-safe context only.
 
 ## Extension seam
 
@@ -118,4 +118,3 @@ copy lint, and story contracts after its richer evidence families are mapped
 into the same interfaces. Free must remain summary-only: a Deep finding must
 never be allowed to enter the Free evaluator merely because it has a similar
 headline.
-

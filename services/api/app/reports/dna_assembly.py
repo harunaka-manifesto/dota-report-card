@@ -166,7 +166,7 @@ def _public_dimension(value: dict[str, Any]) -> dict[str, Any]:
                 "headline_key", "receipt_key", "receipt_params", "left_label", "right_label"
             )
         },
-        "methodology_version": value.get("methodology_version", "dna-scoring-1.1.0"),
+        "methodology_version": value.get("methodology_version", "dna-scoring-1.2.0"),
         "descriptor_eligible": bool(value.get("descriptor_eligible", True)),
     }
 
@@ -194,10 +194,10 @@ def _public_cost(ledger: DataCostLedger | None) -> dict[str, Any]:
 
 def _public_display_name(value: Any, account_id: int | None) -> str:
     candidate = str(value or "Anonymous player").strip()
-    # A profile name that is exactly the internal account ID is not useful
-    # identity copy and would reintroduce the identifier into the public
-    # report/share boundary.
-    return "Anonymous player" if account_id is not None and candidate == str(account_id) else candidate
+    # A profile name containing the internal account ID would reintroduce the
+    # identifier into the public report/share boundary. It is safer to lose a
+    # little display-name fidelity than to publish a raw identifier.
+    return "Anonymous player" if account_id is not None and str(account_id) in candidate else candidate
 
 
 def _public_avatar_url(value: Any, account_id: int | None) -> str | None:

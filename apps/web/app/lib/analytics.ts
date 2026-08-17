@@ -13,7 +13,7 @@ export function setAnalyticsCollector(next: ((event: AnalyticsEvent) => void) | 
 export function track(eventName: string, payload: AnalyticsPayload = {}): void {
   if (typeof window === "undefined") return;
   const safePayload = Object.fromEntries(
-    Object.entries(payload).filter(([key]) => !forbiddenKeys.has(key))
+    Object.entries(payload).filter(([key]) => !forbiddenKeys.has(key.toLowerCase()))
   );
   const detail = { event: eventName, schema_version: "1" as const, ...safePayload };
   collector?.(detail);

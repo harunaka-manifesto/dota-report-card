@@ -14,7 +14,7 @@ import json
 from typing import Any
 from urllib.parse import urlparse
 
-RENDERER_VERSION = "share-svg-2.0.0"
+RENDERER_VERSION = "share-svg-2.1.0"
 CARD_TYPES = frozenset({"identity", "exposed", "strength", "dna", "heroes", "final"})
 
 
@@ -63,6 +63,13 @@ def build_share_svg(
             'width="120" height="120" preserveAspectRatio="xMidYMid slice" '
             'clip-path="circle(60px at 60px 60px)"/>'
         )
+    hero_markup = ""
+    hero_url = content.get("hero_url")
+    if isinstance(hero_url, str) and hero_url:
+        hero_markup = (
+            f'<image href="{html.escape(hero_url, quote=True)}" x="770" y="80" '
+            'width="220" height="220" preserveAspectRatio="xMidYMid slice"/>'
+        )
     fact_markup = "".join(
         f'<text x="90" y="{500 + index * 58}" class="fact">{fact}</text>'
         for index, fact in enumerate(facts[:5])
@@ -72,7 +79,7 @@ def build_share_svg(
   <rect width="1080" height="1350" fill="#f7f2e8"/><rect x="48" y="48" width="984" height="1254" rx="24" fill="none" stroke="#c8c0b1" stroke-width="3"/>
   <text x="90" y="130" class="eyebrow">DOTA DNA</text><text x="90" y="260" class="title">{title}</text><text x="90" y="330" class="subtitle">{subtitle}</text>
   <line x1="90" y1="410" x2="990" y2="410" stroke="#c8c0b1" stroke-width="2"/>{fact_markup}
-  {avatar_markup}<text x="90" y="1190" class="footer">Summary history · deterministic snapshot</text>
+  {avatar_markup}{hero_markup}<text x="90" y="1190" class="footer">Summary history · deterministic snapshot</text>
   <style>.eyebrow{{font:700 24px Arial;letter-spacing:5px;fill:#9b3d22}}.title{{font:700 72px Arial;fill:#20231f}}.subtitle{{font:400 28px Arial;fill:#6e685d}}.fact{{font:700 31px Arial;fill:#20231f}}.footer{{font:400 20px Arial;fill:#7e776b}}</style>
 </svg>'''
     return svg, cache_key
@@ -106,6 +113,10 @@ def _card_content(report: dict[str, Any], card_type: str, *, show_name: bool, sh
         title = identity.get("display_name") if show_name else card.get("archetype") or "Your Dota DNA"
         facts = [card.get("archetype"), card.get("signature"), card.get("pattern"), card.get("rhythm")]
         subtitle = card.get("archetype") or "A snapshot of the patterns in your recent matches."
+    hero_url = None
+    if card_type == "heroes":
+        signature = card.get("signature") or {}
+        hero_url = _safe_hero_url(signature.get("portrait_url")) if isinstance(signature, dict) else None
     return {
         "title": title,
         "subtitle": subtitle,
@@ -113,6 +124,7 @@ def _card_content(report: dict[str, Any], card_type: str, *, show_name: bool, sh
         "show_avatar": show_avatar,
         "show_name": show_name,
         "avatar_url": _safe_avatar_url(identity.get("avatar_url") or identity.get("avatarfull")) if show_avatar else None,
+        "hero_url": hero_url,
     }
 
 
@@ -130,9 +142,24 @@ def _safe_avatar_url(value: Any) -> str | None:
     return value
 
 
+def _safe_hero_url(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return None
+    parsed = urlparse(value)
+    if parsed.scheme != "https" or parsed.hostname != "cdn.cloudflare.steamstatic.com":
+        return None
+    if parsed.query or parsed.fragment:
+        return None
+    return value
+
+
 def _asset_manifest_hash(report: dict[str, Any]) -> str:
     heroes = report.get("heroes") or {}
-    cards = [heroes.get("signature"), *(heroes.get("comfort_picks") or [])]
+    cards = [
+        heroes.get("signature"),
+        *(heroes.get("comfort_picks") or []),
+        *(heroes.get("recommendations") or []),
+    ]
     versions = sorted(
         str(card.get("portrait_asset_version"))
         for card in cards

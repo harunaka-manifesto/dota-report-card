@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import Any
 
@@ -14,7 +15,8 @@ from app.heroes.identity import HeroIdentityResult, select_hero_identity
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
-DNA_SCORING_VERSION = "dna-scoring-1.1.0"
+DNA_SCORING_VERSION = "dna-scoring-1.2.0"
+StageCallback = Callable[[str, str], None]
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,14 +71,29 @@ def analyze_dna(
     session_gap_minutes: int = 90,
     taxonomy: HeroTaxonomy | None = None,
     history_tier: str | None = None,
+    on_stage: StageCallback | None = None,
 ) -> DnaAnalysisResult:
+    def stage(name: str, message: str) -> None:
+        if on_stage is not None:
+            on_stage(name, message)
+
     policy = SessionPolicy(gap_minutes=max(1, session_gap_minutes))
+    stage("session_inference", "Rebuilding your play sessions.")
     sessions = infer_sessions(matches, policy)
+    stage("hero_features", "Mapping your hero habits.")
     features = extract_dna_features(sessions.matches, sessions)
+    stage("role_features", "Reading your role patterns.")
+    # Role coverage is extracted alongside hero and session features. Keeping
+    # a separate completed stage makes that nullable boundary visible to the
+    # progress stream without inventing a second calculation.
+    stage("dimension_scoring", "Finding your eight DNA signals.")
     dimensions = score_dimensions(features)
+    stage("archetype_classification", "Turning the patterns into an archetype.")
     archetype = classify(dimensions)
     archetype = replace(archetype, descriptors=choose_descriptors(dimensions, archetype_key=archetype.key))
+    stage("hero_identity", "Finding the heroes that define you.")
     heroes = select_hero_identity(features, taxonomy)
+    stage("hero_recommendations", "Looking for heroes that fit your cast.")
     return DnaAnalysisResult(
         matches=sessions.matches,
         sessions=sessions,

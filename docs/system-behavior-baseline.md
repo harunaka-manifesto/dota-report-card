@@ -83,10 +83,17 @@ Expected behavior:
 - Detect descriptive patterns such as hero overperformance, long-game differences, session decline, recent trajectory, specialization, and consistency changes.
 - Derive deterministic cross-signal findings from the same eligible summary population, then apply evidence-family, confidence, privacy, copy, ranking, and redundancy gates.
 - Assemble an immutable `free-dna-report-2.0.0` story with findings, experiments, eight-dimension supporting evidence, identity, DNA X-ray, and privacy-safe share variants.
+- Run the dedicated DNA pipeline in visible stages: session inference, hero features, role features, dimension scoring, archetype classification, hero identity, hero recommendations, finding synthesis, and report rendering. The browser receives those job events; it never recomputes the signals.
+- Include factual Signature and Comfort hero results, a reviewed hero pattern, and up to three adjacent hero recommendations in the v2 identity card when the bounded history supports them. Recommendations are adjacent-pick suggestions, not meta, counter, or coaching claims.
 - Publish the summary-level Player DNA report without calling `get_match` for any history row.
 - Do not normalize match details, calculate deep match features, request a replay parse, or publish replay-dependent findings.
 - Mark replay evidence as `not_requested` and list replay families as missing.
 - Record the history read in the cost ledger; the expected detail and parse request counts are zero.
+
+The resilience signal is scored from the absolute size of the next-game shift after a
+previous result. Its receipt keeps the direction separately, so “more after a loss”
+and “less after a loss” are both treated as observable shifts rather than better or
+worse player grades.
 
 The report variant is `free_dna_report`; `free_player_dna` remains a compatibility
 value only for older v1 snapshots. Its finding receipts are descriptive and its
@@ -316,14 +323,16 @@ The job mode is part of both in-flight coalescing and completed-result reuse. A 
 
 Expected stages are:
 
-- `validating_player`
+- `resolving_player`
+- `player_found`
 - `fetching_history`
-- `filtering_matches`
-- `detecting_patterns`
-- `hydrating_selected_matches` (Deep Scan only)
-- `computing_features` (Deep Scan only)
-- `building_cohorts` (Deep Scan only)
-- `evaluating_insights` (Deep Scan only)
+- Free: `normalizing_history`, `session_inference`, `hero_features`,
+  `role_features`, `dimension_scoring`, `archetype_classification`,
+  `hero_identity`, `hero_recommendations`, `finding_patterns`, and
+  `finding_synthesis`
+- Deep Scan: `filtering_matches`, `detecting_patterns`,
+  `hydrating_selected_matches`, `computing_features`, `building_cohorts`,
+  and `evaluating_insights`
 - `rendering_report`
 - `completed` or `failed`
 

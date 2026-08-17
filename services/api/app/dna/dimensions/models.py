@@ -34,7 +34,7 @@ class DimensionResult:
     confounders: tuple[str, ...] = ()
     missing_reasons: tuple[str, ...] = ()
     copy: dict[str, Any] | None = None
-    methodology_version: str = "dna-scoring-1.0.0"
+    methodology_version: str = "dna-scoring-1.2.0"
     source_match_ids: tuple[int, ...] = ()
     descriptor_eligible: bool = True
 

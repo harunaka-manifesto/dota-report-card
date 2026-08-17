@@ -135,6 +135,11 @@ html[data-report-story="true"] { scroll-snap-type: y proximity; scroll-padding-t
 .identity-card { display: grid; gap: 14px; padding: 30px; border: 1px solid #d4cbbb; background: #e5dbc9; }
 .identity-card .finding-receipts { margin: 8px 0; }
 .identity-archetype { margin: 0; color: var(--accent-dark); font-size: 22px; font-weight: 700; }
+.identity-card-heroes { display: grid; gap: 18px; margin-top: 12px; padding-top: 20px; border-top: 1px solid #d4cbbb; }
+.identity-card-heroes h3 { margin: 4px 0 0; font-size: clamp(24px, 4vw, 38px); line-height: 1; letter-spacing: -.04em; }
+.identity-card-heroes .hero-grid { max-width: none; }
+.identity-card-heroes .pattern-card { transform: none; }
+.identity-card-heroes .recommendation-list { max-width: none; }
 .dna-xray-list { display: grid; max-width: 740px; gap: 10px; margin-top: 22px; }
 .dna-xray-row { display: grid; grid-template-columns: 150px 1fr auto; align-items: center; gap: 14px; padding: 12px; border: 1px solid #d4cbbb; background: rgba(255,255,255,.35); }
 .dna-xray-row > div { display: grid; gap: 4px; }

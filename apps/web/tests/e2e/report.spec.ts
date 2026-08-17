@@ -10,6 +10,8 @@ test("completed Free DNA report opens at the reveal and exposes finding share ca
 
   await page.locator("#identity-card").scrollIntoViewIfNeeded();
   await expect(page.getByLabel("Share your Dota DNA")).toBeVisible();
+  await expect(page.getByText("The heroes that make it yours")).toBeVisible();
+  await expect(page.getByText("Hero pattern")).toBeVisible();
   const cardSelect = page.getByLabel("Card");
   await expect(cardSelect).toHaveValue("identity");
 

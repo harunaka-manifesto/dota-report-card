@@ -5,7 +5,7 @@ import hashlib
 import json
 import logging
 from collections.abc import Iterable
-from dataclasses import asdict, replace
+from dataclasses import asdict
 from typing import Any
 
 from app.analysis.budget import CostPolicy, DataCostLedger
@@ -26,12 +26,7 @@ from app.core.errors import (
 )
 from app.core.metrics import record_metric
 from app.core.security import PlayerIdentifier, parse_player_identifier
-from app.dna.archetypes.classifier import classify
-from app.dna.archetypes.descriptors import choose_descriptors
-from app.dna.dimensions.service import score_dimensions
-from app.dna.features.extractor import extract_dna_features
-from app.dna.pipeline import DnaAnalysisResult
-from app.dna.sessions import SessionPolicy, infer_sessions
+from app.dna.pipeline import analyze_dna
 from app.features.calculators import calculate_match_features
 from app.features.models import MatchFeature
 from app.features.summary_calculators import calculate_summary_features
@@ -39,7 +34,6 @@ from app.features.summary_models import SummaryFeatureSet
 from app.findings.conflicts import select_story_findings
 from app.findings.context import build_free_finding_context, summary_features_for_free
 from app.findings.evaluator import evaluate_free_findings
-from app.heroes.identity import select_hero_identity
 from app.identity.steam import SteamVanityResolver
 from app.ingestion.coverage import coverage_for_match
 from app.ingestion.eligibility import assess_match
@@ -397,52 +391,15 @@ class AnalysisService:
             )
         history_tier = "limited" if job.eligible_matches < 60 else "normal"
 
-        self.repository.update_job(
-            job,
-            stage="session_inference",
-            message="Rebuilding your play sessions",
-        )
-        policy = SessionPolicy(gap_minutes=self.settings.effective_session_gap_minutes)
         # Free DNA and finding synthesis must share one eligible population.
         # Ineligible rows remain available only to the private exclusion ledger.
-        sessions = infer_sessions(normalized.eligible_matches, policy)
-
-        self.repository.update_job(
-            job,
-            stage="feature_extraction",
-            message="Mapping hero, role, and session evidence",
-        )
-        features = extract_dna_features(sessions.matches, sessions)
-
-        self.repository.update_job(
-            job,
-            stage="dimension_scoring",
-            message="Finding your eight DNA signals",
-        )
-        dimensions = score_dimensions(features)
-
-        self.repository.update_job(
-            job,
-            stage="archetype_classification",
-            message="Turning the patterns into an archetype",
-        )
-        archetype = classify(dimensions)
-        archetype = replace(archetype, descriptors=choose_descriptors(dimensions, archetype_key=archetype.key))
-
-        self.repository.update_job(
-            job,
-            stage="hero_identity",
-            message="Finding the heroes that define you",
-        )
-        heroes = select_hero_identity(features)
-        dna_analysis = DnaAnalysisResult(
-            matches=sessions.matches,
-            sessions=sessions,
-            features=features,
-            dimensions=dimensions,
-            archetype=archetype,
-            heroes=heroes,
+        dna_analysis = analyze_dna(
+            normalized.eligible_matches,
+            session_gap_minutes=self.settings.effective_session_gap_minutes,
             history_tier=history_tier,
+            on_stage=lambda stage, message: self.repository.update_job(
+                job, stage=stage, message=message
+            ),
         )
 
         self.repository.update_job(
@@ -452,7 +409,7 @@ class AnalysisService:
         )
         summary_feature_set = summary_features_for_free(
             normalized.eligible_matches,
-            session_gap_minutes=self.settings.effective_session_gap_minutes,
+            session_gap_minutes=dna_analysis.sessions.policy.gap_minutes,
         )
         if len(summary_feature_set.matches) != job.eligible_matches:
             raise InsufficientMatchHistory("Summary finding context did not match eligible history")

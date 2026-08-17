@@ -112,6 +112,12 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
 
     assert job.status == "completed"
     assert job.completed_stages
+    assert {
+        "hero_features",
+        "role_features",
+        "hero_recommendations",
+        "rendering_report",
+    } <= set(job.completed_stages)
     assert source.requests == [("player", 42), ("matches", 42)]
     report = repository.get_report(job.report_id or "")
     assert report is not None
@@ -147,6 +153,8 @@ def test_free_report_is_summary_only_versioned_and_expiring() -> None:
         svg, _ = build_share_svg(report, card_type=card_type, show_name=False, show_avatar=False)
         assert str(42) not in svg
         assert "<svg" in svg
+    hero_svg, _ = build_share_svg(report, card_type="heroes", show_name=False, show_avatar=False)
+    assert "<image" in hero_svg
 
     now = datetime.now(UTC)
     assert repository.purge_expired(now=now + timedelta(days=31)) == 1

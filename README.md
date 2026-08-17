@@ -38,8 +38,10 @@ supporting evidence. Public findings carry deterministic receipts, neutral copy,
 and player-observable experiments; raw identifiers, match rows, session
 internals, and legacy/deep payloads stay private. Completed reports enter at
 `report-reveal`, while input/player-found/analysis pages remain in the payload
-for full-journey clients. The identity, exposed-finding, and strength cards use
-the deterministic `share-svg-2.0.0` renderer; the legacy DNA/Heroes/Final card
+for full-journey clients. The identity card also surfaces the factual hero
+identity, comfort picks, reviewed hero pattern, and adjacent picks when the
+history supports them. The identity, exposed-finding, and strength cards use
+the deterministic `share-svg-2.1.0` renderer; the legacy DNA/Heroes/Final card
 aliases remain available. v1 validation and rendering are retained for existing
 snapshots. Hero taxonomy snapshots are validated in CI, and summary `lane_role`
 values are treated as role hints; a spatial lane field does not manufacture a

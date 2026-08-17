@@ -45,16 +45,17 @@ export default function ShareControls({ reportId, defaultCardType = "final", fin
     try {
       const response = await fetch(cardUrl);
       if (!response.ok) throw new Error("share-card-failed");
+      const rendererVersion = response.headers.get("x-share-renderer") ?? "unknown";
       const blob = await response.blob();
       const file = new File([blob], `dota-dna-${cardType}.svg`, { type: blob.type || "image/svg+xml" });
       if (navigator.share && canShareFiles && navigator.canShare({ files: [file] })) {
         await navigator.share({ title: "My Dota DNA", text: "My Dota DNA report", url: permalink, files: [file] });
-        track(findingKind ? "finding.share_completed.v1" : "share.completed.v1", { card_type: cardType, finding_key: findingKey ?? null, finding_kind: findingKind ?? null, report_schema_version: reportSchema ?? null, channel: "native_file", show_name: showName, show_avatar: showAvatar });
+        track(findingKind ? "finding.share_completed.v1" : "share.completed.v1", { card_type: cardType, finding_key: findingKey ?? null, finding_kind: findingKind ?? null, report_schema_version: reportSchema ?? null, renderer_version: rendererVersion, channel: "native_file", show_name: showName, show_avatar: showAvatar });
         return;
       }
       if (navigator.share) {
         await navigator.share({ title: "My Dota DNA", text: "My Dota DNA report", url: permalink });
-        track(findingKind ? "finding.share_completed.v1" : "share.completed.v1", { card_type: cardType, finding_key: findingKey ?? null, finding_kind: findingKind ?? null, report_schema_version: reportSchema ?? null, channel: "native_link", show_name: showName, show_avatar: showAvatar });
+        track(findingKind ? "finding.share_completed.v1" : "share.completed.v1", { card_type: cardType, finding_key: findingKey ?? null, finding_kind: findingKind ?? null, report_schema_version: reportSchema ?? null, renderer_version: rendererVersion, channel: "native_link", show_name: showName, show_avatar: showAvatar });
         return;
       }
       await navigator.clipboard.writeText(permalink);
@@ -70,6 +71,7 @@ export default function ShareControls({ reportId, defaultCardType = "final", fin
     try {
       const response = await fetch(cardUrl);
       if (!response.ok) throw new Error("share-card-failed");
+      const rendererVersion = response.headers.get("x-share-renderer") ?? "unknown";
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
@@ -78,7 +80,7 @@ export default function ShareControls({ reportId, defaultCardType = "final", fin
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
       setMessage("Card download started.");
-      track(findingKind ? "finding.share_completed.v1" : "share.image_saved.v1", { card_type: cardType, finding_key: findingKey ?? null, finding_kind: findingKind ?? null, report_schema_version: reportSchema ?? null, aspect_ratio: "4:5", channel: "download", show_name: showName, show_avatar: showAvatar });
+      track(findingKind ? "finding.share_completed.v1" : "share.image_saved.v1", { card_type: cardType, finding_key: findingKey ?? null, finding_kind: findingKind ?? null, report_schema_version: reportSchema ?? null, renderer_version: rendererVersion, aspect_ratio: "4:5", channel: "download", show_name: showName, show_avatar: showAvatar });
     } catch {
       setMessage("The share card could not be generated.");
       track("share.failed.v1", { card_type: cardType, channel: "download", show_name: showName, show_avatar: showAvatar });

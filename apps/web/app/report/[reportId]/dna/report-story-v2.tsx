@@ -10,6 +10,7 @@ import type {
 import { track } from "../../../lib/analytics";
 import {
   DeepDiveTeaser,
+  HeroPortraitCard,
   MethodologySheet,
   Spectrum,
   StoryPage as StoryPageFrame,
@@ -27,6 +28,9 @@ export default function ReportStoryV2({ report }: { report: FreeDnaReportV2 }) {
   const [activePage, setActivePage] = useState(pages[0]?.id ?? "");
   const [methodology, setMethodology] = useState<DnaDimension | null>(null);
   const reducedMotion = useRef(false);
+  const activePageRef = useRef(pages[0]?.id ?? "");
+  const pageStartedAt = useRef(Date.now());
+  const completedRef = useRef(false);
 
   const pageIndex = useCallback((id: string) => pages.findIndex((page) => page.id === id), [pages]);
 
@@ -46,7 +50,25 @@ export default function ReportStoryV2({ report }: { report: FreeDnaReportV2 }) {
         ? fromHash
         : pages[0]?.id;
     if (target) {
+      activePageRef.current = target;
       setActivePage(target);
+      const targetPage = pages.find((page) => page.id === target);
+      track("report.page_viewed.v1", {
+        page: target,
+        section: targetPage?.section ?? null,
+        page_kind: targetPage?.kind ?? null,
+        ordinal: pageIndex(target) + 1,
+        direction: "resume",
+        viewport: `${window.innerWidth < 700 ? "narrow" : "wide"}`,
+        reduced_motion: reducedMotion.current,
+      });
+      if (pageIndex(target) === pages.length - 1 && !completedRef.current) {
+        completedRef.current = true;
+        track("report.completed.v1", {
+          elapsed_ms_bucket: "0-5s",
+          page_count: pages.length,
+        });
+      }
       window.requestAnimationFrame(() => pageRefs.current[target]?.scrollIntoView({ block: "start", behavior: "auto" }));
     }
 
@@ -54,7 +76,22 @@ export default function ReportStoryV2({ report }: { report: FreeDnaReportV2 }) {
       for (const entry of entries) {
         if (!entry.isIntersecting || entry.intersectionRatio < 0.55) continue;
         const id = entry.target.getAttribute("data-page-id");
-        if (!id || id === activePage) continue;
+        if (!id || id === activePageRef.current) continue;
+        const previousId = activePageRef.current;
+        const previousIndex = pageIndex(previousId);
+        const nextIndex = pageIndex(id);
+        const page = pages.find((item) => item.id === id);
+        const previousPage = pages.find((item) => item.id === previousId);
+        track("report.page_exited.v1", {
+          page: previousId,
+          section: previousPage?.section ?? null,
+          page_kind: previousPage?.kind ?? null,
+          ordinal: previousIndex + 1,
+          direction: nextIndex >= previousIndex ? "forward" : "backward",
+          dwell_ms_bucket: dwellBucket(Date.now() - pageStartedAt.current),
+        });
+        activePageRef.current = id;
+        pageStartedAt.current = Date.now();
         setActivePage(id);
         try {
           sessionStorage.setItem(`dota-report-page:${report.report_id ?? "current"}`, id);
@@ -62,7 +99,15 @@ export default function ReportStoryV2({ report }: { report: FreeDnaReportV2 }) {
           // Ignore storage failures; the report remains fully navigable.
         }
         window.history.replaceState(null, "", `#${id}`);
-        const page = pages.find((item) => item.id === id);
+        track("report.page_viewed.v1", {
+          page: id,
+          section: page?.section ?? null,
+          page_kind: page?.kind ?? null,
+          ordinal: nextIndex + 1,
+          direction: nextIndex >= previousIndex ? "forward" : "backward",
+          viewport: `${window.innerWidth < 700 ? "narrow" : "wide"}`,
+          reduced_motion: reducedMotion.current,
+        });
         if (page?.kind === "finding") {
           const finding = findingForPage(page, report);
           if (finding) track("finding.viewed.v1", { finding_key: finding.key, finding_kind: finding.kind, confidence: finding.confidence, ordinal: pageIndex(id) });
@@ -71,11 +116,39 @@ export default function ReportStoryV2({ report }: { report: FreeDnaReportV2 }) {
           const finding = findingForPage(page, report);
           if (finding?.experiment) track("finding.experiment_viewed.v1", { finding_key: finding.key, finding_kind: finding.kind, experiment_key: finding.experiment.key, ordinal: pageIndex(id) });
         }
+        if (nextIndex === pages.length - 1 && !completedRef.current) {
+          completedRef.current = true;
+          track("report.completed.v1", {
+            elapsed_ms_bucket: dwellBucket(Date.now() - pageStartedAt.current),
+            page_count: pages.length,
+          });
+        }
       }
     }, { threshold: [0.55, 0.8] });
     Object.values(pageRefs.current).forEach((element) => element && observer.observe(element));
+    const markOverflowing = () => {
+      Object.values(pageRefs.current).forEach((element) => {
+        if (!element) return;
+        element.dataset.overflowing = String(element.scrollHeight > window.innerHeight * 1.08);
+      });
+    };
+    markOverflowing();
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(markOverflowing);
+    Object.values(pageRefs.current).forEach((element) => element && resizeObserver?.observe(element));
     return () => {
       observer.disconnect();
+      resizeObserver?.disconnect();
+      if (activePageRef.current) {
+        const page = pages.find((item) => item.id === activePageRef.current);
+        track("report.page_exited.v1", {
+          page: activePageRef.current,
+          section: page?.section ?? null,
+          page_kind: page?.kind ?? null,
+          ordinal: pageIndex(activePageRef.current) + 1,
+          direction: "exit",
+          dwell_ms_bucket: dwellBucket(Date.now() - pageStartedAt.current),
+        });
+      }
       delete document.documentElement.dataset.reportStory;
     };
     // The report is immutable; observer setup should run once per snapshot.
@@ -204,6 +277,8 @@ function ExperimentPage({ finding, headingId }: { finding: PublicFinding; headin
 
 function IdentityCard({ report, page }: { report: FreeDnaReportV2; page: StoryPageV2 }) {
   const share = report.shares.identity;
+  const pattern = report.heroes.patterns[0];
+  const recommendations = report.heroes.recommendations.slice(0, 3);
   return (
     <article className="identity-card">
       <p className="eyebrow">Your Dota DNA</p>
@@ -211,6 +286,42 @@ function IdentityCard({ report, page }: { report: FreeDnaReportV2; page: StoryPa
       <p className="identity-archetype">{share.archetype ?? report.archetype.label}</p>
       <div className="finding-receipts">{share.receipts.map((receipt) => <span key={receipt}><strong>{receipt}</strong><small>Evidence receipt</small></span>)}</div>
       <p>{report.identity.display_name} · {report.archetype.label}</p>
+      <section className="identity-card-heroes" aria-labelledby={`${page.id}-heroes-heading`}>
+        <div>
+          <p className="eyebrow">The heroes that make it yours</p>
+          <h3 id={`${page.id}-heroes-heading`}>Your cast, in a few useful cuts.</h3>
+        </div>
+        {report.heroes.signature && <HeroPortraitCard hero={report.heroes.signature} featured />}
+        {report.heroes.comfort_picks.length > 0 && (
+          <div>
+            <p className="eyebrow">Comfort picks</p>
+            <div className="hero-grid" aria-label="Comfort picks">
+              {report.heroes.comfort_picks.map((hero) => <HeroPortraitCard key={hero.hero_id} hero={hero} />)}
+            </div>
+          </div>
+        )}
+        {pattern && (
+          <div className="pattern-card">
+            <p className="eyebrow">Hero pattern</p>
+            <h3>{pattern.label}</h3>
+            <p>{pattern.contributors.length ? `Seen through ${pattern.contributors.join(", ")}.` : "The pattern is still taking shape."}</p>
+          </div>
+        )}
+        {recommendations.length > 0 && (
+          <div>
+            <p className="eyebrow">A few adjacent picks</p>
+            <div className="recommendation-list" aria-label="Adjacent hero recommendations">
+              {recommendations.map((recommendation) => (
+                <div className="recommendation" key={recommendation.hero_id}>
+                  <strong>{recommendation.name}</strong>
+                  <span>{recommendation.fit_band} fit</span>
+                  <small>{recommendation.role_change ? "A role change with familiar tools." : "Familiar tools, with one new angle."}</small>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
       {report.report_id && <ShareControls reportId={report.report_id} defaultCardType="identity" findingKind="identity" findingKey={share.finding_key ?? undefined} reportSchema={report.schema_version} />}
     </article>
   );
@@ -241,4 +352,12 @@ function FallbackPage({ page }: { page: StoryPageV2 }) {
 
 function findingForPage(page: StoryPageV2, report: FreeDnaReportV2): PublicFinding | null {
   return page.finding_key ? report.findings.find((finding) => finding.key === page.finding_key) ?? null : null;
+}
+
+function dwellBucket(milliseconds: number): string {
+  if (milliseconds < 5_000) return "0-5s";
+  if (milliseconds < 15_000) return "5-15s";
+  if (milliseconds < 30_000) return "15-30s";
+  if (milliseconds < 60_000) return "30-60s";
+  return "60s+";
 }

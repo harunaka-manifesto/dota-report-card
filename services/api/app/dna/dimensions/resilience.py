@@ -24,7 +24,12 @@ def score(features: DnaFeatureSet):
             ),
         )
     delta = (mean(after_loss) or 0.0) - (mean(after_win) or 0.0)
-    value = clamp(0.5 + delta / 0.50)
+    # Resilience describes how much the next-game proxy changes with the
+    # previous result. Direction is useful evidence, but it is not a better
+    # or worse player grade. Score the magnitude and keep direction in the
+    # receipt so either side of the contrast is treated symmetrically.
+    magnitude = abs(delta)
+    value = clamp(magnitude / 0.50)
     sensitivity = session_sensitivity_stability(features, "resilience")
     receipt_gating = len(features.transitions_after_two_losses) >= 8
     return result(
@@ -41,11 +46,13 @@ def score(features: DnaFeatureSet):
             FeatureEvidence("after_loss_performance", round(mean(after_loss) or 0.0, 4), "proxy", len(after_loss)),
             FeatureEvidence("outcome_conditioned_delta", round(delta, 4), "proxy_delta", sample),
             FeatureEvidence("effect_direction", "more_after_loss" if delta > 0 else "less_after_loss" if delta < 0 else "neutral", "direction", sample),
-            FeatureEvidence("effect_magnitude", round(abs(delta), 4), "absolute_proxy_delta", sample),
+            FeatureEvidence("effect_magnitude", round(magnitude, 4), "absolute_proxy_delta", sample),
             FeatureEvidence("two_loss_receipts", len(features.transitions_after_two_losses), "transitions", len(features.transitions_after_two_losses)),
             FeatureEvidence("session_gap_agreement", sensitivity, "agreement", 3),
         ),
         confounders=("matchmaking, stopping behaviour, parties, and hero changes can affect the next game",)
         + (() if receipt_gating else ("fewer than eight two-loss receipts; magnitude is provisional",)),
         source_match_ids=features.dated_match_ids,
+        neutral=magnitude < 0.05,
+        descriptor_eligible=magnitude >= 0.05,
     )

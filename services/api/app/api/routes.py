@@ -145,6 +145,7 @@ async def get_share_card(
         headers={
             "Cache-Control": "public, max-age=3600, immutable",
             "ETag": cache_key,
+            "X-Share-Renderer": RENDERER_VERSION,
             "X-Robots-Tag": "noindex, nofollow, noarchive",
         },
     )
