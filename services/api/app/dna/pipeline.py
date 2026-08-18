@@ -90,9 +90,7 @@ def analyze_dna(
         taxonomy=behavior_taxonomy,
         history_tier=history_kind,
     )
-    stage("behavior_elements", "Measuring the 17 Elements behind the report.")
-    behavior = analyze_behavior(context)
-    stage("behavior_patterns", "Checking which of the 14 reviewed Patterns survive the evidence gates.")
+    behavior = analyze_behavior(context, on_stage=stage)
     stage("hero_portfolio", "Comparing the established hero pool and its observable behavior.")
     portfolio = analyze_hero_portfolio(
         sessions.matches,

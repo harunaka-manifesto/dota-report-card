@@ -7,13 +7,11 @@ import type {
   ChoiceOption,
   FreeDnaReportV4,
   HeroException,
-  PoolEvolution,
   StoryPage,
 } from "../../../../../../packages/api-client/src";
 import { track } from "../../../lib/analytics";
 import { DeepDiveTeaser, EvidenceReceipt, MethodologySheet, Spectrum, StoryPage as StoryPageFrame } from "../../../components/story/primitives";
 import ShareControls from "../../../components/share/share-controls";
-import { PORTFOLIO_COPY_V4 } from "./report-copy-v4";
 
 export default function ReportStoryV4({ report }: { report: FreeDnaReportV4 }) {
   const pages = useMemo(() => report.pages, [report.pages]);
@@ -23,34 +21,44 @@ export default function ReportStoryV4({ report }: { report: FreeDnaReportV4 }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [methodologyOpen, setMethodologyOpen] = useState(false);
+  const seenPageIds = useRef<Set<string>>(new Set());
   const elements = useMemo(() => new Map(report.elements.map((item) => [item.key, item])), [report.elements]);
   const patterns = useMemo(() => new Map(report.patterns.map((item) => [item.key, item])), [report.patterns]);
 
   useEffect(() => {
     document.documentElement.dataset.reportStory = "true";
+    const emitPageImpression = (page: StoryPage) => {
+      if (seenPageIds.current.has(page.id)) return;
+      seenPageIds.current.add(page.id);
+      const base = { page: page.id, page_kind: page.kind, section: page.section, report_schema_version: report.schema_version };
+      track("report.page_viewed.v1", base);
+      if (page.kind === "element_scan") track("report.element_scan_viewed.v1", base);
+      if (page.kind === "element_highlight") track("report.element_highlight_viewed.v1", { ...base, element_key: page.element_key ?? null });
+      if (page.kind === "pattern_highlight") track("report.pattern_viewed.v1", { ...base, pattern_key: page.pattern_key ?? null });
+      if (page.kind === "hero_common_thread_question" || page.kind === "hero_exception_question" || page.kind === "pool_evolution_question") {
+        track("hero_portfolio.question_viewed.v1", { ...base, question_key: page.portfolio_key ?? page.kind, portfolio_model_version: report.versions.hero_portfolio });
+      }
+    };
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting || entry.intersectionRatio < 0.55) continue;
         const id = entry.target.getAttribute("data-page-id");
-        if (!id || id === activePageRef.current) continue;
-        activePageRef.current = id;
-        setActivePage(id);
         const page = pages.find((item) => item.id === id);
-        track("report.page_viewed.v1", { page: id, page_kind: page?.kind ?? null, section: page?.section ?? null, report_schema_version: report.schema_version });
-        if (page?.kind === "element_scan") track("report.element_scan_viewed.v1", { page: id });
-        if (page?.kind === "element_highlight") track("report.element_highlight_viewed.v1", { element_key: page.element_key ?? null });
-        if (page?.kind === "pattern_highlight") track("report.pattern_viewed.v1", { pattern_key: page.pattern_key ?? null });
-        if (page?.kind.startsWith("hero_")) track("hero_portfolio.question_viewed.v1", { page: id, portfolio_key: page.portfolio_key ?? null });
-        if (page?.kind === "pool_evolution_question") track("hero_portfolio.question_viewed.v1", { page: id, portfolio_key: "evolution" });
-        if (page?.kind === "hero_mirror_reveal") track("hero_mirror.reveal_started.v1", { page: id });
+        if (!id || !page) continue;
+        if (id !== activePageRef.current) {
+          activePageRef.current = id;
+          setActivePage(id);
+        }
+        emitPageImpression(page);
       }
     }, { threshold: [0.55, 0.8] });
     Object.values(pageRefs.current).forEach((element) => element && observer.observe(element));
+    if (pages[0]) emitPageImpression(pages[0]);
     return () => {
       observer.disconnect();
       delete document.documentElement.dataset.reportStory;
     };
-  }, [pages, report.schema_version]);
+  }, [pages, report.schema_version, report.versions.hero_portfolio]);
 
   const activeIndex = Math.max(0, pages.findIndex((page) => page.id === activePage));
   return (
@@ -101,13 +109,25 @@ function renderPage(page: StoryPage, context: StoryContext) {
 function ElementScan({ page, context }: { page: StoryPage; context: StoryContext }) {
   const { report, setMethodologyOpen } = context;
   const highlightKeys = new Set(report.highlights.element_keys);
+  const [scanStage, setScanStage] = useState<"scanning" | "ready">("scanning");
+
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      setScanStage("ready");
+      return;
+    }
+    const timer = window.setTimeout(() => setScanStage("ready"), 700);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   return (
-    <article className="element-scan">
+    <article className={`element-scan is-${scanStage}`} data-scan-state={scanStage}>
       <p className="eyebrow">17 Elements · summary history only</p>
       <h2 id={`${page.id}-heading`}>{page.title}</h2>
-      <p className="story-lede">{page.body}</p>
+      <p className="story-lede" aria-live="polite">{scanStage === "scanning" ? page.content?.scanning_body ?? page.body : page.content?.ready_body ?? page.body}</p>
       <div className="element-scan-grid">
-        {report.elements.map((element) => <ElementTile key={element.key} element={element} featured={highlightKeys.has(element.key)} />)}
+        {report.elements.map((element, index) => <ElementTile key={element.key} element={element} featured={scanStage === "ready" && highlightKeys.has(element.key)} scanIndex={index} />)}
       </div>
       <button type="button" className="methodology-button" onClick={() => setMethodologyOpen(true)}>How the Elements are measured</button>
       <MethodologySheet open={context.methodologyOpen} title="Observable Elements" body="Each Element is a reviewed, versioned summary-history measurement. Unavailable fields stay unavailable; a score is never filled with a neutral guess." onClose={() => setMethodologyOpen(false)} />
@@ -115,9 +135,9 @@ function ElementScan({ page, context }: { page: StoryPage; context: StoryContext
   );
 }
 
-function ElementTile({ element, featured = false }: { element: BehaviorElement; featured?: boolean }) {
+function ElementTile({ element, featured = false, scanIndex = 0 }: { element: BehaviorElement; featured?: boolean; scanIndex?: number }) {
   return (
-    <article className={`element-tile is-${element.status}${featured ? " is-featured" : ""}`}>
+    <article className={`element-tile is-${element.status}${featured ? " is-featured" : ""}`} style={{ "--scan-index": scanIndex } as React.CSSProperties}>
       <div className="element-tile-heading"><span className="eyebrow">{element.status}</span><strong>{element.label}</strong></div>
       <Spectrum score={element.score} left={element.axis.left} right={element.axis.right} disabled={element.status === "unavailable"} />
       <div className="element-tile-meta"><span>{element.zone ?? "No zone yet"}</span><span>{element.sample_size ? `n=${element.sample_size}` : "No sample"}</span></div>
@@ -132,10 +152,14 @@ function ElementHighlightPage({ page, context }: { page: StoryPage; context: Sto
     <article className="element-highlight-page">
       <p className="eyebrow">Element highlight</p>
       <h2 id={`${page.id}-heading`}>{element.label}</h2>
-      <p className="story-lede">{page.body}</p>
+      <p className="story-lede">{page.content?.observation ?? page.body}</p>
       <Spectrum score={element.score} left={element.axis.left} right={element.axis.right} disabled={element.status === "unavailable"} />
       <div className="signal-status"><strong>{element.zone ?? "Signal unavailable"}</strong><span>{element.confidence} confidence · {element.sample_size ? `n=${element.sample_size}` : "no readable sample"}</span></div>
+      {page.content?.why_highlight && <p>{page.content.why_highlight}</p>}
       <EvidenceReceipt evidence={element.receipts} />
+      {page.content?.evidence && <p className="muted">{page.content.evidence}</p>}
+      {page.content?.what_to_notice && <p><strong>What to notice.</strong> {page.content.what_to_notice}</p>}
+      {page.content?.guardrail && <p className="muted"><strong>Do not overread this.</strong> {page.content.guardrail}</p>}
       {element.missing_reasons.length > 0 && <p className="muted">{element.missing_reasons.join(" ")}</p>}
     </article>
   );
@@ -147,18 +171,25 @@ function PatternHighlightPage({ page, context }: { page: StoryPage; context: Sto
   const ingredientMap = new Map([...pattern.element_keys, ...pattern.modifier_element_keys].map((key) => [key, context.elements.get(key)]));
   return (
     <article className={`pattern-highlight-page pattern-tier-${pattern.tier}`}>
-      <p className="eyebrow">Pattern · {pattern.family} · Tier {pattern.tier}</p>
+      <p className="eyebrow">Pattern highlight</p>
       <h2 id={`${page.id}-heading`}>{pattern.label}</h2>
-      <p className="story-lede">{page.body}</p>
-      <div className="pattern-verdict"><strong>{pattern.status === "qualified" ? "Qualified relationship" : "Still forming"}</strong><span>{pattern.confidence} confidence · {Math.round(pattern.strength * 100)}% strength</span></div>
+      <p className="story-lede">{page.content?.meaning ?? page.body}</p>
+      <div className="pattern-verdict"><strong>What these signals share</strong><span>{pattern.confidence} confidence</span></div>
+      {page.content?.observations && <div className="pattern-observations"><span className="eyebrow">What we observed</span>{page.content.observations.map((observation) => <p key={observation}>{observation}</p>)}</div>}
+      {page.content?.worth_noticing && <p><strong>The part worth noticing.</strong> {page.content.worth_noticing}</p>}
+      {page.content?.player_read && <p><strong>What this says about your Dota.</strong> {page.content.player_read}</p>}
       <EvidenceReceipt evidence={pattern.receipts} />
+      <div className="pattern-ingredients-visible">
+        <span className="eyebrow">Element ingredients</span>
+        <IngredientGroup title="Required Elements" keys={pattern.element_keys} ingredientMap={ingredientMap} />
+        {pattern.modifier_element_keys.length > 0 && <IngredientGroup title="Modifier Elements" keys={pattern.modifier_element_keys} ingredientMap={ingredientMap} />}
+      </div>
       <details className="pattern-ingredients" onToggle={(event) => { if ((event.currentTarget as HTMLDetailsElement).open) track("report.pattern_element_expanded.v1", { pattern_key: pattern.key }); }}>
-        <summary>See the Element ingredients</summary>
-        <div className="ingredient-list">
-          <IngredientGroup title="Required Elements" keys={pattern.element_keys} ingredientMap={ingredientMap} />
-          {pattern.modifier_element_keys.length > 0 && <IngredientGroup title="Modifier Elements" keys={pattern.modifier_element_keys} ingredientMap={ingredientMap} />}
-        </div>
+        <summary>See methodology detail</summary>
+        <div className="ingredient-list"><span>Relationship strength: {Math.round(pattern.strength * 100)}% · Tier {pattern.tier} · {pattern.family}</span></div>
       </details>
+      {page.content?.takeaway && <p><strong>Useful takeaway.</strong> {page.content.takeaway}</p>}
+      {page.content?.guardrail && <p className="muted"><strong>Do not overread this.</strong> {page.content.guardrail}</p>}
       {pattern.suppression_reasons.length > 0 && <p className="muted">{pattern.suppression_reasons.join(" ")}</p>}
     </article>
   );
@@ -177,11 +208,22 @@ function PortfolioQuestion({ page, context, kind }: { page: StoryPage; context: 
   const correct = result.correct_option_key;
   const choose = (option: ChoiceOption) => {
     context.setAnswers((current) => ({ ...current, [kind]: option.key }));
-    track("hero_portfolio.answer_selected.v1", { portfolio_key: kind, option_key: option.key });
+    track("hero_portfolio.answer_selected.v1", {
+      question_key: kind,
+      selected_option_key: option.key,
+      matched_computed_answer: correct !== null && option.key === correct,
+      report_schema_version: context.report.schema_version,
+      portfolio_model_version: context.report.versions.hero_portfolio,
+    });
   };
   const reveal = () => {
     context.setRevealed((current) => ({ ...current, [kind]: true }));
-    track("hero_portfolio.reveal_viewed.v1", { portfolio_key: kind, result_status: result.status });
+    track("hero_portfolio.reveal_viewed.v1", {
+      question_key: kind,
+      matched_computed_answer: selected !== undefined && selected === correct,
+      report_schema_version: context.report.schema_version,
+      portfolio_model_version: context.report.versions.hero_portfolio,
+    });
   };
   return (
     <article className="portfolio-question">
@@ -189,22 +231,27 @@ function PortfolioQuestion({ page, context, kind }: { page: StoryPage; context: 
       <h2 id={`${page.id}-heading`}>{page.title}</h2>
       <p className="story-lede">{page.body}</p>
       {unavailable ? <UnavailableMessage limitations={result.limitations} /> : <>
-        <div className="choice-grid">{options.map((option) => <button key={option.key} type="button" className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}</div>
-        <button type="button" className="reveal-button" disabled={!selected} onClick={reveal}>{isRevealed ? "Answer revealed" : "Reveal"}</button>
-        {isRevealed && <PortfolioReveal kind={kind} selected={selected} correct={correct} result={result} />}
+        <div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>
+          {options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}
+        </div>
+        {selected && <p className="choice-status" role="status" aria-live="polite">Selected: {options.find((option) => option.key === selected)?.label}</p>}
+        <button type="button" className="reveal-button" disabled={!selected || isRevealed} onClick={reveal}>{isRevealed ? "Answer revealed" : "Reveal"}</button>
+        {isRevealed && <div aria-live="polite"><PortfolioReveal kind={kind} selected={selected} correct={correct} result={result} content={page.content} /></div>}
       </>}
     </article>
   );
 }
 
-function PortfolioReveal({ kind, selected, correct, result }: { kind: "common_thread" | "exception"; selected?: string; correct: string | null; result: FreeDnaReportV4["hero_portfolio"]["common_thread"] | HeroException }) {
+function PortfolioReveal({ kind, selected, correct, result, content }: { kind: "common_thread" | "exception"; selected?: string; correct: string | null; result: FreeDnaReportV4["hero_portfolio"]["common_thread"] | HeroException; content?: StoryPage["content"] }) {
   const right = selected !== undefined && selected === correct;
+  const selectedOption = result.options.find((option) => option.key === selected);
+  const resultLabel = right ? content?.correct_label ?? "You spotted it." : content?.incorrect_label ?? "A useful correction.";
   if (kind === "common_thread") {
     const common = result as FreeDnaReportV4["hero_portfolio"]["common_thread"];
-    return <div className="portfolio-reveal"><span className="eyebrow">{right ? PORTFOLIO_COPY_V4.common_thread.correct : PORTFOLIO_COPY_V4.common_thread.incorrect}</span><h3>{common.trait_label ?? PORTFOLIO_COPY_V4.common_thread.unavailable}</h3><p>{common.trait_label ? PORTFOLIO_COPY_V4.common_thread.reveal(common.trait_label, common.hero_count) : common.limitations.join(" ")}</p><div className="descriptor-list">{common.secondary_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div>;
+    return <div className="portfolio-reveal"><span className="eyebrow">{resultLabel}</span><h3>{common.trait_label ?? "No clear common thread"}</h3><p>{selectedOption?.feedback ?? common.limitations.join(" ")}</p><div className="descriptor-list">{common.secondary_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div>;
   }
   const exception = result as HeroException;
-  return <div className="portfolio-reveal"><span className="eyebrow">{right ? PORTFOLIO_COPY_V4.exception.correct : PORTFOLIO_COPY_V4.exception.incorrect}</span><h3>{exception.hero_name ?? PORTFOLIO_COPY_V4.exception.unavailable}</h3><p>{exception.hero_name ? PORTFOLIO_COPY_V4.exception.reveal(exception.hero_name) : exception.limitations.join(" ")}</p><div className="descriptor-list">{exception.exception_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div>;
+  return <div className="portfolio-reveal"><span className="eyebrow">{resultLabel}</span><h3>{exception.hero_name ?? "No clear exception"}</h3><p>{selectedOption?.feedback ?? exception.limitations.join(" ")}</p><div className="descriptor-list">{exception.exception_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div>;
 }
 
 function EvolutionQuestion({ page, context }: { page: StoryPage; context: StoryContext }) {
@@ -212,38 +259,99 @@ function EvolutionQuestion({ page, context }: { page: StoryPage; context: StoryC
   const isRevealed = context.revealed.evolution;
   const choose = (option: ChoiceOption) => {
     context.setAnswers((current) => ({ ...current, evolution: option.key }));
-    track("hero_portfolio.answer_selected.v1", { portfolio_key: "evolution", option_key: option.key });
+    track("hero_portfolio.answer_selected.v1", {
+      question_key: "evolution",
+      selected_option_key: option.key,
+      matched_computed_answer: null,
+      report_schema_version: context.report.schema_version,
+      portfolio_model_version: context.report.versions.hero_portfolio,
+    });
   };
-  return <article className="portfolio-question"><p className="eyebrow">Hero Portfolio · Pool Evolution</p><h2 id={`${page.id}-heading`}>{page.title}</h2><p className="story-lede">{page.body}</p><div className="choice-grid">{page.options.map((option) => <button key={option.key} type="button" className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}</div><button type="button" className="reveal-button" disabled={!selected} onClick={() => { context.setRevealed((current) => ({ ...current, evolution: true })); track("hero_portfolio.reveal_viewed.v1", { portfolio_key: "evolution", result_status: context.report.hero_portfolio.evolution.status }); }}>{isRevealed ? "Answer revealed" : PORTFOLIO_COPY_V4.evolution.check}</button>{selected && <p className="muted">Your read: {page.options.find((option) => option.key === selected)?.label}</p>}</article>;
+  return <article className="portfolio-question"><p className="eyebrow">Hero Portfolio · Pool Evolution</p><h2 id={`${page.id}-heading`}>{page.title}</h2><p className="story-lede">{page.body}</p><div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>{page.options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}</div>{selected && <p className="choice-status" role="status" aria-live="polite">Your read: {page.options.find((option) => option.key === selected)?.label}</p>}<button type="button" className="reveal-button" disabled={!selected || isRevealed} onClick={() => { context.setRevealed((current) => ({ ...current, evolution: true })); track("hero_portfolio.reveal_viewed.v1", { question_key: "evolution", matched_computed_answer: null, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_portfolio }); }}>{isRevealed ? "Answer revealed" : "Reveal"}</button></article>;
 }
 
 function EvolutionReveal({ page, context }: { page: StoryPage; context: StoryContext }) {
   const evolution = context.report.hero_portfolio.evolution;
-  return <article className="evolution-reveal"><p className="eyebrow">Pool Evolution · report read</p><h2 id={`${page.id}-heading`}>{page.title}</h2>{evolution.status === "available" && evolution.variant ? <><p className="story-lede">{evolutionCopy(evolution)}</p><div className="evolution-columns"><div><span className="eyebrow">Earlier window</span><div className="descriptor-list">{evolution.earlier_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div><div><span className="eyebrow">Recent window</span><div className="descriptor-list">{evolution.recent_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div></div></> : <UnavailableMessage limitations={evolution.limitations} />}</article>;
-}
-
-function evolutionCopy(evolution: PoolEvolution): string {
-  return PORTFOLIO_COPY_V4.evolution.variants[evolution.variant ?? "broadly_stable"];
+  if (!context.revealed.evolution) {
+    return <article className="evolution-reveal"><p className="eyebrow">Pool Evolution · report read</p><h2 id={`${page.id}-heading`}>{page.title}</h2><div className="unavailable-message"><strong>{page.content?.locked_copy ?? "Complete the self-assessment above to see the report read."}</strong></div></article>;
+  }
+  return <article className="evolution-reveal"><p className="eyebrow">Pool Evolution · report read</p><h2 id={`${page.id}-heading`}>{page.title}</h2>{evolution.status === "available" && evolution.variant ? <><p className="story-lede">{page.content?.copy ?? page.body}</p><div className="evolution-columns"><div><span className="eyebrow">Earlier window · n={evolution.earlier_sample_size}</span><div className="descriptor-list">{evolution.earlier_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div><div><span className="eyebrow">Recent window · n={evolution.recent_sample_size}</span><div className="descriptor-list">{evolution.recent_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div></div></> : <UnavailableMessage limitations={evolution.limitations} />}</article>;
 }
 
 function MirrorPage({ page, context }: { page: StoryPage; context: StoryContext }) {
   const mirror = context.report.hero_portfolio.hero_mirror;
   const open = context.revealed.hero_mirror;
-  const reveal = () => {
-    context.setRevealed((current) => ({ ...current, hero_mirror: true }));
-    track("hero_mirror.reveal_completed.v1", { result_status: mirror.status });
+  const [dragProgress, setDragProgress] = useState(0);
+  const dragProgressRef = useRef(0);
+  const pointer = useRef<{ id: number; startX: number; startY: number; dragging: boolean } | null>(null);
+  const started = useRef(false);
+  const completed = useRef(false);
+  const trackStart = (interaction: string) => {
+    if (started.current) return;
+    started.current = true;
+    track("hero_mirror.reveal_started.v1", { interaction, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_mirror });
   };
-  return <article className={`mirror-card${open ? " is-open" : ""}`} tabIndex={0} onKeyDown={(event) => { if ((event.key === "Enter" || event.key === " ") && !open) { event.preventDefault(); reveal(); } }}><p className="eyebrow">ONE LAST COMPARISON</p><h2 id={`${page.id}-heading`}>Your Hero Mirror</h2>{!open ? <><p className="story-lede">{PORTFOLIO_COPY_V4.hero_mirror.closed || page.body}</p><button type="button" className="mirror-reveal-button" onClick={reveal}>Reveal Hero Mirror</button></> : <MirrorReveal mirror={mirror} />}</article>;
+  const reveal = (interaction: string) => {
+    trackStart(interaction);
+    if (open) return;
+    context.setRevealed((current) => ({ ...current, hero_mirror: true }));
+    if (!completed.current) {
+      completed.current = true;
+      track("hero_mirror.reveal_completed.v1", { result_status: mirror.status, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_mirror });
+    }
+  };
+  const onPointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    if (open || (event.pointerType === "mouse" && event.button !== 0)) return;
+    pointer.current = { id: event.pointerId, startX: event.clientX, startY: event.clientY, dragging: false };
+  };
+  const onPointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    const current = pointer.current;
+    if (!current || current.id !== event.pointerId || open) return;
+    const dx = event.clientX - current.startX;
+    const dy = event.clientY - current.startY;
+    if (!current.dragging) {
+      if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy)) return;
+      current.dragging = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      trackStart("drag");
+    }
+    event.preventDefault();
+    const width = Math.max(event.currentTarget.clientWidth, 1);
+    const progress = Math.min(1, Math.abs(dx) / width);
+    dragProgressRef.current = progress;
+    setDragProgress(progress);
+  };
+  const onPointerUp = (event: React.PointerEvent<HTMLElement>) => {
+    const current = pointer.current;
+    if (!current || current.id !== event.pointerId) return;
+    if (current.dragging) {
+      if (dragProgressRef.current >= 0.35) reveal("drag");
+      else {
+        dragProgressRef.current = 0;
+        setDragProgress(0);
+      }
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    pointer.current = null;
+  };
+  const onPointerCancel = () => {
+    pointer.current = null;
+    dragProgressRef.current = 0;
+    setDragProgress(0);
+  };
+  return <article className={`mirror-card${open ? " is-open" : ""}${dragProgress > 0 && !open ? " is-dragging" : ""}`} style={{ "--mirror-progress": dragProgress } as React.CSSProperties} tabIndex={0} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel} onKeyDown={(event) => { if ((event.key === "Enter" || event.key === " ") && !open) { event.preventDefault(); reveal("keyboard"); } }}><div className="mirror-cover"><p className="eyebrow">ONE LAST COMPARISON</p><h2 id={`${page.id}-heading`}>Your Hero Mirror</h2>{!open && <><p className="story-lede">{page.content?.closed ?? page.body}</p><button type="button" className="mirror-reveal-button" onClick={() => reveal("button")}>Reveal Hero Mirror</button><p className="muted mirror-gesture-hint">Swipe across this card, or use the button.</p></>}</div>{open && <MirrorReveal mirror={mirror} content={page.content ?? {}} />}</article>;
 }
 
-function MirrorReveal({ mirror }: { mirror: FreeDnaReportV4["hero_portfolio"]["hero_mirror"] }) {
+function MirrorReveal({ mirror, content }: { mirror: FreeDnaReportV4["hero_portfolio"]["hero_mirror"]; content: StoryPage["content"] }) {
   if (mirror.status !== "available" || !mirror.hero_name) return <UnavailableMessage limitations={mirror.limitations} />;
   const rows = ["involvement", "finishing", "deaths", "role_context"];
-  return <div className="mirror-reveal"><p className="story-lede">{PORTFOLIO_COPY_V4.hero_mirror.available(mirror.hero_name)}</p><p className="muted">{PORTFOLIO_COPY_V4.hero_mirror.qualifier}</p><div className="hero-behavior-table" role="table" aria-label="Player and hero behavior comparison"><div className="hero-behavior-row header" role="row"><span>Observable behavior</span><span>Your history</span><span>{mirror.hero_name}</span></div>{rows.map((key) => <div className="hero-behavior-row" role="row" key={key}><strong>{key.replaceAll("_", " ")}</strong><span>{mirror.player_behavior[key] ?? "Not available"}</span><span>{mirror.hero_behavior[key] ?? "Not available"}</span></div>)}</div><p className="muted">{PORTFOLIO_COPY_V4.hero_mirror.guardrail} {mirror.limitations.join(" ")}</p></div>;
+  return <div className="mirror-reveal" aria-live="polite"><p className="story-lede">{content.available ?? `Hero Mirror: ${mirror.hero_name}`}</p><p className="muted">{content.qualifier}</p><div className="hero-behavior-table" role="table" aria-label="Player and hero behavior comparison"><div className="hero-behavior-row header" role="row"><span>Observable behavior</span><span>Your history</span><span>{mirror.hero_name}</span></div>{rows.map((key) => <div className="hero-behavior-row" role="row" key={key}><strong>{key.replaceAll("_", " ")}</strong><span>{mirror.player_behavior[key] ?? "Not available"}</span><span>{mirror.hero_behavior[key] ?? "Not available"}</span></div>)}</div><p className="muted">{content.guardrail} {mirror.limitations.join(" ")}</p></div>;
 }
 
 function FinalCard({ page, report }: { page: StoryPage; report: FreeDnaReportV4 }) {
-  return <article className="final-card"><p className="eyebrow">{page.title}</p><h2 id={`${page.id}-heading`}>{report.identity.display_name || "Your Dota DNA"}</h2><p className="story-lede">{page.body}</p><div className="final-summary"><div><span className="eyebrow">Elements</span><div className="descriptor-list">{report.highlights.element_keys.map((key) => <span key={key}>{report.elements.find((element) => element.key === key)?.label ?? key}</span>)}</div></div><div><span className="eyebrow">Patterns</span><div className="descriptor-list">{report.highlights.pattern_keys.map((key) => <span key={key}>{report.patterns.find((pattern) => pattern.key === key)?.label ?? key}</span>)}</div></div></div>{report.report_id && <ShareControls reportId={report.report_id} reportSchema={report.schema_version} />}</article>;
+  const strongestElements = report.highlights.element_keys.map((key) => report.elements.find((element) => element.key === key)).filter((element): element is BehaviorElement => Boolean(element));
+  const strongestPatterns = report.highlights.pattern_keys.map((key) => report.patterns.find((pattern) => pattern.key === key)).filter((pattern): pattern is BehaviorPattern => Boolean(pattern));
+  return <article className="final-card"><p className="eyebrow">{page.title}</p><h2 id={`${page.id}-heading`}>{report.identity.display_name || "Your Dota DNA"}</h2><p className="story-lede">{page.body}</p><div className="final-summary"><div><span className="eyebrow">Elements</span><div className="descriptor-list">{strongestElements.map((element) => <span key={element.key}>{element.label} · {element.zone ?? "Unavailable"}</span>)}</div></div><div><span className="eyebrow">Patterns</span><div className="descriptor-list">{strongestPatterns.map((pattern) => <span key={pattern.key}>{pattern.label}</span>)}</div></div><div><span className="eyebrow">Hero Portfolio</span><p>{report.shares.final.hero_portfolio.common_thread ?? "No clear Common Thread yet."}</p><p>{report.shares.final.hero_portfolio.exception_hero ? `Exception · ${report.shares.final.hero_portfolio.exception_hero}` : "No clear Exception yet."}</p><p>{report.shares.final.hero_portfolio.pool_direction ?? "Pool Evolution is unavailable yet."}</p></div><div><span className="eyebrow">Hero Mirror</span><p>{report.shares.final.hero_mirror?.hero_name ?? "No clear Mirror yet."}</p></div></div>{report.report_id && <ShareControls reportId={report.report_id} reportSchema={report.schema_version} />}</article>;
 }
 
 function UnavailableMessage({ limitations }: { limitations: string[] }) {

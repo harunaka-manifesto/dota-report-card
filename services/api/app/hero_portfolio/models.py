@@ -15,9 +15,15 @@ class ChoiceOption:
     key: str
     label: str
     hero_id: int | None = None
+    feedback: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
-        return {"key": self.key, "label": self.label, "hero_id": self.hero_id}
+        return {
+            "key": self.key,
+            "label": self.label,
+            "hero_id": self.hero_id,
+            "feedback": self.feedback,
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -117,6 +123,10 @@ class PoolEvolutionResult:
     hero_distribution_shift: float | None
     toolkit_distribution_shift: float | None
     confidence_score: float
+    earlier_sample_size: int = 0
+    recent_sample_size: int = 0
+    earlier_taxonomy_coverage: float = 0.0
+    recent_taxonomy_coverage: float = 0.0
     limitations: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
@@ -130,6 +140,10 @@ class PoolEvolutionResult:
             "hero_distribution_shift": round(self.hero_distribution_shift, 6) if self.hero_distribution_shift is not None else None,
             "toolkit_distribution_shift": round(self.toolkit_distribution_shift, 6) if self.toolkit_distribution_shift is not None else None,
             "confidence_score": round(self.confidence_score, 6),
+            "earlier_sample_size": self.earlier_sample_size,
+            "recent_sample_size": self.recent_sample_size,
+            "earlier_taxonomy_coverage": round(self.earlier_taxonomy_coverage, 6),
+            "recent_taxonomy_coverage": round(self.recent_taxonomy_coverage, 6),
             "limitations": list(self.limitations),
         }
 

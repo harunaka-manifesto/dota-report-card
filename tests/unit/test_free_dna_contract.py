@@ -98,6 +98,9 @@ def test_free_report_is_v4_summary_only_versioned_and_expiring() -> None:
     svg, _ = build_share_svg(report, card_type="final", show_name=False, show_avatar=False)
     assert str(42) not in svg
     assert "<svg" in svg
+    for heading in ("TOP SIGNALS", "PATTERNS", "HERO PORTFOLIO", "HERO MIRROR"):
+        assert heading in svg
+    assert "new_heroes_same_toolkit" not in svg
 
     now = datetime.now(UTC)
     assert repository.purge_expired(now=now + timedelta(days=31)) == 1

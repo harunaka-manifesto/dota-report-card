@@ -57,14 +57,28 @@ def build_hero_eligibility(
         enough_base = matches_count >= 3 and share >= min_share and coverage >= 1.0 and recency_ok
         common = enough_base and matches_count >= common_thread_min_matches
         exception = enough_base and matches_count >= exception_min_matches
-        mirror_metrics = all(
-            value is not None and value >= 0
+        mirror_valid_rows = [
+            row
             for row in hero_rows
-            for value in (row.duration_seconds, row.kills, row.deaths, row.assists)
+            if (
+                row.duration_seconds is not None
+                and row.duration_seconds >= 600
+                and row.kills is not None
+                and row.kills >= 0
+                and row.deaths is not None
+                and row.deaths >= 0
+                and row.assists is not None
+                and row.assists >= 0
+            )
+        ]
+        mirror_metrics = (
+            len(mirror_valid_rows) >= mirror_min_matches
+            and len(mirror_valid_rows) / max(matches_count, 1) >= 0.75
         )
         mirror = (
-            enough_base
-            and matches_count >= mirror_min_matches
+            matches_count >= mirror_min_matches
+            and share >= min_share
+            and recency_ok
             and mirror_metrics
         )
         if not common and matches_count < common_thread_min_matches and "too_few_matches" not in reasons:
@@ -73,7 +87,7 @@ def build_hero_eligibility(
             reasons.append("exception_sample_gate")
         if not mirror:
             if not mirror_metrics:
-                reasons.append("mirror_metrics_missing")
+                reasons.append("mirror_metrics_missing_or_incomplete")
             elif matches_count < mirror_min_matches and "too_few_matches" not in reasons:
                 reasons.append("mirror_sample_gate")
         results.append(

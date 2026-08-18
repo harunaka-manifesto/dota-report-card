@@ -6,16 +6,26 @@ from datetime import UTC, datetime
 from typing import Any
 
 from app.analysis.budget import DataCostLedger
-from app.behavior.ranking import rank_element_highlights, rank_pattern_highlights
+from app.behavior.ranking import (
+    PATTERN_RANKING_VERSION,
+    rank_element_highlights,
+    rank_pattern_highlights,
+)
 from app.content.catalog import copy_version
-from app.content.renderer import resolve_page_copy, resolve_portfolio_copy
+from app.content.renderer import (
+    resolve_element_copy,
+    resolve_page_copy,
+    resolve_pattern_copy,
+    resolve_portfolio_copy,
+    resolve_story_copy,
+)
 from app.dna.pipeline import DnaAnalysisResult
 from app.hero_portfolio.models import HeroPortfolioResult
 from app.hero_portfolio.version import HERO_MIRROR_VERSION
 from app.share.service import RENDERER_VERSION
 
 REPORT_SCHEMA_VERSION = "free-dna-report-4.0.0"
-REPORT_STORY_VERSION = "free-story-4.0.0"
+REPORT_STORY_VERSION = "free-story-4.1.0"
 
 
 def assemble_free_dna_report_v4(
@@ -61,7 +71,7 @@ def assemble_free_dna_report_v4(
         "behavior_model": behavior.versions.behavior_model,
         "element_registry": behavior.versions.element_registry,
         "pattern_registry": behavior.versions.pattern_registry,
-        "pattern_ranking": "free-pattern-ranking-4.0.0",
+        "pattern_ranking": PATTERN_RANKING_VERSION,
         "hero_taxonomy": _taxonomy_version(portfolio),
         "hero_portfolio": portfolio.version,
         "hero_mirror": HERO_MIRROR_VERSION,
@@ -100,7 +110,7 @@ def assemble_free_dna_report_v4(
         "hero_portfolio": {
             "common_thread": portfolio.common_thread.trait_label,
             "exception_hero": portfolio.exception.hero_name,
-            "pool_direction": portfolio.evolution.variant,
+            "pool_direction": _evolution_copy(portfolio.evolution.variant),
         },
         "hero_mirror": (
             {"hero_id": hero_mirror.hero_id, "hero_name": hero_mirror.hero_name}
@@ -182,6 +192,7 @@ def _story_pages(
     common_question = resolve_portfolio_copy("common_thread.question")
     exception_question = resolve_portfolio_copy("exception.question")
     evolution_question = resolve_portfolio_copy("evolution.question")
+    evolution_body = _evolution_copy(portfolio.evolution.variant) or resolve_portfolio_copy("evolution.unavailable")
     mirror_closed = resolve_portfolio_copy("hero_mirror.closed")
     pages: list[dict[str, Any]] = [
         {
@@ -190,32 +201,72 @@ def _story_pages(
             "section": "elements",
             "title": element_scan_copy["title"],
             "body": element_scan_copy["body"] + " The strongest three get a closer look next.",
+            "content": {
+                "scanning_body": element_scan_copy["scanning_body"],
+                "ready_body": element_scan_copy["ready_body"],
+            },
             "evidence_keys": list(element_map),
         }
     ]
     for highlight in element_highlights:
         element = element_map[highlight.element_key]
+        element_copy = resolve_element_copy(element.key)
         pages.append(
             {
                 "id": f"element-{element.key}",
                 "kind": "element_highlight",
                 "section": "elements",
                 "title": element.label,
-                "body": f"{element.zone or 'Observed signal'} · {highlight.display_reason}.",
+                "body": element_copy["body"],
                 "evidence_keys": [element.key],
                 "element_key": element.key,
+                "content": {
+                    "meaning": element_copy["body"],
+                    "observation": resolve_story_copy(
+                        "element",
+                        "observation",
+                        label=element.label,
+                        zone=element.zone or "unavailable",
+                    ),
+                    "why_highlight": resolve_story_copy("element", "distinctive"),
+                    "evidence": resolve_story_copy("element", "evidence"),
+                    "what_to_notice": resolve_story_copy("element", "notice"),
+                    "guardrail": resolve_story_copy("element", "guardrail"),
+                    "display_reason": highlight.display_reason,
+                },
             }
         )
     for pattern in pattern_highlights:
+        pattern_copy = resolve_pattern_copy(pattern.key)
+        required_observations = [
+            resolve_story_copy(
+                "pattern",
+                "observation",
+                label=element_map[key].label,
+                zone=element_map[key].zone or "unavailable",
+            )
+            for key in pattern.element_keys
+            if key in element_map
+        ]
         pages.append(
             {
                 "id": f"pattern-{pattern.key}",
                 "kind": "pattern_highlight",
                 "section": "patterns",
                 "title": pattern.label,
-                "body": pattern_map[pattern.key].as_dict(public=True).get("direction") or "A qualified relationship between Elements.",
+                "body": pattern_copy["body"],
                 "evidence_keys": list(pattern.element_keys),
                 "pattern_key": pattern.key,
+                "content": {
+                    "meaning": pattern_copy["body"],
+                    "observations": required_observations,
+                    "worth_noticing": resolve_story_copy("pattern", "worth_noticing"),
+                    "player_read": resolve_story_copy("pattern", "player_read"),
+                    "takeaway": resolve_story_copy("pattern", "takeaway"),
+                    "guardrail": resolve_story_copy("pattern", "guardrail"),
+                    "required_element_keys": list(pattern.element_keys),
+                    "modifier_element_keys": list(pattern.modifier_element_keys),
+                },
             }
         )
     pages.extend(
@@ -225,32 +276,45 @@ def _story_pages(
                 "kind": "hero_common_thread_question",
                 "section": "hero_portfolio",
                 "title": common_question,
-                "body": "Make your guess, then compare it with the recurring functional trait across your established pool.",
+                "body": resolve_portfolio_copy("common_thread.question_body"),
                 "evidence_keys": [],
                 "portfolio_key": "common_thread",
+                "options": [option.as_dict() for option in portfolio.common_thread.options],
+                "content": {
+                    "boundary": resolve_portfolio_copy("common_thread.boundary"),
+                    "correct_label": resolve_portfolio_copy("common_thread.correct"),
+                    "incorrect_label": resolve_portfolio_copy("common_thread.incorrect"),
+                },
             },
             {
                 "id": "hero-exception",
                 "kind": "hero_exception_question",
                 "section": "hero_portfolio",
                 "title": exception_question,
-                "body": "Different does not mean better or worse. Pick the functional outlier you expect.",
+                "body": resolve_portfolio_copy("exception.question_body"),
                 "evidence_keys": [],
                 "portfolio_key": "exception",
+                "options": [option.as_dict() for option in portfolio.exception.options],
+                "content": {
+                    "boundary": resolve_portfolio_copy("exception.boundary"),
+                    "correct_label": resolve_portfolio_copy("exception.correct"),
+                    "incorrect_label": resolve_portfolio_copy("exception.incorrect"),
+                },
             },
             {
                 "id": "pool-evolution-question",
                 "kind": "pool_evolution_question",
                 "section": "hero_portfolio",
                 "title": evolution_question,
-                "body": "Choose the description that feels closest. This is a self-assessment, not a score.",
+                "body": resolve_portfolio_copy("evolution.question_body"),
                 "evidence_keys": [],
                 "portfolio_key": "evolution",
+                "content": {"locked_copy": resolve_portfolio_copy("evolution.locked")},
                 "options": [
-                    {"key": "more_experimental", "label": "I’ve become more experimental"},
-                    {"key": "same_style", "label": "My heroes changed, but my style didn’t"},
-                    {"key": "different_kind", "label": "I’ve shifted toward a different kind of hero"},
-                    {"key": "not_changed", "label": "It hasn’t changed much"},
+                    {"key": "more_experimental", "label": resolve_portfolio_copy("evolution.option_more_experimental")},
+                    {"key": "same_style", "label": resolve_portfolio_copy("evolution.option_same_style")},
+                    {"key": "different_kind", "label": resolve_portfolio_copy("evolution.option_different_kind")},
+                    {"key": "not_changed", "label": resolve_portfolio_copy("evolution.option_not_changed")},
                 ],
             },
             {
@@ -258,9 +322,13 @@ def _story_pages(
                 "kind": "pool_evolution_reveal",
                 "section": "hero_portfolio",
                 "title": "Pool Evolution",
-                "body": portfolio.evolution.variant or "The comparison is not available yet.",
+                "body": evolution_body,
                 "evidence_keys": [],
                 "portfolio_key": "evolution",
+                "content": {
+                    "copy": evolution_body,
+                    "locked_copy": resolve_portfolio_copy("evolution.locked"),
+                },
             },
             {
                 "id": "hero-mirror",
@@ -270,6 +338,18 @@ def _story_pages(
                 "body": mirror_closed,
                 "evidence_keys": [],
                 "portfolio_key": "hero_mirror",
+                "content": {
+                    "closed": mirror_closed,
+                    "available": resolve_portfolio_copy(
+                        "hero_mirror.available",
+                        hero=portfolio.hero_mirror.hero_name or "the selected hero",
+                    ),
+                    "qualifier": resolve_portfolio_copy("hero_mirror.qualifier"),
+                    "guardrail": resolve_portfolio_copy(
+                        "hero_mirror.guardrail",
+                        hero=portfolio.hero_mirror.hero_name or "this hero",
+                    ),
+                },
             },
             {
                 "id": "final-card",
@@ -293,12 +373,21 @@ def _story_pages(
 
 
 def _free_cost(cost_ledger: DataCostLedger | None) -> dict[str, Any]:
-    raw = cost_ledger.as_dict() if cost_ledger else {}
+    if cost_ledger is None:
+        raise ValueError("Free DNA summary-only assembly requires an actual cost ledger")
+    raw = cost_ledger.as_dict()
+    prohibited = {
+        "detail_requests": int(raw.get("detail_requests", 0)),
+        "parse_requests": int(raw.get("parse_requests", 0)),
+        "parse_status_requests": int(raw.get("parse_status_requests", 0)),
+    }
+    if any(value != 0 for value in prohibited.values()):
+        raise ValueError(f"Free DNA summary-only cost boundary violated: {prohibited}")
     return {
         "history_requests": int(raw.get("history_requests", 0)),
-        "detail_requests": 0,
-        "parse_requests": 0,
-        "parse_status_requests": 0,
+        "detail_requests": prohibited["detail_requests"],
+        "parse_requests": prohibited["parse_requests"],
+        "parse_status_requests": prohibited["parse_status_requests"],
         "cache_hits": int(raw.get("cache_hits", 0)),
         "estimated_cost_units": float(raw.get("estimated_cost_units", 0.0)),
     }
@@ -321,6 +410,12 @@ def _taxonomy_version(portfolio: HeroPortfolioResult) -> str:
     from app.heroes.taxonomy import TAXONOMY_VERSION
 
     return TAXONOMY_VERSION
+
+
+def _evolution_copy(variant: str | None) -> str | None:
+    if not variant:
+        return None
+    return resolve_portfolio_copy(f"evolution.{variant}")
 
 
 __all__ = ["REPORT_SCHEMA_VERSION", "assemble_free_dna_report_v4"]

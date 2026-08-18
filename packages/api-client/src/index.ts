@@ -58,6 +58,7 @@ export type BehaviorElement = {
   coverage: number;
   receipts: BehaviorElementReceipt[];
   confounders: string[];
+  blocking_confounders: string[];
   missing_reasons: string[];
   methodology_version: string;
 };
@@ -80,6 +81,7 @@ export type BehaviorPattern = {
   tier: "A" | "B";
   receipts: BehaviorElementReceipt[];
   confounders: string[];
+  blocking_confounders: string[];
   suppression_reasons: string[];
   methodology_version: string;
 };
@@ -88,6 +90,7 @@ export type ChoiceOption = {
   key: string;
   label: string;
   hero_id: number | null;
+  feedback?: string | null;
 };
 
 export type CommonThread = {
@@ -128,6 +131,10 @@ export type PoolEvolution = {
   hero_distribution_shift: number | null;
   toolkit_distribution_shift: number | null;
   confidence_score: number;
+  earlier_sample_size: number;
+  recent_sample_size: number;
+  earlier_taxonomy_coverage: number;
+  recent_taxonomy_coverage: number;
   limitations: string[];
 };
 
@@ -175,6 +182,34 @@ export type StoryPage = {
   pattern_key?: string | null;
   portfolio_key?: string | null;
   options: ChoiceOption[];
+  content: StoryPageContent;
+};
+
+export type StoryPageContent = {
+  scanning_body?: string;
+  ready_body?: string;
+  meaning?: string;
+  observation?: string;
+  observations?: string[];
+  why_highlight?: string;
+  evidence?: string;
+  what_to_notice?: string;
+  worthwhile?: string;
+  worth_noticing?: string;
+  player_read?: string;
+  example?: string;
+  takeaway?: string;
+  guardrail?: string;
+  required_element_keys?: string[];
+  modifier_element_keys?: string[];
+  boundary?: string;
+  correct_label?: string;
+  incorrect_label?: string;
+  locked_copy?: string;
+  copy?: string;
+  closed?: string;
+  available?: string;
+  qualifier?: string;
 };
 
 export type ShareElement = { key: string; label: string; zone: string | null };

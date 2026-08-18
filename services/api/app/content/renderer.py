@@ -18,6 +18,10 @@ _EVOLUTION_VARIANTS = (
     "stable_core_new_branch",
     "broadly_stable",
 )
+_STORY_TEMPLATE_KEYS = {
+    "element": ("observation", "distinctive", "evidence", "notice", "guardrail"),
+    "pattern": ("observation", "worth_noticing", "player_read", "takeaway", "guardrail"),
+}
 
 
 def resolve_page_copy(key: str, **params: str) -> dict[str, str]:
@@ -57,6 +61,22 @@ def resolve_portfolio_copy(key: str, **params: str) -> str:
     return template.format(**params)
 
 
+def resolve_story_copy(section: str, key: str, **params: str) -> str:
+    catalog = validate_copy_catalog()
+    templates = catalog["story_templates"].get(section)
+    if not isinstance(templates, dict) or not isinstance(templates.get(key), str):
+        raise ValueError(f"Unknown Free DNA story template: {section}.{key}")
+    template = templates[key]
+    fields = {name for _, name, _, _ in Formatter().parse(template) if name}
+    missing = fields - set(params)
+    extra = set(params) - fields
+    if missing:
+        raise ValueError(f"Missing story copy parameters: {sorted(missing)}")
+    if extra:
+        raise ValueError(f"Unexpected story copy parameters: {sorted(extra)}")
+    return template.format(**params)
+
+
 def validate_copy_catalog() -> dict[str, Any]:
     catalog = load_free_dna_copy()
     pages = catalog.get("pages")
@@ -66,6 +86,9 @@ def validate_copy_catalog() -> dict[str, Any]:
         value = pages[key]
         if not isinstance(value, dict) or not isinstance(value.get("title"), str) or not isinstance(value.get("body"), str):
             raise ValueError(f"Incomplete page copy: {key}")
+    element_scan = pages["element_scan"]
+    if any(not isinstance(element_scan.get(key), str) for key in ("scanning_body", "ready_body")):
+        raise ValueError("Element scan copy must include scanning and ready states")
 
     for section, expected in (("elements", EXPECTED_ELEMENT_KEYS), ("patterns", EXPECTED_PATTERN_KEYS)):
         values = catalog.get(section)
@@ -81,17 +104,26 @@ def validate_copy_catalog() -> dict[str, Any]:
         raise ValueError("Free DNA copy catalog must cover the Hero Portfolio")
     for key in ("common_thread", "exception"):
         value = portfolio[key]
-        required = ("question", "correct", "incorrect", "answer", "reveal", "boundary")
+        required: tuple[str, ...] = ("question", "correct", "incorrect", "correct_feedback", "incorrect_feedback", "answer", "reveal", "boundary")
+        if key == "exception":
+            required = (*required, "no_clear_feedback")
         if not isinstance(value, dict) or any(not isinstance(value.get(item), str) for item in required):
             raise ValueError(f"Incomplete portfolio copy: {key}")
     mirror = portfolio["hero_mirror"]
     if not isinstance(mirror, dict) or any(not isinstance(mirror.get(key), str) for key in ("closed", "available", "unavailable", "qualifier", "guardrail")):
         raise ValueError("Incomplete portfolio copy: hero_mirror")
     evolution = portfolio["evolution"]
-    if not isinstance(evolution, dict) or not isinstance(evolution.get("question"), str) or not isinstance(evolution.get("check"), str):
+    if not isinstance(evolution, dict) or any(not isinstance(evolution.get(key), str) for key in ("question", "check", "unavailable", "locked")):
         raise ValueError("Incomplete portfolio copy: evolution")
     if any(not isinstance(evolution.get(key), str) for key in _EVOLUTION_VARIANTS):
         raise ValueError("Evolution copy must cover every public variant")
+    story_templates = catalog.get("story_templates")
+    if not isinstance(story_templates, dict) or set(story_templates) != set(_STORY_TEMPLATE_KEYS):
+        raise ValueError("Free DNA copy catalog must cover story presentation templates")
+    for section, keys in _STORY_TEMPLATE_KEYS.items():
+        values = story_templates[section]
+        if not isinstance(values, dict) or any(not isinstance(values.get(key), str) for key in keys):
+            raise ValueError(f"Incomplete story presentation templates: {section}")
     _lint_forbidden_terms(catalog)
     return catalog
 
@@ -110,14 +142,15 @@ def _render_pair(value: dict[str, Any], params: dict[str, str], *, label: str) -
     body = value.get("body")
     if not isinstance(title, str) or not isinstance(body, str):
         raise ValueError(f"Incomplete {label} copy")
-    fields = {name for template in (title, body) for _, name, _, _ in Formatter().parse(template) if name}
+    templates = [item for item in value.values() if isinstance(item, str)]
+    fields = {name for template in templates for _, name, _, _ in Formatter().parse(template) if name}
     missing = fields - set(params)
     extra = set(params) - fields
     if missing:
         raise ValueError(f"Missing copy parameters: {sorted(missing)}")
     if extra:
         raise ValueError(f"Unexpected copy parameters: {sorted(extra)}")
-    return {"title": title.format(**params), "body": body.format(**params)}
+    return {key: item.format(**params) for key, item in value.items() if isinstance(item, str)}
 
 
 def _lint_forbidden_terms(value: Any) -> None:
@@ -139,5 +172,6 @@ __all__ = [
     "resolve_page_copy",
     "resolve_pattern_copy",
     "resolve_portfolio_copy",
+    "resolve_story_copy",
     "validate_copy_catalog",
 ]

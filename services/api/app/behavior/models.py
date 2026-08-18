@@ -58,6 +58,7 @@ class ElementResult:
     raw_metrics: Mapping[str, float | int | str | bool | None] = field(default_factory=dict)
     evidence: tuple[BehaviorEvidence, ...] = ()
     confounders: tuple[str, ...] = ()
+    blocking_confounders: tuple[str, ...] = ()
     missing_reasons: tuple[str, ...] = ()
     methodology_version: str = "element-4.0.0"
     axis_left: str | None = None
@@ -98,6 +99,7 @@ class ElementResult:
                 item.as_public_dict() if public else item.as_dict() for item in self.evidence
             ],
             "confounders": list(self.confounders),
+            "blocking_confounders": list(self.blocking_confounders),
             "missing_reasons": list(self.missing_reasons),
             "methodology_version": self.methodology_version,
             **({"source_match_ids": list(self.source_match_ids)} if not public else {}),
@@ -163,6 +165,7 @@ class PatternResult:
     evidence: tuple[BehaviorEvidence, ...] = ()
     effect_metrics: Mapping[str, float | int | str | bool | None] = field(default_factory=dict)
     confounders: tuple[str, ...] = ()
+    blocking_confounders: tuple[str, ...] = ()
     suppression_reasons: tuple[str, ...] = ()
     methodology_version: str = "pattern-4.0.0"
     diagnostic_questions: tuple[str, ...] = ()
@@ -208,6 +211,7 @@ class PatternResult:
                 item.as_public_dict() if public else item.as_dict() for item in self.evidence
             ],
             "confounders": list(self.confounders),
+            "blocking_confounders": list(self.blocking_confounders),
             "suppression_reasons": list(self.suppression_reasons),
             "methodology_version": self.methodology_version,
             **(

@@ -1,5 +1,5 @@
 {
-  "copy_version": "free-dna-copy-4.0.0",
+  "copy_version": "free-dna-copy-4.1.0",
   "pages": {
     "analysis": {
       "title": "Reading your recent matches.",
@@ -11,7 +11,9 @@
     },
     "element_scan": {
       "title": "The pieces of your Dota pattern",
-      "body": "Seventeen observable Elements make the report legible."
+      "body": "Seventeen observable Elements make the report legible.",
+      "scanning_body": "Reconstructing the signals we found. The strongest three get a closer look next.",
+      "ready_body": "Seventeen observable Elements make the report legible. The strongest three get a closer look next."
     },
     "final_card": {
       "title": "The part worth sharing",
@@ -60,34 +62,64 @@
   "portfolio": {
     "common_thread": {
       "question": "What keeps showing up across your established heroes?",
+      "question_body": "Choose the functional job you think keeps recurring, then compare it with the evidence-backed read.",
       "correct": "You got it.",
       "incorrect": "Not quite.",
+      "correct_feedback": "Yes — {trait} is the strongest recurring thread across the established pool.",
+      "incorrect_feedback": "{selected} shows up in the pool, but {trait} has the stronger cross-hero coverage.",
       "answer": "A common functional thread runs through the pool: {trait}.",
       "reveal": "{trait} is the strongest recurring functional trait across {hero_count} established heroes.",
       "boundary": "This describes what the heroes tend to offer; it does not prove those tools were used correctly in every match."
     },
     "exception": {
       "question": "Which hero gives your pool a different kind of Dota?",
+      "question_body": "Pick the hero you expect to break the pool's usual functional shape.",
       "correct": "Yep.",
       "incorrect": "Good guess — but not this one.",
+      "correct_feedback": "Yes — {hero} breaks the pool's functional shape most clearly.",
+      "incorrect_feedback": "{selected} fits the pool's core shape more closely. {hero} breaks it more clearly.",
+      "no_clear_feedback": "{selected} is a plausible read, but the evidence does not separate one exception cleanly.",
       "answer": "{hero} is the clearest functional outlier in this pool.",
       "reveal": "{hero} breaks the pool’s usual functional shape more clearly than the alternatives.",
       "boundary": "Different does not mean better or worse."
     },
     "evolution": {
       "question": "How do you think your hero pool has changed recently?",
+      "question_body": "Choose the description that feels closest. This is a self-assessment, not a score.",
       "check": "Let’s check.",
-      "new_heroes_new_toolkit": "New heroes arrived with a meaningfully different toolkit.",
-      "new_heroes_same_toolkit": "New hero names arrived, while the toolkit stayed familiar.",
-      "stable_core_new_branch": "A stable core remains, with a newer branch growing beside it.",
-      "broadly_stable": "The hero distribution and toolkit stayed broadly stable."
+      "unavailable": "The bounded history could not support a trustworthy Pool Evolution comparison yet.",
+      "locked": "Complete the self-assessment above to see the report read.",
+      "option_more_experimental": "I’ve become more experimental",
+      "option_same_style": "My heroes changed, but my style didn’t",
+      "option_different_kind": "I’ve shifted toward a different kind of hero",
+      "option_not_changed": "It hasn’t changed much",
+      "new_heroes_new_toolkit": "Your pool changed direction. The names are not the only thing changing. The kind of Dota available in your pool is changing too.",
+      "new_heroes_same_toolkit": "New heroes. Same taste. Your recent picks look different, but the jobs you keep asking your heroes to perform barely moved.",
+      "stable_core_new_branch": "Your pool is growing a new branch. Your familiar core is still intact, but a different kind of hero is beginning to appear more often.",
+      "broadly_stable": "More stable than it feels. The edges moved a little, but the core hero mix and the kinds of jobs it covers stayed broadly recognizable."
     },
     "hero_mirror": {
       "closed": "One last comparison: your observable behavior against a hero-shaped reference.",
-      "available": "The closest sufficiently sampled match is {hero}.",
+      "available": "Of the heroes you've played enough for us to trust, {hero} is where your usual Dota shows up most clearly.",
       "unavailable": "The current history does not support a stable Hero Mirror yet.",
       "qualifier": "Not your best hero. Not necessarily your most played.",
-      "guardrail": "This is not a personality test. We are comparing observable behavior, not claiming identity."
+      "guardrail": "This is not a personality test. We're not saying you are {hero}. We're saying your games on {hero} most closely resemble the way you usually play Dota."
+    }
+  },
+  "story_templates": {
+    "element": {
+      "observation": "{label} landed in the {zone} zone across the bounded summary history.",
+      "distinctive": "It was selected as one of the clearest signals in this report.",
+      "evidence": "The receipt below shows the summary fields supporting this signal.",
+      "notice": "Notice the zone and the sample together; neither is a verdict.",
+      "guardrail": "This describes an observed pattern, not why it happened."
+    },
+    "pattern": {
+      "observation": "{label} reads {zone}.",
+      "worth_noticing": "The relationship is visible in the Element zones below.",
+      "player_read": "This relationship describes how the signals moved together; it does not claim a cause.",
+      "takeaway": "Keep an eye on whether the same relationship appears in another window.",
+      "guardrail": "The result is bounded by the summary fields and the required Element evidence."
     }
   },
   "labels": {

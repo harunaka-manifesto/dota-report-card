@@ -5,8 +5,10 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Sequence
 
+from app.content.renderer import resolve_portfolio_copy
 from app.hero_portfolio.eligibility import build_hero_eligibility, eligible_heroes
 from app.hero_portfolio.models import ChoiceOption, CommonThreadResult, HeroEligibility
+from app.hero_portfolio.ordering import stable_pseudo_shuffle
 from app.heroes.taxonomy import TRAITS, HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -60,7 +62,14 @@ def compute_common_thread(
     if trait_scores[winner] < 0.35 or margin < 0.03:
         return _unavailable("No single recurring trait clears the dominance margin.")
 
-    options = _options(ranked, winner)
+    seed = "|".join(
+        [
+            winner,
+            *(f"{candidate.hero_id}:{counts[candidate.hero_id]}" for candidate in candidates),
+            *ranked[:4],
+        ]
+    )
+    options = _options(ranked, winner, seed=seed)
     confidence = min(
         1.0,
         0.45 * winner_value + 0.30 * min(1.0, len(candidates) / 8.0) + 0.25 * min(1.0, margin / 0.20),
@@ -80,11 +89,25 @@ def compute_common_thread(
     )
 
 
-def _options(ranked: list[str], winner: str) -> tuple[ChoiceOption, ...]:
+def _options(ranked: list[str], winner: str, *, seed: str) -> tuple[ChoiceOption, ...]:
     distractors = [item for item in ranked if item != winner][:3]
+    choices = [winner, *distractors]
+    ordered = stable_pseudo_shuffle(choices, seed=f"common-thread|{seed}", key=str)
     return tuple(
-        ChoiceOption(key=trait, label=_trait_label(trait))
-        for trait in [winner, *distractors]
+        ChoiceOption(
+            key=trait,
+            label=_trait_label(trait),
+            feedback=(
+                resolve_portfolio_copy("common_thread.correct_feedback", trait=_trait_label(trait))
+                if trait == winner
+                else resolve_portfolio_copy(
+                    "common_thread.incorrect_feedback",
+                    selected=_trait_label(trait),
+                    trait=_trait_label(winner),
+                )
+            ),
+        )
+        for trait in ordered
     )
 
 

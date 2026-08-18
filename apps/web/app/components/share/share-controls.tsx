@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- the preview is a dynamic SVG endpoint. */
+
 import { useMemo, useState } from "react";
 import { track } from "../../lib/analytics";
 
@@ -28,20 +30,20 @@ export default function ShareControls({ reportId, reportSchema }: Props) {
       const canShareFiles = typeof navigator.canShare === "function" && navigator.canShare({ files: [file] });
       if (navigator.share && canShareFiles) {
         await navigator.share({ title: "My Dota DNA", text: "My Dota DNA report", url: permalink, files: [file] });
-        track("share.completed.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "native_file" });
+        track("report.share_completed.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "native_file" });
         return;
       }
       if (navigator.share) {
         await navigator.share({ title: "My Dota DNA", text: "My Dota DNA report", url: permalink });
-        track("share.completed.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "native_link" });
+        track("report.share_completed.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "native_link" });
         return;
       }
       await navigator.clipboard.writeText(permalink);
       setMessage("Report link copied.");
-      track("share.link_copied.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "clipboard" });
+      track("report.share_completed.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "clipboard" });
     } catch {
       setMessage("Copy the report link from your browser to share it.");
-      track("share.failed.v1", { card_type: "final", channel: "share" });
+      track("report.share_failed.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "share" });
     }
   }
 
@@ -57,10 +59,10 @@ export default function ShareControls({ reportId, reportSchema }: Props) {
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
       setMessage("Card download started.");
-      track("share.image_saved.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "download" });
+      track("report.share_completed.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "download" });
     } catch {
       setMessage("The share card could not be generated.");
-      track("share.failed.v1", { card_type: "final", channel: "download" });
+      track("report.share_failed.v1", { card_type: "final", report_schema_version: reportSchema ?? null, channel: "download" });
     }
   }
 

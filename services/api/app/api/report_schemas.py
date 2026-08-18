@@ -89,6 +89,7 @@ class BehaviorElementSchema(PublicModel):
     coverage: float = Field(ge=0, le=1)
     receipts: list[BehaviorReceiptSchema] = Field(default_factory=list)
     confounders: list[str] = Field(default_factory=list)
+    blocking_confounders: list[str] = Field(default_factory=list)
     missing_reasons: list[str] = Field(default_factory=list)
     methodology_version: str
 
@@ -111,6 +112,7 @@ class BehaviorPatternSchema(PublicModel):
     tier: Literal["A", "B"]
     receipts: list[BehaviorReceiptSchema] = Field(default_factory=list)
     confounders: list[str] = Field(default_factory=list)
+    blocking_confounders: list[str] = Field(default_factory=list)
     suppression_reasons: list[str] = Field(default_factory=list)
     methodology_version: str
 
@@ -124,6 +126,7 @@ class ChoiceOptionSchema(PublicModel):
     key: str
     label: str
     hero_id: int | None = Field(default=None, gt=0)
+    feedback: str | None = None
 
 
 class CommonThreadSchema(PublicModel):
@@ -166,6 +169,10 @@ class EvolutionSchema(PublicModel):
     hero_distribution_shift: float | None = Field(default=None, ge=0, le=1)
     toolkit_distribution_shift: float | None = Field(default=None, ge=0, le=1)
     confidence_score: float = Field(ge=0, le=1)
+    earlier_sample_size: int = Field(default=0, ge=0)
+    recent_sample_size: int = Field(default=0, ge=0)
+    earlier_taxonomy_coverage: float = Field(default=0, ge=0, le=1)
+    recent_taxonomy_coverage: float = Field(default=0, ge=0, le=1)
     limitations: list[str]
 
 
@@ -220,6 +227,7 @@ class StoryPageV4Schema(PublicModel):
     pattern_key: str | None = None
     portfolio_key: str | None = None
     options: list[ChoiceOptionSchema] = Field(default_factory=list)
+    content: dict[str, Any] = Field(default_factory=dict)
 
 
 class ShareElementSchema(PublicModel):
@@ -281,7 +289,7 @@ class CostSchema(PublicModel):
     history_requests: int = Field(ge=0)
     detail_requests: Literal[0]
     parse_requests: Literal[0]
-    parse_status_requests: int = Field(ge=0)
+    parse_status_requests: Literal[0]
     cache_hits: int = Field(ge=0)
     estimated_cost_units: float = Field(ge=0)
 
@@ -325,6 +333,18 @@ class FreeDnaReportV4Schema(PublicModel):
             raise ValueError("Element highlight references an unknown Element")
         if not set(self.highlights.pattern_keys).issubset(pattern_keys):
             raise ValueError("Pattern highlight references an unknown Pattern")
+        eligible_element_keys = {
+            item.key for item in self.elements if item.status != "unavailable" and item.score is not None
+        }
+        if len(eligible_element_keys) >= 3 and len(self.highlights.element_keys) != 3:
+            raise ValueError("Free DNA must show exactly three Element highlights when three are eligible")
+        if not set(self.highlights.element_keys).issubset(eligible_element_keys):
+            raise ValueError("Element highlights must reference display-eligible Elements")
+        qualified_pattern_keys = {item.key for item in self.patterns if item.status == "qualified"}
+        if len(qualified_pattern_keys) >= 3 and len(self.highlights.pattern_keys) != 3:
+            raise ValueError("Free DNA must show exactly three Pattern highlights when three are qualified")
+        if not set(self.highlights.pattern_keys).issubset(qualified_pattern_keys):
+            raise ValueError("Pattern highlights must reference qualified Patterns")
         for pattern in self.patterns:
             if not set(pattern.element_keys).issubset(element_keys):
                 raise ValueError(f"Pattern {pattern.key} references an unknown required Element")
@@ -332,6 +352,24 @@ class FreeDnaReportV4Schema(PublicModel):
                 raise ValueError(f"Pattern {pattern.key} references an unknown modifier Element")
             if set(pattern.element_keys) & set(pattern.modifier_element_keys):
                 raise ValueError(f"Pattern {pattern.key} overlaps required and modifier Elements")
+        common = self.hero_portfolio.common_thread
+        if common.status == "available":
+            if len(common.options) != 4 or common.correct_option_key is None:
+                raise ValueError("Available Common Thread must contain four answer options")
+            if len({option.key for option in common.options}) != 4 or any(not option.feedback for option in common.options):
+                raise ValueError("Common Thread options must be unique and carry contextual feedback")
+            if sum(option.key == common.correct_option_key for option in common.options) != 1:
+                raise ValueError("Common Thread correct option must appear exactly once")
+        exception = self.hero_portfolio.exception
+        if exception.status in {"available", "no_clear_exception"}:
+            if len(exception.options) != 4:
+                raise ValueError("Resolved Exception states must contain four answer options")
+            if len({option.key for option in exception.options}) != 4 or any(not option.feedback for option in exception.options):
+                raise ValueError("Exception options must be unique and carry contextual feedback")
+            if exception.correct_option_key is None or sum(option.key == exception.correct_option_key for option in exception.options) != 1:
+                raise ValueError("Exception correct option must appear exactly once")
+            if exception.status == "no_clear_exception" and exception.correct_option_key != "no_clear_exception":
+                raise ValueError("No-clear Exception must use the no-clear option as truth")
         page_ids = [item.id for item in self.pages]
         if page_ids != self.story.ordered_pages or len(page_ids) != len(set(page_ids)):
             raise ValueError("Free DNA v4 story ordering must match unique public pages")
@@ -342,6 +380,29 @@ class FreeDnaReportV4Schema(PublicModel):
                 raise ValueError(f"Story page references unknown Pattern: {page.pattern_key}")
             if not set(page.evidence_keys).issubset(element_keys):
                 raise ValueError(f"Story page {page.id} references an unknown Element")
+        page_kinds = [page.kind for page in self.pages]
+        expected_kinds = [
+            "element_scan",
+            *(["element_highlight"] * len(self.highlights.element_keys)),
+            *(["pattern_highlight"] * len(self.highlights.pattern_keys)),
+            "hero_common_thread_question",
+            "hero_exception_question",
+            "pool_evolution_question",
+            "pool_evolution_reveal",
+            "hero_mirror_reveal",
+            "final_card",
+            "deep_dive",
+        ]
+        if page_kinds != expected_kinds:
+            raise ValueError("Free DNA v4 story pages do not match the reviewed structure")
+        share_pool_direction = self.shares.final.hero_portfolio.pool_direction
+        if share_pool_direction in {
+            "new_heroes_new_toolkit",
+            "new_heroes_same_toolkit",
+            "stable_core_new_branch",
+            "broadly_stable",
+        }:
+            raise ValueError("Share cards must use human Pool Evolution copy, not enum labels")
         if self.shares.privacy_defaults.show_raw_id is not False:
             raise ValueError("Free DNA share cards cannot enable raw IDs")
         if self.cost.detail_requests != 0 or self.cost.parse_requests != 0:

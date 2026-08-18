@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from app.behavior.dimensions import DIMENSION_DEFINITIONS
 from app.behavior.elements.registry import ELEMENT_REGISTRY_VERSION
 from app.behavior.elements.service import SummaryBehaviorContext, score_all_elements
@@ -20,8 +22,16 @@ from app.behavior.patterns.service import evaluate_patterns
 BEHAVIOR_MODEL_VERSION = "behavior-model-4.0.0"
 
 
-def analyze_behavior(context: SummaryBehaviorContext) -> BehaviorAnalysisResult:
+def analyze_behavior(
+    context: SummaryBehaviorContext,
+    *,
+    on_stage: Callable[[str, str], None] | None = None,
+) -> BehaviorAnalysisResult:
+    if on_stage is not None:
+        on_stage("behavior_elements", "Measuring the 17 Elements behind the report.")
     elements = score_all_elements(context)
+    if on_stage is not None:
+        on_stage("behavior_patterns", "Checking which of the 14 reviewed Patterns survive the evidence gates.")
     patterns = evaluate_patterns(elements)
     dimensions = _summarize_dimensions(elements, patterns)
     quality = _quality(elements, patterns, context.history_tier)

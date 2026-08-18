@@ -11,6 +11,13 @@ from app.hero_portfolio.models import PoolEvolutionResult
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
+EVOLUTION_MIN_WINDOW_SIZE = 12
+EVOLUTION_MAX_WINDOW_SIZE = 24
+EVOLUTION_TAXONOMY_COVERAGE_GATE = 0.80
+EVOLUTION_HERO_SHIFT_THRESHOLD = 0.22
+EVOLUTION_TOOLKIT_SHIFT_THRESHOLD = 0.18
+EVOLUTION_CORE_OVERLAP_THRESHOLD = 0.35
+
 
 def compute_pool_evolution(
     matches: Sequence[NormalizedSummaryMatch],
@@ -20,22 +27,27 @@ def compute_pool_evolution(
         (item for item in matches if item.started_at is not None and item.hero_id is not None),
         key=lambda item: (item.started_at or 0, item.match_id),
     )
-    if len(ordered) < 24:
-        return PoolEvolutionResult(
-            status="unavailable",
-            variant=None,
-            earlier_hero_ids=(),
-            recent_hero_ids=(),
-            earlier_traits=(),
-            recent_traits=(),
-            hero_distribution_shift=None,
-            toolkit_distribution_shift=None,
-            confidence_score=0.0,
-            limitations=("Chronology needs at least 24 established matches on both sides of a stable comparison.",),
+    if len(ordered) < EVOLUTION_MIN_WINDOW_SIZE * 2:
+        return _unavailable(
+            "A balanced Pool Evolution comparison needs at least 12 chronologically usable matches in both windows.",
+            earlier_size=len(ordered) // 2,
+            recent_size=len(ordered) // 2,
         )
-    recent_size = max(12, min(len(ordered) // 3, len(ordered) - 12))
-    earlier = ordered[:-recent_size]
-    recent = ordered[-recent_size:]
+
+    window_size = min(EVOLUTION_MAX_WINDOW_SIZE, len(ordered) // 2)
+    earlier = ordered[-(2 * window_size):-window_size]
+    recent = ordered[-window_size:]
+    earlier_coverage = _taxonomy_coverage(earlier, taxonomy)
+    recent_coverage = _taxonomy_coverage(recent, taxonomy)
+    if min(earlier_coverage, recent_coverage) < EVOLUTION_TAXONOMY_COVERAGE_GATE:
+        return _unavailable(
+            "Pool Evolution is unavailable because taxonomy coverage is below 80% in one balanced window.",
+            earlier_size=len(earlier),
+            recent_size=len(recent),
+            earlier_coverage=earlier_coverage,
+            recent_coverage=recent_coverage,
+        )
+
     earlier_hero_ids = [int(item.hero_id) for item in earlier if item.hero_id is not None]
     recent_hero_ids = [int(item.hero_id) for item in recent if item.hero_id is not None]
     hero_shift = _distribution_shift(Counter(earlier_hero_ids), Counter(recent_hero_ids))
@@ -45,22 +57,24 @@ def compute_pool_evolution(
     earlier_traits = _top_distribution_keys(earlier_toolkit)
     recent_traits = _top_distribution_keys(recent_toolkit)
     overlap = _top_overlap(earlier_toolkit, recent_toolkit)
-    if hero_shift >= 0.22 and toolkit_shift >= 0.18:
+    if hero_shift >= EVOLUTION_HERO_SHIFT_THRESHOLD and toolkit_shift >= EVOLUTION_TOOLKIT_SHIFT_THRESHOLD:
         variant = "new_heroes_new_toolkit"
-    elif hero_shift >= 0.22 and toolkit_shift < 0.18:
+    elif hero_shift >= EVOLUTION_HERO_SHIFT_THRESHOLD and toolkit_shift < EVOLUTION_TOOLKIT_SHIFT_THRESHOLD:
         variant = "new_heroes_same_toolkit"
-    elif toolkit_shift >= 0.18 and overlap >= 0.35:
+    elif toolkit_shift >= EVOLUTION_TOOLKIT_SHIFT_THRESHOLD and overlap >= EVOLUTION_CORE_OVERLAP_THRESHOLD:
         variant = "stable_core_new_branch"
     else:
         variant = "broadly_stable"
     patches = {item.patch for item in (*earlier, *recent) if item.patch}
-    limitations = ["The output describes observed movement inside the analysis window."]
+    limitations = ["The output describes observed movement inside two balanced chronological windows."]
+    patch_penalty = 1.0
     if len(patches) > 1:
         limitations.append("Patch or time context changed inside the comparison window.")
-    confidence = min(
+        patch_penalty = 0.72
+    confidence = patch_penalty * min(
         1.0,
-        0.55 * min(1.0, min(len(earlier), len(recent)) / 30.0)
-        + 0.25 * (1.0 if len(patches) <= 1 else 0.72)
+        0.55 * min(1.0, min(len(earlier), len(recent)) / EVOLUTION_MAX_WINDOW_SIZE)
+        + 0.25 * min(earlier_coverage, recent_coverage)
         + 0.20 * min(1.0, (hero_shift + toolkit_shift) / 0.5),
     )
     return PoolEvolutionResult(
@@ -73,8 +87,47 @@ def compute_pool_evolution(
         hero_distribution_shift=hero_shift,
         toolkit_distribution_shift=toolkit_shift,
         confidence_score=confidence,
+        earlier_sample_size=len(earlier),
+        recent_sample_size=len(recent),
+        earlier_taxonomy_coverage=earlier_coverage,
+        recent_taxonomy_coverage=recent_coverage,
         limitations=tuple(limitations),
     )
+
+
+def _unavailable(
+    reason: str,
+    *,
+    earlier_size: int = 0,
+    recent_size: int = 0,
+    earlier_coverage: float = 0.0,
+    recent_coverage: float = 0.0,
+) -> PoolEvolutionResult:
+    return PoolEvolutionResult(
+        status="unavailable",
+        variant=None,
+        earlier_hero_ids=(),
+        recent_hero_ids=(),
+        earlier_traits=(),
+        recent_traits=(),
+        hero_distribution_shift=None,
+        toolkit_distribution_shift=None,
+        confidence_score=0.0,
+        earlier_sample_size=earlier_size,
+        recent_sample_size=recent_size,
+        earlier_taxonomy_coverage=earlier_coverage,
+        recent_taxonomy_coverage=recent_coverage,
+        limitations=(reason,),
+    )
+
+
+def _taxonomy_coverage(rows: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy) -> float:
+    covered = sum(
+        1
+        for item in rows
+        if (entry := taxonomy.get(item.hero_id)) is not None and entry.available and bool(entry.traits)
+    )
+    return covered / max(len(rows), 1)
 
 
 def _toolkit_distribution(
@@ -118,4 +171,10 @@ def _top_overlap(left: Mapping[str, float], right: Mapping[str, float]) -> float
     return len(set(_top_distribution_keys(left)[:3]) & set(_top_distribution_keys(right)[:3])) / 3.0
 
 
-__all__ = ["compute_pool_evolution"]
+__all__ = [
+    "EVOLUTION_HERO_SHIFT_THRESHOLD",
+    "EVOLUTION_MAX_WINDOW_SIZE",
+    "EVOLUTION_MIN_WINDOW_SIZE",
+    "EVOLUTION_TAXONOMY_COVERAGE_GATE",
+    "compute_pool_evolution",
+]

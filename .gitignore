@@ -18,3 +18,5 @@ test-results/
 *.log
 services/api/.cache/
 tests/.tmp/
+.DS_Store
+*.swp

@@ -3,8 +3,49 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from app.behavior.models import ElementHighlight, ElementResult, PatternResult
+
+PATTERN_RANKING_VERSION = "free-pattern-ranking-4.1.0"
+FAMILY_REDUNDANCY_PENALTY = 0.04
+TIER_A_TIE_EPSILON = 0.02
+
+
+@dataclass(frozen=True, slots=True)
+class PatternRankingBreakdown:
+    """Inspectable ranking terms applied after Pattern qualification."""
+
+    qualified_strength: float
+    novelty_adjustment: float
+    tier_tie_adjustment: float
+    family_redundancy_penalty: float
+
+    @property
+    def ranking_score(self) -> float:
+        return self.qualified_strength + self.novelty_adjustment + self.tier_tie_adjustment - self.family_redundancy_penalty
+
+
+def pattern_ranking_breakdown(
+    pattern: PatternResult,
+    selected_families: set[str],
+    *,
+    tier_tie_adjustment: float = 0.0,
+) -> PatternRankingBreakdown:
+    """Return the single evidence-weighted ranking calculation.
+
+    ``PatternResult.strength`` already contains relationship magnitude,
+    confidence, coverage, and qualification quality.  This function never
+    multiplies those evidence terms again.
+    """
+
+    redundant = pattern.family in selected_families
+    return PatternRankingBreakdown(
+        qualified_strength=pattern.strength,
+        novelty_adjustment=0.0,
+        tier_tie_adjustment=tier_tie_adjustment,
+        family_redundancy_penalty=FAMILY_REDUNDANCY_PENALTY if redundant else 0.0,
+    )
 
 
 def rank_element_highlights(
@@ -62,20 +103,23 @@ def rank_pattern_highlights(
     remaining = list(candidates)
     while remaining and len(selected) < max(0, limit):
         selected_families = {item.family for item in selected}
-        ranked = []
-        for item in remaining:
-            novelty = 1.0 if item.family not in selected_families else 0.35
-            tier_bonus = 0.05 if item.tier == "A" else 0.0
-            score = item.strength * item.confidence_score * item.evidence_coverage
-            score = score * (0.78 + 0.22 * novelty) + tier_bonus
-            ranked.append((score, item))
-        _, winner = max(
-            ranked,
-            key=lambda value: (
-                value[0],
-                value[1].tier == "A",
-                value[1].strength,
-                value[1].key,
+        base_scores = [
+            (pattern_ranking_breakdown(item, selected_families).ranking_score, item)
+            for item in remaining
+        ]
+        best_base = max(score for score, _ in base_scores)
+        close = [item for score, item in base_scores if best_base - score <= TIER_A_TIE_EPSILON]
+        winner = max(
+            close,
+            key=lambda item: (
+                item.tier == "A",
+                pattern_ranking_breakdown(
+                    item,
+                    selected_families,
+                    tier_tie_adjustment=0.005 if len(close) > 1 and item.tier == "A" else 0.0,
+                ).ranking_score,
+                item.relationship_strength,
+                item.key,
             ),
         )
         remaining.remove(winner)
@@ -110,4 +154,7 @@ __all__ = [
     "select_top_pattern_keys",
     "select_top_elements",
     "select_top_patterns",
+    "PATTERN_RANKING_VERSION",
+    "PatternRankingBreakdown",
+    "pattern_ranking_breakdown",
 ]
