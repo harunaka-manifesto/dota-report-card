@@ -2,9 +2,47 @@
 
 from __future__ import annotations
 
+from app.behavior.elements.registry import ELEMENT_REGISTRY
 from app.behavior.models import PatternDefinition
 
 PATTERN_REGISTRY_VERSION = "free-patterns-4.0.0"
+
+
+def _zones(key: str, *labels: str) -> tuple[str, tuple[str, ...]]:
+    return key, tuple(labels)
+
+
+def _moved(key: str, neutral: str) -> tuple[str, tuple[str, ...]]:
+    return _zones(key, *(label for label in ELEMENT_REGISTRY[key].zone_labels if label != neutral))
+
+
+def _zone_clauses(key: str) -> tuple[tuple[tuple[str, tuple[str, ...]], ...], ...]:
+    """Return the reviewed categorical qualification contract for a Pattern."""
+
+    all_clauses = {
+        "same_playbook": ((_zones("hero_pool_breadth", "Varied", "Wide"), _zones("toolkit_breadth", "Compact", "Focused")),),
+        "comfort_edge": ((_zones("hero_pool_breadth", "Varied", "Wide"), _zones("off_pool_performance", "Slips", "Falls off")),),
+        "partial_transfer": ((_zones("off_pool_activity_stability", "Holds", "Unchanged"), _zones("off_pool_performance", "Slips", "Falls off")),),
+        "stable_style": ((_zones("recent_form_shift", "Rising", "Surging", "Sliding", "Cooling"), _zones("hero_pool_stability", "Settled", "Steady"), _zones("recent_activity_shift", "Calmer", "Same", "Busier")),),
+        "versatile_core": ((_zones("hero_pool_breadth", "Focused", "Selective"), _zones("toolkit_breadth", "Versatile", "Diverse")),),
+        "proven_flexibility": ((_zones("hero_pool_breadth", "Varied", "Wide"), _zones("off_pool_performance", "Travels", "Carries over")),),
+        "selective_closer": ((_zones("combat_involvement", "Quiet", "Selective", "Present"), _zones("finisher_orientation", "Closer", "Cleanup")),),
+        "loss_response": (
+            (_moved("post_loss_familiarity_shift", "Unchanged"), _zones("post_loss_activity_shift", "Same")),
+            (_zones("post_loss_familiarity_shift", "Unchanged"), _moved("post_loss_activity_shift", "Same")),
+            (_moved("post_loss_familiarity_shift", "Unchanged"), _moved("post_loss_activity_shift", "Same")),
+        ),
+        "controlled_presence": ((_zones("combat_involvement", "Active", "Everywhere"), _zones("death_exposure", "Elusive", "Safe")),),
+        "heavy_exposure": ((_zones("combat_involvement", "Active", "Everywhere"), _zones("death_exposure", "Exposed", "Frequent")),),
+        "session_fade": ((_zones("session_length_tendency", "Long", "Marathon"), _zones("late_session_performance", "Drops", "Fades")),),
+        "session_rise": ((_zones("session_length_tendency", "Medium", "Long", "Marathon"), _zones("late_session_performance", "Warms up", "Finishes strong")),),
+        "session_hold": ((_zones("session_length_tendency", "Long", "Marathon"), _zones("late_session_performance", "Holds")),),
+        "assist_presence": ((_zones("combat_involvement", "Present", "Active", "Everywhere"), _zones("finisher_orientation", "Setup", "Support")),),
+    }
+    try:
+        return all_clauses[key]
+    except KeyError as exc:
+        raise KeyError(f"No reviewed zone contract for Pattern {key}") from exc
 
 
 def _pattern(
@@ -41,6 +79,7 @@ def _pattern(
         tier=tier,  # type: ignore[arg-type]
         diagnostic_questions=diagnostic_questions,
         required_deep_elements=required_deep_elements,
+        zone_clauses=_zone_clauses(key),
     )
 
 
@@ -151,4 +190,12 @@ EXPECTED_PATTERN_KEYS = frozenset(item.key for item in PATTERNS)
 if len(PATTERN_REGISTRY) != 14 or set(PATTERN_REGISTRY) != EXPECTED_PATTERN_KEYS:
     raise ValueError("The active Free Pattern registry must contain exactly the canonical 14 Patterns")
 
-__all__ = ["PATTERN_REGISTRY", "PATTERNS", "PATTERN_REGISTRY_VERSION", "EXPECTED_PATTERN_KEYS"]
+if any(not item.zone_clauses for item in PATTERNS):
+    raise ValueError("Every active Free Pattern must have a canonical zone contract")
+
+__all__ = [
+    "PATTERN_REGISTRY",
+    "PATTERNS",
+    "PATTERN_REGISTRY_VERSION",
+    "EXPECTED_PATTERN_KEYS",
+]

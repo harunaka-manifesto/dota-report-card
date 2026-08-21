@@ -126,7 +126,18 @@ class AnalysisService:
             from app.dna.features.models import FEATURE_VERSION
             from app.dna.pipeline import DNA_SCORING_VERSION
             from app.dna.sessions import SESSION_VERSION
-            from app.hero_portfolio.version import HERO_MIRROR_VERSION, HERO_PORTFOLIO_VERSION
+            from app.hero_portfolio.config import PORTFOLIO_CONFIG_VERSION
+            from app.hero_portfolio.version import (
+                HERO_EXPRESSIONS_VERSION,
+                HERO_MATCHUPS_VERSION,
+                HERO_MIRROR_VERSION,
+                HERO_PORTFOLIO_VERSION,
+                HERO_RELATIONSHIPS_VERSION,
+                HERO_RELIABILITY_VERSION,
+                HERO_SITUATIONS_VERSION,
+                HERO_SYNERGIES_VERSION,
+                PATTERN_ACTIONS_VERSION,
+            )
             from app.heroes.taxonomy import TAXONOMY_VERSION
             from app.reports.dna_assembly import REPORT_SCHEMA_VERSION, REPORT_STORY_VERSION
             from app.share.service import RENDERER_VERSION
@@ -137,8 +148,14 @@ class AnalysisService:
                 "features": FEATURE_VERSION,
                 "dna_scoring": DNA_SCORING_VERSION,
                 "hero_taxonomy": TAXONOMY_VERSION,
-                "hero_portfolio": HERO_PORTFOLIO_VERSION,
+                "hero_portfolio": f"{HERO_PORTFOLIO_VERSION}+{PORTFOLIO_CONFIG_VERSION}",
                 "hero_mirror": HERO_MIRROR_VERSION,
+                "hero_relationships": HERO_RELATIONSHIPS_VERSION,
+                "hero_expressions": HERO_EXPRESSIONS_VERSION,
+                "hero_reliability": HERO_RELIABILITY_VERSION,
+                "hero_matchups": HERO_MATCHUPS_VERSION,
+                "hero_synergies": HERO_SYNERGIES_VERSION,
+                "hero_situations": HERO_SITUATIONS_VERSION,
                 "story": REPORT_STORY_VERSION,
                 "copy": copy_version(),
                 "report_schema": REPORT_SCHEMA_VERSION,
@@ -148,6 +165,7 @@ class AnalysisService:
                 "behavior_model": BEHAVIOR_MODEL_VERSION,
                 "element_registry": ELEMENT_REGISTRY_VERSION,
                 "pattern_registry": PATTERN_REGISTRY_VERSION,
+                "pattern_actions": PATTERN_ACTIONS_VERSION,
             }
             digest = hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest()
             return f"free-analysis-{digest[:48]}"
@@ -392,6 +410,7 @@ class AnalysisService:
             normalized.eligible_matches,
             session_gap_minutes=self.settings.effective_session_gap_minutes,
             history_tier=history_tier,
+            report_seed=payload_hash(history),
             on_stage=lambda stage, message: self.repository.update_job(
                 job, stage=stage, message=message
             ),

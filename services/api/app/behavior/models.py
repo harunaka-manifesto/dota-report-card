@@ -14,6 +14,9 @@ ElementStatus = Literal["available", "limited", "unavailable"]
 PatternStatus = Literal["qualified", "suppressed", "unavailable"]
 PatternKind = Literal["identity", "contradiction", "edge", "leak", "trajectory", "style"]
 PatternTier = Literal["A", "B"]
+StoryEligibility = Literal["eligible", "blocked"]
+ActionStatus = Literal["available", "limited", "unavailable"]
+ActionDirection = Literal["deepen", "stretch"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,12 +146,167 @@ class PatternDefinition:
     required_deep_elements: tuple[str, ...] = ()
     family: str = "general"
     tier: PatternTier = "B"
+    # Each clause is an AND of canonical Element-zone memberships. Multiple
+    # clauses are OR-ed. Keeping the reviewed categorical contract beside the
+    # registry prevents the evaluator from growing a second numeric gate.
+    zone_clauses: tuple[tuple[tuple[str, tuple[str, ...]], ...], ...] = ()
 
     @property
     def optional_elements(self) -> tuple[str, ...]:
         """Compatibility name for callers that still use the old vocabulary."""
 
         return self.modifier_elements
+
+
+@dataclass(frozen=True, slots=True)
+class PatternHeroRecommendation:
+    """One explainable, taxonomy-backed P01 hero recommendation."""
+
+    hero_id: int
+    hero_name: str
+    direction: ActionDirection
+    anchor_traits: tuple[str, ...]
+    added_traits: tuple[str, ...]
+    role_fit: tuple[str, ...]
+    similarity_score: float
+    novelty_score: float
+    confidence_score: float
+    why_it_fits: str
+    what_stays_familiar: str
+    what_changes: str
+    provenance_versions: Mapping[str, str] = field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "hero_id": self.hero_id,
+            "hero_name": self.hero_name,
+            "direction": self.direction,
+            "anchor_traits": list(self.anchor_traits),
+            "added_traits": list(self.added_traits),
+            "role_fit": list(self.role_fit),
+            "similarity_score": round(self.similarity_score, 6),
+            "novelty_score": round(self.novelty_score, 6),
+            "confidence_score": round(self.confidence_score, 6),
+            "why_it_fits": self.why_it_fits,
+            "what_stays_familiar": self.what_stays_familiar,
+            "what_changes": self.what_changes,
+            "provenance_versions": dict(self.provenance_versions),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class SamePlaybookAction:
+    action_type: Literal["same_playbook"]
+    status: ActionStatus
+    dominant_traits: tuple[str, ...]
+    underrepresented_traits: tuple[str, ...]
+    deepen: tuple[PatternHeroRecommendation, ...]
+    stretch: tuple[PatternHeroRecommendation, ...]
+    confidence_score: float
+    limitations: tuple[str, ...] = ()
+    provenance_versions: Mapping[str, str] = field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "status": self.status,
+            "dominant_traits": list(self.dominant_traits),
+            "underrepresented_traits": list(self.underrepresented_traits),
+            "deepen": [item.as_dict() for item in self.deepen],
+            "stretch": [item.as_dict() for item in self.stretch],
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+            "provenance_versions": dict(self.provenance_versions),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ComfortEdgeHeroReliability:
+    hero_id: int
+    hero_name: str
+    reliability_rank: int
+    reliability_score: float
+    confidence_score: float
+    matches: int
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "hero_id": self.hero_id,
+            "hero_name": self.hero_name,
+            "reliability_rank": self.reliability_rank,
+            "reliability_score": round(self.reliability_score, 6),
+            "confidence_score": round(self.confidence_score, 6),
+            "matches": self.matches,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ComfortEdgeDevelopmentReason:
+    hero_id: int
+    hero_name: str
+    reliability_rank: int
+    reliability_score: float
+    confidence_score: float
+    reference_core_hero_ids: tuple[int, ...]
+    reference_core_hero_names: tuple[str, ...]
+    what_changes: tuple[str, ...]
+    useful_situations: tuple[str, ...]
+    teammate_examples: tuple[int, ...]
+    teammate_example_names: tuple[str, ...]
+    enemy_examples: tuple[int, ...]
+    enemy_example_names: tuple[str, ...]
+    tradeoffs: tuple[str, ...]
+    why_learn: str
+    limitations: tuple[str, ...] = ()
+    provenance_versions: Mapping[str, str] = field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "hero_id": self.hero_id,
+            "hero_name": self.hero_name,
+            "reliability_rank": self.reliability_rank,
+            "reliability_score": round(self.reliability_score, 6),
+            "confidence_score": round(self.confidence_score, 6),
+            "reference_core_hero_ids": list(self.reference_core_hero_ids),
+            "reference_core_hero_names": list(self.reference_core_hero_names),
+            "what_changes": list(self.what_changes),
+            "useful_situations": list(self.useful_situations),
+            "teammate_examples": list(self.teammate_examples),
+            "teammate_example_names": list(self.teammate_example_names),
+            "enemy_examples": list(self.enemy_examples),
+            "enemy_example_names": list(self.enemy_example_names),
+            "tradeoffs": list(self.tradeoffs),
+            "why_learn": self.why_learn,
+            "limitations": list(self.limitations),
+            "provenance_versions": dict(self.provenance_versions),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ComfortEdgeAction:
+    action_type: Literal["comfort_edge"]
+    status: ActionStatus
+    ranked_heroes: tuple[ComfortEdgeHeroReliability, ...]
+    reference_core_hero_ids: tuple[int, ...]
+    development: tuple[ComfortEdgeDevelopmentReason, ...]
+    confidence_score: float
+    limitations: tuple[str, ...] = ()
+    provenance_versions: Mapping[str, str] = field(default_factory=dict)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "status": self.status,
+            "ranked_heroes": [item.as_dict() for item in self.ranked_heroes],
+            "reference_core_hero_ids": list(self.reference_core_hero_ids),
+            "development": [item.as_dict() for item in self.development],
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+            "provenance_versions": dict(self.provenance_versions),
+        }
+
+
+PatternAction = SamePlaybookAction | ComfortEdgeAction
 
 
 @dataclass(frozen=True, slots=True)
@@ -176,6 +334,9 @@ class PatternResult:
     relationship_strength: float = 0.0
     evidence_coverage: float = 0.0
     qualification_quality: float = 0.0
+    story_eligibility: StoryEligibility = "eligible"
+    story_blockers: tuple[str, ...] = ()
+    action: PatternAction | None = None
 
     def __post_init__(self) -> None:
         if not 0.0 <= self.strength <= 1.0:
@@ -212,8 +373,11 @@ class PatternResult:
             ],
             "confounders": list(self.confounders),
             "blocking_confounders": list(self.blocking_confounders),
+            "story_eligibility": self.story_eligibility,
+            "story_blockers": list(self.story_blockers),
             "suppression_reasons": list(self.suppression_reasons),
             "methodology_version": self.methodology_version,
+            "action": self.action.as_dict() if self.action is not None else None,
             **(
                 {
                     "diagnostic_questions": list(self.diagnostic_questions),

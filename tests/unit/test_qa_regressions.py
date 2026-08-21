@@ -53,6 +53,14 @@ def test_free_compatibility_fingerprint_includes_v4_versions(monkeypatch) -> Non
         "app.reports.dna_assembly.REPORT_STORY_VERSION",
         "app.hero_portfolio.version.HERO_PORTFOLIO_VERSION",
         "app.hero_portfolio.version.HERO_MIRROR_VERSION",
+        "app.hero_portfolio.version.HERO_RELATIONSHIPS_VERSION",
+        "app.hero_portfolio.version.HERO_EXPRESSIONS_VERSION",
+        "app.hero_portfolio.version.HERO_RELIABILITY_VERSION",
+        "app.hero_portfolio.version.HERO_MATCHUPS_VERSION",
+        "app.hero_portfolio.version.HERO_SYNERGIES_VERSION",
+        "app.hero_portfolio.version.HERO_SITUATIONS_VERSION",
+        "app.hero_portfolio.version.PATTERN_ACTIONS_VERSION",
+        "app.hero_portfolio.config.PORTFOLIO_CONFIG_VERSION",
         "app.share.service.RENDERER_VERSION",
     )
     for target in version_targets:

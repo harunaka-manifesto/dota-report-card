@@ -21,6 +21,7 @@ def analyze_hero_portfolio(
     *,
     hero_taxonomy: HeroTaxonomy,
     behavior: BehaviorAnalysisResult | None = None,
+    report_seed: str | None = None,
 ) -> HeroPortfolioResult:
     """Build all portfolio insights from summary history and reviewed taxonomy.
 
@@ -32,8 +33,8 @@ def analyze_hero_portfolio(
     del behavior
     eligibility = build_hero_eligibility(matches, hero_taxonomy)
     return HeroPortfolioResult(
-        common_thread=compute_common_thread(matches, hero_taxonomy, eligibility),
-        exception=compute_hero_exception(matches, hero_taxonomy, eligibility),
+        common_thread=compute_common_thread(matches, hero_taxonomy, eligibility, report_seed=report_seed),
+        exception=compute_hero_exception(matches, hero_taxonomy, eligibility, report_seed=report_seed),
         evolution=compute_pool_evolution(matches, hero_taxonomy),
         hero_mirror=compute_hero_mirror(matches, hero_taxonomy, eligibility),
         version=HERO_PORTFOLIO_VERSION,

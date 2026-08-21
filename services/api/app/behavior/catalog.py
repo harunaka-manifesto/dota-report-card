@@ -29,6 +29,15 @@ def validate_behavior_catalog() -> None:
         for element_key in (*pattern_definition.required_elements, *pattern_definition.modifier_elements):
             if element_key not in ELEMENT_REGISTRY:
                 raise ValueError(f"Pattern {key} references unknown Element {element_key}")
+        if not pattern_definition.zone_clauses:
+            raise ValueError(f"Pattern {key} is missing its canonical zone contract")
+        required_in_contract = {
+            element_key
+            for clause in pattern_definition.zone_clauses
+            for element_key, _zones in clause
+        }
+        if required_in_contract != set(pattern_definition.required_elements):
+            raise ValueError(f"Pattern {key} zone contract must cover required Elements exactly")
 
 
 validate_behavior_catalog()

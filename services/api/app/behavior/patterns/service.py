@@ -116,6 +116,8 @@ def _evaluate(key: str, elements: Mapping[str, ElementResult]) -> PatternResult:
         relationship_strength=relationship,
         evidence_coverage=coverage,
         qualification_quality=quality,
+        story_eligibility="blocked" if blocking_confounders else "eligible",
+        story_blockers=blocking_confounders,
     )
 
 
@@ -131,20 +133,13 @@ def _qualification(
     Element methodology.
     """
 
-    def value(name: str) -> float:
-        item = elements[name]
-        return float(item.score if isinstance(item, ElementResult) and item.score is not None else item if not isinstance(item, ElementResult) else 0.5)
-
     def zone(name: str) -> str:
         item = elements[name]
         if isinstance(item, ElementResult):
-            return item.zone or zone_for_score(name, item.score) or "Unavailable"
+            return zone_for_score(name, item.score) or "Unavailable"
         return zone_for_score(name, float(item)) or "Unavailable"
 
-    def in_zones(name: str, accepted: set[str]) -> bool:
-        return zone(name) in accepted
-
-    def component(name: str, accepted: set[str]) -> float:
+    def component(name: str, accepted: tuple[str, ...]) -> float:
         labels = ELEMENT_REGISTRY[name].zone_labels
         if not labels:
             return 0.0
@@ -154,72 +149,62 @@ def _qualification(
         distance = min(abs(labels.index(current) - labels.index(item)) for item in accepted if item in labels)
         return clamp(1.0 - distance / max(len(labels) - 1, 1))
 
-    def moved(name: str, neutral: set[str]) -> bool:
-        return zone(name) not in neutral
+    definition = PATTERN_REGISTRY[key]
+    clause_scores: list[tuple[bool, tuple[float, ...]]] = []
+    for clause in definition.zone_clauses:
+        components = tuple(component(element_key, accepted_zones) for element_key, accepted_zones in clause)
+        clause_scores.append(
+            (
+                all(zone(element_key) in accepted_zones for element_key, accepted_zones in clause),
+                components,
+            )
+        )
+    qualified, components = max(
+        clause_scores,
+        key=lambda value: (value[0], sum(value[1])),
+        default=(False, ()),
+    )
+    direction = _direction_for(key, elements) if qualified else None
+    return qualified, direction, components
+
+
+def _direction_for(key: str, elements: Mapping[str, ElementResult] | Mapping[str, float]) -> str:
+    def zone(name: str) -> str:
+        item = elements[name]
+        score = item.score if isinstance(item, ElementResult) else float(item)
+        return zone_for_score(name, score) or "Unavailable"
 
     if key == "same_playbook":
-        accepted_breadth, accepted_toolkit = {"Varied", "Wide"}, {"Compact", "Focused"}
-        ok = in_zones("hero_pool_breadth", accepted_breadth) and in_zones("toolkit_breadth", accepted_toolkit)
-        return ok, "hero_names_change_toolkit_holds" if ok else None, (component("hero_pool_breadth", accepted_breadth), component("toolkit_breadth", accepted_toolkit))
+        return "hero_names_change_toolkit_holds"
     if key == "comfort_edge":
-        accepted_breadth, accepted_transfer = {"Varied", "Wide"}, {"Slips", "Falls off"}
-        ok = in_zones("hero_pool_breadth", accepted_breadth) and in_zones("off_pool_performance", accepted_transfer)
-        return ok, "wide_pool_results_slip_off_pool" if ok else None, (component("hero_pool_breadth", accepted_breadth), component("off_pool_performance", accepted_transfer))
+        return "wide_pool_results_slip_off_pool"
     if key == "partial_transfer":
-        accepted_presence, accepted_transfer = {"Holds", "Unchanged"}, {"Slips", "Falls off"}
-        ok = in_zones("off_pool_activity_stability", accepted_presence) and in_zones("off_pool_performance", accepted_transfer)
-        return ok, "presence_holds_results_slip" if ok else None, (component("off_pool_activity_stability", accepted_presence), component("off_pool_performance", accepted_transfer))
+        return "presence_holds_results_slip"
     if key == "stable_style":
-        form_zones, stability_zones, pace_zones = {"Rising", "Surging", "Sliding", "Cooling"}, {"Settled", "Steady"}, {"Calmer", "Same", "Busier"}
-        ok = in_zones("recent_form_shift", form_zones) and in_zones("hero_pool_stability", stability_zones) and in_zones("recent_activity_shift", pace_zones)
-        direction = "form_rises_style_holds" if zone("recent_form_shift") in {"Rising", "Surging"} else "form_slides_style_holds"
-        return ok, direction if ok else None, (component("recent_form_shift", form_zones), component("hero_pool_stability", stability_zones), component("recent_activity_shift", pace_zones))
+        return "form_rises_style_holds" if zone("recent_form_shift") in {"Rising", "Surging"} else "form_slides_style_holds"
     if key == "versatile_core":
-        accepted_breadth, accepted_toolkit = {"Focused", "Selective"}, {"Versatile", "Diverse"}
-        ok = in_zones("hero_pool_breadth", accepted_breadth) and in_zones("toolkit_breadth", accepted_toolkit)
-        return ok, "focused_pool_varied_toolkit" if ok else None, (component("hero_pool_breadth", accepted_breadth), component("toolkit_breadth", accepted_toolkit))
+        return "focused_pool_varied_toolkit"
     if key == "proven_flexibility":
-        accepted_breadth, accepted_transfer = {"Varied", "Wide"}, {"Travels", "Carries over"}
-        ok = in_zones("hero_pool_breadth", accepted_breadth) and in_zones("off_pool_performance", accepted_transfer)
-        return ok, "wide_pool_results_travel" if ok else None, (component("hero_pool_breadth", accepted_breadth), component("off_pool_performance", accepted_transfer))
+        return "wide_pool_results_travel"
     if key == "selective_closer":
-        accepted_involvement, accepted_finishing = {"Quiet", "Selective", "Present"}, {"Closer", "Cleanup"}
-        ok = in_zones("combat_involvement", accepted_involvement) and in_zones("finisher_orientation", accepted_finishing)
-        return ok, "selective_involvement_finishes" if ok else None, (component("combat_involvement", accepted_involvement), component("finisher_orientation", accepted_finishing))
+        return "selective_involvement_finishes"
     if key == "loss_response":
-        neutral_familiarity, neutral_tempo = {"Unchanged"}, {"Same"}
-        familiarity = moved("post_loss_familiarity_shift", neutral_familiarity)
-        tempo = moved("post_loss_activity_shift", neutral_tempo)
-        direction = "full_reset" if familiarity and tempo else "pick_reset" if familiarity else "pace_reset"
-        return (familiarity or tempo), direction if familiarity or tempo else None, (
-            component("post_loss_familiarity_shift", neutral_familiarity),
-            component("post_loss_activity_shift", neutral_tempo),
-        )
+        familiarity_moved = zone("post_loss_familiarity_shift") != "Unchanged"
+        tempo_moved = zone("post_loss_activity_shift") != "Same"
+        return "full_reset" if familiarity_moved and tempo_moved else "pick_reset" if familiarity_moved else "pace_reset"
     if key == "controlled_presence":
-        accepted_involvement, accepted_deaths = {"Active", "Everywhere"}, {"Elusive", "Safe"}
-        ok = in_zones("combat_involvement", accepted_involvement) and in_zones("death_exposure", accepted_deaths)
-        return ok, "active_with_controlled_exposure" if ok else None, (component("combat_involvement", accepted_involvement), component("death_exposure", accepted_deaths))
+        return "active_with_controlled_exposure"
     if key == "heavy_exposure":
-        accepted_involvement, accepted_deaths = {"Active", "Everywhere"}, {"Exposed", "Frequent"}
-        ok = in_zones("combat_involvement", accepted_involvement) and in_zones("death_exposure", accepted_deaths)
-        return ok, "active_with_heavy_exposure" if ok else None, (component("combat_involvement", accepted_involvement), component("death_exposure", accepted_deaths))
+        return "active_with_heavy_exposure"
     if key == "session_fade":
-        accepted_duration, accepted_drift = {"Long", "Marathon"}, {"Drops", "Fades"}
-        ok = in_zones("session_length_tendency", accepted_duration) and in_zones("late_session_performance", accepted_drift)
-        return ok, "late_session_decline" if ok else None, (component("session_length_tendency", accepted_duration), component("late_session_performance", accepted_drift))
+        return "late_session_decline"
     if key == "session_rise":
-        accepted_duration, accepted_drift = {"Medium", "Long", "Marathon"}, {"Warms up", "Finishes strong"}
-        ok = in_zones("session_length_tendency", accepted_duration) and in_zones("late_session_performance", accepted_drift)
-        return ok, "late_session_improvement" if ok else None, (component("session_length_tendency", accepted_duration), component("late_session_performance", accepted_drift))
+        return "late_session_improvement"
     if key == "session_hold":
-        accepted_duration, accepted_drift = {"Long", "Marathon"}, {"Holds"}
-        ok = in_zones("session_length_tendency", accepted_duration) and in_zones("late_session_performance", accepted_drift)
-        return ok, "late_session_result_holds" if ok else None, (component("session_length_tendency", accepted_duration), component("late_session_performance", accepted_drift))
+        return "late_session_result_holds"
     if key == "assist_presence":
-        accepted_involvement, accepted_finishing = {"Present", "Active", "Everywhere"}, {"Setup", "Support"}
-        ok = in_zones("combat_involvement", accepted_involvement) and in_zones("finisher_orientation", accepted_finishing)
-        return ok, "involvement_assist_leaning" if ok else None, (component("combat_involvement", accepted_involvement), component("finisher_orientation", accepted_finishing))
-    raise KeyError(f"No Pattern evaluator for {key}")
+        return "involvement_assist_leaning"
+    raise KeyError(f"No Pattern direction for {key}")
 
 
 def _pattern_confidence(elements: list[ElementResult], *, stable: bool) -> float:

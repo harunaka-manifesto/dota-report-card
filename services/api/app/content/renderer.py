@@ -21,6 +21,28 @@ _EVOLUTION_VARIANTS = (
 _STORY_TEMPLATE_KEYS = {
     "element": ("observation", "distinctive", "evidence", "notice", "guardrail"),
     "pattern": ("observation", "worth_noticing", "player_read", "takeaway", "guardrail"),
+    "pattern_action": (
+        "same_playbook_kicker",
+        "same_playbook_heading",
+        "same_playbook_intro",
+        "same_playbook_deepen_label",
+        "same_playbook_deepen_description",
+        "same_playbook_stretch_label",
+        "same_playbook_stretch_description",
+        "same_playbook_recurring_core_label",
+        "same_playbook_familiar_label",
+        "same_playbook_changes_label",
+        "same_playbook_empty_direction",
+        "comfort_edge_kicker",
+        "comfort_edge_heading",
+        "comfort_edge_intro",
+        "comfort_edge_reliability_label",
+        "comfort_edge_why_learn_label",
+        "comfort_edge_useful_when_label",
+        "comfort_edge_enemy_examples_label",
+        "comfort_edge_teammate_examples_label",
+        "comfort_edge_tradeoff_label",
+    ),
 }
 
 

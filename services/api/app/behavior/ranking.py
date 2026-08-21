@@ -10,6 +10,10 @@ from app.behavior.models import ElementHighlight, ElementResult, PatternResult
 PATTERN_RANKING_VERSION = "free-pattern-ranking-4.1.0"
 FAMILY_REDUNDANCY_PENALTY = 0.04
 TIER_A_TIE_EPSILON = 0.02
+FREE_ELEMENT_HIGHLIGHT_LIMIT = 3
+FREE_PATTERN_HIGHLIGHT_LIMIT = 5
+PATTERN_MIN_STORY_CONFIDENCE = 0.45
+PATTERN_MIN_STORY_COVERAGE = 0.35
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,7 +55,7 @@ def pattern_ranking_breakdown(
 def rank_element_highlights(
     elements: Sequence[ElementResult],
     *,
-    limit: int = 3,
+    limit: int = FREE_ELEMENT_HIGHLIGHT_LIMIT,
 ) -> tuple[ElementHighlight, ...]:
     """Choose the clearest non-redundant Element signals for the Free story."""
 
@@ -88,7 +92,7 @@ def rank_element_highlights(
 def rank_pattern_highlights(
     patterns: Sequence[PatternResult],
     *,
-    limit: int = 3,
+    limit: int = FREE_PATTERN_HIGHLIGHT_LIMIT,
 ) -> tuple[PatternResult, ...]:
     """Greedily select strong Patterns while preserving family diversity."""
 
@@ -96,8 +100,10 @@ def rank_pattern_highlights(
         item
         for item in patterns
         if item.status == "qualified"
-        and item.confidence_score >= 0.45
-        and item.evidence_coverage >= 0.35
+        and item.story_eligibility == "eligible"
+        and not item.story_blockers
+        and item.confidence_score >= PATTERN_MIN_STORY_CONFIDENCE
+        and item.evidence_coverage >= PATTERN_MIN_STORY_COVERAGE
     ]
     selected: list[PatternResult] = []
     remaining = list(candidates)
@@ -127,11 +133,15 @@ def rank_pattern_highlights(
     return tuple(selected)
 
 
-def select_top_element_keys(elements: Sequence[ElementResult], *, limit: int = 3) -> tuple[str, ...]:
+def select_top_element_keys(
+    elements: Sequence[ElementResult], *, limit: int = FREE_ELEMENT_HIGHLIGHT_LIMIT
+) -> tuple[str, ...]:
     return tuple(item.element_key for item in rank_element_highlights(elements, limit=limit))
 
 
-def select_top_pattern_keys(patterns: Sequence[PatternResult], *, limit: int = 3) -> tuple[str, ...]:
+def select_top_pattern_keys(
+    patterns: Sequence[PatternResult], *, limit: int = FREE_PATTERN_HIGHLIGHT_LIMIT
+) -> tuple[str, ...]:
     return tuple(item.key for item in rank_pattern_highlights(patterns, limit=limit))
 
 
@@ -155,6 +165,10 @@ __all__ = [
     "select_top_elements",
     "select_top_patterns",
     "PATTERN_RANKING_VERSION",
+    "FREE_ELEMENT_HIGHLIGHT_LIMIT",
+    "FREE_PATTERN_HIGHLIGHT_LIMIT",
+    "PATTERN_MIN_STORY_CONFIDENCE",
+    "PATTERN_MIN_STORY_COVERAGE",
     "PatternRankingBreakdown",
     "pattern_ranking_breakdown",
 ]

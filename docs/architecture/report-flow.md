@@ -26,7 +26,8 @@ The normal completed flow is:
 
 1. Element scan with all 17 tiles.
 2. Three Element highlight pages, selected from display-eligible Elements.
-3. Up to three Pattern highlight pages, selected only from qualified Patterns.
+3. Up to five Pattern highlight pages, selected only from qualified,
+   story-eligible Patterns.
 4. Common Thread question.
 5. Exception question.
 6. Pool Evolution question.

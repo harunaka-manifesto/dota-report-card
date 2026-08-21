@@ -6,7 +6,10 @@ import type {
   BehaviorPattern,
   ChoiceOption,
   FreeDnaReportV4,
+  ComfortEdgeAction,
   HeroException,
+  PatternActionCopy,
+  SamePlaybookAction,
   StoryPage,
 } from "../../../../../../packages/api-client/src";
 import { track } from "../../../lib/analytics";
@@ -168,6 +171,7 @@ function ElementHighlightPage({ page, context }: { page: StoryPage; context: Sto
 function PatternHighlightPage({ page, context }: { page: StoryPage; context: StoryContext }) {
   const pattern = page.pattern_key ? context.patterns.get(page.pattern_key) : undefined;
   if (!pattern) return <FallbackPage page={page} />;
+  const actionCopy = page.content?.action_copy ?? undefined;
   const ingredientMap = new Map([...pattern.element_keys, ...pattern.modifier_element_keys].map((key) => [key, context.elements.get(key)]));
   return (
     <article className={`pattern-highlight-page pattern-tier-${pattern.tier}`}>
@@ -189,9 +193,67 @@ function PatternHighlightPage({ page, context }: { page: StoryPage; context: Sto
         <div className="ingredient-list"><span>Relationship strength: {Math.round(pattern.strength * 100)}% · Tier {pattern.tier} · {pattern.family}</span></div>
       </details>
       {page.content?.takeaway && <p><strong>Useful takeaway.</strong> {page.content.takeaway}</p>}
+      {pattern.action?.action_type === "same_playbook" && <SamePlaybookActionPanel action={pattern.action} copy={actionCopy} />}
+      {pattern.action?.action_type === "comfort_edge" && <ComfortEdgeActionPanel action={pattern.action} copy={actionCopy} />}
       {page.content?.guardrail && <p className="muted"><strong>Do not overread this.</strong> {page.content.guardrail}</p>}
       {pattern.suppression_reasons.length > 0 && <p className="muted">{pattern.suppression_reasons.join(" ")}</p>}
     </article>
+  );
+}
+
+function SamePlaybookActionPanel({ action, copy }: { action: SamePlaybookAction; copy?: PatternActionCopy | null }) {
+  const [direction, setDirection] = useState<"deepen" | "stretch">("deepen");
+  const recommendations = direction === "deepen" ? action.deepen : action.stretch;
+  if (action.status === "unavailable") return <UnavailableMessage limitations={action.limitations} />;
+  return (
+    <section className="pattern-action same-playbook-action" aria-labelledby="same-playbook-action-heading">
+      <span className="eyebrow">{copy?.same_playbook_kicker ?? "A useful next step"}</span>
+      <h3 id="same-playbook-action-heading">{copy?.same_playbook_heading ?? "Where do you want to take this?"}</h3>
+      <p>{copy?.same_playbook_intro ?? "Both directions are valid: keep solving the same kind of Dota problem, or add range without abandoning your anchors."}</p>
+      <div className="choice-grid" role="radiogroup" aria-label="Same Playbook direction">
+        <button type="button" role="radio" aria-checked={direction === "deepen"} className={direction === "deepen" ? "is-selected" : ""} onClick={() => setDirection("deepen")}>
+          <strong>{copy?.same_playbook_deepen_label ?? "Go deeper"}</strong><span>{copy?.same_playbook_deepen_description ?? "More heroes that keep your current game familiar."}</span>
+        </button>
+        <button type="button" role="radio" aria-checked={direction === "stretch"} className={direction === "stretch" ? "is-selected" : ""} onClick={() => setDirection("stretch")}>
+          <strong>{copy?.same_playbook_stretch_label ?? "Stretch comfortably"}</strong><span>{copy?.same_playbook_stretch_description ?? "Bridge heroes that add a new answer while preserving an anchor."}</span>
+        </button>
+      </div>
+      <p className="muted">{copy?.same_playbook_recurring_core_label ?? "Your recurring core:"} {action.dominant_traits.join(" · ") || "not clear yet"}.</p>
+      {recommendations.length > 0 ? <div className="pattern-action-cards">{recommendations.map((recommendation) => <article className="pattern-action-card" key={recommendation.hero_id}>
+        <h4>{recommendation.hero_name}</h4>
+        <p>{recommendation.why_it_fits}</p>
+        <p><strong>{copy?.same_playbook_familiar_label ?? "What stays familiar."}</strong> {recommendation.what_stays_familiar}</p>
+        <p><strong>{copy?.same_playbook_changes_label ?? "What changes."}</strong> {recommendation.what_changes}</p>
+      </article>)}</div> : <UnavailableMessage limitations={[copy?.same_playbook_empty_direction ?? "No candidate cleared the evidence and learning-distance gates for this direction."]} />}
+      {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
+    </section>
+  );
+}
+
+function ComfortEdgeActionPanel({ action, copy }: { action: ComfortEdgeAction; copy?: PatternActionCopy | null }) {
+  if (action.status === "unavailable") return <UnavailableMessage limitations={action.limitations} />;
+  return (
+    <section className="pattern-action comfort-edge-action" aria-labelledby="comfort-edge-action-heading">
+      <span className="eyebrow">{copy?.comfort_edge_kicker ?? "Build the pool with a reason"}</span>
+      <h3 id="comfort-edge-action-heading">{copy?.comfort_edge_heading ?? "Your strongest heroes are the safest part of this pool today."}</h3>
+      <p>{copy?.comfort_edge_intro ?? "Here is why the other established heroes can still be worth learning. This is a player-relative reliability read, not a meta ranking."}</p>
+      <ol className="hero-reliability-list" aria-label={copy?.comfort_edge_reliability_label ?? "Established hero reliability"}>
+        {action.ranked_heroes.map((hero) => <li key={hero.hero_id} className={hero.reliability_rank <= 2 ? "is-reference-core" : "is-development-side"}>
+          <span>#{hero.reliability_rank}</span><strong>{hero.hero_name}</strong><small>{hero.matches} usable matches · {Math.round(hero.confidence_score * 100)}% confidence</small>
+        </li>)}
+      </ol>
+      {action.development.length > 0 && <div className="pattern-action-cards">{action.development.map((reason) => <article className="pattern-action-card" key={reason.hero_id}>
+        <span className="eyebrow">{copy?.comfort_edge_why_learn_label ?? "Why learn"} {reason.hero_name}?</span>
+        <h4>{reason.hero_name}</h4>
+        <p>{reason.why_learn}</p>
+        {reason.useful_situations.length > 0 && <p><strong>{copy?.comfort_edge_useful_when_label ?? "Useful when."}</strong> {reason.useful_situations.join(" ")}</p>}
+        {reason.enemy_example_names.length > 0 && <p><strong>{copy?.comfort_edge_enemy_examples_label ?? "Enemy examples."}</strong> {reason.enemy_example_names.join(", ")}</p>}
+        {reason.teammate_example_names.length > 0 && <p><strong>{copy?.comfort_edge_teammate_examples_label ?? "Teammate examples."}</strong> {reason.teammate_example_names.join(", ")}</p>}
+        {reason.tradeoffs.length > 0 && <p className="muted"><strong>{copy?.comfort_edge_tradeoff_label ?? "Tradeoff."}</strong> {reason.tradeoffs.join(" ")}</p>}
+        {reason.limitations.length > 0 && <p className="muted">{reason.limitations.join(" ")}</p>}
+      </article>)}</div>}
+      {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
+    </section>
   );
 }
 

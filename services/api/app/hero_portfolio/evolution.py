@@ -7,16 +7,17 @@ from collections import Counter
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from app.hero_portfolio.config import PORTFOLIO_CONFIG
 from app.hero_portfolio.models import PoolEvolutionResult
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
-EVOLUTION_MIN_WINDOW_SIZE = 12
-EVOLUTION_MAX_WINDOW_SIZE = 24
-EVOLUTION_TAXONOMY_COVERAGE_GATE = 0.80
-EVOLUTION_HERO_SHIFT_THRESHOLD = 0.22
-EVOLUTION_TOOLKIT_SHIFT_THRESHOLD = 0.18
-EVOLUTION_CORE_OVERLAP_THRESHOLD = 0.35
+EVOLUTION_MIN_WINDOW_SIZE = PORTFOLIO_CONFIG.evolution_min_window_size
+EVOLUTION_MAX_WINDOW_SIZE = PORTFOLIO_CONFIG.evolution_max_window_size
+EVOLUTION_TAXONOMY_COVERAGE_GATE = PORTFOLIO_CONFIG.evolution_taxonomy_coverage_gate
+EVOLUTION_HERO_SHIFT_THRESHOLD = PORTFOLIO_CONFIG.evolution_hero_shift_threshold
+EVOLUTION_TOOLKIT_SHIFT_THRESHOLD = PORTFOLIO_CONFIG.evolution_toolkit_shift_threshold
+EVOLUTION_CORE_OVERLAP_THRESHOLD = PORTFOLIO_CONFIG.evolution_core_overlap_threshold
 
 
 def compute_pool_evolution(

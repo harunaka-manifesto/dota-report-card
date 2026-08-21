@@ -1,5 +1,5 @@
 {
-  "copy_version": "free-dna-copy-4.1.0",
+  "copy_version": "free-dna-copy-4.2.0",
   "pages": {
     "analysis": {
       "title": "Reading your recent matches.",
@@ -120,6 +120,28 @@
       "player_read": "This relationship describes how the signals moved together; it does not claim a cause.",
       "takeaway": "Keep an eye on whether the same relationship appears in another window.",
       "guardrail": "The result is bounded by the summary fields and the required Element evidence."
+    },
+    "pattern_action": {
+      "same_playbook_kicker": "A useful next step",
+      "same_playbook_heading": "Where do you want to take this?",
+      "same_playbook_intro": "Both directions are valid: keep solving the same kind of Dota problem, or add range without abandoning your anchors.",
+      "same_playbook_deepen_label": "Go deeper",
+      "same_playbook_deepen_description": "More heroes that keep your current game familiar.",
+      "same_playbook_stretch_label": "Stretch comfortably",
+      "same_playbook_stretch_description": "Bridge heroes that add a new answer while preserving an anchor.",
+      "same_playbook_recurring_core_label": "Your recurring core:",
+      "same_playbook_familiar_label": "What stays familiar.",
+      "same_playbook_changes_label": "What changes.",
+      "same_playbook_empty_direction": "No candidate cleared the evidence and learning-distance gates for this direction.",
+      "comfort_edge_kicker": "Build the pool with a reason",
+      "comfort_edge_heading": "Your strongest heroes are the safest part of this pool today.",
+      "comfort_edge_intro": "Here is why the other established heroes can still be worth learning. This is a player-relative reliability read, not a meta ranking.",
+      "comfort_edge_reliability_label": "Established hero reliability",
+      "comfort_edge_why_learn_label": "Why learn",
+      "comfort_edge_useful_when_label": "Useful when.",
+      "comfort_edge_enemy_examples_label": "Enemy examples.",
+      "comfort_edge_teammate_examples_label": "Teammate examples.",
+      "comfort_edge_tradeoff_label": "Tradeoff."
     }
   },
   "labels": {

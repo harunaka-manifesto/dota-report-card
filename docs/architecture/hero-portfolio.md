@@ -3,8 +3,8 @@
 Hero Portfolio is an independent summary-history layer. It asks four human
 questions about the established hero pool; it does not reuse a Pattern score,
 assign a global player label, or infer personality. The current portfolio
-version is `hero-portfolio-1.1.0`; Hero Mirror is
-`hero-mirror-1.1.0`.
+version is `hero-portfolio-1.2.0` plus the versioned
+`hero-portfolio-config-1.0.0`; Hero Mirror is `hero-mirror-1.2.0`.
 
 ## Shared input and eligibility
 

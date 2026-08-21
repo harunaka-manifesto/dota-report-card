@@ -29,5 +29,7 @@ valid partial report. Deep Scan is a separate opt-in pipeline.
 ## Versioning
 
 The report carries versions for session policy, features, behavior model,
-Element and Pattern registries, Hero Portfolio, Hero Mirror, story, copy,
-template, share renderer, and the compatibility fingerprint.
+Element and Pattern registries, Pattern ranking and actions, hero taxonomy,
+hero relationships and expressions, player-relative reliability, matchup and
+synergy artifacts, situations, Hero Portfolio configuration, Hero Mirror,
+story, copy, template, share renderer, and the compatibility fingerprint.

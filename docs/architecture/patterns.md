@@ -18,8 +18,11 @@ strength = relationship_strength × confidence × coverage × qualification_qual
 That evidence-weighted `strength` is calculated once. The v4.1 ranking layer
 does not multiply confidence or coverage into it again. Ranking adds only an
 inspectable novelty adjustment, a close-Tier-A tie preference, and a small
-same-family redundancy penalty. Required Elements gate qualification;
-modifier Elements add context and never silently become gates.
+same-family redundancy penalty. Required Elements gate qualification from
+registry-owned zone clauses; modifier Elements add context and never silently
+become gates. A qualified Pattern also exposes `story_eligibility` and
+`story_blockers`, so a blocking confounder cannot enter the Free story merely
+because its numeric strength is large.
 
 Every Pattern is unavailable when a required Element is unavailable or has no
 score, suppressed when a required Element is below the 0.45 confidence gate,
@@ -58,3 +61,23 @@ The Pattern story leads with the human meaning, then shows the required
 Element labels and zones, receipts, and a keyboard-accessible methodology
 disclosure. Tier, family, relationship strength, coverage, and quality remain
 inspectable transparency details rather than the headline discovery.
+
+## Story selection and reviewed actions
+
+Free selects up to five qualified, story-eligible Patterns. The deterministic
+selector uses strength, confidence, novelty, family diversity, and a close
+Tier-A tie preference. If fewer than five Patterns clear the gates, the story
+keeps the shorter set.
+
+Two Patterns have reviewed action modules:
+
+- **Same Playbook** offers up to three `deepen` and three `stretch` heroes from
+  the versioned relationship/expression layer. Both directions preserve named
+  anchors, and the action may abstain.
+- **Comfort Edge** ranks the player's top five sufficiently sampled heroes by
+  confidence-adjusted, recency-weighted player-relative reliability. Ranks 1–2
+  are the reference core; ranks 3–5 receive typed “why learn this hero?”
+  reasons with situations and only supported aggregate examples.
+
+Actions are server-owned immutable report data. React renders them and never
+recomputes hero rankings from taxonomy fields.

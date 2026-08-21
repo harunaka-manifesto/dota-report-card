@@ -6,6 +6,7 @@ import math
 from collections.abc import Sequence
 
 from app.content.renderer import resolve_portfolio_copy
+from app.hero_portfolio.config import PORTFOLIO_CONFIG
 from app.hero_portfolio.eligibility import build_hero_eligibility, eligible_heroes
 from app.hero_portfolio.models import ChoiceOption, HeroEligibility, HeroExceptionResult
 from app.hero_portfolio.ordering import stable_pseudo_shuffle
@@ -17,6 +18,8 @@ def compute_hero_exception(
     matches: Sequence[NormalizedSummaryMatch],
     taxonomy: HeroTaxonomy,
     eligibility: Sequence[HeroEligibility] | None = None,
+    *,
+    report_seed: str | None = None,
 ) -> HeroExceptionResult:
     eligibility = tuple(eligibility or build_hero_eligibility(matches, taxonomy))
     candidates = eligible_heroes(eligibility, insight="exception")
@@ -40,7 +43,8 @@ def compute_hero_exception(
     pool_centroid = _centroid(list(vectors.values()))
     pool_traits = _top_traits(pool_centroid)
     exception_traits = _top_traits(vectors[winner.hero_id], minimum=0.55)
-    seed = "|".join(f"{item.hero_id}:{distance:.4f}" for distance, item in distances)
+    derived_seed = "|".join(f"{item.hero_id}:{distance:.4f}" for distance, item in distances)
+    seed = report_seed or derived_seed
     options = _options(distances, winner, taxonomy, seed=seed)
     confidence = min(
         1.0,
@@ -48,7 +52,10 @@ def compute_hero_exception(
         + 0.35 * min(1.0, winner_distance / 0.45)
         + 0.30 * min(1.0, margin / 0.15),
     )
-    if winner_distance < 0.32 or margin < 0.06:
+    if (
+        winner_distance < PORTFOLIO_CONFIG.exception_min_distance
+        or margin < PORTFOLIO_CONFIG.exception_min_margin
+    ):
         return HeroExceptionResult(
             status="no_clear_exception",
             hero_id=None,

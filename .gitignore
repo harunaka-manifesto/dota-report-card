@@ -20,3 +20,4 @@ services/api/.cache/
 tests/.tmp/
 .DS_Store
 *.swp
+*.swo

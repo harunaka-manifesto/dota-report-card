@@ -29,6 +29,8 @@ Mirror. Deep Scan remains an explicit separate mode with its own budgets.
 - [Free DNA system](docs/architecture/free-dna-system.md)
 - [Elements](docs/architecture/elements.md)
 - [Patterns](docs/architecture/patterns.md)
+- [Hero relationships](docs/architecture/hero-relationships.md)
+- [Hero matchups and synergies](docs/architecture/hero-matchups-and-synergies.md)
 - [Hero Portfolio](docs/architecture/hero-portfolio.md)
 - [Report flow](docs/architecture/report-flow.md)
 - [Data provenance](docs/architecture/data-provenance.md)

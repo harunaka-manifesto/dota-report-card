@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 
+from app.hero_portfolio.config import PORTFOLIO_CONFIG
 from app.hero_portfolio.models import HeroEligibility
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
@@ -14,12 +15,12 @@ def build_hero_eligibility(
     matches: Sequence[NormalizedSummaryMatch] | Iterable[NormalizedSummaryMatch],
     taxonomy: HeroTaxonomy,
     *,
-    common_thread_min_matches: int = 3,
-    exception_min_matches: int = 4,
-    mirror_min_matches: int = 4,
-    min_share: float = 0.03,
-    min_recency: float = 0.20,
-    sustained_match_threshold: int = 8,
+    common_thread_min_matches: int = PORTFOLIO_CONFIG.common_thread_min_matches,
+    exception_min_matches: int = PORTFOLIO_CONFIG.exception_min_matches,
+    mirror_min_matches: int = PORTFOLIO_CONFIG.mirror_min_matches,
+    min_share: float = PORTFOLIO_CONFIG.min_share,
+    min_recency: float = PORTFOLIO_CONFIG.min_recency,
+    sustained_match_threshold: int = PORTFOLIO_CONFIG.sustained_match_threshold,
 ) -> tuple[HeroEligibility, ...]:
     """Return one auditable eligibility row per hero in the bounded history.
 

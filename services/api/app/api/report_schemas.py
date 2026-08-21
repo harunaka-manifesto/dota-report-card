@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -37,7 +37,14 @@ class VersionMapV4Schema(PublicModel):
     element_registry: str
     pattern_registry: str
     pattern_ranking: str
+    pattern_actions: str
     hero_taxonomy: str
+    hero_relationships: str
+    hero_expressions: str
+    hero_reliability: str
+    hero_matchups: str
+    hero_synergies: str
+    hero_situations: str
     hero_portfolio: str
     hero_mirror: str
     story: str
@@ -94,6 +101,80 @@ class BehaviorElementSchema(PublicModel):
     methodology_version: str
 
 
+class PatternHeroRecommendationSchema(PublicModel):
+    hero_id: int = Field(gt=0)
+    hero_name: str
+    direction: Literal["deepen", "stretch"]
+    anchor_traits: list[str]
+    added_traits: list[str]
+    role_fit: list[str]
+    similarity_score: float = Field(ge=0, le=1)
+    novelty_score: float = Field(ge=0, le=1)
+    confidence_score: float = Field(ge=0, le=1)
+    why_it_fits: str
+    what_stays_familiar: str
+    what_changes: str
+    provenance_versions: dict[str, str]
+
+
+class SamePlaybookActionSchema(PublicModel):
+    action_type: Literal["same_playbook"]
+    status: Literal["available", "limited", "unavailable"]
+    dominant_traits: list[str]
+    underrepresented_traits: list[str]
+    deepen: list[PatternHeroRecommendationSchema]
+    stretch: list[PatternHeroRecommendationSchema]
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+    provenance_versions: dict[str, str]
+
+
+class ComfortEdgeReliabilitySchema(PublicModel):
+    hero_id: int = Field(gt=0)
+    hero_name: str
+    reliability_rank: int = Field(ge=1, le=5)
+    reliability_score: float = Field(ge=0, le=1)
+    confidence_score: float = Field(ge=0, le=1)
+    matches: int = Field(ge=0)
+
+
+class ComfortEdgeDevelopmentReasonSchema(PublicModel):
+    hero_id: int = Field(gt=0)
+    hero_name: str
+    reliability_rank: int = Field(ge=3, le=5)
+    reliability_score: float = Field(ge=0, le=1)
+    confidence_score: float = Field(ge=0, le=1)
+    reference_core_hero_ids: list[int] = Field(min_length=1)
+    reference_core_hero_names: list[str] = Field(min_length=1)
+    what_changes: list[str]
+    useful_situations: list[str]
+    teammate_examples: list[int]
+    teammate_example_names: list[str]
+    enemy_examples: list[int]
+    enemy_example_names: list[str]
+    tradeoffs: list[str]
+    why_learn: str
+    limitations: list[str]
+    provenance_versions: dict[str, str]
+
+
+class ComfortEdgeActionSchema(PublicModel):
+    action_type: Literal["comfort_edge"]
+    status: Literal["available", "limited", "unavailable"]
+    ranked_heroes: list[ComfortEdgeReliabilitySchema] = Field(max_length=5)
+    reference_core_hero_ids: list[int]
+    development: list[ComfortEdgeDevelopmentReasonSchema] = Field(max_length=3)
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+    provenance_versions: dict[str, str]
+
+
+PatternActionSchema = Annotated[
+    SamePlaybookActionSchema | ComfortEdgeActionSchema,
+    Field(discriminator="action_type"),
+]
+
+
 class BehaviorPatternSchema(PublicModel):
     key: str
     label: str
@@ -113,13 +194,16 @@ class BehaviorPatternSchema(PublicModel):
     receipts: list[BehaviorReceiptSchema] = Field(default_factory=list)
     confounders: list[str] = Field(default_factory=list)
     blocking_confounders: list[str] = Field(default_factory=list)
+    story_eligibility: Literal["eligible", "blocked"]
+    story_blockers: list[str] = Field(default_factory=list)
     suppression_reasons: list[str] = Field(default_factory=list)
     methodology_version: str
+    action: PatternActionSchema | None = None
 
 
 class HighlightsSchema(PublicModel):
     element_keys: list[str] = Field(max_length=3)
-    pattern_keys: list[str] = Field(max_length=3)
+    pattern_keys: list[str] = Field(max_length=5)
 
 
 class ChoiceOptionSchema(PublicModel):
@@ -340,11 +424,19 @@ class FreeDnaReportV4Schema(PublicModel):
             raise ValueError("Free DNA must show exactly three Element highlights when three are eligible")
         if not set(self.highlights.element_keys).issubset(eligible_element_keys):
             raise ValueError("Element highlights must reference display-eligible Elements")
-        qualified_pattern_keys = {item.key for item in self.patterns if item.status == "qualified"}
-        if len(qualified_pattern_keys) >= 3 and len(self.highlights.pattern_keys) != 3:
-            raise ValueError("Free DNA must show exactly three Pattern highlights when three are qualified")
-        if not set(self.highlights.pattern_keys).issubset(qualified_pattern_keys):
-            raise ValueError("Pattern highlights must reference qualified Patterns")
+        eligible_pattern_keys = {
+            item.key
+            for item in self.patterns
+            if item.status == "qualified"
+            and item.story_eligibility == "eligible"
+            and not item.story_blockers
+        }
+        if len(eligible_pattern_keys) >= 5 and len(self.highlights.pattern_keys) != 5:
+            raise ValueError("Free DNA must show exactly five Pattern highlights when five are eligible")
+        if len(eligible_pattern_keys) < 5 and len(self.highlights.pattern_keys) != len(eligible_pattern_keys):
+            raise ValueError("Free DNA must preserve every eligible Pattern when fewer than five are available")
+        if not set(self.highlights.pattern_keys).issubset(eligible_pattern_keys):
+            raise ValueError("Pattern highlights must reference story-eligible qualified Patterns")
         for pattern in self.patterns:
             if not set(pattern.element_keys).issubset(element_keys):
                 raise ValueError(f"Pattern {pattern.key} references an unknown required Element")
@@ -352,6 +444,10 @@ class FreeDnaReportV4Schema(PublicModel):
                 raise ValueError(f"Pattern {pattern.key} references an unknown modifier Element")
             if set(pattern.element_keys) & set(pattern.modifier_element_keys):
                 raise ValueError(f"Pattern {pattern.key} overlaps required and modifier Elements")
+            if pattern.story_eligibility == "blocked" and not pattern.story_blockers:
+                raise ValueError(f"Blocked Pattern {pattern.key} must expose story blockers")
+            if pattern.action is not None and pattern.action.action_type != pattern.key:
+                raise ValueError(f"Pattern {pattern.key} carries the wrong action discriminator")
         common = self.hero_portfolio.common_thread
         if common.status == "available":
             if len(common.options) != 4 or common.correct_option_key is None:

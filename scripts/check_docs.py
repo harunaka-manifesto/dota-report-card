@@ -22,6 +22,8 @@ ACTIVE_DOCS = (
     ROOT / "docs" / "architecture" / "free-dna-system.md",
     ROOT / "docs" / "architecture" / "elements.md",
     ROOT / "docs" / "architecture" / "patterns.md",
+    ROOT / "docs" / "architecture" / "hero-relationships.md",
+    ROOT / "docs" / "architecture" / "hero-matchups-and-synergies.md",
     ROOT / "docs" / "architecture" / "hero-portfolio.md",
     ROOT / "docs" / "architecture" / "report-flow.md",
     ROOT / "docs" / "architecture" / "data-provenance.md",
@@ -32,6 +34,15 @@ ACTIVE_DOCS = (
 )
 
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+ACTIVE_SOURCE_ROOTS = (
+    ROOT / "services",
+    ROOT / "apps",
+    ROOT / "packages",
+    ROOT / "tests",
+    ROOT / "README.md",
+    ROOT / "ARCHITECTURE.md",
+    ROOT / "docs",
+)
 FORBIDDEN_ACTIVE_PHRASES = (
     "free-dna-report-2.0.0",
     "free-dna-report-3.0.0",
@@ -80,6 +91,18 @@ def main() -> int:
     )
     if result.returncode:
         failures.append(result.stdout.strip() or result.stderr.strip() or "generated catalog is stale")
+
+    cancelled = re.compile(r"\b(?:archetype|archetypes|classifier|classifiers)\b", re.IGNORECASE)
+    for root in ACTIVE_SOURCE_ROOTS:
+        paths = [root] if root.is_file() else root.rglob("*")
+        for path in paths:
+            if not path.is_file() or path.suffix not in {".py", ".ts", ".tsx", ".js", ".mjs", ".md"}:
+                continue
+            if any(part in {"archive", "node_modules", ".next", "dist", "build"} for part in path.parts):
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            if cancelled.search(text):
+                failures.append(f"cancelled classifier-domain reference in active source: {path.relative_to(ROOT)}")
 
     if failures:
         print("docs-check: failed")

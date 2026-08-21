@@ -27,8 +27,10 @@ jobs:
       - run: make test-contract
       - run: make test-integration
       - run: make taxonomy-validate
+      - run: make dna-catalog-check
+      - run: make docs-check
       - run: make api-client
-      - run: git diff --exit-code -- packages/api-client/src/index.ts
+      - run: git diff --exit-code -- packages/api-client/src/openapi-meta.ts
 
   web:
     name: Web build and browser QA

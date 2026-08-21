@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+from app.behavior.actions import attach_pattern_actions
 from app.behavior.dimensions import DIMENSION_DEFINITIONS
 from app.behavior.elements.registry import ELEMENT_REGISTRY_VERSION
 from app.behavior.elements.service import SummaryBehaviorContext, score_all_elements
@@ -33,6 +34,8 @@ def analyze_behavior(
     if on_stage is not None:
         on_stage("behavior_patterns", "Checking which of the 14 reviewed Patterns survive the evidence gates.")
     patterns = evaluate_patterns(elements)
+    if context.taxonomy is not None:
+        patterns = attach_pattern_actions(patterns, context.matches, context.taxonomy)
     dimensions = _summarize_dimensions(elements, patterns)
     quality = _quality(elements, patterns, context.history_tier)
     versions = BehaviorVersionMap(

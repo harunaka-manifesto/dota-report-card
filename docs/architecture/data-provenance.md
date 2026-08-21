@@ -28,3 +28,13 @@ Missing source fields remain missing through normalization, feature coverage,
 Element scoring, Pattern qualification, and Portfolio eligibility. Each layer
 may lower confidence or return unavailable/no-clear; it cannot create a
 synthetic neutral value.
+
+## Hero action artifacts
+
+P01 and P02 are derived from the reviewed hero taxonomy, bounded hero history,
+and explicitly versioned relationship, expression, and reliability artifacts.
+Matchup and teammate examples are read from checked-in aggregate snapshots
+only; when those snapshots do not clear their confidence gate, the report
+emits a useful situation and an explicit limitation instead of inventing named
+examples. The action provenance versions are included in the Free analysis
+fingerprint.

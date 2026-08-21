@@ -7,6 +7,8 @@ from typing import Any
 
 from app.analysis.budget import DataCostLedger
 from app.behavior.ranking import (
+    FREE_ELEMENT_HIGHLIGHT_LIMIT,
+    FREE_PATTERN_HIGHLIGHT_LIMIT,
     PATTERN_RANKING_VERSION,
     rank_element_highlights,
     rank_pattern_highlights,
@@ -18,14 +20,25 @@ from app.content.renderer import (
     resolve_pattern_copy,
     resolve_portfolio_copy,
     resolve_story_copy,
+    validate_copy_catalog,
 )
 from app.dna.pipeline import DnaAnalysisResult
+from app.hero_portfolio.config import PORTFOLIO_CONFIG_VERSION
 from app.hero_portfolio.models import HeroPortfolioResult
-from app.hero_portfolio.version import HERO_MIRROR_VERSION
+from app.hero_portfolio.version import (
+    HERO_EXPRESSIONS_VERSION,
+    HERO_MATCHUPS_VERSION,
+    HERO_MIRROR_VERSION,
+    HERO_RELATIONSHIPS_VERSION,
+    HERO_RELIABILITY_VERSION,
+    HERO_SITUATIONS_VERSION,
+    HERO_SYNERGIES_VERSION,
+    PATTERN_ACTIONS_VERSION,
+)
 from app.share.service import RENDERER_VERSION
 
 REPORT_SCHEMA_VERSION = "free-dna-report-4.0.0"
-REPORT_STORY_VERSION = "free-story-4.1.0"
+REPORT_STORY_VERSION = "free-story-4.2.0"
 
 
 def assemble_free_dna_report_v4(
@@ -50,8 +63,8 @@ def assemble_free_dna_report_v4(
     """
 
     behavior = analysis.behavior
-    element_highlights = rank_element_highlights(behavior.elements)
-    pattern_highlights = rank_pattern_highlights(behavior.patterns)
+    element_highlights = rank_element_highlights(behavior.elements, limit=FREE_ELEMENT_HIGHLIGHT_LIMIT)
+    pattern_highlights = rank_pattern_highlights(behavior.patterns, limit=FREE_PATTERN_HIGHLIGHT_LIMIT)
     element_map = behavior.element_map
     pattern_map = behavior.pattern_map
     portfolio = analysis.hero_portfolio
@@ -72,8 +85,15 @@ def assemble_free_dna_report_v4(
         "element_registry": behavior.versions.element_registry,
         "pattern_registry": behavior.versions.pattern_registry,
         "pattern_ranking": PATTERN_RANKING_VERSION,
+        "pattern_actions": PATTERN_ACTIONS_VERSION,
         "hero_taxonomy": _taxonomy_version(portfolio),
-        "hero_portfolio": portfolio.version,
+        "hero_relationships": HERO_RELATIONSHIPS_VERSION,
+        "hero_expressions": HERO_EXPRESSIONS_VERSION,
+        "hero_reliability": HERO_RELIABILITY_VERSION,
+        "hero_matchups": HERO_MATCHUPS_VERSION,
+        "hero_synergies": HERO_SYNERGIES_VERSION,
+        "hero_situations": HERO_SITUATIONS_VERSION,
+        "hero_portfolio": f"{portfolio.version}+{PORTFOLIO_CONFIG_VERSION}",
         "hero_mirror": HERO_MIRROR_VERSION,
         "story": REPORT_STORY_VERSION,
         "copy": copy_version(),
@@ -266,6 +286,7 @@ def _story_pages(
                     "guardrail": resolve_story_copy("pattern", "guardrail"),
                     "required_element_keys": list(pattern.element_keys),
                     "modifier_element_keys": list(pattern.modifier_element_keys),
+                    "action_copy": _pattern_action_copy(pattern.key) if pattern.action is not None else None,
                 },
             }
         )
@@ -416,6 +437,13 @@ def _evolution_copy(variant: str | None) -> str | None:
     if not variant:
         return None
     return resolve_portfolio_copy(f"evolution.{variant}")
+
+
+def _pattern_action_copy(key: str) -> dict[str, str] | None:
+    if key not in {"same_playbook", "comfort_edge"}:
+        return None
+    values = validate_copy_catalog()["story_templates"]["pattern_action"]
+    return {name: resolve_story_copy("pattern_action", name) for name in values}
 
 
 __all__ = ["REPORT_SCHEMA_VERSION", "assemble_free_dna_report_v4"]

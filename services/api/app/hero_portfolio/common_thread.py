@@ -6,6 +6,7 @@ from collections import defaultdict
 from collections.abc import Sequence
 
 from app.content.renderer import resolve_portfolio_copy
+from app.hero_portfolio.config import PORTFOLIO_CONFIG
 from app.hero_portfolio.eligibility import build_hero_eligibility, eligible_heroes
 from app.hero_portfolio.models import ChoiceOption, CommonThreadResult, HeroEligibility
 from app.hero_portfolio.ordering import stable_pseudo_shuffle
@@ -17,6 +18,8 @@ def compute_common_thread(
     matches: Sequence[NormalizedSummaryMatch],
     taxonomy: HeroTaxonomy,
     eligibility: Sequence[HeroEligibility] | None = None,
+    *,
+    report_seed: str | None = None,
 ) -> CommonThreadResult:
     eligibility = tuple(eligibility or build_hero_eligibility(matches, taxonomy))
     candidates = eligible_heroes(eligibility, insight="common_thread")
@@ -59,17 +62,20 @@ def compute_common_thread(
         if len(ranked) > 1 else 0.0
     )
     margin = winner_value - runner_value
-    if trait_scores[winner] < 0.35 or margin < 0.03:
+    if (
+        trait_scores[winner] < PORTFOLIO_CONFIG.common_thread_min_coverage
+        or margin < PORTFOLIO_CONFIG.common_thread_min_margin
+    ):
         return _unavailable("No single recurring trait clears the dominance margin.")
 
-    seed = "|".join(
+    derived_seed = "|".join(
         [
             winner,
             *(f"{candidate.hero_id}:{counts[candidate.hero_id]}" for candidate in candidates),
             *ranked[:4],
         ]
     )
-    options = _options(ranked, winner, seed=seed)
+    options = _options(ranked, winner, seed=report_seed or derived_seed)
     confidence = min(
         1.0,
         0.45 * winner_value + 0.30 * min(1.0, len(candidates) / 8.0) + 0.25 * min(1.0, margin / 0.20),

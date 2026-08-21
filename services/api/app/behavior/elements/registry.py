@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+from bisect import bisect_right
+from collections.abc import Iterable
+
 from app.behavior.models import ElementDefinition
 from app.behavior.tiers import SUMMARY_CAPABILITIES
 
 ELEMENT_REGISTRY_VERSION = "free-elements-4.0.0"
+# All public five-zone Elements use the same half-open score intervals.  The
+# right edge belongs to the next zone, so 0.20 is the first point in zone 2.
+# Keeping the boundary map here makes score → zone a single inspectable rule.
+ZONE_BOUNDARIES = (0.20, 0.40, 0.60, 0.80)
 
 
 def _element(
@@ -79,7 +86,24 @@ def zone_for_score(key: str, score: float | None) -> str | None:
     labels = ELEMENT_REGISTRY[key].zone_labels
     if not labels:
         return None
-    return labels[min(len(labels) - 1, max(0, int(score * len(labels))))]
+    bounded = min(1.0, max(0.0, float(score)))
+    index = bisect_right(ZONE_BOUNDARIES, bounded)
+    return labels[min(len(labels) - 1, index)]
 
 
-__all__ = ["ELEMENT_REGISTRY", "ELEMENTS", "ELEMENT_REGISTRY_VERSION", "EXPECTED_ELEMENT_KEYS", "zone_for_score"]
+def element_in_zones(key: str, score: float | None, zones: Iterable[str]) -> bool:
+    """Check membership using the canonical public score → zone mapping."""
+
+    zone = zone_for_score(key, score)
+    return zone is not None and zone in set(zones)
+
+
+__all__ = [
+    "ELEMENT_REGISTRY",
+    "ELEMENTS",
+    "ELEMENT_REGISTRY_VERSION",
+    "EXPECTED_ELEMENT_KEYS",
+    "ZONE_BOUNDARIES",
+    "element_in_zones",
+    "zone_for_score",
+]

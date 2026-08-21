@@ -194,6 +194,25 @@ def test_pattern_qualification_uses_reviewed_zones_at_boundaries() -> None:
     assert result.status == "suppressed"
 
 
+@pytest.mark.parametrize("key", tuple(ELEMENT_REGISTRY))
+def test_every_element_uses_the_same_half_open_zone_boundaries(key: str) -> None:
+    labels = ELEMENT_REGISTRY[key].zone_labels
+    assert zone_for_score(key, 0.0) == labels[0]
+    for index, boundary in enumerate((0.20, 0.40, 0.60, 0.80)):
+        assert zone_for_score(key, boundary - 1e-9) == labels[index]
+        assert zone_for_score(key, boundary) == labels[index + 1]
+
+
+def test_pattern_qualification_does_not_trust_a_stale_serialized_zone() -> None:
+    values = {key: _element(key) for key in ELEMENT_REGISTRY}
+    values["hero_pool_breadth"] = _element("hero_pool_breadth", 0.61)
+    values["toolkit_breadth"] = replace(_element("toolkit_breadth", 0.41), zone="Focused")
+
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "same_playbook")
+
+    assert result.status == "suppressed"
+
+
 PATTERN_ZONE_FIXTURES = (
     ("same_playbook", {"hero_pool_breadth": "Varied", "toolkit_breadth": "Focused"}, {"toolkit_breadth": "Mixed"}),
     ("comfort_edge", {"hero_pool_breadth": "Wide", "off_pool_performance": "Slips"}, {"off_pool_performance": "Holds"}),
@@ -277,6 +296,22 @@ def test_pattern_ranking_has_three_slot_limit_family_penalty_and_gates() -> None
     assert pattern_ranking_breakdown(third, {"same"}).family_redundancy_penalty == 0
 
 
+def test_pattern_ranking_defaults_to_five_story_slots_and_excludes_blocked_results() -> None:
+    patterns = tuple(
+        replace(
+            _pattern(f"pattern-{index}", strength=0.80 - index * 0.01, confidence=0.90, coverage=0.90),
+            family=f"family-{index}",
+        )
+        for index in range(6)
+    )
+    blocked = replace(patterns[-1], story_eligibility="blocked", story_blockers=("window_invalid",))
+
+    ranked = rank_pattern_highlights((*patterns[:-1], blocked))
+
+    assert len(ranked) == 5
+    assert all(item.story_eligibility == "eligible" for item in ranked)
+
+
 def test_public_element_and_pattern_serialization_excludes_private_metrics() -> None:
     element = _element("hero_pool_breadth")
     pattern = _pattern("same_playbook", strength=0.8, confidence=0.9, coverage=0.9)
@@ -293,6 +328,8 @@ def test_blocking_confounder_suppresses_a_pattern_but_information_does_not() -> 
     result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "same_playbook")
     assert result.status == "suppressed"
     assert "window_invalid" in result.blocking_confounders
+    assert result.story_eligibility == "blocked"
+    assert result.story_blockers == ("window_invalid",)
 
 
 def test_mirror_labels_use_realistic_events_per_minute_zones() -> None:

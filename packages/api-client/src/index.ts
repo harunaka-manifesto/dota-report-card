@@ -63,6 +63,76 @@ export type BehaviorElement = {
   methodology_version: string;
 };
 
+export type PatternHeroRecommendation = {
+  hero_id: number;
+  hero_name: string;
+  direction: "deepen" | "stretch";
+  anchor_traits: string[];
+  added_traits: string[];
+  role_fit: string[];
+  similarity_score: number;
+  novelty_score: number;
+  confidence_score: number;
+  why_it_fits: string;
+  what_stays_familiar: string;
+  what_changes: string;
+  provenance_versions: Record<string, string>;
+};
+
+export type SamePlaybookAction = {
+  action_type: "same_playbook";
+  status: "available" | "limited" | "unavailable";
+  dominant_traits: string[];
+  underrepresented_traits: string[];
+  deepen: PatternHeroRecommendation[];
+  stretch: PatternHeroRecommendation[];
+  confidence_score: number;
+  limitations: string[];
+  provenance_versions: Record<string, string>;
+};
+
+export type ComfortEdgeReliability = {
+  hero_id: number;
+  hero_name: string;
+  reliability_rank: number;
+  reliability_score: number;
+  confidence_score: number;
+  matches: number;
+};
+
+export type ComfortEdgeDevelopmentReason = {
+  hero_id: number;
+  hero_name: string;
+  reliability_rank: number;
+  reliability_score: number;
+  confidence_score: number;
+  reference_core_hero_ids: number[];
+  reference_core_hero_names: string[];
+  what_changes: string[];
+  useful_situations: string[];
+  teammate_examples: number[];
+  teammate_example_names: string[];
+  enemy_examples: number[];
+  enemy_example_names: string[];
+  tradeoffs: string[];
+  why_learn: string;
+  limitations: string[];
+  provenance_versions: Record<string, string>;
+};
+
+export type ComfortEdgeAction = {
+  action_type: "comfort_edge";
+  status: "available" | "limited" | "unavailable";
+  ranked_heroes: ComfortEdgeReliability[];
+  reference_core_hero_ids: number[];
+  development: ComfortEdgeDevelopmentReason[];
+  confidence_score: number;
+  limitations: string[];
+  provenance_versions: Record<string, string>;
+};
+
+export type PatternAction = SamePlaybookAction | ComfortEdgeAction;
+
 export type BehaviorPattern = {
   key: string;
   label: string;
@@ -82,8 +152,11 @@ export type BehaviorPattern = {
   receipts: BehaviorElementReceipt[];
   confounders: string[];
   blocking_confounders: string[];
+  story_eligibility: "eligible" | "blocked";
+  story_blockers: string[];
   suppression_reasons: string[];
   methodology_version: string;
+  action: PatternAction | null;
 };
 
 export type ChoiceOption = {
@@ -185,6 +258,29 @@ export type StoryPage = {
   content: StoryPageContent;
 };
 
+export type PatternActionCopy = {
+  same_playbook_kicker?: string;
+  same_playbook_heading?: string;
+  same_playbook_intro?: string;
+  same_playbook_deepen_label?: string;
+  same_playbook_deepen_description?: string;
+  same_playbook_stretch_label?: string;
+  same_playbook_stretch_description?: string;
+  same_playbook_recurring_core_label?: string;
+  same_playbook_familiar_label?: string;
+  same_playbook_changes_label?: string;
+  same_playbook_empty_direction?: string;
+  comfort_edge_kicker?: string;
+  comfort_edge_heading?: string;
+  comfort_edge_intro?: string;
+  comfort_edge_reliability_label?: string;
+  comfort_edge_why_learn_label?: string;
+  comfort_edge_useful_when_label?: string;
+  comfort_edge_enemy_examples_label?: string;
+  comfort_edge_teammate_examples_label?: string;
+  comfort_edge_tradeoff_label?: string;
+};
+
 export type StoryPageContent = {
   scanning_body?: string;
   ready_body?: string;
@@ -210,6 +306,7 @@ export type StoryPageContent = {
   closed?: string;
   available?: string;
   qualifier?: string;
+  action_copy?: PatternActionCopy | null;
 };
 
 export type ShareElement = { key: string; label: string; zone: string | null };
@@ -244,7 +341,14 @@ export type FreeDnaReportV4 = {
     element_registry: string;
     pattern_registry: string;
     pattern_ranking: string;
+    pattern_actions: string;
     hero_taxonomy: string;
+    hero_relationships: string;
+    hero_expressions: string;
+    hero_reliability: string;
+    hero_matchups: string;
+    hero_synergies: string;
+    hero_situations: string;
     hero_portfolio: string;
     hero_mirror: string;
     story: string;

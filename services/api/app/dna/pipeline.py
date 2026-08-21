@@ -63,6 +63,7 @@ def analyze_dna(
     session_gap_minutes: int = 90,
     taxonomy: HeroTaxonomy | None = None,
     history_tier: str | None = None,
+    report_seed: str | None = None,
     on_stage: StageCallback | None = None,
 ) -> DnaAnalysisResult:
     def stage(name: str, message: str) -> None:
@@ -96,6 +97,7 @@ def analyze_dna(
         sessions.matches,
         hero_taxonomy=behavior_taxonomy,
         behavior=behavior,
+        report_seed=report_seed,
     )
     return DnaAnalysisResult(
         matches=sessions.matches,

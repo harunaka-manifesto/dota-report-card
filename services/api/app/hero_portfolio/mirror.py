@@ -13,18 +13,19 @@ from app.hero_portfolio.behavior import (
     behavior_labels,
     row_has_metrics,
 )
+from app.hero_portfolio.config import PORTFOLIO_CONFIG
 from app.hero_portfolio.eligibility import build_hero_eligibility, eligible_heroes
 from app.hero_portfolio.models import HeroEligibility, HeroMirrorResult
 from app.hero_portfolio.version import HERO_MIRROR_VERSION
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
-MIRROR_MIN_INDEPENDENT_REFERENCE = 12
-MIRROR_SAMPLE_SATURATION = 20
-MIRROR_MIN_SAMPLE_CONFIDENCE = 0.35
-MIRROR_MIN_DIMENSION_COVERAGE = 0.75
-MIRROR_MIN_FINAL_SCORE = 0.55
-MIRROR_MIN_RUNNER_UP_MARGIN = 0.04
+MIRROR_MIN_INDEPENDENT_REFERENCE = PORTFOLIO_CONFIG.mirror_min_independent_reference
+MIRROR_SAMPLE_SATURATION = PORTFOLIO_CONFIG.mirror_sample_saturation
+MIRROR_MIN_SAMPLE_CONFIDENCE = PORTFOLIO_CONFIG.mirror_min_sample_confidence
+MIRROR_MIN_DIMENSION_COVERAGE = PORTFOLIO_CONFIG.mirror_min_dimension_coverage
+MIRROR_MIN_FINAL_SCORE = PORTFOLIO_CONFIG.mirror_min_final_score
+MIRROR_MIN_RUNNER_UP_MARGIN = PORTFOLIO_CONFIG.mirror_min_runner_up_margin
 
 # These scales use the same units as the shared behavior normalizer:
 # events/minute, kill share, deaths/10 minutes, and total-variation role
