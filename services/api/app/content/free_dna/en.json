@@ -1,5 +1,5 @@
 {
-  "copy_version": "free-dna-copy-4.2.0",
+  "copy_version": "free-dna-copy-5.0.0",
   "pages": {
     "analysis": {
       "title": "Reading your recent matches.",
@@ -11,9 +11,9 @@
     },
     "element_scan": {
       "title": "The pieces of your Dota pattern",
-      "body": "Seventeen observable Elements make the report legible.",
+      "body": "Eighteen observable Elements make the report legible.",
       "scanning_body": "Reconstructing the signals we found. The strongest three get a closer look next.",
-      "ready_body": "Seventeen observable Elements make the report legible. The strongest three get a closer look next."
+      "ready_body": "Eighteen observable Elements make the report legible. The strongest three get a closer look next."
     },
     "final_card": {
       "title": "The part worth sharing",
@@ -25,39 +25,124 @@
     }
   },
   "elements": {
-    "hero_pool_breadth": {"title": "Breadth", "body": "How wide the meaningful hero pool is."},
-    "hero_pool_stability": {"title": "Stability", "body": "How settled versus shifting the hero pool is."},
-    "hero_exploration_rate": {"title": "Exploration", "body": "How often new or unfamiliar heroes enter the pool."},
-    "toolkit_breadth": {"title": "Toolkit", "body": "How varied the Dota jobs underneath the picks are."},
-    "post_loss_familiarity_shift": {"title": "Familiarity", "body": "Where hero choice moves after a loss."},
-    "role_breadth": {"title": "Role", "body": "How broad the credible role contexts are."},
-    "combat_involvement": {"title": "Involvement", "body": "How often the player appears in kill events per time."},
-    "finisher_orientation": {"title": "Finishing", "body": "How involvement splits between kills and assists."},
-    "death_exposure": {"title": "Deaths", "body": "How exposed the player is to deaths per time."},
-    "off_pool_performance": {"title": "Transfer", "body": "Whether observable performance holds outside the familiar pool."},
-    "off_pool_activity_stability": {"title": "Presence", "body": "Whether combat activity holds outside the familiar pool."},
-    "performance_volatility": {"title": "Volatility", "body": "How variable observable performance is match to match."},
-    "recent_form_shift": {"title": "Form", "body": "How recent observable form moved against an earlier window."},
-    "recent_activity_shift": {"title": "Pace", "body": "How recent combat activity moved against an earlier window."},
-    "session_length_tendency": {"title": "Duration", "body": "What session length tends to appear."},
-    "late_session_performance": {"title": "Drift", "body": "What happens to results later in a session."},
-    "post_loss_activity_shift": {"title": "Tempo", "body": "How next-game activity moves after a loss."}
+    "hero_pool_breadth": {
+      "title": "Breadth",
+      "body": "How wide the meaningful hero pool is."
+    },
+    "hero_pool_stability": {
+      "title": "Stability",
+      "body": "How settled versus shifting the hero pool is."
+    },
+    "hero_exploration_rate": {
+      "title": "Exploration",
+      "body": "How often new or unfamiliar heroes enter the pool."
+    },
+    "toolkit_breadth": {
+      "title": "Toolkit",
+      "body": "How varied the Dota jobs underneath the picks are."
+    },
+    "post_loss_familiarity_shift": {
+      "title": "Familiarity",
+      "body": "Where hero choice moves after a loss."
+    },
+    "role_breadth": {
+      "title": "Role",
+      "body": "How broad the credible role contexts are."
+    },
+    "combat_involvement": {
+      "title": "Involvement",
+      "body": "How often the player appears in kill events per time."
+    },
+    "finisher_orientation": {
+      "title": "Finishing",
+      "body": "How involvement splits between kills and assists."
+    },
+    "death_exposure": {
+      "title": "Deaths",
+      "body": "How exposed the player is to deaths per time."
+    },
+    "off_pool_performance": {
+      "title": "Transfer",
+      "body": "Whether observable performance holds outside the familiar pool."
+    },
+    "off_pool_activity_stability": {
+      "title": "Presence",
+      "body": "Whether combat activity holds outside the familiar pool."
+    },
+    "performance_volatility": {
+      "title": "Volatility",
+      "body": "How variable observable performance is match to match."
+    },
+    "recent_form_shift": {
+      "title": "Form",
+      "body": "How recent observable form moved against an earlier window."
+    },
+    "recent_activity_shift": {
+      "title": "Pace",
+      "body": "How recent combat activity moved against an earlier window."
+    },
+    "session_length_tendency": {
+      "title": "Duration",
+      "body": "What session length tends to appear."
+    },
+    "late_session_performance": {
+      "title": "Drift",
+      "body": "What happens to results later in a session."
+    },
+    "post_loss_activity_shift": {
+      "title": "Tempo",
+      "body": "How next-game activity moves after a loss."
+    },
+    "post_loss_performance_response": {
+      "title": "Recovery",
+      "body": "Comparable next-game performance after a loss may drop, hold, or recover."
+    }
   },
   "patterns": {
-    "same_playbook": {"title": "Same Playbook", "body": "Hero names change more than the toolkit underneath."},
-    "comfort_edge": {"title": "Comfort Edge", "body": "Selection range and result range diverge."},
-    "partial_transfer": {"title": "Partial Transfer", "body": "Presence travels off-pool better than results do."},
-    "stable_style": {"title": "Stable Style", "body": "Recent results changed more than visible style signals."},
-    "versatile_core": {"title": "Versatile Core", "body": "A focused pool still covers different Dota jobs."},
-    "proven_flexibility": {"title": "Proven Flexibility", "body": "A broad pool is backed by observable transfer."},
-    "selective_closer": {"title": "Selective Closer", "body": "Appearances skew toward final kill credit."},
-    "loss_response": {"title": "Loss Response", "body": "Hero familiarity and next-game activity can move together or separately."},
-    "controlled_presence": {"title": "Controlled Presence", "body": "High involvement appears without a similar death-exposure signal."},
-    "heavy_exposure": {"title": "Heavy Exposure", "body": "High presence carries a visible death cost."},
-    "session_fade": {"title": "Session Fade", "body": "Later games in long sessions show a weaker result signal."},
-    "session_rise": {"title": "Session Rise", "body": "Later-session results improve often enough to stand out."},
-    "session_hold": {"title": "Session Hold", "body": "Long sessions exist without a meaningful result decline."},
-    "assist_presence": {"title": "Assist Presence", "body": "Fight involvement leans toward assists over final credit."}
+    "same_playbook": {
+      "title": "Same Playbook",
+      "body": "Hero names change more than the toolkit underneath."
+    },
+    "comfort_edge": {
+      "title": "Comfort Edge",
+      "body": "Selection range and result range diverge."
+    },
+    "partial_transfer": {
+      "title": "Partial Transfer",
+      "body": "Presence travels off-pool better than results do."
+    },
+    "versatile_core": {
+      "title": "Versatile Core",
+      "body": "A focused pool still covers different Dota jobs."
+    },
+    "proven_flexibility": {
+      "title": "Proven Flexibility",
+      "body": "A broad pool is backed by observable transfer."
+    },
+    "controlled_presence": {
+      "title": "Controlled Presence",
+      "body": "High involvement coexists with low-to-moderate death exposure."
+    },
+    "session_fade": {
+      "title": "Session Fade",
+      "body": "Later games in long sessions show a weaker result signal."
+    },
+    "session_rise": {
+      "title": "Session Rise",
+      "body": "Later-session results improve often enough to stand out."
+    },
+    "bounceback": {
+      "title": "Bounceback",
+      "body": "Recovery improves while Familiarity or Tempo also moves."
+    },
+    "performance_slide": {
+      "title": "Performance Slide",
+      "body": "Recovery declines while Familiarity or Tempo also moves."
+    },
+    "presence_tax": {
+      "title": "Presence Tax",
+      "body": "High involvement carries a visible death cost whose context may be localized."
+    }
   },
   "portfolio": {
     "common_thread": {
@@ -141,7 +226,47 @@
       "comfort_edge_useful_when_label": "Useful when.",
       "comfort_edge_enemy_examples_label": "Enemy examples.",
       "comfort_edge_teammate_examples_label": "Teammate examples.",
-      "comfort_edge_tradeoff_label": "Tradeoff."
+      "comfort_edge_tradeoff_label": "Tradeoff.",
+      "partial_transfer_kicker": "Where the transfer bends",
+      "partial_transfer_heading": "The result gap has a bounded lead",
+      "partial_transfer_direct_label": "Observable difference",
+      "partial_transfer_hypothesis_label": "Capability lead",
+      "partial_transfer_unresolved_heading": "The gap is real; the cause is not proven",
+      "partial_transfer_deep_label": "Worth a deeper evidence pass",
+      "versatile_core_kicker": "Your compact toolkit",
+      "versatile_core_heading": "A small pool can still cover a lot of Dota",
+      "versatile_core_jobs_label": "Jobs in the core",
+      "versatile_core_coverage_label": "Coverage map",
+      "versatile_core_next_tool_label": "One useful next tool",
+      "versatile_core_alternatives_label": "Other viable additions",
+      "versatile_core_no_gap_heading": "No obvious hole needs filling",
+      "proven_flexibility_kicker": "Proof of range",
+      "proven_flexibility_heading": "Your flexibility shows up in the calendar",
+      "proven_flexibility_roster_label": "Heroes in the window",
+      "proven_flexibility_proof_label": "What repeats",
+      "proven_flexibility_distributed_heading": "Your flexibility is distributed",
+      "controlled_presence_kicker": "Your cleanest presence",
+      "controlled_presence_heading": "Where involvement and survival line up",
+      "controlled_presence_context_label": "Observable context",
+      "controlled_presence_finishing_label": "Finishing flavor",
+      "presence_tax_kicker": "Where does the tax come from?",
+      "presence_tax_heading": "The exposure has a bounded shape",
+      "presence_tax_deep_label": "Deeper evidence needed",
+      "presence_tax_unresolved_body": "The summary history shows the cost, but not a stable context for it yet.",
+      "bounceback_kicker": "Your best rebound tool",
+      "bounceback_heading": "Where your post-loss performance recovers most",
+      "performance_slide_kicker": "Your roughest post-loss tool",
+      "performance_slide_heading": "Where the post-loss drop is largest",
+      "recovery_context_label": "Comparable context",
+      "recovery_delta_label": "Post-loss difference",
+      "session_fade_kicker": "A session curve",
+      "session_fade_heading": "Where the session curve starts to fade",
+      "session_fade_breakpoint_label": "Earliest supported fade",
+      "session_fade_gradual_label": "The movement is gradual",
+      "session_rise_kicker": "A session curve",
+      "session_rise_heading": "Where the session curve starts to lift",
+      "session_rise_breakpoint_label": "Earliest supported lift",
+      "session_rise_gradual_label": "The movement is gradual"
     }
   },
   "labels": {

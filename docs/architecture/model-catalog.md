@@ -11,8 +11,8 @@ The human-readable model decisions live in [Elements](elements.md),
 
 | Registry | Version | Active count |
 | --- | --- | --- |
-| Free Elements | free-elements-4.0.0 | 17 |
-| Free Patterns | free-patterns-4.0.0 | 14 |
+| Free Elements | free-elements-5.0.0 | 18 |
+| Free Patterns | free-patterns-5.0.0 | 11 |
 
 ## Free Elements
 
@@ -35,6 +35,7 @@ The human-readable model decisions live in [Elements](elements.md),
 | E15 | session_length_tendency | Duration | Burst → Marathon | 25 | 0% |
 | E16 | late_session_performance | Drift | Drops → Finishes strong | 27 | 0% |
 | E17 | post_loss_activity_shift | Tempo | Pulls back → Accelerates | 30 | 0% |
+| E18 | post_loss_performance_response | Recovery | Drops → Surges | 30 | 0% |
 
 ## Free Patterns
 
@@ -43,23 +44,20 @@ The human-readable model decisions live in [Elements](elements.md),
 | P01 | same_playbook | breadth_toolkit | A | `hero_pool_breadth`, `toolkit_breadth` | — |
 | P02 | comfort_edge | breadth_transfer | A | `hero_pool_breadth`, `off_pool_performance` | `hero_exploration_rate`, `post_loss_familiarity_shift` |
 | P03 | partial_transfer | presence_transfer | A | `off_pool_activity_stability`, `off_pool_performance` | — |
-| P04 | stable_style | form_stability | A | `recent_form_shift`, `hero_pool_stability`, `recent_activity_shift` | — |
-| P05 | versatile_core | breadth_toolkit | A | `hero_pool_breadth`, `toolkit_breadth` | — |
-| P06 | proven_flexibility | breadth_transfer | A | `hero_pool_breadth`, `off_pool_performance` | — |
-| P07 | selective_closer | involvement_finishing | B | `combat_involvement`, `finisher_orientation` | `death_exposure` |
-| P08 | loss_response | post_loss | B | `post_loss_familiarity_shift`, `post_loss_activity_shift` | — |
-| P09 | controlled_presence | involvement_deaths | B | `combat_involvement`, `death_exposure` | `finisher_orientation` |
-| P10 | heavy_exposure | involvement_deaths | B | `combat_involvement`, `death_exposure` | `finisher_orientation` |
-| P11 | session_fade | session_drift | B | `session_length_tendency`, `late_session_performance` | — |
-| P12 | session_rise | session_drift | B | `session_length_tendency`, `late_session_performance` | — |
-| P13 | session_hold | session_drift | B | `session_length_tendency`, `late_session_performance` | — |
-| P14 | assist_presence | involvement_finishing | B | `combat_involvement`, `finisher_orientation` | `death_exposure` |
+| P04 | versatile_core | breadth_toolkit | A | `hero_pool_breadth`, `toolkit_breadth` | — |
+| P05 | proven_flexibility | breadth_transfer | A | `hero_pool_breadth`, `off_pool_performance` | — |
+| P06 | bounceback | post_loss_recovery | B | `post_loss_performance_response`, `post_loss_familiarity_shift`, `post_loss_activity_shift` | — |
+| P07 | performance_slide | post_loss_recovery | B | `post_loss_performance_response`, `post_loss_familiarity_shift`, `post_loss_activity_shift` | — |
+| P08 | controlled_presence | involvement_deaths | B | `combat_involvement`, `death_exposure` | `finisher_orientation` |
+| P09 | presence_tax | involvement_deaths | B | `combat_involvement`, `death_exposure` | `finisher_orientation` |
+| P10 | session_fade | session_drift | B | `session_length_tendency`, `late_session_performance` | — |
+| P11 | session_rise | session_drift | B | `session_length_tendency`, `late_session_performance` | — |
 
 ## Product tier
 
 | Tier | Active model surface | Evidence boundary |
 | --- | --- | --- |
-| Free | 17 Elements · 14 Patterns · Hero Portfolio | One bounded summary-history read; no match-detail or replay-parse reads |
+| Free | 18 Elements · 11 Patterns · Hero Portfolio | One previous-365-day summary-history read; no match-detail or replay-parse reads |
 | Deep Scan | Explicit selected-match analysis | Separate opt-in budgets and coverage gates |
 <!-- END GENERATED MODEL CATALOG -->
 

@@ -4,12 +4,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   BehaviorElement,
   BehaviorPattern,
+  BouncebackAction,
   ChoiceOption,
   FreeDnaReportV4,
   ComfortEdgeAction,
+  ControlledPresenceAction,
+  PartialTransferDiagnostic,
+  PerformanceSlideAction,
+  ProvenFlexibilityAction,
   HeroException,
   PatternActionCopy,
   SamePlaybookAction,
+  PresenceTaxAction,
+  SessionCurveAction,
+  VersatileCoreAction,
   StoryPage,
 } from "../../../../../../packages/api-client/src";
 import { track } from "../../../lib/analytics";
@@ -126,7 +134,7 @@ function ElementScan({ page, context }: { page: StoryPage; context: StoryContext
 
   return (
     <article className={`element-scan is-${scanStage}`} data-scan-state={scanStage}>
-      <p className="eyebrow">17 Elements · summary history only</p>
+      <p className="eyebrow">18 Elements · summary history only</p>
       <h2 id={`${page.id}-heading`}>{page.title}</h2>
       <p className="story-lede" aria-live="polite">{scanStage === "scanning" ? page.content?.scanning_body ?? page.body : page.content?.ready_body ?? page.body}</p>
       <div className="element-scan-grid">
@@ -195,10 +203,126 @@ function PatternHighlightPage({ page, context }: { page: StoryPage; context: Sto
       {page.content?.takeaway && <p><strong>Useful takeaway.</strong> {page.content.takeaway}</p>}
       {pattern.action?.action_type === "same_playbook" && <SamePlaybookActionPanel action={pattern.action} copy={actionCopy} />}
       {pattern.action?.action_type === "comfort_edge" && <ComfortEdgeActionPanel action={pattern.action} copy={actionCopy} />}
+      {pattern.action?.action_type === "partial_transfer" && <PartialTransferActionPanel action={pattern.action} copy={actionCopy} />}
+      {pattern.action?.action_type === "versatile_core" && <VersatileCoreActionPanel action={pattern.action} copy={actionCopy} />}
+      {pattern.action?.action_type === "proven_flexibility" && <ProvenFlexibilityActionPanel action={pattern.action} copy={actionCopy} />}
+      {(pattern.action?.action_type === "bounceback" || pattern.action?.action_type === "performance_slide") && <RecoveryActionPanel action={pattern.action} copy={actionCopy} />}
+      {(pattern.action?.action_type === "session_fade" || pattern.action?.action_type === "session_rise") && <SessionCurveActionPanel action={pattern.action} copy={actionCopy} />}
+      {pattern.action?.action_type === "controlled_presence" && <ControlledPresenceActionPanel action={pattern.action} copy={actionCopy} />}
+      {pattern.action?.action_type === "presence_tax" && <PresenceTaxActionPanel action={pattern.action} copy={actionCopy} />}
       {page.content?.guardrail && <p className="muted"><strong>Do not overread this.</strong> {page.content.guardrail}</p>}
       {pattern.suppression_reasons.length > 0 && <p className="muted">{pattern.suppression_reasons.join(" ")}</p>}
     </article>
   );
+}
+
+function ControlledPresenceActionPanel({ action, copy }: { action: ControlledPresenceAction; copy?: PatternActionCopy | null }) {
+  return <section className="pattern-action" aria-labelledby="controlled-presence-heading">
+    <span className="eyebrow">{copy?.controlled_presence_kicker ?? "Your cleanest presence"}</span>
+    <h3 id="controlled-presence-heading">{action.strongest_context?.label ?? "The overall pattern is the strongest supported level"}</h3>
+    {action.strongest_context && <p>High involvement · low death exposure · {action.strongest_context.sample_size} usable matches</p>}
+    {action.comparison_rows.length > 0 && <div className="pattern-action-cards">{action.comparison_rows.map((row) => <article className="pattern-action-card" key={`${row.label}-${row.hero_id ?? row.function_family}`}><h4>{row.label}</h4><p>Involvement {Math.round(row.involvement_level * 100)} · death exposure {Math.round(row.death_exposure_level * 100)}</p><small>{row.sample_size} matches · {Math.round(row.confidence_score * 100)}% confidence</small></article>)}</div>}
+    {action.finishing_flavor && <p><strong>{copy?.controlled_presence_finishing_label ?? "Finishing flavor."}</strong> {action.finishing_flavor === "controlled_setup_presence" ? "Your involvement leans toward setup and assists." : "Your involvement leans toward final kill credit."}</p>}
+    <p className="muted">{action.limitations.join(" ")}</p>
+  </section>;
+}
+
+function PresenceTaxActionPanel({ action, copy }: { action: PresenceTaxAction; copy?: PatternActionCopy | null }) {
+  const shape = action.shape.replace("_", " ").toUpperCase();
+  return <section className="pattern-action" aria-labelledby="presence-tax-heading">
+    <span className="eyebrow">{copy?.presence_tax_kicker ?? "Where does the tax come from?"}</span>
+    <h3 id="presence-tax-heading">{shape || copy?.presence_tax_heading}</h3>
+    {action.comparison_contexts.length > 0 && <div className="pattern-action-cards">{action.comparison_contexts.map((row) => <article className="pattern-action-card" key={`${row.label}-${row.hero_id ?? row.function_family}`}><h4>{row.label}</h4><p>Involvement {Math.round(row.involvement_level * 100)} · death exposure {Math.round(row.death_exposure_level * 100)}</p><small>{row.sample_size} matches · {Math.round(row.confidence_score * 100)}% confidence</small></article>)}</div>}
+    {action.deep_analysis_candidate && <p><strong>{copy?.presence_tax_deep_label ?? "Deeper evidence needed."}</strong> We can see where the death cost concentrates. Replay-level evidence is needed to explain what those deaths are buying—or why they are happening.</p>}
+    {action.shape === "unresolved" && <p>{copy?.presence_tax_unresolved_body ?? "The summary history shows the cost, but not a stable context for it yet."}</p>}
+    <p className="muted">{action.limitations.join(" ")}</p>
+  </section>;
+}
+
+function PartialTransferActionPanel({ action, copy }: { action: PartialTransferDiagnostic; copy?: PatternActionCopy | null }) {
+  const statusLabel = action.status.replaceAll("_", " ");
+  return <section className="pattern-action" aria-labelledby="partial-transfer-heading">
+    <span className="eyebrow">{copy?.partial_transfer_kicker ?? "Where the transfer bends"}</span>
+    <h3 id="partial-transfer-heading">{action.status === "unresolved" ? copy?.partial_transfer_unresolved_heading ?? "The gap is real; the cause is not proven" : copy?.partial_transfer_heading ?? "The result gap has a bounded lead"}</h3>
+    {action.strongest_supported_lead && <p>{action.strongest_supported_lead}</p>}
+    {action.summary_differences.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_direct_label ?? "Observable difference"}</span>{action.summary_differences.map((difference) => <article className="pattern-action-card" key={difference.signal_key}><h4>{difference.signal_key.replaceAll("_", " ")}</h4><p>{difference.player_facing_claim}</p><small>{Math.round(difference.confidence_score * 100)}% confidence</small></article>)}</div>}
+    {action.capability_hypotheses.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_hypothesis_label ?? "Capability lead"}</span>{action.capability_hypotheses.map((hypothesis) => <article className="pattern-action-card" key={hypothesis.capability_key}><h4>{hypothesis.capability_key.replaceAll("_", " ")}</h4><p>{hypothesis.player_facing_hypothesis}</p><small>{Math.round(hypothesis.confidence_score * 100)}% confidence</small></article>)}</div>}
+    <p className="muted">Evidence level: {statusLabel}. {action.deep_analysis_eligible && (copy?.partial_transfer_deep_label ?? "Worth a deeper evidence pass.")}</p>
+    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
+  </section>;
+}
+
+function VersatileCoreActionPanel({ action, copy }: { action: VersatileCoreAction; copy?: PatternActionCopy | null }) {
+  const coverage = action.coverage_summary;
+  const coverageGroups = [
+    ["Strongly covered", coverage.strongly_covered],
+    ["One hero", coverage.single_point_coverage],
+    ["Thin", coverage.thin_coverage],
+    ["Missing", coverage.missing],
+  ] as const;
+  return <section className="pattern-action" aria-labelledby="versatile-core-heading">
+    <span className="eyebrow">{copy?.versatile_core_kicker ?? "Your compact toolkit"}</span>
+    <h3 id="versatile-core-heading">{copy?.versatile_core_heading ?? "A small pool can still cover a lot of Dota"}</h3>
+    <div className="pattern-action-cards"><span className="eyebrow">{copy?.versatile_core_jobs_label ?? "Jobs in the core"}</span>{action.hero_job_maps.map((hero) => <article className="pattern-action-card" key={hero.hero_id}><h4>{hero.hero_name}</h4><p>{hero.primary_jobs.join(" · ") || "No clear job map"}</p>{hero.expression_summary && <small>{hero.expression_summary}</small>}</article>)}</div>
+    <div className="descriptor-list" aria-label={copy?.versatile_core_coverage_label ?? "Coverage map"}>{coverageGroups.map(([label, jobs]) => jobs.length > 0 && <span key={label}><strong>{label}:</strong> {jobs.join(", ")}</span>)}</div>
+    {action.recommended_addition ? <article className="pattern-action-card"><span className="eyebrow">{copy?.versatile_core_next_tool_label ?? "One useful next tool"}</span><h4>{action.recommended_addition.hero_name}</h4><p>{action.recommended_addition.player_facing_reason}</p><small>{action.recommended_addition.solves_gap}</small></article> : <p><strong>{copy?.versatile_core_no_gap_heading ?? "No obvious hole needs filling"}</strong></p>}
+    {action.alternative_additions.length > 0 && <p><strong>{copy?.versatile_core_alternatives_label ?? "Other viable additions"}.</strong> {action.alternative_additions.map((hero) => hero.hero_name).join(", ")}</p>}
+    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
+  </section>;
+}
+
+function ProvenFlexibilityActionPanel({ action, copy }: { action: ProvenFlexibilityAction; copy?: PatternActionCopy | null }) {
+  const roster = action.hero_names.map((name, index) => `${name} · ${action.hero_game_counts[index]?.[1] ?? 0}`);
+  return <section className="pattern-action" aria-labelledby="proven-flexibility-heading">
+    <span className="eyebrow">{copy?.proven_flexibility_kicker ?? "Proof of range"}</span>
+    <h3 id="proven-flexibility-heading">{action.status === "distributed_flexibility" ? copy?.proven_flexibility_distributed_heading ?? "Your flexibility is distributed" : copy?.proven_flexibility_heading ?? "Your flexibility shows up in the calendar"}</h3>
+    {action.window_start && action.window_end && <p>{action.window_start} → {action.window_end} · {action.total_games} games</p>}
+    <p><strong>{copy?.proven_flexibility_roster_label ?? "Heroes in the window"}.</strong> {roster.join(", ") || "No taxonomy-covered hero roster yet."}</p>
+    <p><strong>{copy?.proven_flexibility_proof_label ?? "What repeats"}.</strong> {action.functional_jobs.join(" · ") || "No clear functional spread yet."}. {action.secondary_proof ?? `${action.meaningful_hero_count} meaningful heroes across ${action.functional_job_count} functional jobs.`}</p>
+    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
+  </section>;
+}
+
+function RecoveryActionPanel({ action, copy }: { action: BouncebackAction | PerformanceSlideAction; copy?: PatternActionCopy | null }) {
+  const positive = action.action_type === "bounceback";
+  const context = action.strongest_context;
+  const delta = context ? Math.abs(context.performance_delta).toFixed(2) : "0.00";
+  return <section className="pattern-action" aria-labelledby={`${action.action_type}-heading`}>
+    <span className="eyebrow">{positive ? copy?.bounceback_kicker ?? "Your best rebound tool" : copy?.performance_slide_kicker ?? "Your roughest post-loss tool"}</span>
+    <h3 id={`${action.action_type}-heading`}>{context?.label ?? (positive ? copy?.bounceback_heading ?? "Where your post-loss performance recovers most" : copy?.performance_slide_heading ?? "Where the post-loss drop is largest")}</h3>
+    {context ? <><p><strong>{positive ? "+" : "-"}{delta}</strong> relative performance-proxy units vs a leave-session-out comparable baseline · {context.sample_size} transitions across {context.session_count} sessions.</p><p><strong>{copy?.recovery_context_label ?? "Comparable context"}.</strong> {context.primary_jobs.join(" · ") || "Overall summary context"}.</p></> : <UnavailableMessage limitations={action.limitations} />}
+    {action.comparison_contexts.length > 0 && <div className="pattern-action-cards">{action.comparison_contexts.map((row) => <article className="pattern-action-card" key={`${row.label}-${row.hero_id ?? row.function_family ?? row.role_context ?? "overall"}`}><h4>{row.label}</h4><p>{row.performance_delta >= 0 ? "+" : ""}{row.performance_delta.toFixed(2)} relative proxy units · {row.sample_size} transitions</p><small>{Math.round(row.confidence_score * 100)}% confidence</small></article>)}</div>}
+    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
+  </section>;
+}
+
+function SessionCurveActionPanel({ action, copy }: { action: SessionCurveAction; copy?: PatternActionCopy | null }) {
+  const rising = action.action_type === "session_rise";
+  const heading = rising
+    ? copy?.session_rise_heading ?? "Where the session curve starts to lift"
+    : copy?.session_fade_heading ?? "Where the session curve starts to fade";
+  const breakpointLabel = rising
+    ? copy?.session_rise_breakpoint_label ?? "Earliest supported lift"
+    : copy?.session_fade_breakpoint_label ?? "Earliest supported fade";
+  const gradualLabel = rising
+    ? copy?.session_rise_gradual_label ?? "The movement is gradual"
+    : copy?.session_fade_gradual_label ?? "The movement is gradual";
+  return <section className="pattern-action session-curve-action" aria-labelledby={`${action.action_type}-heading`}>
+    <span className="eyebrow">{rising ? copy?.session_rise_kicker ?? "A session curve" : copy?.session_fade_kicker ?? "A session curve"}</span>
+    <h3 id={`${action.action_type}-heading`}>{heading}</h3>
+    <p>This is a relative performance-proxy curve, balanced by independent sessions. The values are not calibrated percentages and do not establish fatigue, warm-up, or a stopping point.</p>
+    <div className="pattern-action-cards" aria-label="Session position curve">
+      {action.curve.map((point) => <article className={`pattern-action-card${point.supported ? "" : " is-muted"}`} key={point.bucket}>
+        <h4>{point.bucket}</h4>
+        <p>{point.supported ? `${point.relative_delta >= 0 ? "+" : ""}${point.relative_delta.toFixed(2)} relative units` : "Not enough independent sessions"}</p>
+        <small>{point.sample_size} games · effective n {point.effective_sample_size.toFixed(1)}</small>
+      </article>)}
+    </div>
+    {action.breakpoint_state === "stable_breakpoint" && action.breakpoint_bucket && <p><strong>{breakpointLabel}:</strong> {action.breakpoint_bucket}. {action.independent_session_count} independent sessions support the curve.</p>}
+    {action.breakpoint_state === "gradual" && <p><strong>{gradualLabel}.</strong> No single earliest bucket clears the stable-breakpoint rule.</p>}
+    {action.companion_signals.length > 0 && <p><strong>Companion signals.</strong> {action.companion_signals.join(" ")}</p>}
+    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
+  </section>;
 }
 
 function SamePlaybookActionPanel({ action, copy }: { action: SamePlaybookAction; copy?: PatternActionCopy | null }) {

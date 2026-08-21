@@ -7,18 +7,22 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Keep broad history and deep acquisition limits separate.  The old name is
-# retained as a compatibility alias for callers that still import it, but it
-# no longer represents the deep-analysis budget.
-FREE_HISTORY_LIMIT = 500
-MAX_FREE_HISTORY_LIMIT = 500
+# The Free population is a time window, not a match-count product cap.  The
+# optional limit remains an infrastructure safety valve for a future rollout,
+# but the default is deliberately unbounded so a busy account is not silently
+# reduced to the old 500-row population.
+FREE_HISTORY_WINDOW_DAYS = 365
+FREE_HISTORY_LIMIT: int | None = None
+MAX_FREE_HISTORY_LIMIT: int | None = None
 MATCH_HISTORY_LIMIT = FREE_HISTORY_LIMIT
+RECENCY_HALF_LIFE_DAYS = 180.0
 DEFAULT_MAX_DEEP_MATCHES = 25
 DEFAULT_MAX_PARSE_REQUESTS = 0
 DEFAULT_MAX_DATA_COST_PER_REPORT = 50.0
 DEFAULT_MIN_MARGINAL_INFORMATION_GAIN = 0.05
 DEFAULT_MAX_PRIMARY_HYPOTHESES = 3
 DEFAULT_SESSION_GAP_MINUTES = 90
+DEFAULT_SUMMARY_HISTORY_CACHE_TTL_SECONDS = 120
 DEFAULT_REPORT_RETENTION_DAYS = 30
 DEFAULT_STEAM_RESOLVER_BASE_URL = "https://api.steampowered.com"
 DEFAULT_CORS_ORIGINS = (
@@ -33,6 +37,18 @@ def _as_bool(value: str | None, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _optional_int(value: str | None, *, default: int | None) -> int | None:
+    """Parse an optional infrastructure ceiling without inventing a product cap."""
+
+    if value is None or not value.strip():
+        return default
+    try:
+        parsed = int(value)
+    except ValueError:
+        return default
+    return parsed if parsed > 0 else None
+
+
 @dataclass(frozen=True)
 class Settings:
     app_env: str = "development"
@@ -45,7 +61,7 @@ class Settings:
     fixture_dir: Path = Path("tests/fixtures/opendota")
     database_url: str = "postgresql+psycopg://dota:dota@localhost:5432/dota_report_card"
     redis_url: str = "redis://localhost:6379/0"
-    model_version: str = "insight-engine-1.0.0"
+    model_version: str = "free-dna-model-5.0.0"
     template_version: str = "templates-1.0.0"
     role_confidence_threshold: float = 0.60
     analysis_max_concurrency: int = 4
@@ -54,7 +70,7 @@ class Settings:
     # Broad summary reads and deep evidence acquisition have independent
     # budgets.  ``history_limit`` is a deprecated constructor alias kept for
     # existing integrations; new code should use ``free_history_limit``.
-    free_history_limit: int = FREE_HISTORY_LIMIT
+    free_history_limit: int | None = FREE_HISTORY_LIMIT
     history_limit: int | None = None
     max_deep_matches: int = DEFAULT_MAX_DEEP_MATCHES
     max_parse_requests: int = DEFAULT_MAX_PARSE_REQUESTS
@@ -64,6 +80,7 @@ class Settings:
     session_gap_minutes: int = DEFAULT_SESSION_GAP_MINUTES
     default_analysis_mode: str = "free"
     compatible_analysis_ttl_seconds: int = 3600
+    summary_history_cache_ttl_seconds: int = DEFAULT_SUMMARY_HISTORY_CACHE_TTL_SECONDS
     report_retention_days: int = DEFAULT_REPORT_RETENTION_DAYS
     replay_coverage_threshold: float = 0.60
     summary_coverage_threshold: float = 0.60
@@ -108,11 +125,9 @@ class Settings:
             opendota_timeout_seconds=float(
                 os.getenv("OPENDOTA_TIMEOUT_SECONDS", str(cls.opendota_timeout_seconds))
             ),
-            free_history_limit=int(
-                os.getenv(
-                    "FREE_HISTORY_LIMIT",
-                    os.getenv("HISTORY_LIMIT", str(cls.free_history_limit)),
-                )
+            free_history_limit=_optional_int(
+                os.getenv("FREE_HISTORY_LIMIT", os.getenv("HISTORY_LIMIT")),
+                default=cls.free_history_limit,
             ),
             max_deep_matches=int(
                 os.getenv("MAX_DEEP_MATCHES", str(cls.max_deep_matches))
@@ -150,6 +165,12 @@ class Settings:
                     str(cls.compatible_analysis_ttl_seconds),
                 )
             ),
+            summary_history_cache_ttl_seconds=int(
+                os.getenv(
+                    "SUMMARY_HISTORY_CACHE_TTL_SECONDS",
+                    str(cls.summary_history_cache_ttl_seconds),
+                )
+            ),
             report_retention_days=int(
                 os.getenv("REPORT_RETENTION_DAYS", str(cls.report_retention_days))
             ),
@@ -171,15 +192,19 @@ class Settings:
         return self.fixture_dir if self.fixture_dir.is_absolute() else Path.cwd() / self.fixture_dir
 
     @property
-    def effective_history_limit(self) -> int:
+    def effective_history_limit(self) -> int | None:
         """Backward-compatible alias for the broad summary limit."""
 
         return self.effective_free_history_limit
 
     @property
-    def effective_free_history_limit(self) -> int:
+    def effective_free_history_limit(self) -> int | None:
         requested = self.history_limit if self.history_limit is not None else self.free_history_limit
-        return max(1, min(requested, MAX_FREE_HISTORY_LIMIT))
+        if requested is None:
+            return None
+        if requested <= 0:
+            return None
+        return requested if MAX_FREE_HISTORY_LIMIT is None else min(requested, MAX_FREE_HISTORY_LIMIT)
 
     @property
     def effective_max_deep_matches(self) -> int:
@@ -204,6 +229,10 @@ class Settings:
     @property
     def effective_session_gap_minutes(self) -> int:
         return max(1, self.session_gap_minutes)
+
+    @property
+    def effective_summary_history_cache_ttl_seconds(self) -> int:
+        return max(1, self.summary_history_cache_ttl_seconds)
 
     @property
     def effective_report_retention_days(self) -> int:

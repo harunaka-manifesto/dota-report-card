@@ -17,11 +17,13 @@ from app.share.service import build_share_svg
 from app.storage.repository import InMemoryRepository
 from fastapi.testclient import TestClient
 
+_TEST_WINDOW_END = int(datetime.now(UTC).timestamp())
+
 
 def _summary(match_id: int, index: int) -> dict[str, int | bool]:
     return {
         "match_id": match_id,
-        "start_time": 1_700_000_000 + index * 7_200,
+        "start_time": _TEST_WINDOW_END - index * 7_200,
         "duration": 1_800,
         "hero_id": 25 + index % 5,
         "player_slot": 0,
@@ -75,22 +77,25 @@ def test_vanity_resolver_caches_successful_lookup() -> None:
     assert calls == 1
 
 
-def test_free_report_is_v4_summary_only_versioned_and_expiring() -> None:
+def test_free_report_is_v5_summary_only_versioned_and_expiring() -> None:
     source, repository, _service, job = _run_report()
     assert job.status == "completed"
     assert {"behavior_elements", "behavior_patterns", "hero_portfolio", "rendering_report"} <= set(job.completed_stages)
     assert source.requests == [("player", 42), ("matches", 42)]
     report = repository.get_report(job.report_id or "")
     assert report is not None
-    assert report["schema_version"] == "free-dna-report-4.0.0"
+    assert report["schema_version"] == "free-dna-report-5.0.0"
     assert report["report_variant"] == "free_dna_report"
     assert report["noindex"] is True
     assert "account_id" not in report
     assert report["cost"]["detail_requests"] == 0
     assert report["cost"]["parse_requests"] == 0
     assert report["cost"]["parse_status_requests"] == 0
-    assert len(report["elements"]) == 17
-    assert len(report["patterns"]) == 14
+    assert len(report["elements"]) == 18
+    assert len(report["patterns"]) == 11
+    assert report["metadata"]["history_limit"] is None
+    assert report["reproducibility"]["model_version"] == "free-dna-model-5.0.0"
+    assert report["reproducibility"]["recency_weighting_version"] == "recency-weighting-5.0.0"
     assert report["story"]["ordered_pages"] == [page["id"] for page in report["pages"]]
     assert {page["kind"] for page in report["pages"]} >= {"element_scan", "pattern_highlight", "hero_mirror_reveal", "deep_dive"}
     validate_free_dna_report(report)
@@ -107,7 +112,7 @@ def test_free_report_is_v4_summary_only_versioned_and_expiring() -> None:
     assert repository.get_report(job.report_id or "") is None
 
 
-def test_public_report_route_sets_noindex_and_returns_strict_v4_contract() -> None:
+def test_public_report_route_sets_noindex_and_returns_strict_v5_contract() -> None:
     source, _repository, _service, job = _run_report()
     app = create_app(Settings(), source=source)
     # The app owns a fresh service, so build one report through that service.
@@ -118,7 +123,7 @@ def test_public_report_route_sets_noindex_and_returns_strict_v4_contract() -> No
     assert response.status_code == 200
     assert response.headers["x-robots-tag"] == "noindex, nofollow, noarchive"
     body = response.json()
-    assert body["schema_version"] == "free-dna-report-4.0.0"
+    assert body["schema_version"] == "free-dna-report-5.0.0"
     assert body["report_variant"] == "free_dna_report"
     validate_free_dna_report(body)
     assert job.status == "completed"
@@ -145,7 +150,7 @@ def test_free_cache_miss_never_calls_match_details_or_parse_requests() -> None:
     assert report["cost"]["parse_requests"] == 0
 
 
-def test_public_v4_schema_rejects_internal_and_unknown_fields() -> None:
+def test_public_v5_schema_rejects_internal_and_unknown_fields() -> None:
     _source, repository, _service, job = _run_report()
     report = repository.get_report(job.report_id or "")
     assert report is not None

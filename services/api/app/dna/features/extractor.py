@@ -1,4 +1,4 @@
-"""Feature extraction shared by the eight independent dimension scorers."""
+"""Feature extraction shared by the 18 independent Element scorers."""
 
 from __future__ import annotations
 
@@ -9,6 +9,14 @@ from statistics import median
 from typing import Any
 
 from app.dna.features.models import DnaFeatureSet
+from app.dna.performance import PERFORMANCE_PROXY_VERSION, build_performance_map
+from app.dna.recency import (
+    DEFAULT_HALF_LIFE_DAYS,
+    RECENCY_WEIGHTING_VERSION,
+    effective_sample_size,
+    recency_weight,
+    session_weight,
+)
 from app.dna.sessions import SessionResult
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -18,6 +26,9 @@ def extract_dna_features(
     sessions: SessionResult,
     *,
     include_sensitivity: bool = True,
+    window_start: int | None = None,
+    window_end: int | None = None,
+    recency_half_life_days: float = DEFAULT_HALF_LIFE_DAYS,
 ) -> DnaFeatureSet:
     corpus = tuple(
         sorted(
@@ -53,7 +64,30 @@ def extract_dna_features(
         item.match_id: (item.kills or 0) / max((item.kills or 0) + (item.assists or 0), 1)
         for item in orientation_rows
     }
-    performance_by_match = _performance_by_match(corpus, activity_rate_by_match)
+    resolved_window_end = window_end or max(
+        (item.started_at or 0 for item in corpus),
+        default=0,
+    )
+    resolved_window_start = (
+        window_start
+        if window_start is not None
+        else resolved_window_end - 365 * 24 * 60 * 60
+        if resolved_window_end
+        else None
+    )
+    weights_by_match = {
+        item.match_id: (
+            recency_weight(
+                item.started_at,
+                window_end=resolved_window_end,
+                half_life_days=recency_half_life_days,
+            )
+            if item.started_at is not None and resolved_window_end
+            else 0.0
+        )
+        for item in corpus
+    }
+    performance_by_match, _performance_observations = build_performance_map(corpus)
     role_performance: dict[str, list[float]] = defaultdict(list)
     for item in role_rows:
         if item.match_id in performance_by_match:
@@ -72,8 +106,21 @@ def extract_dna_features(
     )
     transition_values = _transition_values(sessions, performance_by_match)
     endurance_values = _endurance_values(sessions, performance_by_match)
-    session_lengths = tuple(session.match_count for session in sessions.sessions)
-    session_durations = tuple(session.elapsed_seconds for session in sessions.sessions)
+    # A right-censored latest session is not evidence of a completed-session
+    # length.  Keep the empty result when every observed session is censored;
+    # E15 must fail closed rather than quietly reintroducing the old fallback.
+    completed_sessions = sessions.completed_sessions
+    session_lengths = tuple(session.match_count for session in completed_sessions)
+    session_durations = tuple(session.elapsed_seconds for session in completed_sessions)
+    session_weights = {
+        session.session_id: session_weight(
+            session.start_time,
+            window_end=resolved_window_end,
+            half_life_days=recency_half_life_days,
+        )
+        for session in sessions.sessions
+        if resolved_window_end
+    }
     dated_ids = tuple(item.match_id for item in corpus if item.started_at is not None)
     familiar_ids = tuple(
         item.match_id for item in corpus
@@ -123,6 +170,16 @@ def extract_dna_features(
         off_pool_match_ids=off_pool_ids,
         familiar_roles=familiar_roles,
         session_sensitivity=sessions.sensitivity,
+        weights_by_match=weights_by_match,
+        session_weights=session_weights,
+        effective_sample_size=effective_sample_size(tuple(weights_by_match.values())),
+        recency_half_life_days=recency_half_life_days,
+        recency_weighting_version=RECENCY_WEIGHTING_VERSION,
+        performance_proxy_version=PERFORMANCE_PROXY_VERSION,
+        window_start=resolved_window_start,
+        window_end=resolved_window_end or None,
+        left_censored_session_count=sessions.left_censored_session_count,
+        right_censored_session_count=sessions.right_censored_session_count,
     )
     if not include_sensitivity:
         return base
@@ -138,11 +195,16 @@ def extract_dna_features(
             corpus,
             SessionPolicy(gap_minutes=gap),
             sensitivity_gaps=(),
+            window_start=resolved_window_start,
+            window_end=resolved_window_end or None,
         )
         alternate_features = extract_dna_features(
             alternate_sessions.matches,
             alternate_sessions,
             include_sensitivity=False,
+            window_start=resolved_window_start,
+            window_end=resolved_window_end or None,
+            recency_half_life_days=recency_half_life_days,
         )
         sensitivity_scores[gap] = {
             item.key: item.centered_score
@@ -173,24 +235,8 @@ def _familiar_heroes(counts: Counter[int], sample_size: int) -> set[int]:
 def _performance_by_match(
     corpus: tuple[NormalizedSummaryMatch, ...], activity_rates: dict[int, float]
 ) -> dict[int, float]:
-    valid_rates = list(activity_rates.values())
-    activity_median = median(valid_rates) if valid_rates else 0.0
-    activity_scale = _mad(valid_rates) or 1.0
-    result: dict[int, float] = {}
-    for item in corpus:
-        if item.won is None:
-            continue
-        # Very short matches remain part of the common hero/role corpus but
-        # are too noisy for the default performance proxy.
-        if item.duration_seconds is None or item.duration_seconds < 600:
-            continue
-        win_component = 1.0 if item.won else 0.0
-        if item.match_id in activity_rates and activity_median:
-            activity_component = _sigmoid((activity_rates[item.match_id] - activity_median) / activity_scale)
-            result[item.match_id] = 0.60 * win_component + 0.40 * activity_component
-        else:
-            result[item.match_id] = win_component
-    return result
+    del activity_rates
+    return build_performance_map(corpus)[0]
 
 
 def _transition_values(

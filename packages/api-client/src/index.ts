@@ -131,7 +131,180 @@ export type ComfortEdgeAction = {
   provenance_versions: Record<string, string>;
 };
 
-export type PatternAction = SamePlaybookAction | ComfortEdgeAction;
+export type ObservedDifference = {
+  signal_key: string;
+  core_value: number | null;
+  off_pool_value: number | null;
+  effect_size: number | null;
+  confidence_score: number;
+  player_facing_claim: string;
+};
+
+export type CapabilityHypothesis = {
+  capability_key: string;
+  core_prevalence: number;
+  off_pool_prevalence: number;
+  separation_score: number;
+  confidence_score: number;
+  player_facing_hypothesis: string;
+};
+
+export type PartialTransferDiagnostic = {
+  action_type: "partial_transfer";
+  status: "direct_signal" | "capability_hypothesis" | "unresolved" | "deep_candidate";
+  summary_differences: ObservedDifference[];
+  capability_hypotheses: CapabilityHypothesis[];
+  strongest_supported_lead: string | null;
+  core_hero_ids: number[];
+  off_pool_hero_ids: number[];
+  confidence_score: number;
+  limitations: string[];
+  deep_analysis_eligible: boolean;
+};
+
+export type HeroJobMap = {
+  hero_id: number;
+  hero_name: string;
+  primary_jobs: string[];
+  expression_summary: string | null;
+};
+
+export type CoverageSummary = {
+  strongly_covered: string[];
+  single_point_coverage: string[];
+  thin_coverage: string[];
+  missing: string[];
+};
+
+export type HeroAdditionRecommendation = {
+  hero_id: number;
+  hero_name: string;
+  adds_jobs: string[];
+  shared_anchors: string[];
+  solves_gap: string;
+  player_facing_reason: string;
+  confidence_score: number;
+};
+
+export type VersatileCoreAction = {
+  action_type: "versatile_core";
+  status: "coverage_only" | "coverage_plus_recommendation" | "coverage_plus_alternatives" | "no_obvious_gap";
+  core_hero_ids: number[];
+  hero_job_maps: HeroJobMap[];
+  coverage_summary: CoverageSummary;
+  recommended_addition: HeroAdditionRecommendation | null;
+  alternative_additions: HeroAdditionRecommendation[];
+  confidence_score: number;
+  limitations: string[];
+};
+
+export type ProvenFlexibilityAction = {
+  action_type: "proven_flexibility";
+  status: "peak_window" | "distributed_flexibility";
+  window_start: string | null;
+  window_end: string | null;
+  total_games: number;
+  hero_ids: number[];
+  hero_names: string[];
+  hero_game_counts: [number, number][];
+  meaningful_hero_count: number;
+  functional_jobs: string[];
+  functional_job_count: number;
+  repeated_hero_count: number;
+  longest_same_hero_streak: number | null;
+  secondary_proof: string | null;
+  flex_week_score: number | null;
+  activity_confidence: number;
+  distribution_quality: number | null;
+  confidence_score: number;
+  limitations: string[];
+};
+
+export type RecoveryContext = {
+  label: string;
+  hero_id: number | null;
+  function_family: string | null;
+  role_context: string | null;
+  performance_delta: number;
+  baseline_performance: number;
+  observed_performance: number;
+  sample_size: number;
+  session_count: number;
+  primary_jobs: string[];
+  confidence_score: number;
+};
+
+export type BouncebackAction = {
+  action_type: "bounceback";
+  strongest_context: RecoveryContext | null;
+  comparison_contexts: RecoveryContext[];
+  fallback_level: "hero" | "function" | "role" | "overall";
+  confidence_score: number;
+  limitations: string[];
+};
+
+export type PerformanceSlideAction = {
+  action_type: "performance_slide";
+  strongest_context: RecoveryContext | null;
+  comparison_contexts: RecoveryContext[];
+  fallback_level: "hero" | "function" | "role" | "overall";
+  confidence_score: number;
+  limitations: string[];
+};
+
+export type PresenceContext = {
+  label: string;
+  hero_id: number | null;
+  function_family: string | null;
+  role_context: string | null;
+  involvement_level: number;
+  death_exposure_level: number;
+  sample_size: number;
+  confidence_score: number;
+};
+
+export type ControlledPresenceAction = {
+  action_type: "controlled_presence";
+  strongest_context: PresenceContext | null;
+  comparison_rows: PresenceContext[];
+  finishing_flavor: string | null;
+  fallback_level: "hero" | "function" | "role" | "overall";
+  confidence_score: number;
+  limitations: string[];
+};
+
+export type PresenceTaxAction = {
+  action_type: "presence_tax";
+  shape: "job_shaped" | "hero_specific" | "cross_context" | "unresolved";
+  strongest_contexts: PresenceContext[];
+  comparison_contexts: PresenceContext[];
+  deep_analysis_candidate: boolean;
+  confidence_score: number;
+  limitations: string[];
+};
+
+export type SessionCurvePoint = {
+  bucket: "G1" | "G2" | "G3" | "G4" | "G5+";
+  relative_delta: number;
+  sample_size: number;
+  effective_sample_size: number;
+  supported: boolean;
+};
+
+export type SessionCurveAction = {
+  action_type: "session_fade" | "session_rise";
+  status: "resolved" | "fallback" | "unresolved" | "not_applicable";
+  direction: "fade" | "rise";
+  curve: SessionCurvePoint[];
+  breakpoint_state: "stable_breakpoint" | "gradual" | "unresolved";
+  breakpoint_bucket: "G1" | "G2" | "G3" | "G4" | "G5+" | null;
+  companion_signals: string[];
+  independent_session_count: number;
+  confidence_score: number;
+  limitations: string[];
+};
+
+export type PatternAction = SamePlaybookAction | ComfortEdgeAction | PartialTransferDiagnostic | VersatileCoreAction | ProvenFlexibilityAction | BouncebackAction | PerformanceSlideAction | ControlledPresenceAction | PresenceTaxAction | SessionCurveAction;
 
 export type BehaviorPattern = {
   key: string;
@@ -279,6 +452,46 @@ export type PatternActionCopy = {
   comfort_edge_enemy_examples_label?: string;
   comfort_edge_teammate_examples_label?: string;
   comfort_edge_tradeoff_label?: string;
+  partial_transfer_kicker?: string;
+  partial_transfer_heading?: string;
+  partial_transfer_direct_label?: string;
+  partial_transfer_hypothesis_label?: string;
+  partial_transfer_unresolved_heading?: string;
+  partial_transfer_deep_label?: string;
+  versatile_core_kicker?: string;
+  versatile_core_heading?: string;
+  versatile_core_jobs_label?: string;
+  versatile_core_coverage_label?: string;
+  versatile_core_next_tool_label?: string;
+  versatile_core_alternatives_label?: string;
+  versatile_core_no_gap_heading?: string;
+  proven_flexibility_kicker?: string;
+  proven_flexibility_heading?: string;
+  proven_flexibility_roster_label?: string;
+  proven_flexibility_proof_label?: string;
+  proven_flexibility_distributed_heading?: string;
+  controlled_presence_kicker?: string;
+  controlled_presence_heading?: string;
+  controlled_presence_context_label?: string;
+  controlled_presence_finishing_label?: string;
+  presence_tax_kicker?: string;
+  presence_tax_heading?: string;
+  presence_tax_deep_label?: string;
+  presence_tax_unresolved_body?: string;
+  bounceback_kicker?: string;
+  bounceback_heading?: string;
+  performance_slide_kicker?: string;
+  performance_slide_heading?: string;
+  recovery_context_label?: string;
+  recovery_delta_label?: string;
+  session_fade_kicker?: string;
+  session_fade_heading?: string;
+  session_fade_breakpoint_label?: string;
+  session_fade_gradual_label?: string;
+  session_rise_kicker?: string;
+  session_rise_heading?: string;
+  session_rise_breakpoint_label?: string;
+  session_rise_gradual_label?: string;
 };
 
 export type StoryPageContent = {
@@ -312,9 +525,36 @@ export type StoryPageContent = {
 export type ShareElement = { key: string; label: string; zone: string | null };
 export type SharePattern = { key: string; label: string };
 
+export type Reproducibility = {
+  model_version: string;
+  element_registry_version: string;
+  pattern_registry_version: string;
+  hero_taxonomy_version: string;
+  performance_proxy_version: string;
+  sessionization_version: string;
+  recency_weighting_version: string;
+  generated_at: string;
+  window_start: string | null;
+  window_end: string | null;
+  input_snapshot_hash: string;
+  raw_match_count: number;
+  usable_match_count: number;
+  deduplicated_match_count: number;
+  session_count: number;
+  completed_session_count: number;
+  left_censored_session_count: number;
+  right_censored_session_count: number;
+  role_hint_coverage: number;
+  hero_taxonomy_coverage: number;
+  effective_sample_size: number;
+  recency_config: { half_life_days: number; version: string };
+  session_gap_config: { gap_minutes: number; clock_tolerance_seconds: number };
+};
+
 export type FreeDnaReportV4 = {
   report_id: string | null;
-  schema_version: "free-dna-report-4.0.0";
+  // v4 remains readable for already-persisted reports; new reports are v5.
+  schema_version: "free-dna-report-4.0.0" | "free-dna-report-5.0.0";
   report_variant: "free_dna_report";
   noindex: true;
   identity: {
@@ -329,7 +569,7 @@ export type FreeDnaReportV4 = {
     data_to: string | null;
     processed_matches: number;
     eligible_matches: number;
-    history_limit: number;
+    history_limit: number | null;
     raw_history_hash: string;
     history_tier: "limited" | "normal";
   };
@@ -357,7 +597,11 @@ export type FreeDnaReportV4 = {
     template: string;
     share_renderer: string;
     analysis_version_fingerprint: string;
+    performance_proxy?: string;
+    recency_weighting?: string;
+    sessionization?: string;
   };
+  reproducibility?: Reproducibility;
   quality: {
     overall_confidence: Confidence;
     history_tier: "limited" | "normal";
@@ -407,6 +651,7 @@ export type FreeDnaReportV4 = {
 };
 
 export type FreeDnaReport = FreeDnaReportV4;
+export type FreeDnaReportV5 = FreeDnaReportV4;
 
 export async function createAnalysis(
   baseUrl: string,

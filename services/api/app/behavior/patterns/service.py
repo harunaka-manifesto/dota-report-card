@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from app.behavior.comparisons import clamp, confidence_label
 from app.behavior.elements.registry import ELEMENT_REGISTRY, zone_for_score
 from app.behavior.evidence import BehaviorEvidence
-from app.behavior.models import ElementResult, PatternResult
+from app.behavior.models import ElementResult, PatternDefinition, PatternResult
 from app.behavior.patterns.registry import PATTERN_REGISTRY
 
 
@@ -19,19 +19,7 @@ def evaluate_patterns(
     element_map = {item.key: item for item in elements}
     results: list[PatternResult] = []
     for definition in PATTERN_REGISTRY.values():
-        required = [element_map.get(key) for key in definition.required_elements]
-        missing = tuple(
-            key
-            for key, result in zip(definition.required_elements, required, strict=True)
-            if result is None or result.status == "unavailable" or result.score is None
-        )
-        weak = tuple(
-            result.key
-            for result in required
-            if result is not None
-            and result.score is not None
-            and result.confidence_score < definition.minimum_element_confidence
-        )
+        _gate_values, missing, weak = _qualification_gate(definition, element_map)
         if missing:
             results.append(_unavailable(definition.key, missing, "required_element_unavailable"))
         elif weak:
@@ -43,7 +31,7 @@ def evaluate_patterns(
 
 def _evaluate(key: str, elements: Mapping[str, ElementResult]) -> PatternResult:
     definition = PATTERN_REGISTRY[key]
-    values = [elements[element_key] for element_key in definition.required_elements]
+    values = list(_available_values(definition, elements))
     qualified, direction, components = _qualification(key, {item.key: item for item in values})
     zone_qualified = qualified
     relationship = clamp(sum(components) / max(len(components), 1))
@@ -134,7 +122,9 @@ def _qualification(
     """
 
     def zone(name: str) -> str:
-        item = elements[name]
+        item = elements.get(name)
+        if item is None:
+            return "Unavailable"
         if isinstance(item, ElementResult):
             return zone_for_score(name, item.score) or "Unavailable"
         return zone_for_score(name, float(item)) or "Unavailable"
@@ -170,7 +160,9 @@ def _qualification(
 
 def _direction_for(key: str, elements: Mapping[str, ElementResult] | Mapping[str, float]) -> str:
     def zone(name: str) -> str:
-        item = elements[name]
+        item = elements.get(name)
+        if item is None:
+            return "Unavailable"
         score = item.score if isinstance(item, ElementResult) else float(item)
         return zone_for_score(name, score) or "Unavailable"
 
@@ -180,30 +172,23 @@ def _direction_for(key: str, elements: Mapping[str, ElementResult] | Mapping[str
         return "wide_pool_results_slip_off_pool"
     if key == "partial_transfer":
         return "presence_holds_results_slip"
-    if key == "stable_style":
-        return "form_rises_style_holds" if zone("recent_form_shift") in {"Rising", "Surging"} else "form_slides_style_holds"
     if key == "versatile_core":
         return "focused_pool_varied_toolkit"
     if key == "proven_flexibility":
         return "wide_pool_results_travel"
-    if key == "selective_closer":
-        return "selective_involvement_finishes"
-    if key == "loss_response":
-        familiarity_moved = zone("post_loss_familiarity_shift") != "Unchanged"
-        tempo_moved = zone("post_loss_activity_shift") != "Same"
-        return "full_reset" if familiarity_moved and tempo_moved else "pick_reset" if familiarity_moved else "pace_reset"
+    if key in {"bounceback", "performance_slide"}:
+        familiarity_moved = "post_loss_familiarity_shift" in elements and zone("post_loss_familiarity_shift") != "Unchanged"
+        tempo_moved = "post_loss_activity_shift" in elements and zone("post_loss_activity_shift") != "Same"
+        movement = "familiarity_and_tempo" if familiarity_moved and tempo_moved else "familiarity" if familiarity_moved else "tempo"
+        return f"{'positive' if key == 'bounceback' else 'negative'}_recovery_with_{movement}"
     if key == "controlled_presence":
         return "active_with_controlled_exposure"
-    if key == "heavy_exposure":
-        return "active_with_heavy_exposure"
+    if key == "presence_tax":
+        return "active_with_presence_tax"
     if key == "session_fade":
         return "late_session_decline"
     if key == "session_rise":
         return "late_session_improvement"
-    if key == "session_hold":
-        return "late_session_result_holds"
-    if key == "assist_presence":
-        return "involvement_assist_leaning"
     raise KeyError(f"No Pattern direction for {key}")
 
 
@@ -212,6 +197,66 @@ def _pattern_confidence(elements: list[ElementResult], *, stable: bool) -> float
     mean = sum(item.confidence_score for item in elements) / max(len(elements), 1)
     relationship_stability = 1.0 if stable else 0.80
     return clamp(0.60 * weakest + 0.25 * mean + 0.15 * relationship_stability)
+
+
+def _available_values(
+    definition: PatternDefinition, elements: Mapping[str, ElementResult]
+) -> tuple[ElementResult, ...]:
+    required = definition.required_elements
+    return tuple(
+        result
+        for key in required
+        if (result := elements.get(key)) is not None
+        and result.status != "unavailable"
+        and result.score is not None
+    )
+
+
+def _qualification_gate(
+    definition: PatternDefinition, elements: Mapping[str, ElementResult]
+) -> tuple[tuple[ElementResult, ...], tuple[str, ...], tuple[str, ...]]:
+    required = tuple(definition.required_elements)
+    minimum_confidence = float(definition.minimum_element_confidence)
+    key = definition.key
+    if key not in {"bounceback", "performance_slide"}:
+        values = tuple(elements.get(item) for item in required)
+        missing = tuple(
+            item
+            for item, result in zip(required, values, strict=True)
+            if result is None or result.status == "unavailable" or result.score is None
+        )
+        weak = tuple(
+            result.key
+            for result in values
+            if result is not None and result.score is not None and result.confidence_score < minimum_confidence
+        )
+        return tuple(result for result in values if result is not None), missing, weak
+
+    clauses = tuple(definition.zone_clauses)
+    viable = [
+        tuple(elements[item] for item, _zones in clause)
+        for clause in clauses
+        if all(
+            (result := elements.get(item)) is not None
+            and result.status != "unavailable"
+            and result.score is not None
+            for item, _zones in clause
+        )
+    ]
+    if not viable:
+        recovery = "post_loss_performance_response"
+        support = "post_loss_familiarity_shift_or_post_loss_activity_shift"
+        return (), (recovery, support), ()
+    strong = [
+        group for group in viable
+        if all(result.confidence_score >= minimum_confidence for result in group)
+    ]
+    weak = () if strong else tuple(
+        result.key
+        for result in viable[0]
+        if result.confidence_score < minimum_confidence
+    )
+    return _available_values(definition, elements), (), weak
 
 
 def _unavailable(key: str, missing: tuple[str, ...], reason: str) -> PatternResult:

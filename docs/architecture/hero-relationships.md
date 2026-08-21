@@ -35,8 +35,8 @@ never fills a quota with weak candidates.
 
 ## Comfort Edge reliability
 
-P02 ranks up to the latest 500 usable summary rows with explicit recency
-weighting. Heroes with fewer than 10 usable games are not rankable for the
+P02 ranks all usable rows in the previous-365-day Free window with explicit
+recency weighting. Heroes with fewer than 10 usable games are not rankable for the
 action. Each rankable hero receives a player-relative reliability estimate
 from outcome, observable contribution, death exposure, credible role context,
 and sample shrinkage toward the player's own baseline. The top two are the

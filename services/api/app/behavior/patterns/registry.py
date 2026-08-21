@@ -1,11 +1,20 @@
-"""Canonical reviewed v4 Patterns over upstream Element results."""
+"""Canonical reviewed v5 Patterns over upstream Element results."""
 
 from __future__ import annotations
 
 from app.behavior.elements.registry import ELEMENT_REGISTRY
 from app.behavior.models import PatternDefinition
 
-PATTERN_REGISTRY_VERSION = "free-patterns-4.0.0"
+PATTERN_REGISTRY_VERSION = "free-patterns-5.0.0"
+# Historical reports retain their original registry version and canonical key.
+# This metadata prevents callers from silently treating a retired identity as
+# its replacement merely because the product-facing position is similar.
+RETIRED_PATTERN_KEYS: dict[str, str | None] = {
+    "stable_style": None,
+    "selective_closer": None,
+    "loss_response": None,
+    "heavy_exposure": "presence_tax",
+}
 
 
 def _zones(key: str, *labels: str) -> tuple[str, tuple[str, ...]]:
@@ -23,21 +32,20 @@ def _zone_clauses(key: str) -> tuple[tuple[tuple[str, tuple[str, ...]], ...], ..
         "same_playbook": ((_zones("hero_pool_breadth", "Varied", "Wide"), _zones("toolkit_breadth", "Compact", "Focused")),),
         "comfort_edge": ((_zones("hero_pool_breadth", "Varied", "Wide"), _zones("off_pool_performance", "Slips", "Falls off")),),
         "partial_transfer": ((_zones("off_pool_activity_stability", "Holds", "Unchanged"), _zones("off_pool_performance", "Slips", "Falls off")),),
-        "stable_style": ((_zones("recent_form_shift", "Rising", "Surging", "Sliding", "Cooling"), _zones("hero_pool_stability", "Settled", "Steady"), _zones("recent_activity_shift", "Calmer", "Same", "Busier")),),
         "versatile_core": ((_zones("hero_pool_breadth", "Focused", "Selective"), _zones("toolkit_breadth", "Versatile", "Diverse")),),
         "proven_flexibility": ((_zones("hero_pool_breadth", "Varied", "Wide"), _zones("off_pool_performance", "Travels", "Carries over")),),
-        "selective_closer": ((_zones("combat_involvement", "Quiet", "Selective", "Present"), _zones("finisher_orientation", "Closer", "Cleanup")),),
-        "loss_response": (
-            (_moved("post_loss_familiarity_shift", "Unchanged"), _zones("post_loss_activity_shift", "Same")),
-            (_zones("post_loss_familiarity_shift", "Unchanged"), _moved("post_loss_activity_shift", "Same")),
-            (_moved("post_loss_familiarity_shift", "Unchanged"), _moved("post_loss_activity_shift", "Same")),
+        "bounceback": (
+            (_zones("post_loss_performance_response", "Recovers", "Surges"), _moved("post_loss_familiarity_shift", "Unchanged")),
+            (_zones("post_loss_performance_response", "Recovers", "Surges"), _moved("post_loss_activity_shift", "Same")),
+        ),
+        "performance_slide": (
+            (_zones("post_loss_performance_response", "Drops", "Slips"), _moved("post_loss_familiarity_shift", "Unchanged")),
+            (_zones("post_loss_performance_response", "Drops", "Slips"), _moved("post_loss_activity_shift", "Same")),
         ),
         "controlled_presence": ((_zones("combat_involvement", "Active", "Everywhere"), _zones("death_exposure", "Elusive", "Safe")),),
-        "heavy_exposure": ((_zones("combat_involvement", "Active", "Everywhere"), _zones("death_exposure", "Exposed", "Frequent")),),
+        "presence_tax": ((_zones("combat_involvement", "Active", "Everywhere"), _zones("death_exposure", "Exposed", "Frequent")),),
         "session_fade": ((_zones("session_length_tendency", "Long", "Marathon"), _zones("late_session_performance", "Drops", "Fades")),),
         "session_rise": ((_zones("session_length_tendency", "Medium", "Long", "Marathon"), _zones("late_session_performance", "Warms up", "Finishes strong")),),
-        "session_hold": ((_zones("session_length_tendency", "Long", "Marathon"), _zones("late_session_performance", "Holds")),),
-        "assist_presence": ((_zones("combat_involvement", "Present", "Active", "Everywhere"), _zones("finisher_orientation", "Setup", "Support")),),
     }
     try:
         return all_clauses[key]
@@ -107,13 +115,6 @@ PATTERNS: tuple[PatternDefinition, ...] = (
         family="presence_transfer", tier="A",
     ),
     _pattern(
-        "stable_style", "Stable Style", "trajectory",
-        ("recent_form_shift", "hero_pool_stability", "recent_activity_shift"), ("consistency_form", "hero_identity"),
-        "Recent results changed more than the visible hero-pool shape and fight pace did.",
-        "It keeps current form separate from a claim that the player’s whole style changed.",
-        family="form_stability", tier="A",
-    ),
-    _pattern(
         "versatile_core", "Versatile Core", "identity",
         ("hero_pool_breadth", "toolkit_breadth"), ("hero_identity",),
         "A small hero count still covers meaningfully different Dota jobs.",
@@ -128,31 +129,31 @@ PATTERNS: tuple[PatternDefinition, ...] = (
         family="breadth_transfer", tier="A",
     ),
     _pattern(
-        "selective_closer", "Selective Closer", "style",
-        ("combat_involvement", "finisher_orientation"), ("combat_expression",),
-        "The player is not everywhere, but their appearances skew toward final kill credit.",
-        "It describes event volume and finishing expression without making deaths part of the gate.",
-        modifiers=("death_exposure",), family="involvement_finishing", tier="B",
+        "bounceback", "Bounceback", "edge",
+        ("post_loss_performance_response", "post_loss_familiarity_shift", "post_loss_activity_shift"), ("session_response", "hero_identity"),
+        "Comparable post-loss performance improves while familiarity or tempo also moves.",
+        "It identifies an observable rebound without inferring resilience, confidence, or intent.",
+        family="post_loss_recovery", tier="B",
     ),
     _pattern(
-        "loss_response", "Loss Response", "trajectory",
-        ("post_loss_familiarity_shift", "post_loss_activity_shift"), ("hero_identity", "session_response"),
-        "After a loss, hero familiarity and next-game activity can move together or separately.",
-        "It exposes observable post-loss selection and activity movement without naming a mental state.",
-        family="post_loss", tier="B",
+        "performance_slide", "Performance Slide", "leak",
+        ("post_loss_performance_response", "post_loss_familiarity_shift", "post_loss_activity_shift"), ("session_response", "hero_identity"),
+        "Comparable post-loss performance declines while familiarity or tempo also moves.",
+        "It localizes a post-loss decline without calling it tilt or assigning a cause.",
+        family="post_loss_recovery", tier="B",
     ),
     _pattern(
         "controlled_presence", "Controlled Presence", "style",
         ("combat_involvement", "death_exposure"), ("combat_expression", "risk_survival"),
-        "High involvement appears without a similarly high death-exposure signal.",
-        "It describes frequent participation with a separate exposure measure.",
+        "High involvement coexists with low-to-moderate death exposure.",
+        "It finds where participation is most economical without claiming positioning skill.",
         modifiers=("finisher_orientation",), family="involvement_deaths", tier="B",
     ),
     _pattern(
-        "heavy_exposure", "Heavy Exposure", "leak",
+        "presence_tax", "Presence Tax", "leak",
         ("combat_involvement", "death_exposure"), ("combat_expression", "risk_survival"),
-        "High presence currently carries a visible death cost.",
-        "It makes the participation/exposure trade-off visible without calling it reckless.",
+        "High involvement coexists with high death exposure.",
+        "It localizes where the death cost concentrates without calling it feeding or recklessness.",
         modifiers=("finisher_orientation",), family="involvement_deaths", tier="B",
     ),
     _pattern(
@@ -169,26 +170,12 @@ PATTERNS: tuple[PatternDefinition, ...] = (
         "It surfaces a late-session improvement pattern without claiming warm-up or resilience.",
         family="session_drift", tier="B",
     ),
-    _pattern(
-        "session_hold", "Session Hold", "edge",
-        ("session_length_tendency", "late_session_performance"), ("session_response",),
-        "Long sessions exist without a meaningful late-session result decline.",
-        "It distinguishes a stable long-session result signal from a claim about fatigue resistance.",
-        family="session_drift", tier="B",
-    ),
-    _pattern(
-        "assist_presence", "Assist Presence", "style",
-        ("combat_involvement", "finisher_orientation"), ("combat_expression",),
-        "Meaningful fight involvement is expressed more through assists than final kill credit.",
-        "It describes the visible kill/assist split without inferring duties from assists alone.",
-        modifiers=("death_exposure",), family="involvement_finishing", tier="B",
-    ),
 )
 
 PATTERN_REGISTRY = {item.key: item for item in PATTERNS}
 EXPECTED_PATTERN_KEYS = frozenset(item.key for item in PATTERNS)
-if len(PATTERN_REGISTRY) != 14 or set(PATTERN_REGISTRY) != EXPECTED_PATTERN_KEYS:
-    raise ValueError("The active Free Pattern registry must contain exactly the canonical 14 Patterns")
+if len(PATTERN_REGISTRY) != 11 or set(PATTERN_REGISTRY) != EXPECTED_PATTERN_KEYS:
+    raise ValueError("The active Free Pattern registry must contain exactly the canonical 11 Patterns")
 
 if any(not item.zone_clauses for item in PATTERNS):
     raise ValueError("Every active Free Pattern must have a canonical zone contract")
@@ -198,4 +185,5 @@ __all__ = [
     "PATTERNS",
     "PATTERN_REGISTRY_VERSION",
     "EXPECTED_PATTERN_KEYS",
+    "RETIRED_PATTERN_KEYS",
 ]

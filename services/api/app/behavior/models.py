@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any, Literal
 
 from app.behavior.evidence import BehaviorEvidence
@@ -16,6 +17,7 @@ PatternKind = Literal["identity", "contradiction", "edge", "leak", "trajectory",
 PatternTier = Literal["A", "B"]
 StoryEligibility = Literal["eligible", "blocked"]
 ActionStatus = Literal["available", "limited", "unavailable"]
+PatternActionResolutionStatus = Literal["resolved", "fallback", "unresolved", "not_applicable"]
 ActionDirection = Literal["deepen", "stretch"]
 
 
@@ -63,7 +65,7 @@ class ElementResult:
     confounders: tuple[str, ...] = ()
     blocking_confounders: tuple[str, ...] = ()
     missing_reasons: tuple[str, ...] = ()
-    methodology_version: str = "element-4.0.0"
+    methodology_version: str = "element-5.0.0"
     axis_left: str | None = None
     axis_right: str | None = None
     source_match_ids: tuple[int, ...] = ()
@@ -306,7 +308,401 @@ class ComfortEdgeAction:
         }
 
 
-PatternAction = SamePlaybookAction | ComfortEdgeAction
+@dataclass(frozen=True, slots=True)
+class ObservedDifference:
+    signal_key: str
+    core_value: float | None
+    off_pool_value: float | None
+    effect_size: float | None
+    confidence_score: float
+    player_facing_claim: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "signal_key": self.signal_key,
+            "core_value": self.core_value,
+            "off_pool_value": self.off_pool_value,
+            "effect_size": self.effect_size,
+            "confidence_score": round(self.confidence_score, 6),
+            "player_facing_claim": self.player_facing_claim,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class CapabilityHypothesis:
+    capability_key: str
+    core_prevalence: float
+    off_pool_prevalence: float
+    separation_score: float
+    confidence_score: float
+    player_facing_hypothesis: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "capability_key": self.capability_key,
+            "core_prevalence": round(self.core_prevalence, 6),
+            "off_pool_prevalence": round(self.off_pool_prevalence, 6),
+            "separation_score": round(self.separation_score, 6),
+            "confidence_score": round(self.confidence_score, 6),
+            "player_facing_hypothesis": self.player_facing_hypothesis,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PartialTransferDiagnostic:
+    action_type: Literal["partial_transfer"]
+    status: Literal["direct_signal", "capability_hypothesis", "unresolved", "deep_candidate"]
+    summary_differences: tuple[ObservedDifference, ...]
+    capability_hypotheses: tuple[CapabilityHypothesis, ...]
+    strongest_supported_lead: str | None
+    core_hero_ids: tuple[int, ...]
+    off_pool_hero_ids: tuple[int, ...]
+    confidence_score: float
+    limitations: tuple[str, ...]
+    deep_analysis_eligible: bool
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "status": self.status,
+            "summary_differences": [item.as_dict() for item in self.summary_differences],
+            "capability_hypotheses": [item.as_dict() for item in self.capability_hypotheses],
+            "strongest_supported_lead": self.strongest_supported_lead,
+            "core_hero_ids": list(self.core_hero_ids),
+            "off_pool_hero_ids": list(self.off_pool_hero_ids),
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+            "deep_analysis_eligible": self.deep_analysis_eligible,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class HeroJobMap:
+    hero_id: int
+    hero_name: str
+    primary_jobs: tuple[str, ...]
+    expression_summary: str | None
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "hero_id": self.hero_id,
+            "hero_name": self.hero_name,
+            "primary_jobs": list(self.primary_jobs),
+            "expression_summary": self.expression_summary,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class CoverageSummary:
+    strongly_covered: tuple[str, ...]
+    single_point_coverage: tuple[str, ...]
+    thin_coverage: tuple[str, ...]
+    missing: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "strongly_covered": list(self.strongly_covered),
+            "single_point_coverage": list(self.single_point_coverage),
+            "thin_coverage": list(self.thin_coverage),
+            "missing": list(self.missing),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class HeroAdditionRecommendation:
+    hero_id: int
+    hero_name: str
+    adds_jobs: tuple[str, ...]
+    shared_anchors: tuple[str, ...]
+    solves_gap: str
+    player_facing_reason: str
+    confidence_score: float
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "hero_id": self.hero_id,
+            "hero_name": self.hero_name,
+            "adds_jobs": list(self.adds_jobs),
+            "shared_anchors": list(self.shared_anchors),
+            "solves_gap": self.solves_gap,
+            "player_facing_reason": self.player_facing_reason,
+            "confidence_score": round(self.confidence_score, 6),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class VersatileCoreAction:
+    action_type: Literal["versatile_core"]
+    status: Literal[
+        "coverage_only",
+        "coverage_plus_recommendation",
+        "coverage_plus_alternatives",
+        "no_obvious_gap",
+    ]
+    core_hero_ids: tuple[int, ...]
+    hero_job_maps: tuple[HeroJobMap, ...]
+    coverage_summary: CoverageSummary
+    recommended_addition: HeroAdditionRecommendation | None
+    alternative_additions: tuple[HeroAdditionRecommendation, ...]
+    confidence_score: float
+    limitations: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "status": self.status,
+            "core_hero_ids": list(self.core_hero_ids),
+            "hero_job_maps": [item.as_dict() for item in self.hero_job_maps],
+            "coverage_summary": self.coverage_summary.as_dict(),
+            "recommended_addition": self.recommended_addition.as_dict() if self.recommended_addition else None,
+            "alternative_additions": [item.as_dict() for item in self.alternative_additions],
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ProvenFlexibilityAction:
+    action_type: Literal["proven_flexibility"]
+    status: Literal["peak_window", "distributed_flexibility"]
+    window_start: date | None
+    window_end: date | None
+    total_games: int
+    hero_ids: tuple[int, ...]
+    hero_names: tuple[str, ...]
+    hero_game_counts: tuple[tuple[int, int], ...]
+    meaningful_hero_count: int
+    functional_jobs: tuple[str, ...]
+    functional_job_count: int
+    repeated_hero_count: int
+    longest_same_hero_streak: int | None
+    secondary_proof: str | None
+    flex_week_score: float | None
+    activity_confidence: float
+    distribution_quality: float | None
+    confidence_score: float
+    limitations: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "status": self.status,
+            "window_start": self.window_start.isoformat() if self.window_start else None,
+            "window_end": self.window_end.isoformat() if self.window_end else None,
+            "total_games": self.total_games,
+            "hero_ids": list(self.hero_ids),
+            "hero_names": list(self.hero_names),
+            "hero_game_counts": [list(item) for item in self.hero_game_counts],
+            "meaningful_hero_count": self.meaningful_hero_count,
+            "functional_jobs": list(self.functional_jobs),
+            "functional_job_count": self.functional_job_count,
+            "repeated_hero_count": self.repeated_hero_count,
+            "longest_same_hero_streak": self.longest_same_hero_streak,
+            "secondary_proof": self.secondary_proof,
+            "flex_week_score": round(self.flex_week_score, 6) if self.flex_week_score is not None else None,
+            "activity_confidence": round(self.activity_confidence, 6),
+            "distribution_quality": round(self.distribution_quality, 6) if self.distribution_quality is not None else None,
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class RecoveryContext:
+    label: str
+    hero_id: int | None
+    function_family: str | None
+    role_context: str | None
+    performance_delta: float
+    baseline_performance: float
+    observed_performance: float
+    sample_size: int
+    session_count: int
+    primary_jobs: tuple[str, ...]
+    confidence_score: float
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "label": self.label,
+            "hero_id": self.hero_id,
+            "function_family": self.function_family,
+            "role_context": self.role_context,
+            "performance_delta": round(self.performance_delta, 6),
+            "baseline_performance": round(self.baseline_performance, 6),
+            "observed_performance": round(self.observed_performance, 6),
+            "sample_size": self.sample_size,
+            "session_count": self.session_count,
+            "primary_jobs": list(self.primary_jobs),
+            "confidence_score": round(self.confidence_score, 6),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class BouncebackAction:
+    action_type: Literal["bounceback"]
+    strongest_context: RecoveryContext | None
+    comparison_contexts: tuple[RecoveryContext, ...]
+    fallback_level: Literal["hero", "function", "role", "overall"]
+    confidence_score: float
+    limitations: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "strongest_context": self.strongest_context.as_dict() if self.strongest_context else None,
+            "comparison_contexts": [item.as_dict() for item in self.comparison_contexts],
+            "fallback_level": self.fallback_level,
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PerformanceSlideAction:
+    action_type: Literal["performance_slide"]
+    strongest_context: RecoveryContext | None
+    comparison_contexts: tuple[RecoveryContext, ...]
+    fallback_level: Literal["hero", "function", "role", "overall"]
+    confidence_score: float
+    limitations: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "strongest_context": self.strongest_context.as_dict() if self.strongest_context else None,
+            "comparison_contexts": [item.as_dict() for item in self.comparison_contexts],
+            "fallback_level": self.fallback_level,
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PresenceContext:
+    label: str
+    hero_id: int | None
+    function_family: str | None
+    role_context: str | None
+    involvement_level: float
+    death_exposure_level: float
+    sample_size: int
+    confidence_score: float
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "label": self.label,
+            "hero_id": self.hero_id,
+            "function_family": self.function_family,
+            "role_context": self.role_context,
+            "involvement_level": round(self.involvement_level, 6),
+            "death_exposure_level": round(self.death_exposure_level, 6),
+            "sample_size": self.sample_size,
+            "confidence_score": round(self.confidence_score, 6),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ControlledPresenceAction:
+    action_type: Literal["controlled_presence"]
+    strongest_context: PresenceContext | None
+    comparison_rows: tuple[PresenceContext, ...]
+    finishing_flavor: str | None
+    fallback_level: Literal["hero", "function", "role", "overall"]
+    confidence_score: float
+    limitations: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "strongest_context": self.strongest_context.as_dict() if self.strongest_context else None,
+            "comparison_rows": [item.as_dict() for item in self.comparison_rows],
+            "finishing_flavor": self.finishing_flavor,
+            "fallback_level": self.fallback_level,
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PresenceTaxAction:
+    action_type: Literal["presence_tax"]
+    shape: Literal["job_shaped", "hero_specific", "cross_context", "unresolved"]
+    strongest_contexts: tuple[PresenceContext, ...]
+    comparison_contexts: tuple[PresenceContext, ...]
+    deep_analysis_candidate: bool
+    confidence_score: float
+    limitations: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "shape": self.shape,
+            "strongest_contexts": [item.as_dict() for item in self.strongest_contexts],
+            "comparison_contexts": [item.as_dict() for item in self.comparison_contexts],
+            "deep_analysis_candidate": self.deep_analysis_candidate,
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class SessionCurvePoint:
+    bucket: str
+    relative_delta: float
+    sample_size: int
+    effective_sample_size: float
+    supported: bool
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "bucket": self.bucket,
+            "relative_delta": round(self.relative_delta, 6),
+            "sample_size": self.sample_size,
+            "effective_sample_size": round(self.effective_sample_size, 6),
+            "supported": self.supported,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class SessionCurveAction:
+    action_type: Literal["session_fade", "session_rise"]
+    status: PatternActionResolutionStatus
+    direction: Literal["fade", "rise"]
+    curve: tuple[SessionCurvePoint, ...]
+    breakpoint_state: Literal["stable_breakpoint", "gradual", "unresolved"]
+    breakpoint_bucket: str | None
+    companion_signals: tuple[str, ...]
+    independent_session_count: int
+    confidence_score: float
+    limitations: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "action_type": self.action_type,
+            "status": self.status,
+            "direction": self.direction,
+            "curve": [item.as_dict() for item in self.curve],
+            "breakpoint_state": self.breakpoint_state,
+            "breakpoint_bucket": self.breakpoint_bucket,
+            "companion_signals": list(self.companion_signals),
+            "independent_session_count": self.independent_session_count,
+            "confidence_score": round(self.confidence_score, 6),
+            "limitations": list(self.limitations),
+        }
+
+
+PatternAction = (
+    SamePlaybookAction
+    | ComfortEdgeAction
+    | PartialTransferDiagnostic
+    | VersatileCoreAction
+    | ProvenFlexibilityAction
+    | BouncebackAction
+    | PerformanceSlideAction
+    | ControlledPresenceAction
+    | PresenceTaxAction
+    | SessionCurveAction
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -325,7 +721,7 @@ class PatternResult:
     confounders: tuple[str, ...] = ()
     blocking_confounders: tuple[str, ...] = ()
     suppression_reasons: tuple[str, ...] = ()
-    methodology_version: str = "pattern-4.0.0"
+    methodology_version: str = "pattern-5.0.0"
     diagnostic_questions: tuple[str, ...] = ()
     required_deep_elements: tuple[str, ...] = ()
     modifier_element_keys: tuple[str, ...] = ()

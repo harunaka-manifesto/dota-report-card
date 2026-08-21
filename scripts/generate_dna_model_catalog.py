@@ -94,7 +94,7 @@ def render_generated_catalog() -> str:
                 (
                     "Free",
                     f"{len(ELEMENT_REGISTRY)} Elements · {len(PATTERN_REGISTRY)} Patterns · Hero Portfolio",
-                    "One bounded summary-history read; no match-detail or replay-parse reads",
+                    "One previous-365-day summary-history read; no match-detail or replay-parse reads",
                 ),
                 (
                     "Deep Scan",

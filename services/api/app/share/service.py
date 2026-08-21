@@ -1,4 +1,4 @@
-"""Privacy-safe deterministic share-card rendering for the v4 report."""
+"""Privacy-safe deterministic share-card rendering for Free DNA reports."""
 
 from __future__ import annotations
 

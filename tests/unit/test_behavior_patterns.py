@@ -57,11 +57,34 @@ def test_pattern_stays_unavailable_when_an_upstream_element_is_missing() -> None
 
 def test_modifier_elements_do_not_block_pattern_qualification() -> None:
     values = {key: _element(key) for key in ELEMENT_REGISTRY}
-    values["combat_involvement"] = _element("combat_involvement", 0.54)
-    values["finisher_orientation"] = _element("finisher_orientation", 0.82)
-    values["death_exposure"] = _element("death_exposure", None, status="unavailable")
+    values["combat_involvement"] = _element("combat_involvement", 0.65)
+    values["finisher_orientation"] = _element("finisher_orientation", None, status="unavailable")
+    values["death_exposure"] = _element("death_exposure", 0.35)
 
-    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "selective_closer")
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "controlled_presence")
 
     assert result.status == "qualified"
-    assert result.modifier_element_keys == ("death_exposure",)
+    assert result.modifier_element_keys == ("finisher_orientation",)
+
+
+def test_recovery_pattern_accepts_either_familiarity_or_tempo_support() -> None:
+    values = {key: _element(key) for key in ELEMENT_REGISTRY}
+    values["post_loss_performance_response"] = _element("post_loss_performance_response", 0.70)
+    values["post_loss_familiarity_shift"] = _element("post_loss_familiarity_shift", None, status="unavailable")
+    values["post_loss_activity_shift"] = _element("post_loss_activity_shift", 0.70)
+
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "bounceback")
+
+    assert result.status == "qualified"
+    assert result.direction == "positive_recovery_with_tempo"
+
+
+def test_recovery_alone_stays_unavailable_without_familiarity_or_tempo() -> None:
+    values = {key: _element(key) for key in ELEMENT_REGISTRY}
+    values["post_loss_performance_response"] = _element("post_loss_performance_response", 0.70)
+    values["post_loss_familiarity_shift"] = _element("post_loss_familiarity_shift", None, status="unavailable")
+    values["post_loss_activity_shift"] = _element("post_loss_activity_shift", None, status="unavailable")
+
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "bounceback")
+
+    assert result.status == "unavailable"

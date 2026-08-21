@@ -8,6 +8,7 @@ Elements; new Elements use the same robust comparison conventions here.
 
 from __future__ import annotations
 
+import json
 import math
 from collections import Counter
 from dataclasses import dataclass
@@ -26,9 +27,11 @@ from app.behavior.comparisons import (
 from app.behavior.elements.registry import ELEMENT_REGISTRY, zone_for_score
 from app.behavior.evidence import BehaviorEvidence
 from app.behavior.models import Confidence, ElementResult, ElementStatus
+from app.dna.breakpoints import SESSION_BUCKETS, detect_breakpoint
 from app.dna.dimensions import activity as legacy_activity
 from app.dna.dimensions import orientation as legacy_orientation
 from app.dna.features.models import DnaFeatureSet
+from app.dna.recency import effective_sample_size, weighted_mean, weighted_median
 from app.dna.sessions import SessionResult
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
@@ -497,19 +500,224 @@ def _score_recent_activity_shift(context: SummaryBehaviorContext) -> ElementResu
 
 def _score_session_length_tendency(context: SummaryBehaviorContext) -> ElementResult:
     lengths = context.features.session_lengths
+    completed_weights = [
+        context.features.session_weights.get(session.session_id, 1.0)
+        for session in context.sessions.completed_sessions
+    ]
     if len(lengths) < 10 or len(context.features.dated_match_ids) < 25:
-        return _result("session_length_tendency", score=None, sample_size=len(context.features.dated_match_ids), effective_sample_size=len(lengths), coverage=len(context.features.dated_match_ids) / max(len(context.matches), 1), missing_reasons=("insufficient_dated_sessions",))
-    median_length = float(median(lengths))
-    share_long = sum(length >= 5 for length in lengths) / len(lengths)
-    duration_hours = (median(context.features.session_durations) / 3600) if context.features.session_durations else 0.0
+        return _result("session_length_tendency", score=None, sample_size=len(context.features.dated_match_ids), effective_sample_size=effective_sample_size(completed_weights), coverage=len(context.features.dated_match_ids) / max(len(context.matches), 1), missing_reasons=("insufficient_dated_sessions",))
+    median_length = float(weighted_median([float(value) for value in lengths], completed_weights) or 0.0)
+    share_long = float(
+        weighted_mean(
+            [1.0 if length >= 5 else 0.0 for length in lengths],
+            completed_weights,
+        )
+        or 0.0
+    )
+    duration_hours = (
+        float(
+            weighted_median(
+                [float(value) for value in context.features.session_durations],
+                completed_weights,
+            )
+            or 0.0
+        )
+        / 3600
+        if context.features.session_durations
+        else 0.0
+    )
     value = clamp(0.5 + 0.35 * (median_length - 3.0) / 2.0 + 0.20 * (duration_hours - 3.0) / 2.0 + 0.15 * (share_long - 0.5))
     sensitivity = _session_stability(context, "session_length_tendency")
-    return _result("session_length_tendency", score=value, sample_size=len(context.features.dated_match_ids), effective_sample_size=len(lengths), coverage=len(context.features.dated_match_ids) / max(len(context.matches), 1), stability=sensitivity, evidence=(BehaviorEvidence("median_matches_per_session", round(median_length, 2), "matches", len(lengths)), BehaviorEvidence("share_five_plus_sessions", round(share_long, 4), "share", len(lengths)), BehaviorEvidence("median_session_duration", round(duration_hours, 2), "hours", len(lengths))), raw_metrics={"median_length": median_length, "share_long": share_long, "median_duration_hours": duration_hours}, confounders=("the history limit can truncate the oldest session boundary",), source_match_ids=context.features.dated_match_ids)
+    return _result("session_length_tendency", score=value, sample_size=len(context.features.dated_match_ids), effective_sample_size=effective_sample_size(completed_weights), coverage=len(context.features.dated_match_ids) / max(len(context.matches), 1), stability=sensitivity, evidence=(BehaviorEvidence("median_matches_per_session", round(median_length, 2), "matches", len(lengths)), BehaviorEvidence("share_five_plus_sessions", round(share_long, 4), "share", len(lengths)), BehaviorEvidence("median_session_duration", round(duration_hours, 2), "hours", len(lengths))), raw_metrics={"median_length": median_length, "share_long": share_long, "median_duration_hours": duration_hours}, confounders=("the oldest session may be left-censored; the latest session is excluded when its end is not confirmed",), source_match_ids=context.features.dated_match_ids)
 
 
 def _score_late_session_performance(context: SummaryBehaviorContext) -> ElementResult:
-    legacy = __import__("app.dna.dimensions.endurance", fromlist=["score"]).score(context.features)
-    return _legacy_result(context, "late_session_performance", legacy)
+    by_id = context.by_id
+    performance = context.features.performance_by_match
+    sessions = {
+        session.session_id: [
+            by_id[match_id]
+            for match_id in session.match_ids
+            if match_id in by_id
+            and match_id in performance
+            and not by_id[match_id].session_corrupt
+        ]
+        for session in context.sessions.sessions
+    }
+    sessions = {
+        session_id: sorted(
+            rows,
+            key=lambda item: (item.session_index is None, item.session_index or 0, item.match_id),
+        )
+        for session_id, rows in sessions.items()
+        if len(rows) >= 2
+    }
+    session_order = sorted(
+        sessions,
+        key=lambda session_id: min((item.started_at or 0 for item in sessions[session_id]), default=0),
+    )
+    bucket_by_session: dict[str, dict[str, float]] = {}
+    source_ids: list[int] = []
+    fallback_counts: Counter[str] = Counter()
+    for session_id, rows in sessions.items():
+        outside = [
+            item
+            for other_id, other_rows in sessions.items()
+            if other_id != session_id
+            for item in other_rows
+        ]
+        if not outside:
+            continue
+        observations: dict[str, list[float]] = {}
+        for item in rows:
+            if session_order and session_id == session_order[0] and item.session_index == 1:
+                continue
+            baseline, fallback = _context_baseline(item, outside, performance, context)
+            if baseline is None:
+                continue
+            bucket = _session_bucket(item.session_index or 0)
+            observations.setdefault(bucket, []).append(performance[item.match_id] - baseline)
+            fallback_counts[fallback] += 1
+            source_ids.append(item.match_id)
+        if observations:
+            bucket_by_session[session_id] = {
+                bucket: median(residuals)
+                for bucket, residuals in observations.items()
+            }
+    if len(bucket_by_session) < 12:
+        return _result(
+            "late_session_performance",
+            score=None,
+            sample_size=len(source_ids),
+            effective_sample_size=effective_sample_size(
+                [context.features.session_weights.get(key, 1.0) for key in bucket_by_session]
+            ),
+            coverage=len(source_ids) / max(len(context.matches), 1),
+            missing_reasons=("insufficient_independent_context_adjusted_sessions",),
+            raw_metrics={"fallback_levels": json.dumps(dict(fallback_counts), sort_keys=True)},
+            source_match_ids=tuple(source_ids),
+        )
+
+    bucket_values: dict[str, float] = {}
+    bucket_counts: dict[str, int] = {}
+    for bucket in SESSION_BUCKETS:
+        entries = [
+            (session_id, values[bucket])
+            for session_id, values in bucket_by_session.items()
+            if bucket in values
+        ]
+        if entries:
+            weights = [context.features.session_weights.get(session_id, 1.0) for session_id, _ in entries]
+            bucket_values[bucket] = weighted_mean([value for _, value in entries], weights) or 0.0
+            bucket_counts[bucket] = len(entries)
+    early = [value for bucket, value in bucket_values.items() if bucket in {"G1", "G2"}]
+    late = [value for bucket, value in bucket_values.items() if bucket in {"G3", "G4", "G5+"}]
+    if not early or not late:
+        return _result(
+            "late_session_performance",
+            score=None,
+            sample_size=len(source_ids),
+            effective_sample_size=effective_sample_size(
+                [context.features.session_weights.get(key, 1.0) for key in bucket_by_session]
+            ),
+            coverage=len(source_ids) / max(len(context.matches), 1),
+            missing_reasons=("insufficient_early_or_late_session_buckets",),
+            raw_metrics={"curve_json": json.dumps(bucket_values, sort_keys=True)},
+            source_match_ids=tuple(source_ids),
+        )
+    delta = float((weighted_mean(late, [1.0] * len(late)) or 0.0) - (weighted_mean(early, [1.0] * len(early)) or 0.0))
+    direction = "fade" if delta < -0.04 else "rise" if delta > 0.04 else "flat"
+    breakpoint = (
+        detect_breakpoint(
+            bucket_values,
+            direction="fade" if direction == "fade" else "rise",
+            counts=bucket_counts,
+        )
+        if direction != "flat"
+        else None
+    )
+    return _result(
+        "late_session_performance",
+        score=bounded_delta_score(delta, 0.20),
+        sample_size=len(source_ids),
+        effective_sample_size=effective_sample_size(
+            [context.features.session_weights.get(key, 1.0) for key in bucket_by_session]
+        ),
+        coverage=len(source_ids) / max(len(context.matches), 1),
+        stability=min(
+            1.0,
+            _session_stability(context, "late_session_performance")
+            * (1.0 if direction == "flat" or (breakpoint and breakpoint.state != "unresolved") else 0.75),
+        ),
+        quality=min(1.0, 0.70 + min(0.30, len(bucket_by_session) / 40.0)),
+        evidence=(
+            BehaviorEvidence("context_adjusted_late_minus_early_delta", round(delta, 4), "proxy_delta", len(source_ids)),
+            BehaviorEvidence("independent_sessions", len(bucket_by_session), "sessions", len(bucket_by_session)),
+            BehaviorEvidence("breakpoint_state", breakpoint.state if breakpoint else "unresolved", "state", len(bucket_by_session)),
+            BehaviorEvidence("breakpoint_bucket", breakpoint.bucket if breakpoint else None, "bucket", len(bucket_by_session)),
+        ),
+        raw_metrics={
+            "delta": delta,
+            "curve_json": json.dumps(bucket_values, sort_keys=True),
+            "bucket_counts_json": json.dumps(bucket_counts, sort_keys=True),
+            "breakpoint_state": breakpoint.state if breakpoint else "unresolved",
+            "breakpoint_bucket": breakpoint.bucket if breakpoint else None,
+            "fallback_levels": json.dumps(dict(fallback_counts), sort_keys=True),
+        },
+        confounders=(
+            "session stopping behavior remains observable but not causal",
+            "role and hero-function context is adjusted without conditioning on session position",
+        ),
+        source_match_ids=tuple(source_ids),
+    )
+
+
+def _session_bucket(position: int) -> str:
+    if position <= 1:
+        return "G1"
+    if position == 2:
+        return "G2"
+    if position == 3:
+        return "G3"
+    if position == 4:
+        return "G4"
+    return "G5+"
+
+
+def _context_baseline(
+    target: NormalizedSummaryMatch,
+    outside: list[NormalizedSummaryMatch],
+    values: dict[int, float],
+    context: SummaryBehaviorContext,
+) -> tuple[float | None, str]:
+    taxonomy = context.taxonomy
+    target_function = _primary_function(target, taxonomy)
+    groups = (
+        ("hero_role_function", [item for item in outside if item.hero_id == target.hero_id and item.role_hint == target.role_hint and _primary_function(item, taxonomy) == target_function]),
+        ("hero_function", [item for item in outside if item.hero_id == target.hero_id and _primary_function(item, taxonomy) == target_function]),
+        ("role", [item for item in outside if target.role_hint is not None and item.role_hint == target.role_hint]),
+        ("overall", list(outside)),
+    )
+    for level, rows in groups:
+        usable = [(values[item.match_id], context.features.weights_by_match.get(item.match_id, 1.0)) for item in rows if item.match_id in values]
+        if len(usable) >= 3:
+            return weighted_median([value for value, _ in usable], [weight for _, weight in usable]), level
+    return None, "unresolved"
+
+
+def _primary_function(item: NormalizedSummaryMatch, taxonomy: HeroTaxonomy | None) -> str | None:
+    if taxonomy is None or item.hero_id is None:
+        return None
+    entry = taxonomy.get(item.hero_id)
+    if entry is None or not entry.available:
+        return None
+    candidates = (
+        "initiation", "mobility", "pickoff", "teamfight", "save", "sustain",
+        "burst", "sustained_damage", "wave_clear", "push", "frontline",
+        "scaling", "global_presence", "repositioning",
+    )
+    ranked = sorted(((entry.traits.get(key, 0.0), key) for key in candidates), reverse=True)
+    return ranked[0][1] if ranked and ranked[0][0] >= 0.60 else None
 
 
 def _transition_groups(context: SummaryBehaviorContext, metric: str) -> tuple[list[float], list[float]]:
@@ -532,6 +740,98 @@ def _transition_groups(context: SummaryBehaviorContext, metric: str) -> tuple[li
 def _score_post_loss_activity_shift(context: SummaryBehaviorContext) -> ElementResult:
     after_win, after_loss = _transition_groups(context, "activity")
     return _signed_transition_result(context, "post_loss_activity_shift", after_win, after_loss, 2.0, "events_per_minute")
+
+
+def _score_post_loss_performance_response(context: SummaryBehaviorContext) -> ElementResult:
+    """Measure the next game after a loss against a leave-session-out baseline."""
+
+    by_id = context.by_id
+    values = context.features.performance_by_match
+    session_rows = {
+        session.session_id: [
+            by_id[match_id]
+            for match_id in session.match_ids
+            if match_id in by_id and match_id in values and not by_id[match_id].session_corrupt
+        ]
+        for session in context.sessions.sessions
+        if not session.corrupt
+    }
+    residuals: list[float] = []
+    baselines: list[float] = []
+    observed: list[float] = []
+    matched_ids: list[int] = []
+    loss_sessions: set[str] = set()
+    fallback_counts: Counter[str] = Counter()
+    total_loss_transitions = 0
+    for session_id, rows in session_rows.items():
+        ordered = sorted(rows, key=lambda item: (item.session_index is None, item.session_index or 0, item.match_id))
+        outside = [item for other_id, other_rows in session_rows.items() if other_id != session_id for item in other_rows]
+        if not outside:
+            continue
+        for previous, current in zip(ordered, ordered[1:], strict=False):
+            if previous.won is None:
+                continue
+            if not previous.won:
+                total_loss_transitions += 1
+            if previous.won is not False or current.match_id not in values:
+                continue
+            baseline, fallback = _context_baseline(current, outside, values, context)
+            if baseline is None:
+                continue
+            residuals.append(values[current.match_id] - baseline)
+            baselines.append(baseline)
+            observed.append(values[current.match_id])
+            matched_ids.append(current.match_id)
+            loss_sessions.add(session_id)
+            fallback_counts[fallback] += 1
+
+    matched_coverage = len(residuals) / max(total_loss_transitions, 1)
+    missing: list[str] = []
+    if len(residuals) < 15:
+        missing.append("insufficient_comparable_post_loss_transitions")
+    if len(loss_sessions) < 3:
+        missing.append("insufficient_independent_post_loss_sessions")
+    if matched_coverage < 0.50:
+        missing.append("insufficient_role_function_context_overlap")
+    if missing:
+        return _result(
+            "post_loss_performance_response",
+            score=None,
+            sample_size=total_loss_transitions,
+            effective_sample_size=effective_sample_size(
+                [context.features.weights_by_match.get(match_id, 1.0) for match_id in matched_ids]
+            ),
+            coverage=total_loss_transitions / max(len(context.matches), 1),
+            missing_reasons=tuple(dict.fromkeys(missing)),
+            raw_metrics={"fallback_levels": json.dumps(dict(fallback_counts), sort_keys=True)},
+            source_match_ids=tuple(matched_ids),
+        )
+
+    weights = [context.features.weights_by_match.get(match_id, 1.0) for match_id in matched_ids]
+    delta = weighted_median(residuals, weights) or 0.0
+    return _result(
+        "post_loss_performance_response",
+        score=bounded_delta_score(delta, 0.20),
+        sample_size=len(residuals),
+        effective_sample_size=effective_sample_size(weights),
+        coverage=len(residuals) / max(len(context.matches), 1),
+        stability=_session_stability(context, "post_loss_performance_response"),
+        quality=min(1.0, 0.70 + 0.10 * min(1.0, len(loss_sessions) / 5.0) + 0.20 * matched_coverage),
+        evidence=(
+            BehaviorEvidence("leave_session_out_baseline", weighted_median(baselines, weights), "performance_score", len(baselines)),
+            BehaviorEvidence("matched_after_loss_performance", weighted_median(observed, weights), "performance_score", len(observed)),
+            BehaviorEvidence("loss_minus_context_baseline_delta", round(delta, 4), "delta", len(residuals)),
+        ),
+        raw_metrics={
+            "delta": delta,
+            "matched_coverage": matched_coverage,
+            "independent_sessions": len(loss_sessions),
+            "leave_session_out": True,
+            "fallback_levels": json.dumps(dict(fallback_counts), sort_keys=True),
+        },
+        confounders=_definition("post_loss_performance_response").confounders,
+        source_match_ids=tuple(matched_ids),
+    )
 
 
 def _signed_transition_result(context: SummaryBehaviorContext, key: str, after_win: list[float], after_loss: list[float], scale: float, unit: str) -> ElementResult:
@@ -689,4 +989,5 @@ _SCORERS = {
     "session_length_tendency": _score_session_length_tendency,
     "late_session_performance": _score_late_session_performance,
     "post_loss_activity_shift": _score_post_loss_activity_shift,
+    "post_loss_performance_response": _score_post_loss_performance_response,
 }

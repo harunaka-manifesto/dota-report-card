@@ -11,13 +11,14 @@ from app.behavior.models import BehaviorAnalysisResult
 from app.behavior.service import analyze_behavior
 from app.dna.features.extractor import extract_dna_features
 from app.dna.features.models import DnaFeatureSet
+from app.dna.recency import DEFAULT_HALF_LIFE_DAYS
 from app.dna.sessions import SessionPolicy, SessionResult, infer_sessions
 from app.hero_portfolio.models import HeroPortfolioResult
 from app.hero_portfolio.service import analyze_hero_portfolio
 from app.heroes.taxonomy import HeroTaxonomy, load_default_taxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
-DNA_SCORING_VERSION = "dna-scoring-4.0.0"
+DNA_SCORING_VERSION = "dna-scoring-5.0.0"
 StageCallback = Callable[[str, str], None]
 
 
@@ -64,6 +65,10 @@ def analyze_dna(
     taxonomy: HeroTaxonomy | None = None,
     history_tier: str | None = None,
     report_seed: str | None = None,
+    window_start: int | None = None,
+    window_end: int | None = None,
+    pre_window_anchor: bool = False,
+    recency_half_life_days: float = DEFAULT_HALF_LIFE_DAYS,
     on_stage: StageCallback | None = None,
 ) -> DnaAnalysisResult:
     def stage(name: str, message: str) -> None:
@@ -72,9 +77,21 @@ def analyze_dna(
 
     policy = SessionPolicy(gap_minutes=max(1, session_gap_minutes))
     stage("session_inference", "Rebuilding your play sessions.")
-    sessions = infer_sessions(matches, policy)
+    sessions = infer_sessions(
+        matches,
+        policy,
+        window_start=window_start,
+        window_end=window_end,
+        pre_window_anchor=pre_window_anchor,
+    )
     stage("hero_features", "Mapping your established hero history.")
-    features = extract_dna_features(sessions.matches, sessions)
+    features = extract_dna_features(
+        sessions.matches,
+        sessions,
+        window_start=window_start,
+        window_end=window_end,
+        recency_half_life_days=recency_half_life_days,
+    )
     behavior_taxonomy = taxonomy
     if behavior_taxonomy is None:
         try:

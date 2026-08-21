@@ -1,4 +1,4 @@
-"""Typed, versioned copy resolution for public Free DNA v4 snapshots."""
+"""Typed, versioned copy resolution for public Free DNA v5 snapshots."""
 
 from __future__ import annotations
 
@@ -42,6 +42,46 @@ _STORY_TEMPLATE_KEYS = {
         "comfort_edge_enemy_examples_label",
         "comfort_edge_teammate_examples_label",
         "comfort_edge_tradeoff_label",
+        "partial_transfer_kicker",
+        "partial_transfer_heading",
+        "partial_transfer_direct_label",
+        "partial_transfer_hypothesis_label",
+        "partial_transfer_unresolved_heading",
+        "partial_transfer_deep_label",
+        "versatile_core_kicker",
+        "versatile_core_heading",
+        "versatile_core_jobs_label",
+        "versatile_core_coverage_label",
+        "versatile_core_next_tool_label",
+        "versatile_core_alternatives_label",
+        "versatile_core_no_gap_heading",
+        "proven_flexibility_kicker",
+        "proven_flexibility_heading",
+        "proven_flexibility_roster_label",
+        "proven_flexibility_proof_label",
+        "proven_flexibility_distributed_heading",
+        "controlled_presence_kicker",
+        "controlled_presence_heading",
+        "controlled_presence_context_label",
+        "controlled_presence_finishing_label",
+        "presence_tax_kicker",
+        "presence_tax_heading",
+        "presence_tax_deep_label",
+        "presence_tax_unresolved_body",
+        "bounceback_kicker",
+        "bounceback_heading",
+        "performance_slide_kicker",
+        "performance_slide_heading",
+        "recovery_context_label",
+        "recovery_delta_label",
+        "session_fade_kicker",
+        "session_fade_heading",
+        "session_fade_breakpoint_label",
+        "session_fade_gradual_label",
+        "session_rise_kicker",
+        "session_rise_heading",
+        "session_rise_breakpoint_label",
+        "session_rise_gradual_label",
     ),
 }
 
@@ -103,7 +143,7 @@ def validate_copy_catalog() -> dict[str, Any]:
     catalog = load_free_dna_copy()
     pages = catalog.get("pages")
     if not isinstance(pages, dict) or set(pages) != set(_PAGE_KEYS):
-        raise ValueError("Free DNA copy catalog must cover every v4 story page family")
+        raise ValueError("Free DNA copy catalog must cover every active story page family")
     for key in _PAGE_KEYS:
         value = pages[key]
         if not isinstance(value, dict) or not isinstance(value.get("title"), str) or not isinstance(value.get("body"), str):

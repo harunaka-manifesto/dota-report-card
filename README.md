@@ -2,7 +2,7 @@
 
 An anonymous OpenDota player report built from one bounded summary-history read.
 
-summary history → 17 Elements → 14 Patterns → Hero Portfolio → interactive story → Hero Mirror → share
+summary history → 18 Elements → 11 Patterns → Hero Portfolio → interactive story → Hero Mirror → share
 
 Free DNA describes observable match behavior. It does not infer motives,
 psychological states, grades, or replay-level causes.
@@ -16,9 +16,10 @@ make test
 make dev
 ~~~
 
-Free mode reads the public profile and one bounded history window of up to 500
-summary rows. It performs zero match-detail reads and zero replay-parse
-requests. The public contract is free-dna-report-4.0.0.
+Free mode reads the public profile and all usable summary rows in the previous
+365 days. It performs zero match-detail reads and zero replay-parse requests.
+The public contract is free-dna-report-5.0.0; an optional infrastructure cap is
+recorded explicitly and is not part of the product definition.
 
 Hero Portfolio contains Common Thread, Exception, Pool Evolution, and Hero
 Mirror. Deep Scan remains an explicit separate mode with its own budgets.

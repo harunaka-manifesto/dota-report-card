@@ -8,7 +8,7 @@ from typing import Any
 from app.dna.sessions import Session
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
-FEATURE_VERSION = "dna-features-1.1.0"
+FEATURE_VERSION = "dna-features-5.0.0"
 
 
 def _median(values: Any) -> float | None:
@@ -94,6 +94,16 @@ class DnaFeatureSet:
     familiar_roles: frozenset[str] = frozenset()
     session_sensitivity: dict[int, tuple[tuple[int, ...], ...]] = field(default_factory=dict)
     session_sensitivity_scores: dict[int, dict[str, float | None]] = field(default_factory=dict)
+    weights_by_match: dict[int, float] = field(default_factory=dict)
+    session_weights: dict[str, float] = field(default_factory=dict)
+    effective_sample_size: float = 0.0
+    recency_half_life_days: float = 180.0
+    recency_weighting_version: str = "recency-weighting-5.0.0"
+    performance_proxy_version: str = "performance-proxy-5.0.0"
+    window_start: int | None = None
+    window_end: int | None = None
+    left_censored_session_count: int = 0
+    right_censored_session_count: int = 0
 
     @property
     def dated_coverage(self) -> float:
@@ -221,4 +231,12 @@ class DnaFeatureSet:
                 for gap, scores in self.session_sensitivity_scores.items()
             },
             "source_match_ids": list(self.source_match_ids),
+            "effective_sample_size": round(self.effective_sample_size, 6),
+            "recency_half_life_days": self.recency_half_life_days,
+            "recency_weighting_version": self.recency_weighting_version,
+            "performance_proxy_version": self.performance_proxy_version,
+            "window_start": self.window_start,
+            "window_end": self.window_end,
+            "left_censored_session_count": self.left_censored_session_count,
+            "right_censored_session_count": self.right_censored_session_count,
         }

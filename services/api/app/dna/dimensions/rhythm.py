@@ -43,6 +43,6 @@ def score(features: DnaFeatureSet):
             FeatureEvidence("session_gap_agreement", sensitivity, "agreement", 3),
             FeatureEvidence("boundary_session_caveat", "oldest_or_newest_window_boundary", "method", sample),
         ),
-        confounders=("the history limit can truncate the oldest session",),
+        confounders=("the bounded time window can truncate the oldest session",),
         source_match_ids=features.dated_match_ids,
     )

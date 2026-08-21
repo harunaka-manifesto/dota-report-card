@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from app.behavior.models import ElementHighlight, ElementResult, PatternResult
 
-PATTERN_RANKING_VERSION = "free-pattern-ranking-4.1.0"
+PATTERN_RANKING_VERSION = "free-pattern-ranking-5.0.0"
 FAMILY_REDUNDANCY_PENALTY = 0.04
 TIER_A_TIE_EPSILON = 0.02
 FREE_ELEMENT_HIGHLIGHT_LIMIT = 3

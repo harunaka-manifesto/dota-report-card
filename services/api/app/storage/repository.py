@@ -281,10 +281,22 @@ class InMemoryRepository:
                 self._raw_payload_index.add(key)
         return record
 
-    def get_cached_raw_payload(self, endpoint: str, source_id: str) -> Any | None:
+    def get_cached_raw_payload(
+        self,
+        endpoint: str,
+        source_id: str,
+        *,
+        max_age_seconds: int | None = None,
+    ) -> Any | None:
         with self._lock:
             for record in reversed(self.raw_payloads):
                 if record["endpoint"] == endpoint and record["source_id"] == str(source_id):
+                    if max_age_seconds is not None:
+                        fetched_at = _parse_datetime(record.get("fetched_at"))
+                        if fetched_at is None or (
+                            datetime.now(UTC) - fetched_at
+                        ).total_seconds() > max(0, max_age_seconds):
+                            continue
                     return record["payload"]
         return None
 
@@ -706,7 +718,13 @@ class SqlAlchemyRepository:
                 session.commit()
         return record
 
-    def get_cached_raw_payload(self, endpoint: str, source_id: str) -> Any | None:
+    def get_cached_raw_payload(
+        self,
+        endpoint: str,
+        source_id: str,
+        *,
+        max_age_seconds: int | None = None,
+    ) -> Any | None:
         with self._session_factory() as session:
             record = session.scalar(
                 select(RawPayloadRecord)
@@ -716,7 +734,15 @@ class SqlAlchemyRepository:
                 )
                 .order_by(RawPayloadRecord.fetched_at.desc())
             )
-            return record.payload_json if record is not None else None
+            if record is None:
+                return None
+            if max_age_seconds is not None:
+                fetched_at = _as_aware(record.fetched_at)
+                if (
+                    datetime.now(UTC) - fetched_at
+                ).total_seconds() > max(0, max_age_seconds):
+                    return None
+            return record.payload_json
 
     def save_normalized_match(self, match_id: int, value: dict[str, Any]) -> None:
         with self._session_factory() as session:
@@ -866,6 +892,8 @@ def _mark_stage_complete(job: AnalysisJob, stage: str | None) -> None:
 
 
 def _parse_datetime(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return _as_aware(value)
     if not isinstance(value, str):
         return None
     try:

@@ -1,4 +1,4 @@
-"""Strict public schema for the immutable Free DNA v4 report."""
+"""Strict public schema for the immutable Free DNA v5 report."""
 
 from __future__ import annotations
 
@@ -24,12 +24,15 @@ class MetadataSchema(PublicModel):
     data_to: str | None = None
     processed_matches: int = Field(ge=0)
     eligible_matches: int = Field(ge=0)
-    history_limit: int = Field(ge=1, le=500)
+    # ``None`` means the product window was time-bounded without a product
+    # match-count cap.  An explicit value is retained for compatibility with
+    # deployments that apply an infrastructure guardrail.
+    history_limit: int | None = Field(default=None, ge=1)
     raw_history_hash: str
     history_tier: Literal["limited", "normal"]
 
 
-class VersionMapV4Schema(PublicModel):
+class VersionMapV5Schema(PublicModel):
     eligibility: str
     sessions: str
     features: str
@@ -53,6 +56,45 @@ class VersionMapV4Schema(PublicModel):
     template: str
     share_renderer: str
     analysis_version_fingerprint: str
+    performance_proxy: str
+    recency_weighting: str
+    sessionization: str
+
+
+class ReproducibilityConfigSchema(PublicModel):
+    half_life_days: float = Field(gt=0)
+    version: str
+
+
+class SessionGapConfigSchema(PublicModel):
+    gap_minutes: int = Field(gt=0)
+    clock_tolerance_seconds: int = Field(ge=0)
+
+
+class ReproducibilitySchema(PublicModel):
+    model_version: str
+    element_registry_version: str
+    pattern_registry_version: str
+    hero_taxonomy_version: str
+    performance_proxy_version: str
+    sessionization_version: str
+    recency_weighting_version: str
+    generated_at: str
+    window_start: str | None = None
+    window_end: str | None = None
+    input_snapshot_hash: str
+    raw_match_count: int = Field(ge=0)
+    usable_match_count: int = Field(ge=0)
+    deduplicated_match_count: int = Field(ge=0)
+    session_count: int = Field(ge=0)
+    completed_session_count: int = Field(ge=0)
+    left_censored_session_count: int = Field(ge=0)
+    right_censored_session_count: int = Field(ge=0)
+    role_hint_coverage: float = Field(ge=0, le=1)
+    hero_taxonomy_coverage: float = Field(ge=0, le=1)
+    effective_sample_size: float = Field(ge=0)
+    recency_config: ReproducibilityConfigSchema
+    session_gap_config: SessionGapConfigSchema
 
 
 class QualitySchema(PublicModel):
@@ -169,8 +211,195 @@ class ComfortEdgeActionSchema(PublicModel):
     provenance_versions: dict[str, str]
 
 
+class ObservedDifferenceSchema(PublicModel):
+    signal_key: str
+    core_value: float | None = None
+    off_pool_value: float | None = None
+    effect_size: float | None = None
+    confidence_score: float = Field(ge=0, le=1)
+    player_facing_claim: str
+
+
+class CapabilityHypothesisSchema(PublicModel):
+    capability_key: str
+    core_prevalence: float = Field(ge=0, le=1)
+    off_pool_prevalence: float = Field(ge=0, le=1)
+    separation_score: float = Field(ge=0, le=1)
+    confidence_score: float = Field(ge=0, le=1)
+    player_facing_hypothesis: str
+
+
+class PartialTransferDiagnosticSchema(PublicModel):
+    action_type: Literal["partial_transfer"]
+    status: Literal["direct_signal", "capability_hypothesis", "unresolved", "deep_candidate"]
+    summary_differences: list[ObservedDifferenceSchema] = Field(max_length=3)
+    capability_hypotheses: list[CapabilityHypothesisSchema] = Field(max_length=3)
+    strongest_supported_lead: str | None = None
+    core_hero_ids: list[int]
+    off_pool_hero_ids: list[int]
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+    deep_analysis_eligible: bool
+
+
+class HeroJobMapSchema(PublicModel):
+    hero_id: int = Field(gt=0)
+    hero_name: str
+    primary_jobs: list[str]
+    expression_summary: str | None = None
+
+
+class CoverageSummarySchema(PublicModel):
+    strongly_covered: list[str]
+    single_point_coverage: list[str]
+    thin_coverage: list[str]
+    missing: list[str]
+
+
+class HeroAdditionRecommendationSchema(PublicModel):
+    hero_id: int = Field(gt=0)
+    hero_name: str
+    adds_jobs: list[str]
+    shared_anchors: list[str]
+    solves_gap: str
+    player_facing_reason: str
+    confidence_score: float = Field(ge=0, le=1)
+
+
+class VersatileCoreActionSchema(PublicModel):
+    action_type: Literal["versatile_core"]
+    status: Literal[
+        "coverage_only",
+        "coverage_plus_recommendation",
+        "coverage_plus_alternatives",
+        "no_obvious_gap",
+    ]
+    core_hero_ids: list[int]
+    hero_job_maps: list[HeroJobMapSchema]
+    coverage_summary: CoverageSummarySchema
+    recommended_addition: HeroAdditionRecommendationSchema | None = None
+    alternative_additions: list[HeroAdditionRecommendationSchema] = Field(max_length=2)
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
+class ProvenFlexibilityActionSchema(PublicModel):
+    action_type: Literal["proven_flexibility"]
+    status: Literal["peak_window", "distributed_flexibility"]
+    window_start: str | None = None
+    window_end: str | None = None
+    total_games: int = Field(ge=0)
+    hero_ids: list[int]
+    hero_names: list[str]
+    hero_game_counts: list[tuple[int, int]]
+    meaningful_hero_count: int = Field(ge=0)
+    functional_jobs: list[str]
+    functional_job_count: int = Field(ge=0)
+    repeated_hero_count: int = Field(ge=0)
+    longest_same_hero_streak: int | None = Field(default=None, ge=0)
+    secondary_proof: str | None = None
+    flex_week_score: float | None = Field(default=None, ge=0, le=1)
+    activity_confidence: float = Field(ge=0, le=1)
+    distribution_quality: float | None = Field(default=None, ge=0, le=1)
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
+class RecoveryContextSchema(PublicModel):
+    label: str
+    hero_id: int | None = Field(default=None, gt=0)
+    function_family: str | None = None
+    role_context: str | None = None
+    performance_delta: float = Field(ge=-1, le=1)
+    baseline_performance: float = Field(ge=0, le=1)
+    observed_performance: float = Field(ge=0, le=1)
+    sample_size: int = Field(ge=0)
+    session_count: int = Field(ge=0)
+    primary_jobs: list[str]
+    confidence_score: float = Field(ge=0, le=1)
+
+
+class BouncebackActionSchema(PublicModel):
+    action_type: Literal["bounceback"]
+    strongest_context: RecoveryContextSchema | None = None
+    comparison_contexts: list[RecoveryContextSchema]
+    fallback_level: Literal["hero", "function", "role", "overall"]
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
+class PerformanceSlideActionSchema(PublicModel):
+    action_type: Literal["performance_slide"]
+    strongest_context: RecoveryContextSchema | None = None
+    comparison_contexts: list[RecoveryContextSchema]
+    fallback_level: Literal["hero", "function", "role", "overall"]
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
+class PresenceContextSchema(PublicModel):
+    label: str
+    hero_id: int | None = Field(default=None, gt=0)
+    function_family: str | None = None
+    role_context: str | None = None
+    involvement_level: float = Field(ge=0, le=1)
+    death_exposure_level: float = Field(ge=0, le=1)
+    sample_size: int = Field(ge=0)
+    confidence_score: float = Field(ge=0, le=1)
+
+
+class ControlledPresenceActionSchema(PublicModel):
+    action_type: Literal["controlled_presence"]
+    strongest_context: PresenceContextSchema | None = None
+    comparison_rows: list[PresenceContextSchema]
+    finishing_flavor: str | None = None
+    fallback_level: Literal["hero", "function", "role", "overall"]
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
+class PresenceTaxActionSchema(PublicModel):
+    action_type: Literal["presence_tax"]
+    shape: Literal["job_shaped", "hero_specific", "cross_context", "unresolved"]
+    strongest_contexts: list[PresenceContextSchema]
+    comparison_contexts: list[PresenceContextSchema]
+    deep_analysis_candidate: bool
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
+class SessionCurvePointSchema(PublicModel):
+    bucket: Literal["G1", "G2", "G3", "G4", "G5+"]
+    relative_delta: float = Field(ge=-1, le=1)
+    sample_size: int = Field(ge=0)
+    effective_sample_size: float = Field(ge=0)
+    supported: bool
+
+
+class SessionCurveActionSchema(PublicModel):
+    action_type: Literal["session_fade", "session_rise"]
+    status: Literal["resolved", "fallback", "unresolved", "not_applicable"]
+    direction: Literal["fade", "rise"]
+    curve: list[SessionCurvePointSchema] = Field(min_length=5, max_length=5)
+    breakpoint_state: Literal["stable_breakpoint", "gradual", "unresolved"]
+    breakpoint_bucket: Literal["G1", "G2", "G3", "G4", "G5+"] | None = None
+    companion_signals: list[str]
+    independent_session_count: int = Field(ge=0)
+    confidence_score: float = Field(ge=0, le=1)
+    limitations: list[str]
+
+
 PatternActionSchema = Annotated[
-    SamePlaybookActionSchema | ComfortEdgeActionSchema,
+    SamePlaybookActionSchema
+    | ComfortEdgeActionSchema
+    | PartialTransferDiagnosticSchema
+    | VersatileCoreActionSchema
+    | ProvenFlexibilityActionSchema
+    | BouncebackActionSchema
+    | PerformanceSlideActionSchema
+    | ControlledPresenceActionSchema
+    | PresenceTaxActionSchema
+    | SessionCurveActionSchema,
     Field(discriminator="action_type"),
 ]
 
@@ -380,15 +609,16 @@ class CostSchema(PublicModel):
 
 class FreeDnaReportV4Schema(PublicModel):
     report_id: str | None = None
-    schema_version: Literal["free-dna-report-4.0.0"]
+    schema_version: Literal["free-dna-report-5.0.0"]
     report_variant: Literal["free_dna_report"]
     noindex: Literal[True]
     identity: IdentitySchema
     metadata: MetadataSchema
-    versions: VersionMapV4Schema
+    versions: VersionMapV5Schema
+    reproducibility: ReproducibilitySchema
     quality: QualitySchema
-    elements: list[BehaviorElementSchema] = Field(min_length=17, max_length=17)
-    patterns: list[BehaviorPatternSchema] = Field(min_length=14, max_length=14)
+    elements: list[BehaviorElementSchema] = Field(min_length=18, max_length=18)
+    patterns: list[BehaviorPatternSchema] = Field(min_length=11, max_length=11)
     highlights: HighlightsSchema
     hero_portfolio: HeroPortfolioSchema
     story: StorySchema
@@ -399,16 +629,16 @@ class FreeDnaReportV4Schema(PublicModel):
     cost: CostSchema
 
     @model_validator(mode="after")
-    def validate_v4_contract(self) -> FreeDnaReportV4Schema:
+    def validate_v5_contract(self) -> FreeDnaReportV4Schema:
         from app.behavior.elements.registry import ELEMENT_REGISTRY
         from app.behavior.patterns.registry import PATTERN_REGISTRY
 
         element_keys = [item.key for item in self.elements]
         if set(element_keys) != set(ELEMENT_REGISTRY) or len(element_keys) != len(set(element_keys)):
-            raise ValueError("Free DNA v4 must contain each of the 17 registered Elements once")
+            raise ValueError("Free DNA v5 must contain each of the 18 registered Elements once")
         pattern_keys = [item.key for item in self.patterns]
         if set(pattern_keys) != set(PATTERN_REGISTRY) or len(pattern_keys) != len(set(pattern_keys)):
-            raise ValueError("Free DNA v4 must contain each of the 14 registered Patterns once")
+            raise ValueError("Free DNA v5 must contain each of the 11 registered Patterns once")
         if len(self.highlights.element_keys) != len(set(self.highlights.element_keys)):
             raise ValueError("Element highlights must be unique")
         if len(self.highlights.pattern_keys) != len(set(self.highlights.pattern_keys)):
@@ -468,7 +698,7 @@ class FreeDnaReportV4Schema(PublicModel):
                 raise ValueError("No-clear Exception must use the no-clear option as truth")
         page_ids = [item.id for item in self.pages]
         if page_ids != self.story.ordered_pages or len(page_ids) != len(set(page_ids)):
-            raise ValueError("Free DNA v4 story ordering must match unique public pages")
+            raise ValueError("Free DNA v5 story ordering must match unique public pages")
         for page in self.pages:
             if page.element_key is not None and page.element_key not in element_keys:
                 raise ValueError(f"Story page references unknown Element: {page.element_key}")
@@ -490,7 +720,7 @@ class FreeDnaReportV4Schema(PublicModel):
             "deep_dive",
         ]
         if page_kinds != expected_kinds:
-            raise ValueError("Free DNA v4 story pages do not match the reviewed structure")
+            raise ValueError("Free DNA v5 story pages do not match the reviewed structure")
         share_pool_direction = self.shares.final.hero_portfolio.pool_direction
         if share_pool_direction in {
             "new_heroes_new_toolkit",
@@ -502,14 +732,17 @@ class FreeDnaReportV4Schema(PublicModel):
         if self.shares.privacy_defaults.show_raw_id is not False:
             raise ValueError("Free DNA share cards cannot enable raw IDs")
         if self.cost.detail_requests != 0 or self.cost.parse_requests != 0:
-            raise ValueError("Free DNA v4 cannot require match-detail or replay-parse requests")
+            raise ValueError("Free DNA v5 cannot require match-detail or replay-parse requests")
         return self
 
 
+FreeDnaReportV5Schema = FreeDnaReportV4Schema
+
+
 def validate_free_dna_report(report: dict[str, Any]) -> dict[str, Any]:
-    """Validate a new immutable v4 snapshot at the public API boundary."""
+    """Validate a new immutable v5 snapshot at the public API boundary."""
 
     return FreeDnaReportV4Schema.model_validate(report).model_dump(mode="json", by_alias=True)
 
 
-__all__ = ["FreeDnaReportV4Schema", "validate_free_dna_report"]
+__all__ = ["FreeDnaReportV4Schema", "FreeDnaReportV5Schema", "validate_free_dna_report"]

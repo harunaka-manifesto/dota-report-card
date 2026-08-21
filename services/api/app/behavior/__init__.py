@@ -12,7 +12,14 @@ from app.behavior.models import (
     ElementResult,
     PatternResult,
 )
-from app.behavior.service import analyze_behavior
+
+
+def __getattr__(name: str):
+    if name == "analyze_behavior":
+        from app.behavior.service import analyze_behavior
+
+        return analyze_behavior
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 __all__ = [
     "BehaviorAnalysisResult",

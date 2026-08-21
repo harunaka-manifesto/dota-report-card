@@ -9,7 +9,14 @@ from app.hero_portfolio.models import (
     HeroPortfolioResult,
     PoolEvolutionResult,
 )
-from app.hero_portfolio.service import analyze_hero_portfolio
+
+
+def __getattr__(name: str):
+    if name == "analyze_hero_portfolio":
+        from app.hero_portfolio.service import analyze_hero_portfolio
+
+        return analyze_hero_portfolio
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 __all__ = [
     "ChoiceOption",

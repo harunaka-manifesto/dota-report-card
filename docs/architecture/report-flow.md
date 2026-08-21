@@ -1,6 +1,6 @@
 # Report flow
 
-The Free v4 report is a one-viewport story: each section has one discovery,
+The Free v5 report is a one-viewport story: each section has one discovery,
 one evidence boundary, and one deliberate interaction. The strict API schema,
 server content catalog, web story, share SVG, and analytics contract are
 versioned together.
@@ -11,9 +11,9 @@ The top-level shape is:
 
 `identity`, `metadata`, `versions`, `quality`, `elements`, `patterns`,
 `highlights`, `hero_portfolio`, `story`, `pages`, `shares`, `deep_dive`,
-`methodology`, and `cost`.
+`methodology`, `cost`, and `reproducibility`.
 
-The public report contains exactly 17 Elements and 14 Patterns. It contains no
+The public report contains exactly 18 Elements and 11 active Patterns. It contains no
 account ID, raw match ID, raw normalized row, private scorer metric, or detail-
 analysis payload. Cost is a validated summary-only ledger: Free has one history
 request and zero detail, parse, and parse-status requests. The actual ledger is
@@ -24,7 +24,7 @@ masked by a hand-written zero.
 
 The normal completed flow is:
 
-1. Element scan with all 17 tiles.
+1. Element scan with all 18 tiles.
 2. Three Element highlight pages, selected from display-eligible Elements.
 3. Up to five Pattern highlight pages, selected only from qualified,
    story-eligible Patterns.

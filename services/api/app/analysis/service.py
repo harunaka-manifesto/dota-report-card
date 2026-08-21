@@ -6,6 +6,7 @@ import json
 import logging
 from collections.abc import Iterable
 from dataclasses import asdict
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlparse
 
@@ -18,7 +19,7 @@ from app.analysis.deep_scan import (
 from app.analysis.source import AnalysisSource
 from app.api.report_schemas import validate_free_dna_report
 from app.cohorts.selector import CohortSelection, select_narrowest_cohort
-from app.core.config import Settings, get_settings
+from app.core.config import FREE_HISTORY_WINDOW_DAYS, RECENCY_HALF_LIFE_DAYS, Settings, get_settings
 from app.core.errors import (
     AppError,
     InsufficientMatchHistory,
@@ -36,7 +37,11 @@ from app.identity.steam import SteamVanityResolver
 from app.ingestion.coverage import coverage_for_match
 from app.ingestion.eligibility import assess_match
 from app.ingestion.normalize import NormalizedMatch
-from app.ingestion.summary_normalize import normalize_summary_rows
+from app.ingestion.summary_normalize import (
+    filter_history_window,
+    normalize_summary_rows,
+    previous_year_window,
+)
 from app.insights.evaluator import InsightContext, evaluate_insights
 from app.opendota.cache import payload_hash
 from app.patterns.detector import detect_patterns
@@ -87,10 +92,12 @@ class AnalysisService:
                 if isinstance(cached_profile, dict):
                     identity_fingerprint = _identity_fingerprint(cached_profile)
                 cached = self.repository.get_cached_raw_payload(
-                    f"/players/{identifier.account_id}/matches", str(identifier.account_id)
+                    f"/players/{identifier.account_id}/matches",
+                    str(identifier.account_id),
+                    max_age_seconds=self.settings.effective_summary_history_cache_ttl_seconds,
                 )
                 if isinstance(cached, list):
-                    raw_history_hash = payload_hash(cached[: self.settings.effective_free_history_limit])
+                    raw_history_hash = payload_hash(cached)
             # Free reports may only reuse a completed snapshot after the
             # bounded history identity is known. Otherwise a retained report
             # could outlive its upstream history cache and be reused blindly.
@@ -124,7 +131,9 @@ class AnalysisService:
             from app.behavior.service import BEHAVIOR_MODEL_VERSION
             from app.content.catalog import copy_version
             from app.dna.features.models import FEATURE_VERSION
+            from app.dna.performance import PERFORMANCE_PROXY_VERSION
             from app.dna.pipeline import DNA_SCORING_VERSION
+            from app.dna.recency import RECENCY_WEIGHTING_VERSION
             from app.dna.sessions import SESSION_VERSION
             from app.hero_portfolio.config import PORTFOLIO_CONFIG_VERSION
             from app.hero_portfolio.version import (
@@ -166,6 +175,8 @@ class AnalysisService:
                 "element_registry": ELEMENT_REGISTRY_VERSION,
                 "pattern_registry": PATTERN_REGISTRY_VERSION,
                 "pattern_actions": PATTERN_ACTIONS_VERSION,
+                "performance_proxy": PERFORMANCE_PROXY_VERSION,
+                "recency_weighting": RECENCY_WEIGHTING_VERSION,
             }
             digest = hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest()
             return f"free-analysis-{digest[:48]}"
@@ -278,14 +289,19 @@ class AnalysisService:
         cost_ledger = DataCostLedger()
         cost_policy = CostPolicy()
         cached_history = self.repository.get_cached_raw_payload(
-            f"/players/{identifier.account_id}/matches", str(identifier.account_id)
+            f"/players/{identifier.account_id}/matches",
+            str(identifier.account_id),
+            max_age_seconds=self.settings.effective_summary_history_cache_ttl_seconds,
         ) if hasattr(self.repository, "get_cached_raw_payload") else None
         if isinstance(cached_history, list):
-            history = list(cached_history[:history_limit])
+            history = list(cached_history)
             cost_ledger.record("history", policy=cost_policy, cache_hit=True, units=0.0)
         else:
-            history = await self.source.get_matches(identifier.account_id, limit=history_limit)
-            history = list(history[:history_limit])
+            history = await self._get_summary_history(
+                identifier.account_id,
+                limit=history_limit,
+            )
+            history = list(history)
             cost_ledger.record("history", policy=cost_policy)
         self.repository.persist_raw_payload(
             f"/players/{identifier.account_id}/matches",
@@ -293,6 +309,7 @@ class AnalysisService:
             history,
             {
                 "requested_limit": history_limit,
+                "window_days": FREE_HISTORY_WINDOW_DAYS,
                 "actual_count": len(history),
                 "projection": None,
                 "adapter_version": "opendota-summary-1.0.0",
@@ -318,7 +335,8 @@ class AnalysisService:
         )
         summary_candidates: list[dict[str, Any]] = []
         exclusion_ledger: list[dict[str, Any]] = []
-        for summary in history[:history_limit]:
+        candidate_history = history if history_limit is None else history[:history_limit]
+        for summary in candidate_history:
             result = assess_match(summary, account_id=identifier.account_id)
             if result.eligible:
                 summary_candidates.append(summary)
@@ -363,6 +381,7 @@ class AnalysisService:
             available_families_by_match=available_families,
         )
 
+        deep_history_limit = history_limit if history_limit is not None else len(history)
         await self._run_deep_scan(
             job=job,
             identifier=identifier,
@@ -374,7 +393,7 @@ class AnalysisService:
             cost_ledger=cost_ledger,
             cost_policy=cost_policy,
             exclusion_ledger=exclusion_ledger,
-            history_limit=history_limit,
+            history_limit=deep_history_limit,
         )
 
     async def _save_player_dna(
@@ -384,7 +403,7 @@ class AnalysisService:
         profile: dict[str, Any],
         *,
         history: list[dict[str, Any]],
-        history_limit: int,
+        history_limit: int | None,
         cost_ledger: DataCostLedger,
     ) -> None:
         self.repository.update_job(
@@ -397,7 +416,17 @@ class AnalysisService:
             job,
             f"Normalized {len(normalized.matches)} unique summary rows",
         )
-        job.eligible_matches = len(normalized.eligible_matches)
+        window_end = int(datetime.now(UTC).timestamp())
+        window_start, window_end = previous_year_window(
+            window_end=window_end,
+            days=FREE_HISTORY_WINDOW_DAYS,
+        )
+        windowed_matches = filter_history_window(
+            normalized.eligible_matches,
+            window_start=window_start,
+            window_end=window_end,
+        )
+        job.eligible_matches = len(windowed_matches)
         if job.eligible_matches < 30:
             raise InsufficientMatchHistory(
                 "At least 30 common eligible matches are required to build Free Dota DNA"
@@ -407,10 +436,13 @@ class AnalysisService:
         # Free DNA and finding synthesis must share one eligible population.
         # Ineligible rows remain available only to the private exclusion ledger.
         dna_analysis = analyze_dna(
-            normalized.eligible_matches,
+            windowed_matches,
             session_gap_minutes=self.settings.effective_session_gap_minutes,
             history_tier=history_tier,
             report_seed=payload_hash(history),
+            window_start=window_start,
+            window_end=window_end,
+            recency_half_life_days=RECENCY_HALF_LIFE_DAYS,
             on_stage=lambda stage, message: self.repository.update_job(
                 job, stage=stage, message=message
             ),
@@ -447,6 +479,30 @@ class AnalysisService:
             evidence=[],
         )
         self.repository.complete_job(job, report_id)
+
+    async def _get_summary_history(
+        self,
+        account_id: int,
+        *,
+        limit: int | None,
+    ) -> list[dict[str, Any]]:
+        """Call the year-windowed source while tolerating older test adapters."""
+
+        try:
+            return list(
+                await self.source.get_matches(
+                    account_id,
+                    limit=limit,
+                    days=FREE_HISTORY_WINDOW_DAYS,
+                )
+            )
+        except TypeError as exc:
+            # External adapters written against the pre-window protocol may
+            # not accept ``days`` yet.  Keep this compatibility path narrow so
+            # real source failures are not swallowed.
+            if "days" not in str(exc):
+                raise
+            return list(await self.source.get_matches(account_id, limit=limit))
 
     async def _run_deep_scan(
         self,

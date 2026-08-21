@@ -1,4 +1,4 @@
-"""Public v4 report projection for Elements, Patterns, and Hero Portfolio."""
+"""Public v5 report projection for Elements, Patterns, and Hero Portfolio."""
 
 from __future__ import annotations
 
@@ -37,8 +37,8 @@ from app.hero_portfolio.version import (
 )
 from app.share.service import RENDERER_VERSION
 
-REPORT_SCHEMA_VERSION = "free-dna-report-4.0.0"
-REPORT_STORY_VERSION = "free-story-4.2.0"
+REPORT_SCHEMA_VERSION = "free-dna-report-5.0.0"
+REPORT_STORY_VERSION = "free-story-5.0.0"
 
 
 def assemble_free_dna_report_v4(
@@ -49,13 +49,13 @@ def assemble_free_dna_report_v4(
     processed_matches: int,
     eligible_matches: int,
     raw_payload_hash: str,
-    history_limit: int,
+    history_limit: int | None,
     model_version: str,
     template_version: str,
     cost_ledger: DataCostLedger | None,
     analysis_version_fingerprint: str,
 ) -> dict[str, Any]:
-    """Assemble one immutable, privacy-safe v4 snapshot.
+    """Assemble one immutable, privacy-safe v5 snapshot.
 
     The public projection deliberately omits raw rows, raw match identifiers,
     and private scorer metrics.  All downstream story pages read this snapshot
@@ -101,6 +101,9 @@ def assemble_free_dna_report_v4(
         "template": template_version,
         "share_renderer": RENDERER_VERSION,
         "analysis_version_fingerprint": analysis_version_fingerprint,
+        "performance_proxy": analysis.features.performance_proxy_version,
+        "recency_weighting": analysis.features.recency_weighting_version,
+        "sessionization": analysis.sessions.policy.version,
     }
     cost = _free_cost(cost_ledger)
     quality = {
@@ -139,6 +142,38 @@ def assemble_free_dna_report_v4(
         ),
     }
     data_from, data_to = _date_bounds(analysis)
+    generated_at = datetime.now(UTC).isoformat()
+    reproducibility = {
+        "model_version": model_version,
+        "element_registry_version": behavior.versions.element_registry,
+        "pattern_registry_version": behavior.versions.pattern_registry,
+        "hero_taxonomy_version": _taxonomy_version(portfolio),
+        "performance_proxy_version": analysis.features.performance_proxy_version,
+        "sessionization_version": analysis.sessions.policy.version,
+        "recency_weighting_version": analysis.features.recency_weighting_version,
+        "generated_at": generated_at,
+        "window_start": data_from,
+        "window_end": data_to,
+        "input_snapshot_hash": raw_payload_hash,
+        "raw_match_count": max(0, processed_matches),
+        "usable_match_count": max(0, eligible_matches),
+        "deduplicated_match_count": len(analysis.matches),
+        "session_count": len(analysis.sessions.sessions),
+        "completed_session_count": len(analysis.sessions.completed_sessions),
+        "left_censored_session_count": analysis.sessions.left_censored_session_count,
+        "right_censored_session_count": analysis.sessions.right_censored_session_count,
+        "role_hint_coverage": analysis.features.role_coverage,
+        "hero_taxonomy_coverage": _hero_taxonomy_coverage(analysis),
+        "effective_sample_size": analysis.features.effective_sample_size,
+        "recency_config": {
+            "half_life_days": analysis.features.recency_half_life_days,
+            "version": analysis.features.recency_weighting_version,
+        },
+        "session_gap_config": {
+            "gap_minutes": analysis.sessions.policy.gap_minutes,
+            "clock_tolerance_seconds": analysis.sessions.policy.clock_tolerance_seconds,
+        },
+    }
     return {
         "schema_version": REPORT_SCHEMA_VERSION,
         "report_variant": "free_dna_report",
@@ -150,17 +185,18 @@ def assemble_free_dna_report_v4(
             "rank_tier": profile.get("rank_tier"),
         },
         "metadata": {
-            "created_at": datetime.now(UTC).isoformat(),
+            "created_at": generated_at,
             "expires_at": None,
             "data_from": data_from,
             "data_to": data_to,
             "processed_matches": max(0, processed_matches),
             "eligible_matches": max(0, eligible_matches),
-            "history_limit": max(1, min(500, history_limit)),
+            "history_limit": history_limit,
             "raw_history_hash": raw_payload_hash,
             "history_tier": analysis.history_tier,
         },
         "versions": versions,
+        "reproducibility": reproducibility,
         "quality": quality,
         "elements": [item.as_dict(public=True) for item in behavior.elements],
         "patterns": [item.as_dict(public=True) for item in behavior.patterns],
@@ -415,6 +451,11 @@ def _free_cost(cost_ledger: DataCostLedger | None) -> dict[str, Any]:
 
 
 def _date_bounds(analysis: DnaAnalysisResult) -> tuple[str | None, str | None]:
+    if analysis.features.window_start is not None and analysis.features.window_end is not None:
+        return (
+            datetime.fromtimestamp(analysis.features.window_start, tz=UTC).isoformat(),
+            datetime.fromtimestamp(analysis.features.window_end, tz=UTC).isoformat(),
+        )
     timestamps = [item.started_at for item in analysis.matches if item.started_at is not None]
     if not timestamps:
         return None, None
@@ -422,6 +463,19 @@ def _date_bounds(analysis: DnaAnalysisResult) -> tuple[str | None, str | None]:
         datetime.fromtimestamp(min(timestamps), tz=UTC).isoformat(),
         datetime.fromtimestamp(max(timestamps), tz=UTC).isoformat(),
     )
+
+
+def _hero_taxonomy_coverage(analysis: DnaAnalysisResult) -> float:
+    if not analysis.matches:
+        return 0.0
+    usable = analysis.features.hero_counts
+    toolkit = next(
+        (item for item in analysis.behavior.elements if item.key == "toolkit_breadth"),
+        None,
+    )
+    if toolkit is not None and toolkit.coverage:
+        return toolkit.coverage
+    return len(usable) / max(len(analysis.matches), 1)
 
 
 def _taxonomy_version(portfolio: HeroPortfolioResult) -> str:
@@ -440,10 +494,23 @@ def _evolution_copy(variant: str | None) -> str | None:
 
 
 def _pattern_action_copy(key: str) -> dict[str, str] | None:
-    if key not in {"same_playbook", "comfort_edge"}:
+    if key not in {
+        "same_playbook",
+        "comfort_edge",
+        "versatile_core",
+        "proven_flexibility",
+        "controlled_presence",
+        "presence_tax",
+        "bounceback",
+        "performance_slide",
+        "session_fade",
+        "session_rise",
+    }:
         return None
     values = validate_copy_catalog()["story_templates"]["pattern_action"]
     return {name: resolve_story_copy("pattern_action", name) for name in values}
 
 
-__all__ = ["REPORT_SCHEMA_VERSION", "assemble_free_dna_report_v4"]
+assemble_free_dna_report_v5 = assemble_free_dna_report_v4
+
+__all__ = ["REPORT_SCHEMA_VERSION", "assemble_free_dna_report_v4", "assemble_free_dna_report_v5"]

@@ -9,6 +9,7 @@ missing field never silently becomes a behavioural zero.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 EligibilityKey = Literal[
@@ -167,6 +168,34 @@ class NormalizationResult:
         }
 
 
+def previous_year_window(*, window_end: int | None = None, days: int = 365) -> tuple[int, int]:
+    """Return the inclusive Unix-second bounds for the Free history window."""
+
+    end = int(window_end if window_end is not None else datetime.now(UTC).timestamp())
+    start = end - max(1, int(days)) * 24 * 60 * 60
+    return start, end
+
+
+def filter_history_window(
+    matches: tuple[NormalizedSummaryMatch, ...] | list[NormalizedSummaryMatch],
+    *,
+    window_start: int,
+    window_end: int,
+) -> tuple[NormalizedSummaryMatch, ...]:
+    """Keep only matches whose validated start time belongs to the window.
+
+    Rows with no usable timestamp stay in the normalization ledger but cannot
+    be claimed as part of a time-bounded population.  This is intentionally a
+    fail-closed boundary for chronology-dependent analysis.
+    """
+
+    return tuple(
+        item
+        for item in matches
+        if item.started_at is not None and window_start <= item.started_at <= window_end
+    )
+
+
 def normalize_summary_rows(
     rows: list[dict[str, Any]] | tuple[dict[str, Any], ...],
     account_id: int,
@@ -231,6 +260,9 @@ def normalize_summary_rows(
                 }
             )
 
+    normalized.sort(
+        key=lambda item: (item.started_at is None, item.started_at or 0, item.match_id)
+    )
     return NormalizationResult(
         matches=tuple(normalized),
         exclusion_ledger=tuple(exclusions),
@@ -246,8 +278,14 @@ def _normalize_row(
     account_id: int,
     match_id: int,
 ) -> NormalizedSummaryMatch:
-    started_at = _as_int(row.get("start_time") or row.get("started_at"))
-    duration = _as_int(row.get("duration") or row.get("duration_seconds"))
+    raw_started_at = row.get("start_time")
+    if raw_started_at is None:
+        raw_started_at = row.get("started_at")
+    started_at = _as_int(raw_started_at)
+    raw_duration = row.get("duration")
+    if raw_duration is None:
+        raw_duration = row.get("duration_seconds")
+    duration = _as_int(raw_duration)
     duration = duration if duration is not None and duration >= 0 else None
     player_slot = _as_int(row.get("player_slot"))
     side_value = row.get("side")
@@ -262,7 +300,6 @@ def _normalize_row(
     won = _as_bool(row.get("won"))
     if won is None and radiant_win is not None and side is not None:
         won = radiant_win == (side == "radiant")
-    ended_at = started_at + duration if started_at is not None and duration is not None else None
     lane_role = _as_int(row.get("lane_role"))
     lane = _as_int(row.get("lane"))
     is_roaming = _as_bool(row.get("is_roaming"))
@@ -273,6 +310,15 @@ def _normalize_row(
     leaver_status = _as_int(row.get("leaver_status"))
     pro_or_league = bool(row.get("leagueid") or row.get("league_id"))
     invalid_numeric_reasons = _invalid_numeric_reasons(row)
+    row_account_id = _as_int(row.get("account_id"))
+    if row_account_id is not None and row_account_id != account_id:
+        invalid_numeric_reasons += ("account_id_mismatch",)
+    if started_at is None:
+        invalid_numeric_reasons += ("missing_start_time",)
+    elif started_at <= 0:
+        invalid_numeric_reasons += ("invalid_start_time",)
+        started_at = None
+    ended_at = started_at + duration if started_at is not None and duration is not None else None
     eligibility = _eligibility(
         match_id=match_id,
         hero_id=hero_id,

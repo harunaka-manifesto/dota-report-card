@@ -217,17 +217,14 @@ PATTERN_ZONE_FIXTURES = (
     ("same_playbook", {"hero_pool_breadth": "Varied", "toolkit_breadth": "Focused"}, {"toolkit_breadth": "Mixed"}),
     ("comfort_edge", {"hero_pool_breadth": "Wide", "off_pool_performance": "Slips"}, {"off_pool_performance": "Holds"}),
     ("partial_transfer", {"off_pool_activity_stability": "Holds", "off_pool_performance": "Slips"}, {"off_pool_activity_stability": "Similar"}),
-    ("stable_style", {"recent_form_shift": "Rising", "hero_pool_stability": "Settled", "recent_activity_shift": "Same"}, {"hero_pool_stability": "Mixed"}),
     ("versatile_core", {"hero_pool_breadth": "Focused", "toolkit_breadth": "Versatile"}, {"toolkit_breadth": "Mixed"}),
     ("proven_flexibility", {"hero_pool_breadth": "Wide", "off_pool_performance": "Travels"}, {"off_pool_performance": "Holds"}),
-    ("selective_closer", {"combat_involvement": "Present", "finisher_orientation": "Closer"}, {"combat_involvement": "Everywhere"}),
-    ("loss_response", {"post_loss_familiarity_shift": "Returns", "post_loss_activity_shift": "Same"}, {"post_loss_familiarity_shift": "Unchanged", "post_loss_activity_shift": "Same"}),
+    ("bounceback", {"post_loss_performance_response": "Recovers", "post_loss_familiarity_shift": "Returns", "post_loss_activity_shift": "Same"}, {"post_loss_performance_response": "Holds"}),
+    ("performance_slide", {"post_loss_performance_response": "Slips", "post_loss_familiarity_shift": "Unchanged", "post_loss_activity_shift": "Speeds up"}, {"post_loss_performance_response": "Holds"}),
     ("controlled_presence", {"combat_involvement": "Active", "death_exposure": "Safe"}, {"death_exposure": "Mixed"}),
-    ("heavy_exposure", {"combat_involvement": "Active", "death_exposure": "Exposed"}, {"death_exposure": "Safe"}),
+    ("presence_tax", {"combat_involvement": "Active", "death_exposure": "Exposed"}, {"death_exposure": "Safe"}),
     ("session_fade", {"session_length_tendency": "Long", "late_session_performance": "Fades"}, {"late_session_performance": "Holds"}),
     ("session_rise", {"session_length_tendency": "Medium", "late_session_performance": "Warms up"}, {"session_length_tendency": "Short"}),
-    ("session_hold", {"session_length_tendency": "Long", "late_session_performance": "Holds"}, {"late_session_performance": "Drops"}),
-    ("assist_presence", {"combat_involvement": "Present", "finisher_orientation": "Support"}, {"finisher_orientation": "Split"}),
 )
 
 

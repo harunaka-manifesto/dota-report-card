@@ -1,4 +1,4 @@
-"""Canonical public registry for the 17 Free Elements."""
+"""Canonical public registry for the 18 Free Elements."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from app.behavior.models import ElementDefinition
 from app.behavior.tiers import SUMMARY_CAPABILITIES
 
-ELEMENT_REGISTRY_VERSION = "free-elements-4.0.0"
+ELEMENT_REGISTRY_VERSION = "free-elements-5.0.0"
 # All public five-zone Elements use the same half-open score intervals.  The
 # right edge belongs to the next zone, so 0.20 is the first point in zone 2.
 # Keeping the boundary map here makes score → zone a single inspectable rule.
@@ -68,16 +68,17 @@ ELEMENTS: tuple[ElementDefinition, ...] = (
     _element("performance_volatility", "Volatility", "consistency_form", "How variable is observable performance match to match?", "Match-to-match variability in the observable performance proxy.", ("Rock solid", "Wild"), ("Rock solid", "Steady", "Variable", "Swingy", "Wild"), minimum_sample=30, capabilities=("summary.outcome", "summary.kda", "summary.time"), normalization="self_relative", confounders=("the proxy is not a full performance model",)),
     _element("recent_form_shift", "Form", "consistency_form", "How has recent observable form moved?", "Recent result movement versus a prior window.", ("Sliding", "Surging"), ("Sliding", "Cooling", "Flat", "Rising", "Surging"), minimum_sample=45, capabilities=("summary.outcome", "summary.chronology"), normalization="window_comparison", confounders=("recent opponents, patches, and hero mix are not controlled",)),
     _element("recent_activity_shift", "Pace", "consistency_form", "How has recent combat activity moved?", "Recent combat-activity movement versus a prior window.", ("Quieter", "Full tilt"), ("Quieter", "Calmer", "Same", "Busier", "Full tilt"), minimum_sample=45, capabilities=("summary.kda", "summary.time", "summary.chronology"), normalization="window_comparison", confounders=("team tempo and role mix may differ between windows",)),
-    _element("session_length_tendency", "Duration", "session_response", "What session length tends to appear?", "The typical session length tendency.", ("Burst", "Marathon"), ("Burst", "Short", "Medium", "Long", "Marathon"), minimum_sample=25, capabilities=("summary.chronology", "summary.time"), normalization="bounded_absolute", confounders=("the history limit can truncate a session boundary",)),
+    _element("session_length_tendency", "Duration", "session_response", "What session length tends to appear?", "The typical session length tendency.", ("Burst", "Marathon"), ("Burst", "Short", "Medium", "Long", "Marathon"), minimum_sample=25, capabilities=("summary.chronology", "summary.time"), normalization="bounded_absolute", confounders=("the bounded time window can truncate a session boundary",)),
     _element("late_session_performance", "Drift", "session_response", "What happens to results later in a session?", "Later-session result movement.", ("Drops", "Finishes strong"), ("Drops", "Fades", "Holds", "Warms up", "Finishes strong"), minimum_sample=27, capabilities=("summary.chronology", "summary.outcome", "summary.time"), normalization="window_comparison", confounders=("stopping behavior and role mix can confound session position",)),
     _element("post_loss_activity_shift", "Tempo", "session_response", "How does next-game activity move after a loss?", "Post-loss next-game activity movement.", ("Pulls back", "Accelerates"), ("Pulls back", "Quieter", "Same", "Speeds up", "Accelerates"), minimum_sample=30, capabilities=("summary.kda", "summary.time", "summary.outcome", "summary.chronology"), normalization="conditional_comparison", confounders=("a next match may have a different role or team tempo",)),
+    _element("post_loss_performance_response", "Recovery", "session_response", "How does comparable next-game performance move after a loss?", "Post-loss performance movement against the player's comparable personal baseline.", ("Drops", "Surges"), ("Drops", "Slips", "Holds", "Recovers", "Surges"), minimum_sample=30, capabilities=("summary.hero", "summary.kda", "summary.time", "summary.outcome", "summary.chronology", "hero.taxonomy"), normalization="context_adjusted_conditional_comparison", confounders=("role and hero-function context may differ between transitions", "session boundaries and stopping behavior limit valid comparisons")),
 )
 
 ELEMENT_REGISTRY = {item.key: item for item in ELEMENTS}
 
 EXPECTED_ELEMENT_KEYS = frozenset(item.key for item in ELEMENTS)
-if len(ELEMENT_REGISTRY) != 17 or set(ELEMENT_REGISTRY) != EXPECTED_ELEMENT_KEYS:
-    raise ValueError("The active Free Element registry must contain exactly the canonical 17 Elements")
+if len(ELEMENT_REGISTRY) != 18 or set(ELEMENT_REGISTRY) != EXPECTED_ELEMENT_KEYS:
+    raise ValueError("The active Free Element registry must contain exactly the canonical 18 Elements")
 
 
 def zone_for_score(key: str, score: float | None) -> str | None:

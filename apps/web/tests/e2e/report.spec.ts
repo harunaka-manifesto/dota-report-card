@@ -4,7 +4,7 @@ test("completed Free DNA report opens with the full Element and Portfolio story"
   await page.goto("/report/fixture-report");
   await expect(page.locator("[data-page-kind='element_scan']")).toBeVisible();
   await expect(page.getByRole("heading", { name: "The pieces of your Dota pattern" })).toBeVisible();
-  await expect(page.locator(".element-tile")).toHaveCount(17);
+  await expect(page.locator(".element-tile")).toHaveCount(18);
   await expect(page.locator("[data-page-kind='pattern_highlight']")).toHaveCount(5);
   await page.locator("#hero-common-thread").scrollIntoViewIfNeeded();
   const common = page.locator("#hero-common-thread");

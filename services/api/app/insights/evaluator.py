@@ -27,7 +27,7 @@ class InsightContext:
     role_confidence_threshold: float = 0.60
     replay_coverage_threshold: float = 0.60
     summary_coverage_threshold: float = 0.60
-    history_limit: int = FREE_HISTORY_LIMIT
+    history_limit: int | None = FREE_HISTORY_LIMIT
 
     @property
     def role_confidence(self) -> float:

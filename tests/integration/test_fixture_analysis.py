@@ -1,12 +1,16 @@
+from datetime import UTC, datetime
+
 from app.analysis.service import AnalysisService
 from app.analysis.source import FixtureOpenDotaSource, MappingSource
 from app.core.config import Settings
+
+_TEST_WINDOW_END = int(datetime.now(UTC).timestamp())
 
 
 def _summary(match_id: int, index: int) -> dict[str, int | bool]:
     return {
         "match_id": match_id,
-        "start_time": 1_700_000_000 + index * 7_200,
+        "start_time": _TEST_WINDOW_END - index * 7_200,
         "duration": 1_800,
         "hero_id": 25 + index % 5,
         "player_slot": 0,

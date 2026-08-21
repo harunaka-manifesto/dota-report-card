@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, Protocol
 
-from app.core.config import FREE_HISTORY_LIMIT
+from app.core.config import FREE_HISTORY_LIMIT, FREE_HISTORY_WINDOW_DAYS
 from app.core.errors import ProfileUnavailable
 
 
@@ -12,7 +12,12 @@ class AnalysisSource(Protocol):
     async def get_player(self, account_id: int) -> dict[str, Any]: ...
 
     async def get_matches(
-        self, account_id: int, *, limit: int = FREE_HISTORY_LIMIT, project: str | None = None
+        self,
+        account_id: int,
+        *,
+        limit: int | None = FREE_HISTORY_LIMIT,
+        days: int = FREE_HISTORY_WINDOW_DAYS,
+        project: str | None = None,
     ) -> list[dict[str, Any]]: ...
 
     async def get_match(self, match_id: int) -> dict[str, Any]: ...
@@ -34,13 +39,19 @@ class FixtureOpenDotaSource:
         )
 
     async def get_matches(
-        self, account_id: int, *, limit: int = FREE_HISTORY_LIMIT, project: str | None = None
+        self,
+        account_id: int,
+        *,
+        limit: int | None = FREE_HISTORY_LIMIT,
+        days: int = FREE_HISTORY_WINDOW_DAYS,
+        project: str | None = None,
     ) -> list[dict[str, Any]]:
         self.requests.append(("matches", account_id))
         value = self._read_first(
             f"matches_{account_id}.json", f"history_{account_id}.json", fallback=[]
         )
-        return list(value or [])[: min(limit, FREE_HISTORY_LIMIT)]
+        rows = list(value or [])
+        return rows if limit is None else rows[:limit]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:
         self.requests.append(("match", match_id))
@@ -79,10 +90,15 @@ class MappingSource:
         return self.player
 
     async def get_matches(
-        self, account_id: int, *, limit: int = FREE_HISTORY_LIMIT, project: str | None = None
+        self,
+        account_id: int,
+        *,
+        limit: int | None = FREE_HISTORY_LIMIT,
+        days: int = FREE_HISTORY_WINDOW_DAYS,
+        project: str | None = None,
     ) -> list[dict[str, Any]]:
         self.requests.append(("matches", account_id))
-        return self.matches[: min(limit, FREE_HISTORY_LIMIT)]
+        return list(self.matches) if limit is None else self.matches[:limit]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:
         self.requests.append(("match", match_id))

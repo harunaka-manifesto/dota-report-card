@@ -42,6 +42,23 @@ async def test_match_history_transport_supports_two_hundred_summary_rows() -> No
     assert seen[0].url.params["limit"] == "200"
 
 
+async def test_default_match_history_request_uses_year_window_without_hidden_limit() -> None:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=[{"match_id": index} for index in range(1_001)])
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as http_client:
+        client = OpenDotaClient(Settings(), http_client=http_client)
+        matches = await client.get_matches(42)
+
+    assert len(matches) == 1_001
+    assert seen[0].url.params["date"] == "365"
+    assert "limit" not in seen[0].url.params
+
+
 async def test_concurrent_cache_misses_share_one_transport_request() -> None:
     class FakeHttpClient:
         calls = 0

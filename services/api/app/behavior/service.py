@@ -20,7 +20,7 @@ from app.behavior.models import (
 from app.behavior.patterns.registry import PATTERN_REGISTRY_VERSION
 from app.behavior.patterns.service import evaluate_patterns
 
-BEHAVIOR_MODEL_VERSION = "behavior-model-4.0.0"
+BEHAVIOR_MODEL_VERSION = "behavior-model-5.0.0"
 
 
 def analyze_behavior(
@@ -29,10 +29,10 @@ def analyze_behavior(
     on_stage: Callable[[str, str], None] | None = None,
 ) -> BehaviorAnalysisResult:
     if on_stage is not None:
-        on_stage("behavior_elements", "Measuring the 17 Elements behind the report.")
+        on_stage("behavior_elements", "Measuring the 18 Elements behind the report.")
     elements = score_all_elements(context)
     if on_stage is not None:
-        on_stage("behavior_patterns", "Checking which of the 14 reviewed Patterns survive the evidence gates.")
+        on_stage("behavior_patterns", "Checking which of the 11 reviewed Patterns survive the evidence gates.")
     patterns = evaluate_patterns(elements)
     if context.taxonomy is not None:
         patterns = attach_pattern_actions(patterns, context.matches, context.taxonomy)

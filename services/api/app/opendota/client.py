@@ -8,7 +8,7 @@ from typing import Any
 
 import httpx
 
-from app.core.config import FREE_HISTORY_LIMIT, Settings, get_settings
+from app.core.config import FREE_HISTORY_LIMIT, FREE_HISTORY_WINDOW_DAYS, Settings, get_settings
 from app.core.errors import OpenDotaRateLimited, OpenDotaUnavailable, ProfileUnavailable
 from app.core.metrics import record_metric
 from app.core.security import safe_endpoint
@@ -197,20 +197,27 @@ class OpenDotaClient:
         self,
         account_id: int,
         *,
-        limit: int = FREE_HISTORY_LIMIT,
+        limit: int | None = FREE_HISTORY_LIMIT,
+        days: int = FREE_HISTORY_WINDOW_DAYS,
         project: str | None = None,
     ) -> list[dict[str, Any]]:
-        effective_limit = max(1, min(limit, self.settings.effective_free_history_limit))
-        params: dict[str, Any] = {"limit": effective_limit}
+        configured_limit = self.settings.effective_free_history_limit
+        effective_limit = limit if limit is not None else configured_limit
+        if configured_limit is not None and effective_limit is not None:
+            effective_limit = min(effective_limit, configured_limit)
+        params: dict[str, Any] = {"date": max(1, int(days))}
+        if effective_limit is not None:
+            params["limit"] = max(1, int(effective_limit))
         if project:
             params["project"] = project
         value = await self._request_json(
             f"/players/{account_id}/matches",
             params=params,
-            cache_key=f"matches:{account_id}:{effective_limit}:{project or ''}",
+            cache_key=f"matches:{account_id}:{params['date']}:{effective_limit or 'all'}:{project or ''}",
             cache_ttl=120,
         )
-        return list(value or [])[:effective_limit]
+        rows = list(value or [])
+        return rows if effective_limit is None else rows[:effective_limit]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:
         return await self._request_json(

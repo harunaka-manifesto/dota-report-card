@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-PORTFOLIO_CONFIG_VERSION = "hero-portfolio-config-1.0.0"
+PORTFOLIO_CONFIG_VERSION = "hero-portfolio-config-5.0.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,7 +36,9 @@ class PortfolioAnalysisConfig:
     mirror_min_dimension_coverage: float = 0.75
     mirror_min_final_score: float = 0.55
     mirror_min_runner_up_margin: float = 0.04
-    p02_history_limit: int = 500
+    # Free DNA is bounded by the one-year window, not by a hidden 500-row
+    # action slice.  Keep the field as an optional infrastructure guardrail.
+    p02_history_limit: int | None = None
     p02_min_rankable_matches: int = 10
     p02_min_action_heroes: int = 5
     p02_reference_core_size: int = 2

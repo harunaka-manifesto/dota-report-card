@@ -1,6 +1,6 @@
 # OpenDota data inventory
 
-Free DNA uses the public profile plus one bounded
+Free DNA uses the public profile plus one previous-365-day
 /players/{account_id}/matches history window. Normalized fields include timing,
 duration, hero, side/result, kills, deaths, assists, and nullable role hints.
 Missingness is preserved through every stage.
@@ -14,7 +14,7 @@ patch, skill, and similar labels remain hints with documented confounders.
 
 | Product path | Reads | Public result |
 |---|---|---|
-| Free DNA | One bounded summary-history request | 17 Elements, 14 Patterns, Hero Portfolio, story, share |
+| Free DNA | One previous-365-day summary-history request | 18 Elements, 11 Patterns, Hero Portfolio, story, share |
 | Deep Scan | Explicit detail requests | Separate detailed evidence report |
 | Replay parse | Zero in Free | Never assumed available |
 
