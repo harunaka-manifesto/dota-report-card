@@ -6,6 +6,7 @@ from statistics import mean
 from typing import Any
 
 from app.dna.features.models import DnaFeatureSet
+from app.heroes.knowledge import SnapshotHeroKnowledgeProvider
 from app.heroes.taxonomy import HeroTaxonomy, HeroTaxonomyEntry, load_default_taxonomy
 
 HERO_IDENTITY_VERSION = "hero-identity-1.1.0"
@@ -144,7 +145,12 @@ def select_hero_identity(
     try:
         from app.heroes.recommendations import recommend_heroes
 
-        recommendations = recommend_heroes(comfort, features, taxonomy)
+        recommendations = recommend_heroes(
+            comfort,
+            features,
+            taxonomy,
+            hero_knowledge=SnapshotHeroKnowledgeProvider(),
+        )
     except (KeyError, TypeError, ValueError):
         recommendations = []
         limitations.append("hero_recommendations_unavailable")

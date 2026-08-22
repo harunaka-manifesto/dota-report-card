@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from app.analysis.budget import DataCostLedger
+from app.behavior.outcomes import SEMANTIC_OUTCOME_VERSION
 from app.behavior.presentation import (
     PATTERN_PRESENTATION_VERSION,
     PatternPresentationPayload,
@@ -41,7 +42,8 @@ from app.hero_portfolio.version import (
     HERO_SYNERGIES_VERSION,
     PATTERN_ACTIONS_VERSION,
 )
-from app.heroes.knowledge import TaxonomyHeroKnowledgeProvider
+from app.heroes.knowledge import SnapshotHeroKnowledgeProvider, TaxonomyHeroKnowledgeProvider
+from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION
 from app.share.service import RENDERER_VERSION
 
 REPORT_SCHEMA_VERSION = "free-dna-report-5.2.0"
@@ -78,7 +80,12 @@ def assemble_free_dna_report_v4(
     taxonomy = analysis.taxonomy
     if taxonomy is None:
         raise ValueError("Free DNA report assembly requires the scoring hero taxonomy snapshot")
-    hero_knowledge = TaxonomyHeroKnowledgeProvider(taxonomy)
+    hero_knowledge = analysis.hero_knowledge or SnapshotHeroKnowledgeProvider()
+    if not getattr(hero_knowledge, "available", True):
+        # Historical callers may construct an analysis without the generated
+        # snapshot.  Keep that compatibility path explicit; active v5.2
+        # analysis always carries SnapshotHeroKnowledgeProvider.
+        hero_knowledge = TaxonomyHeroKnowledgeProvider(taxonomy)
     pattern_presentations = {
         pattern.key: build_pattern_presentation(
             pattern,
@@ -110,6 +117,8 @@ def assemble_free_dna_report_v4(
         "pattern_ranking": PATTERN_RANKING_VERSION,
         "pattern_actions": PATTERN_ACTIONS_VERSION,
         "presentation": PATTERN_PRESENTATION_VERSION,
+        "semantic_outcomes": SEMANTIC_OUTCOME_VERSION,
+        "semantic_recommendations": SEMANTIC_RECOMMENDATION_VERSION,
         "hero_taxonomy": _taxonomy_version(portfolio),
         "hero_knowledge": hero_knowledge.version,
         "hero_relationships": HERO_RELATIONSHIPS_VERSION,

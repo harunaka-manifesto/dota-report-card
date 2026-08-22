@@ -174,6 +174,10 @@ def job_display_label(value: str) -> str:
 
     labels = {
         "global_presence": "Global presence",
+        "teamfight_control": "Teamfight control",
+        "counter_initiation": "Counter-initiation",
+        "catch": "Catch",
+        "displacement": "Displacement",
         "micro_intensity": "Micro intensity",
         "farm_dependency": "Farm dependence",
         "sustained_damage": "Sustained damage",

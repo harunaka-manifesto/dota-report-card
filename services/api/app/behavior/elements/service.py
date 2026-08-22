@@ -34,6 +34,7 @@ from app.dna.dimensions import orientation as legacy_orientation
 from app.dna.features.models import DnaFeatureSet
 from app.dna.recency import effective_sample_size, weighted_mean, weighted_median
 from app.dna.sessions import SessionResult
+from app.heroes.knowledge import HeroKnowledgeProvider
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -46,6 +47,7 @@ class SummaryBehaviorContext:
     sessions: SessionResult
     features: DnaFeatureSet
     taxonomy: HeroTaxonomy | None = None
+    hero_knowledge: HeroKnowledgeProvider | None = None
     history_tier: str = "normal"
 
     @property

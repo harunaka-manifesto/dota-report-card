@@ -8,6 +8,7 @@ from app.behavior.display_bands import (
     session_curve_band,
 )
 from app.behavior.models import PatternResult
+from app.behavior.outcomes import SEMANTIC_OUTCOME_BRANCHES, SEMANTIC_OUTCOME_VERSION
 from app.behavior.presentation import (
     PATTERN_PRESENTATION_CONTRACT,
     PATTERN_PRESENTATION_VERSION,
@@ -44,6 +45,9 @@ def test_every_registered_pattern_has_a_deterministic_visual_contract() -> None:
         assert payload.presentation_version == PATTERN_PRESENTATION_VERSION
         assert payload.recommendation_id is None
         assert payload.deep_dive_id is None
+        assert payload.semantic_outcome_id in SEMANTIC_OUTCOME_BRANCHES[key]
+        assert payload.as_dict()["semantic_outcome_version"] == SEMANTIC_OUTCOME_VERSION
+        assert payload.as_dict()["semantic_recommendation_version"]
 
 
 def test_qualified_patterns_get_reviewed_copy_and_low_confidence_gets_fallback() -> None:

@@ -22,7 +22,20 @@ from app.behavior.display_bands import (
     session_curve_label,
 )
 from app.behavior.models import ElementResult, PatternResult
-from app.heroes.knowledge import HeroKnowledgeProvider, TaxonomyHeroKnowledgeProvider
+from app.behavior.outcomes import (
+    SEMANTIC_OUTCOME_BRANCHES,
+    SEMANTIC_OUTCOME_VERSION,
+    SEMANTIC_RECOMMENDATION_BRANCHES,
+    SEMANTIC_RECOMMENDATION_IDS,
+    classify_pattern_outcome,
+    classify_recommendation_state,
+)
+from app.heroes.knowledge import (
+    HERO_DEMAND_FAMILIES,
+    HeroKnowledgeProvider,
+    TaxonomyHeroKnowledgeProvider,
+)
+from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION
 from app.heroes.relationships import build_pool_profile
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
@@ -152,6 +165,8 @@ class PatternPresentationPayload:
     recommendation_id: str | None = None
     recommendation_context: Mapping[str, Any] | None = None
     deep_dive_id: str | None = None
+    semantic_outcome_id: str | None = None
+    semantic_recommendation_id: str | None = None
     evidence_refs: tuple[str, ...] = ()
     raw_metrics: Mapping[str, float | int | str | bool | None] = field(default_factory=dict)
     confidence: str = "unavailable"
@@ -171,6 +186,19 @@ class PatternPresentationPayload:
             raise ValueError(f"Unexpected recommendation for Pattern {self.pattern_id}")
         if self.deep_dive_id is not None and self.deep_dive_id != contract["deep_dive_id"]:
             raise ValueError(f"Unexpected deep dive for Pattern {self.pattern_id}")
+        if self.semantic_outcome_id is not None and self.semantic_outcome_id not in SEMANTIC_OUTCOME_BRANCHES[self.pattern_id]:
+            raise ValueError(f"Unexpected semantic outcome for Pattern {self.pattern_id}")
+        if (
+            self.semantic_recommendation_id is not None
+            and self.semantic_recommendation_id not in SEMANTIC_RECOMMENDATION_IDS
+        ):
+            raise ValueError(f"Unexpected semantic recommendation for Pattern {self.pattern_id}")
+        if (
+            self.semantic_recommendation_id is not None
+            and self.semantic_recommendation_id
+            not in SEMANTIC_RECOMMENDATION_BRANCHES[self.pattern_id]
+        ):
+            raise ValueError(f"Unexpected recommendation branch for Pattern {self.pattern_id}")
         if self.presentation_version != PATTERN_PRESENTATION_VERSION:
             raise ValueError(f"Unexpected presentation version for Pattern {self.pattern_id}")
 
@@ -188,6 +216,10 @@ class PatternPresentationPayload:
                 else None
             ),
             "deep_dive_id": self.deep_dive_id,
+            "semantic_outcome_id": self.semantic_outcome_id,
+            "semantic_recommendation_id": self.semantic_recommendation_id,
+            "semantic_outcome_version": SEMANTIC_OUTCOME_VERSION,
+            "semantic_recommendation_version": SEMANTIC_RECOMMENDATION_VERSION,
             "evidence_refs": list(self.evidence_refs),
             "raw_metrics": dict(self.raw_metrics),
             "confidence": self.confidence,
@@ -226,6 +258,12 @@ def build_pattern_presentation(
     )
     recommendation_available = _recommendation_is_supported(pattern)
     recommendation_id = contract["recommendation_id"] if recommendation_available else None
+    semantic_outcome_id = classify_pattern_outcome(pattern.key, action_data)
+    semantic_recommendation_id = (
+        classify_recommendation_state(pattern.key, action_data)
+        if recommendation_available
+        else None
+    )
     recommendation_context = (
         _recommendation_context(pattern.key, action_data, proof_data, hero_knowledge=knowledge)
         if recommendation_available
@@ -240,6 +278,8 @@ def build_pattern_presentation(
         recommendation_id=recommendation_id,
         recommendation_context=recommendation_context,
         deep_dive_id=contract["deep_dive_id"] if recommendation_available else None,
+        semantic_outcome_id=semantic_outcome_id,
+        semantic_recommendation_id=semantic_recommendation_id,
         evidence_refs=evidence_refs,
         raw_metrics=dict(pattern.effect_metrics),
         confidence=pattern.confidence,
@@ -326,6 +366,16 @@ def _proof_data(
                 "repeated_hero_count": action.get("repeated_hero_count", 0),
             }
         )
+        if hero_knowledge is not None:
+            proof["hero_semantics"] = [
+                {
+                    "hero_id": hero_id,
+                    "hero_name": hero_name,
+                    **_hero_semantic_context(semantic),
+                }
+                for hero_id, hero_name in zip(hero_ids, hero_names, strict=False)
+                if (semantic := hero_knowledge.get(hero_id)) is not None
+            ]
     elif pattern.key in {"bounceback", "performance_slide"}:
         strongest = action.get("strongest_context") or {}
         proof.update(
@@ -340,11 +390,20 @@ def _proof_data(
                 "comparison_contexts": action.get("comparison_contexts", []),
             }
         )
+        if strongest.get("hero_id") is not None and hero_knowledge is not None:
+            semantic = hero_knowledge.get(int(strongest["hero_id"]))
+            if semantic is not None:
+                proof["hero_semantics"] = _hero_semantic_context(semantic)
     elif pattern.key in {"controlled_presence", "presence_tax"}:
         contexts = action.get("comparison_rows") or action.get("comparison_contexts") or []
         proof["contexts"] = [_presence_proof(item) for item in contexts]
         proof["shape"] = action.get("shape")
         proof["deep_analysis_candidate"] = action.get("deep_analysis_candidate", False)
+        strongest = contexts[0] if contexts else None
+        if isinstance(strongest, Mapping) and strongest.get("hero_id") is not None and hero_knowledge is not None:
+            semantic = hero_knowledge.get(int(strongest["hero_id"]))
+            if semantic is not None:
+                proof["hero_semantics"] = _hero_semantic_context(semantic)
     elif pattern.key in {"session_fade", "session_rise"}:
         direction: Literal["fade", "rise"] = "fade" if pattern.key == "session_fade" else "rise"
         curve = action.get("curve", [])
@@ -452,6 +511,18 @@ def _presence_proof(item: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _hero_semantic_context(hero: Any) -> dict[str, Any]:
+    return {
+        "primary_functions": list(hero.primary_functions),
+        "secondary_functions": list(hero.secondary_functions),
+        "demands": dict(hero.demands),
+        "empirical_support": hero.empirical_support,
+        "confidence": hero.confidence,
+        "provenance_versions": dict(hero.provenance_versions),
+        "evidence_refs": list(hero.evidence_refs),
+    }
+
+
 def _recommendation_context(
     pattern_key: str,
     action: Mapping[str, Any],
@@ -467,6 +538,38 @@ def _recommendation_context(
     elif pattern_key == "comfort_edge":
         development = action.get("development", [])
         candidate = development[0] if development else None
+    elif pattern_key == "partial_transfer":
+        hypotheses = action.get("capability_hypotheses") or []
+        hypothesis = hypotheses[0] if hypotheses and isinstance(hypotheses[0], Mapping) else None
+        evidence = action.get("evidence_summary") or {}
+        if hypothesis is not None:
+            demand = hypothesis.get("capability_key")
+            new_demands = [demand] if demand in HERO_DEMAND_FAMILIES else []
+            hypothesis_confidence = float(hypothesis.get("confidence_score") or 0.0)
+            return {
+                "kind": "practice",
+                "hero_id": None,
+                "hero_name": None,
+                "familiar_jobs": proof.get("strongest_jobs", []),
+                "adds": [],
+                "intent": "change_angle",
+                "familiar_anchors": proof.get("strongest_jobs", []),
+                "new_demands": new_demands,
+                "learning_distance": None,
+                "role_fit": None,
+                "empirical_support": "unknown",
+                "confidence": (
+                    "high"
+                    if hypothesis_confidence >= 0.75
+                    else "medium"
+                    if hypothesis_confidence >= 0.50
+                    else "low"
+                ),
+                "limitations": list(action.get("limitations", []))
+                + ["This is a demand hypothesis, not a causal explanation."],
+                "provenance_versions": dict(evidence.get("provenance_versions", {})),
+                "evidence_refs": list(evidence.get("evidence_keys", [])),
+            }
     if not candidate:
         return {
             "kind": "practice",
@@ -474,6 +577,15 @@ def _recommendation_context(
             "hero_name": None,
             "familiar_jobs": proof.get("strongest_jobs", []),
             "adds": proof.get("missing_functions", []),
+            "intent": None,
+            "familiar_anchors": proof.get("strongest_jobs", []),
+            "new_demands": [],
+            "learning_distance": None,
+            "role_fit": None,
+            "empirical_support": "unknown",
+            "confidence": "low",
+            "limitations": ["no_eligible_hero_candidate"],
+            "provenance_versions": {},
         }
     knowledge = hero_knowledge.get(candidate.get("hero_id")) if hero_knowledge else None
     if candidate.get("hero_id") is not None and knowledge is None:
@@ -483,15 +595,37 @@ def _recommendation_context(
             "hero_name": None,
             "familiar_jobs": proof.get("strongest_jobs", []),
             "adds": proof.get("missing_functions", []),
+            "intent": None,
+            "familiar_anchors": proof.get("strongest_jobs", []),
+            "new_demands": [],
+            "learning_distance": None,
+            "role_fit": None,
+            "empirical_support": "unknown",
+            "confidence": "low",
+            "limitations": ["hero_knowledge_missing"],
             "provenance_versions": {},
         }
+    rationale = candidate.get("semantic_rationale") or {}
+    if not isinstance(rationale, Mapping):
+        rationale = {}
     return {
         "kind": "hero" if candidate.get("hero_id") else "practice",
         "hero_id": candidate.get("hero_id"),
         "hero_name": knowledge.display_name if knowledge else candidate.get("hero_name"),
         "familiar_jobs": candidate.get("anchor_traits") or candidate.get("shared_anchors") or proof.get("strongest_jobs", []),
         "adds": candidate.get("added_traits") or candidate.get("adds_jobs") or proof.get("missing_functions", []),
-        "provenance_versions": dict(knowledge.provenance_versions) if knowledge else {},
+        "intent": rationale.get("intent"),
+        "familiar_anchors": rationale.get("familiar_anchors", candidate.get("anchor_traits") or candidate.get("shared_anchors") or []),
+        "new_demands": rationale.get("new_demands", []),
+        "learning_distance": rationale.get("learning_distance"),
+        "role_fit": rationale.get("role_fit"),
+        "empirical_support": rationale.get("empirical_support", knowledge.empirical_support if knowledge else "unknown"),
+        "confidence": rationale.get("confidence", knowledge.confidence if knowledge else "low"),
+        "limitations": rationale.get("limitations", []),
+        "provenance_versions": dict(
+            rationale.get("provenance_versions", knowledge.provenance_versions if knowledge else {})
+        ),
+        "evidence_refs": rationale.get("evidence_refs", knowledge.evidence_refs if knowledge else []),
     }
 
 

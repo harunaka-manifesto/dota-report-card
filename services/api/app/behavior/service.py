@@ -36,7 +36,12 @@ def analyze_behavior(
         on_stage("behavior_patterns", "Checking which of the 11 reviewed Patterns survive the evidence gates.")
     patterns = evaluate_patterns(elements)
     if context.taxonomy is not None:
-        patterns = attach_pattern_actions(patterns, context.matches, context.taxonomy)
+        patterns = attach_pattern_actions(
+            patterns,
+            context.matches,
+            context.taxonomy,
+            hero_knowledge=context.hero_knowledge,
+        )
     dimensions = _summarize_dimensions(elements, patterns)
     quality = _quality(elements, patterns, context.history_tier)
     versions = BehaviorVersionMap(

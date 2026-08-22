@@ -6,6 +6,99 @@ from typing import Any
 
 from .errors import ValidationError
 
+SEMANTIC_FUNCTIONS = frozenset(
+    {
+        "initiation",
+        "counter_initiation",
+        "catch",
+        "frontline",
+        "teamfight_control",
+        "save",
+        "sustain",
+        "displacement",
+        "repositioning",
+        "mobility",
+        "pickoff",
+        "burst",
+        "sustained_damage",
+        "wave_clear",
+        "push",
+        "global_presence",
+        "scaling",
+        "vision",
+    }
+)
+SEMANTIC_DEMANDS = frozenset(
+    {"commitment", "access", "repositioning", "economy", "timing", "execution", "exposure", "micro"}
+)
+SEMANTIC_BANDS = frozenset({"low", "medium", "high", "unknown"})
+
+
+def validate_semantic_layer(snapshot: dict[str, Any]) -> tuple[str, ...]:
+    """Validate the reviewed semantic facts before snapshot generation."""
+
+    errors: list[str] = []
+    for field in ("schema_version", "version", "review_status", "heroes"):
+        if field not in snapshot:
+            errors.append(f"semantic.missing:{field}")
+    if snapshot.get("review_status") not in {"reviewed", "approved"}:
+        errors.append("semantic.review_not_approved")
+    vocabulary = snapshot.get("vocabulary")
+    if not isinstance(vocabulary, dict):
+        errors.append("semantic.vocabulary_missing")
+    else:
+        if _as_set(vocabulary.get("functional_jobs")) != SEMANTIC_FUNCTIONS:
+            errors.append("semantic.vocabulary_functions_drift")
+        if _as_set(vocabulary.get("demands")) != SEMANTIC_DEMANDS:
+            errors.append("semantic.vocabulary_demands_drift")
+        if _as_set(vocabulary.get("bands")) != SEMANTIC_BANDS:
+            errors.append("semantic.vocabulary_bands_drift")
+    heroes = snapshot.get("heroes", [])
+    if not isinstance(heroes, list) or not heroes:
+        return tuple((*errors, "semantic.heroes_missing"))
+    ids: list[int] = []
+    for row in heroes:
+        if not isinstance(row, dict):
+            errors.append("semantic.hero_not_object")
+            continue
+        hero_id = row.get("hero_id")
+        if not isinstance(hero_id, int) or hero_id <= 0:
+            errors.append(f"semantic.invalid_hero_id:{hero_id}")
+            continue
+        ids.append(hero_id)
+        if row.get("review_status") != "approved":
+            errors.append(f"semantic.hero_not_approved:{hero_id}")
+        functions = row.get("functions", {})
+        if not isinstance(functions, dict):
+            errors.append(f"semantic.functions_missing:{hero_id}")
+        else:
+            for field in ("primary", "secondary"):
+                values = functions.get(field, [])
+                if not isinstance(values, list):
+                    errors.append(f"semantic.{hero_id}.{field}_not_list")
+                else:
+                    errors.extend(
+                        f"semantic.{hero_id}.unknown_function:{value}"
+                        for value in values
+                        if value not in SEMANTIC_FUNCTIONS
+                    )
+        demands = row.get("demands", {})
+        if not isinstance(demands, dict) or set(demands) != SEMANTIC_DEMANDS:
+            errors.append(f"semantic.{hero_id}.incomplete_demands")
+        elif any(value not in SEMANTIC_BANDS for value in demands.values()):
+            errors.append(f"semantic.{hero_id}.invalid_demand_band")
+        if row.get("confidence") not in {"high", "medium", "low"}:
+            errors.append(f"semantic.{hero_id}.invalid_confidence")
+        if row.get("empirical_support") not in SEMANTIC_BANDS:
+            errors.append(f"semantic.{hero_id}.invalid_empirical_support")
+    if len(ids) != len(set(ids)):
+        errors.append("semantic.duplicate_hero_ids")
+    return tuple(errors)
+
+
+def _as_set(value: Any) -> set[Any]:
+    return set(value) if isinstance(value, (list, tuple, set, frozenset)) else set()
+
 
 def _rate(value: Any, field: str, errors: list[str]) -> None:
     if value is None:

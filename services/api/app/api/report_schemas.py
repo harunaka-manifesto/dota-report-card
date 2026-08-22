@@ -64,6 +64,8 @@ class VersionMapV5Schema(PublicModel):
     context_baseline: str = "context-baseline-0.0.0"
     presentation: str | None = None
     hero_knowledge: str | None = None
+    semantic_outcomes: str | None = None
+    semantic_recommendations: str | None = None
 
 
 class ReproducibilityConfigSchema(PublicModel):
@@ -150,6 +152,10 @@ class PatternPresentationSchema(PublicModel):
     recommendation_id: str | None = None
     recommendation_context: dict[str, Any] | None = None
     deep_dive_id: str | None = None
+    semantic_outcome_id: str | None = None
+    semantic_recommendation_id: str | None = None
+    semantic_outcome_version: str | None = None
+    semantic_recommendation_version: str | None = None
     evidence_refs: list[str] = Field(default_factory=list)
     raw_metrics: dict[str, float | int | str | bool | None] = Field(default_factory=dict)
     confidence: BehaviorConfidence
@@ -177,6 +183,22 @@ class BehaviorElementSchema(PublicModel):
     methodology_version: str
 
 
+class HeroRecommendationRationaleSchema(PublicModel):
+    hero_id: int = Field(gt=0)
+    intent: Literal["double_down", "adjacent_move", "fill_gap", "change_angle", "specialist"]
+    familiar_anchors: list[str]
+    adds: list[str]
+    new_demands: list[str]
+    learning_distance: Literal["low", "moderate", "high"]
+    role_fit: Literal["supported", "conditional", "unsupported"]
+    empirical_support: Literal["high", "medium", "low", "unknown"]
+    confidence: Literal["high", "medium", "low"]
+    limitations: list[str]
+    provenance_versions: dict[str, str]
+    evidence_refs: list[str]
+    eligible: bool
+
+
 class PatternHeroRecommendationSchema(PublicModel):
     hero_id: int = Field(gt=0)
     hero_name: str
@@ -191,6 +213,7 @@ class PatternHeroRecommendationSchema(PublicModel):
     what_stays_familiar: str
     what_changes: str
     provenance_versions: dict[str, str]
+    semantic_rationale: HeroRecommendationRationaleSchema | None = None
 
 
 class SamePlaybookActionSchema(PublicModel):
@@ -233,6 +256,7 @@ class ComfortEdgeDevelopmentReasonSchema(PublicModel):
     why_learn: str
     limitations: list[str]
     provenance_versions: dict[str, str]
+    semantic_rationale: HeroRecommendationRationaleSchema | None = None
 
 
 class ComfortEdgeActionSchema(PublicModel):
@@ -302,6 +326,7 @@ class HeroAdditionRecommendationSchema(PublicModel):
     solves_gap: str
     player_facing_reason: str
     confidence_score: float = Field(ge=0, le=1)
+    semantic_rationale: HeroRecommendationRationaleSchema | None = None
 
 
 class VersatileCoreActionSchema(PublicModel):

@@ -20,6 +20,7 @@ from app.behavior.context_baseline import (
     primary_function,
     resolve_leave_group_out_baseline,
 )
+from app.behavior.display_bands import job_display_label
 from app.behavior.models import (
     ActionStatus,
     BouncebackAction,
@@ -64,6 +65,8 @@ from app.heroes.evidence import (
     representative_synergies,
     situations_for_traits,
 )
+from app.heroes.knowledge import FUNCTIONAL_JOBS, HERO_DEMAND_FAMILIES, HeroKnowledgeProvider
+from app.heroes.recommendations import HeroRecommendationRationale, recommend_semantic_heroes
 from app.heroes.relationships import (
     build_pool_profile,
     candidate_traits,
@@ -113,6 +116,16 @@ _P03_CAPABILITIES = (
     ("pickoff", "target-selective catch"),
     ("repositioning", "disengage and repositioning"),
     ("sustained_damage", "damage uptime"),
+)
+_P03_SEMANTIC_DEMANDS = (
+    ("commitment", "commitment"),
+    ("access", "access"),
+    ("repositioning", "repositioning"),
+    ("economy", "economy"),
+    ("timing", "timing"),
+    ("execution", "execution"),
+    ("exposure", "exposure"),
+    ("micro", "micro"),
 )
 _PRESENCE_MIN_SAMPLE = 5
 _PRESENCE_FUNCTION_THRESHOLD = 0.68
@@ -171,6 +184,7 @@ def attach_pattern_actions(
     patterns: Sequence[PatternResult],
     matches: Sequence[NormalizedSummaryMatch],
     taxonomy: HeroTaxonomy,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> tuple[PatternResult, ...]:
     """Attach only reviewed actions to qualified Pattern results."""
 
@@ -191,13 +205,13 @@ def attach_pattern_actions(
         ) = None
         if pattern.status == "qualified":
             if pattern.key == "same_playbook":
-                action = build_same_playbook_action(matches, taxonomy)
+                action = build_same_playbook_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key == "comfort_edge":
-                action = build_comfort_edge_action(matches, taxonomy)
+                action = build_comfort_edge_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key == "partial_transfer":
-                action = build_partial_transfer_action(matches, taxonomy)
+                action = build_partial_transfer_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key == "versatile_core":
-                action = build_versatile_core_action(matches, taxonomy)
+                action = build_versatile_core_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key == "proven_flexibility":
                 action = build_proven_flexibility_action(matches, taxonomy)
             elif pattern.key == "bounceback":
@@ -399,7 +413,10 @@ def _session_companion_signals(
 
 
 def build_partial_transfer_action(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> PartialTransferDiagnostic:
     """Explain a qualified P03 gap only to the strongest supported level."""
 
@@ -446,9 +463,16 @@ def build_partial_transfer_action(
 
     hypotheses: list[CapabilityHypothesis] = []
     if not direct and core_ids and off_ids and row_confidence >= 0.50:
-        for capability_key, display_name in _P03_CAPABILITIES:
-            core_prevalence = _hero_capability_prevalence(core_ids, taxonomy, capability_key)
-            off_prevalence = _hero_capability_prevalence(off_ids, taxonomy, capability_key)
+        capability_definitions = _P03_SEMANTIC_DEMANDS if hero_knowledge else _P03_CAPABILITIES
+        for capability_key, display_name in capability_definitions:
+            core_prevalence = _hero_capability_prevalence(
+                core_ids, taxonomy, capability_key, hero_knowledge=hero_knowledge
+            )
+            off_prevalence = _hero_capability_prevalence(
+                off_ids, taxonomy, capability_key, hero_knowledge=hero_knowledge
+            )
+            if core_prevalence is None or off_prevalence is None:
+                continue
             separation = off_prevalence - core_prevalence
             confidence = min(
                 row_confidence,
@@ -492,6 +516,22 @@ def build_partial_transfer_action(
     limitations: tuple[str, ...] = (
         "Free summary history can show observable differences or hero-demand differences, but it cannot establish positioning, item timing, spell usage, target choice, farming efficiency, or fight conversion.",
     )
+    if hero_knowledge is not None:
+        semantic_entries = [
+            hero_knowledge.get(hero_id) for hero_id in sorted(core_ids | off_ids)
+        ]
+        if any(entry is None for entry in semantic_entries):
+            limitations += (
+                "Hero semantics are unavailable for part of the comparison pool; no demand hypothesis is inferred from missing records.",
+            )
+        elif any(
+            entry is not None
+            and any(value == "unknown" for value in entry.demands.values())
+            for entry in semantic_entries
+        ):
+            limitations += (
+                "Some demand families are unknown in the frozen hero snapshot; the hypothesis remains intentionally narrow.",
+            )
     if not core_rows or not off_rows:
         limitations += ("The familiar and off-pool comparison cells are too sparse for a narrower lead.",)
     action_resolution: Literal["resolved", "fallback", "unresolved", "not_applicable"] = (
@@ -521,7 +561,10 @@ def build_partial_transfer_action(
 
 
 def build_versatile_core_action(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> VersatileCoreAction:
     """Map the compact core, then recommend a real next tool or abstain."""
 
@@ -533,8 +576,16 @@ def build_versatile_core_action(
         if job_map is not None:
             job_maps_list.append(job_map)
     job_maps = tuple(job_maps_list)
-    coverage = _coverage_summary(core_ids, taxonomy)
-    recommendation_candidates = _versatile_addition_candidates(matches, taxonomy, profile, coverage)
+    coverage = (
+        _semantic_coverage_summary(core_ids, hero_knowledge)
+        if hero_knowledge is not None
+        else _coverage_summary(core_ids, taxonomy)
+    )
+    recommendation_candidates = (
+        _semantic_addition_candidates(matches, hero_knowledge)
+        if hero_knowledge is not None
+        else _versatile_addition_candidates(matches, taxonomy, profile, coverage)
+    )
     recommendation = recommendation_candidates[0] if recommendation_candidates else None
     alternatives = tuple(recommendation_candidates[1:3]) if recommendation else ()
     if recommendation is None:
@@ -571,7 +622,16 @@ def build_versatile_core_action(
             effective_sample_size_value=float(len(matches)),
             coverage=len(profile.hero_ids) / max(len(matches), 1),
             confidence_score=profile.confidence_score,
-            evidence_keys=("hero.taxonomy", "hero.pool_profile", "hero.job_coverage"),
+            evidence_keys=(
+                "hero.knowledge" if hero_knowledge is not None else "hero.taxonomy",
+                "hero.pool_profile",
+                "hero.job_coverage",
+            ),
+            provenance_versions=(
+                {"hero_knowledge": hero_knowledge.version}
+                if hero_knowledge is not None
+                else {}
+            ),
         ),
     )
 
@@ -762,10 +822,27 @@ def _p03_signal_coverage(
 
 
 def _hero_capability_prevalence(
-    hero_ids: set[int], taxonomy: HeroTaxonomy, capability_key: str
-) -> float:
+    hero_ids: set[int],
+    taxonomy: HeroTaxonomy,
+    capability_key: str,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
+) -> float | None:
     if not hero_ids:
-        return 0.0
+        return None
+    if hero_knowledge is not None:
+        known = 0
+        covered = 0
+        for hero_id in hero_ids:
+            entry = hero_knowledge.get(hero_id)
+            if entry is None:
+                continue
+            band = entry.demands.get(capability_key)
+            if band == "unknown" or band is None:
+                continue
+            known += 1
+            covered += band in {"medium", "high"}
+        return covered / known if known else None
     covered = sum(
         1
         for hero_id in hero_ids
@@ -814,6 +891,66 @@ def _coverage_summary(core_ids: Sequence[int], taxonomy: HeroTaxonomy) -> Covera
     thin = tuple(sorted(trait_label(key) for key, value in counts.items() if value == 2))
     missing = tuple(sorted(trait_label(key) for key in _JOB_TRAITS if counts.get(key, 0) == 0))
     return CoverageSummary(strong, single, thin, missing)
+
+
+def _semantic_coverage_summary(
+    core_ids: Sequence[int], provider: HeroKnowledgeProvider
+) -> CoverageSummary:
+    counts = Counter(
+        job
+        for hero_id in core_ids
+        if (entry := provider.get(hero_id)) is not None
+        for job in (*entry.primary_functions, *entry.secondary_functions)
+    )
+    strong_gate = max(2, (len(core_ids) + 1) // 2)
+    strong = tuple(
+        job_display_label(key)
+        for key in FUNCTIONAL_JOBS
+        if counts.get(key, 0) >= strong_gate
+    )
+    single = tuple(job_display_label(key) for key in FUNCTIONAL_JOBS if counts.get(key, 0) == 1)
+    thin = tuple(job_display_label(key) for key in FUNCTIONAL_JOBS if counts.get(key, 0) == 2)
+    missing = tuple(job_display_label(key) for key in FUNCTIONAL_JOBS if counts.get(key, 0) == 0)
+    return CoverageSummary(strong, single, thin, missing)
+
+
+def _semantic_addition_candidates(
+    matches: Sequence[NormalizedSummaryMatch],
+    provider: HeroKnowledgeProvider,
+) -> list[HeroAdditionRecommendation]:
+    rationales = recommend_semantic_heroes(
+        matches,
+        provider,
+        intent="fill_gap",
+        limit=3,
+    )
+    return [_addition_from_rationale(rationale, provider) for rationale in rationales]
+
+
+def _addition_from_rationale(
+    rationale: HeroRecommendationRationale,
+    provider: HeroKnowledgeProvider,
+) -> HeroAdditionRecommendation:
+    entry = provider.get(rationale.hero_id)
+    if entry is None:
+        raise ValueError(f"Semantic recommendation references unknown hero {rationale.hero_id}")
+    adds = tuple(job_display_label(key) for key in rationale.adds[:4])
+    anchors = tuple(job_display_label(key) for key in rationale.familiar_anchors[:3])
+    first_add = adds[0] if adds else "a distinct functional job"
+    confidence = {"high": 0.90, "medium": 0.65, "low": 0.25}[rationale.confidence]
+    return HeroAdditionRecommendation(
+        hero_id=entry.hero_id,
+        hero_name=entry.display_name,
+        adds_jobs=adds,
+        shared_anchors=anchors,
+        solves_gap=f"adds {first_add} to the current core",
+        player_facing_reason=(
+            f"{entry.display_name} keeps {', '.join(anchors) or 'a reviewed anchor'} "
+            f"and adds {', '.join(adds) or 'a new functional job'}."
+        ),
+        confidence_score=confidence,
+        semantic_rationale=rationale,
+    )
 
 
 def _versatile_addition_candidates(
@@ -1556,6 +1693,8 @@ def _finishing_flavor(matches: Sequence[NormalizedSummaryMatch]) -> str | None:
 def build_same_playbook_action(
     matches: Sequence[NormalizedSummaryMatch],
     taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> SamePlaybookAction:
     profile = build_pool_profile(matches, taxonomy)
     if len(profile.hero_ids) < 2 or not profile.dominant_traits:
@@ -1568,20 +1707,38 @@ def build_same_playbook_action(
             stretch=(),
             confidence_score=profile.confidence_score,
             limitations=("At least two established, taxonomy-covered heroes are needed to build a playbook path.",),
-            provenance_versions=dict(_PROVENANCE_KEYS),
+            provenance_versions={
+                **dict(_PROVENANCE_KEYS),
+                **({"hero_knowledge": hero_knowledge.version} if hero_knowledge else {}),
+            },
             evidence_summary=_action_evidence(
                 status="unresolved",
                 sample_size=len(matches),
                 effective_sample_size_value=float(len(matches)),
                 coverage=0.0 if not profile.hero_ids else len(profile.hero_ids) / max(len(matches), 1),
                 confidence_score=profile.confidence_score,
-                evidence_keys=("hero.taxonomy", "hero.pool_profile", "hero.relationships"),
-                provenance_versions=dict(_PROVENANCE_KEYS),
+                evidence_keys=(
+                    "hero.knowledge" if hero_knowledge is not None else "hero.taxonomy",
+                    "hero.pool_profile",
+                    "hero.relationships",
+                ),
+                provenance_versions={
+                    **dict(_PROVENANCE_KEYS),
+                    **({"hero_knowledge": hero_knowledge.version} if hero_knowledge else {}),
+                },
             ),
         )
 
-    deepen = _recommendations(matches, taxonomy, profile, direction="deepen")
-    stretch = _recommendations(matches, taxonomy, profile, direction="stretch")
+    if hero_knowledge is not None:
+        deepen = _semantic_pattern_recommendations(
+            matches, hero_knowledge, intent="double_down", direction="deepen"
+        )
+        stretch = _semantic_pattern_recommendations(
+            matches, hero_knowledge, intent="adjacent_move", direction="stretch"
+        )
+    else:
+        deepen = _recommendations(matches, taxonomy, profile, direction="deepen")
+        stretch = _recommendations(matches, taxonomy, profile, direction="stretch")
     status: ActionStatus = "available" if deepen and stretch else "limited" if deepen or stretch else "unavailable"
     limitations: list[str] = []
     if len(deepen) < 3:
@@ -1599,15 +1756,25 @@ def build_same_playbook_action(
         stretch=stretch,
         confidence_score=profile.confidence_score,
         limitations=tuple(limitations),
-        provenance_versions=dict(_PROVENANCE_KEYS),
+        provenance_versions={
+            **dict(_PROVENANCE_KEYS),
+            **({"hero_knowledge": hero_knowledge.version} if hero_knowledge else {}),
+        },
         evidence_summary=_action_evidence(
             status="resolved" if status == "available" else "fallback" if status == "limited" else "unresolved",
             sample_size=len(matches),
             effective_sample_size_value=float(len(matches)),
             coverage=len(profile.hero_ids) / max(len(matches), 1),
             confidence_score=profile.confidence_score,
-            evidence_keys=("hero.taxonomy", "hero.pool_profile", "hero.relationships"),
-            provenance_versions=dict(_PROVENANCE_KEYS),
+            evidence_keys=(
+                "hero.knowledge" if hero_knowledge is not None else "hero.taxonomy",
+                "hero.pool_profile",
+                "hero.relationships",
+            ),
+            provenance_versions={
+                **dict(_PROVENANCE_KEYS),
+                **({"hero_knowledge": hero_knowledge.version} if hero_knowledge else {}),
+            },
         ),
     )
 
@@ -1615,6 +1782,8 @@ def build_same_playbook_action(
 def build_comfort_edge_action(
     matches: Sequence[NormalizedSummaryMatch],
     taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> ComfortEdgeAction:
     rows = _latest_usable_rows(matches)
     reliability = _rank_hero_reliability(rows, taxonomy)
@@ -1630,15 +1799,25 @@ def build_comfort_edge_action(
                 f"Comfort Edge needs {PORTFOLIO_CONFIG.p02_min_action_heroes} sufficiently rankable heroes; "
                 f"only {len(reliability)} cleared the per-hero sample gate.",
             ),
-            provenance_versions=dict(_PROVENANCE_KEYS),
+            provenance_versions={
+                **dict(_PROVENANCE_KEYS),
+                **({"hero_knowledge": hero_knowledge.version} if hero_knowledge else {}),
+            },
             evidence_summary=_action_evidence(
                 status="unresolved",
                 sample_size=len(rows),
                 effective_sample_size_value=float(len(rows)),
                 coverage=len(reliability) / max(PORTFOLIO_CONFIG.p02_min_action_heroes, 1),
                 confidence_score=min((item.confidence_score for item in reliability), default=0.0),
-                evidence_keys=("hero.taxonomy", "hero.reliability", "hero.pool_profile"),
-                provenance_versions=dict(_PROVENANCE_KEYS),
+                evidence_keys=(
+                    "hero.knowledge" if hero_knowledge is not None else "hero.taxonomy",
+                    "hero.reliability",
+                    "hero.pool_profile",
+                ),
+                provenance_versions={
+                    **dict(_PROVENANCE_KEYS),
+                    **({"hero_knowledge": hero_knowledge.version} if hero_knowledge else {}),
+                },
             ),
         )
 
@@ -1646,7 +1825,7 @@ def build_comfort_edge_action(
     profile = build_pool_profile(rows, taxonomy, hero_ids=[item.hero_id for item in top_five])
     reference_core = top_five[: PORTFOLIO_CONFIG.p02_reference_core_size]
     development = tuple(
-        _development_reason(item, reference_core, profile, taxonomy)
+        _development_reason(item, reference_core, profile, taxonomy, hero_knowledge=hero_knowledge)
         for item in top_five[PORTFOLIO_CONFIG.p02_reference_core_size :]
     )
     examples_complete = all(
@@ -1673,17 +1852,69 @@ def build_comfort_edge_action(
         development=development,
         confidence_score=min(item.confidence_score for item in top_five),
         limitations=tuple(limitations),
-        provenance_versions=dict(_PROVENANCE_KEYS),
+        provenance_versions={
+            **dict(_PROVENANCE_KEYS),
+            **({"hero_knowledge": hero_knowledge.version} if hero_knowledge else {}),
+        },
         evidence_summary=_action_evidence(
             status="resolved" if status == "available" else "fallback",
             sample_size=len(rows),
             effective_sample_size_value=float(len(rows)),
             coverage=1.0,
             confidence_score=min(item.confidence_score for item in top_five),
-            evidence_keys=("hero.taxonomy", "hero.reliability", "hero.pool_profile"),
-            provenance_versions=dict(_PROVENANCE_KEYS),
+            evidence_keys=(
+                "hero.knowledge" if hero_knowledge is not None else "hero.taxonomy",
+                "hero.reliability",
+                "hero.pool_profile",
+            ),
+            provenance_versions={
+                **dict(_PROVENANCE_KEYS),
+                **({"hero_knowledge": hero_knowledge.version} if hero_knowledge else {}),
+            },
         ),
     )
+
+
+def _semantic_pattern_recommendations(
+    matches: Sequence[NormalizedSummaryMatch],
+    provider: HeroKnowledgeProvider,
+    *,
+    intent: Literal["double_down", "adjacent_move"],
+    direction: Literal["deepen", "stretch"],
+) -> tuple[PatternHeroRecommendation, ...]:
+    rationales = recommend_semantic_heroes(matches, provider, intent=intent, limit=3)
+    result: list[PatternHeroRecommendation] = []
+    for rationale in rationales:
+        entry = provider.get(rationale.hero_id)
+        if entry is None:
+            continue
+        confidence = {"high": 0.90, "medium": 0.65, "low": 0.25}[rationale.confidence]
+        similarity = min(1.0, 0.55 + 0.15 * len(rationale.familiar_anchors))
+        novelty = min(1.0, 0.25 + 0.20 * len(rationale.adds))
+        familiar = ", ".join(job_display_label(item) for item in rationale.familiar_anchors[:3])
+        changed = ", ".join(job_display_label(item) for item in rationale.adds[:3]) or "a different expression of the same jobs"
+        result.append(
+            PatternHeroRecommendation(
+                hero_id=entry.hero_id,
+                hero_name=entry.display_name,
+                direction=direction,
+                anchor_traits=rationale.familiar_anchors[:3],
+                added_traits=rationale.adds[:3],
+                role_fit=tuple(entry.roles),
+                similarity_score=similarity,
+                novelty_score=novelty,
+                confidence_score=confidence,
+                why_it_fits=(
+                    f"{entry.display_name} keeps {familiar or 'a reviewed anchor'} "
+                    f"and adds {changed}."
+                ),
+                what_stays_familiar=f"The {familiar or 'reviewed anchor'} part of the current game remains visible.",
+                what_changes=f"The next demand is {', '.join(rationale.new_demands) or changed}.",
+                provenance_versions=dict(rationale.provenance_versions),
+                semantic_rationale=rationale,
+            )
+        )
+    return tuple(result)
 
 
 def _recommendations(
@@ -1842,6 +2073,8 @@ def _development_reason(
     reference_core: Sequence[ComfortEdgeHeroReliability],
     profile: Any,
     taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> ComfortEdgeDevelopmentReason:
     entry = taxonomy.get(item.hero_id)
     core_ids = tuple(hero.hero_id for hero in reference_core)
@@ -1871,6 +2104,11 @@ def _development_reason(
         limitations.append("No high-confidence aggregate matchup examples are available in the checked-in artifact.")
     if not teammate_ids:
         limitations.append("No high-confidence aggregate teammate-synergy examples are available in the checked-in artifact.")
+    semantic_rationale = _comfort_edge_semantic_rationale(
+        item.hero_id,
+        core_ids,
+        hero_knowledge,
+    )
     return ComfortEdgeDevelopmentReason(
         hero_id=item.hero_id,
         hero_name=item.hero_name,
@@ -1888,7 +2126,105 @@ def _development_reason(
         tradeoffs=("It may ask for a different learning rhythm than the stronger reference core.",),
         why_learn=why,
         limitations=tuple(limitations),
-        provenance_versions=dict(_PROVENANCE_KEYS),
+        provenance_versions={
+            **dict(_PROVENANCE_KEYS),
+            **(
+                {"hero_knowledge": hero_knowledge.version}
+                if hero_knowledge is not None
+                else {}
+            ),
+        },
+        semantic_rationale=semantic_rationale,
+    )
+
+
+def _comfort_edge_semantic_rationale(
+    hero_id: int,
+    core_ids: Sequence[int],
+    provider: HeroKnowledgeProvider | None,
+) -> HeroRecommendationRationale | None:
+    """Describe an established development hero without inventing a new pick."""
+
+    if provider is None:
+        return None
+    candidate = provider.get(hero_id)
+    core_entries = tuple(
+        entry for core_id in core_ids if (entry := provider.get(core_id)) is not None
+    )
+    if candidate is None or not core_entries:
+        return None
+    core_jobs = {
+        job
+        for entry in core_entries
+        for job in (*entry.primary_functions, *entry.secondary_functions)
+    }
+    familiar = tuple(
+        job
+        for job in (*candidate.primary_functions, *candidate.secondary_functions)
+        if job in core_jobs
+    )
+    adds = tuple(
+        job
+        for job in (*candidate.primary_functions, *candidate.secondary_functions)
+        if job not in core_jobs
+    )
+    demand_order = {"low": 0, "medium": 1, "high": 2, "unknown": -1}
+    core_demands: dict[str, str] = {}
+    for family in HERO_DEMAND_FAMILIES:
+        known = [entry.demands.get(family, "unknown") for entry in core_entries]
+        core_demands[family] = max(known, key=lambda value: demand_order.get(value, -1))
+    new_demands = tuple(
+        family
+        for family in HERO_DEMAND_FAMILIES
+        if candidate.demands.get(family) in {"medium", "high"}
+        and core_demands.get(family) not in {"medium", "high"}
+    )
+    unknown_demands = sum(
+        candidate.demands.get(family) == "unknown" for family in HERO_DEMAND_FAMILIES
+    )
+    high_new = sum(candidate.demands.get(family) == "high" for family in new_demands)
+    learning_distance: Literal["low", "moderate", "high"]
+    if high_new >= 3 or candidate.demands.get("micro") == "high" and "micro" in new_demands:
+        learning_distance = "high"
+    elif len(new_demands) >= 2 or unknown_demands >= 4:
+        learning_distance = "moderate"
+    else:
+        learning_distance = "low"
+    empirical_support = (
+        candidate.empirical_support
+        if candidate.empirical_support in {"high", "medium", "low", "unknown"}
+        else "unknown"
+    )
+    candidate_confidence = (
+        candidate.confidence if candidate.confidence in {"high", "medium", "low"} else "low"
+    )
+    confidence = (
+        "medium"
+        if empirical_support == "unknown" and candidate_confidence == "high"
+        else candidate_confidence
+    )
+    limitations: list[str] = []
+    if empirical_support == "unknown":
+        limitations.append("Empirical support is unknown; this is not a current-meta claim.")
+    if unknown_demands:
+        limitations.append("Some hero-demand families are unknown in the frozen snapshot.")
+    return HeroRecommendationRationale(
+        hero_id=candidate.hero_id,
+        intent="change_angle",
+        familiar_anchors=tuple(dict.fromkeys(familiar))[:4],
+        adds=tuple(dict.fromkeys(adds))[:4],
+        new_demands=new_demands[:4],
+        learning_distance=learning_distance,
+        role_fit="conditional",
+        empirical_support=empirical_support,  # type: ignore[arg-type]
+        confidence=confidence,  # type: ignore[arg-type]
+        limitations=tuple(limitations),
+        provenance_versions={
+            **dict(candidate.provenance_versions),
+            "hero_knowledge": provider.version,
+        },
+        evidence_refs=candidate.evidence_refs,
+        eligible=True,
     )
 
 

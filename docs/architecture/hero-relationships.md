@@ -55,9 +55,17 @@ CPU-only and performs no runtime network call or model inference.
 
 ## Hero knowledge integration
 
-The ingestion pipeline supplies a versioned `HeroKnowledgeRepository` seam for
-future recommendation enrichment. It can provide mechanics-derived functions,
-hero demands, OpenDota empirical support, and confidence without making the
-current relationship layer depend on raw source fields. Until the pilot is
-reviewed, the existing taxonomy and aggregate relationship artifacts remain the
-runtime source for current P01/P02 behavior.
+The ingestion pipeline supplies a versioned `HeroKnowledgeRepository` plus the
+runtime `SnapshotHeroKnowledgeProvider` adapter. Active v5.2 P01–P04 hero
+reasoning consumes normalized functional jobs, demand bands, role fit,
+empirical support, confidence, and provenance from that provider. P05–P09 may
+attach the same semantic context to behavioral proof without forcing a hero
+recommendation; P10/P11 remain session-curve stories.
+
+The old taxonomy and aggregate relationship artifacts remain available for
+historical reproducibility, migrated features, and an explicit compatibility
+fallback. They are not the active semantic source for v5.2 hero
+recommendations. The pilot vocabulary and recommendation handoff are frozen in
+`services/api/app/heroes/data/semantics/pilot-v1.json` and the generated
+`hero-knowledge-semantic-freeze-pilot-v1` snapshot. Production copy authoring
+is intentionally a separate next phase.

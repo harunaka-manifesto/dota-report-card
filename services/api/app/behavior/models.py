@@ -11,6 +11,7 @@ from app.behavior.context_baseline import CONTEXT_BASELINE_VERSION
 from app.behavior.evidence import BehaviorEvidence
 from app.behavior.tiers import DataCapability, EvidenceTier, ModelStatus, ProductTier
 from app.hero_portfolio.version import PATTERN_ACTIONS_VERSION
+from app.heroes.recommendations import HeroRecommendationRationale
 
 Confidence = Literal["low", "moderate", "high", "unavailable"]
 ElementStatus = Literal["available", "limited", "unavailable"]
@@ -310,6 +311,7 @@ class PatternHeroRecommendation:
     what_stays_familiar: str
     what_changes: str
     provenance_versions: Mapping[str, str] = field(default_factory=dict)
+    semantic_rationale: HeroRecommendationRationale | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -326,6 +328,7 @@ class PatternHeroRecommendation:
             "what_stays_familiar": self.what_stays_familiar,
             "what_changes": self.what_changes,
             "provenance_versions": dict(self.provenance_versions),
+            "semantic_rationale": self.semantic_rationale.as_dict() if self.semantic_rationale else None,
         }
 
 
@@ -400,6 +403,7 @@ class ComfortEdgeDevelopmentReason:
     why_learn: str
     limitations: tuple[str, ...] = ()
     provenance_versions: Mapping[str, str] = field(default_factory=dict)
+    semantic_rationale: HeroRecommendationRationale | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -420,6 +424,7 @@ class ComfortEdgeDevelopmentReason:
             "why_learn": self.why_learn,
             "limitations": list(self.limitations),
             "provenance_versions": dict(self.provenance_versions),
+            "semantic_rationale": self.semantic_rationale.as_dict() if self.semantic_rationale else None,
         }
 
 
@@ -570,6 +575,7 @@ class HeroAdditionRecommendation:
     solves_gap: str
     player_facing_reason: str
     confidence_score: float
+    semantic_rationale: HeroRecommendationRationale | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -580,6 +586,7 @@ class HeroAdditionRecommendation:
             "solves_gap": self.solves_gap,
             "player_facing_reason": self.player_facing_reason,
             "confidence_score": round(self.confidence_score, 6),
+            "semantic_rationale": self.semantic_rationale.as_dict() if self.semantic_rationale else None,
         }
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -83,11 +84,13 @@ def build_knowledge_snapshot(
     generated_at: str | None = None,
     hero_ids: set[int] | None = None,
     knowledge_version: str | None = None,
+    reviewed_semantics: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     generated = generated_at or isoformat()
     valve_heroes = _hero_map(valve)
     opendota_heroes = _hero_map(opendota)
     valve_plus_heroes = _hero_map(valve_plus)
+    semantic_heroes = _semantic_map(reviewed_semantics)
     selected = sorted(hero_ids or valve_heroes)
     if not selected:
         raise SourceSchemaError("Cannot build a knowledge snapshot without Valve heroes")
@@ -129,6 +132,7 @@ def build_knowledge_snapshot(
                 "empirical": "opendota.aggregate",
                 "optional_valve_plus": "valve_plus.optional" if optional else "unknown",
                 "editorial": "heroes_metadata/*.md",
+                "semantic": "reviewed_semantics" if hero_id in semantic_heroes else "unknown",
             },
             "source_versions": {
                 "valve_snapshot": valve.get("snapshot_id"),
@@ -137,6 +141,9 @@ def build_knowledge_snapshot(
                 "valve_plus_snapshot": valve_plus.get("snapshot_id") if valve_plus else None,
                 "mechanic_rules": mechanic_result["provenance"]["rule_version"],
                 "behavior_rules": behavior_result["provenance"]["rule_version"],
+                "semantic_snapshot": (
+                    reviewed_semantics.get("version") if reviewed_semantics else None
+                ),
             },
             "generated_at": generated,
             "confidence": source_confidence(
@@ -145,23 +152,56 @@ def build_knowledge_snapshot(
                 valve_plus=valve_plus,
             ),
         }
+        semantic = semantic_heroes.get(hero_id)
+        functions = mechanic_result["functions"]
+        demands = {
+            **mechanic_result["demands"],
+            **{"behavior": behavior_result.get("role_flexibility")},
+        }
+        capabilities = mechanic_result["capabilities"]
+        editorial = editorial_provenance(root, identity)
+        if semantic is not None:
+            reviewed_functions = semantic.get("functions", {})
+            if isinstance(reviewed_functions, Mapping):
+                functions = {
+                    "primary": list(reviewed_functions.get("primary", [])),
+                    "secondary": list(reviewed_functions.get("secondary", [])),
+                }
+            demands.update(_semantic_evidence_map(semantic.get("demands"), semantic))
+            capabilities.update(_semantic_function_capabilities(functions, semantic))
+            editorial.update(
+                {
+                    "strengths": list(semantic.get("strengths", [])),
+                    "weaknesses": list(semantic.get("weaknesses", [])),
+                    "teamfight_jobs": list(semantic.get("teamfight_profile", [])),
+                    "review_status": semantic.get("review_status", "approved"),
+                    "review": dict(semantic.get("review", {})),
+                }
+            )
         record = HeroKnowledgeRecord(
             identity=identity,
             mechanics=mechanics_source,
-            functions=mechanic_result["functions"],
-            demands={
-                **mechanic_result["demands"],
-                **{"behavior": behavior_result.get("role_flexibility")},
-            },
-            capabilities=mechanic_result["capabilities"],
+            functions=functions,
+            demands=demands,
+            capabilities=capabilities,
             empirical=empirical,
-            editorial=editorial_provenance(root, identity),
+            editorial=editorial,
             provenance=provenance,
             derived_characteristics={
                 "behavior": behavior_result,
             },
         )
-        records.append(record.as_dict())
+        record_data = record.as_dict()
+        if semantic is not None:
+            record_data["semantic_version"] = str(
+                reviewed_semantics.get("version", "hero-semantics-unknown")
+                if reviewed_semantics
+                else "hero-semantics-unknown"
+            )
+            record_data["semantic_confidence"] = str(semantic.get("confidence", "low"))
+            record_data["empirical_support"] = str(semantic.get("empirical_support", "unknown"))
+            record_data["reviewed_evidence_refs"] = _semantic_evidence_refs(semantic)
+        records.append(record_data)
     version = knowledge_version or f"hero-knowledge-{generated[:10]}"
     return {
         "schema_version": SCHEMA_VERSION,
@@ -191,10 +231,85 @@ def build_knowledge_snapshot(
                 ),
             },
             "dotacoach_editorial": {"snapshot": "existing-heroes-metadata"},
+            "semantic_review": (
+                {
+                    "snapshot": reviewed_semantics.get("version"),
+                    "status": reviewed_semantics.get("review_status", "unknown"),
+                    "hero_count": len(semantic_heroes),
+                }
+                if reviewed_semantics
+                else {"snapshot": None, "status": "unavailable", "hero_count": 0}
+            ),
         },
         "hero_count": len(records),
         "heroes": records,
     }
+
+
+def _semantic_map(snapshot: Mapping[str, Any] | None) -> dict[int, dict[str, Any]]:
+    if not snapshot:
+        return {}
+    heroes = snapshot.get("heroes", [])
+    if not isinstance(heroes, list):
+        return {}
+    return {
+        int(row["hero_id"]): row
+        for row in heroes
+        if isinstance(row, Mapping) and row.get("hero_id") is not None
+    }
+
+
+def _semantic_evidence_map(
+    value: Any, semantic: Mapping[str, Any]
+) -> dict[str, dict[str, Any]]:
+    if not isinstance(value, Mapping):
+        return {}
+    return {
+        str(key): {
+            "characteristic": str(key),
+            "band": str(band) if str(band) in {"low", "medium", "high", "unknown"} else "unknown",
+            "derived_from": _semantic_evidence_refs(semantic, key=str(key)),
+            "rule_version": str(semantic.get("version", "hero-semantics-unknown")),
+        }
+        for key, band in value.items()
+    }
+
+
+def _semantic_function_capabilities(
+    functions: Mapping[str, Any], semantic: Mapping[str, Any]
+) -> dict[str, dict[str, Any]]:
+    values: list[str] = []
+    for field_name in ("primary", "secondary"):
+        field = functions.get(field_name, [])
+        if isinstance(field, list):
+            values.extend(str(item) for item in field)
+    return {
+        key: {
+            "characteristic": key,
+            "band": "high" if key in set(str(item) for item in functions.get("primary", [])) else "medium",
+            "derived_from": _semantic_evidence_refs(semantic, key=key),
+            "rule_version": str(semantic.get("version", "hero-semantics-unknown")),
+        }
+        for key in dict.fromkeys(values)
+    }
+
+
+def _semantic_evidence_refs(semantic: Mapping[str, Any], *, key: str | None = None) -> list[str]:
+    refs: list[str] = []
+    fields = ("strengths", "weaknesses") if key is not None else ("strengths", "weaknesses", "teamfight_profile")
+    for field_name in fields:
+        values = semantic.get(field_name, [])
+        if not isinstance(values, list):
+            continue
+        for value in values:
+            if not isinstance(value, Mapping):
+                continue
+            if key is not None and value.get("semantic_key") != key:
+                continue
+            evidence = value.get("evidence_refs", [])
+            if isinstance(evidence, list):
+                refs.extend(str(item) for item in evidence)
+    return list(dict.fromkeys(refs))
 
 
 def build_manifest(

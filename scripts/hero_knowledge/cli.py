@@ -21,6 +21,7 @@ from .validate import (
     assert_valid,
     validate_knowledge_snapshot,
     validate_opendota_snapshot,
+    validate_semantic_layer,
     validate_valve_snapshot,
 )
 from .valve.client import ValveDatafeedClient
@@ -236,6 +237,15 @@ def _required_opendota(
     return snapshot, path
 
 
+def _reviewed_semantics(settings: Settings, value: Path | None) -> dict[str, Any] | None:
+    path = value or (settings.root / "services/api/app/heroes/data/semantics/pilot-v1.json")
+    if not path.exists():
+        return None
+    snapshot = read_json(path)
+    assert_valid(validate_semantic_layer(snapshot), "semantic layer")
+    return snapshot
+
+
 def _optional_valve_plus(
     settings: Settings, snapshot_id: str | None
 ) -> tuple[dict[str, Any] | None, Path | None]:
@@ -275,6 +285,7 @@ def _build(args: argparse.Namespace) -> int:
         require_complete=require_complete,
     )
     valve_plus, valve_plus_path = _optional_valve_plus(settings, args.valve_plus_snapshot_id)
+    reviewed_semantics = _reviewed_semantics(settings, args.semantic_layer)
     generated_at = isoformat()
     version = args.knowledge_version or f"hero-knowledge-{generated_at[:10]}{label}"
     knowledge = build_knowledge_snapshot(
@@ -285,6 +296,7 @@ def _build(args: argparse.Namespace) -> int:
         generated_at=generated_at,
         hero_ids=selected_ids,
         knowledge_version=version,
+        reviewed_semantics=reviewed_semantics,
     )
     assert_valid(validate_knowledge_snapshot(knowledge), "knowledge")
     output = settings.knowledge_root / f"{version}.json"
@@ -371,6 +383,7 @@ def _refresh(args: argparse.Namespace) -> int:
     write_json(valve_plus_path, valve_plus)
     generated_at = isoformat()
     version = args.knowledge_version or f"hero-knowledge-{generated_at[:10]}"
+    reviewed_semantics = _reviewed_semantics(settings, args.semantic_layer)
     knowledge = build_knowledge_snapshot(
         valve,
         opendota,
@@ -379,6 +392,7 @@ def _refresh(args: argparse.Namespace) -> int:
         generated_at=generated_at,
         hero_ids=hero_ids,
         knowledge_version=version,
+        reviewed_semantics=reviewed_semantics,
     )
     assert_valid(validate_knowledge_snapshot(knowledge), "knowledge")
     output = settings.knowledge_root / f"{version}.json"
@@ -504,6 +518,7 @@ def _parser() -> argparse.ArgumentParser:
     build.add_argument("--opendota-snapshot-id")
     build.add_argument("--valve-plus-snapshot-id")
     build.add_argument("--knowledge-version")
+    build.add_argument("--semantic-layer", type=Path)
 
     refresh = subparsers.add_parser("refresh", help="fetch, normalize, validate, and build one snapshot")
     refresh.add_argument("--hero")
@@ -512,6 +527,7 @@ def _parser() -> argparse.ArgumentParser:
     refresh.add_argument("--valve-plus-snapshot-id")
     refresh.add_argument("--force-refresh", action="store_true")
     refresh.add_argument("--knowledge-version")
+    refresh.add_argument("--semantic-layer", type=Path)
 
     validate = subparsers.add_parser("validate")
     validate.add_argument("source", choices=("valve", "opendota", "valve-plus", "knowledge", "all"))

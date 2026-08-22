@@ -15,6 +15,7 @@ from app.dna.recency import DEFAULT_HALF_LIFE_DAYS
 from app.dna.sessions import SessionPolicy, SessionResult, infer_sessions
 from app.hero_portfolio.models import HeroPortfolioResult
 from app.hero_portfolio.service import analyze_hero_portfolio
+from app.heroes.knowledge import HeroKnowledgeProvider, SnapshotHeroKnowledgeProvider
 from app.heroes.taxonomy import HeroTaxonomy, load_default_taxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -34,6 +35,7 @@ class DnaAnalysisResult:
     # presentation can use the same hero identities and never silently load a
     # different knowledge version during assembly.
     taxonomy: HeroTaxonomy | None = None
+    hero_knowledge: HeroKnowledgeProvider | None = None
 
     @property
     def overall_confidence(self) -> str:
@@ -104,12 +106,14 @@ def analyze_dna(
             behavior_taxonomy = None
     if behavior_taxonomy is None:
         raise ValueError("The reviewed hero taxonomy is required for Free DNA")
+    hero_knowledge = SnapshotHeroKnowledgeProvider()
     history_kind = history_tier or ("limited" if 30 <= features.sample_size < 60 else "normal")
     context = SummaryBehaviorContext(
         matches=sessions.matches,
         sessions=sessions,
         features=features,
         taxonomy=behavior_taxonomy,
+        hero_knowledge=hero_knowledge,
         history_tier=history_kind,
     )
     behavior = analyze_behavior(context, on_stage=stage)
@@ -128,4 +132,5 @@ def analyze_dna(
         hero_portfolio=portfolio,
         history_tier=history_kind,
         taxonomy=behavior_taxonomy,
+        hero_knowledge=hero_knowledge,
     )

@@ -1,0 +1,3094 @@
+{
+  "freeze": {
+    "copy_authoring_status": "not_started",
+    "pilot_hero_ids": [
+      2,
+      13,
+      38,
+      44,
+      50,
+      53,
+      74,
+      82,
+      96,
+      111
+    ],
+    "semantic_vocabulary_version": "hero-semantics-pilot-v1",
+    "status": "pilot-reviewed"
+  },
+  "generated_at": "2026-08-22T00:00:00Z",
+  "hero_count": 10,
+  "heroes": [
+    {
+      "capabilities": {
+        "burst": {
+          "band": "medium",
+          "characteristic": "burst",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "catch": {
+          "band": "medium",
+          "characteristic": "catch",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "counter_initiation": {
+          "band": "medium",
+          "characteristic": "counter_initiation",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "frontline": {
+          "band": "high",
+          "characteristic": "frontline",
+          "derived_from": [
+            "valve:axe:counter_helix",
+            "valve:axe:berserkers_call"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "initiation": {
+          "band": "high",
+          "characteristic": "initiation",
+          "derived_from": [
+            "valve:axe:berserkers_call"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "teamfight_control": {
+          "band": "high",
+          "characteristic": "teamfight_control",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "medium",
+          "characteristic": "access",
+          "derived_from": [
+            "valve:axe:blink_dependency"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "high",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "medium",
+          "characteristic": "economy",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "medium",
+          "characteristic": "execution",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "high",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "low",
+          "characteristic": "micro",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "medium",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:006-axe.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/006-axe.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:axe:berserkers_call"
+            ],
+            "semantic_key": "initiation"
+          },
+          {
+            "evidence_refs": [
+              "valve:axe:counter_helix",
+              "valve:axe:berserkers_call"
+            ],
+            "semantic_key": "frontline"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "teamfight_control"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "valve:axe:blink_dependency"
+            ],
+            "semantic_key": "access"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 2,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "initiation",
+          "frontline",
+          "teamfight_control"
+        ],
+        "secondary": [
+          "counter_initiation",
+          "catch",
+          "burst"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Axe"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Axe",
+        "hero_id": 2,
+        "internal_name": "axe",
+        "key": "axe",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/axe.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "carry",
+          "offlane"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:axe:berserkers_call",
+        "valve:axe:counter_helix",
+        "valve:axe:blink_dependency"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    },
+    {
+      "capabilities": {
+        "catch": {
+          "band": "high",
+          "characteristic": "catch",
+          "derived_from": [
+            "valve:puck:waning_rift",
+            "valve:puck:dream_coil"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "counter_initiation": {
+          "band": "medium",
+          "characteristic": "counter_initiation",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "initiation": {
+          "band": "medium",
+          "characteristic": "initiation",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "mobility": {
+          "band": "high",
+          "characteristic": "mobility",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "high",
+          "characteristic": "repositioning",
+          "derived_from": [
+            "valve:puck:illusory_orb",
+            "valve:puck:phase_shift"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "teamfight_control": {
+          "band": "medium",
+          "characteristic": "teamfight_control",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "low",
+          "characteristic": "access",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "medium",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "medium",
+          "characteristic": "economy",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "high",
+          "characteristic": "execution",
+          "derived_from": [
+            "valve:puck:spell_sequence"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "medium",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "low",
+          "characteristic": "micro",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "high",
+          "characteristic": "repositioning",
+          "derived_from": [
+            "valve:puck:illusory_orb",
+            "valve:puck:phase_shift"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:081-puck.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/081-puck.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:puck:illusory_orb",
+              "valve:puck:phase_shift"
+            ],
+            "semantic_key": "repositioning"
+          },
+          {
+            "evidence_refs": [
+              "valve:puck:waning_rift",
+              "valve:puck:dream_coil"
+            ],
+            "semantic_key": "catch"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "catch"
+          },
+          {
+            "priority": "secondary",
+            "semantic_key": "counter_initiation"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "valve:puck:spell_sequence"
+            ],
+            "semantic_key": "execution"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 13,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "catch",
+          "repositioning",
+          "mobility"
+        ],
+        "secondary": [
+          "initiation",
+          "counter_initiation",
+          "teamfight_control"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Puck"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Puck",
+        "hero_id": 13,
+        "internal_name": "puck",
+        "key": "puck",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/puck.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "carry",
+          "mid",
+          "offlane"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:puck:illusory_orb",
+        "valve:puck:phase_shift",
+        "valve:puck:waning_rift",
+        "valve:puck:dream_coil",
+        "valve:puck:spell_sequence"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    },
+    {
+      "capabilities": {
+        "catch": {
+          "band": "medium",
+          "characteristic": "catch",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "frontline": {
+          "band": "medium",
+          "characteristic": "frontline",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "initiation": {
+          "band": "high",
+          "characteristic": "initiation",
+          "derived_from": [
+            "valve:beastmaster:primal_roar"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "push": {
+          "band": "high",
+          "characteristic": "push",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "teamfight_control": {
+          "band": "medium",
+          "characteristic": "teamfight_control",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "vision": {
+          "band": "high",
+          "characteristic": "vision",
+          "derived_from": [
+            "valve:beastmaster:hawk"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "medium",
+          "characteristic": "access",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "high",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "medium",
+          "characteristic": "economy",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "high",
+          "characteristic": "execution",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "high",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "high",
+          "characteristic": "micro",
+          "derived_from": [
+            "valve:beastmaster:controlled_units"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "medium",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:009-beastmaster.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/009-beastmaster.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:beastmaster:hawk"
+            ],
+            "semantic_key": "vision"
+          },
+          {
+            "evidence_refs": [
+              "valve:beastmaster:primal_roar"
+            ],
+            "semantic_key": "initiation"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "initiation"
+          },
+          {
+            "priority": "primary",
+            "semantic_key": "vision"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "valve:beastmaster:controlled_units"
+            ],
+            "semantic_key": "micro"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 38,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "initiation",
+          "vision",
+          "push"
+        ],
+        "secondary": [
+          "frontline",
+          "catch",
+          "teamfight_control"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Beastmaster"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Beastmaster",
+        "hero_id": 38,
+        "internal_name": "beastmaster",
+        "key": "beastmaster",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/beastmaster.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "mid",
+          "offlane"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:beastmaster:hawk",
+        "valve:beastmaster:primal_roar",
+        "valve:beastmaster:controlled_units"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    },
+    {
+      "capabilities": {
+        "burst": {
+          "band": "high",
+          "characteristic": "burst",
+          "derived_from": [
+            "valve:phantom_assassin:critical_strikes"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "mobility": {
+          "band": "medium",
+          "characteristic": "mobility",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "pickoff": {
+          "band": "high",
+          "characteristic": "pickoff",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "medium",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "scaling": {
+          "band": "high",
+          "characteristic": "scaling",
+          "derived_from": [
+            "valve:phantom_assassin:blur"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "sustained_damage": {
+          "band": "medium",
+          "characteristic": "sustained_damage",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "high",
+          "characteristic": "access",
+          "derived_from": [
+            "hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "medium",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "high",
+          "characteristic": "economy",
+          "derived_from": [
+            "hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "medium",
+          "characteristic": "execution",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "medium",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "low",
+          "characteristic": "micro",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "medium",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:077-phantom-assassin.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/077-phantom-assassin.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:phantom_assassin:critical_strikes"
+            ],
+            "semantic_key": "burst"
+          },
+          {
+            "evidence_refs": [
+              "valve:phantom_assassin:blur"
+            ],
+            "semantic_key": "scaling"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "pickoff"
+          },
+          {
+            "priority": "primary",
+            "semantic_key": "burst"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "hero-editorial:077-phantom-assassin.md"
+            ],
+            "semantic_key": "economy"
+          },
+          {
+            "evidence_refs": [
+              "hero-editorial:077-phantom-assassin.md"
+            ],
+            "semantic_key": "access"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 44,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "burst",
+          "scaling",
+          "pickoff"
+        ],
+        "secondary": [
+          "sustained_damage",
+          "mobility",
+          "repositioning"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Phantom Assassin"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Phantom Assassin",
+        "hero_id": 44,
+        "internal_name": "phantom_assassin",
+        "key": "phantom_assassin",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/phantom_assassin.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "carry",
+          "mid"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:phantom_assassin:critical_strikes",
+        "valve:phantom_assassin:blur",
+        "hero-editorial:077-phantom-assassin.md"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    },
+    {
+      "capabilities": {
+        "catch": {
+          "band": "medium",
+          "characteristic": "catch",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "counter_initiation": {
+          "band": "medium",
+          "characteristic": "counter_initiation",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "save": {
+          "band": "high",
+          "characteristic": "save",
+          "derived_from": [
+            "valve:dazzle:shallow_grave"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "sustain": {
+          "band": "high",
+          "characteristic": "sustain",
+          "derived_from": [
+            "valve:dazzle:shadow_wave"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "teamfight_control": {
+          "band": "high",
+          "characteristic": "teamfight_control",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "high",
+          "characteristic": "access",
+          "derived_from": [
+            "valve:dazzle:backline_position"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "low",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "low",
+          "characteristic": "economy",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "high",
+          "characteristic": "execution",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "medium",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "low",
+          "characteristic": "micro",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "high",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:024-dazzle.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/024-dazzle.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:dazzle:shallow_grave"
+            ],
+            "semantic_key": "save"
+          },
+          {
+            "evidence_refs": [
+              "valve:dazzle:shadow_wave"
+            ],
+            "semantic_key": "sustain"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "save"
+          },
+          {
+            "priority": "primary",
+            "semantic_key": "sustain"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "valve:dazzle:backline_position"
+            ],
+            "semantic_key": "access"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 50,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "save",
+          "sustain",
+          "teamfight_control"
+        ],
+        "secondary": [
+          "counter_initiation",
+          "catch"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Dazzle"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Dazzle",
+        "hero_id": 50,
+        "internal_name": "dazzle",
+        "key": "dazzle",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/dazzle.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "hard_support",
+          "mid",
+          "soft_support"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:dazzle:shallow_grave",
+        "valve:dazzle:shadow_wave",
+        "valve:dazzle:backline_position"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    },
+    {
+      "capabilities": {
+        "global_presence": {
+          "band": "high",
+          "characteristic": "global_presence",
+          "derived_from": [
+            "valve:natures_prophet:teleport"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "push": {
+          "band": "high",
+          "characteristic": "push",
+          "derived_from": [
+            "valve:natures_prophet:treants"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "medium",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "scaling": {
+          "band": "medium",
+          "characteristic": "scaling",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "sustained_damage": {
+          "band": "medium",
+          "characteristic": "sustained_damage",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "vision": {
+          "band": "medium",
+          "characteristic": "vision",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "wave_clear": {
+          "band": "high",
+          "characteristic": "wave_clear",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "medium",
+          "characteristic": "access",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "low",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "high",
+          "characteristic": "economy",
+          "derived_from": [
+            "valve:natures_prophet:item_timing"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "medium",
+          "characteristic": "execution",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "medium",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "medium",
+          "characteristic": "micro",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "medium",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:068-natures-prophet.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/068-natures-prophet.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:natures_prophet:teleport"
+            ],
+            "semantic_key": "global_presence"
+          },
+          {
+            "evidence_refs": [
+              "valve:natures_prophet:treants"
+            ],
+            "semantic_key": "push"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "global_presence"
+          },
+          {
+            "priority": "primary",
+            "semantic_key": "push"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "valve:natures_prophet:item_timing"
+            ],
+            "semantic_key": "economy"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 53,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "global_presence",
+          "push",
+          "wave_clear"
+        ],
+        "secondary": [
+          "vision",
+          "repositioning",
+          "sustained_damage",
+          "scaling"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Nature's Prophet"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Nature's Prophet",
+        "hero_id": 53,
+        "internal_name": "furion",
+        "key": "furion",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/furion.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "carry",
+          "mid",
+          "offlane"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:natures_prophet:teleport",
+        "valve:natures_prophet:treants",
+        "valve:natures_prophet:item_timing"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    },
+    {
+      "capabilities": {
+        "burst": {
+          "band": "high",
+          "characteristic": "burst",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "catch": {
+          "band": "high",
+          "characteristic": "catch",
+          "derived_from": [
+            "valve:invoker:control_spells"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "global_presence": {
+          "band": "medium",
+          "characteristic": "global_presence",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "medium",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "sustained_damage": {
+          "band": "medium",
+          "characteristic": "sustained_damage",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "teamfight_control": {
+          "band": "high",
+          "characteristic": "teamfight_control",
+          "derived_from": [
+            "valve:invoker:spell_kit"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "wave_clear": {
+          "band": "medium",
+          "characteristic": "wave_clear",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "medium",
+          "characteristic": "access",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "medium",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "high",
+          "characteristic": "economy",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "high",
+          "characteristic": "execution",
+          "derived_from": [
+            "valve:invoker:spell_selection"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "medium",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "medium",
+          "characteristic": "micro",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "medium",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [
+            "valve:invoker:context_selection"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:041-invoker.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/041-invoker.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:invoker:spell_kit"
+            ],
+            "semantic_key": "teamfight_control"
+          },
+          {
+            "evidence_refs": [
+              "valve:invoker:control_spells"
+            ],
+            "semantic_key": "catch"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "teamfight_control"
+          },
+          {
+            "priority": "primary",
+            "semantic_key": "catch"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "valve:invoker:spell_selection"
+            ],
+            "semantic_key": "execution"
+          },
+          {
+            "evidence_refs": [
+              "valve:invoker:context_selection"
+            ],
+            "semantic_key": "timing"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 74,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "teamfight_control",
+          "catch",
+          "burst"
+        ],
+        "secondary": [
+          "wave_clear",
+          "global_presence",
+          "repositioning",
+          "sustained_damage"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Invoker"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Invoker",
+        "hero_id": 74,
+        "internal_name": "invoker",
+        "key": "invoker",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/invoker.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "carry",
+          "mid",
+          "offlane"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:invoker:spell_kit",
+        "valve:invoker:control_spells",
+        "valve:invoker:spell_selection",
+        "valve:invoker:context_selection"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    },
+    {
+      "capabilities": {
+        "burst": {
+          "band": "high",
+          "characteristic": "burst",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "mobility": {
+          "band": "high",
+          "characteristic": "mobility",
+          "derived_from": [
+            "valve:meepo:poof"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "pickoff": {
+          "band": "high",
+          "characteristic": "pickoff",
+          "derived_from": [
+            "valve:meepo:earthbind"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "push": {
+          "band": "medium",
+          "characteristic": "push",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "scaling": {
+          "band": "medium",
+          "characteristic": "scaling",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "wave_clear": {
+          "band": "medium",
+          "characteristic": "wave_clear",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "medium",
+          "characteristic": "access",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "high",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "high",
+          "characteristic": "economy",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "high",
+          "characteristic": "execution",
+          "derived_from": [
+            "valve:meepo:unit_control"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "high",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "high",
+          "characteristic": "micro",
+          "derived_from": [
+            "valve:meepo:multiple_units"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "high",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:062-meepo.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/062-meepo.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:meepo:poof"
+            ],
+            "semantic_key": "mobility"
+          },
+          {
+            "evidence_refs": [
+              "valve:meepo:earthbind"
+            ],
+            "semantic_key": "pickoff"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "pickoff"
+          },
+          {
+            "priority": "primary",
+            "semantic_key": "burst"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "valve:meepo:multiple_units"
+            ],
+            "semantic_key": "micro"
+          },
+          {
+            "evidence_refs": [
+              "valve:meepo:unit_control"
+            ],
+            "semantic_key": "execution"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 82,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "pickoff",
+          "burst",
+          "mobility"
+        ],
+        "secondary": [
+          "push",
+          "wave_clear",
+          "scaling"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Meepo"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Meepo",
+        "hero_id": 82,
+        "internal_name": "meepo",
+        "key": "meepo",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/meepo.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "carry",
+          "mid",
+          "offlane"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:meepo:poof",
+        "valve:meepo:earthbind",
+        "valve:meepo:multiple_units",
+        "valve:meepo:unit_control"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    },
+    {
+      "capabilities": {
+        "catch": {
+          "band": "medium",
+          "characteristic": "catch",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "counter_initiation": {
+          "band": "medium",
+          "characteristic": "counter_initiation",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "displacement": {
+          "band": "medium",
+          "characteristic": "displacement",
+          "derived_from": [
+            "valve:centaur:stampede"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "frontline": {
+          "band": "high",
+          "characteristic": "frontline",
+          "derived_from": [
+            "valve:centaur:hoof_stomp",
+            "valve:centaur:retaliate"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "initiation": {
+          "band": "high",
+          "characteristic": "initiation",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "mobility": {
+          "band": "medium",
+          "characteristic": "mobility",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "teamfight_control": {
+          "band": "high",
+          "characteristic": "teamfight_control",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "low",
+          "characteristic": "access",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "high",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "medium",
+          "characteristic": "economy",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "low",
+          "characteristic": "execution",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "high",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "low",
+          "characteristic": "micro",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "low",
+          "characteristic": "repositioning",
+          "derived_from": [
+            "valve:centaur:commitment_window"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:015-centaur-warrunner.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/015-centaur-warrunner.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:centaur:hoof_stomp",
+              "valve:centaur:retaliate"
+            ],
+            "semantic_key": "frontline"
+          },
+          {
+            "evidence_refs": [
+              "valve:centaur:stampede"
+            ],
+            "semantic_key": "displacement"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "initiation"
+          },
+          {
+            "priority": "primary",
+            "semantic_key": "teamfight_control"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "valve:centaur:commitment_window"
+            ],
+            "semantic_key": "repositioning"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 96,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "frontline",
+          "initiation",
+          "teamfight_control"
+        ],
+        "secondary": [
+          "mobility",
+          "displacement",
+          "counter_initiation",
+          "catch"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Centaur Warrunner"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Centaur Warrunner",
+        "hero_id": 96,
+        "internal_name": "centaur",
+        "key": "centaur",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/centaur.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "carry",
+          "mid",
+          "offlane"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:centaur:hoof_stomp",
+        "valve:centaur:retaliate",
+        "valve:centaur:stampede",
+        "valve:centaur:commitment_window"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    },
+    {
+      "capabilities": {
+        "burst": {
+          "band": "medium",
+          "characteristic": "burst",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "catch": {
+          "band": "medium",
+          "characteristic": "catch",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "counter_initiation": {
+          "band": "high",
+          "characteristic": "counter_initiation",
+          "derived_from": [
+            "valve:oracle:fortunes_end"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "save": {
+          "band": "high",
+          "characteristic": "save",
+          "derived_from": [
+            "valve:oracle:false_promise"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "sustain": {
+          "band": "high",
+          "characteristic": "sustain",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "teamfight_control": {
+          "band": "medium",
+          "characteristic": "teamfight_control",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "demands": {
+        "access": {
+          "band": "high",
+          "characteristic": "access",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "behavior": {
+          "band": "unknown",
+          "derived_from": [
+            "OpenDota aggregate snapshot:bracket_performance"
+          ],
+          "reason": "source_does_not_expose_lane_or_role_distribution",
+          "rule_version": "behavior-rules-1.0.0"
+        },
+        "commitment": {
+          "band": "medium",
+          "characteristic": "commitment",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "economy": {
+          "band": "low",
+          "characteristic": "economy",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "execution": {
+          "band": "high",
+          "characteristic": "execution",
+          "derived_from": [
+            "valve:oracle:spell_order"
+          ],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "exposure": {
+          "band": "medium",
+          "characteristic": "exposure",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "micro": {
+          "band": "low",
+          "characteristic": "micro",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "repositioning": {
+          "band": "high",
+          "characteristic": "repositioning",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        },
+        "timing": {
+          "band": "high",
+          "characteristic": "timing",
+          "derived_from": [],
+          "rule_version": "hero-semantics-unknown"
+        }
+      },
+      "derived_characteristics": {
+        "behavior": {
+          "duration_profile": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:duration_profile"
+            ],
+            "minimum_sample_size": 20,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "item_dependency": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:item_profile"
+            ],
+            "minimum_sample_size": 20,
+            "observed_item_count": 0,
+            "reason": "insufficient_sample",
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "matchup_context": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:matchup_profile"
+            ],
+            "evidence_population": null,
+            "interpretation": "observed association; not causal evidence",
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0
+          },
+          "meta_confidence": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "minimum_sample_size": 20,
+            "rule_version": "behavior-rules-1.0.0",
+            "sample_size": 0,
+            "status": "unknown"
+          },
+          "provenance": {
+            "correlation_boundary": "Observed build, duration, and matchup data is not causal evidence.",
+            "minimum_matches": 20,
+            "rule_version": "behavior-rules-1.0.0"
+          },
+          "role_flexibility": {
+            "band": "unknown",
+            "derived_from": [
+              "OpenDota aggregate snapshot:bracket_performance"
+            ],
+            "reason": "source_does_not_expose_lane_or_role_distribution",
+            "rule_version": "behavior-rules-1.0.0"
+          }
+        }
+      },
+      "editorial": {
+        "notes": [],
+        "policy": "Existing research corpus remains build-time evidence; scraper does not generate prose.",
+        "review": {
+          "patch": "7.41e",
+          "reviewed_at": "2026-08-22",
+          "reviewer": "free-dna-semantic-freeze",
+          "sources": [
+            "valve:mechanics",
+            "opendota:aggregate",
+            "hero-editorial:074-oracle.md"
+          ]
+        },
+        "review_status": "approved",
+        "source_file": "heroes_metadata/074-oracle.md",
+        "strengths": [
+          {
+            "evidence_refs": [
+              "valve:oracle:false_promise"
+            ],
+            "semantic_key": "save"
+          },
+          {
+            "evidence_refs": [
+              "valve:oracle:fortunes_end"
+            ],
+            "semantic_key": "counter_initiation"
+          }
+        ],
+        "teamfight_jobs": [
+          {
+            "priority": "primary",
+            "semantic_key": "save"
+          },
+          {
+            "priority": "primary",
+            "semantic_key": "counter_initiation"
+          }
+        ],
+        "weaknesses": [
+          {
+            "evidence_refs": [
+              "valve:oracle:spell_order"
+            ],
+            "semantic_key": "execution"
+          }
+        ]
+      },
+      "empirical": {
+        "bracket_performance": [],
+        "duration_profile": [],
+        "hero_id": 111,
+        "item_profile": [],
+        "matchup_profile": [],
+        "optional_valve_plus": {},
+        "provenance": {
+          "source": "OpenDota aggregate snapshot",
+          "source_window": "semantic-freeze-pilot"
+        }
+      },
+      "empirical_support": "unknown",
+      "functions": {
+        "primary": [
+          "save",
+          "counter_initiation",
+          "sustain"
+        ],
+        "secondary": [
+          "teamfight_control",
+          "catch",
+          "burst"
+        ]
+      },
+      "identity": {
+        "aliases": [
+          "Oracle"
+        ],
+        "available": true,
+        "complexity": null,
+        "display_name": "Oracle",
+        "hero_id": 111,
+        "internal_name": "oracle",
+        "key": "oracle",
+        "portrait_ref": "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/oracle.png",
+        "primary_attribute": "unknown",
+        "roles": [
+          "carry",
+          "hard_support",
+          "mid",
+          "soft_support"
+        ]
+      },
+      "mechanics": {
+        "abilities": [],
+        "base_stats": {},
+        "facet_abilities": [],
+        "facets": [],
+        "talents": []
+      },
+      "provenance": {
+        "confidence": {
+          "band": "moderate",
+          "derived_from": [
+            "valve:mechanics",
+            "opendota:aggregate"
+          ],
+          "rule_version": "behavior-rules-1.0.0",
+          "sample_requirement": 20
+        },
+        "field_sources": {
+          "capabilities": "derive.mechanics",
+          "demands": "derive.mechanics + derive.behavior",
+          "editorial": "heroes_metadata/*.md",
+          "empirical": "opendota.aggregate",
+          "functions": "derive.mechanics",
+          "identity": "valve.roster",
+          "mechanics": "valve.herodata",
+          "optional_valve_plus": "unknown",
+          "semantic": "reviewed_semantics"
+        },
+        "generated_at": "2026-08-22T00:00:00Z",
+        "schema_version": "hero-knowledge-schema-1.0.0",
+        "source_versions": {
+          "behavior_rules": "behavior-rules-1.0.0",
+          "mechanic_rules": "mechanic-rules-1.0.0",
+          "opendota_snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+          "semantic_snapshot": "hero-semantics-pilot-v1",
+          "valve_patch": "7.41e",
+          "valve_plus_snapshot": null,
+          "valve_snapshot": "valve-semantic-freeze-pilot-7.41e"
+        }
+      },
+      "reviewed_evidence_refs": [
+        "valve:oracle:false_promise",
+        "valve:oracle:fortunes_end",
+        "valve:oracle:spell_order"
+      ],
+      "semantic_confidence": "high",
+      "semantic_version": "hero-semantics-pilot-v1"
+    }
+  ],
+  "knowledge_version": "hero-knowledge-semantic-freeze-pilot-v1",
+  "schema_version": "hero-knowledge-schema-1.0.0",
+  "sources": {
+    "dotacoach_editorial": {
+      "snapshot": "existing-heroes-metadata"
+    },
+    "opendota": {
+      "endpoint_semantics": {
+        "population": "public_aggregate",
+        "role_distribution": "unknown"
+      },
+      "hero_count": 10,
+      "required": true,
+      "snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+      "status": "partial"
+    },
+    "semantic_review": {
+      "hero_count": 10,
+      "snapshot": "hero-semantics-pilot-v1",
+      "status": "approved"
+    },
+    "valve": {
+      "patch": "7.41e",
+      "roster_count": 10,
+      "snapshot": "valve-semantic-freeze-pilot-7.41e"
+    },
+    "valve_plus": {
+      "reason": "optional_provider_not_configured",
+      "required": false,
+      "snapshot": null,
+      "status": "unavailable"
+    }
+  }
+}

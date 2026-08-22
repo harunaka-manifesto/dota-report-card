@@ -1,0 +1,54 @@
+{
+  "freeze_status": "pilot-reviewed",
+  "generated_at": "2026-08-22T00:00:00Z",
+  "hero_count": 10,
+  "knowledge_path": "knowledge/hero-knowledge-semantic-freeze-pilot-v1.json",
+  "knowledge_sha256": "fc5f24b30f786dcb400fbd1b14cb5d0c4a5da36d2815519584611bdfa41cfad1",
+  "knowledge_version": "hero-knowledge-semantic-freeze-pilot-v1",
+  "pilot_hero_ids": [
+    2,
+    13,
+    38,
+    44,
+    50,
+    53,
+    74,
+    82,
+    96,
+    111
+  ],
+  "schema_version": "hero-knowledge-schema-1.0.0",
+  "semantic_layer_path": "semantics/pilot-v1.json",
+  "semantic_vocabulary_version": "hero-semantics-pilot-v1",
+  "sources": {
+    "dotacoach_editorial": {
+      "snapshot": "existing-heroes-metadata"
+    },
+    "opendota": {
+      "endpoint_semantics": {
+        "population": "public_aggregate",
+        "role_distribution": "unknown"
+      },
+      "hero_count": 10,
+      "required": true,
+      "snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
+      "status": "partial"
+    },
+    "semantic_review": {
+      "hero_count": 10,
+      "snapshot": "hero-semantics-pilot-v1",
+      "status": "approved"
+    },
+    "valve": {
+      "patch": "7.41e",
+      "roster_count": 10,
+      "snapshot": "valve-semantic-freeze-pilot-7.41e"
+    },
+    "valve_plus": {
+      "reason": "optional_provider_not_configured",
+      "required": false,
+      "snapshot": null,
+      "status": "unavailable"
+    }
+  }
+}

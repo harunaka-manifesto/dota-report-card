@@ -2,7 +2,9 @@
 
 The hero knowledge pipeline creates reviewable, versioned data for
 recommendations and future Deep Dive analysis. It is a build-time pipeline;
-the production API never scrapes and never invokes an LLM.
+the production API never scrapes and never invokes an LLM. The v5.2 semantic
+freeze adds a reviewed pilot overlay to the generated snapshot and makes that
+snapshot the active provider for semantic hero recommendations.
 
 ```text
 Valve datafeed ───────┐
@@ -35,6 +37,7 @@ services/api/app/heroes/data/
 ├── normalized/valve/<snapshot-id>.json
 ├── normalized/opendota/<snapshot-id>.json
 ├── normalized/valve_plus/<snapshot-id>.json
+├── semantics/pilot-v1.json
 ├── knowledge/<knowledge-version>.json
 └── hero-knowledge-manifest.json
 ```
@@ -94,6 +97,13 @@ Existing `heroes_metadata/*.md` files remain build-time editorial/research
 evidence. The scraper never generates production copy and never overwrites
 that corpus.
 
+The checked-in pilot semantic layer is controlled data, not user-facing copy.
+It freezes the functional-job vocabulary, demand families, finite bands, and
+review status for Axe, Centaur Warrunner, Puck, Dazzle, Nature's Prophet,
+Phantom Assassin, Beastmaster, Oracle, Meepo, and Invoker. OpenDota support is
+`unknown` in the offline pilot fixture, so recommendation confidence is
+reduced and no current-meta claim is made.
+
 ## Commands
 
 ```bash
@@ -113,9 +123,16 @@ python -m scripts.hero_knowledge.cli refresh --force-refresh
 python -m scripts.hero_knowledge.cli refresh \
   --opendota-fixture-dir tests/fixtures/hero_knowledge/opendota \
   --hero axe
+
+# Rebuild the checked-in v5.2 semantic-freeze pilot snapshot and review gate:
+python -m scripts.generate_semantic_freeze_snapshot
+PYTHONPATH=services/api python scripts/generate_hero_knowledge_pilot_review.py
 ```
 
 The required OpenDota path fails non-zero when a selected endpoint is
 unavailable or drifts schema. Valve Plus reports its optional health state and
-continues. Report generation consumes only the frozen snapshot through
-`HeroKnowledgeRepository`.
+continues. Active v5.2 analysis consumes the generated snapshot through
+`SnapshotHeroKnowledgeProvider`; the report records its knowledge and
+semantic-outcome versions. `TaxonomyHeroKnowledgeProvider` remains an
+explicit compatibility adapter for historical callers and features that have
+not migrated yet.
