@@ -6,6 +6,11 @@ from datetime import UTC, datetime
 from typing import Any
 
 from app.analysis.budget import DataCostLedger
+from app.behavior.presentation import (
+    PATTERN_PRESENTATION_VERSION,
+    PatternPresentationPayload,
+    build_pattern_presentation,
+)
 from app.behavior.ranking import (
     FREE_ELEMENT_HIGHLIGHT_LIMIT,
     FREE_PATTERN_HIGHLIGHT_LIMIT,
@@ -18,6 +23,7 @@ from app.content.renderer import (
     resolve_element_copy,
     resolve_page_copy,
     resolve_pattern_copy,
+    resolve_pattern_presentation_copy,
     resolve_portfolio_copy,
     resolve_story_copy,
     validate_copy_catalog,
@@ -35,10 +41,11 @@ from app.hero_portfolio.version import (
     HERO_SYNERGIES_VERSION,
     PATTERN_ACTIONS_VERSION,
 )
+from app.heroes.knowledge import TaxonomyHeroKnowledgeProvider
 from app.share.service import RENDERER_VERSION
 
-REPORT_SCHEMA_VERSION = "free-dna-report-5.1.0"
-REPORT_STORY_VERSION = "free-story-5.1.0"
+REPORT_SCHEMA_VERSION = "free-dna-report-5.2.0"
+REPORT_STORY_VERSION = "free-story-5.2.0"
 
 
 def assemble_free_dna_report_v4(
@@ -68,11 +75,26 @@ def assemble_free_dna_report_v4(
     element_map = behavior.element_map
     pattern_map = behavior.pattern_map
     portfolio = analysis.hero_portfolio
+    taxonomy = analysis.taxonomy
+    if taxonomy is None:
+        raise ValueError("Free DNA report assembly requires the scoring hero taxonomy snapshot")
+    hero_knowledge = TaxonomyHeroKnowledgeProvider(taxonomy)
+    pattern_presentations = {
+        pattern.key: build_pattern_presentation(
+            pattern,
+            element_map,
+            matches=analysis.matches,
+            taxonomy=taxonomy,
+            hero_knowledge=hero_knowledge,
+        )
+        for pattern in behavior.patterns
+    }
     pages = _story_pages(
         element_highlights=element_highlights,
         pattern_highlights=pattern_highlights,
         element_map=element_map,
         pattern_map=pattern_map,
+        pattern_presentations=pattern_presentations,
         portfolio=portfolio,
     )
     ordered_page_ids = [item["id"] for item in pages]
@@ -87,7 +109,9 @@ def assemble_free_dna_report_v4(
         "context_baseline": behavior.versions.context_baseline,
         "pattern_ranking": PATTERN_RANKING_VERSION,
         "pattern_actions": PATTERN_ACTIONS_VERSION,
+        "presentation": PATTERN_PRESENTATION_VERSION,
         "hero_taxonomy": _taxonomy_version(portfolio),
+        "hero_knowledge": hero_knowledge.version,
         "hero_relationships": HERO_RELATIONSHIPS_VERSION,
         "hero_expressions": HERO_EXPRESSIONS_VERSION,
         "hero_reliability": HERO_RELIABILITY_VERSION,
@@ -150,6 +174,7 @@ def assemble_free_dna_report_v4(
         "pattern_registry_version": behavior.versions.pattern_registry,
         "context_baseline_version": behavior.versions.context_baseline,
         "hero_taxonomy_version": _taxonomy_version(portfolio),
+        "hero_knowledge_version": hero_knowledge.version,
         "performance_proxy_version": analysis.features.performance_proxy_version,
         "sessionization_version": analysis.sessions.policy.version,
         "recency_weighting_version": analysis.features.recency_weighting_version,
@@ -201,7 +226,13 @@ def assemble_free_dna_report_v4(
         "reproducibility": reproducibility,
         "quality": quality,
         "elements": [item.as_dict(public=True) for item in behavior.elements],
-        "patterns": [item.as_dict(public=True) for item in behavior.patterns],
+        "patterns": [
+            {
+                **item.as_dict(public=True),
+                "presentation": pattern_presentations[item.key].as_dict(),
+            }
+            for item in behavior.patterns
+        ],
         "highlights": {
             "element_keys": [item.element_key for item in element_highlights],
             "pattern_keys": [item.key for item in pattern_highlights],
@@ -242,6 +273,7 @@ def _story_pages(
     pattern_highlights,
     element_map,
     pattern_map,
+    pattern_presentations: dict[str, PatternPresentationPayload],
     portfolio: HeroPortfolioResult,
 ) -> list[dict[str, Any]]:
     element_scan_copy = resolve_page_copy("element_scan")
@@ -296,6 +328,8 @@ def _story_pages(
         )
     for pattern in pattern_highlights:
         pattern_copy = resolve_pattern_copy(pattern.key)
+        presentation = pattern_presentations[pattern.key]
+        presentation_copy = _pattern_presentation_copy(presentation)
         required_observations = [
             resolve_story_copy(
                 "pattern",
@@ -325,7 +359,9 @@ def _story_pages(
                     "required_element_keys": list(pattern.element_keys),
                     "modifier_element_keys": list(pattern.modifier_element_keys),
                     "action_copy": _pattern_action_copy(pattern.key) if pattern.action is not None else None,
+                    "presentation_copy": presentation_copy,
                 },
+                "presentation": presentation.as_dict(),
             }
         )
     pages.extend(
@@ -511,6 +547,23 @@ def _pattern_action_copy(key: str) -> dict[str, str] | None:
         return None
     values = validate_copy_catalog()["story_templates"]["pattern_action"]
     return {name: resolve_story_copy("pattern_action", name) for name in values}
+
+
+def _pattern_presentation_copy(payload: PatternPresentationPayload) -> dict[str, Any]:
+    context = payload.recommendation_context or {}
+    params: dict[str, str] = {}
+    if payload.recommendation_id in {
+        "P01_ADD_MISSING_FUNCTION",
+        "P04_ADD_MISSING_FUNCTION",
+    }:
+        params["hero_name"] = str(context.get("hero_name") or "a reviewed bridge hero")
+    return resolve_pattern_presentation_copy(
+        payload.pattern_id,
+        payload.outcome_id,
+        recommendation_id=payload.recommendation_id,
+        deep_dive_id=payload.deep_dive_id,
+        params=params,
+    )
 
 
 assemble_free_dna_report_v5 = assemble_free_dna_report_v4

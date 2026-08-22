@@ -18,8 +18,10 @@ make dev
 
 Free mode reads the public profile and all usable summary rows in the previous
 365 days. It performs zero match-detail reads and zero replay-parse requests.
-The public contract is free-dna-report-5.1.0; an optional infrastructure cap is
-recorded explicitly and is not part of the product definition.
+The public contract is free-dna-report-5.2.0; an optional infrastructure cap is
+recorded explicitly and is not part of the product definition. Current Pattern
+pages use the versioned Wrapped + Depth presentation payload; historical 5.0
+and 5.1 snapshots remain readable through their legacy renderer.
 
 Pattern qualification is downstream of the 18 Element zones and gates each
 selected clause Element by its registry coverage and confidence. Pattern
@@ -37,6 +39,7 @@ Mirror. Deep Scan remains an explicit separate mode with its own budgets.
 - [Free DNA system](docs/architecture/free-dna-system.md)
 - [Elements](docs/architecture/elements.md)
 - [Patterns](docs/architecture/patterns.md)
+- [Pattern presentation](docs/architecture/pattern-presentation.md)
 - [Hero relationships](docs/architecture/hero-relationships.md)
 - [Hero matchups and synergies](docs/architecture/hero-matchups-and-synergies.md)
 - [Hero Portfolio](docs/architecture/hero-portfolio.md)

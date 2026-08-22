@@ -13,6 +13,7 @@ from app.behavior.models import (
     PatternActionEvidence,
     PatternResult,
 )
+from app.behavior.presentation import PatternPresentationPayload
 
 
 def __getattr__(name: str):
@@ -29,5 +30,6 @@ __all__ = [
     "ElementResult",
     "PatternActionEvidence",
     "PatternResult",
+    "PatternPresentationPayload",
     "analyze_behavior",
 ]

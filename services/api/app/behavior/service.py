@@ -21,7 +21,7 @@ from app.behavior.models import (
 from app.behavior.patterns.registry import PATTERN_REGISTRY_VERSION
 from app.behavior.patterns.service import evaluate_patterns
 
-BEHAVIOR_MODEL_VERSION = "behavior-model-5.1.0"
+BEHAVIOR_MODEL_VERSION = "behavior-model-5.2.0"
 
 
 def analyze_behavior(

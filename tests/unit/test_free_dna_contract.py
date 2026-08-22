@@ -84,7 +84,7 @@ def test_free_report_is_v5_summary_only_versioned_and_expiring() -> None:
     assert source.requests == [("player", 42), ("matches", 42)]
     report = repository.get_report(job.report_id or "")
     assert report is not None
-    assert report["schema_version"] == "free-dna-report-5.1.0"
+    assert report["schema_version"] == "free-dna-report-5.2.0"
     assert report["report_variant"] == "free_dna_report"
     assert report["noindex"] is True
     assert "account_id" not in report
@@ -94,7 +94,7 @@ def test_free_report_is_v5_summary_only_versioned_and_expiring() -> None:
     assert len(report["elements"]) == 18
     assert len(report["patterns"]) == 11
     assert report["metadata"]["history_limit"] is None
-    assert report["reproducibility"]["model_version"] == "free-dna-model-5.1.0"
+    assert report["reproducibility"]["model_version"] == "free-dna-model-5.2.0"
     assert report["reproducibility"]["recency_weighting_version"] == "recency-weighting-5.0.0"
     assert report["story"]["ordered_pages"] == [page["id"] for page in report["pages"]]
     assert {page["kind"] for page in report["pages"]} >= {"element_scan", "pattern_highlight", "hero_mirror_reveal", "deep_dive"}
@@ -123,7 +123,7 @@ def test_public_report_route_sets_noindex_and_returns_strict_v5_contract() -> No
     assert response.status_code == 200
     assert response.headers["x-robots-tag"] == "noindex, nofollow, noarchive"
     body = response.json()
-    assert body["schema_version"] == "free-dna-report-5.1.0"
+    assert body["schema_version"] == "free-dna-report-5.2.0"
     assert body["report_variant"] == "free_dna_report"
     validate_free_dna_report(body)
     assert job.status == "completed"

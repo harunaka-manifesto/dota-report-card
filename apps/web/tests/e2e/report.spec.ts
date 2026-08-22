@@ -16,23 +16,31 @@ test("completed Free DNA report opens with the full Element and Portfolio story"
   await expect(common.getByText("Mobility is the strongest recurring thread across the established pool.")).toBeVisible();
 
   const pattern = page.locator("#pattern-same_playbook");
-  const methodology = pattern.locator("details");
+  await pattern.scrollIntoViewIfNeeded();
+  await expect(pattern.locator(".pattern-story-screen")).toBeVisible();
+  await expect(pattern.getByRole("heading", { name: "What this actually means" })).toBeVisible();
+  const methodology = pattern.locator(".pattern-story-evidence");
   await methodology.locator("summary").focus();
   await methodology.locator("summary").press("Enter");
-  await expect(methodology.locator(".ingredient-list")).toBeVisible();
+  await expect(methodology).toHaveAttribute("open", "");
+  await expect(methodology.getByText(/Confidence:/)).toBeVisible();
 });
 
 test("wrong Portfolio choices receive contextual correction", async ({ page }) => {
   await page.goto("/report/fixture-report");
   const common = page.locator("#hero-common-thread");
   await common.getByRole("radio", { name: "Durability" }).click();
-  await common.getByRole("button", { name: "Reveal" }).click();
+  const commonReveal = common.getByRole("button", { name: "Reveal" });
+  await expect(commonReveal).toBeEnabled();
+  await commonReveal.click();
   await expect(common.getByText("Not quite.", { exact: true })).toBeVisible();
   await expect(common.getByText("Mobility has the stronger cross-hero coverage.")).toBeVisible();
 
   const exception = page.locator("#hero-exception");
   await exception.getByRole("radio", { name: "Axe" }).click();
-  await exception.getByRole("button", { name: "Reveal" }).click();
+  const exceptionReveal = exception.getByRole("button", { name: "Reveal" });
+  await expect(exceptionReveal).toBeEnabled();
+  await exceptionReveal.click();
   await expect(exception.getByText("Good guess — but not this one.", { exact: true })).toBeVisible();
   await expect(exception.getByText("Anti-Mage breaks it more clearly.")).toBeVisible();
 });
@@ -88,7 +96,7 @@ test("Element scan honors reduced motion and report content survives a narrow vi
   await page.goto("/report/fixture-report");
   await expect(page.locator(".element-scan")).toHaveAttribute("data-scan-state", "ready");
   await page.locator("#pattern-same_playbook").scrollIntoViewIfNeeded();
-  await expect(page.getByRole("heading", { name: "Same Playbook" })).toBeVisible();
+  await expect(page.getByText("Same Playbook · reveal", { exact: true })).toBeVisible();
   await page.locator("#final-card").scrollIntoViewIfNeeded();
   await expect(page.getByLabel("Share your Dota DNA")).toBeVisible();
 });
@@ -104,7 +112,9 @@ test("report analytics use canonical names once and omit identity fields", async
   await page.goto("/report/fixture-report");
   const common = page.locator("#hero-common-thread");
   await common.getByRole("radio", { name: "Mobility" }).click();
-  await common.getByRole("button", { name: "Reveal" }).click();
+  const reveal = common.getByRole("button", { name: "Reveal" });
+  await expect(reveal).toBeEnabled();
+  await reveal.click();
   const events = await page.evaluate(() => (window as typeof window & { __dotaEvents?: Array<Record<string, unknown>> }).__dotaEvents ?? []);
   const names = events.map((event) => event.event);
   expect(names.filter((name) => name === "hero_portfolio.answer_selected.v1")).toHaveLength(1);

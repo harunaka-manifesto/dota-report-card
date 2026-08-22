@@ -30,6 +30,10 @@ class DnaAnalysisResult:
     behavior: BehaviorAnalysisResult
     hero_portfolio: HeroPortfolioResult
     history_tier: str = "normal"
+    # Retain the normalized snapshot used during scoring so report
+    # presentation can use the same hero identities and never silently load a
+    # different knowledge version during assembly.
+    taxonomy: HeroTaxonomy | None = None
 
     @property
     def overall_confidence(self) -> str:
@@ -123,4 +127,5 @@ def analyze_dna(
         behavior=behavior,
         hero_portfolio=portfolio,
         history_tier=history_kind,
+        taxonomy=behavior_taxonomy,
     )

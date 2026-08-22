@@ -1,0 +1,79 @@
+{
+  "result": {
+    "data": {
+      "heroes": [
+        {
+          "id": 13,
+          "name": "npc_dota_hero_puck",
+          "name_loc": "Puck",
+          "facets": [],
+          "str_base": 17,
+          "str_gain": 2.0,
+          "agi_base": 22,
+          "agi_gain": 2.5,
+          "int_base": 23,
+          "int_gain": 3.5,
+          "primary_attr": 2,
+          "complexity": 2,
+          "attack_capability": 2,
+          "role_levels": [2, 0, 2, 2, 0, 0, 3, 0, 2],
+          "damage_min": 47,
+          "damage_max": 59,
+          "attack_rate": 1.7,
+          "attack_range": 550,
+          "projectile_speed": 900,
+          "armor": 3.7,
+          "magic_resistance": 25,
+          "movement_speed": 295,
+          "turn_rate": 0.8,
+          "sight_range_day": 1800,
+          "sight_range_night": 800,
+          "max_health": 560,
+          "health_regen": 1.5,
+          "max_mana": 387,
+          "mana_regen": 0.9,
+          "abilities": [
+            {
+              "id": 5023,
+              "name": "puck_illusory_orb",
+              "name_loc": "Illusory Orb",
+              "desc_loc": "Puck launches a magical orb that damages enemies along the way.",
+              "notes_loc": [],
+              "behavior": "16",
+              "damage": 4,
+              "max_level": 4,
+              "damages": [75, 150, 225, 300],
+              "special_values": []
+            },
+            {
+              "id": 5024,
+              "name": "puck_ethereal_jaunt",
+              "name_loc": "Ethereal Jaunt",
+              "desc_loc": "Puck teleports to the location of the Illusory Orb.",
+              "notes_loc": [],
+              "behavior": "16",
+              "damage": 0,
+              "max_level": 1,
+              "damages": [],
+              "special_values": []
+            },
+            {
+              "id": 5025,
+              "name": "puck_dream_coil",
+              "name_loc": "Dream Coil",
+              "desc_loc": "Creates a coil that stuns enemies and damages them in an area.",
+              "notes_loc": [],
+              "behavior": "16",
+              "damage": 4,
+              "max_level": 3,
+              "damages": [100, 150, 200],
+              "special_values": []
+            }
+          ],
+          "talents": [],
+          "facet_abilities": []
+        }
+      ]
+    }
+  }
+}

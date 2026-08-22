@@ -22,6 +22,7 @@ ACTIVE_DOCS = (
     ROOT / "docs" / "architecture" / "free-dna-system.md",
     ROOT / "docs" / "architecture" / "elements.md",
     ROOT / "docs" / "architecture" / "patterns.md",
+    ROOT / "docs" / "architecture" / "pattern-presentation.md",
     ROOT / "docs" / "architecture" / "hero-relationships.md",
     ROOT / "docs" / "architecture" / "hero-matchups-and-synergies.md",
     ROOT / "docs" / "architecture" / "hero-portfolio.md",
@@ -91,6 +92,21 @@ def main() -> int:
     )
     if result.returncode:
         failures.append(result.stdout.strip() or result.stderr.strip() or "generated catalog is stale")
+
+    copy_generator = ROOT / "scripts" / "generate_copy_review_catalog.py"
+    copy_result = subprocess.run(
+        [sys.executable, str(copy_generator), "--check"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if copy_result.returncode:
+        failures.append(
+            copy_result.stdout.strip()
+            or copy_result.stderr.strip()
+            or "generated copy review catalog is stale"
+        )
 
     cancelled = re.compile(r"\b(?:archetype|archetypes|classifier|classifiers)\b", re.IGNORECASE)
     for root in ACTIVE_SOURCE_ROOTS:

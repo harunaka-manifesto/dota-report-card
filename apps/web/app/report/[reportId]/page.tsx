@@ -75,7 +75,7 @@ async function getReport(reportId: string): Promise<Report> {
 export default async function ReportPage({ params }: { params: { reportId: string } }) {
   const report = await getReport(params.reportId);
   if (report.report_variant === "free_dna_report") {
-    if (report.schema_version !== "free-dna-report-4.0.0" && report.schema_version !== "free-dna-report-5.0.0" && report.schema_version !== "free-dna-report-5.1.0") notFound();
+    if (report.schema_version !== "free-dna-report-4.0.0" && report.schema_version !== "free-dna-report-5.0.0" && report.schema_version !== "free-dna-report-5.1.0" && report.schema_version !== "free-dna-report-5.2.0") notFound();
     return <ReportStoryV4 report={report} />;
   }
   return <DeepScanReportPage report={report} />;

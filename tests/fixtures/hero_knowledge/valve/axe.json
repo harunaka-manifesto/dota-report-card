@@ -1,0 +1,119 @@
+{
+  "result": {
+    "data": {
+      "heroes": [
+        {
+          "id": 2,
+          "name": "npc_dota_hero_axe",
+          "name_loc": "Axe",
+          "facets": [],
+          "str_base": 25,
+          "str_gain": 2.7,
+          "agi_base": 18,
+          "agi_gain": 1.7,
+          "int_base": 18,
+          "int_gain": 1.6,
+          "primary_attr": 0,
+          "complexity": 1,
+          "attack_capability": 1,
+          "role_levels": [1, 0, 0, 2, 0, 3, 0, 0, 3],
+          "damage_min": 56,
+          "damage_max": 60,
+          "attack_rate": 1.7,
+          "attack_range": 150,
+          "projectile_speed": 900,
+          "armor": 3,
+          "magic_resistance": 25,
+          "movement_speed": 315,
+          "turn_rate": 0.6,
+          "sight_range_day": 1800,
+          "sight_range_night": 800,
+          "max_health": 670,
+          "health_regen": 4.5,
+          "max_mana": 291,
+          "mana_regen": 0.9,
+          "abilities": [
+            {
+              "id": 5007,
+              "name": "axe_berserkers_call",
+              "name_loc": "Berserker's Call",
+              "desc_loc": "Axe taunts nearby enemy units, forcing them to attack him while he gains bonus armor.",
+              "lore_loc": "",
+              "notes_loc": [],
+              "behavior": "262148",
+              "target_team": 0,
+              "target_type": 0,
+              "damage": 0,
+              "immunity": 3,
+              "dispellable": 3,
+              "max_level": 4,
+              "cast_ranges": [0],
+              "cast_points": [0.3],
+              "cooldowns": [18, 16, 14, 12],
+              "durations": [2.1, 2.4, 2.7, 3],
+              "damages": [0, 0, 0, 0],
+              "mana_costs": [90, 100, 110, 120],
+              "special_values": []
+            },
+            {
+              "id": 5008,
+              "name": "axe_battle_hunger",
+              "name_loc": "Battle Hunger",
+              "desc_loc": "Enrages an enemy unit, causing it to take damage over time until it kills another unit.",
+              "lore_loc": "",
+              "notes_loc": [],
+              "behavior": "2",
+              "target_team": 2,
+              "target_type": 1,
+              "damage": 4,
+              "immunity": 0,
+              "dispellable": 3,
+              "max_level": 4,
+              "cast_ranges": [750],
+              "cast_points": [0.3],
+              "cooldowns": [20, 15, 10, 5],
+              "durations": [12],
+              "damages": [12, 16, 20, 24],
+              "mana_costs": [50, 60, 70, 80],
+              "special_values": []
+            },
+            {
+              "id": 5009,
+              "name": "axe_counter_helix",
+              "name_loc": "Counter Helix",
+              "desc_loc": "When attacked, Axe has a chance to perform a helix counter attack, dealing damage to nearby enemies.",
+              "lore_loc": "",
+              "notes_loc": [],
+              "behavior": "4",
+              "target_team": 2,
+              "target_type": 0,
+              "damage": 4,
+              "immunity": 0,
+              "dispellable": 0,
+              "max_level": 4,
+              "cast_ranges": [0],
+              "cast_points": [0],
+              "cooldowns": [0],
+              "durations": [0],
+              "damages": [100, 130, 160, 190],
+              "mana_costs": [0],
+              "special_values": []
+            }
+          ],
+          "talents": [
+            {
+              "id": 9001,
+              "name": "special_bonus_axe_armor",
+              "name_loc": "+10 Berserker's Call Armor",
+              "desc_loc": "",
+              "notes_loc": [],
+              "special_values": [],
+              "type": 2
+            }
+          ],
+          "facet_abilities": []
+        }
+      ]
+    }
+  }
+}

@@ -329,6 +329,31 @@ export type SessionCurveAction = {
 
 export type PatternAction = SamePlaybookAction | ComfortEdgeAction | PartialTransferDiagnostic | VersatileCoreAction | ProvenFlexibilityAction | BouncebackAction | PerformanceSlideAction | ControlledPresenceAction | PresenceTaxAction | SessionCurveAction;
 
+export type PatternVisualVariant =
+  | "hero_job_cluster"
+  | "hero_reliability_ladder"
+  | "transfer_split"
+  | "toolkit_orbit"
+  | "flex_window_grid"
+  | "post_loss_transition"
+  | "presence_exposure_map"
+  | "session_curve";
+
+export type PatternPresentation = {
+  pattern_id: string;
+  outcome_id: string;
+  visual_variant: PatternVisualVariant;
+  proof_data: Record<string, unknown>;
+  interpretation_id: string;
+  recommendation_id: string | null;
+  recommendation_context: Record<string, unknown> | null;
+  deep_dive_id: string | null;
+  evidence_refs: string[];
+  raw_metrics: Record<string, number | string | boolean | null>;
+  confidence: Confidence;
+  presentation_version: string;
+};
+
 export type BehaviorPattern = {
   key: string;
   label: string;
@@ -355,6 +380,7 @@ export type BehaviorPattern = {
   suppression_reasons: string[];
   methodology_version: string;
   action: PatternAction | null;
+  presentation?: PatternPresentation | null;
 };
 
 export type ChoiceOption = {
@@ -454,6 +480,7 @@ export type StoryPage = {
   portfolio_key?: string | null;
   options: ChoiceOption[];
   content: StoryPageContent;
+  presentation?: PatternPresentation | null;
 };
 
 export type PatternActionCopy = {
@@ -519,6 +546,15 @@ export type PatternActionCopy = {
   session_rise_gradual_label?: string;
 };
 
+export type PatternPresentationCopy = {
+  headline: string;
+  subheadline: string;
+  interpretation: { title: string; body: string };
+  recommendation: { eyebrow: string; title: string; body: string } | null;
+  deep_dive: { title: string; body: string } | null;
+  fallback: { title?: string; body?: string };
+};
+
 export type StoryPageContent = {
   scanning_body?: string;
   ready_body?: string;
@@ -534,6 +570,7 @@ export type StoryPageContent = {
   example?: string;
   takeaway?: string;
   guardrail?: string;
+  presentation_copy?: PatternPresentationCopy;
   required_element_keys?: string[];
   modifier_element_keys?: string[];
   boundary?: string;
@@ -555,6 +592,7 @@ export type Reproducibility = {
   element_registry_version: string;
   pattern_registry_version: string;
   hero_taxonomy_version: string;
+  hero_knowledge_version?: string | null;
   performance_proxy_version: string;
   sessionization_version: string;
   recency_weighting_version: string;
@@ -580,7 +618,7 @@ export type Reproducibility = {
 export type FreeDnaReportV4 = {
   report_id: string | null;
   // v4 remains readable for already-persisted reports; new reports are v5.
-  schema_version: "free-dna-report-4.0.0" | "free-dna-report-5.0.0" | "free-dna-report-5.1.0";
+  schema_version: "free-dna-report-4.0.0" | "free-dna-report-5.0.0" | "free-dna-report-5.1.0" | "free-dna-report-5.2.0";
   report_variant: "free_dna_report";
   noindex: true;
   identity: {
@@ -609,6 +647,7 @@ export type FreeDnaReportV4 = {
     pattern_ranking: string;
     pattern_actions: string;
     hero_taxonomy: string;
+    hero_knowledge?: string | null;
     hero_relationships: string;
     hero_expressions: string;
     hero_reliability: string;
@@ -627,6 +666,7 @@ export type FreeDnaReportV4 = {
     recency_weighting?: string;
     sessionization?: string;
     context_baseline?: string;
+    presentation?: string | null;
   };
   reproducibility?: Reproducibility;
   quality: {

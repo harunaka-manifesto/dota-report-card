@@ -22,6 +22,7 @@ import type {
 } from "../../../../../../packages/api-client/src";
 import { track } from "../../../lib/analytics";
 import { DeepDiveTeaser, EvidenceReceipt, MethodologySheet, Spectrum, StoryPage as StoryPageFrame } from "../../../components/story/primitives";
+import { PatternStoryScreen } from "../../../components/story/patterns/pattern-story-screen";
 import ShareControls from "../../../components/share/share-controls";
 
 export default function ReportStoryV4({ report }: { report: FreeDnaReportV4 }) {
@@ -179,6 +180,9 @@ function ElementHighlightPage({ page, context }: { page: StoryPage; context: Sto
 function PatternHighlightPage({ page, context }: { page: StoryPage; context: StoryContext }) {
   const pattern = page.pattern_key ? context.patterns.get(page.pattern_key) : undefined;
   if (!pattern) return <FallbackPage page={page} />;
+  if (pattern.presentation && page.content?.presentation_copy) {
+    return <PatternStoryScreen pattern={pattern} page={page} reportSchemaVersion={context.report.schema_version} />;
+  }
   const actionCopy = page.content?.action_copy ?? undefined;
   const ingredientMap = new Map([...pattern.element_keys, ...pattern.modifier_element_keys].map((key) => [key, context.elements.get(key)]));
   return (

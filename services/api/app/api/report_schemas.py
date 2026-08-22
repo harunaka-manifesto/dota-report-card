@@ -6,6 +6,8 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.behavior.presentation import PATTERN_PRESENTATION_CONTRACT, PATTERN_PRESENTATION_VERSION
+
 
 class PublicModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
@@ -60,6 +62,8 @@ class VersionMapV5Schema(PublicModel):
     recency_weighting: str
     sessionization: str
     context_baseline: str = "context-baseline-0.0.0"
+    presentation: str | None = None
+    hero_knowledge: str | None = None
 
 
 class ReproducibilityConfigSchema(PublicModel):
@@ -77,6 +81,7 @@ class ReproducibilitySchema(PublicModel):
     element_registry_version: str
     pattern_registry_version: str
     hero_taxonomy_version: str
+    hero_knowledge_version: str | None = None
     performance_proxy_version: str
     sessionization_version: str
     recency_weighting_version: str
@@ -134,6 +139,21 @@ class PatternActionEvidenceSchema(PublicModel):
     evidence_keys: list[str] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
     provenance_versions: dict[str, str] = Field(default_factory=dict)
+
+
+class PatternPresentationSchema(PublicModel):
+    pattern_id: str
+    outcome_id: str
+    visual_variant: str
+    proof_data: dict[str, Any]
+    interpretation_id: str
+    recommendation_id: str | None = None
+    recommendation_context: dict[str, Any] | None = None
+    deep_dive_id: str | None = None
+    evidence_refs: list[str] = Field(default_factory=list)
+    raw_metrics: dict[str, float | int | str | bool | None] = Field(default_factory=dict)
+    confidence: BehaviorConfidence
+    presentation_version: str
 
 
 class BehaviorElementSchema(PublicModel):
@@ -455,6 +475,7 @@ class BehaviorPatternSchema(PublicModel):
     suppression_reasons: list[str] = Field(default_factory=list)
     methodology_version: str
     action: PatternActionSchema | None = None
+    presentation: PatternPresentationSchema | None = None
 
 
 class HighlightsSchema(PublicModel):
@@ -568,6 +589,7 @@ class StoryPageV4Schema(PublicModel):
     portfolio_key: str | None = None
     options: list[ChoiceOptionSchema] = Field(default_factory=list)
     content: dict[str, Any] = Field(default_factory=dict)
+    presentation: PatternPresentationSchema | None = None
 
 
 class ShareElementSchema(PublicModel):
@@ -636,7 +658,7 @@ class CostSchema(PublicModel):
 
 class FreeDnaReportV4Schema(PublicModel):
     report_id: str | None = None
-    schema_version: Literal["free-dna-report-5.0.0", "free-dna-report-5.1.0"]
+    schema_version: Literal["free-dna-report-5.0.0", "free-dna-report-5.1.0", "free-dna-report-5.2.0"]
     report_variant: Literal["free_dna_report"]
     noindex: Literal[True]
     identity: IdentitySchema
@@ -707,6 +729,24 @@ class FreeDnaReportV4Schema(PublicModel):
                 raise ValueError(f"Blocked Pattern {pattern.key} must expose story blockers")
             if pattern.action is not None and pattern.action.action_type != pattern.key:
                 raise ValueError(f"Pattern {pattern.key} carries the wrong action discriminator")
+            if self.schema_version == "free-dna-report-5.2.0":
+                presentation = pattern.presentation
+                contract = PATTERN_PRESENTATION_CONTRACT[pattern.key]
+                if presentation is None:
+                    raise ValueError(f"v5.2 Pattern {pattern.key} is missing its presentation payload")
+                if presentation.pattern_id != pattern.key:
+                    raise ValueError(f"Pattern {pattern.key} presentation has the wrong pattern ID")
+                if presentation.outcome_id != contract["outcome_id"]:
+                    raise ValueError(f"Pattern {pattern.key} presentation has the wrong outcome ID")
+                if presentation.visual_variant != contract["visual_variant"]:
+                    raise ValueError(f"Pattern {pattern.key} presentation has the wrong visual variant")
+                if presentation.presentation_version != PATTERN_PRESENTATION_VERSION:
+                    raise ValueError(f"Pattern {pattern.key} presentation has the wrong version")
+        if self.schema_version == "free-dna-report-5.2.0" and self.versions.presentation != PATTERN_PRESENTATION_VERSION:
+            raise ValueError("v5.2 reports must identify the pattern presentation version")
+        if self.schema_version == "free-dna-report-5.2.0":
+            if self.versions.hero_knowledge is None or self.reproducibility.hero_knowledge_version is None:
+                raise ValueError("v5.2 reports must identify the normalized hero-knowledge snapshot")
         common = self.hero_portfolio.common_thread
         if common.status == "available":
             if len(common.options) != 4 or common.correct_option_key is None:
@@ -735,6 +775,15 @@ class FreeDnaReportV4Schema(PublicModel):
                 raise ValueError(f"Story page references unknown Pattern: {page.pattern_key}")
             if not set(page.evidence_keys).issubset(element_keys):
                 raise ValueError(f"Story page {page.id} references an unknown Element")
+            if self.schema_version == "free-dna-report-5.2.0" and page.kind == "pattern_highlight":
+                if page.pattern_key is None or page.presentation is None:
+                    raise ValueError(f"v5.2 Pattern page {page.id} is missing its presentation payload")
+                if page.presentation.pattern_id != page.pattern_key:
+                    raise ValueError(f"v5.2 Pattern page {page.id} has the wrong presentation Pattern")
+                presentation_copy = page.content.get("presentation_copy")
+                required_copy_keys = {"headline", "subheadline", "interpretation", "recommendation", "deep_dive", "fallback"}
+                if not isinstance(presentation_copy, dict) or not required_copy_keys.issubset(presentation_copy):
+                    raise ValueError(f"v5.2 Pattern page {page.id} is missing presentation copy")
         page_kinds = [page.kind for page in self.pages]
         expected_kinds = [
             "element_scan",
@@ -774,4 +823,9 @@ def validate_free_dna_report(report: dict[str, Any]) -> dict[str, Any]:
     return FreeDnaReportV4Schema.model_validate(report).model_dump(mode="json", by_alias=True)
 
 
-__all__ = ["FreeDnaReportV4Schema", "FreeDnaReportV5Schema", "validate_free_dna_report"]
+__all__ = [
+    "FreeDnaReportV4Schema",
+    "FreeDnaReportV5Schema",
+    "PatternPresentationSchema",
+    "validate_free_dna_report",
+]

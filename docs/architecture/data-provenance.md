@@ -45,3 +45,18 @@ level and reference sample, excludes the target session, and is included in
 report reproducibility metadata as `context_baseline_version`. Recovery's final
 delta is clustered once per independent session before the recency-weighted
 aggregate is calculated.
+
+## Hero knowledge snapshots
+
+Hero knowledge follows the source hierarchy in [Hero data sources](hero-data-sources.md):
+Valve owns official mechanics, OpenDota contributes bounded aggregate empirical
+context, optional Valve Dota Plus enrichment is not a v5.2 dependency, and the
+existing DotaCoach corpus remains editorial/research evidence. Raw source
+payloads, normalized facts, derived characteristics, and approved editorial
+fields are separate layers.
+
+Every generated knowledge record carries a field-source map, source snapshot
+versions, fetch timestamps, raw hashes where applicable, and derivation rule
+versions. The API consumes the frozen snapshot through
+`HeroKnowledgeRepository`; it does not make source requests during report
+generation. Unknown fields remain unknown rather than becoming neutral values.

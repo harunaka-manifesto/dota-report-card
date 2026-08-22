@@ -1,0 +1,26 @@
+[
+  {
+    "id": 2,
+    "localized_name": "Axe",
+    "1_pick": 10,
+    "1_win": 5,
+    "2_pick": 20,
+    "2_win": 11,
+    "pub_pick": 30,
+    "pub_win": 16,
+    "pro_pick": 2,
+    "pro_win": 1
+  },
+  {
+    "id": 13,
+    "localized_name": "Puck",
+    "1_pick": 4,
+    "1_win": 2,
+    "2_pick": 6,
+    "2_win": 3,
+    "pub_pick": 10,
+    "pub_win": 5,
+    "pro_pick": 0,
+    "pro_win": 0
+  }
+]

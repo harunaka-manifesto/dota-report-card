@@ -20,9 +20,17 @@ request and zero detail, parse, and parse-status requests. The actual ledger is
 serialized; a nonzero forbidden request fails assembly rather than being
 masked by a hand-written zero.
 
-The current public schema is `free-dna-report-5.1.0`; `free-dna-report-5.0.0`
-snapshots remain readable. Pattern payloads identify the selected qualification
-clause and action payloads carry an additive common evidence summary.
+The current public schema is `free-dna-report-5.2.0`; `free-dna-report-5.0.0`
+and `free-dna-report-5.1.0` snapshots remain readable. Each current Pattern
+also carries a `pattern-presentation-5.2.0` payload with a finite outcome ID,
+visual variant, structured proof facts, interpretation/recommendation IDs,
+auditable evidence references, and raw metrics kept separate from the primary
+story.
+
+Current Pattern pages repeat that payload and add catalog-backed
+`presentation_copy` for the five Wrapped + Depth layers. The web app chooses
+this renderer only when the payload exists; historical pages use the legacy
+body/action renderer.
 
 ## Exact story structure
 
@@ -115,7 +123,8 @@ Evolution line.
 ## Ownership rules
 
 Server content is the source of truth for public narrative. `dna_assembly`
-owns report-page composition and semantic validation; the web app owns
+owns report-page composition, presentation payloads, and semantic validation;
+the web app owns
 interaction state and accessible rendering; `share/service.py` owns the final
 card hierarchy; `analytics.ts` owns event sanitization. Any version change to
 one of these contracts must update the API client, model catalog/docs, tests,

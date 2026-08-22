@@ -1,0 +1,6 @@
+{
+  "early_game_items": {"1": 20, "2": 10},
+  "late_game_items": {"3": 8},
+  "mid_game_items": {"4": 12},
+  "start_game_items": {"5": 20}
+}

@@ -1,5 +1,5 @@
 {
-  "copy_version": "free-dna-copy-5.1.0",
+  "copy_version": "free-dna-copy-5.2.0",
   "pages": {
     "analysis": {
       "title": "Reading your recent matches.",
@@ -267,6 +267,145 @@
       "session_rise_heading": "Where the session curve starts to lift",
       "session_rise_breakpoint_label": "Earliest supported lift",
       "session_rise_gradual_label": "The movement is gradual"
+    }
+  },
+  "presentation": {
+    "version": "pattern-presentation-5.2.0",
+    "patterns": {
+      "same_playbook": {
+        "outcomes": {
+          "P01_BROAD_HERO_NARROW_JOB": {
+            "headline": "Broad by hero. Narrow by job.",
+            "subheadline": "Your hero names change more than the functional work underneath.",
+            "interpretation": {"title": "What this actually means", "body": "Your pool offers variety on the surface, but several heroes keep asking you to solve a similar kind of Dota problem."},
+            "fallback": {"title": "The pattern is clear; the next hero is not", "body": "The repeated job is supported, but no additional hero cleared the recommendation gates."}
+          }
+        },
+        "recommendations": {
+          "P01_ADD_MISSING_FUNCTION": {"eyebrow": "DO THIS NEXT", "title": "Add one missing function", "body": "Try {hero_name} when you want to keep a familiar anchor while adding a genuinely different job."}
+        },
+        "deep_dives": {"P01_DRAFT_SPECIFIC_EXPANSION": {"title": "Deep Dive: expand the job", "body": "Replay and draft evidence could show which matchups make a new functional answer valuable."}}
+      },
+      "comfort_edge": {
+        "outcomes": {
+          "P02_RELIABILITY_LADDER": {
+            "headline": "Your pool has a reliability ladder.",
+            "subheadline": "Some established heroes are anchors; others are still becoming dependable.",
+            "interpretation": {"title": "What this actually means", "body": "The development side is not a verdict. It is the clearest practice order inside the heroes you already return to."},
+            "fallback": {"title": "The ladder needs more evidence", "body": "The pool is broad enough to compare, but not every rung cleared the reliability gate."}
+          }
+        },
+        "recommendations": {"P02_FOCUS_DEVELOPMENT_ORDER": {"eyebrow": "DO THIS NEXT", "title": "Practice #3–5 with a reason", "body": "Work down the development side one hero at a time, and name the new demand each hero introduces."}},
+        "deep_dives": {"P02_HERO_DEMAND_COMPARISON": {"title": "Deep Dive: hero demand", "body": "Match-level evidence could separate hero familiarity from the specific demands that change your results."}}
+      },
+      "partial_transfer": {
+        "outcomes": {
+          "P03_PRESENCE_HOLDS_RESULT_BENDS": {
+            "headline": "Your presence travels farther than your results.",
+            "subheadline": "Off-pool games still show up in fights, while the result signal bends.",
+            "interpretation": {"title": "What this actually means", "body": "The summary history supports a difference in outcome, plus a bounded lead about the demand that may be changing. It does not prove a cause."},
+            "fallback": {"title": "The transfer split is visible", "body": "The familiar and off-pool groups separate, but the available evidence cannot yet name the demand behind it."}
+          }
+        },
+        "recommendations": {"P03_PRACTICE_TRANSFER_DEMAND": {"eyebrow": "DO THIS NEXT", "title": "Practice the demand, not the label", "body": "Use the strongest supported demand as a practice question, while treating the result difference as an observation rather than a cause."}},
+        "deep_dives": {"P03_ENTRY_HOLD_REENTRY": {"title": "Deep Dive: where transfer bends", "body": "Replay evidence could separate entry, hold, and re-entry so the summary-level lead becomes testable."}}
+      },
+      "versatile_core": {
+        "outcomes": {
+          "P04_COMPACT_POOL_BROAD_JOBS": {
+            "headline": "A small pool can cover a lot of Dota.",
+            "subheadline": "Your core is compact by hero count, but broad by functional job.",
+            "interpretation": {"title": "What this actually means", "body": "You do not need a huge roster to preserve different ways of contributing. The useful question is which job is thin or missing."},
+            "fallback": {"title": "The toolkit is broad enough", "body": "The core covers several jobs, but no sixth hero cleared the familiar-anchor and evidence gates."}
+          }
+        },
+        "recommendations": {"P04_ADD_MISSING_FUNCTION": {"eyebrow": "DO THIS NEXT", "title": "Add a genuinely new tool", "body": "Try {hero_name} only if it adds a missing function while keeping one familiar anchor."}},
+        "deep_dives": {"P04_DRAFT_SPECIFIC_EXPANSION": {"title": "Deep Dive: draft-specific coverage", "body": "Draft and matchup evidence could test whether a missing function is useful in the situations you actually face."}}
+      },
+      "proven_flexibility": {
+        "outcomes": {
+          "P05_PROVEN_FLEX_WINDOW": {
+            "headline": "Your flexibility shows up in the window.",
+            "subheadline": "The roster changed, and the functional range repeated often enough to count as evidence.",
+            "interpretation": {"title": "What this actually means", "body": "This is more than a list of one-off picks: multiple heroes and jobs recur inside a supported period."},
+            "fallback": {"title": "Range is present, but distributed", "body": "The history shows a wide pool without one clean flex window that clears every comparison gate."}
+          }
+        },
+        "recommendations": {"P05_PROTECT_RELIABLE_ANCHORS": {"eyebrow": "DO THIS NEXT", "title": "Keep the anchors warm", "body": "Protect the heroes that make this flexibility repeatable instead of trying to keep the whole roster equally ready."}},
+        "deep_dives": {"P05_CONTEXT_TRANSFER": {"title": "Deep Dive: context transfer", "body": "Match-level evidence could show which team, draft, and timing contexts support the flexible window."}}
+      },
+      "bounceback": {
+        "outcomes": {
+          "P06_POST_LOSS_STRONGER": {
+            "headline": "LOSS → NEXT GAME: STRONGER",
+            "subheadline": "A familiar hero or job context is the strongest supported rebound setting.",
+            "interpretation": {"title": "What this actually means", "body": "The next same-session result is stronger than the comparable personal baseline after a loss. That is an observable transition, not a motive."},
+            "fallback": {"title": "The next game is stronger overall", "body": "The rebound is supported at a broad level, but no narrower hero or job context cleared the gate."}
+          }
+        },
+        "recommendations": {"P06_REPEAT_POST_LOSS_ANCHOR": {"eyebrow": "DO THIS NEXT", "title": "Simplify the first decision", "body": "Use the most repeatable familiar job as a post-loss anchor when you want one controllable next step."}},
+        "deep_dives": {"P06_POST_LOSS_MECHANISM": {"title": "Deep Dive: the rebound transition", "body": "Match-level evidence could show what changes between the loss and the stronger next game."}}
+      },
+      "performance_slide": {
+        "outcomes": {
+          "P07_POST_LOSS_WEAKER": {
+            "headline": "LOSS → NEXT GAME: WEAKER",
+            "subheadline": "A familiar hero or job context is the strongest supported drop setting.",
+            "interpretation": {"title": "What this actually means", "body": "The next same-session result is weaker than the comparable personal baseline after a loss. The data does not establish tilt, panic, or hero causality."},
+            "fallback": {"title": "The next game is weaker overall", "body": "The slide is supported at a broad level, but no narrower context cleared the gate."}
+          }
+        },
+        "recommendations": {"P07_CHANGE_ONE_TRANSITION": {"eyebrow": "DO THIS NEXT", "title": "Change one transition", "body": "Pause the queue, return to a stable hero or job, or simplify the first game plan—choose one controllable change."}},
+        "deep_dives": {"P07_POST_LOSS_MECHANISM": {"title": "Deep Dive: the slide transition", "body": "Match-level evidence could show where the next-game result diverges from the comparable baseline."}}
+      },
+      "controlled_presence": {
+        "outcomes": {
+          "P08_HIGH_PRESENCE_LOW_COST": {
+            "headline": "You can be involved without paying the full cost.",
+            "subheadline": "The cleanest context combines high presence with lower death exposure.",
+            "interpretation": {"title": "What this actually means", "body": "The summary history identifies a context where involvement and survival move together. It does not prove positioning skill or the value of every death."},
+            "fallback": {"title": "The broad relationship is clear", "body": "High presence and lower exposure coexist overall, but no narrower context cleared the comparison gate."}
+          }
+        },
+        "recommendations": {"P08_PRESERVE_LOW_COST_PRESENCE": {"eyebrow": "DO THIS NEXT", "title": "Preserve the useful shape", "body": "Keep the behavior or hero demand that produces high involvement without the same death exposure."}},
+        "deep_dives": {"P08_FIGHT_CONTEXTS": {"title": "Deep Dive: fight contexts", "body": "Replay evidence could identify which fight situations preserve involvement without the same death cost."}}
+      },
+      "presence_tax": {
+        "outcomes": {
+          "P09_HIGH_PRESENCE_HIGH_COST": {
+            "headline": "Your presence comes with a visible tax.",
+            "subheadline": "High involvement and high death exposure appear together in the supported history.",
+            "interpretation": {"title": "What this actually means", "body": "The cost may be job-shaped, hero-specific, or spread across contexts. Summary history cannot say whether those deaths bought useful value."},
+            "fallback": {"title": "The cost is visible; its source is not", "body": "The global relationship qualifies, but the available subgroups cannot localize it reliably."}
+          }
+        },
+        "recommendations": {"P09_INVESTIGATE_PRESENCE_COST": {"eyebrow": "DO THIS NEXT", "title": "Separate necessary cost from exposure", "body": "Treat the strongest context as a question for replay review, not as proof that involvement itself is the problem."}},
+        "deep_dives": {"P09_DEATH_VALUE_CONTEXT": {"title": "Deep Dive: what deaths buy", "body": "Replay evidence could separate initiation, space, saves, objectives, and deaths that buy nothing visible."}}
+      },
+      "session_fade": {
+        "outcomes": {
+          "P10_SESSION_FADE": {
+            "headline": "Your session has a fade point.",
+            "subheadline": "Later games move below your comparable personal baseline often enough to stand out.",
+            "interpretation": {"title": "What this actually means", "body": "The first supported fade point is a checkpoint for a different decision, not a magical curfew or a claim about why the change happens."},
+            "fallback": {"title": "The curve fades gradually", "body": "Later-session movement is visible, but no single breakpoint is stable enough to call out."}
+          }
+        },
+        "recommendations": {"P10_CHECKPOINT_AT_BREAKPOINT": {"eyebrow": "DO THIS NEXT", "title": "Use the breakpoint as a checkpoint", "body": "At the first supported fade point, check whether a pause, stable hero, or simpler plan is the useful next experiment."}},
+        "deep_dives": {"P10_SESSION_BREAKPOINT": {"title": "Deep Dive: around the breakpoint", "body": "Match-level evidence could show what changes around the first supported session breakpoint."}}
+      },
+      "session_rise": {
+        "outcomes": {
+          "P11_SESSION_RISE": {
+            "headline": "You tend to warm into the session.",
+            "subheadline": "Later games rise above your comparable personal baseline often enough to stand out.",
+            "interpretation": {"title": "What this actually means", "body": "The history supports a repeatable lift point. It is a planning clue, not a claim about focus, emotion, or a required number of games."},
+            "fallback": {"title": "The curve rises gradually", "body": "Later-session movement is visible, but no single lift point is stable enough to call out."}
+          }
+        },
+        "recommendations": {"P11_FRONTLOAD_FAMILIARITY": {"eyebrow": "DO THIS NEXT", "title": "Front-load familiarity", "body": "Use a reliable anchor early and defer experimentation if your history usually warms up over a session."}},
+        "deep_dives": {"P11_SESSION_BREAKPOINT": {"title": "Deep Dive: around the lift", "body": "Match-level evidence could show what changes before and after the first supported session lift point."}}
+      }
     }
   },
   "labels": {

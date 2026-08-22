@@ -21,6 +21,12 @@ reason and limitations rather than manufacturing an answer. Choice options are
 deterministically pseudo-shuffled from a seed built from report facts; raw
 match IDs are never used as an analytics or UI seed.
 
+Generated hero knowledge is an additional build-time input seam, not a runtime
+network dependency. Portfolio behavior continues to use the reviewed taxonomy
+until the versioned ten-hero knowledge pilot has passed manual review. When it
+is adopted, the report fingerprint must record the knowledge version alongside
+the existing taxonomy and relationship versions.
+
 ## Common Thread
 
 ### Question

@@ -52,3 +52,12 @@ Changes to taxonomy traits, expression vocabulary, similarity weights,
 role-fit rules, learning-distance rules, or overrides must bump an artifact
 version and the Free analysis fingerprint. The checked-in implementation is
 CPU-only and performs no runtime network call or model inference.
+
+## Hero knowledge integration
+
+The ingestion pipeline supplies a versioned `HeroKnowledgeRepository` seam for
+future recommendation enrichment. It can provide mechanics-derived functions,
+hero demands, OpenDota empirical support, and confidence without making the
+current relationship layer depend on raw source fields. Until the pilot is
+reviewed, the existing taxonomy and aggregate relationship artifacts remain the
+runtime source for current P01/P02 behavior.

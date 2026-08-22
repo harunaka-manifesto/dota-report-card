@@ -8,7 +8,8 @@ flowchart LR
     E --> P[11 Patterns]
     F --> H[Hero Portfolio]
     E --> R[Report assembly]
-    P --> R
+    P --> PP[Pattern presentation]
+    PP --> R
     H --> R
     R --> V[Strict v5 validation]
     V --> W[Interactive story and share]
@@ -26,10 +27,11 @@ expression artifacts. Hero Portfolio is independent of Pattern
 qualification and uses established hero history plus a versioned taxonomy.
 Assembly creates the only public story and share projection.
 
-The public contract is free-dna-report-5.1.0 with exactly 18 Elements and 11
+The public contract is free-dna-report-5.2.0 with exactly 18 Elements and 11
 active Patterns, reproducibility metadata, zero detail/parse requests, and
-privacy-safe share data. Historical v4 snapshots remain readable under their
-original registry meanings.
+privacy-safe share data. Pattern stories carry deterministic visual proof,
+interpretation, action, and Deep Dive IDs. Historical v4, v5.0, and v5.1
+snapshots remain readable under their original registry meanings.
 
 Pattern qualification consumes reviewed Element zones and applies the selected
 clause's registry coverage and confidence gates. Actions run after

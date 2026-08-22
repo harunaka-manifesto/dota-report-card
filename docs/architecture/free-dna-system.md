@@ -16,8 +16,9 @@ privacy-safe interaction events.
 4. Score the exact 18 Element registry entries.
 5. Evaluate the exact 11 active Pattern registry entries.
 6. Evaluate Hero Portfolio independently from Element scores.
-7. Rank deterministic highlights and assemble ordered v5 pages.
-8. Validate free-dna-report-5.1.0, persist the public snapshot, and expose
+7. Rank deterministic highlights, classify Pattern presentation outcomes, and
+   assemble ordered v5.2 pages.
+8. Validate `free-dna-report-5.2.0`, persist the public snapshot, and expose
    the final share card.
 
 ## Boundaries
@@ -42,7 +43,10 @@ performance proxy, features, behavior model,
 Element and Pattern registries, Pattern ranking and actions, hero taxonomy,
 hero relationships and expressions, player-relative reliability, matchup and
 synergy artifacts, situations, Hero Portfolio configuration, Hero Mirror,
-story, copy, template, share renderer, and the compatibility fingerprint.
+story, copy, Pattern presentation, template, share renderer, and the
+compatibility fingerprint. Presentation thresholds are deterministic and
+centralized; the web app never invents its own display bands. The normalized
+hero-knowledge provider is an independent seam with its own snapshot version.
 The comparable-baseline resolver has its own version and is included in the
 report versions and analysis fingerprint. Historical v5.0 snapshots remain
 readable with their original versions and payload fields.

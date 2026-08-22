@@ -1,0 +1,32 @@
+{
+  "result": {
+    "data": {
+      "heroes": [
+        {
+          "id": 2,
+          "name": "npc_dota_hero_axe",
+          "name_loc": "Axe",
+          "name_english_loc": "Axe",
+          "primary_attr": 0,
+          "complexity": 1
+        },
+        {
+          "id": 13,
+          "name": "npc_dota_hero_puck",
+          "name_loc": "Puck",
+          "name_english_loc": "Puck",
+          "primary_attr": 2,
+          "complexity": 2
+        },
+        {
+          "id": 50,
+          "name": "npc_dota_hero_dazzle",
+          "name_loc": "Dazzle",
+          "name_english_loc": "Dazzle",
+          "primary_attr": 3,
+          "complexity": 1
+        }
+      ]
+    }
+  }
+}

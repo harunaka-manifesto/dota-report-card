@@ -6,7 +6,7 @@ MYPY ?= uv run mypy
 PNPM ?= pnpm
 WEB_BIN ?= apps/web/node_modules/.bin
 
-.PHONY: install infra-up infra-down db-migrate dev lint typecheck test test-contract test-integration test-e2e test-live-smoke api-client taxonomy-validate dna-catalog dna-catalog-check docs-check
+.PHONY: install infra-up infra-down db-migrate dev lint typecheck test test-contract test-integration test-e2e test-live-smoke api-client taxonomy-validate dna-catalog dna-catalog-check copy-review-catalog copy-review-catalog-check docs-check hero-knowledge-refresh
 
 install:
 	uv sync --extra dev
@@ -60,5 +60,14 @@ dna-catalog:
 dna-catalog-check:
 	$(PYTHON) scripts/generate_dna_model_catalog.py --check
 
+copy-review-catalog:
+	$(PYTHON) scripts/generate_copy_review_catalog.py
+
+copy-review-catalog-check:
+	$(PYTHON) scripts/generate_copy_review_catalog.py --check
+
 docs-check:
 	$(PYTHON) scripts/check_docs.py
+
+hero-knowledge-refresh:
+	$(PYTHON) -m scripts.hero_knowledge.cli refresh --force-refresh
