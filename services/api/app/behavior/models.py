@@ -556,6 +556,14 @@ class CoverageSummary:
     single_point_coverage: tuple[str, ...]
     thin_coverage: tuple[str, ...]
     missing: tuple[str, ...]
+    family_map: Mapping[str, str] = field(default_factory=dict)
+    family_descriptions: Mapping[str, str] = field(default_factory=dict)
+    primary_gap: str | None = None
+    secondary_gaps: tuple[str, ...] = ()
+    semantic_coverage: float | None = None
+    role_adjusted_coverage: float | None = None
+    pairwise_functional_overlap: float | None = None
+    unique_contribution_count: int | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -563,6 +571,14 @@ class CoverageSummary:
             "single_point_coverage": list(self.single_point_coverage),
             "thin_coverage": list(self.thin_coverage),
             "missing": list(self.missing),
+            "family_map": dict(self.family_map),
+            "family_descriptions": dict(self.family_descriptions),
+            "primary_gap": self.primary_gap,
+            "secondary_gaps": list(self.secondary_gaps),
+            "semantic_coverage": self.semantic_coverage,
+            "role_adjusted_coverage": self.role_adjusted_coverage,
+            "pairwise_functional_overlap": self.pairwise_functional_overlap,
+            "unique_contribution_count": self.unique_contribution_count,
         }
 
 
@@ -606,6 +622,8 @@ class VersatileCoreAction:
     alternative_additions: tuple[HeroAdditionRecommendation, ...]
     confidence_score: float
     limitations: tuple[str, ...]
+    complementarity_qualified: bool = True
+    semantic_confidence: float | None = None
     evidence_summary: PatternActionEvidence | None = None
 
     def __post_init__(self) -> None:
@@ -623,6 +641,8 @@ class VersatileCoreAction:
             "alternative_additions": [item.as_dict() for item in self.alternative_additions],
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
+            "complementarity_qualified": self.complementarity_qualified,
+            "semantic_confidence": round(self.semantic_confidence, 6) if self.semantic_confidence is not None else None,
             "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 

@@ -15,7 +15,7 @@ from app.dna.recency import DEFAULT_HALF_LIFE_DAYS
 from app.dna.sessions import SessionPolicy, SessionResult, infer_sessions
 from app.hero_portfolio.models import HeroPortfolioResult
 from app.hero_portfolio.service import analyze_hero_portfolio
-from app.heroes.knowledge import HeroKnowledgeProvider, SnapshotHeroKnowledgeProvider
+from app.heroes.knowledge import FullRosterHeroKnowledgeProvider, HeroKnowledgeProvider
 from app.heroes.taxonomy import HeroTaxonomy, load_default_taxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -106,7 +106,10 @@ def analyze_dna(
             behavior_taxonomy = None
     if behavior_taxonomy is None:
         raise ValueError("The reviewed hero taxonomy is required for Free DNA")
-    hero_knowledge = SnapshotHeroKnowledgeProvider()
+    # Active scoring sees the whole reviewed roster. Reviewed semantic records
+    # override the structural adapter; unreviewed heroes remain explicit and
+    # low-confidence instead of disappearing from coverage.
+    hero_knowledge = FullRosterHeroKnowledgeProvider(behavior_taxonomy)
     history_kind = history_tier or ("limited" if 30 <= features.sample_size < 60 else "normal")
     context = SummaryBehaviorContext(
         matches=sessions.matches,
@@ -122,6 +125,7 @@ def analyze_dna(
         sessions.matches,
         hero_taxonomy=behavior_taxonomy,
         behavior=behavior,
+        hero_knowledge=hero_knowledge,
         report_seed=report_seed,
     )
     return DnaAnalysisResult(

@@ -17,6 +17,7 @@ from app.hero_portfolio.config import PORTFOLIO_CONFIG
 from app.hero_portfolio.eligibility import build_hero_eligibility, eligible_heroes
 from app.hero_portfolio.models import HeroEligibility, HeroMirrorResult
 from app.hero_portfolio.version import HERO_MIRROR_VERSION
+from app.heroes.knowledge import HeroKnowledgeProvider
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -55,8 +56,12 @@ def compute_hero_mirror(
     matches: Sequence[NormalizedSummaryMatch],
     taxonomy: HeroTaxonomy,
     eligibility: Sequence[HeroEligibility] | None = None,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> HeroMirrorResult:
-    eligibility = tuple(eligibility or build_hero_eligibility(matches, taxonomy))
+    eligibility = tuple(
+        eligibility
+        or build_hero_eligibility(matches, taxonomy, hero_knowledge=hero_knowledge)
+    )
     candidates = eligible_heroes(eligibility, insight="mirror")
     if not candidates:
         return _unavailable("No sufficiently sampled hero has the required summary metrics.")
@@ -124,8 +129,13 @@ def compute_hero_mirror(
         )
         else "no_clear_mirror"
     )
+    semantic_entry = hero_knowledge.get(winner.hero_id) if hero_knowledge is not None else None
     entry = taxonomy.get(winner.hero_id)
-    hero_name = entry.name if entry is not None else f"Hero {winner.hero_id}"
+    hero_name = (
+        semantic_entry.display_name
+        if semantic_entry is not None
+        else entry.name if entry is not None else f"Hero {winner.hero_id}"
+    )
     limitations: list[str] = [
         "This is not a personality test.",
         "The comparison uses involvement, finishing, death exposure, and credible role context from summary history only.",
@@ -133,7 +143,7 @@ def compute_hero_mirror(
     if winner.fallback_used:
         limitations.append("Candidate exclusion left a small reference, so a capped fallback was used and confidence was reduced.")
     if status != "available":
-        limitations.append("No candidate clears the confidence, coverage, score, and runner-up margin gates yet.")
+        limitations.append("No candidate has enough evidence and separation from the runner-up yet.")
     return HeroMirrorResult(
         status=status,
         hero_id=winner.hero_id if status == "available" else None,

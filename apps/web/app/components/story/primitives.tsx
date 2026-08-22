@@ -45,7 +45,7 @@ export function Spectrum({
 
 export function EvidenceReceipt({ evidence }: { evidence: BehaviorElementReceipt[] }) {
   if (!evidence.length) return null;
-  return <div className="receipt" aria-label="Evidence receipt">{evidence.slice(0, 3).map((item) => <span key={item.key}><strong>{formatValue(item.value, item.unit)}</strong><small>{item.comparison ?? item.key.replaceAll("_", " ")} · n={item.denominator}</small></span>)}</div>;
+  return <div className="receipt" aria-label="Evidence receipt">{evidence.slice(0, 3).map((item) => <span key={item.key}><strong>{formatValue(item.value, item.unit)}</strong><small>{item.comparison ?? item.key.replaceAll("_", " ")} · {item.denominator} matches</small></span>)}</div>;
 }
 
 export function MethodologySheet({

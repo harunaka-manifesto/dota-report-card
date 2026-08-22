@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type {
   BehaviorElement,
   BehaviorPattern,
@@ -152,7 +152,7 @@ function ElementTile({ element, featured = false, scanIndex = 0 }: { element: Be
     <article className={`element-tile is-${element.status}${featured ? " is-featured" : ""}`} style={{ "--scan-index": scanIndex } as React.CSSProperties}>
       <div className="element-tile-heading"><span className="eyebrow">{element.status}</span><strong>{element.label}</strong></div>
       <Spectrum score={element.score} left={element.axis.left} right={element.axis.right} disabled={element.status === "unavailable"} />
-      <div className="element-tile-meta"><span>{element.zone ?? "No zone yet"}</span><span>{element.sample_size ? `n=${element.sample_size}` : "No sample"}</span></div>
+      <div className="element-tile-meta"><span>{element.zone ?? "No zone yet"}</span><span>{element.sample_size ? `${element.sample_size} matches` : "No sample"}</span></div>
     </article>
   );
 }
@@ -166,7 +166,7 @@ function ElementHighlightPage({ page, context }: { page: StoryPage; context: Sto
       <h2 id={`${page.id}-heading`}>{element.label}</h2>
       <p className="story-lede">{page.content?.observation ?? page.body}</p>
       <Spectrum score={element.score} left={element.axis.left} right={element.axis.right} disabled={element.status === "unavailable"} />
-      <div className="signal-status"><strong>{element.zone ?? "Signal unavailable"}</strong><span>{element.confidence} confidence · {element.sample_size ? `n=${element.sample_size}` : "no readable sample"}</span></div>
+    <div className="signal-status"><strong>{element.zone ?? "Signal unavailable"}</strong><span>{element.confidence} confidence · {element.sample_size ? `${element.sample_size} matches` : "no readable sample"}</span></div>
       {page.content?.why_highlight && <p>{page.content.why_highlight}</p>}
       <EvidenceReceipt evidence={element.receipts} />
       {page.content?.evidence && <p className="muted">{page.content.evidence}</p>}
@@ -232,7 +232,12 @@ function ControlledPresenceActionPanel({ action, copy }: { action: ControlledPre
 }
 
 function PresenceTaxActionPanel({ action, copy }: { action: PresenceTaxAction; copy?: PatternActionCopy | null }) {
-  const shape = action.shape.replace("_", " ").toUpperCase();
+  const shape = {
+    hero_specific: "Hero-specific",
+    job_shaped: "Job-specific",
+    cross_context: "Across contexts",
+    unresolved: "Context still forming",
+  }[action.shape] ?? "Context still forming";
   return <section className="pattern-action" aria-labelledby="presence-tax-heading">
     <span className="eyebrow">{copy?.presence_tax_kicker ?? "Where does the tax come from?"}</span>
     <h3 id="presence-tax-heading">{shape || copy?.presence_tax_heading}</h3>
@@ -244,13 +249,29 @@ function PresenceTaxActionPanel({ action, copy }: { action: PresenceTaxAction; c
 }
 
 function PartialTransferActionPanel({ action, copy }: { action: PartialTransferDiagnostic; copy?: PatternActionCopy | null }) {
+  const signalLabels: Record<string, string> = {
+    combat_involvement: "Fight presence",
+    result_distribution: "Results",
+    death_exposure: "Death cost",
+    finisher_orientation: "Finishing",
+  };
+  const capabilityLabels: Record<string, string> = {
+    commitment: "Commitment",
+    access: "Access",
+    repositioning: "Repositioning",
+    economy: "Resource needs",
+    timing: "Timing",
+    execution: "Execution",
+    exposure: "Exposure",
+    micro: "Attention load",
+  };
   const statusLabel = action.status.replaceAll("_", " ");
   return <section className="pattern-action" aria-labelledby="partial-transfer-heading">
     <span className="eyebrow">{copy?.partial_transfer_kicker ?? "Where the transfer bends"}</span>
     <h3 id="partial-transfer-heading">{action.status === "unresolved" ? copy?.partial_transfer_unresolved_heading ?? "The gap is real; the cause is not proven" : copy?.partial_transfer_heading ?? "The result gap has a bounded lead"}</h3>
     {action.strongest_supported_lead && <p>{action.strongest_supported_lead}</p>}
-    {action.summary_differences.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_direct_label ?? "Observable difference"}</span>{action.summary_differences.map((difference) => <article className="pattern-action-card" key={difference.signal_key}><h4>{difference.signal_key.replaceAll("_", " ")}</h4><p>{difference.player_facing_claim}</p><small>{Math.round(difference.confidence_score * 100)}% confidence</small></article>)}</div>}
-    {action.capability_hypotheses.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_hypothesis_label ?? "Capability lead"}</span>{action.capability_hypotheses.map((hypothesis) => <article className="pattern-action-card" key={hypothesis.capability_key}><h4>{hypothesis.capability_key.replaceAll("_", " ")}</h4><p>{hypothesis.player_facing_hypothesis}</p><small>{Math.round(hypothesis.confidence_score * 100)}% confidence</small></article>)}</div>}
+    {action.summary_differences.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_direct_label ?? "Observable difference"}</span>{action.summary_differences.map((difference) => <article className="pattern-action-card" key={difference.signal_key}><h4>{signalLabels[difference.signal_key] ?? "Observable signal"}</h4><p>{difference.player_facing_claim}</p><small>{Math.round(difference.confidence_score * 100)}% confidence</small></article>)}</div>}
+    {action.capability_hypotheses.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_hypothesis_label ?? "Capability lead"}</span>{action.capability_hypotheses.map((hypothesis) => <article className="pattern-action-card" key={hypothesis.capability_key}><h4>{capabilityLabels[hypothesis.capability_key] ?? "Capability lead"}</h4><p>{hypothesis.player_facing_hypothesis}</p><small>{Math.round(hypothesis.confidence_score * 100)}% confidence</small></article>)}</div>}
     <p className="muted">Evidence level: {statusLabel}. {action.deep_analysis_eligible && (copy?.partial_transfer_deep_label ?? "Worth a deeper evidence pass.")}</p>
     {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
   </section>;
@@ -258,18 +279,32 @@ function PartialTransferActionPanel({ action, copy }: { action: PartialTransferD
 
 function VersatileCoreActionPanel({ action, copy }: { action: VersatileCoreAction; copy?: PatternActionCopy | null }) {
   const coverage = action.coverage_summary;
-  const coverageGroups = [
+  const familyMap = coverage.family_map ?? {};
+  const familyDescriptions = coverage.family_descriptions ?? {};
+  const coverageGroups = Object.entries(familyMap).map(([key, label]) => ({
+    key,
+    label,
+    description: familyDescriptions[key],
+    state: coverage.missing.includes(label)
+      ? "gap"
+      : coverage.thin_coverage.includes(label) || coverage.single_point_coverage.includes(label)
+        ? "thin"
+        : "covered",
+  }));
+  const legacyGroups = [
     ["Strongly covered", coverage.strongly_covered],
     ["One hero", coverage.single_point_coverage],
     ["Thin", coverage.thin_coverage],
     ["Missing", coverage.missing],
   ] as const;
+  const qualified = action.complementarity_qualified !== false;
   return <section className="pattern-action" aria-labelledby="versatile-core-heading">
     <span className="eyebrow">{copy?.versatile_core_kicker ?? "Your compact toolkit"}</span>
-    <h3 id="versatile-core-heading">{copy?.versatile_core_heading ?? "A small pool can still cover a lot of Dota"}</h3>
-    <div className="pattern-action-cards"><span className="eyebrow">{copy?.versatile_core_jobs_label ?? "Jobs in the core"}</span>{action.hero_job_maps.map((hero) => <article className="pattern-action-card" key={hero.hero_id}><h4>{hero.hero_name}</h4><p>{hero.primary_jobs.join(" · ") || "No clear job map"}</p>{hero.expression_summary && <small>{hero.expression_summary}</small>}</article>)}</div>
-    <div className="descriptor-list" aria-label={copy?.versatile_core_coverage_label ?? "Coverage map"}>{coverageGroups.map(([label, jobs]) => jobs.length > 0 && <span key={label}><strong>{label}:</strong> {jobs.join(", ")}</span>)}</div>
-    {action.recommended_addition ? <article className="pattern-action-card"><span className="eyebrow">{copy?.versatile_core_next_tool_label ?? "One useful next tool"}</span><h4>{action.recommended_addition.hero_name}</h4><p>{action.recommended_addition.player_facing_reason}</p><small>{action.recommended_addition.solves_gap}</small></article> : <p><strong>{copy?.versatile_core_no_gap_heading ?? "No obvious hole needs filling"}</strong></p>}
+    <h3 id="versatile-core-heading">{qualified ? copy?.versatile_core_heading ?? "Small pool. Different answers." : "No clear versatility read yet"}</h3>
+    <div className="pattern-action-cards"><span className="eyebrow">{copy?.versatile_core_jobs_label ?? "Ways of helping in the core"}</span>{action.hero_job_maps.map((hero) => <article className="pattern-action-card" key={hero.hero_id}><h4>{hero.hero_name}</h4><p>{hero.primary_jobs.length > 0 ? hero.primary_jobs.map((job) => <SemanticChip key={job} label={job} />) : "No clear map yet"}</p>{hero.expression_summary && <small>{hero.expression_summary}</small>}</article>)}</div>
+    <div className="descriptor-list" aria-label={copy?.versatile_core_coverage_label ?? "Coverage map"}>{coverageGroups.length > 0 ? coverageGroups.map((family) => <span key={family.key}><SemanticChip label={family.label} description={family.description} />: {family.state === "gap" ? "Needs coverage" : family.state === "thin" ? "One or two heroes" : "Covered by the core"}</span>) : legacyGroups.map(([label, jobs]) => jobs.length > 0 && <span key={label}><strong>{label}:</strong> {jobs.map((job) => <SemanticChip key={job} label={job} />)}</span>)}</div>
+    {coverage.primary_gap && <p><strong>Primary gap.</strong> {coverage.primary_gap}. {coverage.secondary_gaps?.length ? `Secondary gaps: ${coverage.secondary_gaps.join(", ")}.` : ""}</p>}
+    {qualified && action.recommended_addition ? <article className="pattern-action-card"><span className="eyebrow">{copy?.versatile_core_next_tool_label ?? "One useful next tool"}</span><h4>{action.recommended_addition.hero_name}</h4><p>{action.recommended_addition.player_facing_reason}</p><small>{action.recommended_addition.solves_gap}</small></article> : <p><strong>{qualified ? copy?.versatile_core_no_gap_heading ?? "No obvious hole needs filling" : "The family map is useful context, but it is not strong enough for a headline."}</strong></p>}
     {action.alternative_additions.length > 0 && <p><strong>{copy?.versatile_core_alternatives_label ?? "Other viable additions"}.</strong> {action.alternative_additions.map((hero) => hero.hero_name).join(", ")}</p>}
     {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
   </section>;
@@ -281,8 +316,8 @@ function ProvenFlexibilityActionPanel({ action, copy }: { action: ProvenFlexibil
     <span className="eyebrow">{copy?.proven_flexibility_kicker ?? "Proof of range"}</span>
     <h3 id="proven-flexibility-heading">{action.status === "distributed_flexibility" ? copy?.proven_flexibility_distributed_heading ?? "Your flexibility is distributed" : copy?.proven_flexibility_heading ?? "Your flexibility shows up in the calendar"}</h3>
     {action.window_start && action.window_end && <p>{action.window_start} → {action.window_end} · {action.total_games} games</p>}
-    <p><strong>{copy?.proven_flexibility_roster_label ?? "Heroes in the window"}.</strong> {roster.join(", ") || "No taxonomy-covered hero roster yet."}</p>
-    <p><strong>{copy?.proven_flexibility_proof_label ?? "What repeats"}.</strong> {action.functional_jobs.join(" · ") || "No clear functional spread yet."}. {action.secondary_proof ?? `${action.meaningful_hero_count} meaningful heroes across ${action.functional_job_count} functional jobs.`}</p>
+    <p><strong>{copy?.proven_flexibility_roster_label ?? "Heroes in the window"}.</strong> {roster.join(", ") || "No reviewed hero roster yet."}</p>
+    <p><strong>{copy?.proven_flexibility_proof_label ?? "What repeats"}.</strong> {action.functional_jobs.length > 0 ? action.functional_jobs.map((job) => <SemanticChip key={job} label={job} />) : "No clear range yet."}. {action.secondary_proof ?? `${action.meaningful_hero_count} meaningful heroes cover ${action.functional_job_count} ways of helping.`}</p>
     {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
   </section>;
 }
@@ -294,8 +329,8 @@ function RecoveryActionPanel({ action, copy }: { action: BouncebackAction | Perf
   return <section className="pattern-action" aria-labelledby={`${action.action_type}-heading`}>
     <span className="eyebrow">{positive ? copy?.bounceback_kicker ?? "Your best rebound tool" : copy?.performance_slide_kicker ?? "Your roughest post-loss tool"}</span>
     <h3 id={`${action.action_type}-heading`}>{context?.label ?? (positive ? copy?.bounceback_heading ?? "Where your post-loss performance recovers most" : copy?.performance_slide_heading ?? "Where the post-loss drop is largest")}</h3>
-    {context ? <><p><strong>{positive ? "+" : "-"}{delta}</strong> relative performance-proxy units vs a leave-session-out comparable baseline · {context.sample_size} transitions across {context.session_count} sessions.</p><p><strong>{copy?.recovery_context_label ?? "Comparable context"}.</strong> {context.primary_jobs.join(" · ") || "Overall summary context"}.</p></> : <UnavailableMessage limitations={action.limitations} />}
-    {action.comparison_contexts.length > 0 && <div className="pattern-action-cards">{action.comparison_contexts.map((row) => <article className="pattern-action-card" key={`${row.label}-${row.hero_id ?? row.function_family ?? row.role_context ?? "overall"}`}><h4>{row.label}</h4><p>{row.performance_delta >= 0 ? "+" : ""}{row.performance_delta.toFixed(2)} relative proxy units · {row.sample_size} transitions</p><small>{Math.round(row.confidence_score * 100)}% confidence</small></article>)}</div>}
+    {context ? <><p><strong>{positive ? "+" : "-"}{delta}</strong> compared with similar games · {context.sample_size} transitions across {context.session_count} sessions.</p><p><strong>{copy?.recovery_context_label ?? "Comparable context"}.</strong> {context.primary_jobs.length > 0 ? context.primary_jobs.map((job) => <SemanticChip key={job} label={job} />) : "Overall summary context"}.</p></> : <UnavailableMessage limitations={action.limitations} />}
+    {action.comparison_contexts.length > 0 && <div className="pattern-action-cards">{action.comparison_contexts.map((row) => <article className="pattern-action-card" key={`${row.label}-${row.hero_id ?? row.function_family ?? row.role_context ?? "overall"}`}><h4>{row.label}</h4><p>{row.performance_delta >= 0 ? "+" : ""}{row.performance_delta.toFixed(2)} similar-game comparison units · {row.sample_size} transitions</p><small>{Math.round(row.confidence_score * 100)}% confidence</small></article>)}</div>}
     {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
   </section>;
 }
@@ -318,8 +353,8 @@ function SessionCurveActionPanel({ action, copy }: { action: SessionCurveAction;
     <div className="pattern-action-cards" aria-label="Session position curve">
       {action.curve.map((point) => <article className={`pattern-action-card${point.supported ? "" : " is-muted"}`} key={point.bucket}>
         <h4>{point.bucket}</h4>
-        <p>{point.supported ? `${point.relative_delta >= 0 ? "+" : ""}${point.relative_delta.toFixed(2)} relative units` : "Not enough independent sessions"}</p>
-        <small>{point.sample_size} games · effective n {point.effective_sample_size.toFixed(1)}</small>
+        <p>{point.supported ? `${point.relative_delta >= 0 ? "+" : ""}${point.relative_delta.toFixed(2)} comparison units` : "Not enough independent sessions"}</p>
+        <small>{point.sample_size} matches · weighted comparison {point.effective_sample_size.toFixed(1)}</small>
       </article>)}
     </div>
     {action.breakpoint_state === "stable_breakpoint" && action.breakpoint_bucket && <p><strong>{breakpointLabel}:</strong> {action.breakpoint_bucket}. {action.independent_session_count} independent sessions support the curve.</p>}
@@ -352,7 +387,7 @@ function SamePlaybookActionPanel({ action, copy }: { action: SamePlaybookAction;
         <p>{recommendation.why_it_fits}</p>
         <p><strong>{copy?.same_playbook_familiar_label ?? "What stays familiar."}</strong> {recommendation.what_stays_familiar}</p>
         <p><strong>{copy?.same_playbook_changes_label ?? "What changes."}</strong> {recommendation.what_changes}</p>
-      </article>)}</div> : <UnavailableMessage limitations={[copy?.same_playbook_empty_direction ?? "No candidate cleared the evidence and learning-distance gates for this direction."]} />}
+      </article>)}</div> : <UnavailableMessage limitations={[copy?.same_playbook_empty_direction ?? "No candidate had enough evidence and a close enough learning step for this direction."]} />}
       {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
     </section>
   );
@@ -438,10 +473,10 @@ function PortfolioReveal({ kind, selected, correct, result, content }: { kind: "
   const resultLabel = right ? content?.correct_label ?? "You spotted it." : content?.incorrect_label ?? "A useful correction.";
   if (kind === "common_thread") {
     const common = result as FreeDnaReportV4["hero_portfolio"]["common_thread"];
-    return <div className="portfolio-reveal"><span className="eyebrow">{resultLabel}</span><h3>{common.trait_label ?? "No clear common thread"}</h3><p>{selectedOption?.feedback ?? common.limitations.join(" ")}</p><div className="descriptor-list">{common.secondary_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div>;
+    return <div className="portfolio-reveal"><span className="eyebrow">{resultLabel}</span><h3>{common.trait_label ?? "No clear common thread"}</h3><p>{selectedOption?.feedback ?? common.limitations.join(" ")}</p><div className="descriptor-list">{common.secondary_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div>;
   }
   const exception = result as HeroException;
-  return <div className="portfolio-reveal"><span className="eyebrow">{resultLabel}</span><h3>{exception.hero_name ?? "No clear exception"}</h3><p>{selectedOption?.feedback ?? exception.limitations.join(" ")}</p><div className="descriptor-list">{exception.exception_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div>;
+  return <div className="portfolio-reveal"><span className="eyebrow">{resultLabel}</span><h3>{exception.hero_name ?? (exception.status === "no_clear_exception" ? "Your pool has no odd one out." : "No exception yet")}</h3><p>{selectedOption?.feedback ?? exception.limitations.join(" ")}</p><div className="descriptor-list">{exception.exception_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div>;
 }
 
 function EvolutionQuestion({ page, context }: { page: StoryPage; context: StoryContext }) {
@@ -457,7 +492,7 @@ function EvolutionQuestion({ page, context }: { page: StoryPage; context: StoryC
       portfolio_model_version: context.report.versions.hero_portfolio,
     });
   };
-  return <article className="portfolio-question"><p className="eyebrow">Hero Portfolio · Pool Evolution</p><h2 id={`${page.id}-heading`}>{page.title}</h2><p className="story-lede">{page.body}</p><div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>{page.options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}</div>{selected && <p className="choice-status" role="status" aria-live="polite">Your read: {page.options.find((option) => option.key === selected)?.label}</p>}<button type="button" className="reveal-button" disabled={!selected || isRevealed} onClick={() => { context.setRevealed((current) => ({ ...current, evolution: true })); track("hero_portfolio.reveal_viewed.v1", { question_key: "evolution", matched_computed_answer: null, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_portfolio }); }}>{isRevealed ? "Answer revealed" : "Reveal"}</button></article>;
+  return <article className="portfolio-question"><p className="eyebrow">Hero Portfolio · Pool Evolution</p><h2 id={`${page.id}-heading`}>{page.title}</h2><p className="story-lede">{page.body}</p><div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>{page.options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}</div>{selected && <p className="choice-status" role="status" aria-live="polite">Your read: {page.options.find((option) => option.key === selected)?.label}</p>}<button type="button" className="reveal-button" disabled={!selected || isRevealed} onClick={() => { context.setRevealed((current) => ({ ...current, evolution: true })); track("hero_portfolio.reveal_viewed.v1", { question_key: "evolution", matched_computed_answer: null, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_portfolio }); }}>{isRevealed ? "Answer revealed" : "Reveal"}</button>{isRevealed && <div aria-live="polite"><EvolutionResult evolution={context.report.hero_portfolio.evolution} content={page.content} /></div>}</article>;
 }
 
 function EvolutionReveal({ page, context }: { page: StoryPage; context: StoryContext }) {
@@ -465,7 +500,52 @@ function EvolutionReveal({ page, context }: { page: StoryPage; context: StoryCon
   if (!context.revealed.evolution) {
     return <article className="evolution-reveal"><p className="eyebrow">Pool Evolution · report read</p><h2 id={`${page.id}-heading`}>{page.title}</h2><div className="unavailable-message"><strong>{page.content?.locked_copy ?? "Complete the self-assessment above to see the report read."}</strong></div></article>;
   }
-  return <article className="evolution-reveal"><p className="eyebrow">Pool Evolution · report read</p><h2 id={`${page.id}-heading`}>{page.title}</h2>{evolution.status === "available" && evolution.variant ? <><p className="story-lede">{page.content?.copy ?? page.body}</p><div className="evolution-columns"><div><span className="eyebrow">Earlier window · n={evolution.earlier_sample_size}</span><div className="descriptor-list">{evolution.earlier_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div><div><span className="eyebrow">Recent window · n={evolution.recent_sample_size}</span><div className="descriptor-list">{evolution.recent_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div></div></> : <UnavailableMessage limitations={evolution.limitations} />}</article>;
+  return <article className="evolution-reveal"><p className="eyebrow">Pool Evolution · report read</p><h2 id={`${page.id}-heading`}>{page.title}</h2><EvolutionResult evolution={evolution} content={page.content} /></article>;
+}
+
+function EvolutionResult({ evolution, content }: { evolution: FreeDnaReportV4["hero_portfolio"]["evolution"]; content?: StoryPage["content"] }) {
+  if (evolution.status !== "available" || !evolution.variant) return <UnavailableMessage limitations={evolution.limitations} />;
+  const dateRange = (start?: string | null, end?: string | null) => start && end ? ` · ${start}–${end}` : "";
+  return <><p className="story-lede">{content?.copy ?? "Your hero names changed; here is what changed underneath."}</p><div className="evolution-columns"><div><span className="eyebrow">Previous {evolution.earlier_sample_size} matches{dateRange(evolution.earlier_start, evolution.earlier_end)}</span><div className="descriptor-list">{evolution.earlier_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div><div><span className="eyebrow">Latest {evolution.recent_sample_size} matches{dateRange(evolution.recent_start, evolution.recent_end)}</span><div className="descriptor-list">{evolution.recent_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div></div></>;
+}
+
+const SEMANTIC_JOB_DESCRIPTIONS: Record<string, string> = {
+  "Fight start": "Starts fights on your terms.",
+  "Counter-engage": "Punishes enemies after they commit.",
+  Catch: "Locks down a target before they escape.",
+  "Fight control": "Restricts where enemies can move or act once the fight starts.",
+  Frontline: "Can occupy dangerous space for the team.",
+  Save: "Prevents an ally from dying or being disabled.",
+  Sustain: "Keeps allies healthy through longer fights.",
+  "Forced movement": "Moves heroes from where they wanted to be.",
+  Repositioning: "Reaches a better position during the fight.",
+  Mobility: "Reaches or leaves positions quickly.",
+  "Burst damage": "Deals a lot of damage in a short window.",
+  "Sustained damage": "Keeps damage flowing through longer fights.",
+  "Wave clear": "Removes creep waves quickly.",
+  "Tower pressure": "Converts space into building pressure.",
+  "Global reach": "Influences distant parts of the map quickly.",
+  Vision: "Creates or denies information.",
+  "Late-game scaling": "Gains more value as resources accumulate.",
+};
+
+function SemanticChip({ label, description }: { label: string; description?: string }) {
+  const explanation = description || SEMANTIC_JOB_DESCRIPTIONS[label] || "A reviewed way this hero can contribute.";
+  const [open, setOpen] = useState(false);
+  const explanationId = useId();
+  return <span className={`semantic-chip${open ? " is-open" : ""}`}>
+    <button
+      type="button"
+      className="semantic-chip-trigger"
+      title={explanation}
+      aria-label={`${label}: ${explanation}`}
+      aria-expanded={open}
+      aria-describedby={open ? explanationId : undefined}
+      onClick={() => setOpen((current) => !current)}
+      onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}
+    >{label}<span aria-hidden="true">ⓘ</span></button>
+    <span id={explanationId} className="semantic-chip-tooltip" role="tooltip">{explanation}</span>
+  </span>;
 }
 
 function MirrorPage({ page, context }: { page: StoryPage; context: StoryContext }) {
@@ -545,7 +625,7 @@ function FinalCard({ page, report }: { page: StoryPage; report: FreeDnaReportV4 
 }
 
 function UnavailableMessage({ limitations }: { limitations: string[] }) {
-  return <div className="unavailable-message"><strong>Not enough evidence yet</strong><p>{limitations.join(" ") || "The bounded summary history did not clear the evidence gate."}</p></div>;
+  return <div className="unavailable-message"><strong>Not enough evidence yet</strong><p>{limitations.join(" ") || "The bounded summary history did not support a clear answer yet."}</p></div>;
 }
 
 function FallbackPage({ page }: { page: StoryPage }) {

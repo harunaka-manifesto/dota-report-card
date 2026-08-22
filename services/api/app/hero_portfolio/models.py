@@ -127,6 +127,10 @@ class PoolEvolutionResult:
     recent_sample_size: int = 0
     earlier_taxonomy_coverage: float = 0.0
     recent_taxonomy_coverage: float = 0.0
+    earlier_start: str | None = None
+    earlier_end: str | None = None
+    recent_start: str | None = None
+    recent_end: str | None = None
     limitations: tuple[str, ...] = ()
 
     def as_dict(self) -> dict[str, Any]:
@@ -144,6 +148,10 @@ class PoolEvolutionResult:
             "recent_sample_size": self.recent_sample_size,
             "earlier_taxonomy_coverage": round(self.earlier_taxonomy_coverage, 6),
             "recent_taxonomy_coverage": round(self.recent_taxonomy_coverage, 6),
+            "earlier_start": self.earlier_start,
+            "earlier_end": self.earlier_end,
+            "recent_start": self.recent_start,
+            "recent_end": self.recent_end,
             "limitations": list(self.limitations),
         }
 

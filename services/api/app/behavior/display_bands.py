@@ -170,31 +170,36 @@ def session_bucket_label(bucket: str) -> str:
 
 
 def job_display_label(value: str) -> str:
-    """Convert a taxonomy key to a stable readable label when needed."""
+    """Convert an internal functional key into the reviewed public label."""
 
+    # Keep this import lazy: hero knowledge uses this helper while adapting
+    # source records, and importing it at module load time would create a
+    # behavior ↔ hero circular import.
+    try:
+        from app.heroes.knowledge import JOB_GLOSSARY, canonical_function_key
+
+        key = canonical_function_key(value)
+        definition = JOB_GLOSSARY.get(key)
+        if definition is not None:
+            return str(definition["public_label"])
+    except ImportError:
+        # The fallback keeps this small display utility usable in isolation.
+        key = value
     labels = {
-        "global_presence": "Global presence",
-        "teamfight_control": "Teamfight control",
-        "counter_initiation": "Counter-initiation",
-        "catch": "Catch",
-        "displacement": "Displacement",
-        "micro_intensity": "Micro intensity",
-        "farm_dependency": "Farm dependence",
+        "global_presence": "Global reach",
+        "teamfight_control": "Fight control",
+        "teamfight": "Fight control",
+        "counter_initiation": "Counter-engage",
+        "pickoff": "Catch",
+        "displacement": "Forced movement",
         "sustained_damage": "Sustained damage",
         "wave_clear": "Wave clear",
-        "frontline": "Frontline",
-        "teamfight": "Teamfight",
-        "repositioning": "Repositioning",
-        "initiation": "Initiation",
-        "pickoff": "Pickoff",
-        "mobility": "Mobility",
-        "save": "Save",
-        "sustain": "Sustain",
-        "burst": "Burst",
-        "push": "Push",
-        "scaling": "Scaling",
+        "initiation": "Fight start",
+        "burst": "Burst damage",
+        "push": "Tower pressure",
+        "scaling": "Late-game scaling",
     }
-    return labels.get(value, value.replace("_", " ").capitalize())
+    return labels.get(key, key.replace("_", " ").capitalize())
 
 
 __all__ = [

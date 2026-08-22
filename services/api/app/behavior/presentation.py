@@ -31,12 +31,14 @@ from app.behavior.outcomes import (
     classify_recommendation_state,
 )
 from app.heroes.knowledge import (
+    FUNCTIONAL_JOBS,
     HERO_DEMAND_FAMILIES,
+    JOB_GLOSSARY,
     HeroKnowledgeProvider,
     TaxonomyHeroKnowledgeProvider,
 )
 from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION
-from app.heroes.relationships import build_pool_profile
+from app.heroes.relationships import build_pool_profile, build_semantic_pool_profile
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -135,22 +137,7 @@ PRESENTATION_DEEP_DIVE_IDS = frozenset(
     item["deep_dive_id"] for item in PATTERN_PRESENTATION_CONTRACT.values()
 )
 
-_JOB_KEYS = (
-    "initiation",
-    "mobility",
-    "pickoff",
-    "teamfight",
-    "save",
-    "sustain",
-    "burst",
-    "sustained_damage",
-    "wave_clear",
-    "push",
-    "frontline",
-    "scaling",
-    "global_presence",
-    "repositioning",
-)
+_JOB_KEYS = FUNCTIONAL_JOBS
 
 
 @dataclass(frozen=True, slots=True)
@@ -343,8 +330,15 @@ def _proof_data(
                     "strongly_covered": coverage.get("strongly_covered", []),
                     "thin": coverage.get("thin_coverage", []),
                     "missing": coverage.get("missing", []),
+                    "family_map": coverage.get("family_map", {}),
+                    "family_descriptions": coverage.get("family_descriptions", {}),
+                    "primary_gap": coverage.get("primary_gap"),
+                    "secondary_gaps": coverage.get("secondary_gaps", []),
+                    "semantic_coverage": coverage.get("semantic_coverage"),
+                    "role_adjusted_coverage": coverage.get("role_adjusted_coverage"),
                 },
                 "recommended_addition": action.get("recommended_addition"),
+                "complementarity_qualified": action.get("complementarity_qualified", True),
             }
         )
     elif pattern.key == "proven_flexibility":
@@ -451,21 +445,31 @@ def _same_playbook_proof(
         ][:4]
         proof["regular_hero_count"] = len(proof["hero_names"])
         return proof
-    profile = build_pool_profile(matches, taxonomy)
+    profile = (
+        build_semantic_pool_profile(matches, hero_knowledge)
+        if hero_knowledge is not None
+        else build_pool_profile(matches, taxonomy)
+    )
     names = []
     for hero_id in sorted(profile.hero_ids, key=lambda item: (-profile.usage_counts.get(item, 0), item)):
         knowledge_entry = hero_knowledge.get(hero_id) if hero_knowledge else None
         if knowledge_entry is not None:
             names.append(knowledge_entry.display_name)
+        elif taxonomy_entry := taxonomy.get(hero_id):
+            names.append(taxonomy_entry.name)
     clusters: dict[str, list[str]] = defaultdict(list)
     for hero_id in profile.hero_ids:
-        taxonomy_entry = taxonomy.get(hero_id)
         knowledge = hero_knowledge.get(hero_id) if hero_knowledge else None
-        if taxonomy_entry is None or knowledge is None:
-            continue
-        for job in _JOB_KEYS:
-            if taxonomy_entry.traits.get(job, 0.0) >= 0.60:
+        if knowledge is not None:
+            for job in tuple(dict.fromkeys((*knowledge.primary_functions, *knowledge.secondary_functions))):
                 clusters[job_display_label(job)].append(knowledge.display_name)
+        elif taxonomy is not None:
+            taxonomy_entry = taxonomy.get(hero_id)
+            if taxonomy_entry is None:
+                continue
+            for job in _JOB_KEYS:
+                if taxonomy_entry.traits.get(job, 0.0) >= 0.60:
+                    clusters[job_display_label(job)].append(taxonomy_entry.name)
     proof["hero_names"] = names
     proof["regular_hero_count"] = len(names)
     proof["job_clusters"] = [
@@ -513,8 +517,13 @@ def _presence_proof(item: Mapping[str, Any]) -> dict[str, Any]:
 
 def _hero_semantic_context(hero: Any) -> dict[str, Any]:
     return {
-        "primary_functions": list(hero.primary_functions),
-        "secondary_functions": list(hero.secondary_functions),
+        "primary_functions": [job_display_label(item) for item in hero.primary_functions],
+        "secondary_functions": [job_display_label(item) for item in hero.secondary_functions],
+        "function_definitions": {
+            job_display_label(item): str(JOB_GLOSSARY.get(item, {}).get("public_short_description", ""))
+            for item in (*hero.primary_functions, *hero.secondary_functions)
+            if item in JOB_GLOSSARY
+        },
         "demands": dict(hero.demands),
         "empirical_support": hero.empirical_support,
         "confidence": hero.confidence,

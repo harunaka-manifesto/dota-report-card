@@ -65,10 +65,17 @@ from app.heroes.evidence import (
     representative_synergies,
     situations_for_traits,
 )
-from app.heroes.knowledge import FUNCTIONAL_JOBS, HERO_DEMAND_FAMILIES, HeroKnowledgeProvider
+from app.heroes.knowledge import (
+    COVERAGE_FAMILIES,
+    HERO_DEMAND_FAMILIES,
+    HeroKnowledgeProvider,
+    NormalizedHeroKnowledge,
+    family_for_function,
+)
 from app.heroes.recommendations import HeroRecommendationRationale, recommend_semantic_heroes
 from app.heroes.relationships import (
     build_pool_profile,
+    build_semantic_pool_profile,
     candidate_traits,
     expression_difference,
     learning_distance,
@@ -132,7 +139,7 @@ _PRESENCE_FUNCTION_THRESHOLD = 0.68
 _PRESENCE_ACTIVE_LEVEL = 0.60
 _PRESENCE_SAFE_LEVEL = 0.40
 _PRESENCE_EXPOSED_LEVEL = 0.60
-_HIGH_CONTACT_FUNCTIONS = frozenset({"initiation", "frontline", "teamfight"})
+_HIGH_CONTACT_FUNCTIONS = frozenset({"initiation", "frontline", "fight_control", "catch"})
 _RECOVERY_ACTION_MIN_EFFECT = 0.04
 
 _PROVENANCE_KEYS = {
@@ -213,22 +220,43 @@ def attach_pattern_actions(
             elif pattern.key == "versatile_core":
                 action = build_versatile_core_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key == "proven_flexibility":
-                action = build_proven_flexibility_action(matches, taxonomy)
+                action = build_proven_flexibility_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key == "bounceback":
-                action = build_bounceback_action(matches, taxonomy)
+                action = build_bounceback_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key == "performance_slide":
-                action = build_performance_slide_action(matches, taxonomy)
+                action = build_performance_slide_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key == "controlled_presence":
-                action = build_controlled_presence_action(matches, taxonomy)
+                action = build_controlled_presence_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key == "presence_tax":
-                action = build_presence_tax_action(matches, taxonomy)
+                action = build_presence_tax_action(matches, taxonomy, hero_knowledge=hero_knowledge)
             elif pattern.key in {"session_fade", "session_rise"}:
                 action = build_session_curve_action(
                     matches,
                     taxonomy,
                     direction="fade" if pattern.key == "session_fade" else "rise",
                 )
-        result.append(replace(pattern, action=action))
+        if (
+            pattern.key == "versatile_core"
+            and isinstance(action, VersatileCoreAction)
+            and hero_knowledge is not None
+            and not action.complementarity_qualified
+        ):
+            result.append(
+                replace(
+                    pattern,
+                    status="suppressed",
+                    direction=None,
+                    strength=0.0,
+                    confidence="unavailable",
+                    confidence_score=0.0,
+                    story_eligibility="blocked",
+                    story_blockers=tuple(dict.fromkeys((*pattern.story_blockers, "semantic_complementarity_gate"))),
+                    suppression_reasons=tuple(dict.fromkeys((*pattern.suppression_reasons, "semantic_complementarity_gate"))),
+                    action=action,
+                )
+            )
+        else:
+            result.append(replace(pattern, action=action))
     return tuple(result)
 
 
@@ -569,32 +597,48 @@ def build_versatile_core_action(
     """Map the compact core, then recommend a real next tool or abstain."""
 
     core_ids = _core_hero_ids(matches, taxonomy, limit=5)
-    profile = build_pool_profile(matches, taxonomy, hero_ids=core_ids)
+    profile = (
+        build_semantic_pool_profile(matches, hero_knowledge, hero_ids=core_ids)
+        if hero_knowledge is not None
+        else build_pool_profile(matches, taxonomy, hero_ids=core_ids)
+    )
     job_maps_list: list[HeroJobMap] = []
     for hero_id in core_ids:
-        job_map = _hero_job_map(taxonomy.get(hero_id))
+        job_map = (
+            _semantic_hero_job_map(hero_knowledge.get(hero_id))
+            if hero_knowledge is not None
+            else _hero_job_map(taxonomy.get(hero_id))
+        )
         if job_map is not None:
             job_maps_list.append(job_map)
     job_maps = tuple(job_maps_list)
     coverage = (
-        _semantic_coverage_summary(core_ids, hero_knowledge)
+        _semantic_coverage_summary(core_ids, hero_knowledge, matches=matches, profile=profile)
         if hero_knowledge is not None
         else _coverage_summary(core_ids, taxonomy)
     )
+    complementarity_qualified = True
+    if hero_knowledge is not None:
+        complementarity_qualified = _semantic_complementarity_qualified(core_ids, profile, coverage)
     recommendation_candidates = (
         _semantic_addition_candidates(matches, hero_knowledge)
-        if hero_knowledge is not None
+        if hero_knowledge is not None and complementarity_qualified
         else _versatile_addition_candidates(matches, taxonomy, profile, coverage)
+        if hero_knowledge is None
+        else []
     )
     recommendation = recommendation_candidates[0] if recommendation_candidates else None
     alternatives = tuple(recommendation_candidates[1:3]) if recommendation else ()
-    if recommendation is None:
-        status: Literal[
-            "coverage_only",
-            "coverage_plus_recommendation",
-            "coverage_plus_alternatives",
-            "no_obvious_gap",
-        ] = "no_obvious_gap" if not coverage.missing and not coverage.thin_coverage else "coverage_only"
+    status: Literal[
+        "coverage_only",
+        "coverage_plus_recommendation",
+        "coverage_plus_alternatives",
+        "no_obvious_gap",
+    ]
+    if hero_knowledge is not None and not complementarity_qualified:
+        status = "coverage_only"
+    elif recommendation is None:
+        status = "no_obvious_gap" if not coverage.missing and not coverage.thin_coverage else "coverage_only"
     elif alternatives:
         status = "coverage_plus_alternatives"
     else:
@@ -603,9 +647,13 @@ def build_versatile_core_action(
         "Jobs and expressions come from the reviewed, versioned hero-characteristics database; they describe available tools, not guaranteed execution.",
     ]
     if not core_ids:
-        limitations.append("No taxonomy-covered core hero cleared the meaningful-history gate.")
+        limitations.append("No established core hero cleared the meaningful-history check.")
     if recommendation is None and (coverage.missing or coverage.thin_coverage):
-        limitations.append("No candidate cleared the role, learning-distance, expression, and redundancy gates without filler.")
+        limitations.append("No candidate added a clear new answer without being a near-duplicate.")
+    if hero_knowledge is not None and not complementarity_qualified:
+        limitations.append(
+            "The family map is shown for context, but the compact pool did not meet the evidence needed for a clear versatility headline."
+        )
     return VersatileCoreAction(
         action_type="versatile_core",
         status=status,
@@ -616,11 +664,13 @@ def build_versatile_core_action(
         alternative_additions=alternatives,
         confidence_score=profile.confidence_score,
         limitations=tuple(limitations),
+        complementarity_qualified=complementarity_qualified,
+        semantic_confidence=profile.confidence_score if hero_knowledge is not None else None,
         evidence_summary=_action_evidence(
             status="resolved" if status == "no_obvious_gap" or recommendation is not None else "fallback",
             sample_size=len(matches),
             effective_sample_size_value=float(len(matches)),
-            coverage=len(profile.hero_ids) / max(len(matches), 1),
+            coverage=(profile.semantic_coverage if profile.semantic else len(profile.hero_ids) / max(len(matches), 1)),
             confidence_score=profile.confidence_score,
             evidence_keys=(
                 "hero.knowledge" if hero_knowledge is not None else "hero.taxonomy",
@@ -637,7 +687,10 @@ def build_versatile_core_action(
 
 
 def build_proven_flexibility_action(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> ProvenFlexibilityAction:
     """Find the strongest sufficiently active rolling seven-day flex window."""
 
@@ -646,20 +699,28 @@ def build_proven_flexibility_action(
         for item in matches
         if item.hero_id is not None
         and item.started_at is not None
-        and taxonomy.get(item.hero_id) is not None
-        and taxonomy.get(item.hero_id).available  # type: ignore[union-attr]
+        and _hero_semantics_available(item.hero_id, taxonomy, hero_knowledge)
     ]
     if not dated:
-        return _distributed_flexibility_action(matches, taxonomy, "No dated taxonomy-covered matches can form a flex window.")
+        return _distributed_flexibility_action(
+            matches,
+            taxonomy,
+            "No dated hero-semantic matches can form a flex window.",
+            hero_knowledge=hero_knowledge,
+        )
     dated.sort(key=lambda item: (item.started_at or 0, item.match_id))
     dates = sorted({_utc_date(item.started_at or 0) for item in dated})
-    windows = [_flex_window(dated, start, taxonomy) for start in dates]
+    windows = [
+        _flex_window(dated, start, taxonomy, hero_knowledge=hero_knowledge)
+        for start in dates
+    ]
     eligible = [item for item in windows if item["total_games"] >= 10]
     if not eligible:
         return _distributed_flexibility_action(
             matches,
             taxonomy,
             "Your flexibility is spread out, not concentrated in one clear week. No seven-day stretch has enough activity to crown confidently.",
+            hero_knowledge=hero_knowledge,
         )
     selected = max(
         eligible,
@@ -678,11 +739,7 @@ def build_proven_flexibility_action(
         window_end=selected["window_end"],
         total_games=selected["total_games"],
         hero_ids=selected["hero_ids"],
-        hero_names=tuple(
-            entry.name
-            for hero_id in selected["hero_ids"]
-            if (entry := taxonomy.get(hero_id)) is not None
-        ),
+        hero_names=_display_names_for_ids(selected["hero_ids"], taxonomy, hero_knowledge),
         hero_game_counts=selected["hero_game_counts"],
         meaningful_hero_count=selected["meaningful_hero_count"],
         functional_jobs=selected["functional_jobs"],
@@ -703,7 +760,11 @@ def build_proven_flexibility_action(
             effective_sample_size_value=float(selected["total_games"]),
             coverage=1.0,
             confidence_score=min(1.0, 0.45 * selected["activity_confidence"] + 0.30 * selected["distribution_quality"] + 0.25 * min(1.0, selected["functional_job_count"] / 8.0)),
-            evidence_keys=("summary.dated_history", "hero.taxonomy", "hero.functional_jobs"),
+            evidence_keys=(
+                "summary.dated_history",
+                "hero.knowledge" if hero_knowledge is not None else "hero.taxonomy",
+                "hero.functional_jobs",
+            ),
         ),
     )
 
@@ -841,12 +902,12 @@ def _hero_capability_prevalence(
             if band == "unknown" or band is None:
                 continue
             known += 1
-            covered += band in {"medium", "high"}
+            covered += 1 if band in {"medium", "high"} else 0
         return covered / known if known else None
     covered = sum(
         1
         for hero_id in hero_ids
-        if (entry := taxonomy.get(hero_id)) is not None and entry.traits.get(capability_key, 0.0) >= 0.68
+        if (taxonomy_entry := taxonomy.get(hero_id)) is not None and taxonomy_entry.traits.get(capability_key, 0.0) >= 0.68
     )
     return covered / len(hero_ids)
 
@@ -877,6 +938,20 @@ def _hero_job_map(entry: HeroTaxonomyEntry | None) -> HeroJobMap | None:
     return HeroJobMap(entry.hero_id, entry.name, jobs, expression)
 
 
+def _semantic_hero_job_map(entry: NormalizedHeroKnowledge | None) -> HeroJobMap | None:
+    if entry is None or not entry.primary_functions and not entry.secondary_functions:
+        return None
+    keys = tuple(dict.fromkeys((*entry.primary_functions, *entry.secondary_functions)))
+    jobs = tuple(job_display_label(key) for key in keys[:4])
+    if len(jobs) >= 2:
+        expression = f"A {jobs[0]} and {jobs[1]} expression of this hero's toolkit."
+    elif jobs:
+        expression = f"A focused {jobs[0]} expression of this hero's toolkit."
+    else:
+        expression = None
+    return HeroJobMap(entry.hero_id, entry.display_name, jobs, expression)
+
+
 def _coverage_summary(core_ids: Sequence[int], taxonomy: HeroTaxonomy) -> CoverageSummary:
     counts = Counter(
         trait
@@ -894,24 +969,75 @@ def _coverage_summary(core_ids: Sequence[int], taxonomy: HeroTaxonomy) -> Covera
 
 
 def _semantic_coverage_summary(
-    core_ids: Sequence[int], provider: HeroKnowledgeProvider
+    core_ids: Sequence[int],
+    provider: HeroKnowledgeProvider,
+    *,
+    matches: Sequence[NormalizedSummaryMatch] = (),
+    profile: Any | None = None,
 ) -> CoverageSummary:
-    counts = Counter(
-        job
-        for hero_id in core_ids
-        if (entry := provider.get(hero_id)) is not None
-        for job in (*entry.primary_functions, *entry.secondary_functions)
-    )
+    if profile is None:
+        profile = build_semantic_pool_profile(matches, provider, hero_ids=core_ids)
+    relevant_families = tuple(profile.role_relevant_families) or tuple(COVERAGE_FAMILIES)
+    family_counts: Counter[str] = Counter()
+    for hero_id in core_ids:
+        entry = provider.get(hero_id)
+        if entry is None:
+            continue
+        jobs = set((*entry.primary_functions, *entry.secondary_functions))
+        families = {
+            family
+            for job in jobs
+            if (family := family_for_function(job)) is not None
+        }
+        family_counts.update(families)
     strong_gate = max(2, (len(core_ids) + 1) // 2)
-    strong = tuple(
-        job_display_label(key)
-        for key in FUNCTIONAL_JOBS
-        if counts.get(key, 0) >= strong_gate
+    family_label = {
+        key: str(definition["public_label"])
+        for key, definition in COVERAGE_FAMILIES.items()
+    }
+    family_description = {
+        key: str(definition["public_short_description"])
+        for key, definition in COVERAGE_FAMILIES.items()
+    }
+    strong = tuple(family_label[key] for key in relevant_families if family_counts[key] >= strong_gate)
+    single = tuple(family_label[key] for key in relevant_families if family_counts[key] == 1)
+    thin = tuple(family_label[key] for key in relevant_families if family_counts[key] == 2)
+    missing = tuple(family_label[key] for key in relevant_families if family_counts[key] == 0)
+    ordered_gaps = (*missing, *thin, *single)
+    primary_gap = ordered_gaps[0] if ordered_gaps else None
+    secondary_gaps = tuple(ordered_gaps[1:3])
+    return CoverageSummary(
+        strong,
+        single,
+        thin,
+        missing,
+        family_map={key: family_label[key] for key in relevant_families},
+        family_descriptions={key: family_description[key] for key in relevant_families},
+        primary_gap=primary_gap,
+        secondary_gaps=secondary_gaps,
+        semantic_coverage=profile.semantic_coverage,
+        role_adjusted_coverage=(
+            sum(family_counts[key] > 0 for key in relevant_families) / max(len(relevant_families), 1)
+        ),
+        pairwise_functional_overlap=profile.pairwise_functional_overlap,
+        unique_contribution_count=profile.unique_contribution_count,
     )
-    single = tuple(job_display_label(key) for key in FUNCTIONAL_JOBS if counts.get(key, 0) == 1)
-    thin = tuple(job_display_label(key) for key in FUNCTIONAL_JOBS if counts.get(key, 0) == 2)
-    missing = tuple(job_display_label(key) for key in FUNCTIONAL_JOBS if counts.get(key, 0) == 0)
-    return CoverageSummary(strong, single, thin, missing)
+
+
+def _semantic_complementarity_qualified(
+    core_ids: Sequence[int], profile: Any, coverage: CoverageSummary
+) -> bool:
+    relevant = len(profile.role_relevant_families) or len(COVERAGE_FAMILIES)
+    role_coverage = float(coverage.role_adjusted_coverage or 0.0)
+    return (
+        PORTFOLIO_CONFIG.p04_min_core_heroes <= len(core_ids) <= PORTFOLIO_CONFIG.p04_max_core_heroes
+        and float(profile.semantic_coverage) >= PORTFOLIO_CONFIG.p04_min_semantic_coverage
+        and role_coverage >= PORTFOLIO_CONFIG.p04_min_role_relevant_family_coverage
+        and float(profile.pairwise_functional_overlap) <= PORTFOLIO_CONFIG.p04_max_functional_overlap
+        and int(profile.unique_contribution_count) >= PORTFOLIO_CONFIG.p04_min_unique_contributions
+        and float(profile.confidence_score) >= PORTFOLIO_CONFIG.p04_min_semantic_confidence
+        and relevant > 0
+    )
 
 
 def _semantic_addition_candidates(
@@ -936,7 +1062,7 @@ def _addition_from_rationale(
         raise ValueError(f"Semantic recommendation references unknown hero {rationale.hero_id}")
     adds = tuple(job_display_label(key) for key in rationale.adds[:4])
     anchors = tuple(job_display_label(key) for key in rationale.familiar_anchors[:3])
-    first_add = adds[0] if adds else "a distinct functional job"
+    first_add = adds[0] if adds else "a distinct answer"
     confidence = {"high": 0.90, "medium": 0.65, "low": 0.25}[rationale.confidence]
     return HeroAdditionRecommendation(
         hero_id=entry.hero_id,
@@ -946,7 +1072,7 @@ def _addition_from_rationale(
         solves_gap=f"adds {first_add} to the current core",
         player_facing_reason=(
             f"{entry.display_name} keeps {', '.join(anchors) or 'a reviewed anchor'} "
-            f"and adds {', '.join(adds) or 'a new functional job'}."
+            f"and adds {', '.join(adds) or 'a new answer'}."
         ),
         confidence_score=confidence,
         semantic_rationale=rationale,
@@ -1007,7 +1133,11 @@ def _versatile_addition_candidates(
 
 
 def _flex_window(
-    rows: Sequence[NormalizedSummaryMatch], start: date, taxonomy: HeroTaxonomy
+    rows: Sequence[NormalizedSummaryMatch],
+    start: date,
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> dict[str, Any]:
     end = start + timedelta(days=6)
     window_rows = [
@@ -1018,11 +1148,9 @@ def _flex_window(
     ]
     counts = Counter(int(item.hero_id) for item in window_rows if item.hero_id is not None)
     jobs = {
-        trait
+        job
         for hero_id in counts
-        if (entry := taxonomy.get(hero_id)) is not None
-        for trait in _JOB_TRAITS
-        if entry.traits.get(trait, 0.0) >= 0.60
+        for job in _hero_function_keys(hero_id, taxonomy, hero_knowledge)
     }
     distribution = _distribution_quality(counts)
     total = len(window_rows)
@@ -1044,7 +1172,7 @@ def _flex_window(
         "hero_ids": tuple(sorted(counts)),
         "hero_game_counts": tuple(sorted(counts.items())),
         "meaningful_hero_count": len(counts),
-        "functional_jobs": tuple(sorted(trait_label(key) for key in jobs)),
+        "functional_jobs": tuple(sorted(job_display_label(key) for key in jobs)),
         "functional_job_count": len(jobs),
         "repeated_hero_count": repeated,
         "longest_same_hero_streak": streak,
@@ -1056,22 +1184,23 @@ def _flex_window(
 
 
 def _distributed_flexibility_action(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy, reason: str
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    reason: str,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> ProvenFlexibilityAction:
     rows = [
         item
         for item in matches
         if item.hero_id is not None
-        and taxonomy.get(item.hero_id) is not None
-        and taxonomy.get(item.hero_id).available  # type: ignore[union-attr]
+        and _hero_semantics_available(item.hero_id, taxonomy, hero_knowledge)
     ]
     counts = Counter(int(item.hero_id) for item in rows if item.hero_id is not None)
     jobs = {
-        trait
+        job
         for hero_id in counts
-        if (entry := taxonomy.get(hero_id)) is not None
-        for trait in _JOB_TRAITS
-        if entry.traits.get(trait, 0.0) >= 0.60
+        for job in _hero_function_keys(hero_id, taxonomy, hero_knowledge)
     }
     return ProvenFlexibilityAction(
         action_type="proven_flexibility",
@@ -1080,14 +1209,10 @@ def _distributed_flexibility_action(
         window_end=None,
         total_games=len(rows),
         hero_ids=tuple(sorted(counts)),
-        hero_names=tuple(
-            entry.name
-            for hero_id in sorted(counts)
-            if (entry := taxonomy.get(hero_id)) is not None
-        ),
+        hero_names=_display_names_for_ids(tuple(sorted(counts)), taxonomy, hero_knowledge),
         hero_game_counts=tuple(sorted(counts.items())),
         meaningful_hero_count=len(counts),
-        functional_jobs=tuple(sorted(trait_label(key) for key in jobs)),
+        functional_jobs=tuple(sorted(job_display_label(key) for key in jobs)),
         functional_job_count=len(jobs),
         repeated_hero_count=sum(count >= 2 for count in counts.values()),
         longest_same_hero_streak=_longest_same_hero_streak(rows),
@@ -1103,7 +1228,11 @@ def _distributed_flexibility_action(
             effective_sample_size_value=float(len(rows)),
             coverage=1.0 if rows else 0.0,
             confidence_score=0.0,
-            evidence_keys=("summary.dated_history", "hero.taxonomy", "hero.functional_jobs"),
+            evidence_keys=(
+                "summary.dated_history",
+                "hero.knowledge" if hero_knowledge is not None else "hero.taxonomy",
+                "hero.functional_jobs",
+            ),
         ),
     )
 
@@ -1141,12 +1270,80 @@ def _utc_date(timestamp: int) -> date:
     return datetime.fromtimestamp(timestamp, tz=UTC).date()
 
 
+def _hero_semantics_available(
+    hero_id: int | None,
+    taxonomy: HeroTaxonomy,
+    hero_knowledge: HeroKnowledgeProvider | None,
+) -> bool:
+    if hero_id is None:
+        return False
+    if hero_knowledge is not None:
+        entry = hero_knowledge.get(hero_id)
+        return bool(
+            entry is not None
+            and entry.review_status not in {"unknown", "stale", "draft"}
+            and (entry.primary_functions or entry.secondary_functions)
+        )
+    taxonomy_entry = taxonomy.get(hero_id)
+    return bool(taxonomy_entry is not None and taxonomy_entry.available)
+
+
+def _hero_function_keys(
+    hero_id: int,
+    taxonomy: HeroTaxonomy,
+    hero_knowledge: HeroKnowledgeProvider | None,
+) -> tuple[str, ...]:
+    if hero_knowledge is not None:
+        entry = hero_knowledge.get(hero_id)
+        if entry is None:
+            return ()
+        return tuple(dict.fromkeys((*entry.primary_functions, *entry.secondary_functions)))
+    taxonomy_entry = taxonomy.get(hero_id)
+    if taxonomy_entry is None or not taxonomy_entry.available:
+        return ()
+    return tuple(
+        trait
+        for trait in _JOB_TRAITS
+        if taxonomy_entry.traits.get(trait, 0.0) >= 0.60
+    )
+
+
+def _hero_display_name(
+    hero_id: int,
+    taxonomy: HeroTaxonomy,
+    hero_knowledge: HeroKnowledgeProvider | None,
+) -> str | None:
+    if hero_knowledge is not None:
+        entry = hero_knowledge.get(hero_id)
+        return entry.display_name if entry is not None else None
+    taxonomy_entry = taxonomy.get(hero_id)
+    return taxonomy_entry.name if taxonomy_entry is not None else None
+
+
+def _display_names_for_ids(
+    hero_ids: Sequence[int],
+    taxonomy: HeroTaxonomy,
+    hero_knowledge: HeroKnowledgeProvider | None,
+) -> tuple[str, ...]:
+    names: list[str] = []
+    for hero_id in hero_ids:
+        name = _hero_display_name(hero_id, taxonomy, hero_knowledge)
+        if name is not None:
+            names.append(name)
+    return tuple(names)
+
+
 def build_bounceback_action(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> BouncebackAction:
     """Show the strongest confidence-qualified positive Recovery context."""
 
-    contexts = _recovery_action_contexts(matches, taxonomy, direction="positive")
+    contexts = _recovery_action_contexts(
+        matches, taxonomy, direction="positive", hero_knowledge=hero_knowledge
+    )
     strongest = contexts[0] if contexts else None
     return BouncebackAction(
         action_type="bounceback",
@@ -1163,11 +1360,16 @@ def build_bounceback_action(
 
 
 def build_performance_slide_action(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> PerformanceSlideAction:
     """Show the strongest confidence-qualified negative Recovery context."""
 
-    contexts = _recovery_action_contexts(matches, taxonomy, direction="negative")
+    contexts = _recovery_action_contexts(
+        matches, taxonomy, direction="negative", hero_knowledge=hero_knowledge
+    )
     strongest = contexts[0] if contexts else None
     return PerformanceSlideAction(
         action_type="performance_slide",
@@ -1213,6 +1415,7 @@ def _recovery_action_contexts(
     taxonomy: HeroTaxonomy,
     *,
     direction: Literal["positive", "negative"],
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> tuple[RecoveryContext, ...]:
     """Compare post-loss games with a leave-session-out context baseline.
 
@@ -1280,7 +1483,9 @@ def _recovery_action_contexts(
             )
             if resolution is None:
                 continue
-            spec = _recovery_spec_for_level(current, taxonomy, resolution.level)
+            spec = _recovery_spec_for_level(
+                current, taxonomy, resolution.level, hero_knowledge=hero_knowledge
+            )
             baseline = resolution.value
             kind, identity, label, hero_id, function_family, role_context, primary_jobs = spec
             group = grouped.setdefault(
@@ -1388,31 +1593,59 @@ def _recovery_action_contexts(
 
 
 def _recovery_action_specs(
-    item: NormalizedSummaryMatch, taxonomy: HeroTaxonomy
+    item: NormalizedSummaryMatch,
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> tuple[tuple[str, int | str, str, int | None, str | None, str | None, tuple[str, ...]], ...]:
     specs: list[tuple[str, int | str, str, int | None, str | None, str | None, tuple[str, ...]]] = []
-    entry = taxonomy.get(item.hero_id)
-    jobs = _hero_jobs(entry) if entry is not None and entry.available else ()
-    if entry is not None and entry.available:
-        primary = primary_function(item, taxonomy)
-        if primary is not None and item.role_hint:
+    if hero_knowledge is not None:
+        semantic_entry = hero_knowledge.get(item.hero_id)
+        jobs = _semantic_hero_jobs(semantic_entry)
+        if semantic_entry is not None and jobs:
+            primary = semantic_entry.primary_functions[0] if semantic_entry.primary_functions else jobs[0]
+            if primary is not None and item.role_hint:
+                specs.append(
+                    (
+                        "hero_role_function",
+                        semantic_entry.hero_id,
+                        semantic_entry.display_name,
+                        semantic_entry.hero_id,
+                        primary,
+                        item.role_hint,
+                        jobs,
+                    )
+                )
+            specs.append(
+                ("hero_function", semantic_entry.hero_id, semantic_entry.display_name, semantic_entry.hero_id, primary, None, jobs)
+            )
+            specs.append(("function", primary, job_display_label(primary), None, primary, None, jobs))
+        if item.role_hint:
+            specs.append(("role", item.role_hint, item.role_hint, None, None, item.role_hint, jobs))
+        specs.append(("overall", "overall", "Overall", None, None, None, jobs))
+        return tuple(specs)
+    taxonomy_entry = taxonomy.get(item.hero_id)
+    jobs = _hero_jobs(taxonomy_entry) if taxonomy_entry is not None and taxonomy_entry.available else ()
+    if taxonomy_entry is not None and taxonomy_entry.available:
+        taxonomy_primary = primary_function(item, taxonomy)
+        if taxonomy_primary is not None and item.role_hint:
             specs.append(
                 (
                     "hero_role_function",
-                    entry.hero_id,
-                    entry.name,
-                    entry.hero_id,
-                    primary,
+                    taxonomy_entry.hero_id,
+                    taxonomy_entry.name,
+                    taxonomy_entry.hero_id,
+                    taxonomy_primary,
                     item.role_hint,
                     jobs,
                 )
             )
-        if primary is not None:
+        if taxonomy_primary is not None:
             specs.append(
-                ("hero_function", entry.hero_id, entry.name, entry.hero_id, primary, None, jobs)
+                ("hero_function", taxonomy_entry.hero_id, taxonomy_entry.name, taxonomy_entry.hero_id, taxonomy_primary, None, jobs)
             )
-        if primary is not None:
-            specs.append(("function", primary, trait_label(primary), None, primary, None, jobs))
+        if taxonomy_primary is not None:
+            specs.append(("function", taxonomy_primary, trait_label(taxonomy_primary), None, taxonomy_primary, None, jobs))
     if item.role_hint:
         specs.append(("role", item.role_hint, item.role_hint, None, None, item.role_hint, jobs))
     specs.append(("overall", "overall", "Overall", None, None, None, jobs))
@@ -1423,12 +1656,25 @@ def _recovery_spec_for_level(
     item: NormalizedSummaryMatch,
     taxonomy: HeroTaxonomy,
     level: str,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> tuple[str, int | str, str, int | None, str | None, str | None, tuple[str, ...]]:
-    for spec in _recovery_action_specs(item, taxonomy):
+    for spec in _recovery_action_specs(item, taxonomy, hero_knowledge=hero_knowledge):
         if spec[0] == level:
             return spec
-    entry = taxonomy.get(item.hero_id)
-    return ("overall", "overall", "Overall", None, None, None, _hero_jobs(entry) if entry else ())
+    if hero_knowledge is not None:
+        entry = hero_knowledge.get(item.hero_id)
+        return (
+            "overall",
+            "overall",
+            "Overall",
+            None,
+            None,
+            None,
+            _semantic_hero_jobs(entry),
+        )
+    taxonomy_entry = taxonomy.get(item.hero_id)
+    return ("overall", "overall", "Overall", None, None, None, _hero_jobs(taxonomy_entry) if taxonomy_entry else ())
 
 
 def _hero_jobs(entry: HeroTaxonomyEntry) -> tuple[str, ...]:
@@ -1437,6 +1683,15 @@ def _hero_jobs(entry: HeroTaxonomyEntry) -> tuple[str, ...]:
         reverse=True,
     )
     return tuple(trait_label(trait) for _value, trait in ranked[:4])
+
+
+def _semantic_hero_jobs(entry: NormalizedHeroKnowledge | None) -> tuple[str, ...]:
+    if entry is None:
+        return ()
+    return tuple(
+        job_display_label(key)
+        for key in tuple(dict.fromkeys((*entry.primary_functions, *entry.secondary_functions)))[:4]
+    )
 
 
 def _recovery_specificity(context: RecoveryContext) -> int:
@@ -1462,9 +1717,12 @@ def _recovery_fallback_level(context: RecoveryContext | None) -> Literal["hero",
 
 
 def build_controlled_presence_action(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> ControlledPresenceAction:
-    contexts = _presence_contexts(matches, taxonomy)
+    contexts = _presence_contexts(matches, taxonomy, hero_knowledge=hero_knowledge)
     candidates = [
         item
         for item in contexts
@@ -1494,15 +1752,18 @@ def build_controlled_presence_action(
         finishing_flavor=_finishing_flavor(matches),
         fallback_level=_presence_fallback_level(strongest),
         confidence_score=strongest.confidence_score,
-        limitations=("This relationship does not prove positioning quality, teamfight skill, or the value of any individual death.",),
+        limitations=("This relationship does not prove positioning quality, fight execution, or the value of any individual death.",),
         evidence_summary=_presence_action_evidence(contexts, strongest),
     )
 
 
 def build_presence_tax_action(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> PresenceTaxAction:
-    contexts = _presence_contexts(matches, taxonomy)
+    contexts = _presence_contexts(matches, taxonomy, hero_knowledge=hero_knowledge)
     involved = [item for item in contexts if item.involvement_level >= _PRESENCE_ACTIVE_LEVEL]
     exposed = [item for item in involved if item.death_exposure_level >= _PRESENCE_EXPOSED_LEVEL]
     exposed.sort(key=lambda item: (-item.death_exposure_level, -_presence_specificity(item), -item.confidence_score, item.label))
@@ -1517,7 +1778,9 @@ def build_presence_tax_action(
     other_function_rows = [item for item in function_rows if item.function_family not in _HIGH_CONTACT_FUNCTIONS]
     top = exposed[0]
     shape = "unresolved"
-    hero_specific_gap = _hero_function_exposure_gap(matches, taxonomy)
+    hero_specific_gap = _hero_function_exposure_gap(
+        matches, taxonomy, hero_knowledge=hero_knowledge
+    )
     if hero_specific_gap >= 0.18:
         shape = "hero_specific"
     elif high_contact_rows and not other_function_rows:
@@ -1562,7 +1825,10 @@ def _presence_action_evidence(
 
 
 def _presence_contexts(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> tuple[PresenceContext, ...]:
     usable = [
         item
@@ -1580,13 +1846,21 @@ def _presence_contexts(
         hero_id = item.hero_id
         if hero_id is None:
             continue
-        entry = taxonomy.get(hero_id)
-        if entry is None or not entry.available:
-            continue
-        groups.setdefault(("hero", entry.name, entry.hero_id, None, None), []).append(item)
-        for family in _JOB_TRAITS:
-            if entry.traits.get(family, 0.0) >= _PRESENCE_FUNCTION_THRESHOLD:
-                groups.setdefault(("function", trait_label(family), None, family, None), []).append(item)
+        if hero_knowledge is not None:
+            semantic_entry = hero_knowledge.get(hero_id)
+            if semantic_entry is None:
+                continue
+            groups.setdefault(("hero", semantic_entry.display_name, semantic_entry.hero_id, None, None), []).append(item)
+            for function in tuple(dict.fromkeys((*semantic_entry.primary_functions, *semantic_entry.secondary_functions))):
+                groups.setdefault(("function", job_display_label(function), None, function, None), []).append(item)
+        else:
+            entry = taxonomy.get(hero_id)
+            if entry is None or not entry.available:
+                continue
+            groups.setdefault(("hero", entry.name, entry.hero_id, None, None), []).append(item)
+            for family in _JOB_TRAITS:
+                if entry.traits.get(family, 0.0) >= _PRESENCE_FUNCTION_THRESHOLD:
+                    groups.setdefault(("function", trait_label(family), None, family, None), []).append(item)
         if item.role_hint:
             groups.setdefault(("role", item.role_hint, None, None, item.role_hint), []).append(item)
     rows: list[PresenceContext] = []
@@ -1601,7 +1875,10 @@ def _presence_contexts(
 
 
 def _hero_function_exposure_gap(
-    matches: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    matches: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    *,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> float:
     usable = _presence_usable_matches(matches)
     hero_groups: dict[tuple[int, str], list[NormalizedSummaryMatch]] = {}
@@ -1610,11 +1887,17 @@ def _hero_function_exposure_gap(
         hero_id = item.hero_id
         if hero_id is None:
             continue
-        entry = taxonomy.get(hero_id)
-        family = _presence_primary_function(entry)
-        if entry is None or family is None:
+        if hero_knowledge is not None:
+            entry = hero_knowledge.get(hero_id)
+            family = _presence_primary_function(entry)
+            entry_id = entry.hero_id if entry is not None else None
+        else:
+            taxonomy_entry = taxonomy.get(hero_id)
+            family = _presence_primary_function(taxonomy_entry)
+            entry_id = taxonomy_entry.hero_id if taxonomy_entry is not None else None
+        if entry_id is None or family is None:
             continue
-        hero_groups.setdefault((entry.hero_id, family), []).append(item)
+        hero_groups.setdefault((entry_id, family), []).append(item)
         function_groups.setdefault(family, []).append(item)
     strongest_gap = 0.0
     for (hero_id, family), hero_rows in hero_groups.items():
@@ -1650,8 +1933,14 @@ def _presence_levels(items: Sequence[NormalizedSummaryMatch]) -> tuple[float, fl
     return min(1.0, involvement / 1.2), min(1.0, deaths / 1.2)
 
 
-def _presence_primary_function(entry: HeroTaxonomyEntry | None) -> str | None:
-    if entry is None or not entry.available:
+def _presence_primary_function(
+    entry: HeroTaxonomyEntry | NormalizedHeroKnowledge | None,
+) -> str | None:
+    if entry is None:
+        return None
+    if isinstance(entry, NormalizedHeroKnowledge):
+        return entry.primary_functions[0] if entry.primary_functions else None
+    if not entry.available:
         return None
     ranked = sorted(
         ((entry.traits.get(family, 0.0), family) for family in _JOB_TRAITS),
@@ -1696,7 +1985,11 @@ def build_same_playbook_action(
     *,
     hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> SamePlaybookAction:
-    profile = build_pool_profile(matches, taxonomy)
+    profile = (
+        build_semantic_pool_profile(matches, hero_knowledge)
+        if hero_knowledge is not None
+        else build_pool_profile(matches, taxonomy)
+    )
     if len(profile.hero_ids) < 2 or not profile.dominant_traits:
         return SamePlaybookAction(
             action_type="same_playbook",
@@ -1706,7 +1999,7 @@ def build_same_playbook_action(
             deepen=(),
             stretch=(),
             confidence_score=profile.confidence_score,
-            limitations=("At least two established, taxonomy-covered heroes are needed to build a playbook path.",),
+            limitations=("At least two established heroes with readable notes are needed to build a playbook path.",),
             provenance_versions={
                 **dict(_PROVENANCE_KEYS),
                 **({"hero_knowledge": hero_knowledge.version} if hero_knowledge else {}),
@@ -1742,9 +2035,9 @@ def build_same_playbook_action(
     status: ActionStatus = "available" if deepen and stretch else "limited" if deepen or stretch else "unavailable"
     limitations: list[str] = []
     if len(deepen) < 3:
-        limitations.append("Fewer than three high-confidence deepen candidates cleared the functional-fit gates.")
+        limitations.append("Fewer than three strong deepen candidates matched the current game.")
     if len(stretch) < 3:
-        limitations.append("Fewer than three high-confidence stretch candidates cleared the anchor and learning-distance gates.")
+        limitations.append("Fewer than three stretch candidates kept a familiar anchor while adding a new answer.")
     if status == "unavailable":
         limitations.append("No reviewed hero relationship was strong enough to recommend without filler.")
     return SamePlaybookAction(
@@ -1797,7 +2090,7 @@ def build_comfort_edge_action(
             confidence_score=min((item.confidence_score for item in reliability), default=0.0),
             limitations=(
                 f"Comfort Edge needs {PORTFOLIO_CONFIG.p02_min_action_heroes} sufficiently rankable heroes; "
-                f"only {len(reliability)} cleared the per-hero sample gate.",
+                f"only {len(reliability)} had enough matches for a per-hero comparison.",
             ),
             provenance_versions={
                 **dict(_PROVENANCE_KEYS),

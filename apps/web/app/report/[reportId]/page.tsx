@@ -93,9 +93,9 @@ function DeepScanReportPage({ report }: { report: DeepScanReport }) {
         <div><span className="eyebrow">Published</span><strong>{report.evidence_scope.published_insight_count}</strong><p>{report.evidence_scope.suppressed_insight_count} families suppressed or pending.</p></div>
       </section>
       {report.evidence_scope.replay_limitation && <aside className="notice">{report.evidence_scope.replay_limitation}</aside>}
-      <ReportSection title="Superpowers" cards={sections.strongest_superpowers} empty="No strength cleared the evidence gates yet." />
-      <ReportSection title="Contradictions and context" cards={sections.contradictions} empty="No context split cleared the evidence gates yet." />
-      <ReportSection title="Work on next" cards={sections.highest_value_weaknesses} empty="No weakness cleared the evidence gates yet." />
+      <ReportSection title="Superpowers" cards={sections.strongest_superpowers} empty="No strength has enough evidence yet." />
+      <ReportSection title="Contradictions and context" cards={sections.contradictions} empty="No context split has enough evidence yet." />
+      <ReportSection title="Work on next" cards={sections.highest_value_weaknesses} empty="No weakness has enough evidence yet." />
       <section className="deferred"><span className="eyebrow">Next rank</span><h2>Not available in this view</h2><p>{sections.next_rank.reason}</p></section>
     </main>
   );

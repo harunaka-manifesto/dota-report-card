@@ -122,7 +122,7 @@ def classify_pattern_outcome(pattern_key: str, action: Mapping[str, Any] | None 
             "job_shaped": "P09_JOB_SHAPED",
             "hero_specific": "P09_HERO_SPECIFIC",
             "cross_context": "P09_CROSS_CONTEXT",
-        }.get(shape, "P09_SOURCE_UNRESOLVED")
+        }.get(str(shape) if shape is not None else "", "P09_SOURCE_UNRESOLVED")
     if pattern_key in {"session_fade", "session_rise"}:
         state = action.get("breakpoint_state")
         if state == "stable_breakpoint":

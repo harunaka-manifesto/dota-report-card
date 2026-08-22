@@ -17,30 +17,30 @@ from typing import Any, Protocol
 from app.heroes.taxonomy import HeroTaxonomy, HeroTaxonomyEntry
 
 HERO_KNOWLEDGE_SCHEMA_VERSION = "hero-knowledge-schema-1.0.0"
-HERO_SEMANTICS_VERSION = "hero-semantics-pilot-v1"
+HERO_SEMANTICS_VERSION = "hero-semantics-5.2.0"
 
-# These vocabularies are intentionally small.  They are the product-facing
-# contract; source adapters may emit richer evidence, but story code only sees
-# these stable semantic keys.
+# These vocabularies are intentionally small. Source adapters may emit richer
+# evidence, but scoring and story code only sees these stable semantic keys.
+# ``teamfight`` and the other legacy aliases are accepted by the adapters below
+# but never emitted by the active product-facing layer.
 FUNCTIONAL_JOBS = (
     "initiation",
     "counter_initiation",
     "catch",
+    "fight_control",
     "frontline",
-    "teamfight_control",
     "save",
     "sustain",
-    "displacement",
+    "forced_movement",
     "repositioning",
     "mobility",
-    "pickoff",
     "burst",
     "sustained_damage",
     "wave_clear",
     "push",
     "global_presence",
-    "scaling",
     "vision",
+    "scaling",
 )
 HERO_DEMAND_FAMILIES = (
     "commitment",
@@ -52,10 +52,220 @@ HERO_DEMAND_FAMILIES = (
     "exposure",
     "micro",
 )
+DEMAND_GLOSSARY: dict[str, dict[str, str]] = {
+    "commitment": {
+        "internal_definition": "How much danger the hero usually accepts to create value.",
+        "public_label": "Commitment",
+        "public_short_description": "How much danger this hero accepts to create value.",
+    },
+    "access": {
+        "internal_definition": "How much help the hero needs to reach a useful position or target.",
+        "public_label": "Access",
+        "public_short_description": "How much help this hero needs to reach a useful position.",
+    },
+    "repositioning": {
+        "internal_definition": "How demanding it is to keep a useful position while the fight changes.",
+        "public_label": "Repositioning",
+        "public_short_description": "How demanding it is to keep a useful position.",
+    },
+    "economy": {
+        "internal_definition": "How strongly the hero's value depends on resources and time.",
+        "public_label": "Resource needs",
+        "public_short_description": "How strongly value depends on resources and time.",
+    },
+    "timing": {
+        "internal_definition": "How much value depends on choosing a narrow timing window.",
+        "public_label": "Timing",
+        "public_short_description": "How much value depends on a narrow timing window.",
+    },
+    "execution": {
+        "internal_definition": "How much precision is needed to convert the hero's tools.",
+        "public_label": "Execution",
+        "public_short_description": "How much precision is needed to convert the hero's tools.",
+    },
+    "exposure": {
+        "internal_definition": "How exposed the hero must be to create or absorb pressure.",
+        "public_label": "Exposure",
+        "public_short_description": "How exposed this hero must be to create pressure.",
+    },
+    "micro": {
+        "internal_definition": "How much simultaneous control or attention the hero demands.",
+        "public_label": "Attention load",
+        "public_short_description": "How much simultaneous control or attention the hero demands.",
+    },
+}
 SEMANTIC_BANDS = frozenset({"low", "medium", "high", "unknown"})
-REVIEW_STATUSES = frozenset({"unreviewed", "draft", "reviewed", "approved", "stale"})
+REVIEW_STATUSES = frozenset({"unreviewed", "unknown", "draft", "reviewed", "approved", "stale"})
 EMPIRICAL_SUPPORT_BANDS = frozenset({"high", "medium", "low", "unknown"})
 SEMANTIC_CONFIDENCE_BANDS = frozenset({"high", "medium", "low"})
+
+# Public glossary. Keep the internal definition beside the label so a new
+# surface cannot accidentally expose a raw semantic key without a useful
+# explanation. The wording is deliberately neutral; production tone belongs
+# in the copy catalog.
+JOB_GLOSSARY: dict[str, dict[str, Any]] = {
+    "initiation": {
+        "internal_definition": "Reliably starts a fight on the team's terms.",
+        "public_label": "Fight start",
+        "public_short_description": "Starts fights on your terms.",
+    },
+    "counter_initiation": {
+        "internal_definition": "Punishes an enemy commitment after it begins.",
+        "public_label": "Counter-engage",
+        "public_short_description": "Punishes enemies after they commit.",
+    },
+    "catch": {
+        "internal_definition": "Prevents a target from escaping or repositioning.",
+        "public_label": "Catch",
+        "public_short_description": "Locks down a target before they escape.",
+    },
+    "fight_control": {
+    "internal_definition": "Limits where enemies can stand, move, or act after the fight starts.",
+        "public_label": "Fight control",
+        "public_short_description": "Restricts where enemies can move or act once the fight starts.",
+    },
+    "frontline": {
+        "internal_definition": "Can occupy dangerous space for the team.",
+        "public_label": "Frontline",
+        "public_short_description": "Can occupy dangerous space for the team.",
+    },
+    "save": {
+        "internal_definition": "Prevents an ally from dying or being disabled.",
+        "public_label": "Save",
+        "public_short_description": "Prevents an ally from dying or being disabled.",
+    },
+    "sustain": {
+        "internal_definition": "Keeps allies healthy through longer fights.",
+        "public_label": "Sustain",
+        "public_short_description": "Keeps allies healthy through longer fights.",
+    },
+    "forced_movement": {
+        "internal_definition": "Moves heroes away from where they wanted to be.",
+        "public_label": "Forced movement",
+        "public_short_description": "Moves heroes from where they wanted to be.",
+    },
+    "repositioning": {
+        "internal_definition": "Creates a new position during or after contact.",
+        "public_label": "Repositioning",
+        "public_short_description": "Reaches a better position during the fight.",
+    },
+    "mobility": {
+        "internal_definition": "Reaches or leaves positions quickly.",
+        "public_label": "Mobility",
+        "public_short_description": "Reaches or leaves positions quickly.",
+    },
+    "burst": {
+        "internal_definition": "Deals a large amount of damage in a short window.",
+        "public_label": "Burst damage",
+        "public_short_description": "Deals a lot of damage in a short window.",
+    },
+    "sustained_damage": {
+        "internal_definition": "Keeps damage flowing through a longer fight.",
+        "public_label": "Sustained damage",
+        "public_short_description": "Keeps damage flowing through a longer fight.",
+    },
+    "wave_clear": {
+        "internal_definition": "Removes creep waves quickly and safely.",
+        "public_label": "Wave clear",
+        "public_short_description": "Removes creep waves quickly.",
+    },
+    "push": {
+        "internal_definition": "Converts space and time into building pressure.",
+        "public_label": "Tower pressure",
+        "public_short_description": "Converts space into building pressure.",
+    },
+    "global_presence": {
+        "internal_definition": "Influences distant parts of the map quickly.",
+        "public_label": "Global reach",
+        "public_short_description": "Influences distant parts of the map quickly.",
+    },
+    "vision": {
+        "internal_definition": "Creates or denies information about the map.",
+        "public_label": "Vision",
+        "public_short_description": "Creates or denies information.",
+    },
+    "scaling": {
+        "internal_definition": "Gains unusually high value as resources accumulate.",
+        "public_label": "Late-game scaling",
+        "public_short_description": "Gains more value as resources accumulate.",
+    },
+}
+
+COVERAGE_FAMILIES: dict[str, dict[str, Any]] = {
+    "engage_control": {
+        "public_label": "Engage & Control",
+        "public_short_description": "Start fights and shape what happens after contact.",
+        "functions": ("initiation", "counter_initiation", "catch", "fight_control", "forced_movement"),
+    },
+    "frontline_protection": {
+        "public_label": "Frontline & Protection",
+        "public_short_description": "Occupy danger and keep teammates in the fight.",
+        "functions": ("frontline", "save", "sustain"),
+    },
+    "damage_finish": {
+        "public_label": "Damage & Finish",
+        "public_short_description": "Create and convert damage over short or long windows.",
+        "functions": ("burst", "sustained_damage", "scaling"),
+    },
+    "map_objectives": {
+        "public_label": "Map & Objectives",
+        "public_short_description": "Turn map space into waves, information, and buildings.",
+        "functions": ("wave_clear", "push", "global_presence", "vision"),
+    },
+    "mobility_reach": {
+        "public_label": "Mobility & Reach",
+        "public_short_description": "Reach the right place or change position quickly.",
+        "functions": ("mobility", "repositioning"),
+    },
+}
+
+ROLE_RELEVANT_FAMILIES: dict[str, tuple[str, ...]] = {
+    "carry": ("engage_control", "damage_finish", "map_objectives", "mobility_reach"),
+    "mid": tuple(COVERAGE_FAMILIES),
+    "offlane": ("engage_control", "frontline_protection", "damage_finish", "map_objectives", "mobility_reach"),
+    "soft_support": ("engage_control", "frontline_protection", "map_objectives", "mobility_reach"),
+    "hard_support": ("engage_control", "frontline_protection", "map_objectives", "mobility_reach"),
+    "roamer": ("engage_control", "frontline_protection", "map_objectives", "mobility_reach"),
+    "jungle": ("damage_finish", "map_objectives", "mobility_reach"),
+}
+
+_FUNCTION_ALIASES = {
+    "teamfight": "fight_control",
+    "teamfight_control": "fight_control",
+    "pickoff": "catch",
+    "displacement": "forced_movement",
+    "global_pressure": "global_presence",
+    "damage": "sustained_damage",
+}
+
+
+def canonical_function_key(value: str) -> str:
+    """Normalize legacy semantic labels into the active public vocabulary."""
+
+    return _FUNCTION_ALIASES.get(value, value)
+
+
+def job_definition(value: str) -> dict[str, Any] | None:
+    return JOB_GLOSSARY.get(canonical_function_key(value))
+
+
+def demand_definition(value: str) -> dict[str, str] | None:
+    return DEMAND_GLOSSARY.get(value)
+
+
+def role_relevant_families(roles: Sequence[str]) -> tuple[str, ...]:
+    """Return the smallest reviewed coverage universe for observed roles."""
+
+    selected = {family for role in roles for family in ROLE_RELEVANT_FAMILIES.get(role, ())}
+    return tuple(family for family in COVERAGE_FAMILIES if family in selected) or tuple(COVERAGE_FAMILIES)
+
+
+def family_for_function(value: str) -> str | None:
+    key = canonical_function_key(value)
+    return next(
+        (family for family, definition in COVERAGE_FAMILIES.items() if key in definition["functions"]),
+        None,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,6 +312,10 @@ class TaxonomyHeroKnowledgeProvider:
             for entry in self._taxonomy.heroes.values()
         )
 
+    @property
+    def taxonomy(self) -> HeroTaxonomy:
+        return self._taxonomy
+
 
 def normalized_hero_knowledge(entry: HeroTaxonomyEntry, *, version: str) -> NormalizedHeroKnowledge:
     # Import lazily because app.behavior.presentation imports this module to
@@ -110,7 +324,7 @@ def normalized_hero_knowledge(entry: HeroTaxonomyEntry, *, version: str) -> Norm
     from app.behavior.display_bands import job_display_label
 
     active = tuple(
-        _canonical_function_key(key)
+        canonical_function_key(key)
         for key, value in sorted(entry.traits.items())
         if value >= 0.60 and _canonical_function_key(key) in FUNCTIONAL_JOBS
     )
@@ -257,6 +471,65 @@ class SnapshotHeroKnowledgeProvider:
         )
 
 
+class FullRosterHeroKnowledgeProvider:
+    """Compose reviewed semantic records with structural full-roster coverage.
+
+    The reviewed snapshot is preferred for heroes it contains. The checked-in
+    roster adapter supplies an explicit, lower-confidence structural record for
+    every remaining hero so missing pilot records cannot silently become zero
+    coverage in production scoring.
+    """
+
+    def __init__(
+        self,
+        taxonomy: HeroTaxonomy,
+        reviewed: SnapshotHeroKnowledgeProvider | None = None,
+    ) -> None:
+        self._structural = TaxonomyHeroKnowledgeProvider(taxonomy)
+        self._reviewed = reviewed or SnapshotHeroKnowledgeProvider()
+        self.version = f"{self._reviewed.version}+{self._structural.version}"
+
+    @property
+    def available(self) -> bool:
+        return bool(self._structural.entries)
+
+    def get(self, hero_id: int | None) -> NormalizedHeroKnowledge | None:
+        reviewed = self._reviewed.get(hero_id)
+        if reviewed is not None and reviewed.review_status in {"approved", "reviewed"}:
+            return reviewed
+        structural = self._structural.get(hero_id)
+        if structural is None:
+            return None
+        # Structural records are intentionally explicit about their lower
+        # confidence and provenance; callers can gate claims on this status.
+        return NormalizedHeroKnowledge(
+            hero_id=structural.hero_id,
+            display_name=structural.display_name,
+            roles=structural.roles,
+            functional_jobs=structural.functional_jobs,
+            provenance_versions={
+                **dict(structural.provenance_versions),
+                "hero_semantics": self.version,
+            },
+            primary_functions=structural.primary_functions,
+            secondary_functions=structural.secondary_functions,
+            demands=structural.demands,
+            capabilities=structural.capabilities,
+            empirical_support="unknown",
+            confidence="low",
+            evidence_refs=structural.evidence_refs,
+            review_status="unreviewed",
+        )
+
+    @property
+    def entries(self) -> Sequence[NormalizedHeroKnowledge]:
+        return tuple(
+            entry
+            for hero_id in sorted(self._structural.taxonomy.heroes)
+            if (entry := self.get(hero_id)) is not None
+        )
+
+
 def _normalize_generated_record(
     record: HeroKnowledgeRecord, *, version: str
 ) -> NormalizedHeroKnowledge:
@@ -308,17 +581,12 @@ def _function_keys(value: Any) -> tuple[str, ...]:
         if isinstance(item, Mapping):
             item = item.get("semantic_key", item.get("characteristic", item.get("key")))
         if item is not None:
-            result.append(_canonical_function_key(str(item)))
+            result.append(canonical_function_key(str(item)))
     return tuple(result)
 
 
 def _canonical_function_key(value: str) -> str:
-    aliases = {
-        "teamfight": "teamfight_control",
-        "global_pressure": "global_presence",
-        "damage": "sustained_damage",
-    }
-    return aliases.get(value, value)
+    return canonical_function_key(value)
 
 
 def _dedupe_known(values: Sequence[str]) -> tuple[str, ...]:
@@ -333,8 +601,12 @@ def _band_map(value: Any) -> dict[str, str]:
         if isinstance(raw, Mapping):
             raw = raw.get("band", "unknown")
         normalized = str(raw).casefold()
-        result[str(key)] = normalized if normalized in SEMANTIC_BANDS else "unknown"
-    return {key: value for key, value in result.items() if key in HERO_DEMAND_FAMILIES or key in FUNCTIONAL_JOBS}
+        result[canonical_function_key(str(key))] = normalized if normalized in SEMANTIC_BANDS else "unknown"
+    return {
+        key: value
+        for key, value in result.items()
+        if key in HERO_DEMAND_FAMILIES or key in FUNCTIONAL_JOBS
+    }
 
 
 def _normalize_empirical_support(data: Mapping[str, Any]) -> str:
@@ -400,11 +672,21 @@ __all__ = [
     "HERO_SEMANTICS_VERSION",
     "FUNCTIONAL_JOBS",
     "HERO_DEMAND_FAMILIES",
+    "DEMAND_GLOSSARY",
+    "JOB_GLOSSARY",
+    "COVERAGE_FAMILIES",
+    "ROLE_RELEVANT_FAMILIES",
     "SEMANTIC_BANDS",
+    "canonical_function_key",
+    "demand_definition",
+    "family_for_function",
+    "job_definition",
+    "role_relevant_families",
     "NormalizedHeroKnowledge",
     "TaxonomyHeroKnowledgeProvider",
     "HeroKnowledgeRecord",
     "HeroKnowledgeRepository",
     "SnapshotHeroKnowledgeProvider",
+    "FullRosterHeroKnowledgeProvider",
     "normalized_hero_knowledge",
 ]

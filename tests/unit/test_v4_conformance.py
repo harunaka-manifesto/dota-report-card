@@ -591,7 +591,7 @@ def test_exception_does_not_use_win_rate_and_keeps_option_order_deterministic() 
     assert len(result.options) == 4
 
 
-def test_evolution_uses_equal_sized_windows_and_taxonomy_gate() -> None:
+def test_evolution_uses_equal_sized_windows_and_semantic_coverage_check() -> None:
     result = compute_pool_evolution(_summary_rows(60), _taxonomy())
     assert result.status == "available"
     assert result.earlier_sample_size == result.recent_sample_size
@@ -599,7 +599,7 @@ def test_evolution_uses_equal_sized_windows_and_taxonomy_gate() -> None:
 
     unavailable = compute_pool_evolution(_summary_rows(60), _taxonomy(available=False))
     assert unavailable.status == "unavailable"
-    assert "taxonomy" in " ".join(unavailable.limitations).lower()
+    assert "readable hero information" in " ".join(unavailable.limitations).lower()
 
     patch_changed = tuple(replace(item, patch="7.35" if index < 30 else "7.36") for index, item in enumerate(_summary_rows(60)))
     warned = compute_pool_evolution(patch_changed, _taxonomy())

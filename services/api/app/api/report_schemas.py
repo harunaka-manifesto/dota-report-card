@@ -316,6 +316,14 @@ class CoverageSummarySchema(PublicModel):
     single_point_coverage: list[str]
     thin_coverage: list[str]
     missing: list[str]
+    family_map: dict[str, str] = Field(default_factory=dict)
+    family_descriptions: dict[str, str] = Field(default_factory=dict)
+    primary_gap: str | None = None
+    secondary_gaps: list[str] = Field(default_factory=list)
+    semantic_coverage: float | None = Field(default=None, ge=0, le=1)
+    role_adjusted_coverage: float | None = Field(default=None, ge=0, le=1)
+    pairwise_functional_overlap: float | None = Field(default=None, ge=0, le=1)
+    unique_contribution_count: int | None = Field(default=None, ge=0)
 
 
 class HeroAdditionRecommendationSchema(PublicModel):
@@ -344,6 +352,8 @@ class VersatileCoreActionSchema(PublicModel):
     alternative_additions: list[HeroAdditionRecommendationSchema] = Field(max_length=2)
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
+    complementarity_qualified: bool = True
+    semantic_confidence: float | None = Field(default=None, ge=0, le=1)
     evidence_summary: PatternActionEvidenceSchema | None = None
 
 
@@ -559,6 +569,10 @@ class EvolutionSchema(PublicModel):
     recent_sample_size: int = Field(default=0, ge=0)
     earlier_taxonomy_coverage: float = Field(default=0, ge=0, le=1)
     recent_taxonomy_coverage: float = Field(default=0, ge=0, le=1)
+    earlier_start: str | None = None
+    earlier_end: str | None = None
+    recent_start: str | None = None
+    recent_end: str | None = None
     limitations: list[str]
 
 
@@ -801,6 +815,10 @@ class FreeDnaReportV4Schema(PublicModel):
             if not set(page.evidence_keys).issubset(element_keys):
                 raise ValueError(f"Story page {page.id} references an unknown Element")
             if self.schema_version == "free-dna-report-5.2.0" and page.kind == "pattern_highlight":
+                if page.pattern_key is None:
+                    if page.id != "pattern-read" or self.highlights.pattern_keys:
+                        raise ValueError(f"v5.2 Pattern page {page.id} is missing its Pattern key")
+                    continue
                 if page.pattern_key is None or page.presentation is None:
                     raise ValueError(f"v5.2 Pattern page {page.id} is missing its presentation payload")
                 if page.presentation.pattern_id != page.pattern_key:
@@ -813,7 +831,11 @@ class FreeDnaReportV4Schema(PublicModel):
         expected_kinds = [
             "element_scan",
             *(["element_highlight"] * len(self.highlights.element_keys)),
-            *(["pattern_highlight"] * len(self.highlights.pattern_keys)),
+            *(
+                ["pattern_highlight"] * len(self.highlights.pattern_keys)
+                if self.highlights.pattern_keys
+                else ["pattern_highlight"]
+            ),
             "hero_common_thread_question",
             "hero_exception_question",
             "pool_evolution_question",

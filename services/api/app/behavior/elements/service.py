@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import math
 from collections import Counter
+from collections.abc import Sequence
 from dataclasses import dataclass
 from statistics import median
 from typing import Any
@@ -34,7 +35,13 @@ from app.dna.dimensions import orientation as legacy_orientation
 from app.dna.features.models import DnaFeatureSet
 from app.dna.recency import effective_sample_size, weighted_mean, weighted_median
 from app.dna.sessions import SessionResult
-from app.heroes.knowledge import HeroKnowledgeProvider
+from app.heroes.knowledge import (
+    COVERAGE_FAMILIES,
+    FUNCTIONAL_JOBS,
+    HeroKnowledgeProvider,
+    family_for_function,
+    role_relevant_families,
+)
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -281,6 +288,8 @@ def _score_hero_exploration_rate(context: SummaryBehaviorContext) -> ElementResu
 
 
 def _score_toolkit_breadth(context: SummaryBehaviorContext) -> ElementResult:
+    if context.hero_knowledge is not None:
+        return _score_semantic_toolkit_breadth(context)
     if context.taxonomy is None:
         return _result("toolkit_breadth", score=None, sample_size=0, effective_sample_size=0, coverage=0.0, missing_reasons=("hero_taxonomy_unavailable",))
     rows = [item for item in context.matches if item.hero_id is not None]
@@ -310,6 +319,147 @@ def _score_toolkit_breadth(context: SummaryBehaviorContext) -> ElementResult:
         confounders=("taxonomy labels are editorial and versioned",),
         source_match_ids=tuple(item.match_id for item in rows),
     )
+
+
+def _score_semantic_toolkit_breadth(context: SummaryBehaviorContext) -> ElementResult:
+    """Score breadth from canonical jobs and coverage families.
+
+    Structural full-roster records are usable for shape measurement but their
+    review status lowers confidence. Unknown records are excluded from both
+    the numerator and the claim, so the scorer fails closed instead of treating
+    missing semantics as an empty toolkit.
+    """
+
+    provider = context.hero_knowledge
+    if provider is None:
+        return _result(
+            "toolkit_breadth",
+            score=None,
+            sample_size=0,
+            effective_sample_size=0,
+            coverage=0.0,
+            missing_reasons=("hero_semantics_unavailable",),
+        )
+    rows = [item for item in context.matches if item.hero_id is not None]
+    usable: list[tuple[NormalizedSummaryMatch, set[str], set[str], bool]] = []
+    for item in rows:
+        entry = provider.get(item.hero_id)
+        if entry is None or entry.review_status in {"unknown", "stale", "draft"}:
+            continue
+        functions = set(entry.primary_functions) | set(entry.secondary_functions)
+        functions &= set(FUNCTIONAL_JOBS)
+        if not functions:
+            continue
+        families = {
+            family
+            for function in functions
+            if (family := family_for_function(function)) is not None
+        }
+        usable.append((item, functions, families, entry.review_status in {"approved", "reviewed"}))
+    coverage = len(usable) / max(len(rows), 1)
+    reviewed_coverage = sum(item[3] for item in usable) / max(len(usable), 1)
+    if len(usable) < 30 or coverage < 0.80:
+        return _result(
+            "toolkit_breadth",
+            score=None,
+            sample_size=len(usable),
+            effective_sample_size=len(usable),
+            coverage=coverage,
+            quality=0.55 + 0.45 * reviewed_coverage,
+            raw_metrics={
+                "semantic_coverage": coverage,
+                "reviewed_semantic_coverage": reviewed_coverage,
+                "role_adjusted_coverage": 0.0,
+            },
+            missing_reasons=("insufficient_semantic_coverage",),
+            source_match_ids=tuple(item.match_id for item, *_ in usable),
+        )
+
+    functions_by_hero: dict[int, set[str]] = {}
+    families_by_hero: dict[int, set[str]] = {}
+    family_counts: Counter[str] = Counter()
+    atomic_counts: Counter[str] = Counter()
+    roles = Counter(item.role_hint for item, *_ in usable if item.role_hint)
+    credible_roles = tuple(role for role, count in roles.items() if count >= 3)
+    relevant_families = role_relevant_families(credible_roles)
+    for item, functions, families, _reviewed in usable:
+        hero_id = int(item.hero_id or 0)
+        functions_by_hero.setdefault(hero_id, set()).update(functions)
+        families_by_hero.setdefault(hero_id, set()).update(families)
+        family_counts.update(family for family in families if family in relevant_families)
+        atomic_counts.update(functions)
+    role_adjusted_coverage = sum(
+        any(family in families for families in families_by_hero.values())
+        for family in relevant_families
+    ) / max(len(relevant_families), 1)
+    family_entropy = _normalized_entropy(
+        [family_counts[family] for family in relevant_families if family_counts[family] > 0]
+    )
+    atomic_entropy = _normalized_entropy(
+        [atomic_counts[function] for function in FUNCTIONAL_JOBS if atomic_counts[function] > 0]
+    )
+    pairwise_overlap = _functional_overlap(tuple(functions_by_hero.values()))
+    pairwise_distance = 1.0 - pairwise_overlap
+    unique_contributions = sum(
+        1
+        for function in FUNCTIONAL_JOBS
+        if sum(function in functions for functions in functions_by_hero.values()) == 1
+    )
+    unique_score = min(1.0, unique_contributions / 4.0)
+    score = max(
+        0.0,
+        min(
+            1.0,
+            0.25 * family_entropy
+            + 0.20 * atomic_entropy
+            + 0.25 * pairwise_distance
+            + 0.15 * unique_score
+            + 0.15 * role_adjusted_coverage,
+        ),
+    )
+    effective = math.exp(_entropy(family_counts.values())) if family_counts else 0.0
+    return _result(
+        "toolkit_breadth",
+        score=score,
+        sample_size=len(usable),
+        effective_sample_size=effective,
+        coverage=coverage,
+        quality=0.55 + 0.45 * reviewed_coverage,
+        evidence=(
+            BehaviorEvidence("family_entropy", round(family_entropy, 4), "normalized breadth", len(usable)),
+            BehaviorEvidence("atomic_entropy", round(atomic_entropy, 4), "normalized breadth", len(usable)),
+            BehaviorEvidence("functional_distance", round(pairwise_distance, 4), "distance", len(functions_by_hero)),
+            BehaviorEvidence("role_adjusted_coverage", round(role_adjusted_coverage, 4), "share", len(relevant_families)),
+            BehaviorEvidence("unique_functional_contributions", unique_contributions, "jobs", len(functions_by_hero)),
+        ),
+        raw_metrics={
+            "semantic_coverage": coverage,
+            "reviewed_semantic_coverage": reviewed_coverage,
+            "family_entropy": family_entropy,
+            "atomic_entropy": atomic_entropy,
+            "pairwise_functional_overlap": pairwise_overlap,
+            "pairwise_functional_distance": pairwise_distance,
+            "unique_contribution_count": unique_contributions,
+            "role_adjusted_coverage": role_adjusted_coverage,
+            "family_count": sum(bool(family_counts[family]) for family in COVERAGE_FAMILIES),
+        },
+        confounders=("hero semantic records are versioned and review status affects confidence",),
+        source_match_ids=tuple(item.match_id for item, *_ in usable),
+    )
+
+
+def _functional_overlap(sets: Sequence[set[str]]) -> float:
+    pairs = [
+        (left, right)
+        for index, left in enumerate(sets)
+        for right in sets[index + 1 :]
+    ]
+    if not pairs:
+        return 0.0
+    return sum(
+        len(left & right) / max(len(left | right), 1)
+        for left, right in pairs
+    ) / len(pairs)
 
 
 def _score_post_loss_familiarity_shift(context: SummaryBehaviorContext) -> ElementResult:

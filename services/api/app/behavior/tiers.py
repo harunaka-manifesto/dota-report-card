@@ -17,6 +17,7 @@ SUMMARY_CAPABILITIES = frozenset(
         "summary.party",
         "summary.chronology",
         "hero.taxonomy",
+        "hero.knowledge",
     }
 )
 

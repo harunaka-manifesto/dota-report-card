@@ -42,7 +42,7 @@ from app.hero_portfolio.version import (
     HERO_SYNERGIES_VERSION,
     PATTERN_ACTIONS_VERSION,
 )
-from app.heroes.knowledge import SnapshotHeroKnowledgeProvider, TaxonomyHeroKnowledgeProvider
+from app.heroes.knowledge import FullRosterHeroKnowledgeProvider
 from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION
 from app.share.service import RENDERER_VERSION
 
@@ -80,12 +80,11 @@ def assemble_free_dna_report_v4(
     taxonomy = analysis.taxonomy
     if taxonomy is None:
         raise ValueError("Free DNA report assembly requires the scoring hero taxonomy snapshot")
-    hero_knowledge = analysis.hero_knowledge or SnapshotHeroKnowledgeProvider()
+    hero_knowledge = analysis.hero_knowledge or FullRosterHeroKnowledgeProvider(taxonomy)
     if not getattr(hero_knowledge, "available", True):
-        # Historical callers may construct an analysis without the generated
-        # snapshot.  Keep that compatibility path explicit; active v5.2
-        # analysis always carries SnapshotHeroKnowledgeProvider.
-        hero_knowledge = TaxonomyHeroKnowledgeProvider(taxonomy)
+        # Historical callers may construct an analysis without semantic data.
+        # Keep the structural full-roster adapter explicit and versioned.
+        hero_knowledge = FullRosterHeroKnowledgeProvider(taxonomy)
     pattern_presentations = {
         pattern.key: build_pattern_presentation(
             pattern,
@@ -269,7 +268,7 @@ def assemble_free_dna_report_v4(
             "notes": [
                 "One bounded public summary-history window powers this report.",
                 "No individual match-detail reads or replay parses are required for Free DNA.",
-                "Hero Portfolio uses established hero history and a reviewed versioned taxonomy.",
+                "Hero Portfolio uses established hero history and a versioned semantic hero layer with explicit review status.",
             ],
         },
         "cost": cost,
@@ -371,6 +370,20 @@ def _story_pages(
                     "presentation_copy": presentation_copy,
                 },
                 "presentation": presentation.as_dict(),
+            }
+        )
+    if not pattern_highlights:
+        pages.append(
+            {
+                "id": "pattern-read",
+                "kind": "pattern_highlight",
+                "section": "patterns",
+                "title": "No Pattern cleared yet",
+                "body": "The current summary history did not support a clear Pattern yet. The report keeps the uncertainty visible while the Elements remain readable.",
+                "evidence_keys": [],
+                "pattern_key": None,
+                "content": {},
+                "presentation": None,
             }
         )
     pages.extend(

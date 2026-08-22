@@ -13,6 +13,14 @@ from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from app.heroes.knowledge import (
+    COVERAGE_FAMILIES,
+    FUNCTIONAL_JOBS,
+    HeroKnowledgeProvider,
+    family_for_function,
+    job_definition,
+    role_relevant_families,
+)
 from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -64,6 +72,15 @@ class HeroPoolProfile:
     underrepresented_traits: tuple[str, ...]
     credible_roles: tuple[str, ...]
     confidence_score: float
+    semantic: bool = False
+    semantic_coverage: float = 1.0
+    reviewed_semantic_coverage: float = 1.0
+    functional_families: tuple[str, ...] = ()
+    role_relevant_functions: tuple[str, ...] = ()
+    role_relevant_families: tuple[str, ...] = ()
+    pairwise_functional_overlap: float = 0.0
+    unique_contribution_count: int = 0
+    complementarity_score: float = 0.0
 
 
 def build_pool_profile(
@@ -115,6 +132,191 @@ def build_pool_profile(
         credible_roles=credible_roles,
         confidence_score=confidence,
     )
+
+
+def build_semantic_pool_profile(
+    matches: Sequence[NormalizedSummaryMatch],
+    provider: HeroKnowledgeProvider,
+    *,
+    hero_ids: Sequence[int] | None = None,
+) -> HeroPoolProfile:
+    """Build the canonical, usage-capped functional profile for a hero pool.
+
+    This is the shared semantic layer for breadth, playbook, portfolio, and
+    recommendation consumers. It keeps atomic jobs separate from coverage
+    families and records structural-versus-reviewed coverage explicitly.
+    """
+
+    usage = Counter(int(item.hero_id) for item in matches if item.hero_id is not None)
+    selected_ids = set(hero_ids or usage)
+    selected_usage = {
+        hero_id: count
+        for hero_id, count in usage.items()
+        if hero_id in selected_ids and provider.get(hero_id) is not None
+    }
+    total = sum(selected_usage.values())
+    cap = max(3.0, total * 0.35)
+    entries = {
+        hero_id: provider.get(hero_id)
+        for hero_id in selected_usage
+    }
+    known_entries = {
+        hero_id: entry
+        for hero_id, entry in entries.items()
+        if entry is not None
+        and entry.review_status not in {"unknown", "stale", "draft"}
+        and (entry.primary_functions or entry.secondary_functions)
+    }
+    reviewed_entries = {
+        hero_id: entry
+        for hero_id, entry in known_entries.items()
+        if entry.review_status in {"approved", "reviewed"}
+    }
+    semantic_coverage = len(known_entries) / max(len(selected_usage), 1)
+    reviewed_coverage = len(reviewed_entries) / max(len(selected_usage), 1)
+
+    functions_by_hero: dict[int, set[str]] = {}
+    families_by_hero: dict[int, set[str]] = {}
+    for hero_id, entry in known_entries.items():
+        functions = set(entry.primary_functions) | set(entry.secondary_functions)
+        functions &= set(FUNCTIONAL_JOBS)
+        functions_by_hero[hero_id] = functions
+        families_by_hero[hero_id] = {
+            family
+            for function in functions
+            if (family := family_for_function(function)) is not None
+        }
+
+    role_counts = Counter(
+        item.role_hint
+        for item in matches
+        if item.role_hint and int(item.hero_id or 0) in selected_usage
+    )
+    credible_roles = tuple(
+        role
+        for role, count in sorted(role_counts.items(), key=lambda item: (-item[1], item[0]))
+        if count >= 3
+    )
+    relevant_families = role_relevant_families(credible_roles)
+    relevant_functions = tuple(
+        function
+        for function in FUNCTIONAL_JOBS
+        if (family := family_for_function(function)) in relevant_families
+    )
+    function_counts = Counter(
+        function
+        for hero_id, functions in functions_by_hero.items()
+        for function in functions
+        for _ in range(max(1, int(min(float(selected_usage[hero_id]), cap))))
+    )
+    family_counts = Counter(
+        family
+        for families in families_by_hero.values()
+        for family in families
+    )
+    prevalence = {
+        function: function_counts[function] / max(sum(function_counts.values()), 1)
+        for function in FUNCTIONAL_JOBS
+    }
+    centroid = {function: prevalence[function] for function in FUNCTIONAL_JOBS}
+    dominant = tuple(
+        function
+        for function in relevant_functions
+        if prevalence[function] >= 0.45
+    )
+    underrepresented = tuple(
+        function
+        for function in relevant_functions
+        if prevalence[function] < 0.20
+    )
+
+    family_union = tuple(
+        family
+        for family in COVERAGE_FAMILIES
+        if family_counts.get(family, 0) > 0
+    )
+    pairwise_overlap = _mean_jaccard(tuple(functions_by_hero.values()))
+    unique_contributions = sum(
+        1
+        for function in relevant_functions
+        if sum(function in functions for functions in functions_by_hero.values()) == 1
+    )
+    family_coverage = sum(
+        family_counts.get(family, 0) > 0 for family in relevant_families
+    ) / max(len(relevant_families), 1)
+    atomic_entropy = _normalized_entropy(
+        [value for function, value in function_counts.items() if function in relevant_functions]
+    )
+    family_entropy = _normalized_entropy(
+        [value for family, value in family_counts.items() if family in relevant_families]
+    )
+    distance = 1.0 - pairwise_overlap
+    unique_score = min(1.0, unique_contributions / 4.0)
+    complementarity = max(
+        0.0,
+        min(
+            1.0,
+            0.35 * family_coverage
+            + 0.25 * distance
+            + 0.20 * unique_score
+            + 0.10 * family_entropy
+            + 0.10 * atomic_entropy,
+        ),
+    )
+    confidence = min(
+        1.0,
+        (
+            0.35 * min(1.0, len(known_entries) / 5.0)
+            + 0.35 * min(1.0, total / 40.0)
+            + 0.30 * reviewed_coverage
+        )
+        * semantic_coverage,
+    )
+    def public_label(key: str) -> str:
+        definition = job_definition(key)
+        return str(definition.get("public_label", key)) if definition else key
+
+    return HeroPoolProfile(
+        hero_ids=tuple(sorted(known_entries)),
+        usage_counts=dict(selected_usage),
+        centroid=centroid,
+        dominant_traits=tuple(public_label(item) for item in dominant),
+        underrepresented_traits=tuple(public_label(item) for item in underrepresented),
+        credible_roles=credible_roles,
+        confidence_score=confidence,
+        semantic=True,
+        semantic_coverage=semantic_coverage,
+        reviewed_semantic_coverage=reviewed_coverage,
+        functional_families=family_union,
+        role_relevant_functions=relevant_functions,
+        role_relevant_families=relevant_families,
+        pairwise_functional_overlap=pairwise_overlap,
+        unique_contribution_count=unique_contributions,
+        complementarity_score=complementarity,
+    )
+
+
+def _mean_jaccard(sets: Sequence[set[str]]) -> float:
+    pairs = [
+        (left, right)
+        for index, left in enumerate(sets)
+        for right in sets[index + 1 :]
+    ]
+    if not pairs:
+        return 0.0
+    return sum(
+        len(left & right) / max(len(left | right), 1)
+        for left, right in pairs
+    ) / len(pairs)
+
+
+def _normalized_entropy(values: Sequence[float | int]) -> float:
+    positive = [float(value) for value in values if float(value) > 0]
+    if len(positive) <= 1:
+        return 0.0
+    total = sum(positive)
+    entropy = -sum((value / total) * math.log(value / total) for value in positive)
+    return max(0.0, min(1.0, entropy / max(math.log(len(positive)), 1e-9)))
 
 
 def relationship_between(
@@ -189,6 +391,9 @@ def candidate_traits(entry: HeroTaxonomyEntry, profile: HeroPoolProfile) -> tupl
 
 
 def trait_label(trait: str) -> str:
+    definition = job_definition(trait)
+    if definition is not None:
+        return str(definition.get("public_label", trait))
     return _TRAIT_LABELS.get(trait, trait.replace("_", " "))
 
 
@@ -237,6 +442,7 @@ __all__ = [
     "HeroPoolProfile",
     "HeroRelationship",
     "build_pool_profile",
+    "build_semantic_pool_profile",
     "candidate_traits",
     "expression_difference",
     "learning_distance",

@@ -128,6 +128,14 @@ html[data-report-story="true"] { scroll-snap-type: y proximity; scroll-padding-t
 .portfolio-reveal h3 { font-size: clamp(30px, 5vw, 54px); letter-spacing: -.05em; }
 .descriptor-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .descriptor-list span { padding: 9px 13px; border: 1px dashed #b4aa9a; border-radius: 999px; color: #5f5549; font-size: 12px; font-weight: 700; }
+.semantic-chip { position: relative; display: inline-flex; align-items: center; border: 1px solid #b4aa9a; border-radius: 999px; color: #4f463b; background: #fffaf2; vertical-align: middle; }
+.semantic-chip-trigger { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border: 0; border-radius: inherit; color: inherit; background: transparent; font: inherit; cursor: help; }
+.semantic-chip-trigger:focus-visible { outline: 2px solid #216869; outline-offset: 2px; }
+.semantic-chip-trigger > span { padding: 0; border: 0; font-size: 10px; }
+.semantic-chip-tooltip { position: absolute; z-index: 5; bottom: calc(100% + 8px); left: 50%; width: max-content; max-width: 260px; padding: 8px 10px; border: 1px solid #b4aa9a; border-radius: 8px; color: #4f463b; background: #fffaf2; box-shadow: 0 5px 18px rgba(34, 29, 22, .14); font-size: 12px; font-weight: 500; line-height: 1.35; opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, 4px); transition: opacity .15s ease, transform .15s ease, visibility .15s ease; }
+.semantic-chip:hover .semantic-chip-tooltip, .semantic-chip:focus-within .semantic-chip-tooltip, .semantic-chip.is-open .semantic-chip-tooltip { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+.descriptor-list .semantic-chip { padding: 0; border: 1px solid #b4aa9a; }
+.descriptor-list .semantic-chip-tooltip { padding: 8px 10px; border: 1px solid #b4aa9a; font-size: 12px; }
 .unavailable-message { max-width: 620px; margin-top: 24px; padding: 20px; border-left: 3px solid var(--accent); background: #efe4d3; }
 .unavailable-message p { margin-bottom: 0; color: #6e685d; }
 .evolution-columns { display: grid; max-width: 700px; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 28px; }

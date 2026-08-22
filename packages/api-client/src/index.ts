@@ -190,6 +190,14 @@ export type CoverageSummary = {
   single_point_coverage: string[];
   thin_coverage: string[];
   missing: string[];
+  family_map?: Record<string, string>;
+  family_descriptions?: Record<string, string>;
+  primary_gap?: string | null;
+  secondary_gaps?: string[];
+  semantic_coverage?: number | null;
+  role_adjusted_coverage?: number | null;
+  pairwise_functional_overlap?: number | null;
+  unique_contribution_count?: number | null;
 };
 
 export type HeroAdditionRecommendation = {
@@ -212,6 +220,8 @@ export type VersatileCoreAction = {
   alternative_additions: HeroAdditionRecommendation[];
   confidence_score: number;
   limitations: string[];
+  complementarity_qualified?: boolean;
+  semantic_confidence?: number | null;
   evidence_summary?: PatternActionEvidence | null;
 };
 
@@ -432,6 +442,10 @@ export type PoolEvolution = {
   recent_sample_size: number;
   earlier_taxonomy_coverage: number;
   recent_taxonomy_coverage: number;
+  earlier_start?: string | null;
+  earlier_end?: string | null;
+  recent_start?: string | null;
+  recent_end?: string | null;
   limitations: string[];
 };
 

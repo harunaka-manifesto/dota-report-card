@@ -147,25 +147,25 @@
   "portfolio": {
     "common_thread": {
       "question": "What keeps showing up across your established heroes?",
-      "question_body": "Choose the functional job you think keeps recurring, then compare it with the evidence-backed read.",
+      "question_body": "Choose the way of helping you think keeps recurring, then compare it with the evidence-backed read.",
       "correct": "You got it.",
       "incorrect": "Not quite.",
-      "correct_feedback": "Yes — {trait} is the strongest recurring thread across the established pool.",
+      "correct_feedback": "Yes — {trait} is the strongest recurring way of helping across the established pool.",
       "incorrect_feedback": "{selected} shows up in the pool, but {trait} has the stronger cross-hero coverage.",
-      "answer": "A common functional thread runs through the pool: {trait}.",
-      "reveal": "{trait} is the strongest recurring functional trait across {hero_count} established heroes.",
+      "answer": "A common way of helping runs through the pool: {trait}.",
+      "reveal": "{trait} is the strongest recurring way of helping across {hero_count} established heroes.",
       "boundary": "This describes what the heroes tend to offer; it does not prove those tools were used correctly in every match."
     },
     "exception": {
       "question": "Which hero gives your pool a different kind of Dota?",
-      "question_body": "Pick the hero you expect to break the pool's usual functional shape.",
+      "question_body": "Pick the hero you expect to feel most different from the rest of the pool.",
       "correct": "Yep.",
       "incorrect": "Good guess — but not this one.",
-      "correct_feedback": "Yes — {hero} breaks the pool's functional shape most clearly.",
-      "incorrect_feedback": "{selected} fits the pool's core shape more closely. {hero} breaks it more clearly.",
-      "no_clear_feedback": "{selected} is a plausible read, but the evidence does not separate one exception cleanly.",
-      "answer": "{hero} is the clearest functional outlier in this pool.",
-      "reveal": "{hero} breaks the pool’s usual functional shape more clearly than the alternatives.",
+      "correct_feedback": "Yes — {hero} stands apart from the rest of the pool most clearly.",
+      "incorrect_feedback": "{selected} fits the pool more closely. {hero} stands apart more clearly.",
+      "no_clear_feedback": "{selected} is a plausible read, but no single hero stands apart clearly enough.",
+      "answer": "{hero} is the clearest outlier in this pool.",
+      "reveal": "{hero} stands apart from the rest of the pool more clearly than the alternatives.",
       "boundary": "Different does not mean better or worse."
     },
     "evolution": {
@@ -217,7 +217,7 @@
       "same_playbook_recurring_core_label": "Your recurring core:",
       "same_playbook_familiar_label": "What stays familiar.",
       "same_playbook_changes_label": "What changes.",
-      "same_playbook_empty_direction": "No candidate cleared the evidence and learning-distance gates for this direction.",
+      "same_playbook_empty_direction": "No candidate had enough evidence and a close enough learning step for this direction.",
       "comfort_edge_kicker": "Build the pool with a reason",
       "comfort_edge_heading": "Your strongest heroes are the safest part of this pool today.",
       "comfort_edge_intro": "Here is why the other established heroes can still be worth learning. This is a player-relative reliability read, not a meta ranking.",
@@ -234,8 +234,8 @@
       "partial_transfer_unresolved_heading": "The gap is real; the cause is not proven",
       "partial_transfer_deep_label": "Worth a deeper evidence pass",
       "versatile_core_kicker": "Your compact toolkit",
-      "versatile_core_heading": "A small pool can still cover a lot of Dota",
-      "versatile_core_jobs_label": "Jobs in the core",
+      "versatile_core_heading": "Small pool. Different answers.",
+      "versatile_core_jobs_label": "Ways of helping in the core",
       "versatile_core_coverage_label": "Coverage map",
       "versatile_core_next_tool_label": "One useful next tool",
       "versatile_core_alternatives_label": "Other viable additions",
@@ -258,7 +258,7 @@
       "performance_slide_kicker": "Your roughest post-loss tool",
       "performance_slide_heading": "Where the post-loss drop is largest",
       "recovery_context_label": "Comparable context",
-      "recovery_delta_label": "Post-loss difference",
+      "recovery_delta_label": "Post-loss comparison",
       "session_fade_kicker": "A session curve",
       "session_fade_heading": "Where the session curve starts to fade",
       "session_fade_breakpoint_label": "Earliest supported fade",
@@ -276,15 +276,15 @@
         "outcomes": {
           "P01_BROAD_HERO_NARROW_JOB": {
             "headline": "Broad by hero. Narrow by job.",
-            "subheadline": "Your hero names change more than the functional work underneath.",
+            "subheadline": "Your hero names change more than the ways you tend to help underneath.",
             "interpretation": {"title": "What this actually means", "body": "Your pool offers variety on the surface, but several heroes keep asking you to solve a similar kind of Dota problem."},
-            "fallback": {"title": "The pattern is clear; the next hero is not", "body": "The repeated job is supported, but no additional hero cleared the recommendation gates."}
+            "fallback": {"title": "The pattern is clear; the next hero is not", "body": "The repeated job is supported, but no additional hero met the evidence needed for a recommendation."}
           }
         },
         "recommendations": {
-          "P01_ADD_MISSING_FUNCTION": {"eyebrow": "DO THIS NEXT", "title": "Add one missing function", "body": "Try {hero_name} when you want to keep a familiar anchor while adding a genuinely different job."}
+          "P01_ADD_MISSING_FUNCTION": {"eyebrow": "DO THIS NEXT", "title": "Add one missing answer", "body": "Try {hero_name} when you want to keep a familiar anchor while adding a genuinely different way to help."}
         },
-        "deep_dives": {"P01_DRAFT_SPECIFIC_EXPANSION": {"title": "Deep Dive: expand the job", "body": "Replay and draft evidence could show which matchups make a new functional answer valuable."}}
+        "deep_dives": {"P01_DRAFT_SPECIFIC_EXPANSION": {"title": "Deep Dive: expand the answer", "body": "Replay and draft evidence could show which matchups make a new answer valuable."}}
       },
       "comfort_edge": {
         "outcomes": {
@@ -292,7 +292,7 @@
             "headline": "Your pool has a reliability ladder.",
             "subheadline": "Some established heroes are anchors; others are still becoming dependable.",
             "interpretation": {"title": "What this actually means", "body": "The development side is not a verdict. It is the clearest practice order inside the heroes you already return to."},
-            "fallback": {"title": "The ladder needs more evidence", "body": "The pool is broad enough to compare, but not every rung cleared the reliability gate."}
+            "fallback": {"title": "The ladder needs more evidence", "body": "The pool is broad enough to compare, but not every rung is dependable enough to place confidently."}
           }
         },
         "recommendations": {"P02_FOCUS_DEVELOPMENT_ORDER": {"eyebrow": "DO THIS NEXT", "title": "Practice #3–5 with a reason", "body": "Work down the development side one hero at a time, and name the new demand each hero introduces."}},
@@ -313,22 +313,22 @@
       "versatile_core": {
         "outcomes": {
           "P04_COMPACT_POOL_BROAD_JOBS": {
-            "headline": "A small pool can cover a lot of Dota.",
-            "subheadline": "Your core is compact by hero count, but broad by functional job.",
-            "interpretation": {"title": "What this actually means", "body": "You do not need a huge roster to preserve different ways of contributing. The useful question is which job is thin or missing."},
-            "fallback": {"title": "The toolkit is broad enough", "body": "The core covers several jobs, but no sixth hero cleared the familiar-anchor and evidence gates."}
+            "headline": "Small pool. Different answers.",
+            "subheadline": "Your core stays compact while its coverage reaches across several ways to contribute.",
+            "interpretation": {"title": "What this actually means", "body": "The family map shows where the core overlaps and where only one or two heroes carry a job. It is a coverage read, not a claim about execution."},
+            "fallback": {"title": "No versatile-core headline yet", "body": "The family map is visible for context, but the compact pool did not meet the evidence needed for a clear versatility read."}
           }
         },
-        "recommendations": {"P04_ADD_MISSING_FUNCTION": {"eyebrow": "DO THIS NEXT", "title": "Add a genuinely new tool", "body": "Try {hero_name} only if it adds a missing function while keeping one familiar anchor."}},
+        "recommendations": {"P04_ADD_MISSING_FUNCTION": {"eyebrow": "DO THIS NEXT", "title": "Add a genuinely new tool", "body": "Try {hero_name} only if it adds a missing way to help while keeping one familiar anchor."}},
         "deep_dives": {"P04_DRAFT_SPECIFIC_EXPANSION": {"title": "Deep Dive: draft-specific coverage", "body": "Draft and matchup evidence could test whether a missing function is useful in the situations you actually face."}}
       },
       "proven_flexibility": {
         "outcomes": {
           "P05_PROVEN_FLEX_WINDOW": {
             "headline": "Your flexibility shows up in the window.",
-            "subheadline": "The roster changed, and the functional range repeated often enough to count as evidence.",
+            "subheadline": "The roster changed, and the range of ways to help repeated often enough to count as evidence.",
             "interpretation": {"title": "What this actually means", "body": "This is more than a list of one-off picks: multiple heroes and jobs recur inside a supported period."},
-            "fallback": {"title": "Range is present, but distributed", "body": "The history shows a wide pool without one clean flex window that clears every comparison gate."}
+            "fallback": {"title": "Range is present, but distributed", "body": "The history shows a wide pool without one clean flex window that holds together across every comparison."}
           }
         },
         "recommendations": {"P05_PROTECT_RELIABLE_ANCHORS": {"eyebrow": "DO THIS NEXT", "title": "Keep the anchors warm", "body": "Protect the heroes that make this flexibility repeatable instead of trying to keep the whole roster equally ready."}},
@@ -340,7 +340,7 @@
             "headline": "LOSS → NEXT GAME: STRONGER",
             "subheadline": "A familiar hero or job context is the strongest supported rebound setting.",
             "interpretation": {"title": "What this actually means", "body": "The next same-session result is stronger than the comparable personal baseline after a loss. That is an observable transition, not a motive."},
-            "fallback": {"title": "The next game is stronger overall", "body": "The rebound is supported at a broad level, but no narrower hero or job context cleared the gate."}
+            "fallback": {"title": "The next game is stronger overall", "body": "The rebound is supported at a broad level, but no narrower hero or job context is stable enough to call out."}
           }
         },
         "recommendations": {"P06_REPEAT_POST_LOSS_ANCHOR": {"eyebrow": "DO THIS NEXT", "title": "Simplify the first decision", "body": "Use the most repeatable familiar job as a post-loss anchor when you want one controllable next step."}},
@@ -352,7 +352,7 @@
             "headline": "LOSS → NEXT GAME: WEAKER",
             "subheadline": "A familiar hero or job context is the strongest supported drop setting.",
             "interpretation": {"title": "What this actually means", "body": "The next same-session result is weaker than the comparable personal baseline after a loss. The data does not establish tilt, panic, or hero causality."},
-            "fallback": {"title": "The next game is weaker overall", "body": "The slide is supported at a broad level, but no narrower context cleared the gate."}
+            "fallback": {"title": "The next game is weaker overall", "body": "The slide is supported at a broad level, but no narrower context is stable enough to call out."}
           }
         },
         "recommendations": {"P07_CHANGE_ONE_TRANSITION": {"eyebrow": "DO THIS NEXT", "title": "Change one transition", "body": "Pause the queue, return to a stable hero or job, or simplify the first game plan—choose one controllable change."}},
@@ -364,7 +364,7 @@
             "headline": "You can be involved without paying the full cost.",
             "subheadline": "The cleanest context combines high presence with lower death exposure.",
             "interpretation": {"title": "What this actually means", "body": "The summary history identifies a context where involvement and survival move together. It does not prove positioning skill or the value of every death."},
-            "fallback": {"title": "The broad relationship is clear", "body": "High presence and lower exposure coexist overall, but no narrower context cleared the comparison gate."}
+            "fallback": {"title": "The broad relationship is clear", "body": "High presence and lower exposure coexist overall, but no narrower context is stable enough to call out."}
           }
         },
         "recommendations": {"P08_PRESERVE_LOW_COST_PRESENCE": {"eyebrow": "DO THIS NEXT", "title": "Preserve the useful shape", "body": "Keep the behavior or hero demand that produces high involvement without the same death exposure."}},

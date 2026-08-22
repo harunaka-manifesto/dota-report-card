@@ -7,8 +7,10 @@ from collections import Counter
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from app.behavior.display_bands import job_display_label
 from app.hero_portfolio.config import PORTFOLIO_CONFIG
 from app.hero_portfolio.models import PoolEvolutionResult
+from app.heroes.knowledge import HeroKnowledgeProvider, canonical_function_key
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -23,6 +25,7 @@ EVOLUTION_CORE_OVERLAP_THRESHOLD = PORTFOLIO_CONFIG.evolution_core_overlap_thres
 def compute_pool_evolution(
     matches: Sequence[NormalizedSummaryMatch],
     taxonomy: HeroTaxonomy,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> PoolEvolutionResult:
     ordered = sorted(
         (item for item in matches if item.started_at is not None and item.hero_id is not None),
@@ -38,11 +41,11 @@ def compute_pool_evolution(
     window_size = min(EVOLUTION_MAX_WINDOW_SIZE, len(ordered) // 2)
     earlier = ordered[-(2 * window_size):-window_size]
     recent = ordered[-window_size:]
-    earlier_coverage = _taxonomy_coverage(earlier, taxonomy)
-    recent_coverage = _taxonomy_coverage(recent, taxonomy)
+    earlier_coverage = _semantic_coverage(earlier, taxonomy, hero_knowledge)
+    recent_coverage = _semantic_coverage(recent, taxonomy, hero_knowledge)
     if min(earlier_coverage, recent_coverage) < EVOLUTION_TAXONOMY_COVERAGE_GATE:
         return _unavailable(
-            "Pool Evolution is unavailable because taxonomy coverage is below 80% in one balanced window.",
+            "Pool Evolution is unavailable because readable hero information covers less than 80% of one balanced window.",
             earlier_size=len(earlier),
             recent_size=len(recent),
             earlier_coverage=earlier_coverage,
@@ -52,11 +55,11 @@ def compute_pool_evolution(
     earlier_hero_ids = [int(item.hero_id) for item in earlier if item.hero_id is not None]
     recent_hero_ids = [int(item.hero_id) for item in recent if item.hero_id is not None]
     hero_shift = _distribution_shift(Counter(earlier_hero_ids), Counter(recent_hero_ids))
-    earlier_toolkit = _toolkit_distribution(earlier, taxonomy)
-    recent_toolkit = _toolkit_distribution(recent, taxonomy)
+    earlier_toolkit = _toolkit_distribution(earlier, taxonomy, hero_knowledge)
+    recent_toolkit = _toolkit_distribution(recent, taxonomy, hero_knowledge)
     toolkit_shift = _distribution_shift(earlier_toolkit, recent_toolkit)
-    earlier_traits = _top_distribution_keys(earlier_toolkit)
-    recent_traits = _top_distribution_keys(recent_toolkit)
+    earlier_traits = _top_distribution_keys(earlier_toolkit, semantic=hero_knowledge is not None)
+    recent_traits = _top_distribution_keys(recent_toolkit, semantic=hero_knowledge is not None)
     overlap = _top_overlap(earlier_toolkit, recent_toolkit)
     if hero_shift >= EVOLUTION_HERO_SHIFT_THRESHOLD and toolkit_shift >= EVOLUTION_TOOLKIT_SHIFT_THRESHOLD:
         variant = "new_heroes_new_toolkit"
@@ -78,6 +81,12 @@ def compute_pool_evolution(
         + 0.25 * min(earlier_coverage, recent_coverage)
         + 0.20 * min(1.0, (hero_shift + toolkit_shift) / 0.5),
     )
+    semantic_quality = _semantic_review_quality(
+        (*earlier, *recent), hero_knowledge
+    )
+    confidence *= semantic_quality
+    earlier_start, earlier_end = _window_dates(earlier)
+    recent_start, recent_end = _window_dates(recent)
     return PoolEvolutionResult(
         status="available",
         variant=variant,
@@ -92,6 +101,10 @@ def compute_pool_evolution(
         recent_sample_size=len(recent),
         earlier_taxonomy_coverage=earlier_coverage,
         recent_taxonomy_coverage=recent_coverage,
+        earlier_start=earlier_start,
+        earlier_end=earlier_end,
+        recent_start=recent_start,
+        recent_end=recent_end,
         limitations=tuple(limitations),
     )
 
@@ -131,11 +144,38 @@ def _taxonomy_coverage(rows: Sequence[NormalizedSummaryMatch], taxonomy: HeroTax
     return covered / max(len(rows), 1)
 
 
+def _semantic_coverage(
+    rows: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    provider: HeroKnowledgeProvider | None,
+) -> float:
+    if provider is None:
+        return _taxonomy_coverage(rows, taxonomy)
+    covered = sum(
+        1
+        for item in rows
+        if (entry := provider.get(item.hero_id)) is not None
+        and entry.review_status not in {"unknown", "stale", "draft"}
+        and (entry.primary_functions or entry.secondary_functions)
+    )
+    return covered / max(len(rows), 1)
+
+
 def _toolkit_distribution(
-    rows: Sequence[NormalizedSummaryMatch], taxonomy: HeroTaxonomy
+    rows: Sequence[NormalizedSummaryMatch],
+    taxonomy: HeroTaxonomy,
+    provider: HeroKnowledgeProvider | None = None,
 ) -> dict[str, float]:
     values: dict[str, float] = {}
     for item in rows:
+        if provider is not None:
+            entry = provider.get(item.hero_id)
+            if entry is None or entry.review_status in {"unknown", "stale", "draft"}:
+                continue
+            for function in tuple(dict.fromkeys((*entry.primary_functions, *entry.secondary_functions))):
+                key = canonical_function_key(function)
+                values[key] = values.get(key, 0.0) + 1.0
+            continue
         hero = taxonomy.get(item.hero_id)
         if hero is None or not hero.available:
             continue
@@ -157,19 +197,48 @@ def _distribution_shift(left: Mapping[Any, float], right: Mapping[Any, float]) -
     return max(0.0, min(1.0, math.sqrt(jsd / math.log(2))))
 
 
-def _top_distribution_keys(values: Mapping[str, float]) -> tuple[str, ...]:
+def _top_distribution_keys(
+    values: Mapping[str, float], *, semantic: bool = False
+) -> tuple[str, ...]:
     total = sum(float(value) for value in values.values())
     if not total:
         return ()
-    return tuple(
+    keys = tuple(
         trait
         for trait, value in sorted(values.items(), key=lambda item: (-item[1], item[0]))[:5]
         if float(value) / total >= 0.06
     )
+    return tuple(job_display_label(key) for key in keys) if semantic else keys
 
 
 def _top_overlap(left: Mapping[str, float], right: Mapping[str, float]) -> float:
     return len(set(_top_distribution_keys(left)[:3]) & set(_top_distribution_keys(right)[:3])) / 3.0
+
+
+def _semantic_review_quality(
+    rows: Sequence[NormalizedSummaryMatch], provider: HeroKnowledgeProvider | None
+) -> float:
+    if provider is None:
+        return 1.0
+    usable = [provider.get(item.hero_id) for item in rows]
+    reviewed = sum(
+        entry is not None and entry.review_status in {"approved", "reviewed"}
+        for entry in usable
+    )
+    return 0.55 + 0.45 * reviewed / max(len(rows), 1)
+
+
+def _window_dates(rows: Sequence[NormalizedSummaryMatch]) -> tuple[str | None, str | None]:
+    dated = [item.started_at for item in rows if item.started_at is not None]
+    if not dated:
+        return None, None
+    return str(_utc_date(min(dated))), str(_utc_date(max(dated)))
+
+
+def _utc_date(timestamp: int):
+    from datetime import UTC, datetime
+
+    return datetime.fromtimestamp(timestamp, tz=UTC).date()
 
 
 __all__ = [

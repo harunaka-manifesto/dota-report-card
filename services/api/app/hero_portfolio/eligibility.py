@@ -7,6 +7,7 @@ from collections.abc import Iterable, Sequence
 
 from app.hero_portfolio.config import PORTFOLIO_CONFIG
 from app.hero_portfolio.models import HeroEligibility
+from app.heroes.knowledge import HeroKnowledgeProvider
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -21,6 +22,7 @@ def build_hero_eligibility(
     min_share: float = PORTFOLIO_CONFIG.min_share,
     min_recency: float = PORTFOLIO_CONFIG.min_recency,
     sustained_match_threshold: int = PORTFOLIO_CONFIG.sustained_match_threshold,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> tuple[HeroEligibility, ...]:
     """Return one auditable eligibility row per hero in the bounded history.
 
@@ -43,14 +45,24 @@ def build_hero_eligibility(
         share = matches_count / max(total, 1)
         latest_position = max((position_by_id.get(item.match_id, 0) for item in hero_rows), default=0)
         recency = latest_position / max(len(ordered) - 1, 1)
-        coverage = 1.0 if entry is not None and entry.available and entry.traits else 0.0
+        if hero_knowledge is not None:
+            semantic_entry = hero_knowledge.get(hero_id)
+            coverage = (
+                1.0
+                if semantic_entry is not None
+                and semantic_entry.review_status not in {"unknown", "stale", "draft"}
+                and (semantic_entry.primary_functions or semantic_entry.secondary_functions)
+                else 0.0
+            )
+        else:
+            coverage = 1.0 if entry is not None and entry.available and entry.traits else 0.0
         reasons: list[str] = []
         if matches_count < min(common_thread_min_matches, exception_min_matches, mirror_min_matches):
             reasons.append("too_few_matches")
         if share < min_share:
             reasons.append("too_small_history_share")
         if coverage < 1.0:
-            reasons.append("taxonomy_unavailable")
+            reasons.append("hero_semantics_unavailable" if hero_knowledge is not None else "taxonomy_unavailable")
         recency_ok = recency >= min_recency or matches_count >= sustained_match_threshold
         if not recency_ok:
             reasons.append("stale_without_sustained_coverage")

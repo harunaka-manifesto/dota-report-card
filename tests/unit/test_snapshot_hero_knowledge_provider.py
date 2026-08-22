@@ -7,9 +7,13 @@ from app.heroes.knowledge import (
     EMPIRICAL_SUPPORT_BANDS,
     FUNCTIONAL_JOBS,
     HERO_DEMAND_FAMILIES,
+    JOB_GLOSSARY,
     SEMANTIC_BANDS,
+    FullRosterHeroKnowledgeProvider,
     SnapshotHeroKnowledgeProvider,
+    canonical_function_key,
 )
+from app.heroes.taxonomy import load_default_taxonomy
 
 
 def test_generated_pilot_snapshot_implements_runtime_provider_contract() -> None:
@@ -69,3 +73,21 @@ def test_unknown_semantics_stay_explicit_in_the_adapter(tmp_path: Path) -> None:
     assert hero.demands["micro"] == "unknown"
     assert hero.empirical_support == "unknown"
     assert 0.5 not in hero.demands.values()
+
+
+def test_full_roster_provider_keeps_review_status_and_structural_coverage_explicit() -> None:
+    provider = FullRosterHeroKnowledgeProvider(load_default_taxonomy())
+
+    assert len(provider.entries) == 127
+    reviewed = provider.get(2)
+    structural = provider.get(1)
+    assert reviewed is not None and reviewed.review_status in {"approved", "reviewed"}
+    assert structural is not None and structural.review_status == "unreviewed"
+    assert structural.confidence == "low"
+    assert structural.provenance_versions["hero_semantics"] == provider.version
+
+
+def test_legacy_function_aliases_cannot_leak_into_the_public_glossary() -> None:
+    assert "teamfight" not in FUNCTIONAL_JOBS
+    assert canonical_function_key("teamfight") == "fight_control"
+    assert JOB_GLOSSARY["fight_control"]["public_label"] == "Fight control"

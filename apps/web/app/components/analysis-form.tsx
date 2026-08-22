@@ -215,7 +215,7 @@ function stageCopy(stage: string): string {
     session_inference: "Rebuilding your play sessions.",
     dimension_scoring: "Finding the Elements your history can support.",
     behavior_elements: "Measuring the Elements behind the report.",
-    behavior_patterns: "Checking which Patterns clear their evidence gates.",
+    behavior_patterns: "Checking which Patterns have enough evidence.",
     hero_portfolio: "Comparing your established hero pool.",
     rendering_report: "Building your Dota DNA.",
     completed: "We found your pattern.",

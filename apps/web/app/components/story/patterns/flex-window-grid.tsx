@@ -10,9 +10,9 @@ export function FlexWindowGrid({ proof }: PatternVisualProps) {
     : names.map((name, index) => ({ name, count: Array.isArray(counts[index]) ? numberValue(counts[index][1]) : 0 }));
   return (
     <div className="pattern-visual pattern-visual-flex" aria-label="Flexibility window">
-      <div className="flex-window-stats"><strong>{stringValue(proof.total_games, "—")} games</strong><span>{stringValue(proof.functional_job_count, "—")} functional jobs</span><span>{stringValue(proof.repeated_hero_count, "—")} heroes repeated</span></div>
+      <div className="flex-window-stats"><strong>{stringValue(proof.total_games, "—")} games</strong><span>{stringValue(proof.functional_job_count, "—")} ways of helping</span><span>{stringValue(proof.repeated_hero_count, "—")} heroes repeated</span></div>
       <div className="flex-hero-grid">{rows.map((row) => <div className="flex-hero-cell" key={row.name}><strong>{row.name}</strong><span>{row.count}×</span></div>)}</div>
-      <div className="flex-jobs"><span className="eyebrow">FUNCTIONAL RANGE</span><p>{stringArray(proof.functional_jobs).join(" · ") || "Functional coverage is limited."}</p></div>
+      <div className="flex-jobs"><span className="eyebrow">WAYS OF HELPING</span><p>{stringArray(proof.functional_jobs).join(" · ") || "No clear range yet."}</p></div>
     </div>
   );
 }

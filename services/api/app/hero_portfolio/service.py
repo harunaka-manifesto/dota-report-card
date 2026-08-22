@@ -12,6 +12,7 @@ from app.hero_portfolio.exception import compute_hero_exception
 from app.hero_portfolio.mirror import compute_hero_mirror
 from app.hero_portfolio.models import HeroPortfolioResult
 from app.hero_portfolio.version import HERO_PORTFOLIO_VERSION
+from app.heroes.knowledge import HeroKnowledgeProvider
 from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
@@ -21,6 +22,7 @@ def analyze_hero_portfolio(
     *,
     hero_taxonomy: HeroTaxonomy,
     behavior: BehaviorAnalysisResult | None = None,
+    hero_knowledge: HeroKnowledgeProvider | None = None,
     report_seed: str | None = None,
 ) -> HeroPortfolioResult:
     """Build all portfolio insights from summary history and reviewed taxonomy.
@@ -31,12 +33,28 @@ def analyze_hero_portfolio(
     """
 
     del behavior
-    eligibility = build_hero_eligibility(matches, hero_taxonomy)
+    eligibility = build_hero_eligibility(
+        matches, hero_taxonomy, hero_knowledge=hero_knowledge
+    )
     return HeroPortfolioResult(
-        common_thread=compute_common_thread(matches, hero_taxonomy, eligibility, report_seed=report_seed),
-        exception=compute_hero_exception(matches, hero_taxonomy, eligibility, report_seed=report_seed),
-        evolution=compute_pool_evolution(matches, hero_taxonomy),
-        hero_mirror=compute_hero_mirror(matches, hero_taxonomy, eligibility),
+        common_thread=compute_common_thread(
+            matches,
+            hero_taxonomy,
+            eligibility,
+            report_seed=report_seed,
+            hero_knowledge=hero_knowledge,
+        ),
+        exception=compute_hero_exception(
+            matches,
+            hero_taxonomy,
+            eligibility,
+            report_seed=report_seed,
+            hero_knowledge=hero_knowledge,
+        ),
+        evolution=compute_pool_evolution(matches, hero_taxonomy, hero_knowledge),
+        hero_mirror=compute_hero_mirror(
+            matches, hero_taxonomy, eligibility, hero_knowledge=hero_knowledge
+        ),
         version=HERO_PORTFOLIO_VERSION,
         eligibility=eligibility,
     )

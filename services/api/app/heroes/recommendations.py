@@ -208,9 +208,9 @@ def _rationale_for_candidate(
     if role_fit == "unsupported":
         limitations.append("Observed role context does not support this hero as an active bridge.")
     if not functions:
-        limitations.append("No reviewed functional jobs are available for this hero.")
+        limitations.append("No reviewed ways of helping are available for this hero.")
     if intent in {"adjacent_move", "fill_gap"} and not adds:
-        limitations.append("The candidate does not add a clearly missing functional job.")
+        limitations.append("The candidate does not add a clearly missing way of helping.")
     if not new_demands and entry.demands:
         limitations.append("No new reviewed demand family is clearly separated from the observed pool.")
     eligible = bool(functions and familiar and role_fit != "unsupported" and confidence != "low")

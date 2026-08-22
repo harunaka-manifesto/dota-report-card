@@ -13,7 +13,7 @@ test("completed Free DNA report opens with the full Element and Portfolio story"
   await common.getByRole("radio", { name: "Mobility" }).click();
   await expect(common.getByRole("radio", { name: "Mobility" })).toHaveAttribute("aria-checked", "true");
   await common.getByRole("button", { name: "Reveal" }).click();
-  await expect(common.getByText("Mobility is the strongest recurring thread across the established pool.")).toBeVisible();
+  await expect(common.getByText("Mobility is the strongest recurring way of helping across the established pool.")).toBeVisible();
 
   const pattern = page.locator("#pattern-same_playbook");
   await pattern.scrollIntoViewIfNeeded();
@@ -42,7 +42,7 @@ test("wrong Portfolio choices receive contextual correction", async ({ page }) =
   await expect(exceptionReveal).toBeEnabled();
   await exceptionReveal.click();
   await expect(exception.getByText("Good guess — but not this one.", { exact: true })).toBeVisible();
-  await expect(exception.getByText("Anti-Mage breaks it more clearly.")).toBeVisible();
+  await expect(exception.getByText("Anti-Mage stands apart more clearly.")).toBeVisible();
 });
 
 test("Hero Mirror and final share controls are keyboard accessible", async ({ page }) => {
