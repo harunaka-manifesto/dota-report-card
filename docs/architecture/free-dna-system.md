@@ -43,10 +43,14 @@ performance proxy, features, behavior model,
 Element and Pattern registries, Pattern ranking and actions, hero taxonomy,
 hero relationships and expressions, player-relative reliability, matchup and
 synergy artifacts, situations, Hero Portfolio configuration, Hero Mirror,
-story, copy, Pattern presentation, template, share renderer, and the
-compatibility fingerprint. Presentation thresholds are deterministic and
-centralized; the web app never invents its own display bands. The normalized
-hero-knowledge provider is an independent seam with its own snapshot version.
+story, legacy and semantic copy, semantic outcomes and recommendations, Pattern
+presentation, template, share renderer, and the compatibility fingerprint.
+Presentation thresholds are deterministic and centralized; the web app never
+invents its own display bands. The normalized hero-knowledge provider is an
+independent seam with the active full-roster snapshot version declared by the
+manifest. The ten-hero pilot snapshot is retained as historical compatibility
+evidence, not as the active roster denominator.
 The comparable-baseline resolver has its own version and is included in the
 report versions and analysis fingerprint. Historical v5.0 snapshots remain
-readable with their original versions and payload fields.
+readable with their original versions and payload fields. Historical v4, v5.0,
+and v5.1 snapshots are compatibility artifacts, not active baselines.

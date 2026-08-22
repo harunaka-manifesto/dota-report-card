@@ -9,6 +9,7 @@
 - [Data provenance](architecture/data-provenance.md)
 - [Hero data sources](architecture/hero-data-sources.md)
 - [Hero knowledge](architecture/hero-knowledge.md)
+- [v5.2 SSOT and version compatibility](architecture/dota-dna-ssot.md)
 - [Model catalog](architecture/model-catalog.md)
 - [OpenDota inventory](opendota-data-inventory.md)
 

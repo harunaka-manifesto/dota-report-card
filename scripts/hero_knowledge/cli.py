@@ -461,7 +461,18 @@ def _validate(args: argparse.Namespace) -> int:
                 "errors": [],
             }
     if args.source in {"knowledge", "all"}:
-        path = _latest_file(settings.knowledge_root, "*.json")
+        if args.snapshot_id:
+            candidate = Path(args.snapshot_id)
+            path = (
+                candidate
+                if candidate.exists()
+                else settings.knowledge_root
+                / (candidate.name if candidate.suffix == ".json" else f"{candidate.name}.json")
+            )
+            if not path.exists():
+                raise HeroKnowledgeError(f"Knowledge snapshot not found: {path}")
+        else:
+            path = _latest_file(settings.knowledge_root, "*.json")
         snapshot = read_json(path)
         results["knowledge"] = {"path": str(path), "errors": list(validate_knowledge_snapshot(snapshot))}
     print(json.dumps(results, indent=2, sort_keys=True))

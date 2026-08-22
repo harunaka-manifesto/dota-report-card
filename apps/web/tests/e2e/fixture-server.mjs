@@ -34,15 +34,28 @@ const presentationContracts = {
   session_fade: { outcome_id: "P10_SESSION_FADE", visual_variant: "session_curve", recommendation_id: "P10_CHECKPOINT_AT_BREAKPOINT", deep_dive_id: "P10_SESSION_BREAKPOINT" },
   session_rise: { outcome_id: "P11_SESSION_RISE", visual_variant: "session_curve", recommendation_id: "P11_FRONTLOAD_FAMILIARITY", deep_dive_id: "P11_SESSION_BREAKPOINT" }
 };
+const semanticPresentationBranches = {
+  same_playbook: { available: "P01_NARROW_JOB_BRIDGE_FOUND", suppressed: "P01_NARROW_JOB_NO_BRIDGE", recommendation: "HR_ADJACENT_MOVE_ADD_FUNCTION" },
+  comfort_edge: { available: "P02_DEVELOPMENT_DEMAND_UNRESOLVED", suppressed: "P02_DEVELOPMENT_DEMAND_UNRESOLVED", recommendation: "HR_PRACTICE_FALLBACK" },
+  partial_transfer: { available: "P03_EXPLANATION_UNRESOLVED", suppressed: "P03_EXPLANATION_UNRESOLVED", recommendation: "HR_PRACTICE_FALLBACK" },
+  versatile_core: { available: "P04_GAP_NO_BRIDGE", suppressed: "P04_GAP_NO_BRIDGE", recommendation: "HR_PRACTICE_FALLBACK" },
+  proven_flexibility: { available: "P05_DISTRIBUTED_FLEXIBILITY", suppressed: "P05_DISTRIBUTED_FLEXIBILITY", recommendation: "HR_PROTECT_RELIABLE_ANCHOR" },
+  bounceback: { available: "P06_OVERALL_CONTEXT", suppressed: "P06_OVERALL_CONTEXT", recommendation: "HR_REPEAT_POST_LOSS_ANCHOR" },
+  performance_slide: { available: "P07_OVERALL_CONTEXT", suppressed: "P07_OVERALL_CONTEXT", recommendation: "HR_CHANGE_ONE_TRANSITION" },
+  controlled_presence: { available: "P08_OVERALL_CONTEXT", suppressed: "P08_OVERALL_CONTEXT", recommendation: "HR_PRESERVE_LOW_COST_PRESENCE" },
+  presence_tax: { available: "P09_SOURCE_UNRESOLVED", suppressed: "P09_SOURCE_UNRESOLVED", recommendation: "HR_INVESTIGATE_PRESENCE_COST" },
+  session_fade: { available: "P10_BREAKPOINT_UNRESOLVED", suppressed: "P10_BREAKPOINT_UNRESOLVED", recommendation: "HR_CHECKPOINT_AT_BREAKPOINT" },
+  session_rise: { available: "P11_BREAKPOINT_UNRESOLVED", suppressed: "P11_BREAKPOINT_UNRESOLVED", recommendation: "HR_FRONTLOAD_FAMILIARITY" }
+};
 const presentationCopy = (key, qualified) => {
   const headline = {
-    same_playbook: "Broad by hero. Narrow by job.", comfort_edge: "Your pool has a reliability ladder.", partial_transfer: "Your presence travels farther than your results.", versatile_core: "A small pool can cover a lot of Dota.", proven_flexibility: "Your flexibility shows up in the window.", bounceback: "LOSS → NEXT GAME: STRONGER", performance_slide: "LOSS → NEXT GAME: WEAKER", controlled_presence: "You can be involved without paying the full cost.", presence_tax: "Your presence comes with a visible tax.", session_fade: "Your session has a fade point.", session_rise: "You tend to warm into the session."
+    same_playbook: "Your hero names change. The job keeps coming back.", comfort_edge: "Your anchors are clearer than the learning problem.", partial_transfer: "The transfer gap is real. Its source is not clear yet.", versatile_core: "Small pool. A real gap. No forced recommendation.", proven_flexibility: "Your range is real, just spread out.", bounceback: "Your next game tends to be stronger.", performance_slide: "Your next game tends to lose ground.", controlled_presence: "You stay involved without paying the full cost.", presence_tax: "The death cost is visible. Its source is not.", session_fade: "Later games look weaker, but the turning point moves.", session_rise: "Later games improve, but the lift point moves."
   }[key];
   return {
     headline,
     subheadline: "A compact visual proof sits below the reveal, followed by one bounded interpretation and next step.",
     interpretation: { title: "What this actually means", body: "This fixture keeps the conclusion tied to the observable summary evidence. It does not claim a cause." },
-    recommendation: qualified ? { eyebrow: "DO THIS NEXT", title: "Try one deliberate next step", body: key === "same_playbook" || key === "versatile_core" ? "Use Example bridge hero to add one missing function while keeping a familiar anchor." : "Keep the supported anchor visible while you practice the next demand." } : null,
+    recommendation: qualified ? { eyebrow: key === "same_playbook" ? "DO THIS NEXT" : "TRY THIS NEXT", title: key === "same_playbook" ? "Add one new answer, not a new identity" : "Use one deliberate next step", body: key === "same_playbook" ? "Try Tidehunter: it keeps fight start familiar and adds frontline." : key === "versatile_core" ? "Practice the displayed gap first. We do not have a hero recommendation we trust enough yet." : "Keep the supported anchor visible while you practice the next demand." } : null,
     deep_dive: qualified ? { title: "Ask the next diagnostic question", body: "Deep Dive can inspect the match-level mechanism behind this supported pattern." } : null,
     fallback: { title: "More evidence needed", body: "The pattern remains visible, but no narrower action is stable enough to call out." }
   };
@@ -62,6 +75,7 @@ const presentationProof = (key) => ({
 }[key]);
 const makePresentation = (key, qualified) => {
   const contract = presentationContracts[key];
+  const semantic = semanticPresentationBranches[key];
   const copy = presentationCopy(key, qualified);
   return {
     pattern_id: key,
@@ -70,8 +84,12 @@ const makePresentation = (key, qualified) => {
     proof_data: { ...presentationProof(key), pattern_status: qualified ? "qualified" : "suppressed", confidence: qualified ? "moderate" : "unavailable" },
     interpretation_id: contract.outcome_id,
     recommendation_id: qualified ? contract.recommendation_id : null,
-    recommendation_context: qualified ? { kind: key === "same_playbook" || key === "versatile_core" ? "hero" : "practice", hero_name: key === "same_playbook" || key === "versatile_core" ? "Example bridge hero" : null } : null,
+    recommendation_context: qualified ? (key === "same_playbook" ? { kind: "hero", hero_id: 29, hero_name: "Tidehunter", familiar_anchors: ["fight_start"], adds: ["frontline"], new_demands: ["commitment"], learning_distance: "moderate", role_fit: "conditional", confidence: "medium" } : { kind: "practice", hero_name: null }) : null,
     deep_dive_id: qualified ? contract.deep_dive_id : null,
+    semantic_outcome_id: qualified ? semantic.available : semantic.suppressed,
+    semantic_recommendation_id: qualified ? semantic.recommendation : null,
+    semantic_outcome_version: "pattern-outcomes-5.2.0",
+    semantic_recommendation_version: "hero-recommendations-semantic-1.1.0",
     evidence_refs: ["fixture.pattern", "fixture.summary"],
     raw_metrics: {},
     confidence: qualified ? "moderate" : "unavailable",
@@ -98,7 +116,7 @@ const elements = elementKeys.map((key, index) => ({
   receipts: [receipt(key)],
   confounders: [],
   missing_reasons: [],
-  methodology_version: "element-5.1.0"
+  methodology_version: "free-elements-5.2.0"
 }));
 const patterns = patternKeys.map((key, index) => ({
   key,
@@ -155,8 +173,8 @@ const report = {
   noindex: true,
   identity: { display_name: "Fixture player", avatar_url: null, rank_tier: null },
   metadata: { created_at: "2026-01-01T00:00:00+00:00", expires_at: null, data_from: null, data_to: null, processed_matches: 60, eligible_matches: 60, history_limit: null, raw_history_hash: "fixture-history", history_tier: "normal" },
-  versions: { eligibility: "summary-eligibility-1.0.0", sessions: "sessions-5.0.0", features: "dna-features-5.0.0", behavior_model: "behavior-model-5.2.0", element_registry: "free-elements-5.1.0", pattern_registry: "free-patterns-5.1.0", pattern_ranking: "free-pattern-ranking-5.0.0", pattern_actions: "pattern-actions-5.0.0", presentation: "pattern-presentation-5.2.0", hero_taxonomy: "fixture-taxonomy", hero_knowledge: "hero-knowledge-fixture", hero_relationships: "hero-relationships-1.0.0", hero_expressions: "hero-expressions-1.0.0", hero_reliability: "hero-reliability-1.0.0", hero_matchups: "hero-matchups-1.0.0", hero_synergies: "hero-synergies-1.0.0", hero_situations: "hero-situations-1.0.0", hero_portfolio: "hero-portfolio-1.2.0+hero-portfolio-config-1.0.0", hero_mirror: "hero-mirror-1.2.0", story: "free-story-5.3.0", copy: "free-dna-copy-5.3.0", model: "fixture-model", template: "templates-1.0.0", share_renderer: "share-svg-4.1.0", analysis_version_fingerprint: "fixture-fingerprint", performance_proxy: "performance-proxy-5.0.0", recency_weighting: "recency-weighting-5.0.0", sessionization: "sessions-5.0.0" },
-  reproducibility: { model_version: "free-dna-model-5.2.0", element_registry_version: "free-elements-5.1.0", pattern_registry_version: "free-patterns-5.1.0", hero_taxonomy_version: "fixture-taxonomy", hero_knowledge_version: "hero-knowledge-fixture", performance_proxy_version: "performance-proxy-5.0.0", sessionization_version: "sessions-5.0.0", recency_weighting_version: "recency-weighting-5.0.0", generated_at: "2026-01-01T00:00:00+00:00", window_start: null, window_end: null, input_snapshot_hash: "fixture-history", raw_match_count: 60, usable_match_count: 60, deduplicated_match_count: 60, session_count: 12, completed_session_count: 10, left_censored_session_count: 1, right_censored_session_count: 1, role_hint_coverage: 1, hero_taxonomy_coverage: 1, effective_sample_size: 48, recency_config: { half_life_days: 180, version: "recency-weighting-5.0.0" }, session_gap_config: { gap_minutes: 90, clock_tolerance_seconds: 300 } },
+  versions: { eligibility: "summary-eligibility-1.0.0", sessions: "sessions-5.0.0", features: "dna-features-5.0.0", behavior_model: "behavior-model-5.2.0", element_registry: "free-elements-5.2.0", pattern_registry: "free-patterns-5.1.0", pattern_ranking: "free-pattern-ranking-5.0.0", pattern_actions: "pattern-actions-5.1.0", presentation: "pattern-presentation-5.2.0", semantic_outcomes: "pattern-outcomes-5.2.0", semantic_recommendations: "hero-recommendations-semantic-1.1.0", semantic_copy: "free-dna-semantic-copy-5.2.0", hero_taxonomy: "fixture-taxonomy", hero_knowledge: "hero-knowledge-fixture", hero_relationships: "hero-relationships-1.0.0", hero_expressions: "hero-expressions-1.0.0", hero_reliability: "hero-reliability-1.0.0", hero_matchups: "hero-matchups-1.0.0", hero_synergies: "hero-synergies-1.0.0", hero_situations: "hero-situations-1.0.0", hero_portfolio: "hero-portfolio-1.2.0+hero-portfolio-config-1.0.0", hero_mirror: "hero-mirror-1.2.0", story: "free-story-5.3.0", copy: "free-dna-copy-5.4.0", model: "fixture-model", template: "templates-1.0.0", share_renderer: "share-svg-4.1.0", analysis_version_fingerprint: "fixture-fingerprint", performance_proxy: "performance-proxy-5.0.0", recency_weighting: "recency-weighting-5.0.0", sessionization: "sessions-5.0.0" },
+  reproducibility: { model_version: "free-dna-model-5.2.0", element_registry_version: "free-elements-5.2.0", pattern_registry_version: "free-patterns-5.1.0", hero_taxonomy_version: "fixture-taxonomy", hero_knowledge_version: "hero-knowledge-fixture", performance_proxy_version: "performance-proxy-5.0.0", sessionization_version: "sessions-5.0.0", recency_weighting_version: "recency-weighting-5.0.0", generated_at: "2026-01-01T00:00:00+00:00", window_start: null, window_end: null, input_snapshot_hash: "fixture-history", raw_match_count: 60, usable_match_count: 60, deduplicated_match_count: 60, session_count: 12, completed_session_count: 10, left_censored_session_count: 1, right_censored_session_count: 1, role_hint_coverage: 1, hero_taxonomy_coverage: 1, effective_sample_size: 48, recency_config: { half_life_days: 180, version: "recency-weighting-5.0.0" }, session_gap_config: { gap_minutes: 90, clock_tolerance_seconds: 300 } },
   quality: { overall_confidence: "moderate", history_tier: "normal", missing_data_flags: [], partial: false, warnings: [], available_elements: 18, limited_elements: 0, unavailable_elements: 0, qualified_patterns: 5 },
   elements,
   patterns,
@@ -185,9 +203,7 @@ noClearReport.hero_portfolio.exception = {
   hero_name: null,
   pool_traits: ["Fight control", "Range"],
   exception_traits: [],
-  options: [
-    { key: "no_clear_exception", label: "No clear exception", hero_id: null, feedback: "No single hero stands apart clearly enough." }
-  ],
+  options: [],
   correct_option_key: "no_clear_exception",
   distance: .31,
   margin: .02,

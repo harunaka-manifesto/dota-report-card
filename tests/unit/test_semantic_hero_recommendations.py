@@ -35,6 +35,7 @@ def _hero(
     empirical_support: str = "unknown",
     demands: dict[str, str] | None = None,
     position_credibility: dict[str, str] | None = None,
+    specialist_markers: tuple[str, ...] = (),
 ) -> NormalizedHeroKnowledge:
     values = demands or {family: "low" for family in HERO_DEMAND_FAMILIES}
     return NormalizedHeroKnowledge(
@@ -52,6 +53,7 @@ def _hero(
         evidence_refs=(f"fixture:{hero_id}",),
         review_status="approved",
         position_credibility=position_credibility or {},
+        specialist_markers=specialist_markers,
     )
 
 
@@ -140,7 +142,7 @@ def test_low_confidence_candidate_is_suppressed_and_role_mismatch_is_blocked() -
     assert rationales == []
     assert {item.hero_id for item in ineligible} == {2, 3}
     assert all(item.eligible is False for item in ineligible)
-    assert {item.role_fit for item in ineligible} == {"supported", "unsupported"}
+    assert {item.role_fit for item in ineligible} == {"conditional", "unsupported"}
 
 
 def test_intents_use_distinct_semantic_contracts() -> None:
@@ -163,6 +165,7 @@ def test_intents_use_distinct_semantic_contracts() -> None:
         ("initiation", "catch"),
         demands={**low_demands, "economy": "high", "micro": "high", "execution": "high"},
         empirical_support="high",
+        specialist_markers=("high_execution",),
     )
     provider = _Provider((observed, double_down, adjacent, angle, specialist))
     matches = _matches(1, 1, 1, lane_role=1)
@@ -295,3 +298,50 @@ def test_unknown_demand_families_do_not_become_a_neutral_bridge() -> None:
     )
 
     assert result == []
+
+
+def test_full_roster_provider_covers_all_five_intents_beyond_the_pilot() -> None:
+    provider = SnapshotHeroKnowledgeProvider()
+    familiar_core = _matches(2, 13, 2, 13, 2, 13, lane_role=3)
+    support_core = _matches(50, 111, 50, 111, 50, 111, lane_role=3)
+    intent_results = {
+        "double_down": recommend_semantic_heroes(
+            familiar_core, provider, intent="double_down", limit=3
+        ),
+        "adjacent_move": recommend_semantic_heroes(
+            familiar_core, provider, intent="adjacent_move", limit=3
+        ),
+        "fill_gap": recommend_semantic_heroes(
+            _matches(53, 44, 53, 44, 53, 44, lane_role=1),
+            provider,
+            intent="fill_gap",
+            target_family="engage_control",
+            limit=3,
+        ),
+        "change_angle": recommend_semantic_heroes(
+            support_core, provider, intent="change_angle", limit=3
+        ),
+        "specialist": recommend_semantic_heroes(
+            support_core, provider, intent="specialist", limit=3
+        ),
+    }
+
+    assert all(intent_results.values())
+    assert all(
+        rationale.intent == intent
+        for intent, rationales in intent_results.items()
+        for rationale in rationales
+    )
+    assert all(
+        provider.get(rationale.hero_id).specialist_markers  # type: ignore[union-attr]
+        for rationale in intent_results["specialist"]
+    )
+    assert all(
+        rationale.learning_distance == "high"
+        for rationale in intent_results["specialist"]
+    )
+    pilot_ids = {2, 13, 38, 44, 50, 53, 74, 82, 96, 111}
+    surfaced = {
+        rationale.hero_id for rationales in intent_results.values() for rationale in rationales
+    }
+    assert len(surfaced - pilot_ids) >= 5

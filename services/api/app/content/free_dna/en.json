@@ -1,5 +1,5 @@
 {
-  "copy_version": "free-dna-copy-5.3.0",
+  "copy_version": "free-dna-copy-5.4.0",
   "pages": {
     "analysis": {
       "title": "Reading your recent matches.",
@@ -87,7 +87,7 @@
     },
     "late_session_performance": {
       "title": "Drift",
-      "body": "How performance moves later in a session against your comparable personal baseline."
+      "body": "How your results tend to move later in longer sessions."
     },
     "post_loss_activity_shift": {
       "title": "Tempo",
@@ -95,7 +95,7 @@
     },
     "post_loss_performance_response": {
       "title": "Recovery",
-      "body": "How the next same-session game after a loss performs against your comparable personal baseline."
+      "body": "How your next game in the same session tends to move after a loss."
     }
   },
   "patterns": {
@@ -117,7 +117,7 @@
     },
     "proven_flexibility": {
       "title": "Proven Flexibility",
-      "body": "A broad pool is backed by observable transfer."
+      "body": "Your range keeps working when the hero names change."
     },
     "controlled_presence": {
       "title": "Controlled Presence",
@@ -125,7 +125,7 @@
     },
     "session_fade": {
       "title": "Session Fade",
-      "body": "Later games in long sessions show a weaker result signal."
+      "body": "Your results usually start slipping later in longer sessions."
     },
     "session_rise": {
       "title": "Session Rise",
@@ -152,9 +152,15 @@
       "incorrect": "Not quite.",
       "correct_feedback": "Yes — {trait} is the strongest recurring way of helping across the established pool.",
       "incorrect_feedback": "{selected} shows up in the pool, but {trait} has the stronger cross-hero coverage.",
-      "answer": "A common way of helping runs through the pool: {trait}.",
-      "reveal": "{trait} is the strongest recurring way of helping across {hero_count} established heroes.",
-      "boundary": "This describes what the heroes tend to offer; it does not prove those tools were used correctly in every match."
+    "answer": "A common way of helping runs through the pool: {trait}.",
+    "reveal": "{trait} is the strongest recurring way of helping across {hero_count} established heroes.",
+    "boundary": "This describes what the heroes tend to offer; it does not prove those tools were used correctly in every match.",
+    "no_clear_insight": {
+      "eyebrow": "The useful answer",
+      "headline": "Your pool doesn't have one defining job.",
+      "body": "The established heroes keep solving different problems, and no single contribution dominates enough to define the pool.",
+      "boundary": "Range is the conclusion here, not a missing result."
+    }
     },
     "exception": {
       "question": "Which hero gives your pool a different kind of Dota?",
@@ -178,7 +184,7 @@
       "question": "How do you think your hero pool has changed recently?",
       "question_body": "Choose the description that feels closest. This is a self-assessment, not a score.",
       "check": "Let’s check.",
-      "unavailable": "The bounded history could not support a trustworthy Pool Evolution comparison yet.",
+    "unavailable": "There are not enough comparable matches to show how the pool changed yet.",
       "unavailable_heading": "Pool Evolution is unavailable for now.",
       "locked": "Complete the self-assessment above to see the report read.",
       "option_more_experimental": "I’ve become more experimental",
@@ -202,17 +208,18 @@
         "body": "The edges moved a little, but the core hero mix and the kinds of jobs it covers stayed broadly recognizable."
       }
     },
-    "hero_mirror": {
-      "closed": "One last comparison: your observable behavior against a hero-shaped reference.",
+  "hero_mirror": {
+    "title": "Your Hero Mirror",
+    "closed": "One last comparison: your observable behavior against a hero-shaped reference.",
       "available": "Of the heroes you've played enough for us to trust, {hero} is where your usual Dota shows up most clearly.",
-      "unavailable": "The current history does not support a stable Hero Mirror yet.",
+    "unavailable": "No played hero matches your usual behavior clearly enough to earn the mirror yet.",
       "qualifier": "Not your best hero. Not necessarily your most played.",
       "guardrail": "This is not a personality test. We're not saying you are {hero}. We're saying your games on {hero} most closely resemble the way you usually play Dota."
     }
   },
   "story_templates": {
     "element": {
-      "observation": "{label} landed in the {zone} zone across the bounded summary history.",
+      "observation": "Across these matches, {label} landed in the {zone} zone.",
       "distinctive": "It was selected as one of the clearest signals in this report.",
       "evidence": "The receipt below shows the summary fields supporting this signal.",
       "notice": "Notice the zone and the sample together; neither is a verdict.",
@@ -236,7 +243,7 @@
       "same_playbook_recurring_core_label": "Your recurring core:",
       "same_playbook_familiar_label": "What stays familiar.",
       "same_playbook_changes_label": "What changes.",
-      "same_playbook_empty_direction": "No candidate had enough evidence and a close enough learning step for this direction.",
+      "same_playbook_empty_direction": "The direction is useful, but we do not have a hero recommendation we trust enough yet.",
       "comfort_edge_kicker": "Build the pool with a reason",
       "comfort_edge_heading": "Your strongest heroes are the safest part of this pool today.",
       "comfort_edge_intro": "Here is why the other established heroes can still be worth learning. This is a player-relative reliability read, not a meta ranking.",
@@ -247,8 +254,8 @@
       "comfort_edge_teammate_examples_label": "Teammate examples.",
       "comfort_edge_tradeoff_label": "Tradeoff.",
       "partial_transfer_kicker": "Where the transfer bends",
-      "partial_transfer_heading": "The result gap has a bounded lead",
-      "partial_transfer_direct_label": "Observable difference",
+      "partial_transfer_heading": "One learning demand may explain the gap",
+      "partial_transfer_direct_label": "What changed",
       "partial_transfer_hypothesis_label": "Capability lead",
       "partial_transfer_unresolved_heading": "The gap is real; the cause is not proven",
       "partial_transfer_deep_label": "Worth a deeper evidence pass",
@@ -269,7 +276,7 @@
       "controlled_presence_context_label": "Observable context",
       "controlled_presence_finishing_label": "Finishing flavor",
       "presence_tax_kicker": "Where does the tax come from?",
-      "presence_tax_heading": "The exposure has a bounded shape",
+      "presence_tax_heading": "The death cost has a shape",
       "presence_tax_deep_label": "Deeper evidence needed",
       "presence_tax_unresolved_body": "The summary history shows the cost, but not a stable context for it yet.",
       "bounceback_kicker": "Your best rebound tool",
@@ -321,8 +328,8 @@
         "outcomes": {
           "P03_PRESENCE_HOLDS_RESULT_BENDS": {
             "headline": "Your presence travels farther than your results.",
-            "subheadline": "Off-pool games still show up in fights, while the result signal bends.",
-            "interpretation": {"title": "What this actually means", "body": "The summary history supports a difference in outcome, plus a bounded lead about the demand that may be changing. It does not prove a cause."},
+            "subheadline": "You still show up in fights on off-pool heroes. The results stop travelling with you.",
+            "interpretation": {"title": "What this actually means", "body": "The match history supports a result difference and one possible learning demand. It does not prove the demand caused the gap."},
             "fallback": {"title": "The transfer split is visible", "body": "The familiar and off-pool groups separate, but the available evidence cannot yet name the demand behind it."}
           }
         },
@@ -358,7 +365,7 @@
           "P06_POST_LOSS_STRONGER": {
             "headline": "LOSS → NEXT GAME: STRONGER",
             "subheadline": "A familiar hero or job context is the strongest supported rebound setting.",
-            "interpretation": {"title": "What this actually means", "body": "The next same-session result is stronger than the comparable personal baseline after a loss. That is an observable transition, not a motive."},
+            "interpretation": {"title": "What this actually means", "body": "Your next game in the same session tends to improve after a loss. The pattern says nothing about your mood or motive."},
             "fallback": {"title": "The next game is stronger overall", "body": "The rebound is supported at a broad level, but no narrower hero or job context is stable enough to call out."}
           }
         },
@@ -370,7 +377,7 @@
           "P07_POST_LOSS_WEAKER": {
             "headline": "LOSS → NEXT GAME: WEAKER",
             "subheadline": "A familiar hero or job context is the strongest supported drop setting.",
-            "interpretation": {"title": "What this actually means", "body": "The next same-session result is weaker than the comparable personal baseline after a loss. The data does not establish tilt, panic, or hero causality."},
+            "interpretation": {"title": "What this actually means", "body": "Your next game in the same session tends to lose ground after a loss. The data does not establish tilt, panic, or hero causality."},
             "fallback": {"title": "The next game is weaker overall", "body": "The slide is supported at a broad level, but no narrower context is stable enough to call out."}
           }
         },
@@ -405,7 +412,7 @@
         "outcomes": {
           "P10_SESSION_FADE": {
             "headline": "Your session has a fade point.",
-            "subheadline": "Later games move below your comparable personal baseline often enough to stand out.",
+            "subheadline": "Your results usually start slipping later in longer sessions.",
             "interpretation": {"title": "What this actually means", "body": "The first supported fade point is a checkpoint for a different decision, not a magical curfew or a claim about why the change happens."},
             "fallback": {"title": "The curve fades gradually", "body": "Later-session movement is visible, but no single breakpoint is stable enough to call out."}
           }
@@ -417,7 +424,7 @@
         "outcomes": {
           "P11_SESSION_RISE": {
             "headline": "You tend to warm into the session.",
-            "subheadline": "Later games rise above your comparable personal baseline often enough to stand out.",
+            "subheadline": "Your results usually improve later in longer sessions.",
             "interpretation": {"title": "What this actually means", "body": "The history supports a repeatable lift point. It is a planning clue, not a claim about focus, emotion, or a required number of games."},
             "fallback": {"title": "The curve rises gradually", "body": "Later-session movement is visible, but no single lift point is stable enough to call out."}
           }

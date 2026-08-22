@@ -1,4 +1,8 @@
-# Hero knowledge semantic-freeze pilot review
+# Historical hero knowledge semantic-freeze pilot review
+
+> Historical artifact. The active v5.2 runtime snapshot is the approved
+> full-roster freeze declared by `hero-knowledge-manifest.json`.
+> This document records the ten-hero pilot only.
 
 Generated from the checked-in reviewed semantic layer and the generated runtime snapshot.
 This is a semantic QA artifact; it contains controlled facts, not production copy.
@@ -20,7 +24,7 @@ This is a semantic QA artifact; it contains controlled facts, not production cop
 - Empirical support: `unknown`
 - Confidence: `high`
 - Review status: `approved`
-- Evidence refs: `valve:axe:berserkers_call, valve:axe:counter_helix, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:006-axe.md, valve:axe:blink_dependency`
+- Evidence refs: `semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:006-axe.md, valve:axe:counter_helix, valve:axe:berserkers_call, valve:axe:blink_dependency`
 - Provenance: `hero_knowledge=hero-knowledge-semantic-freeze-pilot-v1, hero_knowledge_schema=hero-knowledge-schema-1.0.0, behavior_rules=behavior-rules-1.0.0, mechanic_rules=mechanic-rules-1.0.0, opendota_snapshot=opendota-semantic-freeze-pilot-2026-08-22, semantic_snapshot=hero-semantics-pilot-v1, valve_patch=7.41e, valve_snapshot=valve-semantic-freeze-pilot-7.41e, hero_semantics=hero-semantics-pilot-v1`
 
 ### Puck · `13`
@@ -32,7 +36,7 @@ This is a semantic QA artifact; it contains controlled facts, not production cop
 - Empirical support: `unknown`
 - Confidence: `high`
 - Review status: `approved`
-- Evidence refs: `valve:puck:waning_rift, valve:puck:dream_coil, valve:puck:illusory_orb, valve:puck:phase_shift, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:081-puck.md, valve:puck:spell_sequence`
+- Evidence refs: `valve:puck:waning_rift, valve:puck:dream_coil, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:081-puck.md, valve:puck:illusory_orb, valve:puck:phase_shift, valve:puck:spell_sequence`
 - Provenance: `hero_knowledge=hero-knowledge-semantic-freeze-pilot-v1, hero_knowledge_schema=hero-knowledge-schema-1.0.0, behavior_rules=behavior-rules-1.0.0, mechanic_rules=mechanic-rules-1.0.0, opendota_snapshot=opendota-semantic-freeze-pilot-2026-08-22, semantic_snapshot=hero-semantics-pilot-v1, valve_patch=7.41e, valve_snapshot=valve-semantic-freeze-pilot-7.41e, hero_semantics=hero-semantics-pilot-v1`
 
 ### Beastmaster · `38`
@@ -44,7 +48,7 @@ This is a semantic QA artifact; it contains controlled facts, not production cop
 - Empirical support: `unknown`
 - Confidence: `high`
 - Review status: `approved`
-- Evidence refs: `valve:beastmaster:primal_roar, valve:beastmaster:hawk, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:009-beastmaster.md, valve:beastmaster:controlled_units`
+- Evidence refs: `semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:009-beastmaster.md, valve:beastmaster:primal_roar, valve:beastmaster:hawk, valve:beastmaster:controlled_units`
 - Provenance: `hero_knowledge=hero-knowledge-semantic-freeze-pilot-v1, hero_knowledge_schema=hero-knowledge-schema-1.0.0, behavior_rules=behavior-rules-1.0.0, mechanic_rules=mechanic-rules-1.0.0, opendota_snapshot=opendota-semantic-freeze-pilot-2026-08-22, semantic_snapshot=hero-semantics-pilot-v1, valve_patch=7.41e, valve_snapshot=valve-semantic-freeze-pilot-7.41e, hero_semantics=hero-semantics-pilot-v1`
 
 ### Phantom Assassin · `44`
@@ -56,7 +60,7 @@ This is a semantic QA artifact; it contains controlled facts, not production cop
 - Empirical support: `unknown`
 - Confidence: `high`
 - Review status: `approved`
-- Evidence refs: `valve:phantom_assassin:critical_strikes, valve:phantom_assassin:blur, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:077-phantom-assassin.md, hero-editorial:077-phantom-assassin.md`
+- Evidence refs: `valve:phantom_assassin:critical_strikes, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:077-phantom-assassin.md, valve:phantom_assassin:blur, hero-editorial:077-phantom-assassin.md`
 - Provenance: `hero_knowledge=hero-knowledge-semantic-freeze-pilot-v1, hero_knowledge_schema=hero-knowledge-schema-1.0.0, behavior_rules=behavior-rules-1.0.0, mechanic_rules=mechanic-rules-1.0.0, opendota_snapshot=opendota-semantic-freeze-pilot-2026-08-22, semantic_snapshot=hero-semantics-pilot-v1, valve_patch=7.41e, valve_snapshot=valve-semantic-freeze-pilot-7.41e, hero_semantics=hero-semantics-pilot-v1`
 
 ### Dazzle · `50`
@@ -68,7 +72,7 @@ This is a semantic QA artifact; it contains controlled facts, not production cop
 - Empirical support: `unknown`
 - Confidence: `high`
 - Review status: `approved`
-- Evidence refs: `valve:dazzle:shallow_grave, valve:dazzle:shadow_wave, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:024-dazzle.md, valve:dazzle:backline_position`
+- Evidence refs: `semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:024-dazzle.md, valve:dazzle:shallow_grave, valve:dazzle:shadow_wave, valve:dazzle:backline_position`
 - Provenance: `hero_knowledge=hero-knowledge-semantic-freeze-pilot-v1, hero_knowledge_schema=hero-knowledge-schema-1.0.0, behavior_rules=behavior-rules-1.0.0, mechanic_rules=mechanic-rules-1.0.0, opendota_snapshot=opendota-semantic-freeze-pilot-2026-08-22, semantic_snapshot=hero-semantics-pilot-v1, valve_patch=7.41e, valve_snapshot=valve-semantic-freeze-pilot-7.41e, hero_semantics=hero-semantics-pilot-v1`
 
 ### Nature's Prophet · `53`
@@ -92,7 +96,7 @@ This is a semantic QA artifact; it contains controlled facts, not production cop
 - Empirical support: `unknown`
 - Confidence: `high`
 - Review status: `approved`
-- Evidence refs: `valve:invoker:spell_kit, valve:invoker:control_spells, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:041-invoker.md, valve:invoker:spell_selection, valve:invoker:context_selection`
+- Evidence refs: `semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:041-invoker.md, valve:invoker:control_spells, valve:invoker:spell_kit, valve:invoker:spell_selection, valve:invoker:context_selection`
 - Provenance: `hero_knowledge=hero-knowledge-semantic-freeze-pilot-v1, hero_knowledge_schema=hero-knowledge-schema-1.0.0, behavior_rules=behavior-rules-1.0.0, mechanic_rules=mechanic-rules-1.0.0, opendota_snapshot=opendota-semantic-freeze-pilot-2026-08-22, semantic_snapshot=hero-semantics-pilot-v1, valve_patch=7.41e, valve_snapshot=valve-semantic-freeze-pilot-7.41e, hero_semantics=hero-semantics-pilot-v1`
 
 ### Meepo · `82`
@@ -104,7 +108,7 @@ This is a semantic QA artifact; it contains controlled facts, not production cop
 - Empirical support: `unknown`
 - Confidence: `high`
 - Review status: `approved`
-- Evidence refs: `valve:meepo:earthbind, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:062-meepo.md, valve:meepo:poof, valve:meepo:unit_control, valve:meepo:multiple_units`
+- Evidence refs: `semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:062-meepo.md, valve:meepo:earthbind, valve:meepo:poof, valve:meepo:unit_control, valve:meepo:multiple_units`
 - Provenance: `hero_knowledge=hero-knowledge-semantic-freeze-pilot-v1, hero_knowledge_schema=hero-knowledge-schema-1.0.0, behavior_rules=behavior-rules-1.0.0, mechanic_rules=mechanic-rules-1.0.0, opendota_snapshot=opendota-semantic-freeze-pilot-2026-08-22, semantic_snapshot=hero-semantics-pilot-v1, valve_patch=7.41e, valve_snapshot=valve-semantic-freeze-pilot-7.41e, hero_semantics=hero-semantics-pilot-v1`
 
 ### Centaur Warrunner · `96`
@@ -116,7 +120,7 @@ This is a semantic QA artifact; it contains controlled facts, not production cop
 - Empirical support: `unknown`
 - Confidence: `high`
 - Review status: `approved`
-- Evidence refs: `valve:centaur:hoof_stomp, valve:centaur:retaliate, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:015-centaur-warrunner.md, valve:centaur:stampede, valve:centaur:commitment_window`
+- Evidence refs: `semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:015-centaur-warrunner.md, valve:centaur:hoof_stomp, valve:centaur:retaliate, valve:centaur:stampede, valve:centaur:commitment_window`
 - Provenance: `hero_knowledge=hero-knowledge-semantic-freeze-pilot-v1, hero_knowledge_schema=hero-knowledge-schema-1.0.0, behavior_rules=behavior-rules-1.0.0, mechanic_rules=mechanic-rules-1.0.0, opendota_snapshot=opendota-semantic-freeze-pilot-2026-08-22, semantic_snapshot=hero-semantics-pilot-v1, valve_patch=7.41e, valve_snapshot=valve-semantic-freeze-pilot-7.41e, hero_semantics=hero-semantics-pilot-v1`
 
 ### Oracle · `111`
@@ -128,7 +132,7 @@ This is a semantic QA artifact; it contains controlled facts, not production cop
 - Empirical support: `unknown`
 - Confidence: `high`
 - Review status: `approved`
-- Evidence refs: `valve:oracle:false_promise, valve:oracle:fortunes_end, semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:074-oracle.md, valve:oracle:spell_order`
+- Evidence refs: `semantic-review:valve:mechanics, semantic-review:opendota:aggregate, semantic-review:hero-editorial:074-oracle.md, valve:oracle:fortunes_end, valve:oracle:false_promise, valve:oracle:spell_order`
 - Provenance: `hero_knowledge=hero-knowledge-semantic-freeze-pilot-v1, hero_knowledge_schema=hero-knowledge-schema-1.0.0, behavior_rules=behavior-rules-1.0.0, mechanic_rules=mechanic-rules-1.0.0, opendota_snapshot=opendota-semantic-freeze-pilot-2026-08-22, semantic_snapshot=hero-semantics-pilot-v1, valve_patch=7.41e, valve_snapshot=valve-semantic-freeze-pilot-7.41e, hero_semantics=hero-semantics-pilot-v1`
 
 ## Representative recommendation comparisons

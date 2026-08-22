@@ -17,11 +17,42 @@ from app.heroes.relationships import build_semantic_pool_profile
 from app.heroes.taxonomy import load_default_taxonomy
 from app.ingestion.summary_normalize import normalize_summary_rows
 
+ROOT = Path(__file__).parents[2]
+PILOT_PATH = (
+    ROOT / "services/api/app/heroes/data/knowledge/hero-knowledge-semantic-freeze-pilot-v1.json"
+)
+FACTUAL_PATH = ROOT / "services/api/app/heroes/data/factual/2026-08-16.json"
+FULL_VERSION = "hero-knowledge-semantic-freeze-full-roster-v1"
 
-def test_generated_pilot_snapshot_implements_runtime_provider_contract() -> None:
+
+def test_generated_full_snapshot_implements_runtime_provider_contract() -> None:
     provider = SnapshotHeroKnowledgeProvider()
 
     assert provider.available is True
+    assert provider.version == FULL_VERSION
+    factual = json.loads(FACTUAL_PATH.read_text(encoding="utf-8"))
+    assert {entry.hero_id for entry in provider.entries} == {
+        row["hero_id"] for row in factual["heroes"]
+    }
+    assert provider.get(None) is None
+    assert provider.get(999999) is None
+
+    for entry in provider.entries:
+        assert set(entry.primary_functions + entry.secondary_functions) <= set(FUNCTIONAL_JOBS)
+        assert set(entry.demands) <= set(HERO_DEMAND_FAMILIES)
+        assert set(entry.demands.values()) <= SEMANTIC_BANDS
+        assert entry.empirical_support in EMPIRICAL_SUPPORT_BANDS
+        assert entry.confidence in {"high", "medium", "low"}
+        assert entry.provenance_versions["hero_knowledge"] == provider.version
+        assert entry.review_status in {"approved", "reviewed"}
+
+    assert "micro_intensive" in provider.get(82).specialist_markers  # type: ignore[union-attr]
+    assert "multi_unit_control" in provider.get(66).specialist_markers  # type: ignore[union-attr]
+
+
+def test_historical_pilot_snapshot_remains_available() -> None:
+    provider = SnapshotHeroKnowledgeProvider(snapshot_path=PILOT_PATH)
+
     assert provider.version == "hero-knowledge-semantic-freeze-pilot-v1"
     assert {entry.hero_id for entry in provider.entries} == {
         2,
@@ -35,16 +66,6 @@ def test_generated_pilot_snapshot_implements_runtime_provider_contract() -> None
         96,
         111,
     }
-    assert provider.get(None) is None
-    assert provider.get(999999) is None
-
-    for entry in provider.entries:
-        assert set(entry.primary_functions + entry.secondary_functions) <= set(FUNCTIONAL_JOBS)
-        assert set(entry.demands) <= set(HERO_DEMAND_FAMILIES)
-        assert set(entry.demands.values()) <= SEMANTIC_BANDS
-        assert entry.empirical_support in EMPIRICAL_SUPPORT_BANDS
-        assert entry.confidence in {"high", "medium", "low"}
-        assert entry.provenance_versions["hero_knowledge"] == provider.version
 
 
 def test_unknown_semantics_stay_explicit_in_the_adapter(tmp_path: Path) -> None:
@@ -77,16 +98,54 @@ def test_unknown_semantics_stay_explicit_in_the_adapter(tmp_path: Path) -> None:
     assert 0.5 not in hero.demands.values()
 
 
-def test_full_roster_provider_keeps_review_status_and_structural_coverage_explicit() -> None:
+def test_capability_and_demand_evidence_remain_independent(tmp_path: Path) -> None:
+    snapshot = tmp_path / "snapshot.json"
+    snapshot.write_text(
+        json.dumps(
+            {
+                "knowledge_version": "hero-knowledge-test",
+                "heroes": [
+                    {
+                        "identity": {"hero_id": 2, "display_name": "Axe", "roles": ["offlane"]},
+                        "functions": {"primary": ["repositioning"], "secondary": []},
+                        "capabilities": {
+                            "repositioning": {
+                                "band": "high",
+                                "derived_from": ["derived:capability-repositioning"],
+                            }
+                        },
+                        "demands": {
+                            "repositioning": {
+                                "band": "medium",
+                                "derived_from": ["derived:demand-repositioning"],
+                            }
+                        },
+                        "editorial": {"review_status": "approved"},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    hero = SnapshotHeroKnowledgeProvider(snapshot_path=snapshot).get(2)
+
+    assert hero is not None
+    assert hero.capability_evidence_refs["repositioning"] == ("derived:capability-repositioning",)
+    assert hero.demand_evidence_refs["repositioning"] == ("derived:demand-repositioning",)
+    assert set(hero.evidence_refs) == {
+        "derived:capability-repositioning",
+        "derived:demand-repositioning",
+    }
+
+
+def test_full_roster_provider_defaults_to_reviewed_coverage() -> None:
     provider = FullRosterHeroKnowledgeProvider(load_default_taxonomy())
 
     assert len(provider.entries) == 127
-    reviewed = provider.get(2)
-    structural = provider.get(1)
-    assert reviewed is not None and reviewed.review_status in {"approved", "reviewed"}
-    assert structural is not None and structural.review_status == "unreviewed"
-    assert structural.confidence == "low"
-    assert structural.provenance_versions["hero_semantics"] == provider.version
+    assert provider.version == FULL_VERSION
+    assert all(entry.review_status in {"approved", "reviewed"} for entry in provider.entries)
+    assert all(entry.confidence in {"high", "medium", "low"} for entry in provider.entries)
 
 
 def test_structural_fallback_does_not_count_as_reviewed_pool_coverage() -> None:
@@ -110,7 +169,14 @@ def test_structural_fallback_does_not_count_as_reviewed_pool_coverage() -> None:
         ],
         account_id=42,
     ).matches
-    provider = FullRosterHeroKnowledgeProvider(load_default_taxonomy())
+    provider = FullRosterHeroKnowledgeProvider(
+        load_default_taxonomy(), SnapshotHeroKnowledgeProvider(snapshot_path=PILOT_PATH)
+    )
+
+    structural = provider.get(1)
+    assert structural is not None and structural.review_status == "unreviewed"
+    assert structural.confidence == "low"
+    assert structural.provenance_versions["hero_semantics"].startswith("structural-taxonomy:")
 
     profile = build_semantic_pool_profile(rows, provider)
 

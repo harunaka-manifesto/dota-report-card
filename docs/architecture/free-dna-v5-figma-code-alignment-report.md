@@ -1,4 +1,9 @@
-# Free DNA v5 — Figma-to-Code Alignment Implementation Report
+# Historical Free DNA v5.1 — Figma-to-Code Alignment Implementation Report
+
+> Historical artifact. This records the v5.1 alignment run at `164dd74` and
+> its working-tree verification. It is not the active v5.2 baseline. Use the
+> [v5.2 SSOT](dota-dna-ssot.md), currently reviewed at `3670c49`, for active
+> versions, semantic branches, hero provenance, and copy contracts.
 
 Date: 2026-08-22  
 Scope: the attached `free-dna-v5-figma-code-alignment-implementation-plan.md`, treated as implementation instructions and acceptance criteria. Product semantics remain subordinate to the reviewed Figma model and the checked-in registries.
@@ -106,7 +111,12 @@ Final deterministic checks:
 | `make api-client` | Passed; generated client metadata remained synchronized |
 | `git diff --check` | Passed |
 
-The report contract test also confirms the current report has 18 Elements, 11 Patterns, v5.1 metadata, baseline provenance, additive action evidence summaries, and zero Free match-detail or replay-parse requests. A transformed v5.0 payload continues to validate with its original schema version and without the new additive fields.
+The report contract test also confirmed that the historical v5.1 run had 18
+Elements, 11 Patterns, v5.1 metadata, baseline provenance, additive action
+evidence summaries, and zero Free match-detail or replay-parse requests. A
+transformed v5.0 payload continued to validate with its original schema
+version and without the new additive fields. These results do not describe
+the active v5.2 semantic branch surface.
 
 ## G. Known limitations
 

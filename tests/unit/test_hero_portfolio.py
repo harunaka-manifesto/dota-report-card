@@ -54,6 +54,24 @@ def _matches() -> tuple:
     return normalize_summary_rows(rows, account_id=42).matches
 
 
+def _taxonomy_without_dominant_thread() -> HeroTaxonomy:
+    distinctive = ("mobility", "global_presence", "push", "durability")
+    heroes: dict[int, HeroTaxonomyEntry] = {}
+    for hero_id, defining_trait in enumerate(distinctive, start=1):
+        traits = {trait: 0.05 for trait in TRAITS}
+        traits[defining_trait] = 0.95
+        heroes[hero_id] = HeroTaxonomyEntry(
+            hero_id=hero_id,
+            key=f"hero_{hero_id}",
+            name=f"Hero {hero_id}",
+            roles=("carry",),
+            traits=traits,
+            portrait_url=f"https://example.test/{hero_id}.png",
+            provenance={"source": "fixture", "review_status": "reviewed"},
+        )
+    return HeroTaxonomy("fixture-no-thread", heroes, {})
+
+
 def test_one_game_hero_cannot_enter_established_portfolio_candidates() -> None:
     matches = _matches()
     eligibility = build_hero_eligibility(matches, _taxonomy())
@@ -75,6 +93,15 @@ def test_common_thread_caps_dominant_hero_and_ignores_one_game_luck() -> None:
     assert result.trait_key == "mobility"
     assert result.denominator == 4
     assert all(option.hero_id is None for option in result.options)
+
+
+def test_sufficient_pool_without_one_defining_job_has_no_quiz_state() -> None:
+    result = compute_common_thread(_matches(), _taxonomy_without_dominant_thread())
+
+    assert result.status == "no_clear_thread"
+    assert result.denominator == 4
+    assert result.options == ()
+    assert result.correct_option_key is None
 
 
 def test_exception_can_return_a_clear_functional_outlier() -> None:

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-PortfolioStatus = Literal["available", "unavailable"]
+PortfolioStatus = Literal["available", "no_clear_thread", "unavailable"]
 ExceptionStatus = Literal["available", "no_clear_exception", "unavailable"]
 MirrorStatus = Literal["available", "no_clear_mirror", "unavailable"]
 
@@ -114,7 +114,7 @@ class HeroExceptionResult:
 
 @dataclass(frozen=True, slots=True)
 class PoolEvolutionResult:
-    status: PortfolioStatus
+    status: Literal["available", "unavailable"]
     variant: str | None
     earlier_hero_ids: tuple[int, ...]
     recent_hero_ids: tuple[int, ...]

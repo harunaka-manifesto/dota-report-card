@@ -1,48 +1,39 @@
 {
-  "freeze_status": "pilot-reviewed",
+  "freeze_status": "full-roster-reviewed",
   "generated_at": "2026-08-22T00:00:00Z",
-  "hero_count": 10,
-  "knowledge_path": "knowledge/hero-knowledge-semantic-freeze-pilot-v1.json",
-  "knowledge_sha256": "e1fc5538c3fd28dbffc9470fdd32f91e6d93fb482c339d24d69c2633547abb7e",
-  "knowledge_version": "hero-knowledge-semantic-freeze-pilot-v1",
-  "pilot_hero_ids": [
-    2,
-    13,
-    38,
-    44,
-    50,
-    53,
-    74,
-    82,
-    96,
-    111
-  ],
+  "hero_count": 127,
+  "knowledge_path": "knowledge/hero-knowledge-semantic-freeze-full-roster-v1.json",
+  "knowledge_sha256": "2666fab9465fb1346528ed494ceb3b36f4842bb91a35fb4d817eb8ae23c23eac",
+  "knowledge_version": "hero-knowledge-semantic-freeze-full-roster-v1",
+  "pilot_history_path": "semantics/pilot-v1.json",
   "schema_version": "hero-knowledge-schema-1.0.0",
-  "semantic_layer_path": "semantics/pilot-v1.json",
-  "semantic_vocabulary_version": "hero-semantics-pilot-v1",
+  "semantic_layer_path": "semantics/full-roster-v1.json",
+  "semantic_layer_sha256": "c32fab2d5a71b595b88b18a0454b0964feff90fe0ea7b0decc25695737744537",
+  "semantic_vocabulary_version": "hero-semantics-full-roster-v1",
   "sources": {
     "dotacoach_editorial": {
       "snapshot": "existing-heroes-metadata"
     },
     "opendota": {
       "endpoint_semantics": {
-        "population": "public_aggregate",
-        "role_distribution": "unknown"
+        "population": "unknown"
       },
-      "hero_count": 10,
-      "required": true,
-      "snapshot": "opendota-semantic-freeze-pilot-2026-08-22",
-      "status": "partial"
+      "hero_count": 127,
+      "reason": "No OpenDota aggregate payload is in the allowed local corpus.",
+      "required": false,
+      "snapshot": "opendota-unavailable-local-corpus",
+      "status": "unavailable"
     },
     "semantic_review": {
-      "hero_count": 10,
-      "snapshot": "hero-semantics-pilot-v1",
-      "status": "approved"
+      "hero_count": 127,
+      "snapshot": "hero-semantics-full-roster-v1",
+      "status": "reviewed"
     },
     "valve": {
+      "namespace": "factual",
       "patch": "7.41e",
-      "roster_count": 10,
-      "snapshot": "valve-semantic-freeze-pilot-7.41e"
+      "roster_count": 127,
+      "snapshot": "factual-editorial-local-2026-08-16"
     },
     "valve_plus": {
       "reason": "optional_provider_not_configured",

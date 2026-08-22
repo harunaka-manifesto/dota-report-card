@@ -184,11 +184,11 @@ def test_new_p03_p04_p05_actions_round_trip_through_public_schemas() -> None:
     assert proven_flexibility.window_end is not None
 
 
-def test_sparse_structural_semantics_cannot_claim_broad_compact_pool_coverage() -> None:
-    """Regression: three established picks can still leave four families unknown."""
+def test_reviewed_full_roster_semantics_can_evaluate_compact_pool_coverage() -> None:
+    """Regression: the former sparse compact pool now uses reviewed semantics."""
 
-    # Anonymized IDs for the production compact-pool shape: one structural
-    # engage/control record and two roster records with no reviewed jobs.
+    # The production compact-pool shape is now covered by the full semantic
+    # snapshot, so the decision must use its actual functional overlap/gaps.
     compact_ids = (97, 105, 136)
     rows = []
     for index, hero_id in enumerate(compact_ids):
@@ -216,15 +216,14 @@ def test_sparse_structural_semantics_cannot_claim_broad_compact_pool_coverage() 
 
     action = build_versatile_core_action(matches, taxonomy, hero_knowledge=provider)
 
-    assert action.status == "coverage_only"
-    assert action.complementarity_qualified is False
-    assert action.recommended_addition is None
-    assert len(action.coverage_summary.missing) >= 3
-    assert action.semantic_confidence is not None and action.semantic_confidence < 0.35
-    assert any("clear versatility headline" in item for item in action.limitations)
+    assert action.status == "coverage_plus_recommendation"
+    assert action.complementarity_qualified is True
+    assert action.recommended_addition is not None
+    assert action.coverage_summary.semantic_coverage == 1.0
+    assert action.semantic_confidence is not None and action.semantic_confidence >= 0.80
 
-    # A qualified upstream Pattern must be suppressed before ranking/story
-    # selection when its semantic action fails the complementarity gate.
+    # A qualified upstream Pattern may now survive ranking because the former
+    # coverage hole has been closed with reviewed full-roster records.
     pattern = PatternResult(
         key="versatile_core",
         label="Versatile Core",
@@ -238,13 +237,13 @@ def test_sparse_structural_semantics_cannot_claim_broad_compact_pool_coverage() 
         evidence_coverage=0.90,
         qualification_quality=0.90,
     )
-    suppressed = attach_pattern_actions(
+    attached = attach_pattern_actions(
         (pattern,), matches, taxonomy, hero_knowledge=provider
     )[0]
-    assert suppressed.status == "suppressed"
-    assert suppressed.story_eligibility == "blocked"
-    assert "semantic_complementarity_gate" in suppressed.story_blockers
-    assert not rank_pattern_highlights((suppressed,))
+    assert attached.status == "qualified"
+    assert attached.story_eligibility == "eligible"
+    assert "semantic_complementarity_gate" not in attached.story_blockers
+    assert rank_pattern_highlights((attached,))
 
 
 def test_every_reviewed_action_exposes_the_common_evidence_envelope() -> None:

@@ -1,0 +1,75 @@
+{
+  "schema_version": "hero-pool-regressions-1.0.0",
+  "cases": [
+    {
+      "key": "compact_magnus_techies_marci",
+      "label": "Known compact-pool contradiction",
+      "hero_ids": [97, 105, 136],
+      "lane_roles": [3, 2, 3],
+      "assertions": ["never_claim_broad_coverage_when_families_are_missing", "no_random_fill_gap_hero"]
+    },
+    {
+      "key": "redundant_initiators",
+      "label": "Redundant initiator pool",
+      "hero_ids": [2, 29, 96, 97],
+      "lane_roles": [3, 3, 3, 3],
+      "assertions": ["same_playbook_or_gap_is_explainable", "role_fit_required"]
+    },
+    {
+      "key": "support_heavy",
+      "label": "Support-heavy pool",
+      "hero_ids": [5, 31, 50, 111],
+      "lane_roles": [5, 5, 4, 5],
+      "assertions": ["recommendations_preserve_support_role", "role_fit_required"]
+    },
+    {
+      "key": "carry_heavy",
+      "label": "Carry-heavy pool",
+      "hero_ids": [1, 6, 8, 18],
+      "lane_roles": [1, 1, 1, 1],
+      "assertions": ["recommendations_preserve_carry_role", "economy_demand_is_visible"]
+    },
+    {
+      "key": "genuinely_versatile_small_pool",
+      "label": "Genuinely versatile four-hero pool",
+      "hero_ids": [13, 27, 108, 111],
+      "lane_roles": [2, 4, 3, 5],
+      "assertions": ["coverage_is_function_based", "no_similarity_score_reason"]
+    },
+    {
+      "key": "high_specialist_pool",
+      "label": "High-specialist pool",
+      "hero_ids": [66, 82, 92, 113],
+      "lane_roles": [5, 2, 3, 2],
+      "assertions": ["specialist_intent_finds_specialist", "high_learning_distance_is_visible"]
+    },
+    {
+      "key": "one_functional_outlier",
+      "label": "One functional outlier",
+      "hero_ids": [2, 29, 97, 105],
+      "lane_roles": [3, 3, 3, 2],
+      "assertions": ["exception_requires_distance_and_margin", "outlier_is_not_called_bad"]
+    },
+    {
+      "key": "no_functional_outlier",
+      "label": "No functional outlier",
+      "hero_ids": [2, 29, 96, 97],
+      "lane_roles": [3, 3, 3, 3],
+      "assertions": ["no_outlier_has_no_quiz", "no_null_state_language"]
+    },
+    {
+      "key": "role_switching_player",
+      "label": "Role-switching player",
+      "hero_ids": [9, 20, 21, 136],
+      "lane_roles": [4, 5, 2, 3],
+      "assertions": ["position_credibility_is_explicit", "role_fit_is_not_inferred_from_one_tag"]
+    },
+    {
+      "key": "sparse_semantic_coverage",
+      "label": "Sparse semantic coverage",
+      "hero_ids": [2, 999, 1000],
+      "lane_roles": [3, 3, 3],
+      "assertions": ["unknown_heroes_fail_closed", "no_empty_semantics_become_neutral"]
+    }
+  ]
+}

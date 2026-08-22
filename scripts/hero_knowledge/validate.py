@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
@@ -34,8 +36,29 @@ SEMANTIC_BANDS = frozenset({"low", "medium", "high", "unknown"})
 SEMANTIC_POSITIONS = frozenset({"1", "2", "3", "4", "5"})
 
 
-def validate_semantic_layer(snapshot: dict[str, Any]) -> tuple[str, ...]:
-    """Validate the reviewed semantic facts before snapshot generation."""
+_EVIDENCE_REF_RE = re.compile(
+    r"^(?P<namespace>valve|editorial|derived|opendota):[^\s#]+(?:#[^\s#]+)*$"
+)
+
+
+def validate_semantic_layer(
+    snapshot: dict[str, Any],
+    canonical_ids: set[int] | None = None,
+    *,
+    require_complete: bool = False,
+    repo_root: str | Path | None = None,
+    strict_evidence: bool | None = None,
+) -> tuple[str, ...]:
+    """Validate reviewed semantic facts before snapshot generation.
+
+    The original pilot layer intentionally accepted scalar values and broad
+    source labels.  Full-roster freezes opt into the stricter contract by
+    carrying an evidence catalog (or by passing ``strict_evidence=True``):
+    every field-level value is structured, references resolve to a known local
+    source or derivation rule, and the canonical roster can be checked exactly.
+    Keeping the compatibility mode here is important because the pilot file is
+    retained as immutable history and is still used by migration tooling.
+    """
 
     errors: list[str] = []
     for field in ("schema_version", "version", "review_status", "heroes"):
@@ -53,6 +76,26 @@ def validate_semantic_layer(snapshot: dict[str, Any]) -> tuple[str, ...]:
             errors.append("semantic.vocabulary_demands_drift")
         if _as_set(vocabulary.get("bands")) != SEMANTIC_BANDS:
             errors.append("semantic.vocabulary_bands_drift")
+    strict = bool(
+        strict_evidence
+        if strict_evidence is not None
+        else isinstance(snapshot.get("evidence_catalog"), dict)
+    )
+    evidence_catalog = snapshot.get("evidence_catalog", {})
+    if strict and not isinstance(evidence_catalog, dict):
+        errors.append("semantic.evidence_catalog_missing")
+        evidence_catalog = {}
+    if strict:
+        for catalog_ref, catalog_entry in evidence_catalog.items():
+            if _EVIDENCE_REF_RE.fullmatch(str(catalog_ref)) is None:
+                errors.append(f"semantic.evidence_catalog.malformed_ref:{catalog_ref}")
+            elif not isinstance(catalog_entry, dict):
+                errors.append(f"semantic.evidence_catalog.entry_invalid:{catalog_ref}")
+            elif catalog_entry.get("namespace") != str(catalog_ref).split(":", 1)[0]:
+                errors.append(f"semantic.evidence_catalog.namespace_mismatch:{catalog_ref}")
+    evidence_root = (
+        Path(repo_root) if repo_root is not None else Path(__file__).resolve().parents[2]
+    )
     heroes = snapshot.get("heroes", [])
     if not isinstance(heroes, list) or not heroes:
         return tuple((*errors, "semantic.heroes_missing"))
@@ -86,22 +129,75 @@ def validate_semantic_layer(snapshot: dict[str, Any]) -> tuple[str, ...]:
         function_keys = {
             value
             for field in ("primary", "secondary")
-            for value in (functions.get(field, []) if isinstance(functions, dict) and isinstance(functions.get(field, []), list) else [])
+            for value in (
+                functions.get(field, [])
+                if isinstance(functions, dict) and isinstance(functions.get(field, []), list)
+                else []
+            )
         }
         if not isinstance(capabilities, dict) or set(capabilities) != function_keys:
             errors.append(f"semantic.{hero_id}.capabilities_drift")
-        elif any(value not in {"low", "medium", "high", "unknown"} for value in capabilities.values()):
+        elif strict:
+            for key, value in capabilities.items():
+                errors.extend(
+                    _validate_semantic_value(
+                        value,
+                        field=f"semantic.{hero_id}.capabilities.{key}",
+                        strict=True,
+                        snapshot=snapshot,
+                        evidence_catalog=evidence_catalog,
+                        evidence_root=evidence_root,
+                    )
+                )
+        elif any(
+            value not in {"low", "medium", "high", "unknown"} for value in capabilities.values()
+        ):
             errors.append(f"semantic.{hero_id}.invalid_capability_band")
         demands = row.get("demands", {})
         if not isinstance(demands, dict) or set(demands) != SEMANTIC_DEMANDS:
             errors.append(f"semantic.{hero_id}.incomplete_demands")
+        elif strict:
+            for key, value in demands.items():
+                errors.extend(
+                    _validate_semantic_value(
+                        value,
+                        field=f"semantic.{hero_id}.demands.{key}",
+                        strict=True,
+                        snapshot=snapshot,
+                        evidence_catalog=evidence_catalog,
+                        evidence_root=evidence_root,
+                    )
+                )
         elif any(value not in SEMANTIC_BANDS for value in demands.values()):
             errors.append(f"semantic.{hero_id}.invalid_demand_band")
         positions = row.get("position_credibility")
         if not isinstance(positions, dict) or set(positions) != SEMANTIC_POSITIONS:
             errors.append(f"semantic.{hero_id}.incomplete_position_credibility")
-        elif any(value not in {"primary", "secondary", "unsupported", "unknown"} for value in positions.values()):
+        elif any(
+            value not in {"primary", "secondary", "unsupported", "unknown"}
+            for value in positions.values()
+        ):
             errors.append(f"semantic.{hero_id}.invalid_position_credibility")
+        if strict:
+            position_refs = row.get("position_evidence_refs")
+            if not isinstance(position_refs, list) or not position_refs:
+                errors.append(f"semantic.{hero_id}.position_refs_missing")
+            else:
+                for ref in position_refs:
+                    errors.extend(
+                        _validate_evidence_ref(
+                            ref,
+                            field=f"semantic.{hero_id}.position_evidence_refs",
+                            snapshot=snapshot,
+                            evidence_catalog=evidence_catalog,
+                            evidence_root=evidence_root,
+                        )
+                    )
+        specialist_markers = row.get("specialist_markers", [])
+        if not isinstance(specialist_markers, list) or any(
+            not isinstance(marker, str) or not marker for marker in specialist_markers
+        ):
+            errors.append(f"semantic.{hero_id}.specialist_markers_invalid")
         for field in ("strengths", "weaknesses", "teamfight_profile"):
             values = row.get(field)
             if not isinstance(values, list) or not values:
@@ -110,7 +206,24 @@ def validate_semantic_layer(snapshot: dict[str, Any]) -> tuple[str, ...]:
             for item in values:
                 if not isinstance(item, dict) or not item.get("semantic_key"):
                     errors.append(f"semantic.{hero_id}.{field}_evidence_invalid")
-                elif field != "teamfight_profile" and not isinstance(item.get("evidence_refs"), list):
+                elif strict:
+                    refs = item.get("evidence_refs")
+                    if not isinstance(refs, list) or not refs:
+                        errors.append(f"semantic.{hero_id}.{field}_refs_missing")
+                    else:
+                        for ref in refs:
+                            errors.extend(
+                                _validate_evidence_ref(
+                                    ref,
+                                    field=f"semantic.{hero_id}.{field}.evidence_refs",
+                                    snapshot=snapshot,
+                                    evidence_catalog=evidence_catalog,
+                                    evidence_root=evidence_root,
+                                )
+                            )
+                elif field != "teamfight_profile" and not isinstance(
+                    item.get("evidence_refs"), list
+                ):
                     errors.append(f"semantic.{hero_id}.{field}_refs_missing")
         review = row.get("review")
         if (
@@ -126,8 +239,127 @@ def validate_semantic_layer(snapshot: dict[str, Any]) -> tuple[str, ...]:
             errors.append(f"semantic.{hero_id}.invalid_confidence")
         if row.get("empirical_support") not in SEMANTIC_BANDS:
             errors.append(f"semantic.{hero_id}.invalid_empirical_support")
+        if strict:
+            review_sources = row.get("review", {}).get("sources", [])
+            if isinstance(review_sources, list):
+                for ref in review_sources:
+                    errors.extend(
+                        _validate_evidence_ref(
+                            ref,
+                            field=f"semantic.{hero_id}.review.sources",
+                            snapshot=snapshot,
+                            evidence_catalog=evidence_catalog,
+                            evidence_root=evidence_root,
+                        )
+                    )
     if len(ids) != len(set(ids)):
         errors.append("semantic.duplicate_hero_ids")
+    if strict:
+        root_review = snapshot.get("review", {})
+        root_sources = root_review.get("sources", []) if isinstance(root_review, dict) else []
+        if not isinstance(root_sources, list) or not root_sources:
+            errors.append("semantic.review.sources_missing")
+        else:
+            for ref in root_sources:
+                errors.extend(
+                    _validate_evidence_ref(
+                        ref,
+                        field="semantic.review.sources",
+                        snapshot=snapshot,
+                        evidence_catalog=evidence_catalog,
+                        evidence_root=evidence_root,
+                    )
+                )
+    if canonical_ids is not None:
+        observed = set(ids)
+        unknown = sorted(observed - canonical_ids)
+        missing = sorted(canonical_ids - observed)
+        errors.extend(f"semantic.unknown_hero:{hero_id}" for hero_id in unknown)
+        if require_complete and missing:
+            errors.append("semantic.incomplete_canonical_roster")
+    elif require_complete:
+        errors.append("semantic.canonical_roster_missing")
+    if (
+        require_complete
+        and isinstance(snapshot.get("hero_count"), int)
+        and snapshot["hero_count"] != len(ids)
+    ):
+        errors.append("semantic.hero_count_mismatch")
+    return tuple(errors)
+
+
+def _validate_semantic_value(
+    value: Any,
+    *,
+    field: str,
+    strict: bool,
+    snapshot: dict[str, Any],
+    evidence_catalog: dict[str, Any],
+    evidence_root: Path,
+) -> tuple[str, ...]:
+    errors: list[str] = []
+    if not isinstance(value, dict):
+        return (f"{field}.structured_value_missing",)
+    band = value.get("band")
+    if band not in SEMANTIC_BANDS:
+        errors.append(f"{field}.invalid_band")
+    refs = value.get("evidence_refs")
+    if not isinstance(refs, list) or not refs:
+        errors.append(f"{field}.evidence_refs_missing")
+    else:
+        for ref in refs:
+            errors.extend(
+                _validate_evidence_ref(
+                    ref,
+                    field=f"{field}.evidence_refs",
+                    snapshot=snapshot,
+                    evidence_catalog=evidence_catalog,
+                    evidence_root=evidence_root,
+                )
+            )
+    return tuple(errors)
+
+
+def _validate_evidence_ref(
+    ref: Any,
+    *,
+    field: str,
+    snapshot: dict[str, Any],
+    evidence_catalog: dict[str, Any],
+    evidence_root: Path,
+) -> tuple[str, ...]:
+    if not isinstance(ref, str) or _EVIDENCE_REF_RE.fullmatch(ref) is None:
+        return (f"{field}.malformed_ref:{ref}",)
+    entry = evidence_catalog.get(ref)
+    if not isinstance(entry, dict):
+        return (f"{field}.unresolved_ref:{ref}",)
+    namespace = ref.split(":", 1)[0]
+    if entry.get("namespace") != namespace:
+        return (f"{field}.namespace_mismatch:{ref}",)
+    errors: list[str] = []
+    source_file = entry.get("source_file")
+    if namespace == "editorial":
+        if not isinstance(source_file, str) or not source_file:
+            errors.append(f"{field}.editorial_source_missing:{ref}")
+        else:
+            root_resolved = evidence_root.resolve()
+            source_resolved = (evidence_root / source_file).resolve()
+            if root_resolved not in source_resolved.parents:
+                errors.append(f"{field}.editorial_source_outside_root:{ref}")
+            elif not source_resolved.is_file():
+                errors.append(f"{field}.editorial_source_unresolved:{ref}")
+    if namespace == "derived":
+        version = str(snapshot.get("version", ""))
+        rule_version = str(entry.get("rule_version", ""))
+        if not rule_version or rule_version != version:
+            errors.append(f"{field}.derived_rule_unresolved:{ref}")
+    if namespace in {"valve", "opendota"}:
+        status = entry.get("status")
+        if status not in {"available", "partial"}:
+            # A strict field-level citation must resolve to usable evidence;
+            # an unavailable/unknown source belongs in the snapshot's
+            # limitations metadata, never in a factual claim's refs.
+            errors.append(f"{field}.source_unavailable:{ref}")
     return tuple(errors)
 
 
@@ -319,10 +551,17 @@ def validate_knowledge_snapshot(
         return tuple(errors)
     sources = snapshot.get("sources", {})
     opendota_source = sources.get("opendota") if isinstance(sources, dict) else None
+    semantic_source = sources.get("semantic_review") if isinstance(sources, dict) else None
+    strict_semantic = isinstance(semantic_source, dict) and semantic_source.get("status") in {
+        "reviewed",
+        "approved",
+    }
     if require_opendota and (
         not isinstance(opendota_source, dict)
-        or opendota_source.get("required") is not True
-        or opendota_source.get("status") not in {"available", "partial"}
+        or (
+            opendota_source.get("required") is not False
+            and opendota_source.get("status") not in {"available", "partial"}
+        )
     ):
         errors.append("knowledge.opendota_required")
     ids: list[int] = []
@@ -353,6 +592,31 @@ def validate_knowledge_snapshot(
         editorial_status = row.get("editorial", {}).get("review_status")
         if editorial_status not in {"unreviewed", "draft", "reviewed", "approved", "stale"}:
             errors.append(f"knowledge.invalid_editorial_status:{hero_id}")
+        specialist_markers = row.get("specialist_markers", [])
+        if not isinstance(specialist_markers, list) or any(
+            not isinstance(marker, str) or not marker for marker in specialist_markers
+        ):
+            errors.append(f"knowledge.{hero_id}.specialist_markers_invalid")
+        if strict_semantic:
+            functions = row.get("functions")
+            if (
+                not isinstance(functions, dict)
+                or not isinstance(functions.get("primary"), list)
+                or not isinstance(functions.get("secondary"), list)
+            ):
+                errors.append(f"knowledge.{hero_id}.functions_missing")
+                function_keys: set[str] = set()
+            else:
+                function_keys = set(functions["primary"]) | set(functions["secondary"])
+            capabilities = row.get("capabilities")
+            if not isinstance(capabilities, dict) or set(capabilities) != function_keys:
+                errors.append(f"knowledge.{hero_id}.capabilities_drift")
+            demands = row.get("demands")
+            if not isinstance(demands, dict) or set(demands) != SEMANTIC_DEMANDS:
+                errors.append(f"knowledge.{hero_id}.demands_incomplete")
+            position = row.get("position_credibility")
+            if not isinstance(position, dict) or set(position) != SEMANTIC_POSITIONS:
+                errors.append(f"knowledge.{hero_id}.position_credibility_incomplete")
     if len(ids) != len(set(ids)):
         errors.append("knowledge.duplicate_hero_ids")
     return tuple(errors)

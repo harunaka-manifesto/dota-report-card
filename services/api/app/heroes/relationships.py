@@ -153,7 +153,7 @@ def build_semantic_pool_profile(
     selected_usage = {
         hero_id: count
         for hero_id, count in usage.items()
-        if hero_id in selected_ids and provider.get(hero_id) is not None
+        if hero_id in selected_ids
     }
     total = sum(selected_usage.values())
     cap = max(3.0, total * 0.35)

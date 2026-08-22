@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the human gate for the v5.2 semantic-freeze pilot."""
+"""Generate the historical v5.2 semantic-freeze pilot review artifact."""
 
 from __future__ import annotations
 
@@ -12,6 +12,10 @@ from app.ingestion.summary_normalize import normalize_summary_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/generated/hero-knowledge-pilot-review.md"
+PILOT_SNAPSHOT = (
+    ROOT
+    / "services/api/app/heroes/data/knowledge/hero-knowledge-semantic-freeze-pilot-v1.json"
+)
 
 
 def _matches(hero_ids: list[int], *, lane_role: int = 3):
@@ -42,9 +46,16 @@ def _band_map(values: dict[str, str]) -> str:
 
 
 def render() -> str:
-    provider = SnapshotHeroKnowledgeProvider()
+    # The manifest now points at the active full-roster snapshot. Keep this
+    # generated review explicitly pinned to the pilot artifact so historical
+    # evidence cannot be relabeled as current coverage.
+    provider = SnapshotHeroKnowledgeProvider(snapshot_path=PILOT_SNAPSHOT)
     lines = [
-        "# Hero knowledge semantic-freeze pilot review",
+        "# Historical hero knowledge semantic-freeze pilot review",
+        "",
+        "> Historical artifact. The active v5.2 runtime snapshot is the approved",
+        "> full-roster freeze declared by `hero-knowledge-manifest.json`.",
+        "> This document records the ten-hero pilot only.",
         "",
         "Generated from the checked-in reviewed semantic layer and the generated runtime snapshot.",
         "This is a semantic QA artifact; it contains controlled facts, not production copy.",

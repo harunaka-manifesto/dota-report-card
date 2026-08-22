@@ -576,7 +576,8 @@ def test_common_thread_has_deterministic_feedback_and_unavailable_ambiguity() ->
     assert all(option.feedback for option in result.options)
 
     ambiguous = compute_common_thread(matches, _taxonomy())
-    assert ambiguous.status == "unavailable"
+    assert ambiguous.status == "no_clear_thread"
+    assert ambiguous.options == ()
 
 
 def test_exception_does_not_use_win_rate_and_keeps_option_order_deterministic() -> None:
@@ -588,7 +589,7 @@ def test_exception_does_not_use_win_rate_and_keeps_option_order_deterministic() 
 
     assert result.options == changed_outcomes.options
     assert result.hero_id == changed_outcomes.hero_id
-    assert len(result.options) == 4
+    assert len(result.options) == (4 if result.status == "available" else 0)
 
 
 def test_evolution_uses_equal_sized_windows_and_semantic_coverage_check() -> None:
@@ -631,12 +632,15 @@ def test_evolution_classifies_all_four_reviewed_variants(
     assert result.earlier_sample_size == result.recent_sample_size == 24
 
 
-def test_exception_options_are_four_and_no_clear_is_not_positionally_fixed() -> None:
+def test_exception_has_four_options_only_when_an_outlier_exists() -> None:
     result = compute_hero_exception(_summary_rows(), _taxonomy())
-    assert len(result.options) == 4
-    assert result.correct_option_key in {option.key for option in result.options}
-    if result.status == "no_clear_exception":
-        assert result.options[-1].key != "no_clear_exception"
+    if result.status == "available":
+        assert len(result.options) == 4
+        assert result.correct_option_key in {option.key for option in result.options}
+    else:
+        assert result.status == "no_clear_exception"
+        assert result.options == ()
+        assert result.correct_option_key == "no_clear_exception"
 
 
 def test_free_cost_rejects_contaminated_ledger() -> None:

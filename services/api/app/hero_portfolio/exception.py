@@ -78,7 +78,7 @@ def compute_hero_exception(
             hero_name=None,
             pool_traits=pool_traits,
             exception_traits=(),
-            options=_no_clear_options(distances, taxonomy, seed=seed),
+            options=(),
             correct_option_key="no_clear_exception",
             distance=winner_distance,
             margin=margin,
@@ -190,15 +190,13 @@ def _no_clear(
     *,
     provider: HeroKnowledgeProvider | None = None,
 ) -> HeroExceptionResult:
-    distances = [(0.0, item) for item in candidates]
-    seed = "|".join(f"{item.hero_id}:{item.matches}" for item in candidates)
     return HeroExceptionResult(
         status="unavailable",
         hero_id=None,
         hero_name=None,
         pool_traits=(),
         exception_traits=(),
-        options=_no_clear_options(distances, taxonomy, seed=seed, provider=provider),
+        options=(),
         correct_option_key="no_clear_exception",
         distance=None,
         margin=None,
@@ -265,7 +263,7 @@ def _compute_semantic_exception(
             hero_name=None,
             pool_traits=pool_traits,
             exception_traits=(),
-            options=_no_clear_options(distances, taxonomy, seed=seed, provider=provider),
+            options=(),
             correct_option_key="no_clear_exception",
             distance=winner_distance,
             margin=margin,

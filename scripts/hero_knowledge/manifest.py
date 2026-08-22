@@ -91,6 +91,7 @@ def build_knowledge_snapshot(
     opendota_heroes = _hero_map(opendota)
     valve_plus_heroes = _hero_map(valve_plus)
     semantic_heroes = _semantic_map(reviewed_semantics)
+    opendota_required = bool(opendota.get("required", True))
     selected = sorted(hero_ids or valve_heroes)
     if not selected:
         raise SourceSchemaError("Cannot build a knowledge snapshot without Valve heroes")
@@ -102,7 +103,7 @@ def build_knowledge_snapshot(
             raise SourceSchemaError(
                 f"Requested hero {hero_id} is absent from Valve normalized snapshot"
             )
-        if hero_id not in opendota_heroes:
+        if opendota_required and hero_id not in opendota_heroes:
             raise SourceSchemaError(
                 f"Required OpenDota normalized snapshot is missing hero {hero_id}"
             )
@@ -115,21 +116,56 @@ def build_knowledge_snapshot(
             "facet_abilities": hero.get("facet_abilities", []),
         }
         mechanic_result = derive_mechanics({**hero, "identity": identity})
-        empirical = dict(opendota_heroes[hero_id])
-        if not empirical:
+        empirical = dict(opendota_heroes.get(hero_id, {}))
+        if not empirical or not all(
+            isinstance(empirical.get(field), list)
+            for field in (
+                "bracket_performance",
+                "duration_profile",
+                "item_profile",
+                "matchup_profile",
+            )
+        ):
             empirical = empty_empirical_context()
         optional = valve_plus_heroes.get(hero_id)
         empirical["optional_valve_plus"] = dict(optional) if optional else {}
         behavior_result = derive_behavior(empirical)
+        confidence = source_confidence(
+            valve=hero,
+            opendota=opendota_heroes.get(hero_id),
+            valve_plus=valve_plus,
+        )
+        if valve.get("source_namespace") == "factual":
+            # The full-roster freeze intentionally carries factual identity
+            # only; it does not contain Valve ability payloads or OpenDota
+            # aggregates. Do not let the generic source-confidence helper
+            # manufacture valve/opendota provenance from empty placeholders.
+            confidence = {
+                **confidence,
+                "band": "unknown",
+                "derived_from": ["factual.roster"],
+            }
         provenance = {
             "schema_version": SCHEMA_VERSION,
             "field_sources": {
-                "identity": "valve.roster",
-                "mechanics": "valve.herodata",
+                "identity": (
+                    "factual.roster"
+                    if valve.get("source_namespace") == "factual"
+                    else "valve.roster"
+                ),
+                "mechanics": (
+                    "unknown:local_factual_mechanics"
+                    if valve.get("source_namespace") == "factual"
+                    else "valve.herodata"
+                ),
                 "functions": "derive.mechanics",
                 "demands": "derive.mechanics + derive.behavior",
                 "capabilities": "derive.mechanics",
-                "empirical": "opendota.aggregate",
+                "empirical": (
+                    "unknown:opendota_unavailable"
+                    if not opendota_required
+                    else "opendota.aggregate"
+                ),
                 "optional_valve_plus": "valve_plus.optional" if optional else "unknown",
                 "editorial": "heroes_metadata/*.md",
                 "semantic": "reviewed_semantics" if hero_id in semantic_heroes else "unknown",
@@ -146,11 +182,7 @@ def build_knowledge_snapshot(
                 ),
             },
             "generated_at": generated,
-            "confidence": source_confidence(
-                valve=hero,
-                opendota=opendota_heroes.get(hero_id),
-                valve_plus=valve_plus,
-            ),
+            "confidence": confidence,
         }
         semantic = semantic_heroes.get(hero_id)
         functions = mechanic_result["functions"]
@@ -216,9 +248,15 @@ def build_knowledge_snapshot(
             position_credibility = semantic.get("position_credibility")
             if isinstance(position_credibility, Mapping):
                 record_data["position_credibility"] = {
-                    str(position): str(band)
-                    for position, band in position_credibility.items()
+                    str(position): str(band) for position, band in position_credibility.items()
                 }
+            specialist_markers = semantic.get("specialist_markers", [])
+            if isinstance(specialist_markers, list):
+                record_data["specialist_markers"] = [str(marker) for marker in specialist_markers]
+            if semantic.get("position_credibility_reason"):
+                record_data["position_credibility_reason"] = str(
+                    semantic["position_credibility_reason"]
+                )
         records.append(record_data)
     version = knowledge_version or f"hero-knowledge-{generated[:10]}"
     return {
@@ -230,22 +268,22 @@ def build_knowledge_snapshot(
                 "snapshot": valve.get("snapshot_id"),
                 "patch": valve.get("patch"),
                 "roster_count": len(valve.get("roster", [])),
+                "namespace": valve.get("source_namespace", "valve"),
             },
             "opendota": {
                 "snapshot": opendota.get("snapshot_id"),
                 "status": opendota.get("status", "available"),
-                "required": True,
+                "required": opendota_required,
                 "hero_count": len(opendota.get("heroes", [])),
                 "endpoint_semantics": opendota.get("endpoint_semantics", {}),
+                "reason": opendota.get("reason") if not opendota_required else None,
             },
             "valve_plus": {
                 "snapshot": valve_plus.get("snapshot_id") if valve_plus else None,
                 "status": valve_plus.get("status", "unavailable") if valve_plus else "unavailable",
                 "required": False,
                 "reason": (
-                    valve_plus.get("reason")
-                    if valve_plus
-                    else "optional_provider_not_configured"
+                    valve_plus.get("reason") if valve_plus else "optional_provider_not_configured"
                 ),
             },
             "dotacoach_editorial": {"snapshot": "existing-heroes-metadata"},
@@ -280,21 +318,26 @@ def _semantic_map(snapshot: Mapping[str, Any] | None) -> dict[int, dict[str, Any
     }
 
 
-def _semantic_evidence_map(
-    value: Any, semantic: Mapping[str, Any]
-) -> dict[str, dict[str, Any]]:
+def _semantic_evidence_map(value: Any, semantic: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     if not isinstance(value, Mapping):
         return {}
-    semantic_version = str(semantic.get("__semantic_version", semantic.get("version", "hero-semantics-unknown")))
-    return {
-        str(key): {
-            "characteristic": str(key),
+    semantic_version = str(
+        semantic.get("__semantic_version", semantic.get("version", "hero-semantics-unknown"))
+    )
+    result: dict[str, dict[str, Any]] = {}
+    for key, raw in value.items():
+        key_text = str(key)
+        band = raw.get("band", "unknown") if isinstance(raw, Mapping) else raw
+        refs = _semantic_refs(raw)
+        if not refs:
+            refs = _semantic_evidence_refs(semantic, key=key_text, section="demands")
+        result[key_text] = {
+            "characteristic": key_text,
             "band": str(band) if str(band) in {"low", "medium", "high", "unknown"} else "unknown",
-            "derived_from": _semantic_evidence_refs(semantic, key=str(key)),
+            "derived_from": refs,
             "rule_version": semantic_version,
         }
-        for key, band in value.items()
-    }
+    return result
 
 
 def _semantic_function_capabilities(
@@ -305,23 +348,63 @@ def _semantic_function_capabilities(
         field = functions.get(field_name, [])
         if isinstance(field, list):
             values.extend(str(item) for item in field)
-    semantic_version = str(semantic.get("__semantic_version", semantic.get("version", "hero-semantics-unknown")))
-    return {
-        key: {
+    semantic_version = str(
+        semantic.get("__semantic_version", semantic.get("version", "hero-semantics-unknown"))
+    )
+    primary_values = {
+        str(item)
+        for item in functions.get("primary", [])
+        if isinstance(functions.get("primary", []), list)
+    }
+    source_capabilities = semantic.get("capabilities", {})
+    result: dict[str, dict[str, Any]] = {}
+    for key in dict.fromkeys(values):
+        raw = source_capabilities.get(key) if isinstance(source_capabilities, Mapping) else None
+        band = raw.get("band", "unknown") if isinstance(raw, Mapping) else None
+        if band not in {"low", "medium", "high", "unknown"}:
+            band = "high" if key in primary_values else "medium"
+        refs = _semantic_refs(raw)
+        if not refs:
+            refs = _semantic_evidence_refs(semantic, key=key, section="capabilities")
+        result[key] = {
             "characteristic": key,
-            "band": "high" if key in set(str(item) for item in functions.get("primary", [])) else "medium",
-            "derived_from": _semantic_evidence_refs(semantic, key=key),
+            "band": str(band),
+            "derived_from": refs,
             "rule_version": semantic_version,
         }
-        for key in dict.fromkeys(values)
-    }
+    return result
 
 
-def _semantic_evidence_refs(semantic: Mapping[str, Any], *, key: str | None = None) -> list[str]:
+def _semantic_refs(value: Any) -> list[str]:
+    if not isinstance(value, Mapping):
+        return []
+    refs = value.get("evidence_refs", value.get("derived_from", []))
+    if not isinstance(refs, (list, tuple)):
+        return []
+    return list(dict.fromkeys(str(item) for item in refs))
+
+
+def _semantic_evidence_refs(
+    semantic: Mapping[str, Any], *, key: str | None = None, section: str | None = None
+) -> list[str]:
     refs: list[str] = []
-    fields = ("strengths", "weaknesses") if key is not None else ("strengths", "weaknesses", "teamfight_profile")
+    fields: tuple[str, ...]
+    if section in {"capabilities", "demands"}:
+        fields = (section,)
+    elif key is not None:
+        fields = ("strengths", "weaknesses", "teamfight_profile")
+    else:
+        fields = ("capabilities", "demands", "strengths", "weaknesses", "teamfight_profile")
     for field_name in fields:
-        values = semantic.get(field_name, [])
+        values = semantic.get(field_name, {})
+        if field_name in {"capabilities", "demands"}:
+            if not isinstance(values, Mapping):
+                continue
+            for value_key, value in values.items():
+                if key is not None and str(value_key) != key:
+                    continue
+                refs.extend(_semantic_refs(value))
+            continue
         if not isinstance(values, list):
             continue
         for value in values:
@@ -329,9 +412,7 @@ def _semantic_evidence_refs(semantic: Mapping[str, Any], *, key: str | None = No
                 continue
             if key is not None and value.get("semantic_key") != key:
                 continue
-            evidence = value.get("evidence_refs", [])
-            if isinstance(evidence, list):
-                refs.extend(str(item) for item in evidence)
+            refs.extend(_semantic_refs(value))
     if not refs:
         review = semantic.get("review", {})
         sources = review.get("sources", []) if isinstance(review, Mapping) else []

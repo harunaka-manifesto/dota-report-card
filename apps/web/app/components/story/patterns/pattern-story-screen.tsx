@@ -1,4 +1,6 @@
 import type { BehaviorPattern, StoryPage } from "../../../../../../packages/api-client/src";
+import { useEffect, useRef } from "react";
+import { track } from "../../../lib/analytics";
 import { EvidenceReceipt } from "../primitives";
 import { HeroJobCluster } from "./hero-job-cluster";
 import { HeroReliabilityLadder } from "./hero-reliability-ladder";
@@ -18,6 +20,19 @@ type PatternStoryScreenProps = {
 export function PatternStoryScreen({ pattern, page, reportSchemaVersion }: PatternStoryScreenProps) {
   const presentation = pattern.presentation;
   const copy = page.content?.presentation_copy;
+  const evidenceRef = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const evidence = evidenceRef.current;
+    if (!evidence) return;
+    const handleToggle = () => {
+      if (evidence.open) track("report.pattern_element_expanded.v1", {
+        pattern_key: pattern.key,
+        report_schema_version: reportSchemaVersion,
+      });
+    };
+    evidence.addEventListener("toggle", handleToggle);
+    return () => evidence.removeEventListener("toggle", handleToggle);
+  }, [pattern.key, reportSchemaVersion]);
   if (!presentation || !copy) return null;
   const nextStep = copy.recommendation ?? {
     eyebrow: "NEXT STEP",
@@ -40,12 +55,39 @@ export function PatternStoryScreen({ pattern, page, reportSchemaVersion }: Patte
         <h3 id={`${page.id}-interpretation-heading`}>{copy.interpretation.title}</h3>
         <p>{copy.interpretation.body}</p>
       </section>
-      <section className={`pattern-story-recommendation${copy.recommendation ? "" : " is-fallback"}`} aria-labelledby={`${page.id}-next-step-heading`}><span className="eyebrow">{nextStep.eyebrow}</span><h3 id={`${page.id}-next-step-heading`}>{nextStep.title}</h3><p>{nextStep.body}</p>{copy.recommendation && presentation.recommendation_id && typeof presentation.recommendation_context?.hero_name === "string" && <span className="recommendation-hero">{presentation.recommendation_context.hero_name}</span>}</section>
+      <section className={`pattern-story-recommendation${copy.recommendation ? "" : " is-fallback"}`} aria-labelledby={`${page.id}-next-step-heading`}><span className="eyebrow">{nextStep.eyebrow}</span><h3 id={`${page.id}-next-step-heading`}>{nextStep.title}</h3><p>{nextStep.body}</p>{copy.recommendation && presentation.recommendation_id && typeof presentation.recommendation_context?.hero_name === "string" && <span className="recommendation-hero">{presentation.recommendation_context.hero_name}</span>}<RecommendationFacts context={presentation.recommendation_context} /></section>
       {copy.deep_dive && presentation.deep_dive_id && <aside className="pattern-story-deep-dive"><span className="eyebrow">Next diagnostic question</span><h3>{copy.deep_dive.title}</h3><p>{copy.deep_dive.body}</p><a href="/?mode=deep_scan" onClick={() => { window.dispatchEvent(new CustomEvent("dota-dna:deep-dive", { detail: { pattern: pattern.key, reportSchemaVersion } })); }}>Explore Deep Dive →</a></aside>}
-      <details className="pattern-story-evidence"><summary>Evidence details</summary><EvidenceReceipt evidence={pattern.receipts} /><dl className="pattern-raw-metrics">{Object.entries(presentation.raw_metrics).map(([key, value]) => <div key={key}><dt>{metricLabel(key)}</dt><dd>{formatMetricValue(key, value)}</dd></div>)}</dl><p className="muted">Confidence: {presentation.confidence}. Evidence references: {presentation.evidence_refs.join(", ") || "pattern qualification"}.</p></details>
+      <details ref={evidenceRef} className="pattern-story-evidence"><summary>Evidence details</summary><EvidenceReceipt evidence={pattern.receipts} /><dl className="pattern-raw-metrics">{Object.entries(presentation.raw_metrics).map(([key, value]) => <div key={key}><dt>{metricLabel(key)}</dt><dd>{formatMetricValue(key, value)}</dd></div>)}</dl><p className="muted">Confidence: {presentation.confidence}. Evidence references: {presentation.evidence_refs.join(", ") || "pattern qualification"}.</p></details>
       {pattern.story_blockers.length > 0 && <p className="muted">{pattern.story_blockers.join(" ")}</p>}
     </article>
   );
+}
+
+function RecommendationFacts({ context }: { context: Record<string, unknown> | null }) {
+  if (!context || context.kind !== "hero") return null;
+  const anchors = stringList(context.familiar_anchors);
+  const additions = stringList(context.adds);
+  const demands = stringList(context.new_demands);
+  const learningDistance = publicLabel(context.learning_distance);
+  const roleFit = publicLabel(context.role_fit);
+  const confidence = publicLabel(context.confidence);
+  return <dl className="pattern-recommendation-facts" aria-label="Why this recommendation fits">
+    {anchors.length > 0 && <div><dt>Stays familiar</dt><dd>{anchors.join(", ")}</dd></div>}
+    {additions.length > 0 && <div><dt>Adds</dt><dd>{additions.join(", ")}</dd></div>}
+    {learningDistance && <div><dt>Learning step</dt><dd>{learningDistance}</dd></div>}
+    {roleFit && <div><dt>Role check</dt><dd>{roleFit}</dd></div>}
+    {demands.length > 0 && <div><dt>New demands</dt><dd>{demands.join(", ")}</dd></div>}
+    {confidence && <div><dt>Confidence</dt><dd>{confidence}</dd></div>}
+  </dl>;
+}
+
+function stringList(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").map((item) => publicLabel(item) ?? item) : [];
+}
+
+function publicLabel(value: unknown): string | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  return value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
 function PatternVisual({ presentation }: { presentation: NonNullable<BehaviorPattern["presentation"]> }) {
@@ -65,7 +107,7 @@ const METRIC_LABELS: Record<string, string> = {
   effective_sample_size: "Effective sample size",
   confidence_score: "Confidence",
   evidence_coverage: "Evidence coverage",
-  relationship_strength: "Relationship strength",
+  relationship_strength: "How clearly it repeats",
   result_delta: "Result difference",
   hero_distribution_shift: "Hero-pool shift",
   toolkit_distribution_shift: "Toolkit shift",

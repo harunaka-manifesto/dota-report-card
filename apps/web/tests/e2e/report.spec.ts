@@ -19,6 +19,12 @@ test("completed Free DNA report opens with the full Element and Portfolio story"
   await pattern.scrollIntoViewIfNeeded();
   await expect(pattern.locator(".pattern-story-screen")).toBeVisible();
   await expect(pattern.getByRole("heading", { name: "What this actually means" })).toBeVisible();
+  const recommendationFacts = pattern.locator(".pattern-recommendation-facts");
+  await expect(recommendationFacts.getByText("Fight Start")).toBeVisible();
+  await expect(recommendationFacts.getByText("Frontline")).toBeVisible();
+  await expect(recommendationFacts.getByText("Moderate")).toBeVisible();
+  await expect(recommendationFacts.getByText("Conditional")).toBeVisible();
+  await expect(recommendationFacts.getByText("Commitment")).toBeVisible();
   const methodology = pattern.locator(".pattern-story-evidence");
   await methodology.locator("summary").focus();
   await methodology.locator("summary").press("Enter");
@@ -28,7 +34,9 @@ test("completed Free DNA report opens with the full Element and Portfolio story"
 
 test("wrong Portfolio choices receive contextual correction", async ({ page }) => {
   await page.goto("/report/fixture-report");
+  await expect(page.locator("html[data-report-story='true']")).toHaveCount(1);
   const common = page.locator("#hero-common-thread");
+  await common.scrollIntoViewIfNeeded();
   await common.getByRole("radio", { name: "Durability" }).click();
   const commonReveal = common.getByRole("button", { name: "Reveal" });
   await expect(commonReveal).toBeEnabled();
@@ -118,7 +126,9 @@ test("report analytics use canonical names once and omit identity fields", async
     });
   });
   await page.goto("/report/fixture-report");
+  await expect(page.locator("html[data-report-story='true']")).toHaveCount(1);
   const common = page.locator("#hero-common-thread");
+  await common.scrollIntoViewIfNeeded();
   await common.getByRole("radio", { name: "Mobility" }).click();
   const reveal = common.getByRole("button", { name: "Reveal" });
   await expect(reveal).toBeEnabled();
@@ -128,4 +138,16 @@ test("report analytics use canonical names once and omit identity fields", async
   expect(names.filter((name) => name === "hero_portfolio.answer_selected.v1")).toHaveLength(1);
   expect(names.filter((name) => name === "hero_portfolio.reveal_viewed.v1")).toHaveLength(1);
   expect(events.every((event) => !("report_id" in event) && !("account_id" in event) && !("name" in event))).toBeTruthy();
+
+  const patternEvidence = page.locator("#pattern-same_playbook .pattern-story-evidence");
+  await patternEvidence.locator("summary").click();
+  await expect(patternEvidence).toHaveAttribute("open", "");
+  await expect.poll(async () => {
+    const events = await page.evaluate(() => (window as typeof window & { __dotaEvents?: Array<Record<string, unknown>> }).__dotaEvents ?? []);
+    return events.filter((event) => event.event === "report.pattern_element_expanded.v1").length;
+  }).toBe(1);
+  const patternEvents = await page.evaluate(() => (window as typeof window & { __dotaEvents?: Array<Record<string, unknown>> }).__dotaEvents ?? []);
+  expect(patternEvents.filter((event) => event.event === "report.pattern_element_expanded.v1")).toEqual([
+    expect.objectContaining({ pattern_key: "same_playbook" })
+  ]);
 });

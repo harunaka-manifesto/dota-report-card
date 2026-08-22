@@ -270,8 +270,18 @@ def _rationale_for_candidate(
         # functional job.
         eligible = eligible and bool(new_demands)
     elif intent == "specialist":
-        high_demands = sum(entry.demands.get(key) == "high" for key in HERO_DEMAND_FAMILIES)
-        eligible = eligible and bool(new_demands) and (learning_distance == "high" or high_demands >= 3)
+        eligible = (
+            eligible
+            and bool(entry.specialist_markers)
+            and bool(new_demands)
+            and learning_distance == "high"
+        )
+        if not entry.specialist_markers:
+            limitations.append("The reviewed snapshot does not mark this hero as a specialist.")
+        elif learning_distance != "high":
+            limitations.append(
+                "The learning distance is not high enough to justify a specialist label."
+            )
     if learning_distance == "high" and intent == "adjacent_move":
         eligible = False
         limitations.append("The learning jump is high for an adjacent bridge.")
@@ -313,7 +323,11 @@ def _semantic_role_fit(
         return "supported"
     if not credible_roles or not roles:
         return "conditional"
-    return "supported" if set(roles) & credible_roles else "unsupported"
+    # Broad taxonomy role tags are useful for rejecting an obvious mismatch,
+    # but they are not reviewed per-position credibility.  A matching tag
+    # therefore remains conditional until the position snapshot earns a
+    # primary/secondary band.
+    return "conditional" if set(roles) & credible_roles else "unsupported"
 
 
 def _semantic_position_fit(
@@ -389,7 +403,10 @@ def _semantic_confidence(
     if unknown_demands >= 4:
         return "low"
     if role_fit == "conditional" or empirical_support == "unknown":
-        return "medium" if value == "high" else "low"
+        # Functional recommendations do not make current-meta claims.
+        # Unknown empirical support is disclosed separately and lowers a
+        # reviewed high/medium semantic record to medium, not to unusable.
+        return "medium" if value in {"high", "medium"} else "low"
     if intent in {"change_angle", "specialist"} and not new_demands:
         return "medium" if value == "high" else "low"
     return value  # type: ignore[return-value]
@@ -422,7 +439,12 @@ def _semantic_rank(
         high_demand_count = sum(
             entry.demands.get(key) == "high" for key in HERO_DEMAND_FAMILIES
         )
-        intent_rank = (-high_demand_count, -len(rationale.new_demands), distance_rank)
+        intent_rank = (
+            -len(entry.specialist_markers),
+            -high_demand_count,
+            -len(rationale.new_demands),
+            distance_rank,
+        )
     return (*intent_rank, role_rank, position_rank, empirical_rank, confidence_rank, -len(entry.primary_functions))
 
 

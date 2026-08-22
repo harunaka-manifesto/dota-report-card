@@ -3,8 +3,10 @@
 The hero knowledge pipeline creates reviewable, versioned data for
 recommendations and future Deep Dive analysis. It is a build-time pipeline;
 the production API never scrapes and never invokes an LLM. The v5.2 semantic
-freeze adds a reviewed pilot overlay to the generated snapshot and makes that
-snapshot the active provider for semantic hero recommendations.
+freeze produces an approved full-roster snapshot. Runtime analysis uses
+`FullRosterHeroKnowledgeProvider` against that snapshot; its structural
+taxonomy adapter remains an explicit compatibility fallback only when a
+generated record is unavailable or unapproved.
 
 ```text
 Valve datafeed ───────┐
@@ -37,8 +39,9 @@ services/api/app/heroes/data/
 ├── normalized/valve/<snapshot-id>.json
 ├── normalized/opendota/<snapshot-id>.json
 ├── normalized/valve_plus/<snapshot-id>.json
-├── semantics/pilot-v1.json
-├── knowledge/<knowledge-version>.json
+├── semantics/full-roster-v1.json
+├── semantics/pilot-v1.json                 # historical pilot
+├── knowledge/hero-knowledge-semantic-freeze-full-roster-v1.json
 └── hero-knowledge-manifest.json
 ```
 
@@ -98,12 +101,33 @@ Existing `heroes_metadata/*.md` files remain build-time editorial/research
 evidence. The scraper never generates production copy and never overwrites
 that corpus.
 
-The checked-in pilot semantic layer is controlled data, not user-facing copy.
-It freezes the functional-job vocabulary, demand families, finite bands, and
-review status for Axe, Centaur Warrunner, Puck, Dazzle, Nature's Prophet,
-Phantom Assassin, Beastmaster, Oracle, Meepo, and Invoker. OpenDota support is
-`unknown` in the offline pilot fixture, so recommendation confidence is
-reduced and no current-meta claim is made.
+The checked-in full-roster semantic layer is controlled data, not user-facing
+copy. It freezes the functional-job vocabulary, demand families, finite bands,
+and review status for all 127 heroes. OpenDota support is `unknown` in the
+allowed local corpus, so no current-meta claim is made. The ten-hero pilot
+layer remains available under `semantics/pilot-v1.json` for historical review
+and regression fixtures; it is not the active roster denominator.
+
+## Current v5.2 artifact map
+
+| Layer | Version or path | Role |
+|---|---|---|
+| Knowledge schema | `hero-knowledge-schema-1.0.0` | Normalized generated-record contract |
+| Semantic rules | `hero-semantics-5.2.0` | Runtime semantic vocabulary/rules |
+| Reviewed snapshot | `hero-knowledge-semantic-freeze-full-roster-v1` | 127 approved records |
+| Semantic vocabulary | `hero-semantics-full-roster-v1` | `services/api/app/heroes/data/semantics/full-roster-v1.json` |
+| Snapshot manifest | `services/api/app/heroes/data/hero-knowledge-manifest.json` | Declares active snapshot path, checksum, sources, schema, and freeze status |
+| Snapshot file | `services/api/app/heroes/data/knowledge/hero-knowledge-semantic-freeze-full-roster-v1.json` | Checked-in reviewed records |
+| Historical pilot | `hero-knowledge-semantic-freeze-pilot-v1` / `hero-semantics-pilot-v1` | `semantics/pilot-v1.json`; retained for review/regression history |
+| Runtime provider | `FullRosterHeroKnowledgeProvider` | Active full-roster snapshot plus explicit compatibility fallback |
+| Taxonomy fallback | `hero-taxonomy-2026-08-16` / `hero-taxonomy-manifest-1.0.0` | Full-roster structural compatibility data |
+| Offline fixtures | `tests/fixtures/hero_knowledge/{valve,opendota}/` | Parser and source-schema checks |
+| Outcome fixtures | `tests/fixtures/semantic_freeze/pattern-outcome-cases.json` | Semantic P01–P11 branch coverage |
+
+The manifest is `full-roster-reviewed`, generated at `2026-08-22T00:00:00Z`,
+and lists 127 approved heroes. Its `pilot_history_path` points to the
+historical ten-hero layer so the active snapshot and its predecessor cannot be
+confused.
 
 ## Commands
 
@@ -113,6 +137,7 @@ python -m scripts.hero_knowledge.cli normalize valve --snapshot-id <id>
 python -m scripts.hero_knowledge.cli fetch opendota --hero axe
 python -m scripts.hero_knowledge.cli normalize opendota --snapshot-id <id>
 python -m scripts.hero_knowledge.cli fetch valve-plus
+# Historical pilot fixture/build mode:
 python -m scripts.hero_knowledge.cli build --pilot
 python -m scripts.hero_knowledge.cli validate all --all
 python -m scripts.hero_knowledge.cli diff --old <old.json> --new <new.json>
@@ -125,23 +150,27 @@ python -m scripts.hero_knowledge.cli refresh \
   --opendota-fixture-dir tests/fixtures/hero_knowledge/opendota \
   --hero axe
 
-# Rebuild the checked-in v5.2 semantic-freeze pilot snapshot and review gate:
+# Rebuild the active checked-in v5.2 full-roster semantic-freeze snapshot:
 python -m scripts.generate_semantic_freeze_snapshot
+# Regenerate the historical ten-hero pilot review artifact:
 PYTHONPATH=services/api python scripts/generate_hero_knowledge_pilot_review.py
 ```
 
 The required OpenDota path fails non-zero when a selected endpoint is
 unavailable or drifts schema. Valve Plus reports its optional health state and
-continues. Active v5.2 analysis consumes the generated snapshot through
-`SnapshotHeroKnowledgeProvider`; the report records its knowledge and
-semantic-outcome versions. `TaxonomyHeroKnowledgeProvider` remains an
-explicit compatibility adapter for historical callers and features that have
-not migrated yet.
+continues. Active v5.2 analysis composes the generated snapshot through
+`FullRosterHeroKnowledgeProvider`; the report records its knowledge,
+semantic-rule, and semantic-outcome versions. `SnapshotHeroKnowledgeProvider`
+remains the direct reviewed-snapshot adapter, while
+`TaxonomyHeroKnowledgeProvider` remains an explicit structural compatibility
+adapter for historical callers and features that have not migrated yet.
 
 ## Recommendation contracts
 
 Semantic recommendations are deterministic and versioned separately from hero
-knowledge. `double_down` maximizes familiar jobs and low learning distance;
+knowledge as `hero-recommendations-semantic-1.1.0`; active branch copy is
+`free-dna-semantic-copy-5.2.0` and is reviewed in
+`docs/generated/free-dna-v5.2-copy-review.md`. `double_down` maximizes familiar jobs and low learning distance;
 `adjacent_move` keeps an anchor while adding a new job; `fill_gap` requires an
 added job in the exact displayed coverage family; `change_angle` keeps an
 anchor while changing reviewed demands; and `specialist` requires a reviewed

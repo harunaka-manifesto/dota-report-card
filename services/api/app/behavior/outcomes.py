@@ -48,7 +48,12 @@ SEMANTIC_OUTCOME_IDS = frozenset(
 )
 
 SEMANTIC_RECOMMENDATION_BRANCHES: dict[str, tuple[str, ...]] = {
-    "same_playbook": ("HR_DOUBLE_DOWN", "HR_ADJACENT_MOVE_ADD_FUNCTION", "HR_PRACTICE_FALLBACK"),
+    "same_playbook": (
+        "HR_DOUBLE_DOWN",
+        "HR_ADJACENT_MOVE_ADD_FUNCTION",
+        "HR_SPECIALIST",
+        "HR_PRACTICE_FALLBACK",
+    ),
     "comfort_edge": ("HR_CHANGE_ANGLE", "HR_PRACTICE_FALLBACK"),
     "partial_transfer": ("HR_PRACTICE_TRANSFER_DEMAND", "HR_PRACTICE_FALLBACK"),
     "versatile_core": ("HR_FILL_GAP_ADD_FUNCTION", "HR_PRACTICE_FALLBACK"),
@@ -154,11 +159,10 @@ def classify_recommendation_state(
             rationale = candidate.get("semantic_rationale")
             if not isinstance(rationale, Mapping) or rationale.get("eligible") is False:
                 continue
-            return (
-                "HR_DOUBLE_DOWN"
-                if rationale.get("intent") == "double_down"
-                else "HR_ADJACENT_MOVE_ADD_FUNCTION"
-            )
+            return {
+                "double_down": "HR_DOUBLE_DOWN",
+                "specialist": "HR_SPECIALIST",
+            }.get(str(rationale.get("intent")), "HR_ADJACENT_MOVE_ADD_FUNCTION")
         return "HR_PRACTICE_FALLBACK"
     if pattern_key == "versatile_core":
         addition = action.get("recommended_addition")
@@ -189,11 +193,12 @@ def classify_recommendation_state(
 def _has_semantic_candidate(value: Any) -> bool:
     if not isinstance(value, list) or not value:
         return False
-    candidate = value[0]
-    if not isinstance(candidate, Mapping):
-        return False
-    rationale = candidate.get("semantic_rationale")
-    return isinstance(rationale, Mapping) and rationale.get("eligible") is not False
+    return any(
+        isinstance(candidate, Mapping)
+        and isinstance(candidate.get("semantic_rationale"), Mapping)
+        and candidate["semantic_rationale"].get("eligible") is not False
+        for candidate in value
+    )
 
 
 __all__ = [

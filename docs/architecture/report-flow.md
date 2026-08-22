@@ -24,13 +24,18 @@ The current public schema is `free-dna-report-5.2.0`; `free-dna-report-5.0.0`
 and `free-dna-report-5.1.0` snapshots remain readable. Each current Pattern
 also carries a `pattern-presentation-5.2.0` payload with a finite outcome ID,
 visual variant, structured proof facts, interpretation/recommendation IDs,
+semantic outcome and recommendation IDs with their registry versions,
 auditable evidence references, and raw metrics kept separate from the primary
 story.
 
 Current Pattern pages repeat that payload and add catalog-backed
-`presentation_copy` for the five Wrapped + Depth layers. The web app chooses
-this renderer only when the payload exists; historical pages use the legacy
-body/action renderer.
+`presentation_copy` for the five Wrapped + Depth layers. The active semantic
+copy catalog is `free-dna-semantic-copy-5.2.0`; the legacy
+`free-dna-copy-5.4.0` catalog remains only for compatibility reads of older
+snapshots. The web app chooses this renderer only when the payload exists;
+historical pages use the legacy body/action renderer. See the
+[v5.2 SSOT](dota-dna-ssot.md) for the outcome, recommendation, hero snapshot,
+manifest, copy, and fixture compatibility map.
 
 ## Exact story structure
 
@@ -50,8 +55,9 @@ The normal completed flow is:
 The API semantic validator derives the expected page kinds from the highlight
 counts, verifies stable IDs and order, verifies selected highlight keys, and
 requires exactly four Common Thread options and four Exception options only
-when a clear outlier exists. A no-clear Exception exposes one bounded answer
-but no guessing interaction. Story page content comes from the server catalog;
+when a clear result exists. A current no-clear Exception exposes zero options
+and no guessing interaction; historical `free-story-5.2.0` snapshots keep
+their recorded four-choice payload. Story page content comes from the server catalog;
 the client may keep old snapshots readable with a body fallback, but active
 reports do not maintain a second narrative catalog in the web bundle.
 

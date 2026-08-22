@@ -55,20 +55,22 @@ CPU-only and performs no runtime network call or model inference.
 
 ## Hero knowledge integration
 
-The ingestion pipeline supplies a versioned `HeroKnowledgeRepository` plus the
-runtime `SnapshotHeroKnowledgeProvider` adapter. Active v5.2 P01–P04 hero
-reasoning consumes normalized functional jobs, demand bands, role fit,
-empirical support, confidence, and provenance from that provider. P05–P09 may
-attach the same semantic context to behavioral proof without forcing a hero
-recommendation; P10/P11 remain session-curve stories.
+The ingestion pipeline supplies a versioned `HeroKnowledgeRepository` plus
+runtime adapters. Active v5.2 P01–P04 hero reasoning consumes the composed
+`FullRosterHeroKnowledgeProvider`: the approved full-roster snapshot is active
+and structural taxonomy records are an explicit low-confidence fallback only
+when a record is unavailable or unapproved. P05–P09
+may attach the same semantic context to behavioral proof without forcing a hero
+recommendation; P10/P11 remain session-curve stories. The direct
+`SnapshotHeroKnowledgeProvider` remains a compatibility seam for callers that
+need only the reviewed snapshot.
 
 The old taxonomy and aggregate relationship artifacts remain available for
 historical reproducibility, migrated features, and an explicit compatibility
 fallback. They are not the active semantic source for v5.2 hero
-recommendations. The pilot vocabulary and recommendation handoff are frozen in
-`services/api/app/heroes/data/semantics/pilot-v1.json` and the generated
-`hero-knowledge-semantic-freeze-pilot-v1` snapshot. Reviewed semantic coverage
-and structural fallback coverage are tracked separately; structural-only
-heroes cannot qualify strong portfolio storytelling. Recommendation rationales
-carry catalog-backed player copy, exact target-family evidence when applicable,
-and explicit position fit.
+recommendations. The active full-roster vocabulary and generated
+`hero-knowledge-semantic-freeze-full-roster-v1` snapshot are declared by
+`services/api/app/heroes/data/hero-knowledge-manifest.json`; the pilot
+vocabulary and `hero-knowledge-semantic-freeze-pilot-v1` snapshot remain
+historical review inputs. Recommendation rationales carry catalog-backed player
+copy, exact target-family evidence when applicable, and explicit position fit.

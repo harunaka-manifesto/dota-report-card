@@ -217,6 +217,10 @@ html[data-report-story="true"] { scroll-snap-type: y proximity; scroll-padding-t
 .pattern-story-recommendation { padding: 22px; border: 1px solid #bf927d; background: #ead7c3; }
 .pattern-story-recommendation.is-fallback { border-color: var(--story-line); background: rgba(255,255,255,.42); }
 .pattern-story-recommendation .eyebrow { margin-bottom: 0; }
+.pattern-recommendation-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; margin: 18px 0 0; }
+.pattern-recommendation-facts div { padding-top: 10px; border-top: 1px solid rgba(72, 53, 43, .18); }
+.pattern-recommendation-facts dt { color: #73685f; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.pattern-recommendation-facts dd { margin: 4px 0 0; color: #352f2b; font-size: .92rem; }
 .recommendation-hero { display: inline-block; margin-top: 15px; padding: 8px 12px; border: 1px solid #bf927d; border-radius: 999px; color: var(--accent-dark); font-size: 12px; font-weight: 700; }
 .pattern-story-deep-dive { max-width: 700px; padding: 22px; background: #20231f; color: #f7f2e8; }
 .pattern-story-deep-dive .eyebrow { color: #e4a17e; }

@@ -19,7 +19,7 @@ from app.behavior.ranking import (
     rank_element_highlights,
     rank_pattern_highlights,
 )
-from app.content.catalog import copy_version
+from app.content.catalog import copy_version, semantic_copy_version
 from app.content.renderer import (
     resolve_element_copy,
     resolve_evolution_copy,
@@ -76,8 +76,12 @@ def assemble_free_dna_report_v4(
     """
 
     behavior = analysis.behavior
-    element_highlights = rank_element_highlights(behavior.elements, limit=FREE_ELEMENT_HIGHLIGHT_LIMIT)
-    pattern_highlights = rank_pattern_highlights(behavior.patterns, limit=FREE_PATTERN_HIGHLIGHT_LIMIT)
+    element_highlights = rank_element_highlights(
+        behavior.elements, limit=FREE_ELEMENT_HIGHLIGHT_LIMIT
+    )
+    pattern_highlights = rank_pattern_highlights(
+        behavior.patterns, limit=FREE_PATTERN_HIGHLIGHT_LIMIT
+    )
     element_map = behavior.element_map
     pattern_map = behavior.pattern_map
     portfolio = analysis.hero_portfolio
@@ -134,6 +138,7 @@ def assemble_free_dna_report_v4(
         "hero_mirror": HERO_MIRROR_VERSION,
         "story": REPORT_STORY_VERSION,
         "copy": copy_version(),
+        "semantic_copy": semantic_copy_version(),
         "model": model_version,
         "template": template_version,
         "share_renderer": RENDERER_VERSION,
@@ -146,7 +151,9 @@ def assemble_free_dna_report_v4(
     quality = {
         "overall_confidence": behavior.quality.overall_confidence,
         "history_tier": analysis.history_tier,
-        "missing_data_flags": [item.key for item in behavior.elements if item.status == "unavailable"],
+        "missing_data_flags": [
+            item.key for item in behavior.elements if item.status == "unavailable"
+        ],
         "partial": analysis.history_tier == "limited" or bool(behavior.quality.warnings),
         "warnings": list(dict.fromkeys(analysis.warnings)),
         "available_elements": behavior.quality.available_elements,
@@ -158,10 +165,7 @@ def assemble_free_dna_report_v4(
         {"key": item.key, "label": item.label, "zone": item.zone}
         for item in (element_map[key.element_key] for key in element_highlights)
     ]
-    strongest_patterns = [
-        {"key": item.key, "label": item.label}
-        for item in pattern_highlights
-    ]
+    strongest_patterns = [{"key": item.key, "label": item.label} for item in pattern_highlights]
     hero_mirror = portfolio.hero_mirror
     share = {
         "display_name": display_name,
@@ -270,7 +274,7 @@ def assemble_free_dna_report_v4(
             "session_gap_minutes": analysis.sessions.policy.gap_minutes,
             "session_policy_version": analysis.sessions.policy.version,
             "notes": [
-                "One bounded public summary-history window powers this report.",
+                "One window of public match summaries powers this report.",
                 "No individual match-detail reads or replay parses are required for Free DNA.",
                 "Hero Portfolio uses established hero history and a versioned semantic hero layer with explicit review status.",
             ],
@@ -370,7 +374,9 @@ def _story_pages(
                     "guardrail": resolve_story_copy("pattern", "guardrail"),
                     "required_element_keys": list(pattern.element_keys),
                     "modifier_element_keys": list(pattern.modifier_element_keys),
-                    "action_copy": _pattern_action_copy(pattern.key) if pattern.action is not None else None,
+                    "action_copy": _pattern_action_copy(pattern.key)
+                    if pattern.action is not None
+                    else None,
                     "presentation_copy": presentation_copy,
                 },
                 "presentation": presentation.as_dict(),
@@ -405,6 +411,18 @@ def _story_pages(
                     "boundary": resolve_portfolio_copy("common_thread.boundary"),
                     "correct_label": resolve_portfolio_copy("common_thread.correct"),
                     "incorrect_label": resolve_portfolio_copy("common_thread.incorrect"),
+                    "no_clear_insight": {
+                        "eyebrow": resolve_portfolio_copy(
+                            "common_thread.no_clear_insight.eyebrow"
+                        ),
+                        "headline": resolve_portfolio_copy(
+                            "common_thread.no_clear_insight.headline"
+                        ),
+                        "body": resolve_portfolio_copy("common_thread.no_clear_insight.body"),
+                        "boundary": resolve_portfolio_copy(
+                            "common_thread.no_clear_insight.boundary"
+                        ),
+                    },
                 },
             },
             {
@@ -442,26 +460,40 @@ def _story_pages(
                     "copy": evolution_content["body"],
                 },
                 "options": [
-                    {"key": "more_experimental", "label": resolve_portfolio_copy("evolution.option_more_experimental")},
-                    {"key": "same_style", "label": resolve_portfolio_copy("evolution.option_same_style")},
-                    {"key": "different_kind", "label": resolve_portfolio_copy("evolution.option_different_kind")},
-                    {"key": "not_changed", "label": resolve_portfolio_copy("evolution.option_not_changed")},
+                    {
+                        "key": "more_experimental",
+                        "label": resolve_portfolio_copy("evolution.option_more_experimental"),
+                    },
+                    {
+                        "key": "same_style",
+                        "label": resolve_portfolio_copy("evolution.option_same_style"),
+                    },
+                    {
+                        "key": "different_kind",
+                        "label": resolve_portfolio_copy("evolution.option_different_kind"),
+                    },
+                    {
+                        "key": "not_changed",
+                        "label": resolve_portfolio_copy("evolution.option_not_changed"),
+                    },
                 ],
             },
             {
                 "id": "hero-mirror",
                 "kind": "hero_mirror_reveal",
                 "section": "finale",
-                "title": "Your Hero Mirror",
+                "title": resolve_portfolio_copy("hero_mirror.title"),
                 "body": mirror_closed,
                 "evidence_keys": [],
                 "portfolio_key": "hero_mirror",
                 "content": {
                     "closed": mirror_closed,
+                    "title": resolve_portfolio_copy("hero_mirror.title"),
                     "available": resolve_portfolio_copy(
                         "hero_mirror.available",
                         hero=portfolio.hero_mirror.hero_name or "the selected hero",
                     ),
+                    "unavailable": resolve_portfolio_copy("hero_mirror.unavailable"),
                     "qualifier": resolve_portfolio_copy("hero_mirror.qualifier"),
                     "guardrail": resolve_portfolio_copy(
                         "hero_mirror.guardrail",
@@ -517,19 +549,7 @@ def _public_portfolio(portfolio: HeroPortfolioResult) -> dict[str, Any]:
     value = portfolio.as_dict(include_private_eligibility=False)
     exception = value["exception"]
     if exception["status"] == "no_clear_exception":
-        exception["options"] = [
-            option
-            for option in exception["options"]
-            if option.get("key") == "no_clear_exception"
-        ] or [{
-            "key": "no_clear_exception",
-            "label": "No clear exception",
-            "hero_id": None,
-            "feedback": resolve_portfolio_copy(
-                "exception.no_clear_feedback",
-                selected="No clear exception",
-            ),
-        }]
+        exception["options"] = []
     elif exception["status"] == "unavailable":
         exception["options"] = []
         exception["correct_option_key"] = None
@@ -540,20 +560,7 @@ def _public_exception_options(exception: HeroExceptionResult) -> list[dict[str, 
     if exception.status == "unavailable":
         return []
     if exception.status == "no_clear_exception":
-        options = [
-            option.as_dict()
-            for option in exception.options
-            if option.key == "no_clear_exception"
-        ]
-        return options or [{
-            "key": "no_clear_exception",
-            "label": "No clear exception",
-            "hero_id": None,
-            "feedback": resolve_portfolio_copy(
-                "exception.no_clear_feedback",
-                selected="No clear exception",
-            ),
-        }]
+        return []
     return [option.as_dict() for option in exception.options]
 
 
@@ -631,18 +638,67 @@ def _pattern_action_copy(key: str) -> dict[str, str] | None:
 def _pattern_presentation_copy(payload: PatternPresentationPayload) -> dict[str, Any]:
     context = payload.recommendation_context or {}
     params: dict[str, str] = {}
-    if payload.recommendation_id in {
-        "P01_ADD_MISSING_FUNCTION",
-        "P04_ADD_MISSING_FUNCTION",
-    }:
-        params["hero_name"] = str(context.get("hero_name") or "a reviewed bridge hero")
+    semantic_outcome_id = payload.semantic_outcome_id
+    semantic_recommendation_id = payload.semantic_recommendation_id
+    needs_hero = semantic_outcome_id in {
+        "P01_NARROW_JOB_BRIDGE_FOUND",
+        "P04_GAP_WITH_BRIDGE",
+    } or semantic_recommendation_id in {
+        "HR_DOUBLE_DOWN",
+        "HR_ADJACENT_MOVE_ADD_FUNCTION",
+        "HR_CHANGE_ANGLE",
+        "HR_FILL_GAP_ADD_FUNCTION",
+        "HR_SPECIALIST",
+    }
+    hero_name = context.get("hero_name")
+    if needs_hero and (not isinstance(hero_name, str) or not hero_name.strip()):
+        outcome_fallbacks: dict[str, str] = {
+            "P01_NARROW_JOB_BRIDGE_FOUND": "P01_NARROW_JOB_NO_BRIDGE",
+            "P04_GAP_WITH_BRIDGE": "P04_GAP_NO_BRIDGE",
+        }
+        if semantic_outcome_id is not None:
+            semantic_outcome_id = outcome_fallbacks.get(
+                semantic_outcome_id, semantic_outcome_id
+            )
+        semantic_recommendation_id = "HR_PRACTICE_FALLBACK"
+    if semantic_outcome_id in {"P01_NARROW_JOB_BRIDGE_FOUND", "P04_GAP_WITH_BRIDGE"} or (
+        semantic_recommendation_id
+        in {
+            "HR_DOUBLE_DOWN",
+            "HR_ADJACENT_MOVE_ADD_FUNCTION",
+            "HR_CHANGE_ANGLE",
+            "HR_FILL_GAP_ADD_FUNCTION",
+            "HR_SPECIALIST",
+        }
+    ):
+        assert isinstance(hero_name, str)
+        params["hero_name"] = hero_name
+    if semantic_recommendation_id == "HR_FILL_GAP_ADD_FUNCTION":
+        adds = context.get("adds") or []
+        anchors = context.get("familiar_anchors") or context.get("familiar_jobs") or []
+        params["function_name"] = _public_semantic_label(adds[0] if adds else "the missing job")
+        params["familiar_anchor"] = _public_semantic_label(
+            anchors[0] if anchors else "one familiar job"
+        )
+    if semantic_outcome_id in {"P10_STABLE_BREAKPOINT", "P11_STABLE_BREAKPOINT"} or (
+        semantic_recommendation_id == "HR_CHECKPOINT_AT_BREAKPOINT"
+    ):
+        params["session_game_label"] = str(
+            payload.proof_data.get("breakpoint_label") or "the later games"
+        )
     return resolve_pattern_presentation_copy(
         payload.pattern_id,
         payload.outcome_id,
         recommendation_id=payload.recommendation_id,
         deep_dive_id=payload.deep_dive_id,
+        semantic_outcome_id=semantic_outcome_id,
+        semantic_recommendation_id=semantic_recommendation_id,
         params=params,
     )
+
+
+def _public_semantic_label(value: Any) -> str:
+    return str(value).replace("_", " ").strip().lower()
 
 
 assemble_free_dna_report_v5 = assemble_free_dna_report_v4

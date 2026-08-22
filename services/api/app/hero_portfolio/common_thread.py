@@ -76,7 +76,7 @@ def compute_common_thread(
         trait_scores[winner] < PORTFOLIO_CONFIG.common_thread_min_coverage
         or margin < PORTFOLIO_CONFIG.common_thread_min_margin
     ):
-        return _unavailable("No single recurring trait clears the dominance margin.")
+        return _no_clear_thread(len(candidates))
 
     derived_seed = "|".join(
         [
@@ -154,7 +154,7 @@ def _compute_semantic_common_thread(
         scores[winner] < PORTFOLIO_CONFIG.common_thread_min_coverage
         or margin < PORTFOLIO_CONFIG.common_thread_min_margin
     ):
-        return _unavailable("No single recurring way of helping clears the difference needed for a clear answer.")
+        return _no_clear_thread(len(candidates))
     derived_seed = "|".join(
         [winner, *(f"{item.hero_id}:{counts[item.hero_id]}" for item in candidates), *ranked[:4]]
     )
@@ -229,6 +229,22 @@ def _unavailable(reason: str) -> CommonThreadResult:
         correct_option_key=None,
         confidence_score=0.0,
         limitations=(reason,),
+    )
+
+
+def _no_clear_thread(denominator: int) -> CommonThreadResult:
+    return CommonThreadResult(
+        status="no_clear_thread",
+        trait_key=None,
+        trait_label=None,
+        weighted_coverage=0.0,
+        hero_count=0,
+        denominator=denominator,
+        secondary_traits=(),
+        options=(),
+        correct_option_key=None,
+        confidence_score=1.0,
+        limitations=("The established pool has enough evidence, but no single job dominates.",),
     )
 
 

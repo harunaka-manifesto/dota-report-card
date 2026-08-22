@@ -66,6 +66,7 @@ class VersionMapV5Schema(PublicModel):
     hero_knowledge: str | None = None
     semantic_outcomes: str | None = None
     semantic_recommendations: str | None = None
+    semantic_copy: str | None = None
 
 
 class ReproducibilityConfigSchema(PublicModel):
@@ -529,7 +530,7 @@ class ChoiceOptionSchema(PublicModel):
 
 
 class CommonThreadSchema(PublicModel):
-    status: Literal["available", "unavailable"]
+    status: Literal["available", "no_clear_thread", "unavailable"]
     trait_key: str | None = None
     trait_label: str | None = None
     weighted_coverage: float = Field(ge=0, le=1)
@@ -558,9 +559,15 @@ class ExceptionSchema(PublicModel):
 
 class EvolutionSchema(PublicModel):
     status: Literal["available", "unavailable"]
-    variant: Literal[
-        "new_heroes_new_toolkit", "new_heroes_same_toolkit", "stable_core_new_branch", "broadly_stable"
-    ] | None = None
+    variant: (
+        Literal[
+            "new_heroes_new_toolkit",
+            "new_heroes_same_toolkit",
+            "stable_core_new_branch",
+            "broadly_stable",
+        ]
+        | None
+    ) = None
     earlier_hero_ids: list[int]
     recent_hero_ids: list[int]
     earlier_traits: list[str]
@@ -700,7 +707,9 @@ class CostSchema(PublicModel):
 
 class FreeDnaReportV4Schema(PublicModel):
     report_id: str | None = None
-    schema_version: Literal["free-dna-report-5.0.0", "free-dna-report-5.1.0", "free-dna-report-5.2.0"]
+    schema_version: Literal[
+        "free-dna-report-5.0.0", "free-dna-report-5.1.0", "free-dna-report-5.2.0"
+    ]
     report_variant: Literal["free_dna_report"]
     noindex: Literal[True]
     identity: IdentitySchema
@@ -722,13 +731,24 @@ class FreeDnaReportV4Schema(PublicModel):
     @model_validator(mode="after")
     def validate_v5_contract(self) -> FreeDnaReportV4Schema:
         from app.behavior.elements.registry import ELEMENT_REGISTRY
+        from app.behavior.outcomes import (
+            SEMANTIC_OUTCOME_BRANCHES,
+            SEMANTIC_OUTCOME_VERSION,
+            SEMANTIC_RECOMMENDATION_BRANCHES,
+        )
         from app.behavior.patterns.registry import PATTERN_REGISTRY
+        from app.content.catalog import semantic_copy_version
+        from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION
 
         element_keys = [item.key for item in self.elements]
-        if set(element_keys) != set(ELEMENT_REGISTRY) or len(element_keys) != len(set(element_keys)):
+        if set(element_keys) != set(ELEMENT_REGISTRY) or len(element_keys) != len(
+            set(element_keys)
+        ):
             raise ValueError("Free DNA v5 must contain each of the 18 registered Elements once")
         pattern_keys = [item.key for item in self.patterns]
-        if set(pattern_keys) != set(PATTERN_REGISTRY) or len(pattern_keys) != len(set(pattern_keys)):
+        if set(pattern_keys) != set(PATTERN_REGISTRY) or len(pattern_keys) != len(
+            set(pattern_keys)
+        ):
             raise ValueError("Free DNA v5 must contain each of the 11 registered Patterns once")
         if len(self.highlights.element_keys) != len(set(self.highlights.element_keys)):
             raise ValueError("Element highlights must be unique")
@@ -739,10 +759,14 @@ class FreeDnaReportV4Schema(PublicModel):
         if not set(self.highlights.pattern_keys).issubset(pattern_keys):
             raise ValueError("Pattern highlight references an unknown Pattern")
         eligible_element_keys = {
-            item.key for item in self.elements if item.status != "unavailable" and item.score is not None
+            item.key
+            for item in self.elements
+            if item.status != "unavailable" and item.score is not None
         }
         if len(eligible_element_keys) >= 3 and len(self.highlights.element_keys) != 3:
-            raise ValueError("Free DNA must show exactly three Element highlights when three are eligible")
+            raise ValueError(
+                "Free DNA must show exactly three Element highlights when three are eligible"
+            )
         if not set(self.highlights.element_keys).issubset(eligible_element_keys):
             raise ValueError("Element highlights must reference display-eligible Elements")
         eligible_pattern_keys = {
@@ -753,9 +777,15 @@ class FreeDnaReportV4Schema(PublicModel):
             and not item.story_blockers
         }
         if len(eligible_pattern_keys) >= 5 and len(self.highlights.pattern_keys) != 5:
-            raise ValueError("Free DNA must show exactly five Pattern highlights when five are eligible")
-        if len(eligible_pattern_keys) < 5 and len(self.highlights.pattern_keys) != len(eligible_pattern_keys):
-            raise ValueError("Free DNA must preserve every eligible Pattern when fewer than five are available")
+            raise ValueError(
+                "Free DNA must show exactly five Pattern highlights when five are eligible"
+            )
+        if len(eligible_pattern_keys) < 5 and len(self.highlights.pattern_keys) != len(
+            eligible_pattern_keys
+        ):
+            raise ValueError(
+                "Free DNA must preserve every eligible Pattern when fewer than five are available"
+            )
         if not set(self.highlights.pattern_keys).issubset(eligible_pattern_keys):
             raise ValueError("Pattern highlights must reference story-eligible qualified Patterns")
         for pattern in self.patterns:
@@ -775,46 +805,115 @@ class FreeDnaReportV4Schema(PublicModel):
                 presentation = pattern.presentation
                 contract = PATTERN_PRESENTATION_CONTRACT[pattern.key]
                 if presentation is None:
-                    raise ValueError(f"v5.2 Pattern {pattern.key} is missing its presentation payload")
+                    raise ValueError(
+                        f"v5.2 Pattern {pattern.key} is missing its presentation payload"
+                    )
                 if presentation.pattern_id != pattern.key:
                     raise ValueError(f"Pattern {pattern.key} presentation has the wrong pattern ID")
                 if presentation.outcome_id != contract["outcome_id"]:
                     raise ValueError(f"Pattern {pattern.key} presentation has the wrong outcome ID")
                 if presentation.visual_variant != contract["visual_variant"]:
-                    raise ValueError(f"Pattern {pattern.key} presentation has the wrong visual variant")
+                    raise ValueError(
+                        f"Pattern {pattern.key} presentation has the wrong visual variant"
+                    )
                 if presentation.presentation_version != PATTERN_PRESENTATION_VERSION:
                     raise ValueError(f"Pattern {pattern.key} presentation has the wrong version")
-        if self.schema_version == "free-dna-report-5.2.0" and self.versions.presentation != PATTERN_PRESENTATION_VERSION:
+                if self.story.version == "free-story-5.3.0":
+                    if presentation.semantic_outcome_id not in SEMANTIC_OUTCOME_BRANCHES[
+                        pattern.key
+                    ]:
+                        raise ValueError(
+                            f"Current Pattern {pattern.key} is missing a valid semantic outcome"
+                        )
+                    if (
+                        presentation.semantic_recommendation_id is not None
+                        and presentation.semantic_recommendation_id
+                        not in SEMANTIC_RECOMMENDATION_BRANCHES[pattern.key]
+                    ):
+                        raise ValueError(
+                            f"Current Pattern {pattern.key} has the wrong semantic recommendation"
+                        )
+                    if presentation.semantic_outcome_version != SEMANTIC_OUTCOME_VERSION:
+                        raise ValueError(
+                            f"Current Pattern {pattern.key} has the wrong semantic outcome version"
+                        )
+                    if (
+                        presentation.semantic_recommendation_version
+                        != SEMANTIC_RECOMMENDATION_VERSION
+                    ):
+                        raise ValueError(
+                            f"Current Pattern {pattern.key} has the wrong semantic recommendation version"
+                        )
+        if (
+            self.schema_version == "free-dna-report-5.2.0"
+            and self.versions.presentation != PATTERN_PRESENTATION_VERSION
+        ):
             raise ValueError("v5.2 reports must identify the pattern presentation version")
         if self.schema_version == "free-dna-report-5.2.0":
-            if self.versions.hero_knowledge is None or self.reproducibility.hero_knowledge_version is None:
-                raise ValueError("v5.2 reports must identify the normalized hero-knowledge snapshot")
+            if (
+                self.versions.hero_knowledge is None
+                or self.reproducibility.hero_knowledge_version is None
+            ):
+                raise ValueError(
+                    "v5.2 reports must identify the normalized hero-knowledge snapshot"
+                )
+        if self.story.version == "free-story-5.3.0" and (
+            self.versions.semantic_outcomes != SEMANTIC_OUTCOME_VERSION
+            or self.versions.semantic_recommendations != SEMANTIC_RECOMMENDATION_VERSION
+            or self.versions.semantic_copy != semantic_copy_version()
+        ):
+            raise ValueError("Current reports must identify every semantic meaning-layer version")
         common = self.hero_portfolio.common_thread
         if common.status == "available":
             if len(common.options) != 4 or common.correct_option_key is None:
                 raise ValueError("Available Common Thread must contain four answer options")
-            if len({option.key for option in common.options}) != 4 or any(not option.feedback for option in common.options):
-                raise ValueError("Common Thread options must be unique and carry contextual feedback")
+            if len({option.key for option in common.options}) != 4 or any(
+                not option.feedback for option in common.options
+            ):
+                raise ValueError(
+                    "Common Thread options must be unique and carry contextual feedback"
+                )
             if sum(option.key == common.correct_option_key for option in common.options) != 1:
                 raise ValueError("Common Thread correct option must appear exactly once")
+        elif common.status == "no_clear_thread":
+            if common.denominator < 3 or common.options or common.correct_option_key is not None:
+                raise ValueError(
+                    "No-clear Common Thread requires sufficient evidence and no quiz state"
+                )
         exception = self.hero_portfolio.exception
         if exception.status == "available":
             if len(exception.options) != 4:
                 raise ValueError("Available Exception must contain four answer options")
-            if len({option.key for option in exception.options}) != 4 or any(not option.feedback for option in exception.options):
+            if len({option.key for option in exception.options}) != 4 or any(
+                not option.feedback for option in exception.options
+            ):
                 raise ValueError("Exception options must be unique and carry contextual feedback")
-            if exception.correct_option_key is None or sum(option.key == exception.correct_option_key for option in exception.options) != 1:
+            if (
+                exception.correct_option_key is None
+                or sum(option.key == exception.correct_option_key for option in exception.options)
+                != 1
+            ):
                 raise ValueError("Exception correct option must appear exactly once")
         elif exception.status == "no_clear_exception":
             # free-story-5.2.0 snapshots exposed three plausible hero guesses
-            # plus the no-clear option. Current 5.3 story snapshots make the
-            # bounded answer an insight, so no hero guesses cross the API.
-            expected_options = 1 if self.story.version == "free-story-5.3.0" else 4
+            # plus the no-clear option. Current 5.3 story snapshots make this
+            # a conclusion rather than a quiz, so no options cross the API.
+            expected_options = 0 if self.story.version == "free-story-5.3.0" else 4
             if len(exception.options) != expected_options:
-                raise ValueError("No-clear Exception must expose only its bounded answer in the current story")
-            if len({option.key for option in exception.options}) != expected_options or any(not option.feedback for option in exception.options):
-                raise ValueError("No-clear Exception options must be unique and carry contextual feedback")
-            if exception.correct_option_key is None or sum(option.key == exception.correct_option_key for option in exception.options) != 1:
+                raise ValueError(
+                    "No-clear Exception must expose only its bounded answer in the current story"
+                )
+            if len({option.key for option in exception.options}) != expected_options or any(
+                not option.feedback for option in exception.options
+            ):
+                raise ValueError(
+                    "No-clear Exception options must be unique and carry contextual feedback"
+                )
+            if expected_options and (
+                exception.correct_option_key is None
+                or sum(option.key == exception.correct_option_key for option in exception.options)
+                != 1
+            ):
                 raise ValueError("No-clear Exception correct option must appear exactly once")
             if exception.correct_option_key != "no_clear_exception":
                 raise ValueError("No-clear Exception must use the no-clear option as truth")
@@ -831,9 +930,17 @@ class FreeDnaReportV4Schema(PublicModel):
             if not set(page.evidence_keys).issubset(element_keys):
                 raise ValueError(f"Story page {page.id} references an unknown Element")
             if self.story.version == "free-story-5.3.0" and page.kind == "pool_evolution_question":
-                if not isinstance(page.content.get("payoff_heading"), str) or not isinstance(page.content.get("copy"), str):
-                    raise ValueError("Current Pool Evolution page must expose a payoff heading and body copy")
-            if self.story.version == "free-story-5.3.0" and page.kind == "hero_exception_question" and exception.status == "no_clear_exception":
+                if not isinstance(page.content.get("payoff_heading"), str) or not isinstance(
+                    page.content.get("copy"), str
+                ):
+                    raise ValueError(
+                        "Current Pool Evolution page must expose a payoff heading and body copy"
+                    )
+            if (
+                self.story.version == "free-story-5.3.0"
+                and page.kind == "hero_exception_question"
+                and exception.status == "no_clear_exception"
+            ):
                 insight = page.content.get("no_clear_insight")
                 required_insight = {"eyebrow", "headline", "body", "boundary"}
                 if (
@@ -841,19 +948,34 @@ class FreeDnaReportV4Schema(PublicModel):
                     or set(insight) != required_insight
                     or any(not isinstance(insight.get(item), str) for item in required_insight)
                 ):
-                    raise ValueError("Current no-clear Exception page must expose its reviewed insight copy")
+                    raise ValueError(
+                        "Current no-clear Exception page must expose its reviewed insight copy"
+                    )
             if self.schema_version == "free-dna-report-5.2.0" and page.kind == "pattern_highlight":
                 if page.pattern_key is None:
                     if page.id != "pattern-read" or self.highlights.pattern_keys:
                         raise ValueError(f"v5.2 Pattern page {page.id} is missing its Pattern key")
                     continue
                 if page.pattern_key is None or page.presentation is None:
-                    raise ValueError(f"v5.2 Pattern page {page.id} is missing its presentation payload")
+                    raise ValueError(
+                        f"v5.2 Pattern page {page.id} is missing its presentation payload"
+                    )
                 if page.presentation.pattern_id != page.pattern_key:
-                    raise ValueError(f"v5.2 Pattern page {page.id} has the wrong presentation Pattern")
+                    raise ValueError(
+                        f"v5.2 Pattern page {page.id} has the wrong presentation Pattern"
+                    )
                 presentation_copy = page.content.get("presentation_copy")
-                required_copy_keys = {"headline", "subheadline", "interpretation", "recommendation", "deep_dive", "fallback"}
-                if not isinstance(presentation_copy, dict) or not required_copy_keys.issubset(presentation_copy):
+                required_copy_keys = {
+                    "headline",
+                    "subheadline",
+                    "interpretation",
+                    "recommendation",
+                    "deep_dive",
+                    "fallback",
+                }
+                if not isinstance(presentation_copy, dict) or not required_copy_keys.issubset(
+                    presentation_copy
+                ):
                     raise ValueError(f"v5.2 Pattern page {page.id} is missing presentation copy")
         page_kinds = [page.kind for page in self.pages]
         expected_kinds = [

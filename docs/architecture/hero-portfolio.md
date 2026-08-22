@@ -4,7 +4,7 @@ Hero Portfolio is an independent summary-history layer. It asks four human
 questions about the established hero pool; it does not reuse a Pattern score,
 assign a global player label, or infer personality. The current portfolio
 version is `hero-portfolio-1.2.0` plus the versioned
-`hero-portfolio-config-1.0.0`; Hero Mirror is `hero-mirror-1.2.0`.
+`hero-portfolio-config-5.2.0`; Hero Mirror is `hero-mirror-1.2.0`.
 
 ## Shared input and eligibility
 
@@ -22,10 +22,13 @@ deterministically pseudo-shuffled from a seed built from report facts; raw
 match IDs are never used as an analytics or UI seed.
 
 Generated hero knowledge is an additional build-time input seam, not a runtime
-network dependency. Portfolio behavior continues to use the reviewed taxonomy
-until the versioned ten-hero knowledge pilot has passed manual review. When it
-is adopted, the report fingerprint must record the knowledge version alongside
-the existing taxonomy and relationship versions.
+network dependency. Active v5.2 portfolio analysis uses the composed
+`FullRosterHeroKnowledgeProvider`, using the approved 127-hero full-roster
+snapshot declared by the manifest. Explicit low-confidence structural records
+are a compatibility fallback only when a generated record is unavailable or
+unapproved. The report fingerprint records the knowledge snapshot, semantic
+rules, taxonomy, and relationship versions together. See [Hero knowledge](hero-knowledge.md)
+for the manifest, snapshot, and fixture map.
 
 ## Common Thread
 
@@ -83,9 +86,10 @@ needs distance at least `0.32` and a runner-up margin of at least `0.06`.
 Confidence combines winner sample size, distance, and margin. The result
 contains pool traits, exception traits, distance, margin, confidence, and
 exactly four options when a clear winner exists: the winner plus three
-nearest-to-pool distractors. A no-clear result is not a quiz. Its public
-payload keeps only the bounded `no_clear_exception` answer for compatibility,
-and the story immediately presents “Your pool has no odd one out.” Fewer than
+nearest-to-pool distractors. A current no-clear result is not a quiz and its
+public options are empty; only historical `free-story-5.2.0` snapshots retain
+their four recorded choices. The current story immediately presents “Your
+pool has no odd one out.” Fewer than
 four eligible heroes is unavailable.
 
 ### Interaction and copy states

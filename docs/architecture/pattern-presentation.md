@@ -20,10 +20,12 @@ The API carries IDs and facts rather than arbitrary prose:
 ```text
 pattern_id
 outcome_id
+semantic_outcome_id / semantic_outcome_version
 visual_variant
 proof_data
 interpretation_id
 recommendation_id / recommendation_context
+semantic_recommendation_id / semantic_recommendation_version
 deep_dive_id
 evidence_refs
 raw_metrics
@@ -33,8 +35,9 @@ presentation_version
 
 `services/api/app/behavior/presentation.py` owns the finite Pattern → outcome
 → visual mapping. `services/api/app/behavior/display_bands.py` owns the
-human-readable thresholds. `services/api/app/content/free_dna/en.json` owns
-the reviewed strings, and `content/renderer.py` restricts substitutions to
+human-readable thresholds. `services/api/app/content/free_dna/semantic_en.json`
+owns active semantic branch copy, while `en.json` remains the legacy
+compatibility catalog. `content/renderer.py` restricts substitutions to
 approved display facts. No runtime LLM call or fragment-built sentence is
 allowed in this path.
 
@@ -76,22 +79,29 @@ interpretation copy.
 ## Versions and compatibility
 
 The current report remains `free-dna-report-5.2.0`; the interaction closure is
-versioned independently as `free-story-5.3.0` and `free-dna-copy-5.3.0`, with
-`pattern-presentation-5.2.0`. The Element registry is `free-elements-5.2.0`
-and the Pattern registry remains `free-patterns-5.1.0`. Hero knowledge has an
-independent version family and enters the
-API through `services/api/app/heroes/knowledge.py`, not through raw source
-scrapes.
+versioned independently as `free-story-5.3.0` with `pattern-presentation-5.2.0`.
+The active meaning layer is `pattern-outcomes-5.2.0` (32 semantic outcome
+branches) plus `hero-recommendations-semantic-1.1.0` (14 semantic
+recommendation IDs). Active branch copy is
+`free-dna-semantic-copy-5.2.0`; `free-dna-copy-5.4.0` is the legacy
+11-record catalog retained for historical snapshots and compatibility reads.
+The Element registry is `free-elements-5.2.0` and the Pattern registry remains
+`free-patterns-5.1.0`. Hero knowledge has an independent version family and
+enters the API through the composed full-roster provider, not through raw
+source scrapes.
 
 Reports with schema v5.0 or v5.1 remain readable. Their absence of a
 presentation payload selects the legacy story renderer; they are never
-silently reinterpreted with a newer hero-knowledge snapshot.
+silently reinterpreted with a newer hero-knowledge snapshot or semantic copy
+catalog. The complete artifact and fixture map is maintained in the
+[v5.2 SSOT](dota-dna-ssot.md).
 
 ## Editorial QA
 
 Run `make copy-review-catalog` to regenerate
 `docs/generated/free-dna-v5.2-copy-review.md`. The generator enumerates all
-eleven reachable outcome states, their exact resolved strings, approved
-placeholders, evidence requirements, and fallback status. `make docs-check`
-and `make copy-review-catalog-check` fail if the generated review surface is
-stale or the catalog contains an invalid outcome or placeholder.
+32 registered semantic outcome branches and 14 recommendation IDs, plus the
+11 historical compatibility records, with exact resolved strings, approved
+placeholders, evidence requirements, and fallback status. `make docs-check` and
+`make copy-review-catalog-check` fail if the generated review surface is stale
+or either catalog contains an invalid branch or placeholder.

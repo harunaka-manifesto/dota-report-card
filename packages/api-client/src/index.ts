@@ -358,6 +358,10 @@ export type PatternPresentation = {
   recommendation_id: string | null;
   recommendation_context: Record<string, unknown> | null;
   deep_dive_id: string | null;
+  semantic_outcome_id?: string | null;
+  semantic_recommendation_id?: string | null;
+  semantic_outcome_version?: string | null;
+  semantic_recommendation_version?: string | null;
   evidence_refs: string[];
   raw_metrics: Record<string, number | string | boolean | null>;
   confidence: Confidence;
@@ -401,7 +405,7 @@ export type ChoiceOption = {
 };
 
 export type CommonThread = {
-  status: "available" | "unavailable";
+  status: "available" | "no_clear_thread" | "unavailable";
   trait_key: string | null;
   trait_label: string | null;
   weighted_coverage: number;
@@ -570,6 +574,7 @@ export type PatternPresentationCopy = {
 };
 
 export type StoryPageContent = {
+  title?: string;
   scanning_body?: string;
   ready_body?: string;
   meaning?: string;
@@ -601,6 +606,7 @@ export type StoryPageContent = {
   copy?: string;
   closed?: string;
   available?: string;
+  unavailable?: string;
   qualifier?: string;
   action_copy?: PatternActionCopy | null;
 };
@@ -679,6 +685,9 @@ export type FreeDnaReportV4 = {
     hero_mirror: string;
     story: string;
     copy: string;
+    semantic_outcomes?: string | null;
+    semantic_recommendations?: string | null;
+    semantic_copy?: string | null;
     model: string;
     template: string;
     share_renderer: string;

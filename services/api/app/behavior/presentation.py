@@ -256,6 +256,11 @@ def build_pattern_presentation(
         if recommendation_available
         else None
     )
+    semantic_outcome_id, semantic_recommendation_id = _safe_semantic_presentation_state(
+        semantic_outcome_id,
+        semantic_recommendation_id,
+        recommendation_context,
+    )
     return PatternPresentationPayload(
         pattern_id=pattern.key,
         outcome_id=contract["outcome_id"],
@@ -270,6 +275,35 @@ def build_pattern_presentation(
         evidence_refs=evidence_refs,
         raw_metrics=dict(pattern.effect_metrics),
         confidence=pattern.confidence,
+    )
+
+
+def _safe_semantic_presentation_state(
+    outcome_id: str,
+    recommendation_id: str | None,
+    recommendation_context: Mapping[str, Any] | None,
+) -> tuple[str, str | None]:
+    """Keep serialized semantic IDs aligned with candidate-backed public copy."""
+
+    hero_name = (recommendation_context or {}).get("hero_name")
+    requires_hero = outcome_id in {
+        "P01_NARROW_JOB_BRIDGE_FOUND",
+        "P04_GAP_WITH_BRIDGE",
+    } or recommendation_id in {
+        "HR_DOUBLE_DOWN",
+        "HR_ADJACENT_MOVE_ADD_FUNCTION",
+        "HR_CHANGE_ANGLE",
+        "HR_FILL_GAP_ADD_FUNCTION",
+        "HR_SPECIALIST",
+    }
+    if not requires_hero or (isinstance(hero_name, str) and hero_name.strip()):
+        return outcome_id, recommendation_id
+    return (
+        {
+            "P01_NARROW_JOB_BRIDGE_FOUND": "P01_NARROW_JOB_NO_BRIDGE",
+            "P04_GAP_WITH_BRIDGE": "P04_GAP_NO_BRIDGE",
+        }.get(outcome_id, outcome_id),
+        "HR_PRACTICE_FALLBACK",
     )
 
 

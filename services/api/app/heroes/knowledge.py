@@ -24,9 +24,7 @@ HERO_SEMANTICS_VERSION = "hero-semantics-5.2.0"
 # semantic record must carry an explicit finite credibility band instead of
 # letting a lane hint masquerade as position evidence.
 DOTA_POSITIONS = ("1", "2", "3", "4", "5")
-POSITION_CREDIBILITY_BANDS = frozenset(
-    {"primary", "secondary", "unsupported", "unknown"}
-)
+POSITION_CREDIBILITY_BANDS = frozenset({"primary", "secondary", "unsupported", "unknown"})
 
 # These vocabularies are intentionally small. Source adapters may emit richer
 # evidence, but scoring and story code only sees these stable semantic keys.
@@ -129,7 +127,7 @@ JOB_GLOSSARY: dict[str, dict[str, Any]] = {
         "public_short_description": "Locks down a target before they escape.",
     },
     "fight_control": {
-    "internal_definition": "Limits where enemies can stand, move, or act after the fight starts.",
+        "internal_definition": "Limits where enemies can stand, move, or act after the fight starts.",
         "public_label": "Fight control",
         "public_short_description": "Restricts where enemies can move or act once the fight starts.",
     },
@@ -204,7 +202,13 @@ COVERAGE_FAMILIES: dict[str, dict[str, Any]] = {
     "engage_control": {
         "public_label": "Engage & Control",
         "public_short_description": "Start fights and shape what happens after contact.",
-        "functions": ("initiation", "counter_initiation", "catch", "fight_control", "forced_movement"),
+        "functions": (
+            "initiation",
+            "counter_initiation",
+            "catch",
+            "fight_control",
+            "forced_movement",
+        ),
     },
     "frontline_protection": {
         "public_label": "Frontline & Protection",
@@ -231,7 +235,13 @@ COVERAGE_FAMILIES: dict[str, dict[str, Any]] = {
 ROLE_RELEVANT_FAMILIES: dict[str, tuple[str, ...]] = {
     "carry": ("engage_control", "damage_finish", "map_objectives", "mobility_reach"),
     "mid": tuple(COVERAGE_FAMILIES),
-    "offlane": ("engage_control", "frontline_protection", "damage_finish", "map_objectives", "mobility_reach"),
+    "offlane": (
+        "engage_control",
+        "frontline_protection",
+        "damage_finish",
+        "map_objectives",
+        "mobility_reach",
+    ),
     "soft_support": ("engage_control", "frontline_protection", "map_objectives", "mobility_reach"),
     "hard_support": ("engage_control", "frontline_protection", "map_objectives", "mobility_reach"),
     "roamer": ("engage_control", "frontline_protection", "map_objectives", "mobility_reach"),
@@ -266,13 +276,19 @@ def role_relevant_families(roles: Sequence[str]) -> tuple[str, ...]:
     """Return the smallest reviewed coverage universe for observed roles."""
 
     selected = {family for role in roles for family in ROLE_RELEVANT_FAMILIES.get(role, ())}
-    return tuple(family for family in COVERAGE_FAMILIES if family in selected) or tuple(COVERAGE_FAMILIES)
+    return tuple(family for family in COVERAGE_FAMILIES if family in selected) or tuple(
+        COVERAGE_FAMILIES
+    )
 
 
 def family_for_function(value: str) -> str | None:
     key = canonical_function_key(value)
     return next(
-        (family for family, definition in COVERAGE_FAMILIES.items() if key in definition["functions"]),
+        (
+            family
+            for family, definition in COVERAGE_FAMILIES.items()
+            if key in definition["functions"]
+        ),
         None,
     )
 
@@ -293,6 +309,12 @@ class NormalizedHeroKnowledge:
     evidence_refs: tuple[str, ...] = ()
     review_status: str = "unreviewed"
     position_credibility: Mapping[str, str] = field(default_factory=dict)
+    # Capability and demand evidence remain independent.  They share some
+    # vocabulary keys (for example ``repositioning``), so a single merged map
+    # would lose field-level provenance.
+    capability_evidence_refs: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    demand_evidence_refs: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    specialist_markers: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         # Keep the contract explicit even for compatibility fixtures and
@@ -513,7 +535,13 @@ class FullRosterHeroKnowledgeProvider:
     ) -> None:
         self._structural = TaxonomyHeroKnowledgeProvider(taxonomy)
         self._reviewed = reviewed or SnapshotHeroKnowledgeProvider()
-        self.version = f"{self._reviewed.version}+{self._structural.version}"
+        # A complete reviewed snapshot is the product version. Keep the
+        # structural suffix only for compatibility runs without one.
+        self.version = (
+            self._reviewed.version
+            if self._reviewed.available
+            else f"{self._reviewed.version}+{self._structural.version}"
+        )
 
     @property
     def available(self) -> bool:
@@ -535,7 +563,7 @@ class FullRosterHeroKnowledgeProvider:
             functional_jobs=structural.functional_jobs,
             provenance_versions={
                 **dict(structural.provenance_versions),
-                "hero_semantics": self.version,
+                "hero_semantics": f"structural-taxonomy:{self._structural.version}",
             },
             primary_functions=structural.primary_functions,
             secondary_functions=structural.secondary_functions,
@@ -546,6 +574,9 @@ class FullRosterHeroKnowledgeProvider:
             evidence_refs=structural.evidence_refs,
             review_status="unreviewed",
             position_credibility={position: "unknown" for position in DOTA_POSITIONS},
+            capability_evidence_refs=structural.capability_evidence_refs,
+            demand_evidence_refs=structural.demand_evidence_refs,
+            specialist_markers=structural.specialist_markers,
         )
 
     @property
@@ -563,7 +594,9 @@ def _normalize_generated_record(
     data = record.data
     functions = data.get("functions", {})
     primary = _function_keys(functions.get("primary", []) if isinstance(functions, Mapping) else [])
-    secondary = _function_keys(functions.get("secondary", []) if isinstance(functions, Mapping) else [])
+    secondary = _function_keys(
+        functions.get("secondary", []) if isinstance(functions, Mapping) else []
+    )
     primary = _dedupe_known(primary)
     secondary = tuple(item for item in _dedupe_known(secondary) if item not in primary)
     demands = _band_map(data.get("demands"))
@@ -584,6 +617,11 @@ def _normalize_generated_record(
     if data.get("semantic_version"):
         provenance_versions["hero_semantics"] = str(data["semantic_version"])
     evidence_refs = _evidence_refs(data, (*primary, *secondary), demands, capabilities)
+    capability_evidence_refs = _section_evidence_refs(data.get("capabilities"))
+    demand_evidence_refs = _section_evidence_refs(data.get("demands"))
+    specialist_markers = data.get("specialist_markers", ())
+    if not isinstance(specialist_markers, Sequence) or isinstance(specialist_markers, (str, bytes)):
+        specialist_markers = ()
     return NormalizedHeroKnowledge(
         hero_id=record.hero_id,
         display_name=record.name,
@@ -599,6 +637,9 @@ def _normalize_generated_record(
         evidence_refs=evidence_refs,
         review_status=review_status,
         position_credibility=position_credibility,
+        capability_evidence_refs=capability_evidence_refs,
+        demand_evidence_refs=demand_evidence_refs,
+        specialist_markers=tuple(str(marker) for marker in specialist_markers),
     )
 
 
@@ -630,7 +671,9 @@ def _band_map(value: Any) -> dict[str, str]:
         if isinstance(raw, Mapping):
             raw = raw.get("band", "unknown")
         normalized = str(raw).casefold()
-        result[canonical_function_key(str(key))] = normalized if normalized in SEMANTIC_BANDS else "unknown"
+        result[canonical_function_key(str(key))] = (
+            normalized if normalized in SEMANTIC_BANDS else "unknown"
+        )
     return {
         key: value
         for key, value in result.items()
@@ -668,9 +711,7 @@ def _position_credibility(value: Any) -> dict[str, str]:
     for position in DOTA_POSITIONS:
         raw = source.get(position, source.get(int(position), "unknown"))
         normalized = str(raw).casefold()
-        result[position] = (
-            normalized if normalized in POSITION_CREDIBILITY_BANDS else "unknown"
-        )
+        result[position] = normalized if normalized in POSITION_CREDIBILITY_BANDS else "unknown"
     return result
 
 
@@ -710,11 +751,14 @@ def _evidence_refs(
     capabilities: Mapping[str, str],
 ) -> tuple[str, ...]:
     refs: list[str] = []
-    for section in (functions, demands, capabilities):
-        for key in section:
-            value = data.get("capabilities", {}).get(key) if isinstance(data.get("capabilities"), Mapping) else None
-            if value is None:
-                value = data.get("demands", {}).get(key) if isinstance(data.get("demands"), Mapping) else None
+    # Iterate the two semantic sections independently. The previous lookup
+    # preferred capabilities for overlapping keys and silently discarded the
+    # corresponding demand evidence.
+    for section_name in ("capabilities", "demands"):
+        section = data.get(section_name, {})
+        if not isinstance(section, Mapping):
+            continue
+        for value in section.values():
             if isinstance(value, Mapping):
                 derived = value.get("derived_from", value.get("evidence_refs", []))
                 if isinstance(derived, Sequence) and not isinstance(derived, (str, bytes)):
@@ -727,9 +771,27 @@ def _evidence_refs(
                 for value in values:
                     if isinstance(value, Mapping):
                         evidence = value.get("evidence_refs", [])
-                        if isinstance(evidence, Sequence) and not isinstance(evidence, (str, bytes)):
+                        if isinstance(evidence, Sequence) and not isinstance(
+                            evidence, (str, bytes)
+                        ):
                             refs.extend(str(item) for item in evidence)
     return tuple(dict.fromkeys(refs))
+
+
+def _section_evidence_refs(value: Any) -> dict[str, tuple[str, ...]]:
+    """Return field-level evidence while preserving the source section."""
+
+    if not isinstance(value, Mapping):
+        return {}
+    result: dict[str, tuple[str, ...]] = {}
+    for raw_key, raw_value in value.items():
+        if not isinstance(raw_value, Mapping):
+            continue
+        refs = raw_value.get("evidence_refs", raw_value.get("derived_from", []))
+        if not isinstance(refs, Sequence) or isinstance(refs, (str, bytes)):
+            continue
+        result[str(raw_key)] = tuple(dict.fromkeys(str(item) for item in refs))
+    return result
 
 
 def _display_job(key: str) -> str:

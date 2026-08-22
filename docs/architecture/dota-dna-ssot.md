@@ -1,8 +1,9 @@
-# Dota DNA v5.1 — Single Source of Truth
+# Dota DNA v5.2 — Single Source of Truth
 
 Status: canonical for the current Free Dota DNA product  
 Effective date: 2026-08-22  
-Repository baseline reviewed: `ead2016` (`knowledge base alignment`)  
+Repository baseline reviewed: `3670c49` (`v5.2 sol+luna`)
+
 Figma source: [Report — Knowledge base, node 179:2](https://www.figma.com/design/D3uhn7WPXFsX1DiCIVklyg/Report?node-id=179-2)
 
 ## 1. Purpose and authority
@@ -46,6 +47,7 @@ one 365-day public summary-history request
 → 18 Elements
 → 11 reviewed Patterns
 → evidence-bounded Pattern actions
+→ semantic outcome and recommendation branches
 → independently evaluated Hero Portfolio
 → deterministic ranking and report story
 → immutable, versioned report snapshot
@@ -239,6 +241,24 @@ Concrete examples must be generated from actual sufficient evidence. When no
 example clears the applicable sample, coverage, confidence, and reliability
 gates, the action must abstain or show its fallback state.
 
+### 6.1 Semantic outcome and copy contract
+
+The active v5.2 meaning layer is finite and separate from presentation prose:
+
+- `pattern-outcomes-5.2.0` registers 32 semantic outcome branches across P01–P11.
+- `hero-recommendations-semantic-1.1.0` registers 14 recommendation IDs,
+  including the shared `HR_PRACTICE_FALLBACK` and the P01 specialist branch.
+- `free-dna-semantic-copy-5.2.0` supplies the active branch copy for every
+  outcome and recommendation ID.
+- `free-dna-copy-5.4.0` remains the legacy 11-record presentation catalog for
+  historical snapshots and compatibility reads.
+
+The API keeps the legacy `outcome_id`, `recommendation_id`, and `deep_dive_id`
+alongside `semantic_outcome_id`, `semantic_recommendation_id`, and their
+semantic versions. Active pages resolve semantic IDs; historical snapshots
+continue to resolve the legacy catalog. Copy is deterministic and server-owned;
+the browser never synthesizes a missing branch.
+
 ## 7. Hero-intelligence dependencies
 
 Hero-facing actions use versioned editorial artifacts rather than inventing
@@ -248,7 +268,11 @@ meaning from hero IDs. The shared layer includes:
 - a functional relationship graph for similarity, adjacency, and stretch;
 - matchup and teammate-synergy layers where the claim requires them;
 - a situation taxonomy for player-facing reasons;
-- deterministic, versioned provenance and validation for all 127 heroes.
+- deterministic, versioned provenance and validation for all 127 heroes in the
+  active full-roster semantic freeze. The ten-hero pilot remains a historical
+  review input, not the active denominator. Structural taxonomy adaptation is
+  retained only as an explicit compatibility fallback when a generated record
+  is unavailable or unapproved.
 
 The Hero Portfolio is evaluated independently from Element scores. It may
 support action recommendations but must not silently redefine Element or
@@ -261,6 +285,14 @@ Pattern cards. Element documentation uses identity, a five-zone spectrum,
 player-facing zone copy, evidence lens, limits, and a relationship network.
 Pattern documentation uses a Tier A/B frame, observable evidence, meaning,
 action module, guardrail, transparency, and Element ingredients.
+
+The active comprehension check is the Figma section
+[`239:2` — V5.2 Semantic Branch QA](https://www.figma.com/design/D3uhn7WPXFsX1DiCIVklyg/Report?node-id=239-2).
+Its nine compact production-copy boards cover recommendation found/no trusted
+recommendation, job-shaped/unresolved Presence Tax, stable/gradual Session
+Fade, real/no functional outlier, and all four Pool Evolution outcomes. Each
+board preserves the shipped hierarchy: conclusion, visual proof, meaning,
+action, then optional evidence details.
 
 Canonical Pattern frame mapping:
 
@@ -300,13 +332,33 @@ Current versions are:
 | Story | `free-story-5.3.0` |
 | Pattern presentation | `pattern-presentation-5.2.0` |
 | Model content | `free-dna-model-5.2.0` |
-| Copy content | `free-dna-copy-5.3.0` |
+| Legacy copy content | `free-dna-copy-5.4.0` |
+| Semantic copy content | `free-dna-semantic-copy-5.2.0` |
+| Semantic outcome branches | `pattern-outcomes-5.2.0` (32 IDs) |
+| Semantic recommendations | `hero-recommendations-semantic-1.1.0` (14 IDs) |
 | Hero knowledge schema | `hero-knowledge-schema-1.0.0` |
+| Hero semantics rules | `hero-semantics-5.2.0` |
+| Hero knowledge snapshot | `hero-knowledge-semantic-freeze-full-roster-v1` (127 approved records) |
+| Hero semantic vocabulary | `hero-semantics-full-roster-v1` |
+| Hero knowledge manifest | `services/api/app/heroes/data/hero-knowledge-manifest.json` |
+| Historical pilot snapshot | `hero-knowledge-semantic-freeze-pilot-v1` / `hero-semantics-pilot-v1` |
+| Semantic outcome fixtures | `tests/fixtures/semantic_freeze/pattern-outcome-cases.json` |
+
+Compatibility sources are explicit: semantic outcome and recommendation IDs
+come from `services/api/app/behavior/outcomes.py` and
+`services/api/app/heroes/recommendations.py`; active branch copy comes from
+`services/api/app/content/free_dna/semantic_en.json`; legacy presentation copy
+comes from `services/api/app/content/free_dna/en.json`; and the active full-
+roster hero snapshot is selected through the checked-in manifest rather than a
+runtime network call. The semantic outcome fixture covers all P01–P11
+branches; hero source fixtures remain under `tests/fixtures/hero_knowledge/`.
 
 Current snapshots carry these versions and the compatibility fingerprint.
-Historical v5.0 snapshots remain readable with their original versions and
-without additive v5.1 fields. Readers must not relabel historical Pattern keys
-or reinterpret old evidence under the current methodology.
+Historical v4, v5.0, and v5.1 snapshots remain readable with their original
+versions and without additive v5.2 semantic fields. Readers must not relabel
+historical Pattern keys or reinterpret old evidence under the current
+methodology. The full compatibility map, including taxonomy and source
+snapshot versions, is maintained in [Hero knowledge](hero-knowledge.md).
 
 ## 10. Retired and reserved identities
 
@@ -324,10 +376,10 @@ The following are not active current-model Patterns:
 Retired identities must not collide with active registry keys or return through
 ranking, copy, generated catalogs, fixtures, or current API payloads.
 
-## 11. Checkpoint reconciliation
+## 11. Historical checkpoint reconciliation
 
-The checkpoint documents are inputs and historical instructions, not four
-simultaneous authorities:
+The checkpoint documents are historical inputs, not simultaneous authorities or
+active implementation plans:
 
 - `dota-dna-pattern-actions-checkpoint-p01-p03.md` locks the early P01–P03
   action model but predates later Pattern and Recovery work.
@@ -347,7 +399,7 @@ safe snapshot compatibility.
 
 ## 12. Repository alignment result
 
-At baseline `ead2016`, the repository aligns with this SSOT:
+At baseline `3670c49` (`v5.2 sol+luna`), the repository aligns with this SSOT:
 
 - registries enforce exactly 18 Elements and 11 Patterns;
 - shared half-open zone boundaries are centralized;
@@ -360,6 +412,8 @@ At baseline `ead2016`, the repository aligns with this SSOT:
 - current and historical schema versions are both accepted as intended;
 - React renders every active action discriminator and does not recompute it;
 - retired keys are reserved and absent from the active registry.
+- semantic outcomes, recommendations, hero-knowledge provenance, and branch
+  copy are carried as additive versioned fields.
 
 Focused verification on 2026-08-22 passed 97 tests covering registry,
 qualification, action, context-baseline, Recovery, copy, and report contracts.

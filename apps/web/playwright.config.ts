@@ -5,7 +5,7 @@ export default defineConfig({
   webServer: {
     command: "node tests/e2e/fixture-server.mjs",
     url: "http://127.0.0.1:3000",
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 120_000
   },
   use: {

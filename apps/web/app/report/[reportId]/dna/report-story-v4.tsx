@@ -215,7 +215,7 @@ function PatternHighlightPage({ page, context }: { page: StoryPage; context: Sto
       </div>
       <details className="pattern-ingredients" onToggle={(event) => { if ((event.currentTarget as HTMLDetailsElement).open) track("report.pattern_element_expanded.v1", { pattern_key: pattern.key }); }}>
         <summary>See methodology detail</summary>
-        <div className="ingredient-list"><span>Relationship strength: {Math.round(pattern.strength * 100)}% · Tier {pattern.tier} · {pattern.family}</span></div>
+        <div className="ingredient-list"><span>How clearly it repeats: {Math.round(pattern.strength * 100)}% · Tier {pattern.tier} · {pattern.family}</span></div>
       </details>
       {page.content?.takeaway && <p><strong>Useful takeaway.</strong> {page.content.takeaway}</p>}
       {pattern.action?.action_type === "same_playbook" && <SamePlaybookActionPanel action={pattern.action} copy={actionCopy} />}
@@ -281,7 +281,7 @@ function PartialTransferActionPanel({ action, copy }: { action: PartialTransferD
   const statusLabel = action.status.replaceAll("_", " ");
   return <section className="pattern-action" aria-labelledby="partial-transfer-heading">
     <span className="eyebrow">{copy?.partial_transfer_kicker ?? "Where the transfer bends"}</span>
-    <h3 id="partial-transfer-heading">{action.status === "unresolved" ? copy?.partial_transfer_unresolved_heading ?? "The gap is real; the cause is not proven" : copy?.partial_transfer_heading ?? "The result gap has a bounded lead"}</h3>
+    <h3 id="partial-transfer-heading">{action.status === "unresolved" ? copy?.partial_transfer_unresolved_heading ?? "The gap is real; the cause is not proven" : copy?.partial_transfer_heading ?? "One learning demand may explain the gap"}</h3>
     {action.strongest_supported_lead && <p>{action.strongest_supported_lead}</p>}
     {action.summary_differences.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_direct_label ?? "Observable difference"}</span>{action.summary_differences.map((difference) => <article className="pattern-action-card" key={difference.signal_key}><h4>{signalLabels[difference.signal_key] ?? "Observable signal"}</h4><p>{difference.player_facing_claim}</p><small>{Math.round(difference.confidence_score * 100)}% confidence</small></article>)}</div>}
     {action.capability_hypotheses.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_hypothesis_label ?? "Capability lead"}</span>{action.capability_hypotheses.map((hypothesis) => <article className="pattern-action-card" key={hypothesis.capability_key}><h4>{capabilityLabels[hypothesis.capability_key] ?? "Capability lead"}</h4><p>{hypothesis.player_facing_hypothesis}</p><small>{Math.round(hypothesis.confidence_score * 100)}% confidence</small></article>)}</div>}
@@ -443,6 +443,7 @@ function PortfolioQuestion({ page, context, kind }: { page: StoryPage; context: 
   const isRevealed = context.revealed[kind];
   const options = result.options;
   const unavailable = result.status === "unavailable";
+  const noClearThread = kind === "common_thread" && result.status === "no_clear_thread";
   const noClearException = kind === "exception" && result.status === "no_clear_exception";
   const correct = result.correct_option_key;
   const choose = (option: ChoiceOption) => {
@@ -469,7 +470,7 @@ function PortfolioQuestion({ page, context, kind }: { page: StoryPage; context: 
       <p className="eyebrow">Hero Portfolio · {kind === "common_thread" ? "Common Thread" : "The Exception"}</p>
       <h2 id={`${page.id}-heading`}>{page.title}</h2>
       <p className="story-lede">{page.body}</p>
-      {unavailable ? <UnavailableMessage limitations={result.limitations} /> : noClearException ? <ExceptionNoClearInsight copy={page.content.no_clear_insight} fallbackBody={result.limitations[0]} /> : <>
+      {unavailable ? <UnavailableMessage limitations={result.limitations} /> : noClearThread ? <ExceptionNoClearInsight copy={page.content.no_clear_insight} fallbackBody={result.limitations[0]} /> : noClearException ? <ExceptionNoClearInsight copy={page.content.no_clear_insight} fallbackBody={result.limitations[0]} /> : <>
         <div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>
           {options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}
         </div>
@@ -635,11 +636,11 @@ function MirrorPage({ page, context }: { page: StoryPage; context: StoryContext 
     dragProgressRef.current = 0;
     setDragProgress(0);
   };
-  return <article className={`mirror-card${open ? " is-open" : ""}${dragProgress > 0 && !open ? " is-dragging" : ""}`} style={{ "--mirror-progress": dragProgress } as React.CSSProperties} tabIndex={0} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel} onKeyDown={(event) => { if ((event.key === "Enter" || event.key === " ") && !open) { event.preventDefault(); reveal("keyboard"); } }}><div className="mirror-cover"><p className="eyebrow">ONE LAST COMPARISON</p><h2 id={`${page.id}-heading`}>Your Hero Mirror</h2>{!open && <><p className="story-lede">{page.content?.closed ?? page.body}</p><button type="button" className="mirror-reveal-button" onClick={() => reveal("button")}>Reveal Hero Mirror</button><p className="muted mirror-gesture-hint">Swipe across this card, or use the button.</p></>}</div>{open && <MirrorReveal mirror={mirror} content={page.content ?? {}} />}</article>;
+  return <article className={`mirror-card${open ? " is-open" : ""}${dragProgress > 0 && !open ? " is-dragging" : ""}`} style={{ "--mirror-progress": dragProgress } as React.CSSProperties} tabIndex={0} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel} onKeyDown={(event) => { if ((event.key === "Enter" || event.key === " ") && !open) { event.preventDefault(); reveal("keyboard"); } }}><div className="mirror-cover"><p className="eyebrow">ONE LAST COMPARISON</p><h2 id={`${page.id}-heading`}>{page.content?.title ?? page.title}</h2>{!open && <><p className="story-lede">{page.content?.closed ?? page.body}</p><button type="button" className="mirror-reveal-button" onClick={() => reveal("button")}>Reveal Hero Mirror</button><p className="muted mirror-gesture-hint">Swipe across this card, or use the button.</p></>}</div>{open && <MirrorReveal mirror={mirror} content={page.content ?? {}} />}</article>;
 }
 
 function MirrorReveal({ mirror, content }: { mirror: FreeDnaReportV4["hero_portfolio"]["hero_mirror"]; content: StoryPage["content"] }) {
-  if (mirror.status !== "available" || !mirror.hero_name) return <UnavailableMessage limitations={mirror.limitations} />;
+  if (mirror.status !== "available" || !mirror.hero_name) return <UnavailableMessage limitations={[content.unavailable ?? "No played hero matches your usual behavior clearly enough to earn the mirror yet."]} />;
   const rows = ["involvement", "finishing", "deaths", "role_context"];
   return <div className="mirror-reveal" aria-live="polite"><p className="story-lede">{content.available ?? `Hero Mirror: ${mirror.hero_name}`}</p><p className="muted">{content.qualifier}</p><div className="hero-behavior-table" role="table" aria-label="Player and hero behavior comparison"><div className="hero-behavior-row header" role="row"><span>Observable behavior</span><span>Your history</span><span>{mirror.hero_name}</span></div>{rows.map((key) => <div className="hero-behavior-row" role="row" key={key}><strong>{key.replaceAll("_", " ")}</strong><span>{mirror.player_behavior[key] ?? "Not available"}</span><span>{mirror.hero_behavior[key] ?? "Not available"}</span></div>)}</div><p className="muted">{content.guardrail} {mirror.limitations.join(" ")}</p></div>;
 }
@@ -651,7 +652,7 @@ function FinalCard({ page, report }: { page: StoryPage; report: FreeDnaReportV4 
 }
 
 function UnavailableMessage({ limitations }: { limitations: string[] }) {
-  return <div className="unavailable-message"><strong>Not enough evidence yet</strong><p>{limitations.join(" ") || "The bounded summary history did not support a clear answer yet."}</p></div>;
+  return <div className="unavailable-message"><strong>Not enough evidence yet</strong><p>{limitations.join(" ") || "These matches did not support a clear answer yet."}</p></div>;
 }
 
 function FallbackPage({ page }: { page: StoryPage }) {

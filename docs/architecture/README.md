@@ -14,6 +14,7 @@ Read in order:
 10. [Hero data sources](hero-data-sources.md)
 11. [Hero knowledge](hero-knowledge.md)
 12. [Model catalog](model-catalog.md)
+13. [v5.2 SSOT and version compatibility](dota-dna-ssot.md)
 
 The catalog is generated from production registries. Change a registry first,
 then run make dna-catalog and make docs-check.

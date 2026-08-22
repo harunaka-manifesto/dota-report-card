@@ -19,3 +19,18 @@ def load_free_dna_copy() -> dict[str, Any]:
 
 def copy_version() -> str:
     return str(load_free_dna_copy()["copy_version"])
+
+
+@lru_cache(maxsize=1)
+def load_free_dna_semantic_copy() -> dict[str, Any]:
+    """Load the finite v5.2 semantic outcome and recommendation library."""
+
+    path = Path(__file__).with_name("free_dna") / "semantic_en.json"
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict) or not value.get("copy_version"):
+        raise ValueError("Free DNA semantic copy catalog is missing copy_version")
+    return value
+
+
+def semantic_copy_version() -> str:
+    return str(load_free_dna_semantic_copy()["copy_version"])

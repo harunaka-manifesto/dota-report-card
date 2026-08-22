@@ -12,7 +12,9 @@ match IDs are private.
 A Pattern names required Element keys separately from modifier Element keys.
 Only required Elements gate qualification. The public result carries status,
 direction, strength, relationship strength, confidence, coverage, family,
-tier, and public receipts.
+tier, public receipts, and the legacy plus semantic outcome/recommendation IDs
+with their registry versions. Semantic branch copy is resolved server-side;
+legacy IDs remain readable for historical snapshots.
 
 Hero Portfolio has independent eligibility and margin gates for Common Thread,
 Exception, Pool Evolution, and Hero Mirror. No-clear and unavailable are valid

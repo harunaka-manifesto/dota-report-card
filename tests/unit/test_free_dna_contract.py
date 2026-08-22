@@ -98,12 +98,12 @@ def test_free_report_is_v5_summary_only_versioned_and_expiring() -> None:
     assert report["reproducibility"]["recency_weighting_version"] == "recency-weighting-5.0.0"
     assert report["story"]["ordered_pages"] == [page["id"] for page in report["pages"]]
     assert report["story"]["version"] == "free-story-5.3.0"
-    assert report["versions"]["copy"] == "free-dna-copy-5.3.0"
+    assert report["versions"]["copy"] == "free-dna-copy-5.4.0"
+    assert report["versions"]["semantic_copy"] == "free-dna-semantic-copy-5.2.0"
     assert "pool_evolution_reveal" not in [page["kind"] for page in report["pages"]]
     assert {page["kind"] for page in report["pages"]} >= {"element_scan", "pattern_highlight", "hero_mirror_reveal", "deep_dive"}
     if report["hero_portfolio"]["exception"]["status"] == "no_clear_exception":
-        assert len(report["hero_portfolio"]["exception"]["options"]) == 1
-        assert report["hero_portfolio"]["exception"]["options"][0]["key"] == "no_clear_exception"
+        assert report["hero_portfolio"]["exception"]["options"] == []
     validate_free_dna_report(report)
 
     svg, _ = build_share_svg(report, card_type="final", show_name=False, show_avatar=False)
@@ -170,7 +170,7 @@ def test_legacy_story_accepts_the_old_evolution_page_and_no_clear_choices() -> N
     validate_free_dna_report(legacy)
 
 
-def test_current_story_reduces_no_clear_exception_to_one_bounded_answer() -> None:
+def test_current_story_reduces_no_clear_exception_to_a_conclusion_without_a_quiz() -> None:
     _source, repository, _service, job = _run_report()
     report = repository.get_report(job.report_id or "")
     assert report is not None
@@ -189,8 +189,7 @@ def test_current_story_reduces_no_clear_exception_to_one_bounded_answer() -> Non
     with pytest.raises(ValueError, match="only its bounded answer"):
         validate_free_dna_report(current)
 
-    bounded = exception["options"][-1]
-    exception["options"] = [bounded]
+    exception["options"] = []
     validate_free_dna_report(current)
 
     missing_evolution_heading = copy.deepcopy(current)
@@ -198,6 +197,22 @@ def test_current_story_reduces_no_clear_exception_to_one_bounded_answer() -> Non
     evolution_page["content"].pop("payoff_heading")
     with pytest.raises(ValueError, match="payoff heading and body copy"):
         validate_free_dna_report(missing_evolution_heading)
+
+
+def test_current_story_requires_semantic_ids_and_versions() -> None:
+    _source, repository, _service, job = _run_report()
+    report = repository.get_report(job.report_id or "")
+    assert report is not None
+
+    missing_id = copy.deepcopy(report)
+    missing_id["patterns"][0]["presentation"]["semantic_outcome_id"] = None
+    with pytest.raises(ValueError, match="valid semantic outcome"):
+        validate_free_dna_report(missing_id)
+
+    missing_version = copy.deepcopy(report)
+    missing_version["versions"]["semantic_copy"] = None
+    with pytest.raises(ValueError, match="semantic meaning-layer version"):
+        validate_free_dna_report(missing_version)
 
 
 def test_current_report_has_alignment_metadata_and_historical_v50_payload_still_reads() -> None:

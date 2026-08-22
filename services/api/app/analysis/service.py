@@ -128,9 +128,10 @@ class AnalysisService:
         if analysis_mode == "free":
             from app.behavior.context_baseline import CONTEXT_BASELINE_VERSION
             from app.behavior.elements.registry import ELEMENT_REGISTRY_VERSION
+            from app.behavior.outcomes import SEMANTIC_OUTCOME_VERSION
             from app.behavior.patterns.registry import PATTERN_REGISTRY_VERSION
             from app.behavior.service import BEHAVIOR_MODEL_VERSION
-            from app.content.catalog import copy_version
+            from app.content.catalog import copy_version, semantic_copy_version
             from app.dna.features.models import FEATURE_VERSION
             from app.dna.performance import PERFORMANCE_PROXY_VERSION
             from app.dna.pipeline import DNA_SCORING_VERSION
@@ -148,6 +149,12 @@ class AnalysisService:
                 HERO_SYNERGIES_VERSION,
                 PATTERN_ACTIONS_VERSION,
             )
+            from app.heroes.knowledge import (
+                HERO_KNOWLEDGE_SCHEMA_VERSION,
+                HERO_SEMANTICS_VERSION,
+                HeroKnowledgeRepository,
+            )
+            from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION
             from app.heroes.taxonomy import TAXONOMY_VERSION
             from app.reports.dna_assembly import REPORT_SCHEMA_VERSION, REPORT_STORY_VERSION
             from app.share.service import RENDERER_VERSION
@@ -158,6 +165,10 @@ class AnalysisService:
                 "features": FEATURE_VERSION,
                 "dna_scoring": DNA_SCORING_VERSION,
                 "hero_taxonomy": TAXONOMY_VERSION,
+                "hero_knowledge": HeroKnowledgeRepository().version()
+                or "hero-knowledge-unavailable",
+                "hero_knowledge_schema": HERO_KNOWLEDGE_SCHEMA_VERSION,
+                "hero_semantics": HERO_SEMANTICS_VERSION,
                 "hero_portfolio": f"{HERO_PORTFOLIO_VERSION}+{PORTFOLIO_CONFIG_VERSION}",
                 "hero_mirror": HERO_MIRROR_VERSION,
                 "hero_relationships": HERO_RELATIONSHIPS_VERSION,
@@ -168,6 +179,9 @@ class AnalysisService:
                 "hero_situations": HERO_SITUATIONS_VERSION,
                 "story": REPORT_STORY_VERSION,
                 "copy": copy_version(),
+                "semantic_copy": semantic_copy_version(),
+                "semantic_outcomes": SEMANTIC_OUTCOME_VERSION,
+                "semantic_recommendations": SEMANTIC_RECOMMENDATION_VERSION,
                 "report_schema": REPORT_SCHEMA_VERSION,
                 "model": self.settings.model_version,
                 "template": self.settings.template_version,
@@ -254,7 +268,9 @@ class AnalysisService:
             )
         except asyncio.CancelledError:
             self.repository.fail_job(job, "ANALYSIS_CANCELLED", "The analysis was cancelled")
-            record_metric("analysis.failed", tags={"code": "ANALYSIS_CANCELLED", "mode": job.analysis_mode})
+            record_metric(
+                "analysis.failed", tags={"code": "ANALYSIS_CANCELLED", "mode": job.analysis_mode}
+            )
             raise
         except AppError as exc:
             self.repository.fail_job(job, exc.code, exc.message)
@@ -262,16 +278,29 @@ class AnalysisService:
         except Exception:
             logger.exception("analysis_failed job_id=%s account_id=%s", job.job_id, job.account_id)
             self.repository.fail_job(job, "ANALYSIS_FAILED", "Unexpected analysis failure")
-            record_metric("analysis.failed", tags={"code": "ANALYSIS_FAILED", "mode": job.analysis_mode})
+            record_metric(
+                "analysis.failed", tags={"code": "ANALYSIS_FAILED", "mode": job.analysis_mode}
+            )
 
     async def _run(self, job: AnalysisJob, identifier: PlayerIdentifier) -> None:
         self.repository.update_job(
-            job, status="running", stage="resolving_player", message="Resolving the public player profile"
+            job,
+            status="running",
+            stage="resolving_player",
+            message="Resolving the public player profile",
         )
-        cached_profile = self.repository.get_cached_raw_payload(
-            f"/players/{identifier.account_id}", str(identifier.account_id)
-        ) if hasattr(self.repository, "get_cached_raw_payload") else None
-        profile = cached_profile if isinstance(cached_profile, dict) else await self.source.get_player(identifier.account_id)
+        cached_profile = (
+            self.repository.get_cached_raw_payload(
+                f"/players/{identifier.account_id}", str(identifier.account_id)
+            )
+            if hasattr(self.repository, "get_cached_raw_payload")
+            else None
+        )
+        profile = (
+            cached_profile
+            if isinstance(cached_profile, dict)
+            else await self.source.get_player(identifier.account_id)
+        )
         if not profile or not _profile_account_id(profile, identifier.account_id):
             raise ProfileUnavailable("Public profile is unavailable")
         self.repository.persist_raw_payload(
@@ -290,11 +319,15 @@ class AnalysisService:
         history_limit = self.settings.effective_free_history_limit
         cost_ledger = DataCostLedger()
         cost_policy = CostPolicy()
-        cached_history = self.repository.get_cached_raw_payload(
-            f"/players/{identifier.account_id}/matches",
-            str(identifier.account_id),
-            max_age_seconds=self.settings.effective_summary_history_cache_ttl_seconds,
-        ) if hasattr(self.repository, "get_cached_raw_payload") else None
+        cached_history = (
+            self.repository.get_cached_raw_payload(
+                f"/players/{identifier.account_id}/matches",
+                str(identifier.account_id),
+                max_age_seconds=self.settings.effective_summary_history_cache_ttl_seconds,
+            )
+            if hasattr(self.repository, "get_cached_raw_payload")
+            else None
+        )
         if isinstance(cached_history, list):
             history = list(cached_history)
             cost_ledger.record("history", policy=cost_policy, cache_hit=True, units=0.0)
@@ -376,8 +409,7 @@ class AnalysisService:
             max_parse_requests=self.settings.effective_max_parse_requests,
             max_data_cost=max(
                 0.0,
-                self.settings.effective_max_data_cost_per_report
-                - cost_policy.units_for("history"),
+                self.settings.effective_max_data_cost_per_report - cost_policy.units_for("history"),
             ),
             min_marginal_information_gain=self.settings.effective_min_marginal_information_gain,
             available_families_by_match=available_families,
@@ -557,7 +589,9 @@ class AnalysisService:
             report["evidence_scope"]["exclusion_reasons"] = _reason_counts(exclusion_ledger)
             report_id = self.repository.save_report(
                 account_id=identifier.account_id,
-                data_cutoff=max((item.start_time or 0 for item in summary_feature_set.matches), default=None),
+                data_cutoff=max(
+                    (item.start_time or 0 for item in summary_feature_set.matches), default=None
+                ),
                 model_version=self.settings.model_version,
                 template_version=self.settings.template_version,
                 report=report,
@@ -695,10 +729,16 @@ def _profile_for_report(profile: dict[str, Any], account_id: int) -> dict[str, A
         avatar = None
     else:
         parsed = urlparse(avatar)
-        if parsed.scheme != "https" or parsed.hostname not in {
-            "steamcdn-a.akamaihd.net",
-            "avatars.akamai.steamstatic.com",
-        } or parsed.query or parsed.fragment:
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname
+            not in {
+                "steamcdn-a.akamaihd.net",
+                "avatars.akamai.steamstatic.com",
+            }
+            or parsed.query
+            or parsed.fragment
+        ):
             avatar = None
     return {
         "account_id": account_id,
@@ -716,11 +756,15 @@ def _identity_fingerprint(profile: dict[str, Any]) -> str:
     if not isinstance(nested, dict):
         nested = profile
     public = {
-        "display_name": str(nested.get("personaname") or nested.get("display_name") or "Anonymous player"),
+        "display_name": str(
+            nested.get("personaname") or nested.get("display_name") or "Anonymous player"
+        ),
         "avatar_url": nested.get("avatarfull") or nested.get("avatar_url"),
         "rank_tier": nested.get("rank_tier"),
     }
-    return hashlib.sha256(json.dumps(public, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(public, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 
 def _analysis_mode(value: str) -> str:
@@ -752,9 +796,7 @@ def _available_families(
             None,
         )
         coverage = coverage_for_match(detail, target)
-        families = frozenset(
-            family for family, value in coverage.by_family.items() if value >= 1.0
-        )
+        families = frozenset(family for family, value in coverage.by_family.items() if value >= 1.0)
         if families:
             available[feature.match_id] = families
     return available

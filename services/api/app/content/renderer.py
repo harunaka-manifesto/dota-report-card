@@ -6,12 +6,18 @@ from string import Formatter
 from typing import Any
 
 from app.behavior.elements.registry import EXPECTED_ELEMENT_KEYS
+from app.behavior.outcomes import (
+    SEMANTIC_OUTCOME_BRANCHES,
+    SEMANTIC_OUTCOME_IDS,
+    SEMANTIC_RECOMMENDATION_BRANCHES,
+    SEMANTIC_RECOMMENDATION_IDS,
+)
 from app.behavior.patterns.registry import EXPECTED_PATTERN_KEYS
 from app.behavior.presentation import (
     PATTERN_PRESENTATION_CONTRACT,
     PATTERN_PRESENTATION_VERSION,
 )
-from app.content.catalog import load_free_dna_copy
+from app.content.catalog import load_free_dna_copy, load_free_dna_semantic_copy
 
 _FORBIDDEN_TERMS = ("diagnos", "bad player", "good player", "grade", "personality type")
 _PAGE_KEYS = ("analysis", "report_reveal", "element_scan", "final_card", "deep_dive")
@@ -114,6 +120,8 @@ def resolve_pattern_presentation_copy(
     *,
     recommendation_id: str | None = None,
     deep_dive_id: str | None = None,
+    semantic_outcome_id: str | None = None,
+    semantic_recommendation_id: str | None = None,
     params: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Resolve the complete v5.2 story copy for one finite outcome."""
@@ -124,18 +132,42 @@ def resolve_pattern_presentation_copy(
     contract = PATTERN_PRESENTATION_CONTRACT.get(pattern_key)
     if not isinstance(pattern, dict) or contract is None:
         raise ValueError(f"Unknown Pattern presentation copy key: {pattern_key}")
-    outcome = pattern["outcomes"].get(outcome_id)
+    semantic_catalog = load_free_dna_semantic_copy()
+    if semantic_outcome_id is not None:
+        if semantic_outcome_id not in SEMANTIC_OUTCOME_BRANCHES[pattern_key]:
+            raise ValueError(
+                f"Unknown semantic Pattern outcome copy key: {pattern_key}.{semantic_outcome_id}"
+            )
+        outcome = semantic_catalog["outcomes"].get(semantic_outcome_id)
+    else:
+        outcome = pattern["outcomes"].get(outcome_id)
     if not isinstance(outcome, dict):
-        raise ValueError(f"Unknown Pattern outcome copy key: {pattern_key}.{outcome_id}")
+        copy_id = semantic_outcome_id or outcome_id
+        raise ValueError(f"Unknown Pattern outcome copy key: {pattern_key}.{copy_id}")
     values: dict[str, Any] = {
         "outcome": outcome,
         "recommendation": None,
         "deep_dive": None,
     }
-    if recommendation_id is not None:
+    if semantic_recommendation_id is not None:
+        if semantic_recommendation_id not in SEMANTIC_RECOMMENDATION_BRANCHES[pattern_key]:
+            raise ValueError(
+                "Unknown semantic Pattern recommendation copy key: "
+                f"{pattern_key}.{semantic_recommendation_id}"
+            )
+        recommendation = semantic_catalog["recommendations"].get(semantic_recommendation_id)
+        if not isinstance(recommendation, dict):
+            raise ValueError(
+                "Unknown semantic Pattern recommendation copy key: "
+                f"{pattern_key}.{semantic_recommendation_id}"
+            )
+        values["recommendation"] = recommendation
+    elif recommendation_id is not None:
         recommendation = pattern["recommendations"].get(recommendation_id)
         if not isinstance(recommendation, dict):
-            raise ValueError(f"Unknown Pattern recommendation copy key: {pattern_key}.{recommendation_id}")
+            raise ValueError(
+                f"Unknown Pattern recommendation copy key: {pattern_key}.{recommendation_id}"
+            )
         values["recommendation"] = recommendation
     if deep_dive_id is not None:
         deep_dive = pattern["deep_dives"].get(deep_dive_id)
@@ -143,14 +175,20 @@ def resolve_pattern_presentation_copy(
             raise ValueError(f"Unknown Pattern deep-dive copy key: {pattern_key}.{deep_dive_id}")
         values["deep_dive"] = deep_dive
     params = params or {}
-    fields = {
-        field
-        for value in values.values()
-        for field in _presentation_fields(value)
+    fields = {field for value in values.values() for field in _presentation_fields(value)}
+    allowed = {
+        "hero_name",
+        "match_count",
+        "date_range",
+        "role_name",
+        "session_game_label",
+        "function_name",
+        "familiar_anchor",
     }
-    allowed = {"hero_name", "match_count", "date_range", "role_name", "session_game_label"}
     if not fields.issubset(allowed):
-        raise ValueError(f"Unapproved Pattern presentation placeholders: {sorted(fields - allowed)}")
+        raise ValueError(
+            f"Unapproved Pattern presentation placeholders: {sorted(fields - allowed)}"
+        )
     missing = fields - set(params)
     extra = set(params) - fields
     if missing:
@@ -173,7 +211,7 @@ def resolve_pattern_presentation_copy(
         ),
         "fallback": _render_presentation_value(outcome.get("fallback", {}), params),
     }
-    if outcome_id != contract["outcome_id"]:
+    if semantic_outcome_id is None and outcome_id != contract["outcome_id"]:
         raise ValueError(f"Outcome {outcome_id} is not registered for Pattern {pattern_key}")
     return resolved
 
@@ -233,19 +271,30 @@ def validate_copy_catalog() -> dict[str, Any]:
         raise ValueError("Free DNA copy catalog must cover every active story page family")
     for key in _PAGE_KEYS:
         value = pages[key]
-        if not isinstance(value, dict) or not isinstance(value.get("title"), str) or not isinstance(value.get("body"), str):
+        if (
+            not isinstance(value, dict)
+            or not isinstance(value.get("title"), str)
+            or not isinstance(value.get("body"), str)
+        ):
             raise ValueError(f"Incomplete page copy: {key}")
     element_scan = pages["element_scan"]
     if any(not isinstance(element_scan.get(key), str) for key in ("scanning_body", "ready_body")):
         raise ValueError("Element scan copy must include scanning and ready states")
 
-    for section, expected in (("elements", EXPECTED_ELEMENT_KEYS), ("patterns", EXPECTED_PATTERN_KEYS)):
+    for section, expected in (
+        ("elements", EXPECTED_ELEMENT_KEYS),
+        ("patterns", EXPECTED_PATTERN_KEYS),
+    ):
         values = catalog.get(section)
         if not isinstance(values, dict) or set(values) != set(expected):
             raise ValueError(f"Free DNA copy catalog must cover every active {section[:-1]}")
         for key in expected:
             value = values[key]
-            if not isinstance(value, dict) or not isinstance(value.get("title"), str) or not isinstance(value.get("body"), str):
+            if (
+                not isinstance(value, dict)
+                or not isinstance(value.get("title"), str)
+                or not isinstance(value.get("body"), str)
+            ):
                 raise ValueError(f"Incomplete {section[:-1]} copy: {key}")
 
     portfolio = catalog.get("portfolio")
@@ -253,9 +302,29 @@ def validate_copy_catalog() -> dict[str, Any]:
         raise ValueError("Free DNA copy catalog must cover the Hero Portfolio")
     for key in ("common_thread", "exception"):
         value = portfolio[key]
-        required: tuple[str, ...] = ("question", "correct", "incorrect", "correct_feedback", "incorrect_feedback", "answer", "reveal", "boundary")
-        if not isinstance(value, dict) or any(not isinstance(value.get(item), str) for item in required):
+        required: tuple[str, ...] = (
+            "question",
+            "correct",
+            "incorrect",
+            "correct_feedback",
+            "incorrect_feedback",
+            "answer",
+            "reveal",
+            "boundary",
+        )
+        if not isinstance(value, dict) or any(
+            not isinstance(value.get(item), str) for item in required
+        ):
             raise ValueError(f"Incomplete portfolio copy: {key}")
+        if key == "common_thread":
+            insight = value.get("no_clear_insight")
+            required_insight = {"eyebrow", "headline", "body", "boundary"}
+            if (
+                not isinstance(insight, dict)
+                or set(insight) != required_insight
+                or any(not isinstance(insight.get(item), str) for item in required_insight)
+            ):
+                raise ValueError("Incomplete no-clear Common Thread copy")
         if key == "exception":
             if not isinstance(value.get("no_clear_feedback"), str):
                 raise ValueError("Incomplete portfolio copy: exception")
@@ -268,10 +337,16 @@ def validate_copy_catalog() -> dict[str, Any]:
             ):
                 raise ValueError("Incomplete no-clear Exception copy")
     mirror = portfolio["hero_mirror"]
-    if not isinstance(mirror, dict) or any(not isinstance(mirror.get(key), str) for key in ("closed", "available", "unavailable", "qualifier", "guardrail")):
+    if not isinstance(mirror, dict) or any(
+        not isinstance(mirror.get(key), str)
+        for key in ("title", "closed", "available", "unavailable", "qualifier", "guardrail")
+    ):
         raise ValueError("Incomplete portfolio copy: hero_mirror")
     evolution = portfolio["evolution"]
-    if not isinstance(evolution, dict) or any(not isinstance(evolution.get(key), str) for key in ("question", "check", "unavailable", "unavailable_heading", "locked")):
+    if not isinstance(evolution, dict) or any(
+        not isinstance(evolution.get(key), str)
+        for key in ("question", "check", "unavailable", "unavailable_heading", "locked")
+    ):
         raise ValueError("Incomplete portfolio copy: evolution")
     for key in _EVOLUTION_VARIANTS:
         value = evolution.get(key)
@@ -286,16 +361,53 @@ def validate_copy_catalog() -> dict[str, Any]:
         raise ValueError("Free DNA copy catalog must cover story presentation templates")
     for section, keys in _STORY_TEMPLATE_KEYS.items():
         values = story_templates[section]
-        if not isinstance(values, dict) or any(not isinstance(values.get(key), str) for key in keys):
+        if not isinstance(values, dict) or any(
+            not isinstance(values.get(key), str) for key in keys
+        ):
             raise ValueError(f"Incomplete story presentation templates: {section}")
     _lint_forbidden_terms(catalog)
     _validate_presentation_catalog(catalog)
+    _validate_semantic_copy_catalog()
     return catalog
+
+
+def _validate_semantic_copy_catalog() -> None:
+    catalog = load_free_dna_semantic_copy()
+    outcomes = catalog.get("outcomes")
+    recommendations = catalog.get("recommendations")
+    if not isinstance(outcomes, dict) or set(outcomes) != set(SEMANTIC_OUTCOME_IDS):
+        raise ValueError("Semantic copy catalog must cover every reachable outcome")
+    if not isinstance(recommendations, dict) or set(recommendations) != set(
+        SEMANTIC_RECOMMENDATION_IDS
+    ):
+        raise ValueError("Semantic copy catalog must cover every reachable recommendation")
+    for copy_id, value in outcomes.items():
+        if not isinstance(value, dict) or any(
+            field not in value
+            for field in ("headline", "subheadline", "interpretation", "fallback")
+        ):
+            raise ValueError(f"Incomplete semantic outcome copy: {copy_id}")
+        if not isinstance(value["headline"], str) or not isinstance(value["subheadline"], str):
+            raise ValueError(f"Incomplete semantic outcome copy: {copy_id}")
+        for block_name in ("interpretation", "fallback"):
+            block = value[block_name]
+            if not isinstance(block, dict) or any(
+                not isinstance(block.get(field), str) for field in ("title", "body")
+            ):
+                raise ValueError(f"Incomplete semantic outcome {block_name}: {copy_id}")
+    for copy_id, value in recommendations.items():
+        if not isinstance(value, dict) or any(
+            not isinstance(value.get(field), str) for field in ("eyebrow", "title", "body")
+        ):
+            raise ValueError(f"Incomplete semantic recommendation copy: {copy_id}")
 
 
 def _validate_presentation_catalog(catalog: dict[str, Any]) -> None:
     presentation = catalog.get("presentation")
-    if not isinstance(presentation, dict) or presentation.get("version") != PATTERN_PRESENTATION_VERSION:
+    if (
+        not isinstance(presentation, dict)
+        or presentation.get("version") != PATTERN_PRESENTATION_VERSION
+    ):
         raise ValueError("Free DNA copy catalog must include the v5.2 presentation catalog")
     patterns = presentation.get("patterns")
     if not isinstance(patterns, dict) or set(patterns) != set(EXPECTED_PATTERN_KEYS):
@@ -310,7 +422,10 @@ def _validate_presentation_catalog(catalog: dict[str, Any]) -> None:
         deep_dives = value.get("deep_dives")
         if not isinstance(outcomes, dict) or set(outcomes) != {contract["outcome_id"]}:
             raise ValueError(f"Incomplete Pattern outcome copy: {key}")
-        if not isinstance(recommendations, dict) or contract["recommendation_id"] not in recommendations:
+        if (
+            not isinstance(recommendations, dict)
+            or contract["recommendation_id"] not in recommendations
+        ):
             raise ValueError(f"Incomplete Pattern recommendation copy: {key}")
         if not isinstance(deep_dives, dict) or contract["deep_dive_id"] not in deep_dives:
             raise ValueError(f"Incomplete Pattern deep-dive copy: {key}")
@@ -326,7 +441,11 @@ def _validate_presentation_catalog(catalog: dict[str, Any]) -> None:
         ):
             if not isinstance(section, dict) or any(
                 not isinstance(section.get(field), str)
-                for field in (("eyebrow", "title", "body") if section_name == "recommendation" else ("title", "body"))
+                for field in (
+                    ("eyebrow", "title", "body")
+                    if section_name == "recommendation"
+                    else ("title", "body")
+                )
             ):
                 raise ValueError(f"Incomplete Pattern {section_name} copy: {key}")
     if not required_outcome_keys:
@@ -372,7 +491,9 @@ def _render_pair(value: dict[str, Any], params: dict[str, str], *, label: str) -
     if not isinstance(title, str) or not isinstance(body, str):
         raise ValueError(f"Incomplete {label} copy")
     templates = [item for item in value.values() if isinstance(item, str)]
-    fields = {name for template in templates for _, name, _, _ in Formatter().parse(template) if name}
+    fields = {
+        name for template in templates for _, name, _, _ in Formatter().parse(template) if name
+    }
     missing = fields - set(params)
     extra = set(params) - fields
     if missing:
