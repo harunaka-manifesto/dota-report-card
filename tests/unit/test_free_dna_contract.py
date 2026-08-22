@@ -84,7 +84,7 @@ def test_free_report_is_v5_summary_only_versioned_and_expiring() -> None:
     assert source.requests == [("player", 42), ("matches", 42)]
     report = repository.get_report(job.report_id or "")
     assert report is not None
-    assert report["schema_version"] == "free-dna-report-5.0.0"
+    assert report["schema_version"] == "free-dna-report-5.1.0"
     assert report["report_variant"] == "free_dna_report"
     assert report["noindex"] is True
     assert "account_id" not in report
@@ -94,7 +94,7 @@ def test_free_report_is_v5_summary_only_versioned_and_expiring() -> None:
     assert len(report["elements"]) == 18
     assert len(report["patterns"]) == 11
     assert report["metadata"]["history_limit"] is None
-    assert report["reproducibility"]["model_version"] == "free-dna-model-5.0.0"
+    assert report["reproducibility"]["model_version"] == "free-dna-model-5.1.0"
     assert report["reproducibility"]["recency_weighting_version"] == "recency-weighting-5.0.0"
     assert report["story"]["ordered_pages"] == [page["id"] for page in report["pages"]]
     assert {page["kind"] for page in report["pages"]} >= {"element_scan", "pattern_highlight", "hero_mirror_reveal", "deep_dive"}
@@ -123,10 +123,40 @@ def test_public_report_route_sets_noindex_and_returns_strict_v5_contract() -> No
     assert response.status_code == 200
     assert response.headers["x-robots-tag"] == "noindex, nofollow, noarchive"
     body = response.json()
-    assert body["schema_version"] == "free-dna-report-5.0.0"
+    assert body["schema_version"] == "free-dna-report-5.1.0"
     assert body["report_variant"] == "free_dna_report"
     validate_free_dna_report(body)
     assert job.status == "completed"
+
+
+def test_current_report_has_alignment_metadata_and_historical_v50_payload_still_reads() -> None:
+    _source, repository, _service, job = _run_report()
+    report = repository.get_report(job.report_id or "")
+    assert report is not None
+    assert report["versions"]["context_baseline"] == "context-baseline-1.0.0"
+    assert report["reproducibility"]["context_baseline_version"] == "context-baseline-1.0.0"
+    assert all(
+        pattern["qualification_element_keys"]
+        or pattern["status"] in {"unavailable", "suppressed"}
+        for pattern in report["patterns"]
+    )
+    for pattern in report["patterns"]:
+        if pattern["action"] is not None:
+            assert pattern["action"]["evidence_summary"] is not None
+
+    historical = copy.deepcopy(report)
+    historical["schema_version"] = "free-dna-report-5.0.0"
+    historical["versions"].pop("context_baseline", None)
+    historical["reproducibility"].pop("context_baseline_version", None)
+    for pattern in historical["patterns"]:
+        pattern.pop("qualification_element_keys", None)
+        pattern.pop("qualification_clause_index", None)
+        action = pattern.get("action")
+        if action is not None:
+            action.pop("evidence_summary", None)
+            for difference in action.get("summary_differences", []):
+                difference.pop("coverage", None)
+    validate_free_dna_report(historical)
 
 
 def test_free_cache_miss_never_calls_match_details_or_parse_requests() -> None:

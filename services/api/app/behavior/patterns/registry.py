@@ -5,7 +5,7 @@ from __future__ import annotations
 from app.behavior.elements.registry import ELEMENT_REGISTRY
 from app.behavior.models import PatternDefinition
 
-PATTERN_REGISTRY_VERSION = "free-patterns-5.0.0"
+PATTERN_REGISTRY_VERSION = "free-patterns-5.1.0"
 # Historical reports retain their original registry version and canonical key.
 # This metadata prevents callers from silently treating a retired identity as
 # its replacement merely because the product-facing position is similar.
@@ -14,6 +14,8 @@ RETIRED_PATTERN_KEYS: dict[str, str | None] = {
     "selective_closer": None,
     "loss_response": None,
     "heavy_exposure": "presence_tax",
+    "session_hold": None,
+    "assist_presence": None,
 }
 
 
@@ -179,6 +181,16 @@ if len(PATTERN_REGISTRY) != 11 or set(PATTERN_REGISTRY) != EXPECTED_PATTERN_KEYS
 
 if any(not item.zone_clauses for item in PATTERNS):
     raise ValueError("Every active Free Pattern must have a canonical zone contract")
+if set(RETIRED_PATTERN_KEYS) & set(PATTERN_REGISTRY):
+    raise ValueError("Active Pattern keys must not reuse retired historical identities")
+if any(
+    zone not in ELEMENT_REGISTRY[element_key].zone_labels
+    for pattern in PATTERNS
+    for clause in pattern.zone_clauses
+    for element_key, zones in clause
+    for zone in zones
+):
+    raise ValueError("Pattern zone contracts must use canonical Element zone labels")
 
 __all__ = [
     "PATTERN_REGISTRY",

@@ -1,5 +1,6 @@
 from app.behavior.elements.registry import EXPECTED_ELEMENT_KEYS
 from app.behavior.patterns.registry import EXPECTED_PATTERN_KEYS
+from app.content.catalog import load_free_dna_copy
 from app.content.renderer import (
     resolve_element_copy,
     resolve_page_copy,
@@ -26,3 +27,14 @@ def test_copy_resolvers_require_exact_parameters() -> None:
         assert "trait" in str(error)
     else:
         raise AssertionError("portfolio answer should require its placeholder")
+
+
+def test_drift_and_recovery_copy_matches_observable_baseline_methodology() -> None:
+    catalog = load_free_dna_copy()
+    drift = catalog["elements"]["late_session_performance"]["body"]
+    recovery = catalog["elements"]["post_loss_performance_response"]["body"]
+    assert "comparable personal baseline" in drift.lower()
+    assert "comparable personal baseline" in recovery.lower()
+    banned = ("fatigue", "warm-up", "tilt", "mental", "resilience", "confidence", "focus")
+    assert all(word not in drift.lower() for word in banned)
+    assert all(word not in recovery.lower() for word in banned)

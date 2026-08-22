@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from app.behavior.actions import attach_pattern_actions
+from app.behavior.context_baseline import CONTEXT_BASELINE_VERSION
 from app.behavior.dimensions import DIMENSION_DEFINITIONS
 from app.behavior.elements.registry import ELEMENT_REGISTRY_VERSION
 from app.behavior.elements.service import SummaryBehaviorContext, score_all_elements
@@ -20,7 +21,7 @@ from app.behavior.models import (
 from app.behavior.patterns.registry import PATTERN_REGISTRY_VERSION
 from app.behavior.patterns.service import evaluate_patterns
 
-BEHAVIOR_MODEL_VERSION = "behavior-model-5.0.0"
+BEHAVIOR_MODEL_VERSION = "behavior-model-5.1.0"
 
 
 def analyze_behavior(
@@ -43,6 +44,7 @@ def analyze_behavior(
         dimension_registry="dimensions-1.0.0",
         element_registry=ELEMENT_REGISTRY_VERSION,
         pattern_registry=PATTERN_REGISTRY_VERSION,
+        context_baseline=CONTEXT_BASELINE_VERSION,
     )
     return BehaviorAnalysisResult(elements, patterns, dimensions, quality, versions)
 

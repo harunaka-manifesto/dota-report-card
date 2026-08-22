@@ -61,7 +61,7 @@ class Settings:
     fixture_dir: Path = Path("tests/fixtures/opendota")
     database_url: str = "postgresql+psycopg://dota:dota@localhost:5432/dota_report_card"
     redis_url: str = "redis://localhost:6379/0"
-    model_version: str = "free-dna-model-5.0.0"
+    model_version: str = "free-dna-model-5.1.0"
     template_version: str = "templates-1.0.0"
     role_confidence_threshold: float = 0.60
     analysis_max_concurrency: int = 4

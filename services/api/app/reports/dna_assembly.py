@@ -37,8 +37,8 @@ from app.hero_portfolio.version import (
 )
 from app.share.service import RENDERER_VERSION
 
-REPORT_SCHEMA_VERSION = "free-dna-report-5.0.0"
-REPORT_STORY_VERSION = "free-story-5.0.0"
+REPORT_SCHEMA_VERSION = "free-dna-report-5.1.0"
+REPORT_STORY_VERSION = "free-story-5.1.0"
 
 
 def assemble_free_dna_report_v4(
@@ -84,6 +84,7 @@ def assemble_free_dna_report_v4(
         "behavior_model": behavior.versions.behavior_model,
         "element_registry": behavior.versions.element_registry,
         "pattern_registry": behavior.versions.pattern_registry,
+        "context_baseline": behavior.versions.context_baseline,
         "pattern_ranking": PATTERN_RANKING_VERSION,
         "pattern_actions": PATTERN_ACTIONS_VERSION,
         "hero_taxonomy": _taxonomy_version(portfolio),
@@ -147,6 +148,7 @@ def assemble_free_dna_report_v4(
         "model_version": model_version,
         "element_registry_version": behavior.versions.element_registry,
         "pattern_registry_version": behavior.versions.pattern_registry,
+        "context_baseline_version": behavior.versions.context_baseline,
         "hero_taxonomy_version": _taxonomy_version(portfolio),
         "performance_proxy_version": analysis.features.performance_proxy_version,
         "sessionization_version": analysis.sessions.policy.version,

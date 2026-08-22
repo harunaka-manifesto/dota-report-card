@@ -1,5 +1,5 @@
 {
-  "copy_version": "free-dna-copy-5.0.0",
+  "copy_version": "free-dna-copy-5.1.0",
   "pages": {
     "analysis": {
       "title": "Reading your recent matches.",
@@ -87,7 +87,7 @@
     },
     "late_session_performance": {
       "title": "Drift",
-      "body": "What happens to results later in a session."
+      "body": "How performance moves later in a session against your comparable personal baseline."
     },
     "post_loss_activity_shift": {
       "title": "Tempo",
@@ -95,7 +95,7 @@
     },
     "post_loss_performance_response": {
       "title": "Recovery",
-      "body": "Comparable next-game performance after a loss may drop, hold, or recover."
+      "body": "How the next same-session game after a loss performs against your comparable personal baseline."
     }
   },
   "patterns": {

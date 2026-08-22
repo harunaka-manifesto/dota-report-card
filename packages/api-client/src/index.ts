@@ -32,6 +32,18 @@ export type Confidence = "low" | "moderate" | "high" | "unavailable";
 export type ElementStatus = "available" | "limited" | "unavailable";
 export type PatternStatus = "qualified" | "suppressed" | "unavailable";
 
+export type PatternActionEvidence = {
+  status: "resolved" | "fallback" | "unresolved" | "not_applicable";
+  sample_size: number;
+  effective_sample_size: number;
+  coverage: number;
+  confidence_score: number;
+  independent_group_count: number | null;
+  evidence_keys: string[];
+  limitations: string[];
+  provenance_versions: Record<string, string>;
+};
+
 export type BehaviorElementReceipt = {
   key: string;
   value: number | string | boolean | null;
@@ -89,6 +101,7 @@ export type SamePlaybookAction = {
   confidence_score: number;
   limitations: string[];
   provenance_versions: Record<string, string>;
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type ComfortEdgeReliability = {
@@ -129,6 +142,7 @@ export type ComfortEdgeAction = {
   confidence_score: number;
   limitations: string[];
   provenance_versions: Record<string, string>;
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type ObservedDifference = {
@@ -138,6 +152,7 @@ export type ObservedDifference = {
   effect_size: number | null;
   confidence_score: number;
   player_facing_claim: string;
+  coverage?: number;
 };
 
 export type CapabilityHypothesis = {
@@ -160,6 +175,7 @@ export type PartialTransferDiagnostic = {
   confidence_score: number;
   limitations: string[];
   deep_analysis_eligible: boolean;
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type HeroJobMap = {
@@ -196,6 +212,7 @@ export type VersatileCoreAction = {
   alternative_additions: HeroAdditionRecommendation[];
   confidence_score: number;
   limitations: string[];
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type ProvenFlexibilityAction = {
@@ -218,6 +235,7 @@ export type ProvenFlexibilityAction = {
   distribution_quality: number | null;
   confidence_score: number;
   limitations: string[];
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type RecoveryContext = {
@@ -241,6 +259,7 @@ export type BouncebackAction = {
   fallback_level: "hero" | "function" | "role" | "overall";
   confidence_score: number;
   limitations: string[];
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type PerformanceSlideAction = {
@@ -250,6 +269,7 @@ export type PerformanceSlideAction = {
   fallback_level: "hero" | "function" | "role" | "overall";
   confidence_score: number;
   limitations: string[];
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type PresenceContext = {
@@ -271,6 +291,7 @@ export type ControlledPresenceAction = {
   fallback_level: "hero" | "function" | "role" | "overall";
   confidence_score: number;
   limitations: string[];
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type PresenceTaxAction = {
@@ -281,6 +302,7 @@ export type PresenceTaxAction = {
   deep_analysis_candidate: boolean;
   confidence_score: number;
   limitations: string[];
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type SessionCurvePoint = {
@@ -302,6 +324,7 @@ export type SessionCurveAction = {
   independent_session_count: number;
   confidence_score: number;
   limitations: string[];
+  evidence_summary?: PatternActionEvidence | null;
 };
 
 export type PatternAction = SamePlaybookAction | ComfortEdgeAction | PartialTransferDiagnostic | VersatileCoreAction | ProvenFlexibilityAction | BouncebackAction | PerformanceSlideAction | ControlledPresenceAction | PresenceTaxAction | SessionCurveAction;
@@ -319,6 +342,8 @@ export type BehaviorPattern = {
   evidence_coverage: number;
   qualification_quality: number;
   element_keys: string[];
+  qualification_element_keys?: string[];
+  qualification_clause_index?: number | null;
   modifier_element_keys: string[];
   family: string;
   tier: "A" | "B";
@@ -549,12 +574,13 @@ export type Reproducibility = {
   effective_sample_size: number;
   recency_config: { half_life_days: number; version: string };
   session_gap_config: { gap_minutes: number; clock_tolerance_seconds: number };
+  context_baseline_version?: string;
 };
 
 export type FreeDnaReportV4 = {
   report_id: string | null;
   // v4 remains readable for already-persisted reports; new reports are v5.
-  schema_version: "free-dna-report-4.0.0" | "free-dna-report-5.0.0";
+  schema_version: "free-dna-report-4.0.0" | "free-dna-report-5.0.0" | "free-dna-report-5.1.0";
   report_variant: "free_dna_report";
   noindex: true;
   identity: {
@@ -600,6 +626,7 @@ export type FreeDnaReportV4 = {
     performance_proxy?: string;
     recency_weighting?: string;
     sessionization?: string;
+    context_baseline?: string;
   };
   reproducibility?: Reproducibility;
   quality: {

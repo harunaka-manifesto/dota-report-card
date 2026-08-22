@@ -59,6 +59,7 @@ class VersionMapV5Schema(PublicModel):
     performance_proxy: str
     recency_weighting: str
     sessionization: str
+    context_baseline: str = "context-baseline-0.0.0"
 
 
 class ReproducibilityConfigSchema(PublicModel):
@@ -95,6 +96,7 @@ class ReproducibilitySchema(PublicModel):
     effective_sample_size: float = Field(ge=0)
     recency_config: ReproducibilityConfigSchema
     session_gap_config: SessionGapConfigSchema
+    context_baseline_version: str = "context-baseline-0.0.0"
 
 
 class QualitySchema(PublicModel):
@@ -120,6 +122,18 @@ class BehaviorReceiptSchema(PublicModel):
 
 
 BehaviorConfidence = Literal["low", "moderate", "high", "unavailable"]
+
+
+class PatternActionEvidenceSchema(PublicModel):
+    status: Literal["resolved", "fallback", "unresolved", "not_applicable"] = "unresolved"
+    sample_size: int = Field(default=0, ge=0)
+    effective_sample_size: float = Field(default=0.0, ge=0)
+    coverage: float = Field(default=0.0, ge=0, le=1)
+    confidence_score: float = Field(default=0.0, ge=0, le=1)
+    independent_group_count: int | None = Field(default=None, ge=0)
+    evidence_keys: list[str] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
+    provenance_versions: dict[str, str] = Field(default_factory=dict)
 
 
 class BehaviorElementSchema(PublicModel):
@@ -169,6 +183,7 @@ class SamePlaybookActionSchema(PublicModel):
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
     provenance_versions: dict[str, str]
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 class ComfortEdgeReliabilitySchema(PublicModel):
@@ -209,6 +224,7 @@ class ComfortEdgeActionSchema(PublicModel):
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
     provenance_versions: dict[str, str]
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 class ObservedDifferenceSchema(PublicModel):
@@ -218,6 +234,7 @@ class ObservedDifferenceSchema(PublicModel):
     effect_size: float | None = None
     confidence_score: float = Field(ge=0, le=1)
     player_facing_claim: str
+    coverage: float = Field(default=0.0, ge=0, le=1)
 
 
 class CapabilityHypothesisSchema(PublicModel):
@@ -240,6 +257,7 @@ class PartialTransferDiagnosticSchema(PublicModel):
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
     deep_analysis_eligible: bool
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 class HeroJobMapSchema(PublicModel):
@@ -281,6 +299,7 @@ class VersatileCoreActionSchema(PublicModel):
     alternative_additions: list[HeroAdditionRecommendationSchema] = Field(max_length=2)
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 class ProvenFlexibilityActionSchema(PublicModel):
@@ -303,6 +322,7 @@ class ProvenFlexibilityActionSchema(PublicModel):
     distribution_quality: float | None = Field(default=None, ge=0, le=1)
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 class RecoveryContextSchema(PublicModel):
@@ -326,6 +346,7 @@ class BouncebackActionSchema(PublicModel):
     fallback_level: Literal["hero", "function", "role", "overall"]
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 class PerformanceSlideActionSchema(PublicModel):
@@ -335,6 +356,7 @@ class PerformanceSlideActionSchema(PublicModel):
     fallback_level: Literal["hero", "function", "role", "overall"]
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 class PresenceContextSchema(PublicModel):
@@ -356,6 +378,7 @@ class ControlledPresenceActionSchema(PublicModel):
     fallback_level: Literal["hero", "function", "role", "overall"]
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 class PresenceTaxActionSchema(PublicModel):
@@ -366,6 +389,7 @@ class PresenceTaxActionSchema(PublicModel):
     deep_analysis_candidate: bool
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 class SessionCurvePointSchema(PublicModel):
@@ -387,6 +411,7 @@ class SessionCurveActionSchema(PublicModel):
     independent_session_count: int = Field(ge=0)
     confidence_score: float = Field(ge=0, le=1)
     limitations: list[str]
+    evidence_summary: PatternActionEvidenceSchema | None = None
 
 
 PatternActionSchema = Annotated[
@@ -417,6 +442,8 @@ class BehaviorPatternSchema(PublicModel):
     evidence_coverage: float = Field(ge=0, le=1)
     qualification_quality: float = Field(ge=0, le=1)
     element_keys: list[str] = Field(min_length=2)
+    qualification_element_keys: list[str] = Field(default_factory=list)
+    qualification_clause_index: int | None = Field(default=None, ge=0)
     modifier_element_keys: list[str] = Field(default_factory=list)
     family: str
     tier: Literal["A", "B"]
@@ -609,7 +636,7 @@ class CostSchema(PublicModel):
 
 class FreeDnaReportV4Schema(PublicModel):
     report_id: str | None = None
-    schema_version: Literal["free-dna-report-5.0.0"]
+    schema_version: Literal["free-dna-report-5.0.0", "free-dna-report-5.1.0"]
     report_variant: Literal["free_dna_report"]
     noindex: Literal[True]
     identity: IdentitySchema
@@ -670,6 +697,8 @@ class FreeDnaReportV4Schema(PublicModel):
         for pattern in self.patterns:
             if not set(pattern.element_keys).issubset(element_keys):
                 raise ValueError(f"Pattern {pattern.key} references an unknown required Element")
+            if not set(pattern.qualification_element_keys).issubset(pattern.element_keys):
+                raise ValueError(f"Pattern {pattern.key} exposes an unknown qualification Element")
             if not set(pattern.modifier_element_keys).issubset(element_keys):
                 raise ValueError(f"Pattern {pattern.key} references an unknown modifier Element")
             if set(pattern.element_keys) & set(pattern.modifier_element_keys):

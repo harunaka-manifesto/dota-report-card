@@ -11,6 +11,8 @@ from app.api.report_schemas import (
     VersatileCoreActionSchema,
 )
 from app.behavior.actions import (
+    _p03_claim,
+    _p03_signal_coverage,
     build_bounceback_action,
     build_comfort_edge_action,
     build_controlled_presence_action,
@@ -19,6 +21,7 @@ from app.behavior.actions import (
     build_presence_tax_action,
     build_proven_flexibility_action,
     build_same_playbook_action,
+    build_session_curve_action,
     build_versatile_core_action,
 )
 from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
@@ -131,7 +134,7 @@ def test_same_playbook_action_round_trips_through_public_pattern_schema() -> Non
             "story_eligibility": "eligible",
             "story_blockers": [],
             "suppression_reasons": [],
-            "methodology_version": "free-patterns-5.0.0",
+            "methodology_version": "free-patterns-5.1.0",
             "action": action.as_dict(),
         }
     )
@@ -175,6 +178,81 @@ def test_new_p03_p04_p05_actions_round_trip_through_public_schemas() -> None:
     ProvenFlexibilityActionSchema.model_validate(proven_flexibility.as_dict())
     assert proven_flexibility.window_start is not None
     assert proven_flexibility.window_end is not None
+
+
+def test_every_reviewed_action_exposes_the_common_evidence_envelope() -> None:
+    rows = _matches()
+    taxonomy = _taxonomy()
+    actions = (
+        build_same_playbook_action(rows, taxonomy),
+        build_comfort_edge_action(rows, taxonomy),
+        build_partial_transfer_action(rows, taxonomy),
+        build_versatile_core_action(rows, taxonomy),
+        build_proven_flexibility_action(rows, taxonomy),
+        build_bounceback_action(rows, taxonomy),
+        build_performance_slide_action(rows, taxonomy),
+        build_controlled_presence_action(rows, taxonomy),
+        build_presence_tax_action(rows, taxonomy),
+        build_session_curve_action(rows, taxonomy, direction="fade"),
+        build_session_curve_action(rows, taxonomy, direction="rise"),
+    )
+    for action in actions:
+        assert action.evidence_summary is not None
+        assert action.evidence_summary.status in {"resolved", "fallback", "unresolved", "not_applicable"}
+        assert action.evidence_summary.provenance_versions["pattern_actions"]
+        assert "evidence_summary" in action.as_dict()
+
+
+def _transfer_rows(*, per_hero: int = 15, off_pool_deaths: int = 10):
+    rows = []
+    index = 0
+    for hero_id in (4, 1, 2, 3):
+        for _ in range(per_hero):
+            rows.append(
+                {
+                    "match_id": 850_000 + index,
+                    "start_time": 1_700_000_000 + index * 3_600,
+                    "duration": 1_800,
+                    "hero_id": hero_id,
+                    "player_slot": 0,
+                    "radiant_win": True,
+                    "game_mode": 1,
+                    "lobby_type": 0,
+                    "kills": 6,
+                    "deaths": off_pool_deaths if hero_id == 4 else 1,
+                    "assists": 6,
+                    "lane_role": 3,
+                }
+            )
+            index += 1
+    return normalize_summary_rows(rows, account_id=42).matches
+
+
+def test_p03_direct_signal_requires_sample_confidence_coverage_and_keeps_death_copy_literal() -> None:
+    action = build_partial_transfer_action(_transfer_rows(), _taxonomy())
+    assert action.status == "direct_signal"
+    assert action.summary_differences
+    assert any(item.signal_key == "death_exposure" for item in action.summary_differences)
+    assert all("survivability" not in item.player_facing_claim for item in action.summary_differences)
+    assert all("positioning" not in item.player_facing_claim for item in action.summary_differences)
+
+    sample_limited = build_partial_transfer_action(_transfer_rows(per_hero=9), _taxonomy())
+    assert not sample_limited.summary_differences
+
+    confidence_limited = build_partial_transfer_action(_transfer_rows(per_hero=12), _taxonomy())
+    assert not confidence_limited.summary_differences
+
+    assert _p03_signal_coverage(9, 20, 20, 20) == 0.45
+    assert _p03_signal_coverage(10, 10, 10, 10) == 1.0
+
+
+def test_p03_claims_are_evidence_literal_for_each_direct_signal() -> None:
+    claims = {
+        key: _p03_claim(key, 0.4)
+        for key in ("death_exposure", "combat_involvement", "finisher_orientation", "result_distribution")
+    }
+    assert "death exposure" in claims["death_exposure"]
+    assert all(word not in claim.lower() for claim in claims.values() for word in ("tilt", "mental weakness", "positioning"))
 
 
 def test_recovery_actions_do_not_bridge_invalid_session_rows() -> None:

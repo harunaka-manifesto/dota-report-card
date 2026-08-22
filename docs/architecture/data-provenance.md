@@ -38,3 +38,10 @@ only; when those snapshots do not clear their confidence gate, the report
 emits a useful situation and an explicit limitation instead of inventing named
 examples. The action provenance versions are included in the Free analysis
 fingerprint.
+
+Drift, Recovery, and their session-aware actions use the same versioned
+leave-group-out comparable-baseline resolver. It reports the selected fallback
+level and reference sample, excludes the target session, and is included in
+report reproducibility metadata as `context_baseline_version`. Recovery's final
+delta is clustered once per independent session before the recency-weighted
+aggregate is calculated.

@@ -11,8 +11,8 @@ The human-readable model decisions live in [Elements](elements.md),
 
 | Registry | Version | Active count |
 | --- | --- | --- |
-| Free Elements | free-elements-5.0.0 | 18 |
-| Free Patterns | free-patterns-5.0.0 | 11 |
+| Free Elements | free-elements-5.1.0 | 18 |
+| Free Patterns | free-patterns-5.1.0 | 11 |
 
 ## Free Elements
 

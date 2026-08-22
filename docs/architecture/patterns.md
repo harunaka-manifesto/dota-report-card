@@ -1,7 +1,7 @@
 # Patterns
 
 Patterns are reviewed relationships among public Element results. The active
-registry is `free-patterns-5.0.0` and contains exactly 11 active Patterns. A Pattern
+registry is `free-patterns-5.1.0` and contains exactly 11 active Patterns. A Pattern
 does not mine normalized rows again: it consumes the upstream Element result,
 its named zone, confidence, coverage, quality, receipts, and confounders.
 
@@ -19,17 +19,21 @@ That evidence-weighted `strength` is calculated once. The v5 ranking layer
 does not multiply confidence or coverage into it again. Ranking adds only an
 inspectable novelty adjustment, a close-Tier-A tie preference, and a small
 same-family redundancy penalty. Required Elements gate qualification from
-registry-owned zone clauses; modifier Elements add context and never silently
-become gates. A qualified Pattern also exposes `story_eligibility` and
+registry-owned zone clauses; every selected clause Element must be available,
+scored, meet its own registry minimum coverage, and have confidence at least
+0.45. Modifier Elements add context and never silently become gates. A qualified Pattern also exposes `story_eligibility` and
 `story_blockers`, so a blocking confounder cannot enter the Free story merely
 because its numeric strength is large.
 
-Every Pattern is unavailable when a required Element is unavailable or has no
-score, suppressed when a required Element is below the 0.45 confidence gate,
-and suppressed when its reviewed zone relationship is not met. A blocking
-confounder also excludes it; informational confounders remain visible in the
-receipt and limitations. `qualification_quality` is the mean quality of the
-required Elements and `evidence_coverage` is the weakest required coverage.
+Every Pattern is unavailable when a selected qualification Element is
+unavailable or has no score, suppressed when selected coverage is below the
+Element registry gate or selected confidence is below 0.45, and suppressed when
+its reviewed zone relationship is not met. A blocking confounder also excludes
+it; informational confounders remain visible in the receipt and limitations.
+`qualification_element_keys` identifies the authoritative clause. For P06/P07,
+the winning Recovery + Familiarity or Recovery + Tempo branch alone supplies
+confidence, coverage, quality, receipts, blockers, and strength; ties use
+confidence, coverage, relationship sum, then registry clause order.
 
 ## Owner catalog
 
@@ -98,3 +102,9 @@ Reviewed action modules cover the active P01–P11 set:
 
 Actions are server-owned immutable report data. React renders them and never
 recomputes hero rankings from taxonomy fields.
+
+Every action also exposes an additive `evidence_summary` envelope with
+resolution status, sample/effective sample, coverage, confidence, independent
+group count where relevant, limitations, evidence keys, and provenance
+versions. A qualified Pattern remains qualified when its action falls back or
+is unresolved.

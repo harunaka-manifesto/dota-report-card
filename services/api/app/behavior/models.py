@@ -7,8 +7,10 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, Literal
 
+from app.behavior.context_baseline import CONTEXT_BASELINE_VERSION
 from app.behavior.evidence import BehaviorEvidence
 from app.behavior.tiers import DataCapability, EvidenceTier, ModelStatus, ProductTier
+from app.hero_portfolio.version import PATTERN_ACTIONS_VERSION
 
 Confidence = Literal["low", "moderate", "high", "unavailable"]
 ElementStatus = Literal["available", "limited", "unavailable"]
@@ -65,7 +67,7 @@ class ElementResult:
     confounders: tuple[str, ...] = ()
     blocking_confounders: tuple[str, ...] = ()
     missing_reasons: tuple[str, ...] = ()
-    methodology_version: str = "element-5.0.0"
+    methodology_version: str = "element-5.1.0"
     axis_left: str | None = None
     axis_right: str | None = None
     source_match_ids: tuple[int, ...] = ()
@@ -161,6 +163,137 @@ class PatternDefinition:
 
 
 @dataclass(frozen=True, slots=True)
+class PatternActionEvidence:
+    """The additive evidence receipt shared by every Pattern action.
+
+    Action-specific payloads remain intentionally different.  This envelope
+    gives callers one stable place to read resolution semantics and the core
+    evidence dimensions without erasing those payloads.
+    """
+
+    status: PatternActionResolutionStatus = "unresolved"
+    sample_size: int = 0
+    effective_sample_size: float = 0.0
+    coverage: float = 0.0
+    confidence_score: float = 0.0
+    independent_group_count: int | None = None
+    evidence_keys: tuple[str, ...] = ()
+    limitations: tuple[str, ...] = ()
+    provenance_versions: Mapping[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.sample_size < 0:
+            raise ValueError("Pattern action sample_size must be non-negative")
+        if self.effective_sample_size < 0:
+            raise ValueError("Pattern action effective_sample_size must be non-negative")
+        if not 0.0 <= self.coverage <= 1.0:
+            raise ValueError("Pattern action coverage must be within [0, 1]")
+        if not 0.0 <= self.confidence_score <= 1.0:
+            raise ValueError("Pattern action confidence_score must be within [0, 1]")
+        if self.independent_group_count is not None and self.independent_group_count < 0:
+            raise ValueError("Pattern action independent_group_count must be non-negative")
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "sample_size": self.sample_size,
+            "effective_sample_size": round(self.effective_sample_size, 6),
+            "coverage": round(self.coverage, 6),
+            "confidence_score": round(self.confidence_score, 6),
+            "independent_group_count": self.independent_group_count,
+            "evidence_keys": list(self.evidence_keys),
+            "limitations": list(self.limitations),
+            "provenance_versions": dict(self.provenance_versions),
+        }
+
+
+def _action_resolution_status(action: Any) -> PatternActionResolutionStatus:
+    raw_status = getattr(action, "status", None)
+    if raw_status in {"resolved", "fallback", "unresolved", "not_applicable"}:
+        return raw_status
+    if raw_status in {
+        "available",
+        "direct_signal",
+        "peak_window",
+        "no_obvious_gap",
+        "coverage_plus_recommendation",
+        "coverage_plus_alternatives",
+    }:
+        return "resolved"
+    if raw_status in {
+        "limited",
+        "capability_hypothesis",
+        "deep_candidate",
+        "distributed_flexibility",
+        "coverage_only",
+    }:
+        return "fallback"
+    if getattr(action, "shape", None) == "unresolved":
+        return "unresolved"
+    if getattr(action, "shape", None) in {"job_shaped", "hero_specific", "cross_context"}:
+        return "resolved"
+    if getattr(action, "strongest_context", None) is not None:
+        return "fallback" if getattr(action, "fallback_level", "hero") != "hero" else "resolved"
+    if getattr(action, "strongest_contexts", ()):
+        return "resolved"
+    return "unresolved"
+
+
+def _default_action_evidence(action: Any) -> PatternActionEvidence:
+    """Build a conservative envelope for legacy action constructors.
+
+    Builders may provide a more precise envelope, but the default keeps all
+    existing constructor call sites and historical payloads compatible.
+    """
+
+    action_type = getattr(action, "action_type", "pattern_action")
+    contexts = tuple(
+        item
+        for name in ("comparison_contexts", "comparison_rows", "strongest_contexts")
+        for item in getattr(action, name, ())
+    )
+    strongest = getattr(action, "strongest_context", None)
+    if strongest is not None:
+        contexts = (strongest, *contexts)
+    differences = getattr(action, "summary_differences", ())
+    samples = [
+        int(getattr(action, "total_games", 0) or 0),
+        int(getattr(action, "sample_size", 0) or 0),
+        sum(int(getattr(item, "sample_size", 0) or 0) for item in contexts),
+        sum(int(getattr(item, "matches", 0) or 0) for item in getattr(action, "ranked_heroes", ())),
+        sum(int(getattr(item, "sample_size", 0) or 0) for item in getattr(action, "curve", ())),
+    ]
+    sample_size = max(samples, default=0)
+    if differences:
+        coverage = min(float(getattr(item, "coverage", 0.0)) for item in differences)
+    else:
+        coverage = 1.0 if sample_size else 0.0
+    confidence = float(getattr(action, "confidence_score", 0.0) or 0.0)
+    independent = getattr(action, "independent_session_count", None)
+    if independent is None and contexts:
+        independent = max(
+            (int(getattr(item, "session_count", 0) or 0) for item in contexts),
+            default=0,
+        )
+    effective = float(getattr(action, "effective_sample_size", sample_size) or sample_size)
+    provenance_versions = dict(getattr(action, "provenance_versions", {}) or {})
+    provenance_versions.setdefault("pattern_actions", PATTERN_ACTIONS_VERSION)
+    if contexts or action_type in {"bounceback", "performance_slide", "session_fade", "session_rise"}:
+        provenance_versions.setdefault("context_baseline", CONTEXT_BASELINE_VERSION)
+    return PatternActionEvidence(
+        status=_action_resolution_status(action),
+        sample_size=sample_size,
+        effective_sample_size=effective,
+        coverage=max(0.0, min(1.0, coverage)),
+        confidence_score=max(0.0, min(1.0, confidence)),
+        independent_group_count=independent,
+        evidence_keys=(f"pattern_action.{action_type}",),
+        limitations=tuple(getattr(action, "limitations", ()) or ()),
+        provenance_versions=provenance_versions,
+    )
+
+
+@dataclass(frozen=True, slots=True)
 class PatternHeroRecommendation:
     """One explainable, taxonomy-backed P01 hero recommendation."""
 
@@ -207,6 +340,11 @@ class SamePlaybookAction:
     confidence_score: float
     limitations: tuple[str, ...] = ()
     provenance_versions: Mapping[str, str] = field(default_factory=dict)
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -219,6 +357,7 @@ class SamePlaybookAction:
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
             "provenance_versions": dict(self.provenance_versions),
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -294,6 +433,11 @@ class ComfortEdgeAction:
     confidence_score: float
     limitations: tuple[str, ...] = ()
     provenance_versions: Mapping[str, str] = field(default_factory=dict)
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -305,6 +449,7 @@ class ComfortEdgeAction:
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
             "provenance_versions": dict(self.provenance_versions),
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -316,6 +461,7 @@ class ObservedDifference:
     effect_size: float | None
     confidence_score: float
     player_facing_claim: str
+    coverage: float = 0.0
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -325,6 +471,7 @@ class ObservedDifference:
             "effect_size": self.effect_size,
             "confidence_score": round(self.confidence_score, 6),
             "player_facing_claim": self.player_facing_claim,
+            "coverage": round(self.coverage, 6),
         }
 
 
@@ -360,6 +507,11 @@ class PartialTransferDiagnostic:
     confidence_score: float
     limitations: tuple[str, ...]
     deep_analysis_eligible: bool
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -373,6 +525,7 @@ class PartialTransferDiagnostic:
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
             "deep_analysis_eligible": self.deep_analysis_eligible,
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -446,6 +599,11 @@ class VersatileCoreAction:
     alternative_additions: tuple[HeroAdditionRecommendation, ...]
     confidence_score: float
     limitations: tuple[str, ...]
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -458,6 +616,7 @@ class VersatileCoreAction:
             "alternative_additions": [item.as_dict() for item in self.alternative_additions],
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -482,6 +641,11 @@ class ProvenFlexibilityAction:
     distribution_quality: float | None
     confidence_score: float
     limitations: tuple[str, ...]
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -504,6 +668,7 @@ class ProvenFlexibilityAction:
             "distribution_quality": round(self.distribution_quality, 6) if self.distribution_quality is not None else None,
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -545,6 +710,11 @@ class BouncebackAction:
     fallback_level: Literal["hero", "function", "role", "overall"]
     confidence_score: float
     limitations: tuple[str, ...]
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -554,6 +724,7 @@ class BouncebackAction:
             "fallback_level": self.fallback_level,
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -565,6 +736,11 @@ class PerformanceSlideAction:
     fallback_level: Literal["hero", "function", "role", "overall"]
     confidence_score: float
     limitations: tuple[str, ...]
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -574,6 +750,7 @@ class PerformanceSlideAction:
             "fallback_level": self.fallback_level,
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -610,6 +787,11 @@ class ControlledPresenceAction:
     fallback_level: Literal["hero", "function", "role", "overall"]
     confidence_score: float
     limitations: tuple[str, ...] = ()
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -620,6 +802,7 @@ class ControlledPresenceAction:
             "fallback_level": self.fallback_level,
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -632,6 +815,11 @@ class PresenceTaxAction:
     deep_analysis_candidate: bool
     confidence_score: float
     limitations: tuple[str, ...] = ()
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -642,6 +830,7 @@ class PresenceTaxAction:
             "deep_analysis_candidate": self.deep_analysis_candidate,
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -675,6 +864,11 @@ class SessionCurveAction:
     independent_session_count: int
     confidence_score: float
     limitations: tuple[str, ...]
+    evidence_summary: PatternActionEvidence | None = None
+
+    def __post_init__(self) -> None:
+        if self.evidence_summary is None:
+            object.__setattr__(self, "evidence_summary", _default_action_evidence(self))
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -688,6 +882,7 @@ class SessionCurveAction:
             "independent_session_count": self.independent_session_count,
             "confidence_score": round(self.confidence_score, 6),
             "limitations": list(self.limitations),
+            "evidence_summary": self.evidence_summary.as_dict() if self.evidence_summary else None,
         }
 
 
@@ -717,11 +912,13 @@ class PatternResult:
     confidence_score: float
     element_keys: tuple[str, ...]
     evidence: tuple[BehaviorEvidence, ...] = ()
+    qualification_element_keys: tuple[str, ...] = ()
+    qualification_clause_index: int | None = None
     effect_metrics: Mapping[str, float | int | str | bool | None] = field(default_factory=dict)
     confounders: tuple[str, ...] = ()
     blocking_confounders: tuple[str, ...] = ()
     suppression_reasons: tuple[str, ...] = ()
-    methodology_version: str = "pattern-5.0.0"
+    methodology_version: str = "pattern-5.1.0"
     diagnostic_questions: tuple[str, ...] = ()
     required_deep_elements: tuple[str, ...] = ()
     modifier_element_keys: tuple[str, ...] = ()
@@ -761,6 +958,8 @@ class PatternResult:
             "evidence_coverage": round(self.evidence_coverage, 6),
             "qualification_quality": round(self.qualification_quality, 6),
             "element_keys": list(self.element_keys),
+            "qualification_element_keys": list(self.qualification_element_keys),
+            "qualification_clause_index": self.qualification_clause_index,
             "modifier_element_keys": list(self.modifier_element_keys),
             "family": self.family,
             "tier": self.tier,
@@ -834,6 +1033,7 @@ class BehaviorVersionMap:
     dimension_registry: str
     element_registry: str
     pattern_registry: str
+    context_baseline: str = "context-baseline-0.0.0"
 
     def as_dict(self) -> dict[str, str]:
         return {
@@ -841,6 +1041,7 @@ class BehaviorVersionMap:
             "dimension_registry": self.dimension_registry,
             "element_registry": self.element_registry,
             "pattern_registry": self.pattern_registry,
+            "context_baseline": self.context_baseline,
         }
 
 

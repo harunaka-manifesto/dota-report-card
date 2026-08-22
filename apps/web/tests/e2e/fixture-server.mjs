@@ -91,7 +91,7 @@ const pages = [
 
 const report = {
   report_id: reportId,
-  schema_version: "free-dna-report-5.0.0",
+  schema_version: "free-dna-report-5.1.0",
   report_variant: "free_dna_report",
   noindex: true,
   identity: { display_name: "Fixture player", avatar_url: null, rank_tier: null },

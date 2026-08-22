@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from app.behavior.models import ElementDefinition
 from app.behavior.tiers import SUMMARY_CAPABILITIES
 
-ELEMENT_REGISTRY_VERSION = "free-elements-5.0.0"
+ELEMENT_REGISTRY_VERSION = "free-elements-5.1.0"
 # All public five-zone Elements use the same half-open score intervals.  The
 # right edge belongs to the next zone, so 0.20 is the first point in zone 2.
 # Keeping the boundary map here makes score → zone a single inspectable rule.

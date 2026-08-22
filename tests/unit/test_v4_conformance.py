@@ -198,9 +198,15 @@ def test_pattern_qualification_uses_reviewed_zones_at_boundaries() -> None:
 def test_every_element_uses_the_same_half_open_zone_boundaries(key: str) -> None:
     labels = ELEMENT_REGISTRY[key].zone_labels
     assert zone_for_score(key, 0.0) == labels[0]
-    for index, boundary in enumerate((0.20, 0.40, 0.60, 0.80)):
-        assert zone_for_score(key, boundary - 1e-9) == labels[index]
-        assert zone_for_score(key, boundary) == labels[index + 1]
+    assert zone_for_score(key, 0.199999) == labels[0]
+    assert zone_for_score(key, 0.20) == labels[1]
+    assert zone_for_score(key, 0.399999) == labels[1]
+    assert zone_for_score(key, 0.40) == labels[2]
+    assert zone_for_score(key, 0.599999) == labels[2]
+    assert zone_for_score(key, 0.60) == labels[3]
+    assert zone_for_score(key, 0.799999) == labels[3]
+    assert zone_for_score(key, 0.80) == labels[4]
+    assert zone_for_score(key, 1.0) == labels[4]
 
 
 def test_pattern_qualification_does_not_trust_a_stale_serialized_zone() -> None:
@@ -267,8 +273,186 @@ def test_pattern_low_confidence_and_low_coverage_are_suppressed() -> None:
     low_coverage = _elements_for_zones({"hero_pool_breadth": "Wide", "toolkit_breadth": "Focused"})
     low_coverage["toolkit_breadth"] = replace(low_coverage["toolkit_breadth"], coverage=0.20)
     result = next(item for item in evaluate_patterns(tuple(low_coverage.values())) if item.key == "same_playbook")
+    assert result.status == "suppressed"
+    assert result.suppression_reasons == ("required_element_coverage_below_gate:toolkit_breadth",)
+
+
+def test_pattern_coverage_uses_the_element_registry_gate_and_preserves_actual_coverage() -> None:
+    values = _elements_for_zones({"hero_pool_breadth": "Focused", "toolkit_breadth": "Versatile"})
+    values["toolkit_breadth"] = replace(values["toolkit_breadth"], coverage=0.80)
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "versatile_core")
     assert result.status == "qualified"
-    assert result.strength < 0.20
+
+    values["toolkit_breadth"] = replace(values["toolkit_breadth"], coverage=0.799999)
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "versatile_core")
+    assert result.status == "suppressed"
+    assert result.suppression_reasons == ("required_element_coverage_below_gate:toolkit_breadth",)
+
+    values = _elements_for_zones({"hero_pool_breadth": "Wide", "toolkit_breadth": "Focused"})
+    values["hero_pool_breadth"] = replace(values["hero_pool_breadth"], coverage=0.20)
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "same_playbook")
+    assert result.status == "qualified"
+    assert result.evidence_coverage == 0.20
+
+
+def test_pattern_gate_does_not_invent_a_floor_for_zero_coverage_elements() -> None:
+    values = _elements_for_zones({"hero_pool_breadth": "Wide", "toolkit_breadth": "Focused"})
+    values["hero_pool_breadth"] = replace(values["hero_pool_breadth"], coverage=0.0)
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "same_playbook")
+    assert result.status == "qualified"
+    assert result.evidence_coverage == 0.0
+
+
+def test_pattern_confidence_gate_accepts_exact_boundary_and_rejects_just_below() -> None:
+    values = _elements_for_zones({"hero_pool_breadth": "Wide", "toolkit_breadth": "Focused"})
+    values["toolkit_breadth"] = replace(values["toolkit_breadth"], confidence_score=0.45)
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "same_playbook")
+    assert result.status == "qualified"
+
+    values["toolkit_breadth"] = replace(values["toolkit_breadth"], confidence_score=0.449999)
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "same_playbook")
+    assert result.status == "suppressed"
+    assert result.suppression_reasons == ("required_element_confidence_below_gate:toolkit_breadth",)
+
+
+@pytest.mark.parametrize(
+    ("key", "recovery_zone", "familiarity_zone", "tempo_zone", "expected_keys", "expected_direction"),
+    (
+        (
+            "bounceback",
+            "Surges",
+            "Returns",
+            "Same",
+            ("post_loss_performance_response", "post_loss_familiarity_shift"),
+            "positive_recovery_with_familiarity",
+        ),
+        (
+            "bounceback",
+            "Surges",
+            "Unchanged",
+            "Speeds up",
+            ("post_loss_performance_response", "post_loss_activity_shift"),
+            "positive_recovery_with_tempo",
+        ),
+        (
+            "performance_slide",
+            "Slips",
+            "Returns",
+            "Same",
+            ("post_loss_performance_response", "post_loss_familiarity_shift"),
+            "negative_recovery_with_familiarity",
+        ),
+        (
+            "performance_slide",
+            "Slips",
+            "Unchanged",
+            "Speeds up",
+            ("post_loss_performance_response", "post_loss_activity_shift"),
+            "negative_recovery_with_tempo",
+        ),
+    ),
+)
+def test_recovery_patterns_record_the_winning_or_clause(
+    key: str,
+    recovery_zone: str,
+    familiarity_zone: str,
+    tempo_zone: str,
+    expected_keys: tuple[str, ...],
+    expected_direction: str,
+) -> None:
+    values = _elements_for_zones(
+        {
+            "post_loss_performance_response": recovery_zone,
+            "post_loss_familiarity_shift": familiarity_zone,
+            "post_loss_activity_shift": tempo_zone,
+        }
+    )
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == key)
+    assert result.status == "qualified"
+    assert result.direction == expected_direction
+    assert result.qualification_element_keys == expected_keys
+    assert result.qualification_clause_index == (0 if expected_keys[-1] == "post_loss_familiarity_shift" else 1)
+    assert len(result.evidence) == 2
+
+
+@pytest.mark.parametrize("key,recovery_zone", (("bounceback", "Surges"), ("performance_slide", "Slips")))
+def test_recovery_or_pattern_suppresses_when_neither_alternative_moves(key: str, recovery_zone: str) -> None:
+    values = _elements_for_zones(
+        {
+            "post_loss_performance_response": recovery_zone,
+            "post_loss_familiarity_shift": "Unchanged",
+            "post_loss_activity_shift": "Same",
+        }
+    )
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == key)
+    assert result.status == "suppressed"
+    assert result.suppression_reasons == ("relationship_zone_not_met",)
+
+
+@pytest.mark.parametrize("key,recovery_zone", (("bounceback", "Surges"), ("performance_slide", "Slips")))
+def test_recovery_or_pattern_ignores_weak_or_blocked_unused_branch(key: str, recovery_zone: str) -> None:
+    baseline = _elements_for_zones(
+        {
+            "post_loss_performance_response": recovery_zone,
+            "post_loss_familiarity_shift": "Returns",
+            "post_loss_activity_shift": "Same",
+        }
+    )
+    baseline_result = next(item for item in evaluate_patterns(tuple(baseline.values())) if item.key == key)
+
+    weak_unused = dict(baseline)
+    weak_unused["post_loss_activity_shift"] = replace(
+        weak_unused["post_loss_activity_shift"], confidence_score=0.20, coverage=0.01
+    )
+    weak_result = next(item for item in evaluate_patterns(tuple(weak_unused.values())) if item.key == key)
+    assert weak_result.status == "qualified"
+    assert weak_result.qualification_element_keys == baseline_result.qualification_element_keys
+    assert weak_result.confidence_score == baseline_result.confidence_score
+    assert weak_result.evidence_coverage == baseline_result.evidence_coverage
+    assert weak_result.qualification_quality == baseline_result.qualification_quality
+    assert weak_result.strength == baseline_result.strength
+    assert weak_result.blocking_confounders == ()
+
+    blocked_unused = dict(baseline)
+    blocked_unused["post_loss_activity_shift"] = replace(
+        blocked_unused["post_loss_activity_shift"], blocking_confounders=("fixture_block",)
+    )
+    blocked_result = next(item for item in evaluate_patterns(tuple(blocked_unused.values())) if item.key == key)
+    assert blocked_result.status == "qualified"
+    assert blocked_result.blocking_confounders == ()
+
+
+def test_recovery_or_pattern_prefers_the_stronger_qualifying_branch() -> None:
+    values = _elements_for_zones(
+        {
+            "post_loss_performance_response": "Surges",
+            "post_loss_familiarity_shift": "Returns",
+            "post_loss_activity_shift": "Speeds up",
+        }
+    )
+    values["post_loss_familiarity_shift"] = replace(values["post_loss_familiarity_shift"], confidence_score=0.46)
+    values["post_loss_activity_shift"] = replace(values["post_loss_activity_shift"], confidence_score=0.90)
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "bounceback")
+    assert result.status == "qualified"
+    assert result.qualification_element_keys == (
+        "post_loss_performance_response",
+        "post_loss_activity_shift",
+    )
+    assert result.direction == "positive_recovery_with_tempo"
+
+
+def test_recovery_or_pattern_reports_confidence_failure_for_a_zone_matching_weak_branch() -> None:
+    values = _elements_for_zones(
+        {
+            "post_loss_performance_response": "Surges",
+            "post_loss_familiarity_shift": "Returns",
+            "post_loss_activity_shift": "Same",
+        }
+    )
+    values["post_loss_familiarity_shift"] = replace(values["post_loss_familiarity_shift"], confidence_score=0.449999)
+    result = next(item for item in evaluate_patterns(tuple(values.values())) if item.key == "bounceback")
+    assert result.status == "suppressed"
+    assert result.suppression_reasons == ("required_element_confidence_below_gate:post_loss_familiarity_shift",)
 
 
 def test_pattern_ranking_does_not_double_count_confidence_or_coverage() -> None:

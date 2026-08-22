@@ -1,6 +1,10 @@
 from app.behavior.catalog import validate_behavior_catalog
 from app.behavior.elements.registry import ELEMENT_REGISTRY, EXPECTED_ELEMENT_KEYS
-from app.behavior.patterns.registry import EXPECTED_PATTERN_KEYS, PATTERN_REGISTRY
+from app.behavior.patterns.registry import (
+    EXPECTED_PATTERN_KEYS,
+    PATTERN_REGISTRY,
+    RETIRED_PATTERN_KEYS,
+)
 
 
 def test_v5_catalog_contains_exactly_18_elements_and_11_patterns() -> None:
@@ -33,3 +37,12 @@ def test_recovery_and_directional_post_loss_patterns_are_active() -> None:
     assert "post_loss_performance_response" in ELEMENT_REGISTRY
     assert {"bounceback", "performance_slide"} <= set(PATTERN_REGISTRY)
     assert {"loss_response", "stable_style", "selective_closer", "heavy_exposure"}.isdisjoint(PATTERN_REGISTRY)
+
+
+def test_retired_pattern_keys_are_reserved_and_zone_contracts_are_canonical() -> None:
+    assert not set(RETIRED_PATTERN_KEYS) & set(PATTERN_REGISTRY)
+    for pattern in PATTERN_REGISTRY.values():
+        assert pattern.zone_clauses
+        for clause in pattern.zone_clauses:
+            for element_key, zones in clause:
+                assert set(zones).issubset(set(ELEMENT_REGISTRY[element_key].zone_labels))

@@ -10,6 +10,7 @@ from app.behavior.models import (
     BehaviorQualitySummary,
     DimensionSummary,
     ElementResult,
+    PatternActionEvidence,
     PatternResult,
 )
 
@@ -26,6 +27,7 @@ __all__ = [
     "BehaviorQualitySummary",
     "DimensionSummary",
     "ElementResult",
+    "PatternActionEvidence",
     "PatternResult",
     "analyze_behavior",
 ]

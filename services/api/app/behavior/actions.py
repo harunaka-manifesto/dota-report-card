@@ -15,6 +15,11 @@ from math import log
 from statistics import median
 from typing import Any, Literal
 
+from app.behavior.context_baseline import (
+    CONTEXT_BASELINE_VERSION,
+    primary_function,
+    resolve_leave_group_out_baseline,
+)
 from app.behavior.models import (
     ActionStatus,
     BouncebackAction,
@@ -28,6 +33,7 @@ from app.behavior.models import (
     HeroJobMap,
     ObservedDifference,
     PartialTransferDiagnostic,
+    PatternActionEvidence,
     PatternHeroRecommendation,
     PatternResult,
     PerformanceSlideAction,
@@ -92,6 +98,12 @@ _P03_DIRECT_SIGNALS = (
     ("finisher_orientation", "kill share inside involvement", 0.18),
     ("result_distribution", "win share", 0.20),
 )
+_P03_DIRECT_MIN_CELL_SAMPLE = 10
+# Reuse the existing moderate comparison boundary.  P03 has no separate
+# reviewed numeric confidence calibration, so this is intentionally named and
+# versioned with the action rather than becoming an inline magic number.
+_P03_DIRECT_MIN_COMPARISON_CONFIDENCE = 0.50
+_P03_DIRECT_MIN_COVERAGE = 0.50
 _P03_CAPABILITIES = (
     ("frontline", "sustained frontline commitment"),
     ("micro_intensity", "micro intensity"),
@@ -109,7 +121,6 @@ _PRESENCE_SAFE_LEVEL = 0.40
 _PRESENCE_EXPOSED_LEVEL = 0.60
 _HIGH_CONTACT_FUNCTIONS = frozenset({"initiation", "frontline", "teamfight"})
 _RECOVERY_ACTION_MIN_EFFECT = 0.04
-_RECOVERY_ACTION_FUNCTION_TRAITS = _JOB_TRAITS
 
 _PROVENANCE_KEYS = {
     "pattern_actions": PATTERN_ACTIONS_VERSION,
@@ -120,6 +131,40 @@ _PROVENANCE_KEYS = {
     "hero_synergies": HERO_SYNERGIES_VERSION,
     "hero_situations": HERO_SITUATIONS_VERSION,
 }
+
+
+def _action_evidence(
+    *,
+    status: Literal["resolved", "fallback", "unresolved", "not_applicable"],
+    sample_size: int,
+    confidence_score: float,
+    coverage: float,
+    effective_sample_size_value: float | None = None,
+    independent_group_count: int | None = None,
+    evidence_keys: tuple[str, ...] = (),
+    limitations: tuple[str, ...] = (),
+    baseline: bool = False,
+    provenance_versions: dict[str, str] | None = None,
+) -> PatternActionEvidence:
+    versions = {"pattern_actions": PATTERN_ACTIONS_VERSION}
+    if baseline:
+        versions["context_baseline"] = CONTEXT_BASELINE_VERSION
+    if provenance_versions:
+        versions.update(provenance_versions)
+    return PatternActionEvidence(
+        status=status,
+        sample_size=max(0, sample_size),
+        effective_sample_size=max(
+            0.0,
+            float(effective_sample_size_value if effective_sample_size_value is not None else sample_size),
+        ),
+        coverage=max(0.0, min(1.0, coverage)),
+        confidence_score=max(0.0, min(1.0, confidence_score)),
+        independent_group_count=independent_group_count,
+        evidence_keys=evidence_keys,
+        limitations=limitations,
+        provenance_versions=versions,
+    )
 
 
 def attach_pattern_actions(
@@ -199,6 +244,14 @@ def build_session_curve_action(
         ordered_groups[0] = ordered_groups[0][1:] or []
     ordered_groups = [rows for rows in ordered_groups if rows]
     window_end = max((item.started_at or 0 for item in matches), default=0)
+    weights_by_match = {
+        item.match_id: (
+            recency_weight(item.started_at, window_end=window_end)
+            if item.started_at is not None and window_end
+            else 1.0
+        )
+        for item in matches
+    }
     session_records: dict[str, dict[str, list[float]]] = {}
     session_starts: dict[str, int] = {}
     session_all_rows = {session_id: rows for session_id, rows in grouped.items()}
@@ -216,15 +269,17 @@ def build_session_curve_action(
             bucket = _session_bucket(position)
             if bucket == "G1" and session_id == left_censored_session_id:
                 continue
-            baseline = _leave_session_baseline(
-                item,
-                outside,
-                values,
-                taxonomy,
-                window_end=window_end,
+            resolution = resolve_leave_group_out_baseline(
+                target=item,
+                candidate_rows=outside,
+                performance_by_match=values,
+                taxonomy=taxonomy,
+                weights_by_match=weights_by_match,
+                exclusion_group_id=session_id,
             )
-            if baseline is None:
+            if resolution is None:
                 continue
+            baseline = resolution.value
             records.setdefault(bucket, []).append(values[item.match_id] - baseline)
         if records:
             session_records[session_id] = records
@@ -293,6 +348,16 @@ def build_session_curve_action(
             "The curve is relative to comparable summary-history performance and is balanced by independent sessions.",
             "It does not establish fatigue, warm-up, momentum, focus, or a recommended stopping point.",
         ),
+        evidence_summary=_action_evidence(
+            status=status,
+            sample_size=sum(item.sample_size for item in curve),
+            effective_sample_size_value=float(supported_sessions),
+            coverage=len(supported_curve) / len(SESSION_BUCKETS),
+            confidence_score=confidence,
+            independent_group_count=supported_sessions,
+            evidence_keys=("summary.performance_proxy", "context_baseline", "session_curve"),
+            baseline=True,
+        ),
     )
 
 
@@ -306,60 +371,6 @@ def _session_bucket(position: int) -> str:
     if position == 4:
         return "G4"
     return "G5+"
-
-
-def _leave_session_baseline(
-    item: NormalizedSummaryMatch,
-    outside: Sequence[NormalizedSummaryMatch],
-    values: dict[int, float],
-    taxonomy: HeroTaxonomy,
-    *,
-    window_end: int,
-) -> float | None:
-    """Use hero+role/function, then hero-function, role, and overall."""
-
-    entry = taxonomy.get(item.hero_id)
-    function = _primary_job(entry) if entry is not None and entry.available else None
-
-    candidates = [
-        [
-            row for row in outside
-            if row.role_hint == item.role_hint
-            and row.hero_id == item.hero_id
-            and (
-                function is None
-                or (
-                    (row_entry := taxonomy.get(row.hero_id)) is not None
-                    and _primary_job(row_entry) == function
-                )
-            )
-        ],
-        [
-            row for row in outside
-            if function is not None
-            and (row_entry := taxonomy.get(row.hero_id)) is not None
-            and _primary_job(row_entry) == function
-        ],
-        [row for row in outside if item.role_hint is not None and row.role_hint == item.role_hint],
-        list(outside),
-    ]
-    for rows in candidates:
-        usable = [
-            (
-                values[row.match_id],
-                recency_weight(row.started_at, window_end=window_end)
-                if row.started_at is not None and window_end
-                else 1.0,
-            )
-            for row in rows
-            if row.match_id in values
-        ]
-        if len(usable) >= 3:
-            return weighted_median(
-                [value for value, _weight in usable],
-                [weight for _value, weight in usable],
-            )
-    return None
 
 
 def _session_companion_signals(
@@ -400,7 +411,18 @@ def build_partial_transfer_action(
     for signal_key, _label, minimum_delta in _P03_DIRECT_SIGNALS:
         core_values = _p03_signal_values(core_rows, signal_key)
         off_values = _p03_signal_values(off_rows, signal_key)
-        if len(core_values) < 10 or len(off_values) < 10:
+        coverage = _p03_signal_coverage(
+            len(core_values),
+            len(off_values),
+            len(core_rows),
+            len(off_rows),
+        )
+        if (
+            len(core_values) < _P03_DIRECT_MIN_CELL_SAMPLE
+            or len(off_values) < _P03_DIRECT_MIN_CELL_SAMPLE
+            or row_confidence < _P03_DIRECT_MIN_COMPARISON_CONFIDENCE
+            or coverage < _P03_DIRECT_MIN_COVERAGE
+        ):
             continue
         core_value = median(core_values)
         off_value = median(off_values)
@@ -417,6 +439,7 @@ def build_partial_transfer_action(
                 effect_size=effect_size,
                 confidence_score=row_confidence,
                 player_facing_claim=_p03_claim(signal_key, delta),
+                coverage=coverage,
             )
         )
     direct.sort(key=lambda item: (-float(item.effect_size or 0.0), item.signal_key))
@@ -471,6 +494,10 @@ def build_partial_transfer_action(
     )
     if not core_rows or not off_rows:
         limitations += ("The familiar and off-pool comparison cells are too sparse for a narrower lead.",)
+    action_resolution: Literal["resolved", "fallback", "unresolved", "not_applicable"] = (
+        "resolved" if status == "direct_signal" else "fallback" if status in {"capability_hypothesis", "deep_candidate"} else "unresolved"
+    )
+    direct_coverage = min((item.coverage for item in direct), default=0.0)
     return PartialTransferDiagnostic(
         action_type="partial_transfer",
         status=status,
@@ -482,6 +509,14 @@ def build_partial_transfer_action(
         confidence_score=row_confidence,
         limitations=limitations,
         deep_analysis_eligible=deep_eligible,
+        evidence_summary=_action_evidence(
+            status=action_resolution,
+            sample_size=len(core_rows) + len(off_rows),
+            effective_sample_size_value=float(min(len(core_rows), len(off_rows))),
+            coverage=direct_coverage if direct else (1.0 if core_rows and off_rows else 0.0),
+            confidence_score=row_confidence,
+            evidence_keys=("summary.hero", "summary.kda", "summary.outcome", "summary.time"),
+        ),
     )
 
 
@@ -530,6 +565,14 @@ def build_versatile_core_action(
         alternative_additions=alternatives,
         confidence_score=profile.confidence_score,
         limitations=tuple(limitations),
+        evidence_summary=_action_evidence(
+            status="resolved" if status == "no_obvious_gap" or recommendation is not None else "fallback",
+            sample_size=len(matches),
+            effective_sample_size_value=float(len(matches)),
+            coverage=len(profile.hero_ids) / max(len(matches), 1),
+            confidence_score=profile.confidence_score,
+            evidence_keys=("hero.taxonomy", "hero.pool_profile", "hero.job_coverage"),
+        ),
     )
 
 
@@ -593,6 +636,14 @@ def build_proven_flexibility_action(
         confidence_score=min(1.0, 0.45 * selected["activity_confidence"] + 0.30 * selected["distribution_quality"] + 0.25 * min(1.0, selected["functional_job_count"] / 8.0)),
         limitations=(
             "The selected proof uses a rolling seven-day calendar window and rewards functional breadth, repeated participation, activity, and distribution rather than raw unique-hero count alone.",
+        ),
+        evidence_summary=_action_evidence(
+            status="resolved",
+            sample_size=int(selected["total_games"]),
+            effective_sample_size_value=float(selected["total_games"]),
+            coverage=1.0,
+            confidence_score=min(1.0, 0.45 * selected["activity_confidence"] + 0.30 * selected["distribution_quality"] + 0.25 * min(1.0, selected["functional_job_count"] / 8.0)),
+            evidence_keys=("summary.dated_history", "hero.taxonomy", "hero.functional_jobs"),
         ),
     )
 
@@ -675,7 +726,7 @@ def _p03_signal_values(rows: Sequence[NormalizedSummaryMatch], signal_key: str) 
 def _p03_claim(signal_key: str, delta: float) -> str:
     if signal_key == "death_exposure":
         return (
-            "Your presence transfers. Your survivability does not."
+            "Your presence transfers, but death exposure rises off-pool."
             if delta > 0
             else "Your off-pool games show lower death exposure despite the result gap."
         )
@@ -694,6 +745,20 @@ def _comparison_confidence(
     core_rows: Sequence[NormalizedSummaryMatch], off_rows: Sequence[NormalizedSummaryMatch]
 ) -> float:
     return min(1.0, min(len(core_rows), len(off_rows)) / 25.0)
+
+
+def _p03_signal_coverage(
+    core_usable: int,
+    off_usable: int,
+    core_rows: int,
+    off_rows: int,
+) -> float:
+    """Coverage is usable signal rows divided by each comparison cell."""
+
+    return min(
+        core_usable / max(core_rows, 1),
+        off_usable / max(off_rows, 1),
+    )
 
 
 def _hero_capability_prevalence(
@@ -895,6 +960,14 @@ def _distributed_flexibility_action(
         distribution_quality=_distribution_quality(counts) if counts else None,
         confidence_score=0.0,
         limitations=(reason,),
+        evidence_summary=_action_evidence(
+            status="fallback",
+            sample_size=len(rows),
+            effective_sample_size_value=float(len(rows)),
+            coverage=1.0 if rows else 0.0,
+            confidence_score=0.0,
+            evidence_keys=("summary.dated_history", "hero.taxonomy", "hero.functional_jobs"),
+        ),
     )
 
 
@@ -948,6 +1021,7 @@ def build_bounceback_action(
             "This is a comparable summary-performance breakdown after a loss; it does not infer resilience, confidence, emotion, intent, or a hero causing the result.",
             "Hero and function contexts need their own sample and independent-session gates; otherwise the action falls back to a broader context.",
         ),
+        evidence_summary=_recovery_action_evidence(contexts, strongest, direction="positive"),
     )
 
 
@@ -968,6 +1042,32 @@ def build_performance_slide_action(
             "This is a comparable summary-performance breakdown after a loss; it does not infer tilt, choking, mental weakness, emotion, intent, or a hero causing the result.",
             "Hero and function contexts need their own sample and independent-session gates; otherwise the action falls back to a broader context.",
         ),
+        evidence_summary=_recovery_action_evidence(contexts, strongest, direction="negative"),
+    )
+
+
+def _recovery_action_evidence(
+    contexts: Sequence[RecoveryContext],
+    strongest: RecoveryContext | None,
+    *,
+    direction: Literal["positive", "negative"],
+) -> PatternActionEvidence:
+    del direction  # The common envelope describes evidence, not direction.
+    return _action_evidence(
+        status=(
+            "unresolved"
+            if strongest is None
+            else "fallback"
+            if _recovery_fallback_level(strongest) != "hero"
+            else "resolved"
+        ),
+        sample_size=sum(item.sample_size for item in contexts),
+        effective_sample_size_value=float(sum(item.session_count for item in contexts)),
+        coverage=1.0 if contexts else 0.0,
+        confidence_score=strongest.confidence_score if strongest else 0.0,
+        independent_group_count=sum(item.session_count for item in contexts) if contexts else 0,
+        evidence_keys=("summary.performance_proxy", "context_baseline", "post_loss_transition"),
+        baseline=True,
     )
 
 
@@ -1004,6 +1104,14 @@ def _recovery_action_contexts(
         if item.session_id is not None and not item.session_corrupt:
             sessions.setdefault(item.session_id, []).append(item)
     window_end = max((item.started_at or 0 for item in matches), default=0)
+    weights_by_match = {
+        item.match_id: (
+            recency_weight(item.started_at, window_end=window_end)
+            if item.started_at is not None and window_end
+            else 1.0
+        )
+        for item in matches
+    }
     grouped: dict[tuple[str, int | str], dict[str, Any]] = {}
     for session_id, session_rows in sessions.items():
         ordered = sorted(session_rows, key=lambda item: (item.session_index is None, item.session_index or 0, item.started_at or 0, item.match_id))
@@ -1025,18 +1133,18 @@ def _recovery_action_contexts(
                 or previous.won
             ):
                 continue
-            current_specs = _recovery_action_specs(current, taxonomy)
-            baseline_record = _recovery_leave_session_baseline(
-                current,
-                outside,
-                performance,
-                current_specs,
-                taxonomy,
-                window_end=window_end,
+            resolution = resolve_leave_group_out_baseline(
+                target=current,
+                candidate_rows=outside,
+                performance_by_match=performance,
+                taxonomy=taxonomy,
+                weights_by_match=weights_by_match,
+                exclusion_group_id=session_id,
             )
-            if baseline_record is None:
+            if resolution is None:
                 continue
-            spec, baseline = baseline_record
+            spec = _recovery_spec_for_level(current, taxonomy, resolution.level)
+            baseline = resolution.value
             kind, identity, label, hero_id, function_family, role_context, primary_jobs = spec
             group = grouped.setdefault(
                 (kind, identity),
@@ -1057,16 +1165,54 @@ def _recovery_action_contexts(
         loss_rows = group["records"]
         if not loss_rows:
             continue
-        baseline_values = [baseline for _item, _value, baseline in loss_rows]
-        observed_values = [value for _item, value, _baseline in loss_rows]
-        baseline = median(baseline_values)
-        residuals = [value - row_baseline for _item, value, row_baseline in loss_rows]
-        delta = median(residuals)
-        session_count = len({item.session_id for item, _value, _residual in loss_rows if item.session_id is not None})
+        records_by_session: dict[str, list[tuple[NormalizedSummaryMatch, float, float]]] = {}
+        for record in loss_rows:
+            item, value, row_baseline = record
+            if item.session_id is not None:
+                records_by_session.setdefault(item.session_id, []).append(record)
+        session_deltas: list[float] = []
+        session_weights: list[float] = []
+        session_baselines: list[float] = []
+        session_observed: list[float] = []
+        for _session_id, records in sorted(records_by_session.items()):
+            row_weights = [weights_by_match.get(item.match_id, 1.0) for item, _value, _baseline in records]
+            session_delta = weighted_median(
+                [value - row_baseline for _item, value, row_baseline in records],
+                row_weights,
+            )
+            if session_delta is None:
+                continue
+            session_deltas.append(session_delta)
+            session_weights.append(
+                recency_weight(
+                    min((item.started_at or 0 for item, _value, _baseline in records), default=0),
+                    window_end=window_end,
+                )
+                if window_end
+                else 1.0
+            )
+            session_baselines.append(
+                weighted_median(
+                    [row_baseline for _item, _value, row_baseline in records],
+                    row_weights,
+                )
+                or 0.0
+            )
+            session_observed.append(
+                weighted_median(
+                    [value for _item, value, _baseline in records],
+                    row_weights,
+                )
+                or 0.0
+            )
+        baseline = weighted_median(session_baselines, session_weights) or 0.0
+        observed = weighted_median(session_observed, session_weights) or 0.0
+        delta = weighted_median(session_deltas, session_weights) or 0.0
+        session_count = len(session_deltas)
         kind = str(group["kind"])
         minimum_sample = 15 if kind == "overall" else 8 if kind in {"function", "role"} else 5
         minimum_sessions = 3 if kind != "hero" else 2
-        if len(loss_rows) < minimum_sample or session_count < minimum_sessions or len(baseline_values) < 3:
+        if len(loss_rows) < minimum_sample or session_count < minimum_sessions or len(session_deltas) < 3:
             continue
         if direction == "positive" and delta < _RECOVERY_ACTION_MIN_EFFECT:
             continue
@@ -1076,7 +1222,7 @@ def _recovery_action_contexts(
             1.0,
             min(1.0, len(loss_rows) / 20.0)
             * min(1.0, session_count / 5.0)
-            * min(1.0, len(baseline_values) / 20.0),
+            * min(1.0, len(session_deltas) / 5.0),
         )
         contexts.append(
             RecoveryContext(
@@ -1086,7 +1232,7 @@ def _recovery_action_contexts(
                 role_context=group["role_context"],
                 performance_delta=delta,
                 baseline_performance=baseline,
-                observed_performance=median(observed_values),
+                observed_performance=observed,
                 sample_size=len(loss_rows),
                 session_count=session_count,
                 primary_jobs=tuple(group["primary_jobs"]),
@@ -1104,61 +1250,6 @@ def _recovery_action_contexts(
     return tuple(contexts)
 
 
-def _recovery_leave_session_baseline(
-    current: NormalizedSummaryMatch,
-    outside: Sequence[NormalizedSummaryMatch],
-    performance: dict[int, float],
-    specs: Sequence[tuple[str, int | str, str, int | None, str | None, str | None, tuple[str, ...]]],
-    taxonomy: HeroTaxonomy,
-    *,
-    window_end: int,
-) -> tuple[tuple[str, int | str, str, int | None, str | None, str | None, tuple[str, ...]], float] | None:
-    for spec in specs:
-        candidates = [
-            row
-            for row in outside
-            if _recovery_spec_matches(row, spec, taxonomy) and row.match_id in performance
-        ]
-        if len(candidates) >= 3:
-            weights = [
-                recency_weight(row.started_at, window_end=window_end)
-                if row.started_at is not None and window_end
-                else 1.0
-                for row in candidates
-            ]
-            return spec, weighted_median(
-                [performance[row.match_id] for row in candidates],
-                weights,
-            ) or 0.0
-    return None
-
-
-def _recovery_spec_matches(
-    row: NormalizedSummaryMatch,
-    spec: tuple[str, int | str, str, int | None, str | None, str | None, tuple[str, ...]],
-    taxonomy: HeroTaxonomy,
-) -> bool:
-    kind, identity, _label, hero_id, function_family, role_context, _primary_jobs = spec
-    if kind in {"hero", "hero_role_function"}:
-        if kind == "hero_role_function":
-            row_entry = taxonomy.get(row.hero_id)
-            if (
-                row.role_hint != role_context
-                or function_family is None
-                or row_entry is None
-                or not row_entry.available
-                or _primary_job(row_entry) != function_family
-            ):
-                return False
-        return row.hero_id == hero_id
-    if kind == "function":
-        entry = taxonomy.get(row.hero_id)
-        return entry is not None and _primary_job(entry) == identity
-    if kind == "role":
-        return row.role_hint == role_context
-    return True
-
-
 def _recovery_action_specs(
     item: NormalizedSummaryMatch, taxonomy: HeroTaxonomy
 ) -> tuple[tuple[str, int | str, str, int | None, str | None, str | None, tuple[str, ...]], ...]:
@@ -1166,7 +1257,7 @@ def _recovery_action_specs(
     entry = taxonomy.get(item.hero_id)
     jobs = _hero_jobs(entry) if entry is not None and entry.available else ()
     if entry is not None and entry.available:
-        primary = _primary_job(entry)
+        primary = primary_function(item, taxonomy)
         if primary is not None and item.role_hint:
             specs.append(
                 (
@@ -1179,7 +1270,10 @@ def _recovery_action_specs(
                     jobs,
                 )
             )
-        specs.append(("hero", entry.hero_id, entry.name, entry.hero_id, None, None, jobs))
+        if primary is not None:
+            specs.append(
+                ("hero_function", entry.hero_id, entry.name, entry.hero_id, primary, None, jobs)
+            )
         if primary is not None:
             specs.append(("function", primary, trait_label(primary), None, primary, None, jobs))
     if item.role_hint:
@@ -1188,20 +1282,24 @@ def _recovery_action_specs(
     return tuple(specs)
 
 
+def _recovery_spec_for_level(
+    item: NormalizedSummaryMatch,
+    taxonomy: HeroTaxonomy,
+    level: str,
+) -> tuple[str, int | str, str, int | None, str | None, str | None, tuple[str, ...]]:
+    for spec in _recovery_action_specs(item, taxonomy):
+        if spec[0] == level:
+            return spec
+    entry = taxonomy.get(item.hero_id)
+    return ("overall", "overall", "Overall", None, None, None, _hero_jobs(entry) if entry else ())
+
+
 def _hero_jobs(entry: HeroTaxonomyEntry) -> tuple[str, ...]:
     ranked = sorted(
         ((entry.traits.get(trait, 0.0), trait) for trait in _JOB_TRAITS if entry.traits.get(trait, 0.0) >= 0.60),
         reverse=True,
     )
     return tuple(trait_label(trait) for _value, trait in ranked[:4])
-
-
-def _primary_job(entry: HeroTaxonomyEntry) -> str | None:
-    ranked = sorted(
-        ((entry.traits.get(trait, 0.0), trait) for trait in _RECOVERY_ACTION_FUNCTION_TRAITS),
-        reverse=True,
-    )
-    return ranked[0][1] if ranked and ranked[0][0] >= 0.60 else None
 
 
 def _recovery_specificity(context: RecoveryContext) -> int:
@@ -1240,6 +1338,7 @@ def build_controlled_presence_action(
         return ControlledPresenceAction(
             "controlled_presence", None, (), None, "overall", 0.0,
             ("No hero, function, or role subgroup cleared both the high-involvement and low-exposure gates; show the overall Pattern only. This relationship does not prove positioning quality.",),
+            evidence_summary=_presence_action_evidence(contexts, None),
         )
     ranked = sorted(
         candidates,
@@ -1259,6 +1358,7 @@ def build_controlled_presence_action(
         fallback_level=_presence_fallback_level(strongest),
         confidence_score=strongest.confidence_score,
         limitations=("This relationship does not prove positioning quality, teamfight skill, or the value of any individual death.",),
+        evidence_summary=_presence_action_evidence(contexts, strongest),
     )
 
 
@@ -1273,6 +1373,7 @@ def build_presence_tax_action(
         return PresenceTaxAction(
             "presence_tax", "unresolved", (), (), False, 0.0,
             ("The global Pattern qualifies, but subgroup evidence is too sparse to localize the exposure.",),
+            evidence_summary=_presence_action_evidence(contexts, None),
         )
     function_rows = [item for item in exposed if item.function_family is not None]
     high_contact_rows = [item for item in function_rows if item.function_family in _HIGH_CONTACT_FUNCTIONS]
@@ -1297,6 +1398,29 @@ def build_presence_tax_action(
         deep_analysis_candidate=deep_candidate,
         confidence_score=top.confidence_score,
         limitations=("Summary history localizes the death cost but cannot establish positioning, fight selection, timing, target choice, or whether deaths were useful.",),
+        evidence_summary=_action_evidence(
+            status="resolved" if shape != "unresolved" else "unresolved",
+            sample_size=sum(item.sample_size for item in exposed),
+            effective_sample_size_value=float(sum(item.sample_size for item in exposed)),
+            coverage=1.0 if exposed else 0.0,
+            confidence_score=top.confidence_score,
+            independent_group_count=None,
+            evidence_keys=("summary.kda", "summary.time", "presence_context"),
+        ),
+    )
+
+
+def _presence_action_evidence(
+    contexts: Sequence[PresenceContext], strongest: PresenceContext | None
+) -> PatternActionEvidence:
+    fallback = _presence_fallback_level(strongest)
+    return _action_evidence(
+        status="unresolved" if strongest is None else "fallback" if fallback != "hero" else "resolved",
+        sample_size=sum(item.sample_size for item in contexts),
+        effective_sample_size_value=float(sum(item.sample_size for item in contexts)),
+        coverage=1.0 if contexts else 0.0,
+        confidence_score=strongest.confidence_score if strongest else 0.0,
+        evidence_keys=("summary.kda", "summary.time", "presence_context"),
     )
 
 
@@ -1445,6 +1569,15 @@ def build_same_playbook_action(
             confidence_score=profile.confidence_score,
             limitations=("At least two established, taxonomy-covered heroes are needed to build a playbook path.",),
             provenance_versions=dict(_PROVENANCE_KEYS),
+            evidence_summary=_action_evidence(
+                status="unresolved",
+                sample_size=len(matches),
+                effective_sample_size_value=float(len(matches)),
+                coverage=0.0 if not profile.hero_ids else len(profile.hero_ids) / max(len(matches), 1),
+                confidence_score=profile.confidence_score,
+                evidence_keys=("hero.taxonomy", "hero.pool_profile", "hero.relationships"),
+                provenance_versions=dict(_PROVENANCE_KEYS),
+            ),
         )
 
     deepen = _recommendations(matches, taxonomy, profile, direction="deepen")
@@ -1467,6 +1600,15 @@ def build_same_playbook_action(
         confidence_score=profile.confidence_score,
         limitations=tuple(limitations),
         provenance_versions=dict(_PROVENANCE_KEYS),
+        evidence_summary=_action_evidence(
+            status="resolved" if status == "available" else "fallback" if status == "limited" else "unresolved",
+            sample_size=len(matches),
+            effective_sample_size_value=float(len(matches)),
+            coverage=len(profile.hero_ids) / max(len(matches), 1),
+            confidence_score=profile.confidence_score,
+            evidence_keys=("hero.taxonomy", "hero.pool_profile", "hero.relationships"),
+            provenance_versions=dict(_PROVENANCE_KEYS),
+        ),
     )
 
 
@@ -1489,6 +1631,15 @@ def build_comfort_edge_action(
                 f"only {len(reliability)} cleared the per-hero sample gate.",
             ),
             provenance_versions=dict(_PROVENANCE_KEYS),
+            evidence_summary=_action_evidence(
+                status="unresolved",
+                sample_size=len(rows),
+                effective_sample_size_value=float(len(rows)),
+                coverage=len(reliability) / max(PORTFOLIO_CONFIG.p02_min_action_heroes, 1),
+                confidence_score=min((item.confidence_score for item in reliability), default=0.0),
+                evidence_keys=("hero.taxonomy", "hero.reliability", "hero.pool_profile"),
+                provenance_versions=dict(_PROVENANCE_KEYS),
+            ),
         )
 
     top_five = tuple(reliability[:5])
@@ -1523,6 +1674,15 @@ def build_comfort_edge_action(
         confidence_score=min(item.confidence_score for item in top_five),
         limitations=tuple(limitations),
         provenance_versions=dict(_PROVENANCE_KEYS),
+        evidence_summary=_action_evidence(
+            status="resolved" if status == "available" else "fallback",
+            sample_size=len(rows),
+            effective_sample_size_value=float(len(rows)),
+            coverage=1.0,
+            confidence_score=min(item.confidence_score for item in top_five),
+            evidence_keys=("hero.taxonomy", "hero.reliability", "hero.pool_profile"),
+            provenance_versions=dict(_PROVENANCE_KEYS),
+        ),
     )
 
 

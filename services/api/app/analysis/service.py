@@ -126,6 +126,7 @@ class AnalysisService:
 
     def _compatibility_model_version(self, analysis_mode: str) -> str:
         if analysis_mode == "free":
+            from app.behavior.context_baseline import CONTEXT_BASELINE_VERSION
             from app.behavior.elements.registry import ELEMENT_REGISTRY_VERSION
             from app.behavior.patterns.registry import PATTERN_REGISTRY_VERSION
             from app.behavior.service import BEHAVIOR_MODEL_VERSION
@@ -174,6 +175,7 @@ class AnalysisService:
                 "behavior_model": BEHAVIOR_MODEL_VERSION,
                 "element_registry": ELEMENT_REGISTRY_VERSION,
                 "pattern_registry": PATTERN_REGISTRY_VERSION,
+                "context_baseline": CONTEXT_BASELINE_VERSION,
                 "pattern_actions": PATTERN_ACTIONS_VERSION,
                 "performance_proxy": PERFORMANCE_PROXY_VERSION,
                 "recency_weighting": RECENCY_WEIGHTING_VERSION,

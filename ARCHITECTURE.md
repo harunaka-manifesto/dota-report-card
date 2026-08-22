@@ -26,7 +26,13 @@ expression artifacts. Hero Portfolio is independent of Pattern
 qualification and uses established hero history plus a versioned taxonomy.
 Assembly creates the only public story and share projection.
 
-The public contract is free-dna-report-5.0.0 with exactly 18 Elements and 11
+The public contract is free-dna-report-5.1.0 with exactly 18 Elements and 11
 active Patterns, reproducibility metadata, zero detail/parse requests, and
 privacy-safe share data. Historical v4 snapshots remain readable under their
 original registry meanings.
+
+Pattern qualification consumes reviewed Element zones and applies the selected
+clause's registry coverage and confidence gates. Actions run after
+qualification and expose a common evidence summary without demoting a
+qualified Pattern. Drift, Recovery, session curves, and Recovery actions share
+the versioned leave-group-out comparable-baseline resolver.

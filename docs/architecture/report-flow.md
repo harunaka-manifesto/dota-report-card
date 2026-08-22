@@ -20,6 +20,10 @@ request and zero detail, parse, and parse-status requests. The actual ledger is
 serialized; a nonzero forbidden request fails assembly rather than being
 masked by a hand-written zero.
 
+The current public schema is `free-dna-report-5.1.0`; `free-dna-report-5.0.0`
+snapshots remain readable. Pattern payloads identify the selected qualification
+clause and action payloads carry an additive common evidence summary.
+
 ## Exact story structure
 
 The normal completed flow is:
