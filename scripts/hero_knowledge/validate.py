@@ -12,13 +12,12 @@ SEMANTIC_FUNCTIONS = frozenset(
         "counter_initiation",
         "catch",
         "frontline",
-        "teamfight_control",
+        "fight_control",
         "save",
         "sustain",
-        "displacement",
+        "forced_movement",
         "repositioning",
         "mobility",
-        "pickoff",
         "burst",
         "sustained_damage",
         "wave_clear",
@@ -32,6 +31,7 @@ SEMANTIC_DEMANDS = frozenset(
     {"commitment", "access", "repositioning", "economy", "timing", "execution", "exposure", "micro"}
 )
 SEMANTIC_BANDS = frozenset({"low", "medium", "high", "unknown"})
+SEMANTIC_POSITIONS = frozenset({"1", "2", "3", "4", "5"})
 
 
 def validate_semantic_layer(snapshot: dict[str, Any]) -> tuple[str, ...]:
@@ -82,11 +82,46 @@ def validate_semantic_layer(snapshot: dict[str, Any]) -> tuple[str, ...]:
                         for value in values
                         if value not in SEMANTIC_FUNCTIONS
                     )
+        capabilities = row.get("capabilities")
+        function_keys = {
+            value
+            for field in ("primary", "secondary")
+            for value in (functions.get(field, []) if isinstance(functions, dict) and isinstance(functions.get(field, []), list) else [])
+        }
+        if not isinstance(capabilities, dict) or set(capabilities) != function_keys:
+            errors.append(f"semantic.{hero_id}.capabilities_drift")
+        elif any(value not in {"low", "medium", "high", "unknown"} for value in capabilities.values()):
+            errors.append(f"semantic.{hero_id}.invalid_capability_band")
         demands = row.get("demands", {})
         if not isinstance(demands, dict) or set(demands) != SEMANTIC_DEMANDS:
             errors.append(f"semantic.{hero_id}.incomplete_demands")
         elif any(value not in SEMANTIC_BANDS for value in demands.values()):
             errors.append(f"semantic.{hero_id}.invalid_demand_band")
+        positions = row.get("position_credibility")
+        if not isinstance(positions, dict) or set(positions) != SEMANTIC_POSITIONS:
+            errors.append(f"semantic.{hero_id}.incomplete_position_credibility")
+        elif any(value not in {"primary", "secondary", "unsupported", "unknown"} for value in positions.values()):
+            errors.append(f"semantic.{hero_id}.invalid_position_credibility")
+        for field in ("strengths", "weaknesses", "teamfight_profile"):
+            values = row.get(field)
+            if not isinstance(values, list) or not values:
+                errors.append(f"semantic.{hero_id}.{field}_missing")
+                continue
+            for item in values:
+                if not isinstance(item, dict) or not item.get("semantic_key"):
+                    errors.append(f"semantic.{hero_id}.{field}_evidence_invalid")
+                elif field != "teamfight_profile" and not isinstance(item.get("evidence_refs"), list):
+                    errors.append(f"semantic.{hero_id}.{field}_refs_missing")
+        review = row.get("review")
+        if (
+            not isinstance(review, dict)
+            or not isinstance(review.get("sources"), list)
+            or not review.get("sources")
+            or not review.get("reviewer")
+            or not review.get("reviewed_at")
+            or not review.get("patch")
+        ):
+            errors.append(f"semantic.{hero_id}.provenance_incomplete")
         if row.get("confidence") not in {"high", "medium", "low"}:
             errors.append(f"semantic.{hero_id}.invalid_confidence")
         if row.get("empirical_support") not in SEMANTIC_BANDS:

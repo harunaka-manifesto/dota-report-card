@@ -75,11 +75,11 @@ interpretation copy.
 
 ## Versions and compatibility
 
-v5.2 changes the public story payload, so the current report is
-`free-dna-report-5.2.0` with `free-story-5.2.0`,
-`pattern-presentation-5.2.0`, and `free-dna-copy-5.2.0`. Element and Pattern
-registries remain on their v5.1 versions because qualification thresholds did
-not change. Hero knowledge has an independent version family and enters the
+The current report remains `free-dna-report-5.2.0`; the interaction closure is
+versioned independently as `free-story-5.3.0` and `free-dna-copy-5.3.0`, with
+`pattern-presentation-5.2.0`. The Element registry is `free-elements-5.2.0`
+and the Pattern registry remains `free-patterns-5.1.0`. Hero knowledge has an
+independent version family and enters the
 API through `services/api/app/heroes/knowledge.py`, not through raw source
 scrapes.
 

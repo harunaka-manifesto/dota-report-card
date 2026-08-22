@@ -65,15 +65,23 @@ test("Pool Evolution stays locked until the self-assessment is revealed", async 
   const question = page.locator("#pool-evolution-question");
   const reveal = question.getByRole("button", { name: "Reveal" });
   await expect(reveal).toBeDisabled();
-  await page.locator("#pool-evolution-reveal").scrollIntoViewIfNeeded();
-  await expect(page.getByText("Complete the self-assessment above to see the report read.")).toBeVisible();
+  await expect(page.locator("#pool-evolution-reveal")).toHaveCount(0);
 
   await question.scrollIntoViewIfNeeded();
   await question.getByRole("radio", { name: "My heroes changed, but my style didn’t" }).click();
   await reveal.click();
-  await page.locator("#pool-evolution-reveal").scrollIntoViewIfNeeded();
-  await expect(page.getByText("New heroes. Same taste.", { exact: true })).toBeVisible();
+  await expect(question.getByRole("heading", { name: "New heroes. Same taste." })).toBeVisible();
+  await expect(question.getByText("New heroes. Same taste.", { exact: true })).toHaveCount(1);
   await expect(page.getByText("new_heroes_same_toolkit")).toHaveCount(0);
+});
+
+test("a no-clear Exception becomes an insight instead of a guessing game", async ({ page }) => {
+  await page.goto("/report/no-clear-report");
+  const exception = page.locator("#hero-exception");
+  await expect(exception.getByText("Your pool has no odd one out.", { exact: true })).toBeVisible();
+  await expect(exception.getByText("The useful answer", { exact: true })).toBeVisible();
+  await expect(exception.getByRole("radio")).toHaveCount(0);
+  await expect(exception.getByRole("button", { name: "Reveal" })).toHaveCount(0);
 });
 
 test("Hero Mirror can be opened with a horizontal drag", async ({ page }) => {

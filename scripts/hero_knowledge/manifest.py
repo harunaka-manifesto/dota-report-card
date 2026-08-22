@@ -6,7 +6,7 @@ import hashlib
 import json
 from collections.abc import Mapping
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from . import SCHEMA_VERSION
 from .config import isoformat
@@ -161,6 +161,18 @@ def build_knowledge_snapshot(
         capabilities = mechanic_result["capabilities"]
         editorial = editorial_provenance(root, identity)
         if semantic is not None:
+            # The reviewed pilot owns the product-facing demand vocabulary;
+            # do not leave the derive.behavior sentinel beside it as if it
+            # were another reviewed demand family.
+            demands.pop("behavior", None)
+            field_sources = cast(dict[str, Any], provenance["field_sources"])
+            field_sources.update(
+                {
+                    "functions": "reviewed_semantics.functions",
+                    "demands": "reviewed_semantics.demands",
+                    "capabilities": "reviewed_semantics.capabilities",
+                }
+            )
             reviewed_functions = semantic.get("functions", {})
             if isinstance(reviewed_functions, Mapping):
                 functions = {
@@ -201,6 +213,12 @@ def build_knowledge_snapshot(
             record_data["semantic_confidence"] = str(semantic.get("confidence", "low"))
             record_data["empirical_support"] = str(semantic.get("empirical_support", "unknown"))
             record_data["reviewed_evidence_refs"] = _semantic_evidence_refs(semantic)
+            position_credibility = semantic.get("position_credibility")
+            if isinstance(position_credibility, Mapping):
+                record_data["position_credibility"] = {
+                    str(position): str(band)
+                    for position, band in position_credibility.items()
+                }
         records.append(record_data)
     version = knowledge_version or f"hero-knowledge-{generated[:10]}"
     return {
@@ -253,7 +271,10 @@ def _semantic_map(snapshot: Mapping[str, Any] | None) -> dict[int, dict[str, Any
     if not isinstance(heroes, list):
         return {}
     return {
-        int(row["hero_id"]): row
+        int(row["hero_id"]): {
+            **dict(row),
+            "__semantic_version": str(snapshot.get("version", "hero-semantics-unknown")),
+        }
         for row in heroes
         if isinstance(row, Mapping) and row.get("hero_id") is not None
     }
@@ -264,12 +285,13 @@ def _semantic_evidence_map(
 ) -> dict[str, dict[str, Any]]:
     if not isinstance(value, Mapping):
         return {}
+    semantic_version = str(semantic.get("__semantic_version", semantic.get("version", "hero-semantics-unknown")))
     return {
         str(key): {
             "characteristic": str(key),
             "band": str(band) if str(band) in {"low", "medium", "high", "unknown"} else "unknown",
             "derived_from": _semantic_evidence_refs(semantic, key=str(key)),
-            "rule_version": str(semantic.get("version", "hero-semantics-unknown")),
+            "rule_version": semantic_version,
         }
         for key, band in value.items()
     }
@@ -283,12 +305,13 @@ def _semantic_function_capabilities(
         field = functions.get(field_name, [])
         if isinstance(field, list):
             values.extend(str(item) for item in field)
+    semantic_version = str(semantic.get("__semantic_version", semantic.get("version", "hero-semantics-unknown")))
     return {
         key: {
             "characteristic": key,
             "band": "high" if key in set(str(item) for item in functions.get("primary", [])) else "medium",
             "derived_from": _semantic_evidence_refs(semantic, key=key),
-            "rule_version": str(semantic.get("version", "hero-semantics-unknown")),
+            "rule_version": semantic_version,
         }
         for key in dict.fromkeys(values)
     }
@@ -309,6 +332,11 @@ def _semantic_evidence_refs(semantic: Mapping[str, Any], *, key: str | None = No
             evidence = value.get("evidence_refs", [])
             if isinstance(evidence, list):
                 refs.extend(str(item) for item in evidence)
+    if not refs:
+        review = semantic.get("review", {})
+        sources = review.get("sources", []) if isinstance(review, Mapping) else []
+        if isinstance(sources, list):
+            refs.extend(f"semantic-review:{source}" for source in sources)
     return list(dict.fromkeys(refs))
 
 

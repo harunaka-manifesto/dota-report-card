@@ -2,12 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.behavior.actions import build_versatile_core_action
 from app.heroes.knowledge import (
+    COVERAGE_FAMILIES,
     HERO_DEMAND_FAMILIES,
+    FullRosterHeroKnowledgeProvider,
     NormalizedHeroKnowledge,
     SnapshotHeroKnowledgeProvider,
 )
 from app.heroes.recommendations import recommend_semantic_heroes
+from app.heroes.taxonomy import load_default_taxonomy
 from app.ingestion.summary_normalize import normalize_summary_rows
 
 
@@ -30,6 +34,7 @@ def _hero(
     confidence: str = "high",
     empirical_support: str = "unknown",
     demands: dict[str, str] | None = None,
+    position_credibility: dict[str, str] | None = None,
 ) -> NormalizedHeroKnowledge:
     values = demands or {family: "low" for family in HERO_DEMAND_FAMILIES}
     return NormalizedHeroKnowledge(
@@ -46,6 +51,7 @@ def _hero(
         confidence=confidence,
         evidence_refs=(f"fixture:{hero_id}",),
         review_status="approved",
+        position_credibility=position_credibility or {},
     )
 
 
@@ -135,3 +141,157 @@ def test_low_confidence_candidate_is_suppressed_and_role_mismatch_is_blocked() -
     assert {item.hero_id for item in ineligible} == {2, 3}
     assert all(item.eligible is False for item in ineligible)
     assert {item.role_fit for item in ineligible} == {"supported", "unsupported"}
+
+
+def test_intents_use_distinct_semantic_contracts() -> None:
+    low_demands = {family: "low" for family in HERO_DEMAND_FAMILIES}
+    observed = _hero(1, "Observed", ("carry",), ("initiation", "catch"), demands=low_demands)
+    double_down = _hero(2, "Same answer", ("carry",), ("initiation", "catch"), demands=low_demands, empirical_support="high")
+    adjacent = _hero(3, "Map branch", ("carry",), ("initiation", "wave_clear"), demands=low_demands, empirical_support="high")
+    angle = _hero(
+        4,
+        "Same job, new demand",
+        ("carry",),
+        ("initiation", "catch"),
+        demands={**low_demands, "economy": "high"},
+        empirical_support="high",
+    )
+    specialist = _hero(
+        5,
+        "Specialist",
+        ("carry",),
+        ("initiation", "catch"),
+        demands={**low_demands, "economy": "high", "micro": "high", "execution": "high"},
+        empirical_support="high",
+    )
+    provider = _Provider((observed, double_down, adjacent, angle, specialist))
+    matches = _matches(1, 1, 1, lane_role=1)
+
+    deep = recommend_semantic_heroes(matches, provider, intent="double_down", limit=1)
+    stretch = recommend_semantic_heroes(matches, provider, intent="adjacent_move", limit=1)
+    angle_result = recommend_semantic_heroes(matches, provider, intent="change_angle", limit=1)
+    specialist_result = recommend_semantic_heroes(matches, provider, intent="specialist", limit=1)
+
+    assert deep and deep[0].hero_id == 2
+    assert stretch and stretch[0].hero_id == 3
+    assert angle_result and angle_result[0].hero_id in {4, 5}
+    assert specialist_result and specialist_result[0].hero_id == 5
+    assert {item.intent for item in (*deep, *stretch, *angle_result, *specialist_result)} == {
+        "double_down",
+        "adjacent_move",
+        "change_angle",
+        "specialist",
+    }
+
+
+def test_fill_gap_requires_and_reports_the_exact_target_family() -> None:
+    low_demands = {family: "low" for family in HERO_DEMAND_FAMILIES}
+    observed = _hero(1, "Observed", ("carry",), ("initiation",), demands=low_demands)
+    exact = _hero(
+        2,
+        "Map branch",
+        ("carry",),
+        ("initiation",),
+        ("wave_clear",),
+        demands=low_demands,
+        empirical_support="high",
+    )
+    wrong_family = _hero(
+        3,
+        "Damage branch",
+        ("carry",),
+        ("initiation",),
+        ("burst",),
+        demands=low_demands,
+        empirical_support="high",
+    )
+    provider = _Provider((observed, exact, wrong_family))
+
+    rationales = recommend_semantic_heroes(
+        _matches(1, 1, 1, lane_role=1),
+        provider,
+        intent="fill_gap",
+        target_family="map_objectives",
+        limit=3,
+    )
+
+    assert [item.hero_id for item in rationales] == [2]
+    assert rationales[0].target_family == "map_objectives"
+    assert "wave_clear" in rationales[0].adds
+    assert all(item.target_family == "map_objectives" for item in rationales)
+
+
+def test_position_credibility_is_explicit_and_does_not_replace_role_fit() -> None:
+    primary = {"1": "unsupported", "2": "unsupported", "3": "primary", "4": "unsupported", "5": "unsupported"}
+    observed = _hero(
+        1,
+        "Observed offlaner",
+        ("offlane",),
+        ("initiation",),
+        demands={family: "low" for family in HERO_DEMAND_FAMILIES},
+    )
+    candidate = _hero(
+        2,
+        "Offlane bridge",
+        ("offlane",),
+        ("initiation",),
+        ("wave_clear",),
+        demands={family: "low" for family in HERO_DEMAND_FAMILIES},
+        empirical_support="high",
+        position_credibility=primary,
+    )
+    provider = _Provider((observed, candidate))
+    result = recommend_semantic_heroes(_matches(1, 1, 1, lane_role=3), provider, limit=1)
+
+    assert result and result[0].hero_id == 2
+    assert result[0].position_fit == "primary"
+    assert set(candidate.position_credibility) == {"1", "2", "3", "4", "5"}
+    assert candidate.position_credibility["3"] == "primary"
+
+
+def test_p04_fill_gap_rationale_matches_the_displayed_primary_family() -> None:
+    taxonomy = load_default_taxonomy()
+    provider = FullRosterHeroKnowledgeProvider(taxonomy)
+    action = build_versatile_core_action(
+        _matches(2, 2, 2, 13, 13, 13, lane_role=3),
+        taxonomy,
+        hero_knowledge=provider,
+    )
+
+    assert action.recommended_addition is not None
+    rationale = action.recommended_addition.semantic_rationale
+    assert rationale is not None
+    assert rationale.target_family is not None
+    assert action.coverage_summary.family_map[rationale.target_family] == action.coverage_summary.primary_gap
+    assert rationale.adds
+    assert any(
+        function in COVERAGE_FAMILIES[rationale.target_family]["functions"]
+        for function in rationale.adds
+    )
+
+
+def test_unknown_demand_families_do_not_become_a_neutral_bridge() -> None:
+    observed = _hero(
+        1,
+        "Observed",
+        ("carry",),
+        ("initiation",),
+        demands={family: "low" for family in HERO_DEMAND_FAMILIES},
+    )
+    incomplete = _hero(
+        2,
+        "Incomplete review",
+        ("carry",),
+        ("initiation", "wave_clear"),
+        demands={"commitment": "low", "access": "unknown", "repositioning": "unknown", "economy": "unknown", "timing": "unknown", "execution": "unknown", "exposure": "low", "micro": "low"},
+        empirical_support="high",
+    )
+
+    result = recommend_semantic_heroes(
+        _matches(1, 1, 1, lane_role=1),
+        _Provider((observed, incomplete)),
+        intent="adjacent_move",
+        limit=1,
+    )
+
+    assert result == []

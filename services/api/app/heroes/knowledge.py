@@ -19,6 +19,15 @@ from app.heroes.taxonomy import HeroTaxonomy, HeroTaxonomyEntry
 HERO_KNOWLEDGE_SCHEMA_VERSION = "hero-knowledge-schema-1.0.0"
 HERO_SEMANTICS_VERSION = "hero-semantics-5.2.0"
 
+# Position labels are deliberately separate from OpenDota's lane-role hint.
+# The summary endpoint cannot establish a 1--5 position, so a reviewed
+# semantic record must carry an explicit finite credibility band instead of
+# letting a lane hint masquerade as position evidence.
+DOTA_POSITIONS = ("1", "2", "3", "4", "5")
+POSITION_CREDIBILITY_BANDS = frozenset(
+    {"primary", "secondary", "unsupported", "unknown"}
+)
+
 # These vocabularies are intentionally small. Source adapters may emit richer
 # evidence, but scoring and story code only sees these stable semantic keys.
 # ``teamfight`` and the other legacy aliases are accepted by the adapters below
@@ -283,6 +292,17 @@ class NormalizedHeroKnowledge:
     confidence: str = "low"
     evidence_refs: tuple[str, ...] = ()
     review_status: str = "unreviewed"
+    position_credibility: Mapping[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        # Keep the contract explicit even for compatibility fixtures and
+        # structural adapters that omit the map: every Dota position is a
+        # finite credibility band, never an implicit neutral score.
+        object.__setattr__(
+            self,
+            "position_credibility",
+            _position_credibility(self.position_credibility),
+        )
 
 
 class HeroKnowledgeProvider(Protocol):
@@ -343,6 +363,11 @@ def normalized_hero_knowledge(entry: HeroTaxonomyEntry, *, version: str) -> Norm
     if entry.traits.get("complexity", 0.0) >= 0.60:
         demands["execution"] = "high"
     capabilities = {key: "high" for key in (*primary, *secondary)}
+    # Taxonomy roles are a structural compatibility hint, not reviewed
+    # position evidence.  Keep the role-derived map available to compatibility
+    # callers, while FullRosterHeroKnowledgeProvider explicitly downgrades it
+    # to unknown for structural fallback records.
+    position_credibility = _position_credibility_from_roles(entry.roles)
     return NormalizedHeroKnowledge(
         hero_id=entry.hero_id,
         display_name=entry.name,
@@ -360,6 +385,7 @@ def normalized_hero_knowledge(entry: HeroTaxonomyEntry, *, version: str) -> Norm
         confidence="medium",
         evidence_refs=(),
         review_status="reviewed",
+        position_credibility=position_credibility,
     )
 
 
@@ -519,6 +545,7 @@ class FullRosterHeroKnowledgeProvider:
             confidence="low",
             evidence_refs=structural.evidence_refs,
             review_status="unreviewed",
+            position_credibility={position: "unknown" for position in DOTA_POSITIONS},
         )
 
     @property
@@ -544,6 +571,7 @@ def _normalize_generated_record(
     empirical_support = _normalize_empirical_support(data)
     confidence = _normalize_confidence(data)
     review_status = str(data.get("editorial", {}).get("review_status", "unreviewed"))
+    position_credibility = _position_credibility(data.get("position_credibility"))
     source_versions = data.get("provenance", {}).get("source_versions", {})
     provenance_versions = {
         "hero_knowledge": version,
@@ -570,6 +598,7 @@ def _normalize_generated_record(
         confidence=confidence,
         evidence_refs=evidence_refs,
         review_status=review_status,
+        position_credibility=position_credibility,
     )
 
 
@@ -631,6 +660,49 @@ def _normalize_confidence(data: Mapping[str, Any]) -> str:
     return value if value in SEMANTIC_CONFIDENCE_BANDS else "low"
 
 
+def _position_credibility(value: Any) -> dict[str, str]:
+    """Normalize a reviewed 1--5 credibility map without neutral filling."""
+
+    source = value if isinstance(value, Mapping) else {}
+    result: dict[str, str] = {}
+    for position in DOTA_POSITIONS:
+        raw = source.get(position, source.get(int(position), "unknown"))
+        normalized = str(raw).casefold()
+        result[position] = (
+            normalized if normalized in POSITION_CREDIBILITY_BANDS else "unknown"
+        )
+    return result
+
+
+def _position_credibility_from_roles(roles: Sequence[str]) -> dict[str, str]:
+    """Derive a low-confidence structural position hint from taxonomy roles.
+
+    This helper is intentionally not used for reviewed semantic coverage.  It
+    only keeps the historical taxonomy adapter useful to compatibility callers.
+    The order in a reviewed taxonomy role tuple determines primary versus
+    secondary; absent positions stay explicitly unsupported rather than
+    becoming a neutral score.
+    """
+
+    role_positions = {
+        "carry": "1",
+        "mid": "2",
+        "offlane": "3",
+        "soft_support": "4",
+        "roamer": "4",
+        "hard_support": "5",
+    }
+    result = {position: "unsupported" for position in DOTA_POSITIONS}
+    assigned: set[str] = set()
+    for index, role in enumerate(roles):
+        position = role_positions.get(str(role))
+        if position is None or position in assigned:
+            continue
+        result[position] = "primary" if index == 0 else "secondary"
+        assigned.add(position)
+    return result
+
+
 def _evidence_refs(
     data: Mapping[str, Any],
     functions: Sequence[str],
@@ -670,6 +742,8 @@ __all__ = [
     "HeroKnowledgeProvider",
     "HERO_KNOWLEDGE_SCHEMA_VERSION",
     "HERO_SEMANTICS_VERSION",
+    "DOTA_POSITIONS",
+    "POSITION_CREDIBILITY_BANDS",
     "FUNCTIONAL_JOBS",
     "HERO_DEMAND_FAMILIES",
     "DEMAND_GLOSSARY",

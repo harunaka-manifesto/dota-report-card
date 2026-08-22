@@ -46,7 +46,7 @@ test-e2e:
 
 test-live-smoke:
 	@test -n "$(OPENDOTA_API_KEY)" || (echo "OPENDOTA_API_KEY is required" && exit 1)
-	RUN_LIVE_SMOKE=1 OPENDOTA_SOURCE=live OPENDOTA_API_KEY="$(OPENDOTA_API_KEY)" $(PYTEST) -q tests/live -m live
+	@RUN_LIVE_SMOKE=1 OPENDOTA_SOURCE=live $(PYTEST) -q tests/live -m live
 
 api-client:
 	$(PYTHON) scripts/generate_api_client.py

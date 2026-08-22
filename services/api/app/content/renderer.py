@@ -180,13 +180,17 @@ def resolve_pattern_presentation_copy(
 
 def resolve_portfolio_copy(key: str, **params: str) -> str:
     catalog = validate_copy_catalog()
-    parts = key.split(".", 1)
-    if len(parts) != 2 or parts[0] not in _PORTFOLIO_KEYS:
+    parts = key.split(".")
+    if len(parts) < 2 or parts[0] not in _PORTFOLIO_KEYS:
         raise ValueError(f"Unknown Hero Portfolio copy key: {key}")
     value: Any = catalog["portfolio"].get(parts[0])
-    if not isinstance(value, dict) or not isinstance(value.get(parts[1]), str):
-        raise ValueError(f"Unknown Hero Portfolio copy key: {key}")
-    template = value[parts[1]]
+    for part in parts[1:]:
+        if not isinstance(value, dict) or part not in value:
+            raise ValueError(f"Unknown Hero Portfolio copy key: {key}")
+        value = value[part]
+    if not isinstance(value, str):
+        raise ValueError(f"Hero Portfolio copy key must resolve to text: {key}")
+    template = value
     fields = {name for _, name, _, _ in Formatter().parse(template) if name}
     missing = fields - set(params)
     extra = set(params) - fields
@@ -195,6 +199,15 @@ def resolve_portfolio_copy(key: str, **params: str) -> str:
     if extra:
         raise ValueError(f"Unexpected copy parameters: {sorted(extra)}")
     return template.format(**params)
+
+
+def resolve_evolution_copy(variant: str) -> dict[str, str]:
+    if variant not in _EVOLUTION_VARIANTS:
+        raise ValueError(f"Unknown Pool Evolution copy key: {variant}")
+    return {
+        "heading": resolve_portfolio_copy(f"evolution.{variant}.heading"),
+        "body": resolve_portfolio_copy(f"evolution.{variant}.body"),
+    }
 
 
 def resolve_story_copy(section: str, key: str, **params: str) -> str:
@@ -241,18 +254,33 @@ def validate_copy_catalog() -> dict[str, Any]:
     for key in ("common_thread", "exception"):
         value = portfolio[key]
         required: tuple[str, ...] = ("question", "correct", "incorrect", "correct_feedback", "incorrect_feedback", "answer", "reveal", "boundary")
-        if key == "exception":
-            required = (*required, "no_clear_feedback")
         if not isinstance(value, dict) or any(not isinstance(value.get(item), str) for item in required):
             raise ValueError(f"Incomplete portfolio copy: {key}")
+        if key == "exception":
+            if not isinstance(value.get("no_clear_feedback"), str):
+                raise ValueError("Incomplete portfolio copy: exception")
+            insight = value.get("no_clear_insight")
+            required_insight = {"eyebrow", "headline", "body", "boundary"}
+            if (
+                not isinstance(insight, dict)
+                or set(insight) != required_insight
+                or any(not isinstance(insight.get(item), str) for item in required_insight)
+            ):
+                raise ValueError("Incomplete no-clear Exception copy")
     mirror = portfolio["hero_mirror"]
     if not isinstance(mirror, dict) or any(not isinstance(mirror.get(key), str) for key in ("closed", "available", "unavailable", "qualifier", "guardrail")):
         raise ValueError("Incomplete portfolio copy: hero_mirror")
     evolution = portfolio["evolution"]
-    if not isinstance(evolution, dict) or any(not isinstance(evolution.get(key), str) for key in ("question", "check", "unavailable", "locked")):
+    if not isinstance(evolution, dict) or any(not isinstance(evolution.get(key), str) for key in ("question", "check", "unavailable", "unavailable_heading", "locked")):
         raise ValueError("Incomplete portfolio copy: evolution")
-    if any(not isinstance(evolution.get(key), str) for key in _EVOLUTION_VARIANTS):
-        raise ValueError("Evolution copy must cover every public variant")
+    for key in _EVOLUTION_VARIANTS:
+        value = evolution.get(key)
+        if (
+            not isinstance(value, dict)
+            or set(value) != {"heading", "body"}
+            or any(not isinstance(value.get(item), str) for item in ("heading", "body"))
+        ):
+            raise ValueError("Evolution copy must cover every public variant")
     story_templates = catalog.get("story_templates")
     if not isinstance(story_templates, dict) or set(story_templates) != set(_STORY_TEMPLATE_KEYS):
         raise ValueError("Free DNA copy catalog must cover story presentation templates")
@@ -374,6 +402,7 @@ __all__ = [
     "resolve_pattern_copy",
     "resolve_pattern_presentation_copy",
     "resolve_portfolio_copy",
+    "resolve_evolution_copy",
     "resolve_story_copy",
     "validate_copy_catalog",
 ]

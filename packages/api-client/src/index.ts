@@ -590,6 +590,13 @@ export type StoryPageContent = {
   boundary?: string;
   correct_label?: string;
   incorrect_label?: string;
+  no_clear_insight?: {
+    eyebrow: string;
+    headline: string;
+    body: string;
+    boundary: string;
+  };
+  payoff_heading?: string;
   locked_copy?: string;
   copy?: string;
   closed?: string;

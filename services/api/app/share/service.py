@@ -8,7 +8,7 @@ import json
 from typing import Any
 from urllib.parse import urlparse
 
-from app.content.renderer import resolve_portfolio_copy
+from app.content.renderer import resolve_evolution_copy
 
 RENDERER_VERSION = "share-svg-4.1.0"
 CARD_TYPES = frozenset({"final"})
@@ -151,7 +151,8 @@ def _human_evolution_copy(value: Any) -> str | None:
         "stable_core_new_branch",
         "broadly_stable",
     }:
-        return resolve_portfolio_copy(f"evolution.{value}")
+        copy = resolve_evolution_copy(value)
+        return f"{copy['heading']} {copy['body']}"
     return value
 
 

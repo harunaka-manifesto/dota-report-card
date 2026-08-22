@@ -13,6 +13,7 @@ from app.api.report_schemas import (
 from app.behavior.actions import (
     _p03_claim,
     _p03_signal_coverage,
+    attach_pattern_actions,
     build_bounceback_action,
     build_comfort_edge_action,
     build_controlled_presence_action,
@@ -24,7 +25,10 @@ from app.behavior.actions import (
     build_session_curve_action,
     build_versatile_core_action,
 )
-from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
+from app.behavior.models import PatternResult
+from app.behavior.ranking import rank_pattern_highlights
+from app.heroes.knowledge import FullRosterHeroKnowledgeProvider
+from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry, load_default_taxonomy
 from app.ingestion.summary_normalize import normalize_summary_rows
 
 
@@ -178,6 +182,69 @@ def test_new_p03_p04_p05_actions_round_trip_through_public_schemas() -> None:
     ProvenFlexibilityActionSchema.model_validate(proven_flexibility.as_dict())
     assert proven_flexibility.window_start is not None
     assert proven_flexibility.window_end is not None
+
+
+def test_sparse_structural_semantics_cannot_claim_broad_compact_pool_coverage() -> None:
+    """Regression: three established picks can still leave four families unknown."""
+
+    # Anonymized IDs for the production compact-pool shape: one structural
+    # engage/control record and two roster records with no reviewed jobs.
+    compact_ids = (97, 105, 136)
+    rows = []
+    for index, hero_id in enumerate(compact_ids):
+        for game in range(30):
+            match_index = index * 30 + game
+            rows.append(
+                {
+                    "match_id": 990_000 + match_index,
+                    "start_time": 1_700_000_000 + match_index * 3_600,
+                    "duration": 1_800,
+                    "hero_id": hero_id,
+                    "player_slot": 0,
+                    "radiant_win": match_index % 2 == 0,
+                    "game_mode": 1,
+                    "lobby_type": 0,
+                    "kills": 7,
+                    "deaths": 4,
+                    "assists": 10,
+                    "lane_role": 2,
+                }
+            )
+    matches = normalize_summary_rows(rows, account_id=42).matches
+    taxonomy = load_default_taxonomy()
+    provider = FullRosterHeroKnowledgeProvider(taxonomy)
+
+    action = build_versatile_core_action(matches, taxonomy, hero_knowledge=provider)
+
+    assert action.status == "coverage_only"
+    assert action.complementarity_qualified is False
+    assert action.recommended_addition is None
+    assert len(action.coverage_summary.missing) >= 3
+    assert action.semantic_confidence is not None and action.semantic_confidence < 0.35
+    assert any("clear versatility headline" in item for item in action.limitations)
+
+    # A qualified upstream Pattern must be suppressed before ranking/story
+    # selection when its semantic action fails the complementarity gate.
+    pattern = PatternResult(
+        key="versatile_core",
+        label="Versatile Core",
+        kind="identity",
+        status="qualified",
+        direction="focused_pool_broad_toolkit",
+        strength=0.80,
+        confidence="high",
+        confidence_score=0.90,
+        element_keys=("hero_pool_breadth", "toolkit_breadth"),
+        evidence_coverage=0.90,
+        qualification_quality=0.90,
+    )
+    suppressed = attach_pattern_actions(
+        (pattern,), matches, taxonomy, hero_knowledge=provider
+    )[0]
+    assert suppressed.status == "suppressed"
+    assert suppressed.story_eligibility == "blocked"
+    assert "semantic_complementarity_gate" in suppressed.story_blockers
+    assert not rank_pattern_highlights((suppressed,))
 
 
 def test_every_reviewed_action_exposes_the_common_evidence_envelope() -> None:

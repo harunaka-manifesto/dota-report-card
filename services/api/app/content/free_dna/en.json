@@ -1,5 +1,5 @@
 {
-  "copy_version": "free-dna-copy-5.2.0",
+  "copy_version": "free-dna-copy-5.3.0",
   "pages": {
     "analysis": {
       "title": "Reading your recent matches.",
@@ -164,6 +164,12 @@
       "correct_feedback": "Yes — {hero} stands apart from the rest of the pool most clearly.",
       "incorrect_feedback": "{selected} fits the pool more closely. {hero} stands apart more clearly.",
       "no_clear_feedback": "{selected} is a plausible read, but no single hero stands apart clearly enough.",
+      "no_clear_insight": {
+        "eyebrow": "The useful answer",
+        "headline": "Your pool has no odd one out.",
+        "body": "Several heroes cover similar ground, so no single pick stands apart clearly enough to earn the odd-one-out label.",
+        "boundary": "Different does not mean better or worse."
+      },
       "answer": "{hero} is the clearest outlier in this pool.",
       "reveal": "{hero} stands apart from the rest of the pool more clearly than the alternatives.",
       "boundary": "Different does not mean better or worse."
@@ -173,15 +179,28 @@
       "question_body": "Choose the description that feels closest. This is a self-assessment, not a score.",
       "check": "Let’s check.",
       "unavailable": "The bounded history could not support a trustworthy Pool Evolution comparison yet.",
+      "unavailable_heading": "Pool Evolution is unavailable for now.",
       "locked": "Complete the self-assessment above to see the report read.",
       "option_more_experimental": "I’ve become more experimental",
       "option_same_style": "My heroes changed, but my style didn’t",
       "option_different_kind": "I’ve shifted toward a different kind of hero",
       "option_not_changed": "It hasn’t changed much",
-      "new_heroes_new_toolkit": "Your pool changed direction. The names are not the only thing changing. The kind of Dota available in your pool is changing too.",
-      "new_heroes_same_toolkit": "New heroes. Same taste. Your recent picks look different, but the jobs you keep asking your heroes to perform barely moved.",
-      "stable_core_new_branch": "Your pool is growing a new branch. Your familiar core is still intact, but a different kind of hero is beginning to appear more often.",
-      "broadly_stable": "More stable than it feels. The edges moved a little, but the core hero mix and the kinds of jobs it covers stayed broadly recognizable."
+      "new_heroes_new_toolkit": {
+        "heading": "Your pool changed direction.",
+        "body": "The names are not the only thing changing. The kind of Dota available in your pool is changing too."
+      },
+      "new_heroes_same_toolkit": {
+        "heading": "New heroes. Same taste.",
+        "body": "Your recent picks look different, but the jobs you keep asking your heroes to perform barely moved."
+      },
+      "stable_core_new_branch": {
+        "heading": "Your pool is growing a new branch.",
+        "body": "Your familiar core is still intact, but a different kind of hero is beginning to appear more often."
+      },
+      "broadly_stable": {
+        "heading": "More stable than it feels.",
+        "body": "The edges moved a little, but the core hero mix and the kinds of jobs it covers stayed broadly recognizable."
+      }
     },
     "hero_mirror": {
       "closed": "One last comparison: your observable behavior against a hero-shaped reference.",

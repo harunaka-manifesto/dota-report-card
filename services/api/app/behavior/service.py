@@ -41,6 +41,7 @@ def analyze_behavior(
             context.matches,
             context.taxonomy,
             hero_knowledge=context.hero_knowledge,
+            sessions=context.sessions,
         )
     dimensions = _summarize_dimensions(elements, patterns)
     quality = _quality(elements, patterns, context.history_tier)

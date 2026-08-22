@@ -3,7 +3,7 @@
   "generated_at": "2026-08-22T00:00:00Z",
   "hero_count": 10,
   "knowledge_path": "knowledge/hero-knowledge-semantic-freeze-pilot-v1.json",
-  "knowledge_sha256": "fc5f24b30f786dcb400fbd1b14cb5d0c4a5da36d2815519584611bdfa41cfad1",
+  "knowledge_sha256": "e1fc5538c3fd28dbffc9470fdd32f91e6d93fb482c339d24d69c2633547abb7e",
   "knowledge_version": "hero-knowledge-semantic-freeze-pilot-v1",
   "pilot_hero_ids": [
     2,

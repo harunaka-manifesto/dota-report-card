@@ -13,7 +13,9 @@ from app.heroes.knowledge import (
     SnapshotHeroKnowledgeProvider,
     canonical_function_key,
 )
+from app.heroes.relationships import build_semantic_pool_profile
 from app.heroes.taxonomy import load_default_taxonomy
+from app.ingestion.summary_normalize import normalize_summary_rows
 
 
 def test_generated_pilot_snapshot_implements_runtime_provider_contract() -> None:
@@ -85,6 +87,37 @@ def test_full_roster_provider_keeps_review_status_and_structural_coverage_explic
     assert structural is not None and structural.review_status == "unreviewed"
     assert structural.confidence == "low"
     assert structural.provenance_versions["hero_semantics"] == provider.version
+
+
+def test_structural_fallback_does_not_count_as_reviewed_pool_coverage() -> None:
+    rows = normalize_summary_rows(
+        [
+            {
+                "match_id": index + 1,
+                "start_time": 1_800_000_000 + index * 100,
+                "duration": 1_800,
+                "hero_id": hero_id,
+                "player_slot": 0,
+                "radiant_win": True,
+                "game_mode": 1,
+                "lobby_type": 0,
+                "kills": 5,
+                "deaths": 2,
+                "assists": 5,
+                "lane_role": 3,
+            }
+            for index, hero_id in enumerate((2, 2, 2, 1, 1, 1))
+        ],
+        account_id=42,
+    ).matches
+    provider = FullRosterHeroKnowledgeProvider(load_default_taxonomy())
+
+    profile = build_semantic_pool_profile(rows, provider)
+
+    assert profile.structural_semantic_coverage == 1.0
+    assert profile.reviewed_semantic_coverage == 0.5
+    assert profile.semantic_coverage == 0.5
+    assert profile.hero_ids == (2,)
 
 
 def test_legacy_function_aliases_cannot_leak_into_the_public_glossary() -> None:

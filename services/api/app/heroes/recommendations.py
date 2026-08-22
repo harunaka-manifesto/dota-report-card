@@ -11,19 +11,22 @@ from typing import Any, Literal
 from app.dna.features.models import DnaFeatureSet
 from app.heroes.identity import HeroCard
 from app.heroes.knowledge import (
+    COVERAGE_FAMILIES,
     EMPIRICAL_SUPPORT_BANDS,
     FUNCTIONAL_JOBS,
     HERO_DEMAND_FAMILIES,
     HERO_KNOWLEDGE_SCHEMA_VERSION,
+    POSITION_CREDIBILITY_BANDS,
     SEMANTIC_CONFIDENCE_BANDS,
     HeroKnowledgeProvider,
     NormalizedHeroKnowledge,
+    family_for_function,
 )
 from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
 from app.ingestion.summary_normalize import NormalizedSummaryMatch
 
 RECOMMENDATION_VERSION = "hero-recommendations-1.1.0"
-SEMANTIC_RECOMMENDATION_VERSION = "hero-recommendations-semantic-1.0.0"
+SEMANTIC_RECOMMENDATION_VERSION = "hero-recommendations-semantic-1.1.0"
 
 RecommendationIntent = Literal[
     "double_down",
@@ -39,6 +42,8 @@ LearningDistance = Literal["low", "moderate", "high"]
 LEARNING_DISTANCES = frozenset({"low", "moderate", "high"})
 RoleFit = Literal["supported", "conditional", "unsupported"]
 ROLE_FITS = frozenset({"supported", "conditional", "unsupported"})
+PositionFit = Literal["primary", "secondary", "unsupported", "unknown"]
+POSITION_FITS = POSITION_CREDIBILITY_BANDS
 EmpiricalSupport = Literal["high", "medium", "low", "unknown"]
 SemanticConfidence = Literal["high", "medium", "low"]
 
@@ -60,6 +65,8 @@ class HeroRecommendationRationale:
     provenance_versions: Mapping[str, str] = field(default_factory=dict)
     evidence_refs: tuple[str, ...] = ()
     eligible: bool = True
+    position_fit: PositionFit = "unknown"
+    target_family: str | None = None
 
     def __post_init__(self) -> None:
         if self.hero_id <= 0:
@@ -70,6 +77,10 @@ class HeroRecommendationRationale:
             raise ValueError("Hero recommendation rationale contains an unknown learning distance")
         if self.role_fit not in ROLE_FITS:
             raise ValueError("Hero recommendation rationale contains an unknown role fit")
+        if self.position_fit not in POSITION_FITS:
+            raise ValueError("Hero recommendation rationale contains an unknown position fit")
+        if self.target_family is not None and self.target_family not in COVERAGE_FAMILIES:
+            raise ValueError("Hero recommendation rationale contains an unknown target family")
         if any(item not in FUNCTIONAL_JOBS for item in (*self.familiar_anchors, *self.adds)):
             raise ValueError("Hero recommendation rationale contains an unknown functional job")
         if any(item not in HERO_DEMAND_FAMILIES for item in self.new_demands):
@@ -94,6 +105,8 @@ class HeroRecommendationRationale:
             "provenance_versions": dict(self.provenance_versions),
             "evidence_refs": list(self.evidence_refs),
             "eligible": self.eligible,
+            "position_fit": self.position_fit,
+            "target_family": self.target_family,
         }
 
 
@@ -104,6 +117,8 @@ def recommend_semantic_heroes(
     intent: RecommendationIntent = "adjacent_move",
     limit: int = 3,
     include_ineligible: bool = False,
+    target_family: str | None = None,
+    required_family: str | None = None,
 ) -> list[HeroRecommendationRationale]:
     """Rank candidates from normalized functions and demands only.
 
@@ -115,6 +130,11 @@ def recommend_semantic_heroes(
 
     if limit <= 0:
         return []
+    if target_family is not None and required_family is not None and target_family != required_family:
+        raise ValueError("target_family and required_family must agree when both are supplied")
+    target_family = target_family or required_family
+    if target_family is not None and target_family not in COVERAGE_FAMILIES:
+        raise ValueError(f"Unknown semantic recommendation target family: {target_family}")
     entries = tuple(getattr(provider, "entries", ()))
     if not entries:
         return []
@@ -136,6 +156,7 @@ def recommend_semantic_heroes(
             credible_roles=credible_roles,
             intent=intent,
             provider_version=provider.version,
+            target_family=target_family,
         )
         if not rationale.eligible and not include_ineligible:
             continue
@@ -161,7 +182,7 @@ def _observed_semantics(
     demands: dict[str, str] = {}
     for hero_id in sorted({int(item.hero_id) for item in matches if item.hero_id is not None}):
         entry = provider.get(hero_id)
-        if entry is None:
+        if entry is None or entry.review_status not in {"approved", "reviewed"}:
             continue
         jobs.update(entry.primary_functions)
         jobs.update(entry.secondary_functions)
@@ -184,41 +205,74 @@ def _rationale_for_candidate(
     credible_roles: set[str],
     intent: RecommendationIntent,
     provider_version: str,
+    target_family: str | None = None,
 ) -> HeroRecommendationRationale:
     functions = tuple(dict.fromkeys((*entry.primary_functions, *entry.secondary_functions)))
     familiar = tuple(item for item in functions if item in observed_jobs)
     adds = tuple(item for item in functions if item not in observed_jobs)
+    target_adds = tuple(
+        item
+        for item in adds
+        if target_family is not None and family_for_function(item) == target_family
+    )
+    # Keep the target family's atomic job first in the rationale. This makes
+    # the selected family and the player-facing adds list agree.
+    if target_family is not None:
+        adds = tuple(dict.fromkeys((*target_adds, *adds)))
     new_demands = tuple(
         key
         for key in HERO_DEMAND_FAMILIES
         if entry.demands.get(key) in {"medium", "high"}
         and observed_demands.get(key) not in {"medium", "high"}
     )
-    role_fit = _semantic_role_fit(entry.roles, credible_roles)
+    position_fit = _semantic_position_fit(entry.position_credibility, credible_roles)
+    role_fit = _semantic_role_fit(entry.roles, credible_roles, position_fit=position_fit)
     learning_distance = _learning_distance(entry, observed_demands, new_demands)
     empirical_support = _empirical_support(entry.empirical_support)
-    confidence = _semantic_confidence(entry, role_fit, empirical_support, new_demands)
+    confidence = _semantic_confidence(entry, role_fit, empirical_support, new_demands, intent=intent)
     limitations: list[str] = []
     if empirical_support == "unknown":
         limitations.append("Empirical support is unknown; this is not a current-meta claim.")
-    if any(entry.demands.get(key) == "unknown" for key in HERO_DEMAND_FAMILIES):
+    if any(entry.demands.get(key, "unknown") == "unknown" for key in HERO_DEMAND_FAMILIES):
         limitations.append("Some hero-demand families are unknown in the frozen snapshot.")
     if role_fit == "conditional":
         limitations.append("Role fit is conditional because stable observed role context is unavailable.")
     if role_fit == "unsupported":
         limitations.append("Observed role context does not support this hero as an active bridge.")
+    if position_fit == "unknown":
+        limitations.append("Per-position credibility is unknown; role fit is not a position claim.")
     if not functions:
         limitations.append("No reviewed ways of helping are available for this hero.")
     if intent in {"adjacent_move", "fill_gap"} and not adds:
         limitations.append("The candidate does not add a clearly missing way of helping.")
+    if intent == "fill_gap" and target_family is not None and not target_adds:
+        limitations.append("The candidate does not solve the displayed missing coverage family.")
+    if intent == "fill_gap" and target_family is None:
+        limitations.append("No displayed missing coverage family was supplied for this fill-gap recommendation.")
     if not new_demands and entry.demands:
         limitations.append("No new reviewed demand family is clearly separated from the observed pool.")
     eligible = bool(functions and familiar and role_fit != "unsupported" and confidence != "low")
-    if intent in {"adjacent_move", "fill_gap"}:
-        eligible = eligible and bool(adds)
-    if intent == "fill_gap":
-        eligible = eligible and bool(adds)
-    if learning_distance == "high" and intent in {"adjacent_move", "fill_gap"}:
+    if intent == "double_down":
+        eligible = eligible and learning_distance != "high"
+    elif intent == "adjacent_move":
+        eligible = eligible and bool(adds) and learning_distance != "high"
+    elif intent == "fill_gap":
+        eligible = (
+            eligible
+            and bool(target_family)
+            and bool(target_adds)
+            and bool(adds)
+            and learning_distance != "high"
+        )
+    elif intent == "change_angle":
+        # Change the demand/handling angle while retaining a known job.  It is
+        # intentionally not an alias for adjacent_move, which requires a new
+        # functional job.
+        eligible = eligible and bool(new_demands)
+    elif intent == "specialist":
+        high_demands = sum(entry.demands.get(key) == "high" for key in HERO_DEMAND_FAMILIES)
+        eligible = eligible and bool(new_demands) and (learning_distance == "high" or high_demands >= 3)
+    if learning_distance == "high" and intent == "adjacent_move":
         eligible = False
         limitations.append("The learning jump is high for an adjacent bridge.")
     if not any(entry.demands.get(key) in {"low", "medium", "high"} for key in HERO_DEMAND_FAMILIES):
@@ -242,13 +296,56 @@ def _rationale_for_candidate(
         },
         evidence_refs=entry.evidence_refs,
         eligible=eligible,
+        position_fit=position_fit,
+        target_family=target_family,
     )
 
 
-def _semantic_role_fit(roles: Sequence[str], credible_roles: set[str]) -> RoleFit:
+def _semantic_role_fit(
+    roles: Sequence[str],
+    credible_roles: set[str],
+    *,
+    position_fit: PositionFit = "unknown",
+) -> RoleFit:
+    if position_fit == "unsupported":
+        return "unsupported"
+    if position_fit in {"primary", "secondary"}:
+        return "supported"
     if not credible_roles or not roles:
         return "conditional"
     return "supported" if set(roles) & credible_roles else "unsupported"
+
+
+def _semantic_position_fit(
+    position_credibility: Mapping[str, str], credible_roles: set[str]
+) -> PositionFit:
+    """Resolve observed role hints against reviewed 1--5 credibility bands."""
+
+    if not credible_roles:
+        return "unknown"
+    role_positions = {
+        "carry": "1",
+        "mid": "2",
+        "offlane": "3",
+        "soft_support": "4",
+        "roamer": "4",
+        "hard_support": "5",
+    }
+    observed_positions = tuple(
+        role_positions[role] for role in sorted(credible_roles) if role in role_positions
+    )
+    if not observed_positions:
+        return "unknown"
+    if not position_credibility:
+        return "unknown"
+    values = [str(position_credibility.get(position, "unknown")) for position in observed_positions]
+    if "primary" in values:
+        return "primary"
+    if "secondary" in values:
+        return "secondary"
+    if all(value == "unsupported" for value in values):
+        return "unsupported"
+    return "unknown"
 
 
 def _learning_distance(
@@ -256,7 +353,7 @@ def _learning_distance(
     observed_demands: Mapping[str, str],
     new_demands: Sequence[str],
 ) -> LearningDistance:
-    unknown = sum(entry.demands.get(key) == "unknown" for key in HERO_DEMAND_FAMILIES)
+    unknown = sum(entry.demands.get(key, "unknown") == "unknown" for key in HERO_DEMAND_FAMILIES)
     high_new = sum(
         entry.demands.get(key) == "high" and observed_demands.get(key) not in {"medium", "high"}
         for key in HERO_DEMAND_FAMILIES
@@ -278,13 +375,22 @@ def _semantic_confidence(
     role_fit: RoleFit,
     empirical_support: EmpiricalSupport,
     new_demands: Sequence[str],
+    *,
+    intent: RecommendationIntent = "adjacent_move",
 ) -> SemanticConfidence:
     value = str(entry.confidence).casefold()
     if value == "moderate":
         value = "medium"
     if value not in SEMANTIC_CONFIDENCE_BANDS or entry.review_status not in {"reviewed", "approved"}:
         return "low"
-    if role_fit == "conditional" or empirical_support == "unknown" or not new_demands:
+    unknown_demands = sum(
+        entry.demands.get(key, "unknown") == "unknown" for key in HERO_DEMAND_FAMILIES
+    )
+    if unknown_demands >= 4:
+        return "low"
+    if role_fit == "conditional" or empirical_support == "unknown":
+        return "medium" if value == "high" else "low"
+    if intent in {"change_angle", "specialist"} and not new_demands:
         return "medium" if value == "high" else "low"
     return value  # type: ignore[return-value]
 
@@ -295,18 +401,29 @@ def _semantic_rank(
     # Lower tuples rank first.  Every component maps to a finite semantic band
     # or a count; no aggregate score is exposed to the player.
     role_rank = {"supported": 0, "conditional": 1, "unsupported": 2}[rationale.role_fit]
+    position_rank = {"primary": 0, "secondary": 1, "unsupported": 2, "unknown": 3}[rationale.position_fit]
     confidence_rank = {"high": 0, "medium": 1, "low": 2}[rationale.confidence]
     empirical_rank = {"high": 0, "medium": 1, "low": 2, "unknown": 3}[rationale.empirical_support]
     distance_rank = {"low": 0, "moderate": 1, "high": 2}[rationale.learning_distance]
-    return (
-        -len(rationale.familiar_anchors),
-        -len(rationale.adds),
-        role_rank,
-        distance_rank,
-        empirical_rank,
-        confidence_rank,
-        -len(entry.primary_functions),
-    )
+    intent_rank: tuple[Any, ...]
+    if rationale.intent == "double_down":
+        intent_rank = (distance_rank, len(rationale.adds), -len(rationale.familiar_anchors))
+    elif rationale.intent == "adjacent_move":
+        intent_rank = (-len(rationale.familiar_anchors), -len(rationale.adds), distance_rank)
+    elif rationale.intent == "fill_gap":
+        target_hits = sum(
+            family_for_function(function) == rationale.target_family
+            for function in rationale.adds
+        )
+        intent_rank = (-target_hits, -len(rationale.familiar_anchors), distance_rank)
+    elif rationale.intent == "change_angle":
+        intent_rank = (-len(rationale.new_demands), len(rationale.adds), distance_rank)
+    else:  # specialist
+        high_demand_count = sum(
+            entry.demands.get(key) == "high" for key in HERO_DEMAND_FAMILIES
+        )
+        intent_rank = (-high_demand_count, -len(rationale.new_demands), distance_rank)
+    return (*intent_rank, role_rank, position_rank, empirical_rank, confidence_rank, -len(entry.primary_functions))
 
 
 def recommend_heroes(

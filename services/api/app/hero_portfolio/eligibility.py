@@ -50,7 +50,7 @@ def build_hero_eligibility(
             coverage = (
                 1.0
                 if semantic_entry is not None
-                and semantic_entry.review_status not in {"unknown", "stale", "draft"}
+                and semantic_entry.review_status in {"approved", "reviewed"}
                 and (semantic_entry.primary_functions or semantic_entry.secondary_functions)
                 else 0.0
             )

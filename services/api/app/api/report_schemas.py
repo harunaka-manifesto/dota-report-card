@@ -197,6 +197,8 @@ class HeroRecommendationRationaleSchema(PublicModel):
     provenance_versions: dict[str, str]
     evidence_refs: list[str]
     eligible: bool
+    position_fit: Literal["primary", "secondary", "unsupported", "unknown"] = "unknown"
+    target_family: str | None = None
 
 
 class PatternHeroRecommendationSchema(PublicModel):
@@ -321,6 +323,7 @@ class CoverageSummarySchema(PublicModel):
     primary_gap: str | None = None
     secondary_gaps: list[str] = Field(default_factory=list)
     semantic_coverage: float | None = Field(default=None, ge=0, le=1)
+    structural_semantic_coverage: float | None = Field(default=None, ge=0, le=1)
     role_adjusted_coverage: float | None = Field(default=None, ge=0, le=1)
     pairwise_functional_overlap: float | None = Field(default=None, ge=0, le=1)
     unique_contribution_count: int | None = Field(default=None, ge=0)
@@ -795,15 +798,28 @@ class FreeDnaReportV4Schema(PublicModel):
             if sum(option.key == common.correct_option_key for option in common.options) != 1:
                 raise ValueError("Common Thread correct option must appear exactly once")
         exception = self.hero_portfolio.exception
-        if exception.status in {"available", "no_clear_exception"}:
+        if exception.status == "available":
             if len(exception.options) != 4:
-                raise ValueError("Resolved Exception states must contain four answer options")
+                raise ValueError("Available Exception must contain four answer options")
             if len({option.key for option in exception.options}) != 4 or any(not option.feedback for option in exception.options):
                 raise ValueError("Exception options must be unique and carry contextual feedback")
             if exception.correct_option_key is None or sum(option.key == exception.correct_option_key for option in exception.options) != 1:
                 raise ValueError("Exception correct option must appear exactly once")
-            if exception.status == "no_clear_exception" and exception.correct_option_key != "no_clear_exception":
+        elif exception.status == "no_clear_exception":
+            # free-story-5.2.0 snapshots exposed three plausible hero guesses
+            # plus the no-clear option. Current 5.3 story snapshots make the
+            # bounded answer an insight, so no hero guesses cross the API.
+            expected_options = 1 if self.story.version == "free-story-5.3.0" else 4
+            if len(exception.options) != expected_options:
+                raise ValueError("No-clear Exception must expose only its bounded answer in the current story")
+            if len({option.key for option in exception.options}) != expected_options or any(not option.feedback for option in exception.options):
+                raise ValueError("No-clear Exception options must be unique and carry contextual feedback")
+            if exception.correct_option_key is None or sum(option.key == exception.correct_option_key for option in exception.options) != 1:
+                raise ValueError("No-clear Exception correct option must appear exactly once")
+            if exception.correct_option_key != "no_clear_exception":
                 raise ValueError("No-clear Exception must use the no-clear option as truth")
+        elif self.story.version == "free-story-5.3.0" and exception.options:
+            raise ValueError("Unavailable Exception must not expose guessing options")
         page_ids = [item.id for item in self.pages]
         if page_ids != self.story.ordered_pages or len(page_ids) != len(set(page_ids)):
             raise ValueError("Free DNA v5 story ordering must match unique public pages")
@@ -814,6 +830,18 @@ class FreeDnaReportV4Schema(PublicModel):
                 raise ValueError(f"Story page references unknown Pattern: {page.pattern_key}")
             if not set(page.evidence_keys).issubset(element_keys):
                 raise ValueError(f"Story page {page.id} references an unknown Element")
+            if self.story.version == "free-story-5.3.0" and page.kind == "pool_evolution_question":
+                if not isinstance(page.content.get("payoff_heading"), str) or not isinstance(page.content.get("copy"), str):
+                    raise ValueError("Current Pool Evolution page must expose a payoff heading and body copy")
+            if self.story.version == "free-story-5.3.0" and page.kind == "hero_exception_question" and exception.status == "no_clear_exception":
+                insight = page.content.get("no_clear_insight")
+                required_insight = {"eyebrow", "headline", "body", "boundary"}
+                if (
+                    not isinstance(insight, dict)
+                    or set(insight) != required_insight
+                    or any(not isinstance(insight.get(item), str) for item in required_insight)
+                ):
+                    raise ValueError("Current no-clear Exception page must expose its reviewed insight copy")
             if self.schema_version == "free-dna-report-5.2.0" and page.kind == "pattern_highlight":
                 if page.pattern_key is None:
                     if page.id != "pattern-read" or self.highlights.pattern_keys:
@@ -839,7 +867,7 @@ class FreeDnaReportV4Schema(PublicModel):
             "hero_common_thread_question",
             "hero_exception_question",
             "pool_evolution_question",
-            "pool_evolution_reveal",
+            *([] if self.story.version == "free-story-5.3.0" else ["pool_evolution_reveal"]),
             "hero_mirror_reveal",
             "final_card",
             "deep_dive",

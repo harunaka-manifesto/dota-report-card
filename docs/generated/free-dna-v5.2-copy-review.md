@@ -3,8 +3,8 @@
 Generated from the deterministic presentation contract and the server copy catalog.
 Every sentence below is catalog-backed; this is an editorial QA surface, not a runtime source.
 
-- Copy version: `free-dna-copy-5.2.0`
-- Approval status: seeded structural copy · editorial review required
+- Copy version: `free-dna-copy-5.3.0`
+- Approval status: reviewed for the v5.2 product-closure pass
 - Runtime LLM calls: none
 
 ## P01 · Same Playbook
@@ -15,15 +15,15 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: The player changes hero names more than the kinds of Dota jobs those heroes perform.
 - Evidence requirement: `hero_pool_breadth, toolkit_breadth`
 - Allowed placeholders: `hero_name`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
-- Reveal: **Broad by hero. Narrow by job.** — Your hero names change more than the functional work underneath.
+- Reveal: **Broad by hero. Narrow by job.** — Your hero names change more than the ways you tend to help underneath.
 - Interpretation: **What this actually means** — Your pool offers variety on the surface, but several heroes keep asking you to solve a similar kind of Dota problem.
-- Recommendation: **DO THIS NEXT / Add one missing function** — Try Example bridge hero when you want to keep a familiar anchor while adding a genuinely different job.
-- Deep Dive: **Deep Dive: expand the job** — Replay and draft evidence could show which matchups make a new functional answer valuable.
-- Fallback: title: The pattern is clear; the next hero is not body: The repeated job is supported, but no additional hero cleared the recommendation gates.
+- Recommendation: **DO THIS NEXT / Add one missing answer** — Try Example bridge hero when you want to keep a familiar anchor while adding a genuinely different way to help.
+- Deep Dive: **Deep Dive: expand the answer** — Replay and draft evidence could show which matchups make a new answer valuable.
+- Fallback: title: The pattern is clear; the next hero is not body: The repeated job is supported, but no additional hero met the evidence needed for a recommendation.
 
 ### Guardrails
 
@@ -37,7 +37,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: The playable pool is wider than the range where current results reliably hold.
 - Evidence requirement: `hero_pool_breadth, off_pool_performance`
 - Allowed placeholders: `none`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
@@ -45,7 +45,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Interpretation: **What this actually means** — The development side is not a verdict. It is the clearest practice order inside the heroes you already return to.
 - Recommendation: **DO THIS NEXT / Practice #3–5 with a reason** — Work down the development side one hero at a time, and name the new demand each hero introduces.
 - Deep Dive: **Deep Dive: hero demand** — Match-level evidence could separate hero familiarity from the specific demands that change your results.
-- Fallback: title: The ladder needs more evidence body: The pool is broad enough to compare, but not every rung cleared the reliability gate.
+- Fallback: title: The ladder needs more evidence body: The pool is broad enough to compare, but not every rung is dependable enough to place confidently.
 
 ### Guardrails
 
@@ -59,7 +59,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: Fight presence travels off-pool better than results do.
 - Evidence requirement: `off_pool_activity_stability, off_pool_performance`
 - Allowed placeholders: `none`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
@@ -81,15 +81,15 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: A small hero count still covers meaningfully different Dota jobs.
 - Evidence requirement: `hero_pool_breadth, toolkit_breadth`
 - Allowed placeholders: `hero_name`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
-- Reveal: **A small pool can cover a lot of Dota.** — Your core is compact by hero count, but broad by functional job.
-- Interpretation: **What this actually means** — You do not need a huge roster to preserve different ways of contributing. The useful question is which job is thin or missing.
-- Recommendation: **DO THIS NEXT / Add a genuinely new tool** — Try Example bridge hero only if it adds a missing function while keeping one familiar anchor.
+- Reveal: **Small pool. Different answers.** — Your core stays compact while its coverage reaches across several ways to contribute.
+- Interpretation: **What this actually means** — The family map shows where the core overlaps and where only one or two heroes carry a job. It is a coverage read, not a claim about execution.
+- Recommendation: **DO THIS NEXT / Add a genuinely new tool** — Try Example bridge hero only if it adds a missing way to help while keeping one familiar anchor.
 - Deep Dive: **Deep Dive: draft-specific coverage** — Draft and matchup evidence could test whether a missing function is useful in the situations you actually face.
-- Fallback: title: The toolkit is broad enough body: The core covers several jobs, but no sixth hero cleared the familiar-anchor and evidence gates.
+- Fallback: title: No versatile-core headline yet body: The family map is visible for context, but the compact pool did not meet the evidence needed for a clear versatility read.
 
 ### Guardrails
 
@@ -103,15 +103,15 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: The player’s broader pool is backed by performance transfer, not only selection variety.
 - Evidence requirement: `hero_pool_breadth, off_pool_performance`
 - Allowed placeholders: `none`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
-- Reveal: **Your flexibility shows up in the window.** — The roster changed, and the functional range repeated often enough to count as evidence.
+- Reveal: **Your flexibility shows up in the window.** — The roster changed, and the range of ways to help repeated often enough to count as evidence.
 - Interpretation: **What this actually means** — This is more than a list of one-off picks: multiple heroes and jobs recur inside a supported period.
 - Recommendation: **DO THIS NEXT / Keep the anchors warm** — Protect the heroes that make this flexibility repeatable instead of trying to keep the whole roster equally ready.
 - Deep Dive: **Deep Dive: context transfer** — Match-level evidence could show which team, draft, and timing contexts support the flexible window.
-- Fallback: title: Range is present, but distributed body: The history shows a wide pool without one clean flex window that clears every comparison gate.
+- Fallback: title: Range is present, but distributed body: The history shows a wide pool without one clean flex window that holds together across every comparison.
 
 ### Guardrails
 
@@ -125,7 +125,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: Comparable post-loss performance improves while familiarity or tempo also moves.
 - Evidence requirement: `post_loss_performance_response, post_loss_familiarity_shift, post_loss_activity_shift`
 - Allowed placeholders: `none`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
@@ -133,7 +133,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Interpretation: **What this actually means** — The next same-session result is stronger than the comparable personal baseline after a loss. That is an observable transition, not a motive.
 - Recommendation: **DO THIS NEXT / Simplify the first decision** — Use the most repeatable familiar job as a post-loss anchor when you want one controllable next step.
 - Deep Dive: **Deep Dive: the rebound transition** — Match-level evidence could show what changes between the loss and the stronger next game.
-- Fallback: title: The next game is stronger overall body: The rebound is supported at a broad level, but no narrower hero or job context cleared the gate.
+- Fallback: title: The next game is stronger overall body: The rebound is supported at a broad level, but no narrower hero or job context is stable enough to call out.
 
 ### Guardrails
 
@@ -147,7 +147,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: Comparable post-loss performance declines while familiarity or tempo also moves.
 - Evidence requirement: `post_loss_performance_response, post_loss_familiarity_shift, post_loss_activity_shift`
 - Allowed placeholders: `none`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
@@ -155,7 +155,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Interpretation: **What this actually means** — The next same-session result is weaker than the comparable personal baseline after a loss. The data does not establish tilt, panic, or hero causality.
 - Recommendation: **DO THIS NEXT / Change one transition** — Pause the queue, return to a stable hero or job, or simplify the first game plan—choose one controllable change.
 - Deep Dive: **Deep Dive: the slide transition** — Match-level evidence could show where the next-game result diverges from the comparable baseline.
-- Fallback: title: The next game is weaker overall body: The slide is supported at a broad level, but no narrower context cleared the gate.
+- Fallback: title: The next game is weaker overall body: The slide is supported at a broad level, but no narrower context is stable enough to call out.
 
 ### Guardrails
 
@@ -169,7 +169,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: High involvement coexists with low-to-moderate death exposure.
 - Evidence requirement: `combat_involvement, death_exposure`
 - Allowed placeholders: `none`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
@@ -177,7 +177,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Interpretation: **What this actually means** — The summary history identifies a context where involvement and survival move together. It does not prove positioning skill or the value of every death.
 - Recommendation: **DO THIS NEXT / Preserve the useful shape** — Keep the behavior or hero demand that produces high involvement without the same death exposure.
 - Deep Dive: **Deep Dive: fight contexts** — Replay evidence could identify which fight situations preserve involvement without the same death cost.
-- Fallback: title: The broad relationship is clear body: High presence and lower exposure coexist overall, but no narrower context cleared the comparison gate.
+- Fallback: title: The broad relationship is clear body: High presence and lower exposure coexist overall, but no narrower context is stable enough to call out.
 
 ### Guardrails
 
@@ -191,7 +191,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: High involvement coexists with high death exposure.
 - Evidence requirement: `combat_involvement, death_exposure`
 - Allowed placeholders: `none`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
@@ -213,7 +213,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: Later games in sufficiently long sessions show a repeated weaker result signal.
 - Evidence requirement: `session_length_tendency, late_session_performance`
 - Allowed placeholders: `none`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 
@@ -235,7 +235,7 @@ Every sentence below is catalog-backed; this is an editorial QA surface, not a r
 - Trigger summary: Later-session results improve often enough to stand out.
 - Evidence requirement: `session_length_tendency, late_session_performance`
 - Allowed placeholders: `none`
-- Approval status: seeded structural copy · editorial review required
+- Approval status: reviewed for the v5.2 product-closure pass
 
 ### Exact resolved copy
 

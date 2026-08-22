@@ -82,23 +82,27 @@ needs distance at least `0.32` and a runner-up margin of at least `0.06`.
 
 Confidence combines winner sample size, distance, and margin. The result
 contains pool traits, exception traits, distance, margin, confidence, and
-exactly four options when enough candidates exist: the winner plus three
-nearest-to-pool distractors. A no-clear result keeps a four-option interaction
-with three plausible heroes and “No clear exception yet”. Fewer than four
-eligible heroes is unavailable.
+exactly four options when a clear winner exists: the winner plus three
+nearest-to-pool distractors. A no-clear result is not a quiz. Its public
+payload keeps only the bounded `no_clear_exception` answer for compatibility,
+and the story immediately presents “Your pool has no odd one out.” Fewer than
+four eligible heroes is unavailable.
 
 ### Interaction and copy states
 
-The question is unanswered until a radio option is selected. Correct and wrong
-choices receive catalog feedback; no-clear feedback does not pretend the
-selected hero was proven. The result says that a hero breaks the pool’s
-functional shape more clearly, not that the player is that hero.
+When a clear outlier exists, the question is unanswered until a radio option
+is selected and correct/wrong choices receive catalog feedback. When no hero
+clears the distance and margin gates, the client renders the catalog-owned
+no-outlier insight without radio options or Reveal. The result says that a hero
+breaks the pool’s functional shape more clearly, not that the player is that
+hero.
 
 ### Tests that protect it
 
-Protect clear outlier, distance and margin floors, runner-up margin, no-clear,
-tiny-hero exclusion, taxonomy failure, win-rate irrelevance, deterministic
-unbiased option position, exact option count, and contextual wrong feedback.
+Protect clear outlier, distance and margin floors, runner-up margin, no-clear
+as an immediate insight, tiny-hero exclusion, taxonomy failure, win-rate
+irrelevance, deterministic unbiased option position, exact option count, and
+contextual wrong feedback.
 
 ## Pool Evolution
 
@@ -106,7 +110,7 @@ unbiased option position, exact option count, and contextual wrong feedback.
 
 “How do you think your hero pool has changed recently?” This is a self-
 assessment, not a score. The user chooses a description before the computed
-read is revealed.
+read is revealed once, immediately in the same story page.
 
 ### Input, windows, and algorithm
 

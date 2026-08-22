@@ -155,7 +155,7 @@ def _semantic_coverage(
         1
         for item in rows
         if (entry := provider.get(item.hero_id)) is not None
-        and entry.review_status not in {"unknown", "stale", "draft"}
+        and entry.review_status in {"approved", "reviewed"}
         and (entry.primary_functions or entry.secondary_functions)
     )
     return covered / max(len(rows), 1)
@@ -170,7 +170,7 @@ def _toolkit_distribution(
     for item in rows:
         if provider is not None:
             entry = provider.get(item.hero_id)
-            if entry is None or entry.review_status in {"unknown", "stale", "draft"}:
+            if entry is None or entry.review_status not in {"approved", "reviewed"}:
                 continue
             for function in tuple(dict.fromkeys((*entry.primary_functions, *entry.secondary_functions))):
                 key = canonical_function_key(function)

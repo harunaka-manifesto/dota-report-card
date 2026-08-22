@@ -81,7 +81,7 @@ states are product results, not errors.
 
 ## 4. Canonical Element registry
 
-The active registry is `free-elements-5.1.0` and contains exactly 18 Elements,
+The active registry is `free-elements-5.2.0` and contains exactly 18 Elements,
 in this order:
 
 | ID | Key | Label | Axis | Minimum sample | Minimum coverage |
@@ -292,15 +292,15 @@ Current versions are:
 | Contract | Version |
 |---|---|
 | Behavior model | `behavior-model-5.2.0` |
-| Element registry | `free-elements-5.1.0` |
+| Element registry | `free-elements-5.2.0` |
 | Pattern registry | `free-patterns-5.1.0` |
 | Pattern actions | `pattern-actions-5.1.0` |
 | Context baseline | `context-baseline-1.0.0` |
 | Report schema | `free-dna-report-5.2.0` |
-| Story | `free-story-5.2.0` |
+| Story | `free-story-5.3.0` |
 | Pattern presentation | `pattern-presentation-5.2.0` |
 | Model content | `free-dna-model-5.2.0` |
-| Copy content | `free-dna-copy-5.2.0` |
+| Copy content | `free-dna-copy-5.3.0` |
 | Hero knowledge schema | `hero-knowledge-schema-1.0.0` |
 
 Current snapshots carry these versions and the compatibility fingerprint.

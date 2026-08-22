@@ -19,6 +19,11 @@ export function PatternStoryScreen({ pattern, page, reportSchemaVersion }: Patte
   const presentation = pattern.presentation;
   const copy = page.content?.presentation_copy;
   if (!presentation || !copy) return null;
+  const nextStep = copy.recommendation ?? {
+    eyebrow: "NEXT STEP",
+    title: copy.fallback.title ?? "Keep the pattern testable",
+    body: copy.fallback.body ?? "Use another supported window before turning this relationship into a stronger claim.",
+  };
   return (
     <article className={`pattern-story-screen pattern-story-${presentation.visual_variant}`} data-pattern-id={pattern.key} data-outcome-id={presentation.outcome_id}>
       <header className="pattern-story-reveal">
@@ -26,15 +31,18 @@ export function PatternStoryScreen({ pattern, page, reportSchemaVersion }: Patte
         <h2 id={`${page.id}-heading`}>{copy.headline}</h2>
         <p className="story-lede">{copy.subheadline}</p>
       </header>
-      <PatternVisual presentation={presentation} />
-      <section className="pattern-story-interpretation">
+      <section className="pattern-story-proof" aria-labelledby={`${page.id}-proof-heading`}>
+        <h3 id={`${page.id}-proof-heading`} className="visually-hidden">Visual proof</h3>
+        <PatternVisual presentation={presentation} />
+      </section>
+      <section className="pattern-story-interpretation" aria-labelledby={`${page.id}-interpretation-heading`}>
         <span className="eyebrow">What this actually means</span>
-        <h3>{copy.interpretation.title}</h3>
+        <h3 id={`${page.id}-interpretation-heading`}>{copy.interpretation.title}</h3>
         <p>{copy.interpretation.body}</p>
       </section>
-      {copy.recommendation && presentation.recommendation_id && <section className="pattern-story-recommendation"><span className="eyebrow">{copy.recommendation.eyebrow}</span><h3>{copy.recommendation.title}</h3><p>{copy.recommendation.body}</p>{typeof presentation.recommendation_context?.hero_name === "string" && <span className="recommendation-hero">{presentation.recommendation_context.hero_name}</span>}</section>}
+      <section className={`pattern-story-recommendation${copy.recommendation ? "" : " is-fallback"}`} aria-labelledby={`${page.id}-next-step-heading`}><span className="eyebrow">{nextStep.eyebrow}</span><h3 id={`${page.id}-next-step-heading`}>{nextStep.title}</h3><p>{nextStep.body}</p>{copy.recommendation && presentation.recommendation_id && typeof presentation.recommendation_context?.hero_name === "string" && <span className="recommendation-hero">{presentation.recommendation_context.hero_name}</span>}</section>
       {copy.deep_dive && presentation.deep_dive_id && <aside className="pattern-story-deep-dive"><span className="eyebrow">Next diagnostic question</span><h3>{copy.deep_dive.title}</h3><p>{copy.deep_dive.body}</p><a href="/?mode=deep_scan" onClick={() => { window.dispatchEvent(new CustomEvent("dota-dna:deep-dive", { detail: { pattern: pattern.key, reportSchemaVersion } })); }}>Explore Deep Dive →</a></aside>}
-      <details className="pattern-story-evidence"><summary>Evidence details</summary><EvidenceReceipt evidence={pattern.receipts} /><dl className="pattern-raw-metrics">{Object.entries(presentation.raw_metrics).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{String(value)}</dd></div>)}</dl><p className="muted">Confidence: {presentation.confidence}. Evidence references: {presentation.evidence_refs.join(", ") || "pattern qualification"}.</p></details>
+      <details className="pattern-story-evidence"><summary>Evidence details</summary><EvidenceReceipt evidence={pattern.receipts} /><dl className="pattern-raw-metrics">{Object.entries(presentation.raw_metrics).map(([key, value]) => <div key={key}><dt>{metricLabel(key)}</dt><dd>{formatMetricValue(key, value)}</dd></div>)}</dl><p className="muted">Confidence: {presentation.confidence}. Evidence references: {presentation.evidence_refs.join(", ") || "pattern qualification"}.</p></details>
       {pattern.story_blockers.length > 0 && <p className="muted">{pattern.story_blockers.join(" ")}</p>}
     </article>
   );
@@ -49,5 +57,28 @@ function PatternVisual({ presentation }: { presentation: NonNullable<BehaviorPat
   if (presentation.visual_variant === "flex_window_grid") return <FlexWindowGrid {...props} />;
   if (presentation.visual_variant === "post_loss_transition") return <PostLossTransition {...props} />;
   if (presentation.visual_variant === "presence_exposure_map") return <PresenceExposureMap {...props} />;
-  return <SessionCurve {...props} />;
+  if (presentation.visual_variant === "session_curve") return <SessionCurve {...props} />;
+  return <div className="pattern-visual pattern-visual-fallback" role="status">Visual proof is unavailable for this presentation version. Evidence details remain available below.</div>;
+}
+
+const METRIC_LABELS: Record<string, string> = {
+  effective_sample_size: "Effective sample size",
+  confidence_score: "Confidence",
+  evidence_coverage: "Evidence coverage",
+  relationship_strength: "Relationship strength",
+  result_delta: "Result difference",
+  hero_distribution_shift: "Hero-pool shift",
+  toolkit_distribution_shift: "Toolkit shift",
+};
+
+function metricLabel(key: string): string {
+  return METRIC_LABELS[key] ?? key.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function formatMetricValue(key: string, value: unknown): string {
+  if (value === null || value === undefined) return "Not available";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value !== "number" || !Number.isFinite(value)) return String(value);
+  if (key.includes("coverage") || key.includes("confidence") || key.includes("share")) return `${Math.round(value * 100)}%`;
+  return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }

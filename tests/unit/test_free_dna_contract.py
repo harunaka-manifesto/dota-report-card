@@ -97,7 +97,13 @@ def test_free_report_is_v5_summary_only_versioned_and_expiring() -> None:
     assert report["reproducibility"]["model_version"] == "free-dna-model-5.2.0"
     assert report["reproducibility"]["recency_weighting_version"] == "recency-weighting-5.0.0"
     assert report["story"]["ordered_pages"] == [page["id"] for page in report["pages"]]
+    assert report["story"]["version"] == "free-story-5.3.0"
+    assert report["versions"]["copy"] == "free-dna-copy-5.3.0"
+    assert "pool_evolution_reveal" not in [page["kind"] for page in report["pages"]]
     assert {page["kind"] for page in report["pages"]} >= {"element_scan", "pattern_highlight", "hero_mirror_reveal", "deep_dive"}
+    if report["hero_portfolio"]["exception"]["status"] == "no_clear_exception":
+        assert len(report["hero_portfolio"]["exception"]["options"]) == 1
+        assert report["hero_portfolio"]["exception"]["options"][0]["key"] == "no_clear_exception"
     validate_free_dna_report(report)
 
     svg, _ = build_share_svg(report, card_type="final", show_name=False, show_avatar=False)
@@ -127,6 +133,71 @@ def test_public_report_route_sets_noindex_and_returns_strict_v5_contract() -> No
     assert body["report_variant"] == "free_dna_report"
     validate_free_dna_report(body)
     assert job.status == "completed"
+
+
+def test_legacy_story_accepts_the_old_evolution_page_and_no_clear_choices() -> None:
+    _source, repository, _service, job = _run_report()
+    report = repository.get_report(job.report_id or "")
+    assert report is not None
+    legacy = copy.deepcopy(report)
+    legacy["story"]["version"] = "free-story-5.2.0"
+    question_index = next(index for index, page in enumerate(legacy["pages"]) if page["kind"] == "pool_evolution_question")
+    question = legacy["pages"][question_index]
+    legacy_copy = "New heroes. Same taste. Your recent picks look different, but the jobs you keep asking your heroes to perform barely moved."
+    legacy["pages"].insert(question_index + 1, {
+        "id": "pool-evolution-reveal",
+        "kind": "pool_evolution_reveal",
+        "section": "hero_portfolio",
+        "title": "Pool Evolution",
+        "body": legacy_copy,
+        "evidence_keys": [],
+        "portfolio_key": "evolution",
+        "content": {"copy": legacy_copy, "locked_copy": question["content"].get("locked_copy")},
+        "options": [],
+    })
+    legacy["story"]["ordered_pages"] = [page["id"] for page in legacy["pages"]]
+    exception = legacy["hero_portfolio"]["exception"]
+    exception["status"] = "no_clear_exception"
+    exception["hero_id"] = None
+    exception["hero_name"] = None
+    exception["options"] = [
+        {"key": "hero:1", "label": "Anti-Mage", "hero_id": 1, "feedback": "A plausible guess."},
+        {"key": "hero:2", "label": "Axe", "hero_id": 2, "feedback": "A plausible guess."},
+        {"key": "hero:3", "label": "Invoker", "hero_id": 3, "feedback": "A plausible guess."},
+        {"key": "no_clear_exception", "label": "No clear exception", "hero_id": None, "feedback": "No single hero stands apart."},
+    ]
+    exception["correct_option_key"] = "no_clear_exception"
+    validate_free_dna_report(legacy)
+
+
+def test_current_story_reduces_no_clear_exception_to_one_bounded_answer() -> None:
+    _source, repository, _service, job = _run_report()
+    report = repository.get_report(job.report_id or "")
+    assert report is not None
+    current = copy.deepcopy(report)
+    exception = current["hero_portfolio"]["exception"]
+    exception["status"] = "no_clear_exception"
+    exception["hero_id"] = None
+    exception["hero_name"] = None
+    exception["options"] = [
+        {"key": "hero:1", "label": "Anti-Mage", "hero_id": 1, "feedback": "A plausible guess."},
+        {"key": "hero:2", "label": "Axe", "hero_id": 2, "feedback": "A plausible guess."},
+        {"key": "hero:3", "label": "Invoker", "hero_id": 3, "feedback": "A plausible guess."},
+        {"key": "no_clear_exception", "label": "No clear exception", "hero_id": None, "feedback": "No single hero stands apart."},
+    ]
+    exception["correct_option_key"] = "no_clear_exception"
+    with pytest.raises(ValueError, match="only its bounded answer"):
+        validate_free_dna_report(current)
+
+    bounded = exception["options"][-1]
+    exception["options"] = [bounded]
+    validate_free_dna_report(current)
+
+    missing_evolution_heading = copy.deepcopy(current)
+    evolution_page = next(page for page in missing_evolution_heading["pages"] if page["kind"] == "pool_evolution_question")
+    evolution_page["content"].pop("payoff_heading")
+    with pytest.raises(ValueError, match="payoff heading and body copy"):
+        validate_free_dna_report(missing_evolution_heading)
 
 
 def test_current_report_has_alignment_metadata_and_historical_v50_payload_still_reads() -> None:

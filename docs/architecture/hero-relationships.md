@@ -67,5 +67,8 @@ historical reproducibility, migrated features, and an explicit compatibility
 fallback. They are not the active semantic source for v5.2 hero
 recommendations. The pilot vocabulary and recommendation handoff are frozen in
 `services/api/app/heroes/data/semantics/pilot-v1.json` and the generated
-`hero-knowledge-semantic-freeze-pilot-v1` snapshot. Production copy authoring
-is intentionally a separate next phase.
+`hero-knowledge-semantic-freeze-pilot-v1` snapshot. Reviewed semantic coverage
+and structural fallback coverage are tracked separately; structural-only
+heroes cannot qualify strong portfolio storytelling. Recommendation rationales
+carry catalog-backed player copy, exact target-family evidence when applicable,
+and explicit position fit.

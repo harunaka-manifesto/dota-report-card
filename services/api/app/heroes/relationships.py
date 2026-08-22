@@ -75,6 +75,7 @@ class HeroPoolProfile:
     semantic: bool = False
     semantic_coverage: float = 1.0
     reviewed_semantic_coverage: float = 1.0
+    structural_semantic_coverage: float = 1.0
     functional_families: tuple[str, ...] = ()
     role_relevant_functions: tuple[str, ...] = ()
     role_relevant_families: tuple[str, ...] = ()
@@ -160,7 +161,7 @@ def build_semantic_pool_profile(
         hero_id: provider.get(hero_id)
         for hero_id in selected_usage
     }
-    known_entries = {
+    structural_entries = {
         hero_id: entry
         for hero_id, entry in entries.items()
         if entry is not None
@@ -169,15 +170,20 @@ def build_semantic_pool_profile(
     }
     reviewed_entries = {
         hero_id: entry
-        for hero_id, entry in known_entries.items()
+        for hero_id, entry in structural_entries.items()
         if entry.review_status in {"approved", "reviewed"}
     }
-    semantic_coverage = len(known_entries) / max(len(selected_usage), 1)
+    # Structural fallback is useful for diagnostics, but it is not reviewed
+    # semantic coverage and must never make a strong P01/P04 story look
+    # complete.  Keep both ratios explicit so callers cannot accidentally
+    # collapse them into one neutral number.
+    structural_coverage = len(structural_entries) / max(len(selected_usage), 1)
     reviewed_coverage = len(reviewed_entries) / max(len(selected_usage), 1)
+    semantic_coverage = reviewed_coverage
 
     functions_by_hero: dict[int, set[str]] = {}
     families_by_hero: dict[int, set[str]] = {}
-    for hero_id, entry in known_entries.items():
+    for hero_id, entry in reviewed_entries.items():
         functions = set(entry.primary_functions) | set(entry.secondary_functions)
         functions &= set(FUNCTIONAL_JOBS)
         functions_by_hero[hero_id] = functions
@@ -266,18 +272,18 @@ def build_semantic_pool_profile(
     confidence = min(
         1.0,
         (
-            0.35 * min(1.0, len(known_entries) / 5.0)
+            0.35 * min(1.0, len(reviewed_entries) / 5.0)
             + 0.35 * min(1.0, total / 40.0)
             + 0.30 * reviewed_coverage
         )
-        * semantic_coverage,
+        * reviewed_coverage,
     )
     def public_label(key: str) -> str:
         definition = job_definition(key)
         return str(definition.get("public_label", key)) if definition else key
 
     return HeroPoolProfile(
-        hero_ids=tuple(sorted(known_entries)),
+        hero_ids=tuple(sorted(reviewed_entries)),
         usage_counts=dict(selected_usage),
         centroid=centroid,
         dominant_traits=tuple(public_label(item) for item in dominant),
@@ -287,6 +293,7 @@ def build_semantic_pool_profile(
         semantic=True,
         semantic_coverage=semantic_coverage,
         reviewed_semantic_coverage=reviewed_coverage,
+        structural_semantic_coverage=structural_coverage,
         functional_families=family_union,
         role_relevant_functions=relevant_functions,
         role_relevant_families=relevant_families,

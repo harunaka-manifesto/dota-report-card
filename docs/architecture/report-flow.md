@@ -43,15 +43,15 @@ The normal completed flow is:
 4. Common Thread question.
 5. Exception question.
 6. Pool Evolution question.
-7. Pool Evolution reveal.
-8. Hero Mirror reveal.
-9. Final card with share controls.
-10. Deep Dive teaser.
+7. Hero Mirror reveal.
+8. Final card with share controls.
+9. Deep Dive teaser.
 
 The API semantic validator derives the expected page kinds from the highlight
 counts, verifies stable IDs and order, verifies selected highlight keys, and
-requires exactly four Common Thread options and exactly four Exception options
-when the result is eligible. Story page content comes from the server catalog;
+requires exactly four Common Thread options and four Exception options only
+when a clear outlier exists. A no-clear Exception exposes one bounded answer
+but no guessing interaction. Story page content comes from the server catalog;
 the client may keep old snapshots readable with a body fallback, but active
 reports do not maintain a second narrative catalog in the web bundle.
 
@@ -62,8 +62,8 @@ reports do not maintain a second narrative catalog in the web bundle.
 | Element scan | Tiles enter a short staged scan before strongest tiles are emphasized. | All tiles remain in the DOM and are readable without animation. | `data-scan-state` exposes `scanning` or `ready`; reduced motion starts ready. |
 | Element highlight | None; evidence and guardrail are visible. | Keyboard focus reaches methodology control and the modal traps focus. | Evidence receipts name the measured fields and sample. |
 | Pattern highlight | None; discovery leads, ingredients remain inspectable. | Required/modifier ingredients are visible; methodology details use native keyboard disclosure. | `report.pattern_element_expanded.v1` fires once per open transition. |
-| Common Thread / Exception | Reveal disabled until a choice is selected; reveal is one-way. | Buttons expose `role="radio"`, `aria-checked`, visible focus, and keyboard selection. | Selection status and feedback use live regions. |
-| Pool Evolution | Result page is locked until self-assessment and Reveal. The self-assessment is not scored. | Radio semantics, keyboard reveal, and direct-scroll locked copy. | Revealed state is announced; raw variant keys are not headline copy. |
+| Common Thread / clear Exception | Reveal disabled until a choice is selected; reveal is one-way. A no-clear Exception skips the controls and presents the insight directly. | Buttons expose `role="radio"`, `aria-checked`, visible focus, and keyboard selection. | Selection status, feedback, and the no-clear insight use live regions. |
+| Pool Evolution | Same-page result is locked until self-assessment and Reveal. The self-assessment is not scored. | Radio semantics and keyboard reveal; historical 5.2 duplicate pages are filtered by the client. | One revealed payoff is announced; raw variant keys are not headline copy. |
 | Hero Mirror | Closed until button, Enter/Space, or horizontal drag. | Button and keyboard reveal are equivalent to drag. Vertical movement remains page scroll. | Start and completion events are deduplicated; result is announced in a live region. |
 | Share | No identity or raw IDs in the generated card. | Native share, clipboard fallback, and download controls are buttons. | Share open/completion/failure events use the canonical names below. |
 

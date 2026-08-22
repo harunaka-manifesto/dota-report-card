@@ -561,6 +561,7 @@ class CoverageSummary:
     primary_gap: str | None = None
     secondary_gaps: tuple[str, ...] = ()
     semantic_coverage: float | None = None
+    structural_semantic_coverage: float | None = None
     role_adjusted_coverage: float | None = None
     pairwise_functional_overlap: float | None = None
     unique_contribution_count: int | None = None
@@ -576,6 +577,7 @@ class CoverageSummary:
             "primary_gap": self.primary_gap,
             "secondary_gaps": list(self.secondary_gaps),
             "semantic_coverage": self.semantic_coverage,
+            "structural_semantic_coverage": self.structural_semantic_coverage,
             "role_adjusted_coverage": self.role_adjusted_coverage,
             "pairwise_functional_overlap": self.pairwise_functional_overlap,
             "unique_contribution_count": self.unique_contribution_count,

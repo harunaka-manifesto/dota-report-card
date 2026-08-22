@@ -53,9 +53,10 @@ Each `HeroKnowledgeRecord` contains:
 ```yaml
 identity: canonical Valve ID, key, display name, attribute, complexity
 mechanics: abilities, innate abilities, facets, talents, base stats
-functions: primary and secondary derived jobs
+functions: primary and secondary reviewed jobs
 demands: commitment, access, execution, exposure, and evidence-backed bands
-capabilities: initiation, save, mobility, teamfight, push, and other facts
+capabilities: initiation, save, mobility, fight control, push, and other facts
+position_credibility: primary, secondary, unsupported, or unknown for positions 1–5
 empirical:
   bracket_performance: OpenDota picks/wins by source-labeled population
   duration_profile: OpenDota duration bins and observed outcomes
@@ -136,3 +137,14 @@ continues. Active v5.2 analysis consumes the generated snapshot through
 semantic-outcome versions. `TaxonomyHeroKnowledgeProvider` remains an
 explicit compatibility adapter for historical callers and features that have
 not migrated yet.
+
+## Recommendation contracts
+
+Semantic recommendations are deterministic and versioned separately from hero
+knowledge. `double_down` maximizes familiar jobs and low learning distance;
+`adjacent_move` keeps an anchor while adding a new job; `fill_gap` requires an
+added job in the exact displayed coverage family; `change_angle` keeps an
+anchor while changing reviewed demands; and `specialist` requires a reviewed
+specialist demand signal. Position credibility is resolved independently from
+broad taxonomy roles. Unknown position evidence remains `unknown` and cannot
+be promoted into a primary or secondary fit.

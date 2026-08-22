@@ -24,20 +24,42 @@
         "burst": {
           "band": "medium",
           "characteristic": "burst",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "catch": {
           "band": "medium",
           "characteristic": "catch",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "counter_initiation": {
           "band": "medium",
           "characteristic": "counter_initiation",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
+        },
+        "fight_control": {
+          "band": "high",
+          "characteristic": "fight_control",
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "frontline": {
           "band": "high",
@@ -46,7 +68,7 @@
             "valve:axe:counter_helix",
             "valve:axe:berserkers_call"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "initiation": {
           "band": "high",
@@ -54,13 +76,7 @@
           "derived_from": [
             "valve:axe:berserkers_call"
           ],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "teamfight_control": {
-          "band": "high",
-          "characteristic": "teamfight_control",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
@@ -70,57 +86,77 @@
           "derived_from": [
             "valve:axe:blink_dependency"
           ],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
-          "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
-          ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "high",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "medium",
           "characteristic": "economy",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "medium",
           "characteristic": "execution",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "high",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "low",
           "characteristic": "micro",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "medium",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
           "characteristic": "timing",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:006-axe.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -213,7 +249,7 @@
         "teamfight_jobs": [
           {
             "priority": "primary",
-            "semantic_key": "teamfight_control"
+            "semantic_key": "fight_control"
           }
         ],
         "weaknesses": [
@@ -242,7 +278,7 @@
         "primary": [
           "initiation",
           "frontline",
-          "teamfight_control"
+          "fight_control"
         ],
         "secondary": [
           "counter_initiation",
@@ -274,6 +310,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "secondary",
+        "2": "unsupported",
+        "3": "primary",
+        "4": "unsupported",
+        "5": "unsupported"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -285,11 +328,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",
@@ -324,25 +367,47 @@
             "valve:puck:waning_rift",
             "valve:puck:dream_coil"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "counter_initiation": {
           "band": "medium",
           "characteristic": "counter_initiation",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
+        },
+        "fight_control": {
+          "band": "medium",
+          "characteristic": "fight_control",
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "initiation": {
           "band": "medium",
           "characteristic": "initiation",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "mobility": {
           "band": "high",
           "characteristic": "mobility",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "high",
@@ -351,41 +416,39 @@
             "valve:puck:illusory_orb",
             "valve:puck:phase_shift"
           ],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "teamfight_control": {
-          "band": "medium",
-          "characteristic": "teamfight_control",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
         "access": {
           "band": "low",
           "characteristic": "access",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
           "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
           ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "medium",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "medium",
           "characteristic": "economy",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "high",
@@ -393,19 +456,27 @@
           "derived_from": [
             "valve:puck:spell_sequence"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "medium",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "low",
           "characteristic": "micro",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "high",
@@ -414,13 +485,17 @@
             "valve:puck:illusory_orb",
             "valve:puck:phase_shift"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
           "characteristic": "timing",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:081-puck.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -552,7 +627,7 @@
         "secondary": [
           "initiation",
           "counter_initiation",
-          "teamfight_control"
+          "fight_control"
         ]
       },
       "identity": {
@@ -580,6 +655,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "secondary",
+        "2": "primary",
+        "3": "secondary",
+        "4": "unsupported",
+        "5": "unsupported"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -591,11 +673,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",
@@ -628,14 +710,32 @@
         "catch": {
           "band": "medium",
           "characteristic": "catch",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
+        },
+        "fight_control": {
+          "band": "medium",
+          "characteristic": "fight_control",
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "frontline": {
           "band": "medium",
           "characteristic": "frontline",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "initiation": {
           "band": "high",
@@ -643,19 +743,17 @@
           "derived_from": [
             "valve:beastmaster:primal_roar"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "push": {
           "band": "high",
           "characteristic": "push",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "teamfight_control": {
-          "band": "medium",
-          "characteristic": "teamfight_control",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "vision": {
           "band": "high",
@@ -663,47 +761,59 @@
           "derived_from": [
             "valve:beastmaster:hawk"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
         "access": {
           "band": "medium",
           "characteristic": "access",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
           "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
           ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "high",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "medium",
           "characteristic": "economy",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "high",
           "characteristic": "execution",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "high",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "high",
@@ -711,19 +821,27 @@
           "derived_from": [
             "valve:beastmaster:controlled_units"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "medium",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
           "characteristic": "timing",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:009-beastmaster.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -853,7 +971,7 @@
         "secondary": [
           "frontline",
           "catch",
-          "teamfight_control"
+          "fight_control"
         ]
       },
       "identity": {
@@ -880,6 +998,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "unsupported",
+        "2": "secondary",
+        "3": "primary",
+        "4": "unsupported",
+        "5": "unsupported"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -891,11 +1016,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",
@@ -929,25 +1054,27 @@
           "derived_from": [
             "valve:phantom_assassin:critical_strikes"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "mobility": {
           "band": "medium",
           "characteristic": "mobility",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "pickoff": {
-          "band": "high",
-          "characteristic": "pickoff",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "medium",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "scaling": {
           "band": "high",
@@ -955,13 +1082,17 @@
           "derived_from": [
             "valve:phantom_assassin:blur"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "sustained_damage": {
           "band": "medium",
           "characteristic": "sustained_damage",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
@@ -971,21 +1102,17 @@
           "derived_from": [
             "hero-editorial:077-phantom-assassin.md"
           ],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
-          "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
-          ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "medium",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "high",
@@ -993,37 +1120,57 @@
           "derived_from": [
             "hero-editorial:077-phantom-assassin.md"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "medium",
           "characteristic": "execution",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "medium",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "low",
           "characteristic": "micro",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "medium",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
           "characteristic": "timing",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:077-phantom-assassin.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -1115,10 +1262,6 @@
         "teamfight_jobs": [
           {
             "priority": "primary",
-            "semantic_key": "pickoff"
-          },
-          {
-            "priority": "primary",
             "semantic_key": "burst"
           }
         ],
@@ -1153,8 +1296,7 @@
       "functions": {
         "primary": [
           "burst",
-          "scaling",
-          "pickoff"
+          "scaling"
         ],
         "secondary": [
           "sustained_damage",
@@ -1186,6 +1328,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "primary",
+        "2": "secondary",
+        "3": "unsupported",
+        "4": "unsupported",
+        "5": "unsupported"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -1197,11 +1346,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",
@@ -1232,14 +1381,32 @@
         "catch": {
           "band": "medium",
           "characteristic": "catch",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "counter_initiation": {
           "band": "medium",
           "characteristic": "counter_initiation",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
+        },
+        "fight_control": {
+          "band": "high",
+          "characteristic": "fight_control",
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "save": {
           "band": "high",
@@ -1247,7 +1414,7 @@
           "derived_from": [
             "valve:dazzle:shallow_grave"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "sustain": {
           "band": "high",
@@ -1255,13 +1422,7 @@
           "derived_from": [
             "valve:dazzle:shadow_wave"
           ],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "teamfight_control": {
-          "band": "high",
-          "characteristic": "teamfight_control",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
@@ -1271,57 +1432,77 @@
           "derived_from": [
             "valve:dazzle:backline_position"
           ],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
-          "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
-          ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "low",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "low",
           "characteristic": "economy",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "high",
           "characteristic": "execution",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "medium",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "low",
           "characteristic": "micro",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "high",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
           "characteristic": "timing",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:024-dazzle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -1446,7 +1627,7 @@
         "primary": [
           "save",
           "sustain",
-          "teamfight_control"
+          "fight_control"
         ],
         "secondary": [
           "counter_initiation",
@@ -1478,6 +1659,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "unsupported",
+        "2": "secondary",
+        "3": "unsupported",
+        "4": "primary",
+        "5": "primary"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -1489,11 +1677,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",
@@ -1527,7 +1715,7 @@
           "derived_from": [
             "valve:natures_prophet:teleport"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "push": {
           "band": "high",
@@ -1535,59 +1723,79 @@
           "derived_from": [
             "valve:natures_prophet:treants"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "medium",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "scaling": {
           "band": "medium",
           "characteristic": "scaling",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "sustained_damage": {
           "band": "medium",
           "characteristic": "sustained_damage",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "vision": {
           "band": "medium",
           "characteristic": "vision",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "wave_clear": {
           "band": "high",
           "characteristic": "wave_clear",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
         "access": {
           "band": "medium",
           "characteristic": "access",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
           "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
           ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "low",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "high",
@@ -1595,37 +1803,57 @@
           "derived_from": [
             "valve:natures_prophet:item_timing"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "medium",
           "characteristic": "execution",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "medium",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "medium",
           "characteristic": "micro",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "medium",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
           "characteristic": "timing",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:068-natures-prophet.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -1784,6 +2012,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "secondary",
+        "2": "secondary",
+        "3": "secondary",
+        "4": "unsupported",
+        "5": "unsupported"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -1795,11 +2030,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",
@@ -1830,8 +2065,12 @@
         "burst": {
           "band": "high",
           "characteristic": "burst",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "catch": {
           "band": "high",
@@ -1839,67 +2078,87 @@
           "derived_from": [
             "valve:invoker:control_spells"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
+        },
+        "fight_control": {
+          "band": "high",
+          "characteristic": "fight_control",
+          "derived_from": [
+            "valve:invoker:spell_kit"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "global_presence": {
           "band": "medium",
           "characteristic": "global_presence",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "medium",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "sustained_damage": {
           "band": "medium",
           "characteristic": "sustained_damage",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "teamfight_control": {
-          "band": "high",
-          "characteristic": "teamfight_control",
           "derived_from": [
-            "valve:invoker:spell_kit"
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "wave_clear": {
           "band": "medium",
           "characteristic": "wave_clear",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
         "access": {
           "band": "medium",
           "characteristic": "access",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
           "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
           ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "medium",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "high",
           "characteristic": "economy",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "high",
@@ -1907,25 +2166,37 @@
           "derived_from": [
             "valve:invoker:spell_selection"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "medium",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "medium",
           "characteristic": "micro",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "medium",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:041-invoker.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
@@ -1933,7 +2204,7 @@
           "derived_from": [
             "valve:invoker:context_selection"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -2013,7 +2284,7 @@
             "evidence_refs": [
               "valve:invoker:spell_kit"
             ],
-            "semantic_key": "teamfight_control"
+            "semantic_key": "fight_control"
           },
           {
             "evidence_refs": [
@@ -2025,7 +2296,7 @@
         "teamfight_jobs": [
           {
             "priority": "primary",
-            "semantic_key": "teamfight_control"
+            "semantic_key": "fight_control"
           },
           {
             "priority": "primary",
@@ -2062,7 +2333,7 @@
       "empirical_support": "unknown",
       "functions": {
         "primary": [
-          "teamfight_control",
+          "fight_control",
           "catch",
           "burst"
         ],
@@ -2098,6 +2369,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "secondary",
+        "2": "primary",
+        "3": "secondary",
+        "4": "unsupported",
+        "5": "unsupported"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -2109,11 +2387,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",
@@ -2145,8 +2423,20 @@
         "burst": {
           "band": "high",
           "characteristic": "burst",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
+        },
+        "catch": {
+          "band": "high",
+          "characteristic": "catch",
+          "derived_from": [
+            "valve:meepo:earthbind"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "mobility": {
           "band": "high",
@@ -2154,61 +2444,69 @@
           "derived_from": [
             "valve:meepo:poof"
           ],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "pickoff": {
-          "band": "high",
-          "characteristic": "pickoff",
-          "derived_from": [
-            "valve:meepo:earthbind"
-          ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "push": {
           "band": "medium",
           "characteristic": "push",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "scaling": {
           "band": "medium",
           "characteristic": "scaling",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "wave_clear": {
           "band": "medium",
           "characteristic": "wave_clear",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
         "access": {
           "band": "medium",
           "characteristic": "access",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
           "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
           ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "high",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "high",
           "characteristic": "economy",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "high",
@@ -2216,13 +2514,17 @@
           "derived_from": [
             "valve:meepo:unit_control"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "high",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "high",
@@ -2230,19 +2532,27 @@
           "derived_from": [
             "valve:meepo:multiple_units"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "high",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
           "characteristic": "timing",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:062-meepo.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -2328,13 +2638,13 @@
             "evidence_refs": [
               "valve:meepo:earthbind"
             ],
-            "semantic_key": "pickoff"
+            "semantic_key": "catch"
           }
         ],
         "teamfight_jobs": [
           {
             "priority": "primary",
-            "semantic_key": "pickoff"
+            "semantic_key": "catch"
           },
           {
             "priority": "primary",
@@ -2371,7 +2681,7 @@
       "empirical_support": "unknown",
       "functions": {
         "primary": [
-          "pickoff",
+          "catch",
           "burst",
           "mobility"
         ],
@@ -2406,6 +2716,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "secondary",
+        "2": "primary",
+        "3": "unsupported",
+        "4": "unsupported",
+        "5": "unsupported"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -2417,11 +2734,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",
@@ -2453,22 +2770,32 @@
         "catch": {
           "band": "medium",
           "characteristic": "catch",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "counter_initiation": {
           "band": "medium",
           "characteristic": "counter_initiation",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "displacement": {
-          "band": "medium",
-          "characteristic": "displacement",
           "derived_from": [
-            "valve:centaur:stampede"
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
+        },
+        "fight_control": {
+          "band": "high",
+          "characteristic": "fight_control",
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "frontline": {
           "band": "high",
@@ -2477,71 +2804,87 @@
             "valve:centaur:hoof_stomp",
             "valve:centaur:retaliate"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "initiation": {
           "band": "high",
           "characteristic": "initiation",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "mobility": {
           "band": "medium",
           "characteristic": "mobility",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "teamfight_control": {
-          "band": "high",
-          "characteristic": "teamfight_control",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "valve:centaur:stampede"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
         "access": {
           "band": "low",
           "characteristic": "access",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
           "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
           ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "high",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "medium",
           "characteristic": "economy",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "low",
           "characteristic": "execution",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "high",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "low",
           "characteristic": "micro",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "low",
@@ -2549,13 +2892,17 @@
           "derived_from": [
             "valve:centaur:commitment_window"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
           "characteristic": "timing",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:015-centaur-warrunner.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -2642,7 +2989,7 @@
             "evidence_refs": [
               "valve:centaur:stampede"
             ],
-            "semantic_key": "displacement"
+            "semantic_key": "mobility"
           }
         ],
         "teamfight_jobs": [
@@ -2652,7 +2999,7 @@
           },
           {
             "priority": "primary",
-            "semantic_key": "teamfight_control"
+            "semantic_key": "fight_control"
           }
         ],
         "weaknesses": [
@@ -2681,11 +3028,10 @@
         "primary": [
           "frontline",
           "initiation",
-          "teamfight_control"
+          "fight_control"
         ],
         "secondary": [
           "mobility",
-          "displacement",
           "counter_initiation",
           "catch"
         ]
@@ -2715,6 +3061,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "secondary",
+        "2": "unsupported",
+        "3": "primary",
+        "4": "unsupported",
+        "5": "unsupported"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -2726,11 +3079,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",
@@ -2762,14 +3115,22 @@
         "burst": {
           "band": "medium",
           "characteristic": "burst",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "catch": {
           "band": "medium",
           "characteristic": "catch",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "counter_initiation": {
           "band": "high",
@@ -2777,7 +3138,17 @@
           "derived_from": [
             "valve:oracle:fortunes_end"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
+        },
+        "fight_control": {
+          "band": "medium",
+          "characteristic": "fight_control",
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "save": {
           "band": "high",
@@ -2785,47 +3156,49 @@
           "derived_from": [
             "valve:oracle:false_promise"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "sustain": {
           "band": "high",
           "characteristic": "sustain",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "teamfight_control": {
-          "band": "medium",
-          "characteristic": "teamfight_control",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "demands": {
         "access": {
           "band": "high",
           "characteristic": "access",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
-        },
-        "behavior": {
-          "band": "unknown",
           "derived_from": [
-            "OpenDota aggregate snapshot:bracket_performance"
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
           ],
-          "reason": "source_does_not_expose_lane_or_role_distribution",
-          "rule_version": "behavior-rules-1.0.0"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "commitment": {
           "band": "medium",
           "characteristic": "commitment",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "economy": {
           "band": "low",
           "characteristic": "economy",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "execution": {
           "band": "high",
@@ -2833,31 +3206,47 @@
           "derived_from": [
             "valve:oracle:spell_order"
           ],
-          "rule_version": "hero-semantics-unknown"
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "exposure": {
           "band": "medium",
           "characteristic": "exposure",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "micro": {
           "band": "low",
           "characteristic": "micro",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "repositioning": {
           "band": "high",
           "characteristic": "repositioning",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         },
         "timing": {
           "band": "high",
           "characteristic": "timing",
-          "derived_from": [],
-          "rule_version": "hero-semantics-unknown"
+          "derived_from": [
+            "semantic-review:valve:mechanics",
+            "semantic-review:opendota:aggregate",
+            "semantic-review:hero-editorial:074-oracle.md"
+          ],
+          "rule_version": "hero-semantics-pilot-v1"
         }
       },
       "derived_characteristics": {
@@ -2985,7 +3374,7 @@
           "sustain"
         ],
         "secondary": [
-          "teamfight_control",
+          "fight_control",
           "catch",
           "burst"
         ]
@@ -3016,6 +3405,13 @@
         "facets": [],
         "talents": []
       },
+      "position_credibility": {
+        "1": "unsupported",
+        "2": "secondary",
+        "3": "unsupported",
+        "4": "primary",
+        "5": "primary"
+      },
       "provenance": {
         "confidence": {
           "band": "moderate",
@@ -3027,11 +3423,11 @@
           "sample_requirement": 20
         },
         "field_sources": {
-          "capabilities": "derive.mechanics",
-          "demands": "derive.mechanics + derive.behavior",
+          "capabilities": "reviewed_semantics.capabilities",
+          "demands": "reviewed_semantics.demands",
           "editorial": "heroes_metadata/*.md",
           "empirical": "opendota.aggregate",
-          "functions": "derive.mechanics",
+          "functions": "reviewed_semantics.functions",
           "identity": "valve.roster",
           "mechanics": "valve.herodata",
           "optional_valve_plus": "unknown",

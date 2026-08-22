@@ -26,7 +26,19 @@ import { PatternStoryScreen } from "../../../components/story/patterns/pattern-s
 import ShareControls from "../../../components/share/share-controls";
 
 export default function ReportStoryV4({ report }: { report: FreeDnaReportV4 }) {
-  const pages = useMemo(() => report.pages, [report.pages]);
+  // Pool Evolution is a choose → reveal interaction. Older v5 payloads also
+  // include a second `pool_evolution_reveal` page for the same payoff; keep
+  // that page's copy as context, but render the payoff once in the question
+  // screen so the reader does not get two reveal screens in a row.
+  const pages = useMemo(() => {
+    const hasEvolutionQuestion = report.pages.some((page) => page.kind === "pool_evolution_question");
+    if (!hasEvolutionQuestion) return report.pages;
+    return report.pages.filter((page) => page.kind !== "pool_evolution_reveal");
+  }, [report.pages]);
+  const evolutionRevealPage = useMemo(
+    () => report.pages.find((page) => page.kind === "pool_evolution_reveal"),
+    [report.pages]
+  );
   const pageRefs = useRef<Record<string, HTMLElement | null>>({});
   const [activePage, setActivePage] = useState(pages[0]?.id ?? "");
   const activePageRef = useRef(activePage);
@@ -83,7 +95,7 @@ export default function ReportStoryV4({ report }: { report: FreeDnaReportV4 }) {
       {pages.map((page, index) => (
         <div key={page.id} ref={(element) => { pageRefs.current[page.id] = element; }}>
           <StoryPageFrame id={page.id} index={index} kind={page.kind}>
-            {renderPage(page, { report, elements, patterns, answers, revealed, setAnswers, setRevealed, methodologyOpen, setMethodologyOpen })}
+            {renderPage(page, { report, elements, patterns, answers, revealed, setAnswers, setRevealed, methodologyOpen, setMethodologyOpen, evolutionRevealPage })}
           </StoryPageFrame>
         </div>
       ))}
@@ -101,6 +113,7 @@ type StoryContext = {
   setRevealed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   methodologyOpen: boolean;
   setMethodologyOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  evolutionRevealPage?: StoryPage;
 };
 
 function renderPage(page: StoryPage, context: StoryContext) {
@@ -430,6 +443,7 @@ function PortfolioQuestion({ page, context, kind }: { page: StoryPage; context: 
   const isRevealed = context.revealed[kind];
   const options = result.options;
   const unavailable = result.status === "unavailable";
+  const noClearException = kind === "exception" && result.status === "no_clear_exception";
   const correct = result.correct_option_key;
   const choose = (option: ChoiceOption) => {
     context.setAnswers((current) => ({ ...current, [kind]: option.key }));
@@ -455,7 +469,7 @@ function PortfolioQuestion({ page, context, kind }: { page: StoryPage; context: 
       <p className="eyebrow">Hero Portfolio · {kind === "common_thread" ? "Common Thread" : "The Exception"}</p>
       <h2 id={`${page.id}-heading`}>{page.title}</h2>
       <p className="story-lede">{page.body}</p>
-      {unavailable ? <UnavailableMessage limitations={result.limitations} /> : <>
+      {unavailable ? <UnavailableMessage limitations={result.limitations} /> : noClearException ? <ExceptionNoClearInsight copy={page.content.no_clear_insight} fallbackBody={result.limitations[0]} /> : <>
         <div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>
           {options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}
         </div>
@@ -465,6 +479,18 @@ function PortfolioQuestion({ page, context, kind }: { page: StoryPage; context: 
       </>}
     </article>
   );
+}
+
+type NoClearInsightCopy = NonNullable<StoryPage["content"]["no_clear_insight"]>;
+
+function ExceptionNoClearInsight({ copy, fallbackBody }: { copy?: NoClearInsightCopy; fallbackBody?: string }) {
+  const resolved = copy && typeof copy === "object" ? copy : {
+    eyebrow: "Exception read",
+    headline: "No clear odd one out.",
+    body: fallbackBody ?? "The pool did not clear one hero as a distinct outlier.",
+    boundary: "Different does not mean better or worse.",
+  };
+  return <div className="portfolio-reveal exception-no-clear" aria-live="polite"><span className="eyebrow">{resolved.eyebrow}</span><h3>{resolved.headline}</h3><p>{resolved.body}</p><p className="muted">{resolved.boundary}</p></div>;
 }
 
 function PortfolioReveal({ kind, selected, correct, result, content }: { kind: "common_thread" | "exception"; selected?: string; correct: string | null; result: FreeDnaReportV4["hero_portfolio"]["common_thread"] | HeroException; content?: StoryPage["content"] }) {
@@ -492,7 +518,7 @@ function EvolutionQuestion({ page, context }: { page: StoryPage; context: StoryC
       portfolio_model_version: context.report.versions.hero_portfolio,
     });
   };
-  return <article className="portfolio-question"><p className="eyebrow">Hero Portfolio · Pool Evolution</p><h2 id={`${page.id}-heading`}>{page.title}</h2><p className="story-lede">{page.body}</p><div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>{page.options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}</div>{selected && <p className="choice-status" role="status" aria-live="polite">Your read: {page.options.find((option) => option.key === selected)?.label}</p>}<button type="button" className="reveal-button" disabled={!selected || isRevealed} onClick={() => { context.setRevealed((current) => ({ ...current, evolution: true })); track("hero_portfolio.reveal_viewed.v1", { question_key: "evolution", matched_computed_answer: null, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_portfolio }); }}>{isRevealed ? "Answer revealed" : "Reveal"}</button>{isRevealed && <div aria-live="polite"><EvolutionResult evolution={context.report.hero_portfolio.evolution} content={page.content} /></div>}</article>;
+  return <article className="portfolio-question"><p className="eyebrow">Hero Portfolio · Pool Evolution</p><h2 id={`${page.id}-heading`}>{page.title}</h2><p className="story-lede">{page.body}</p><div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>{page.options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}</div>{selected && <p className="choice-status" role="status" aria-live="polite">Your read: {page.options.find((option) => option.key === selected)?.label}</p>}<button type="button" className="reveal-button" disabled={!selected || isRevealed} onClick={() => { context.setRevealed((current) => ({ ...current, evolution: true })); track("hero_portfolio.reveal_viewed.v1", { question_key: "evolution", matched_computed_answer: null, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_portfolio }); }}>{isRevealed ? "Answer revealed" : "Reveal"}</button>{isRevealed && <div aria-live="polite"><EvolutionResult evolution={context.report.hero_portfolio.evolution} content={context.evolutionRevealPage?.content ?? page.content} /></div>}</article>;
 }
 
 function EvolutionReveal({ page, context }: { page: StoryPage; context: StoryContext }) {
@@ -506,7 +532,7 @@ function EvolutionReveal({ page, context }: { page: StoryPage; context: StoryCon
 function EvolutionResult({ evolution, content }: { evolution: FreeDnaReportV4["hero_portfolio"]["evolution"]; content?: StoryPage["content"] }) {
   if (evolution.status !== "available" || !evolution.variant) return <UnavailableMessage limitations={evolution.limitations} />;
   const dateRange = (start?: string | null, end?: string | null) => start && end ? ` · ${start}–${end}` : "";
-  return <><p className="story-lede">{content?.copy ?? "Your hero names changed; here is what changed underneath."}</p><div className="evolution-columns"><div><span className="eyebrow">Previous {evolution.earlier_sample_size} matches{dateRange(evolution.earlier_start, evolution.earlier_end)}</span><div className="descriptor-list">{evolution.earlier_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div><div><span className="eyebrow">Latest {evolution.recent_sample_size} matches{dateRange(evolution.recent_start, evolution.recent_end)}</span><div className="descriptor-list">{evolution.recent_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div></div></>;
+  return <section className="portfolio-reveal evolution-payoff"><span className="eyebrow">Pool Evolution · report read</span><h3>{content?.payoff_heading ?? "Pool Evolution"}</h3><p className="story-lede">{content?.copy ?? "Your hero names changed; here is what changed underneath."}</p><div className="evolution-columns"><div><span className="eyebrow">Previous {evolution.earlier_sample_size} matches{dateRange(evolution.earlier_start, evolution.earlier_end)}</span><div className="descriptor-list">{evolution.earlier_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div><div><span className="eyebrow">Latest {evolution.recent_sample_size} matches{dateRange(evolution.recent_start, evolution.recent_end)}</span><div className="descriptor-list">{evolution.recent_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div></div></section>;
 }
 
 const SEMANTIC_JOB_DESCRIPTIONS: Record<string, string> = {

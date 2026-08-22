@@ -49,6 +49,7 @@ def _render(value: object) -> str:
 
 def render_catalog() -> str:
     catalog = validate_copy_catalog()
+    approval_status = "reviewed for the v5.2 product-closure pass"
     lines = [
         "# Free DNA v5.2 copy review catalog",
         "",
@@ -56,7 +57,7 @@ def render_catalog() -> str:
         "Every sentence below is catalog-backed; this is an editorial QA surface, not a runtime source.",
         "",
         f"- Copy version: `{catalog['copy_version']}`",
-        "- Approval status: seeded structural copy · editorial review required",
+        f"- Approval status: {approval_status}",
         "- Runtime LLM calls: none",
         "",
     ]
@@ -81,7 +82,7 @@ def render_catalog() -> str:
                 f"- Trigger summary: {definition.description}",
                 f"- Evidence requirement: `{', '.join(definition.required_elements)}`",
                 f"- Allowed placeholders: `{', '.join(sorted(_fields(source))) or 'none'}`",
-                "- Approval status: seeded structural copy · editorial review required",
+                f"- Approval status: {approval_status}",
                 "",
                 "### Exact resolved copy",
                 "",

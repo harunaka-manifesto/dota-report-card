@@ -36,7 +36,7 @@ export function Spectrum({
 }) {
   const position = score === null ? 50 : Math.round(Math.max(0, Math.min(1, score)) * 100);
   return (
-    <div className={`spectrum${disabled ? " is-disabled" : ""}`} aria-label={score === null ? "Signal unavailable" : `${left ?? "Lower"} to ${right ?? "Higher"}, ${position}% toward ${right ?? "Higher"}`}>
+    <div className={`spectrum${disabled ? " is-disabled" : ""}`} role="img" aria-label={score === null ? "Signal unavailable" : `${left ?? "Lower"} to ${right ?? "Higher"}, ${position}% toward ${right ?? "Higher"}`}>
       <div className="spectrum-labels"><span>{left ?? "Lower"}</span><span>{right ?? "Higher"}</span></div>
       <div className="spectrum-track"><span className="spectrum-marker" style={{ left: `${position}%` }} /></div>
     </div>

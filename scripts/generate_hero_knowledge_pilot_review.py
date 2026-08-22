@@ -4,16 +4,17 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Final
 
 from app.heroes.knowledge import SnapshotHeroKnowledgeProvider
-from app.heroes.recommendations import recommend_semantic_heroes
+from app.heroes.recommendations import RecommendationIntent, recommend_semantic_heroes
 from app.ingestion.summary_normalize import normalize_summary_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/generated/hero-knowledge-pilot-review.md"
 
 
-def _matches(hero_ids: list[int]):
+def _matches(hero_ids: list[int], *, lane_role: int = 3):
     return normalize_summary_rows(
         [
             {
@@ -28,7 +29,7 @@ def _matches(hero_ids: list[int]):
                 "kills": 5,
                 "deaths": 2,
                 "assists": 5,
-                "lane_role": 3,
+                "lane_role": lane_role,
             }
             for index, hero_id in enumerate(hero_id for hero_id in hero_ids for _repeat in range(3))
         ],
@@ -82,18 +83,25 @@ def render() -> str:
             "",
         ]
     )
-    comparisons = (
-        ("Axe + Puck pool → adjacent move", [2, 13], "adjacent_move"),
-        ("Dazzle + Oracle pool → adjacent move", [50, 111], "adjacent_move"),
-        ("Nature's Prophet + Phantom Assassin pool → fill gap", [53, 44], "fill_gap"),
-        ("Beastmaster + Meepo pool → high-demand specialist", [38, 82], "specialist"),
+    comparisons: Final[tuple[tuple[str, list[int], RecommendationIntent, int, str | None], ...]] = (
+        ("Axe + Puck pool → adjacent move", [2, 13], "adjacent_move", 3, None),
+        ("Dazzle + Oracle pool → adjacent move", [50, 111], "adjacent_move", 4, None),
+        (
+            "Nature's Prophet + Phantom Assassin pool → fill gap (Engage & Control)",
+            [53, 44],
+            "fill_gap",
+            1,
+            "engage_control",
+        ),
+        ("Dazzle + Oracle pool → high-demand specialist", [50, 111], "specialist", 2, None),
     )
-    for label, hero_ids, intent in comparisons:
+    for label, hero_ids, intent, lane_role, target_family in comparisons:
         rationales = recommend_semantic_heroes(
-            _matches(hero_ids),
+            _matches(hero_ids, lane_role=lane_role),
             provider,
             intent=intent,
-            limit=1,  # type: ignore[arg-type]
+            limit=1,
+            target_family=target_family,
         )
         lines.append(f"### {label}")
         lines.append("")
@@ -104,10 +112,11 @@ def render() -> str:
             lines.append("")
             continue
         rationale = rationales[0]
-        hero = provider.get(rationale.hero_id)
+        candidate = provider.get(rationale.hero_id)
         lines.extend(
             [
-                f"- Candidate: `{hero.display_name if hero else rationale.hero_id}`",
+                f"- Candidate: `{candidate.display_name if candidate else rationale.hero_id}`",
+                f"- Target family: `{rationale.target_family or 'none'}`",
                 f"- Familiar anchors: `{', '.join(rationale.familiar_anchors) or 'none'}`",
                 f"- Adds: `{', '.join(rationale.adds) or 'none'}`",
                 f"- New demands: `{', '.join(rationale.new_demands) or 'none'}`",

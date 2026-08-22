@@ -259,3 +259,32 @@ def test_session_curve_action_is_session_balanced_and_typed_even_when_unresolved
     assert action.independent_session_count == 4
     assert action.status in {"fallback", "unresolved"}
     SessionCurveActionSchema.model_validate(action.as_dict())
+
+
+def test_session_curve_action_excludes_right_censored_latest_session() -> None:
+    rows = []
+    for session_number in range(4):
+        base = 1_700_000_000 + session_number * 100_000
+        rows.extend(
+            [
+                _row(session_number * 10 + 1, base, won=True),
+                _row(session_number * 10 + 2, base + 2_400, won=False),
+                _row(session_number * 10 + 3, base + 4_800, won=True),
+            ]
+        )
+    normalized = normalize_summary_rows(rows, account_id=42).matches
+    latest_end = 1_700_000_000 + 3 * 100_000 + 4_800 + 1_800
+    sessions = infer_sessions(normalized, window_end=latest_end + 1_000)
+    taxonomy = HeroTaxonomy("fixture", {}, {})
+
+    assert sessions.sessions[-1].right_censored is True
+    action = build_session_curve_action(
+        sessions.matches,
+        taxonomy,
+        direction="fade",
+        sessions=sessions,
+    )
+
+    assert action.independent_session_count == 3
+    assert action.evidence_summary is not None
+    assert action.evidence_summary.independent_group_count == 3

@@ -3,6 +3,7 @@ from app.behavior.patterns.registry import EXPECTED_PATTERN_KEYS
 from app.content.catalog import load_free_dna_copy
 from app.content.renderer import (
     resolve_element_copy,
+    resolve_evolution_copy,
     resolve_page_copy,
     resolve_pattern_copy,
     resolve_portfolio_copy,
@@ -21,6 +22,9 @@ def test_copy_catalog_covers_every_active_model_entry() -> None:
 def test_copy_resolvers_require_exact_parameters() -> None:
     assert resolve_page_copy("final_card")["title"] == "The part worth sharing"
     assert resolve_portfolio_copy("common_thread.question")
+    assert resolve_portfolio_copy("exception.no_clear_insight.headline") == "Your pool has no odd one out."
+    assert "odd-one-out" in resolve_portfolio_copy("exception.no_clear_insight.body")
+    assert resolve_evolution_copy("new_heroes_same_toolkit")["heading"] == "New heroes. Same taste."
     try:
         resolve_portfolio_copy("common_thread.answer")
     except ValueError as error:

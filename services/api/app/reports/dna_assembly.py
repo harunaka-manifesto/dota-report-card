@@ -22,6 +22,7 @@ from app.behavior.ranking import (
 from app.content.catalog import copy_version
 from app.content.renderer import (
     resolve_element_copy,
+    resolve_evolution_copy,
     resolve_page_copy,
     resolve_pattern_copy,
     resolve_pattern_presentation_copy,
@@ -31,7 +32,7 @@ from app.content.renderer import (
 )
 from app.dna.pipeline import DnaAnalysisResult
 from app.hero_portfolio.config import PORTFOLIO_CONFIG_VERSION
-from app.hero_portfolio.models import HeroPortfolioResult
+from app.hero_portfolio.models import HeroExceptionResult, HeroPortfolioResult
 from app.hero_portfolio.version import (
     HERO_EXPRESSIONS_VERSION,
     HERO_MATCHUPS_VERSION,
@@ -47,7 +48,10 @@ from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION
 from app.share.service import RENDERER_VERSION
 
 REPORT_SCHEMA_VERSION = "free-dna-report-5.2.0"
-REPORT_STORY_VERSION = "free-story-5.2.0"
+# 5.3 keeps the public report schema stable while making the reviewed story
+# contract explicit: Pool Evolution is one choose -> reveal payoff, not two
+# consecutive pages. The schema validator still accepts 5.2 snapshots.
+REPORT_STORY_VERSION = "free-story-5.3.0"
 
 
 def assemble_free_dna_report_v4(
@@ -166,7 +170,7 @@ def assemble_free_dna_report_v4(
         "hero_portfolio": {
             "common_thread": portfolio.common_thread.trait_label,
             "exception_hero": portfolio.exception.hero_name,
-            "pool_direction": _evolution_copy(portfolio.evolution.variant),
+            "pool_direction": _evolution_display_copy(portfolio.evolution.variant),
         },
         "hero_mirror": (
             {"hero_id": hero_mirror.hero_id, "hero_name": hero_mirror.hero_name}
@@ -245,7 +249,7 @@ def assemble_free_dna_report_v4(
             "element_keys": [item.element_key for item in element_highlights],
             "pattern_keys": [item.key for item in pattern_highlights],
         },
-        "hero_portfolio": portfolio.as_dict(include_private_eligibility=False),
+        "hero_portfolio": _public_portfolio(portfolio),
         "story": {
             "version": REPORT_STORY_VERSION,
             "ordered_pages": ordered_page_ids,
@@ -290,7 +294,7 @@ def _story_pages(
     common_question = resolve_portfolio_copy("common_thread.question")
     exception_question = resolve_portfolio_copy("exception.question")
     evolution_question = resolve_portfolio_copy("evolution.question")
-    evolution_body = _evolution_copy(portfolio.evolution.variant) or resolve_portfolio_copy("evolution.unavailable")
+    evolution_content = _evolution_content(portfolio.evolution.variant)
     mirror_closed = resolve_portfolio_copy("hero_mirror.closed")
     pages: list[dict[str, Any]] = [
         {
@@ -411,11 +415,17 @@ def _story_pages(
                 "body": resolve_portfolio_copy("exception.question_body"),
                 "evidence_keys": [],
                 "portfolio_key": "exception",
-                "options": [option.as_dict() for option in portfolio.exception.options],
+                "options": _public_exception_options(portfolio.exception),
                 "content": {
                     "boundary": resolve_portfolio_copy("exception.boundary"),
                     "correct_label": resolve_portfolio_copy("exception.correct"),
                     "incorrect_label": resolve_portfolio_copy("exception.incorrect"),
+                    "no_clear_insight": {
+                        "eyebrow": resolve_portfolio_copy("exception.no_clear_insight.eyebrow"),
+                        "headline": resolve_portfolio_copy("exception.no_clear_insight.headline"),
+                        "body": resolve_portfolio_copy("exception.no_clear_insight.body"),
+                        "boundary": resolve_portfolio_copy("exception.no_clear_insight.boundary"),
+                    },
                 },
             },
             {
@@ -426,26 +436,17 @@ def _story_pages(
                 "body": resolve_portfolio_copy("evolution.question_body"),
                 "evidence_keys": [],
                 "portfolio_key": "evolution",
-                "content": {"locked_copy": resolve_portfolio_copy("evolution.locked")},
+                "content": {
+                    "locked_copy": resolve_portfolio_copy("evolution.locked"),
+                    "payoff_heading": evolution_content["heading"],
+                    "copy": evolution_content["body"],
+                },
                 "options": [
                     {"key": "more_experimental", "label": resolve_portfolio_copy("evolution.option_more_experimental")},
                     {"key": "same_style", "label": resolve_portfolio_copy("evolution.option_same_style")},
                     {"key": "different_kind", "label": resolve_portfolio_copy("evolution.option_different_kind")},
                     {"key": "not_changed", "label": resolve_portfolio_copy("evolution.option_not_changed")},
                 ],
-            },
-            {
-                "id": "pool-evolution-reveal",
-                "kind": "pool_evolution_reveal",
-                "section": "hero_portfolio",
-                "title": "Pool Evolution",
-                "body": evolution_body,
-                "evidence_keys": [],
-                "portfolio_key": "evolution",
-                "content": {
-                    "copy": evolution_body,
-                    "locked_copy": resolve_portfolio_copy("evolution.locked"),
-                },
             },
             {
                 "id": "hero-mirror",
@@ -510,6 +511,52 @@ def _free_cost(cost_ledger: DataCostLedger | None) -> dict[str, Any]:
     }
 
 
+def _public_portfolio(portfolio: HeroPortfolioResult) -> dict[str, Any]:
+    """Project Hero Portfolio choices without inviting guesses at no-clear states."""
+
+    value = portfolio.as_dict(include_private_eligibility=False)
+    exception = value["exception"]
+    if exception["status"] == "no_clear_exception":
+        exception["options"] = [
+            option
+            for option in exception["options"]
+            if option.get("key") == "no_clear_exception"
+        ] or [{
+            "key": "no_clear_exception",
+            "label": "No clear exception",
+            "hero_id": None,
+            "feedback": resolve_portfolio_copy(
+                "exception.no_clear_feedback",
+                selected="No clear exception",
+            ),
+        }]
+    elif exception["status"] == "unavailable":
+        exception["options"] = []
+        exception["correct_option_key"] = None
+    return value
+
+
+def _public_exception_options(exception: HeroExceptionResult) -> list[dict[str, Any]]:
+    if exception.status == "unavailable":
+        return []
+    if exception.status == "no_clear_exception":
+        options = [
+            option.as_dict()
+            for option in exception.options
+            if option.key == "no_clear_exception"
+        ]
+        return options or [{
+            "key": "no_clear_exception",
+            "label": "No clear exception",
+            "hero_id": None,
+            "feedback": resolve_portfolio_copy(
+                "exception.no_clear_feedback",
+                selected="No clear exception",
+            ),
+        }]
+    return [option.as_dict() for option in exception.options]
+
+
 def _date_bounds(analysis: DnaAnalysisResult) -> tuple[str | None, str | None]:
     if analysis.features.window_start is not None and analysis.features.window_end is not None:
         return (
@@ -547,10 +594,20 @@ def _taxonomy_version(portfolio: HeroPortfolioResult) -> str:
     return TAXONOMY_VERSION
 
 
-def _evolution_copy(variant: str | None) -> str | None:
+def _evolution_content(variant: str | None) -> dict[str, str]:
+    if not variant:
+        return {
+            "heading": resolve_portfolio_copy("evolution.unavailable_heading"),
+            "body": resolve_portfolio_copy("evolution.unavailable"),
+        }
+    return resolve_evolution_copy(variant)
+
+
+def _evolution_display_copy(variant: str | None) -> str | None:
     if not variant:
         return None
-    return resolve_portfolio_copy(f"evolution.{variant}")
+    content = resolve_evolution_copy(variant)
+    return f"{content['heading']} {content['body']}"
 
 
 def _pattern_action_copy(key: str) -> dict[str, str] | None:

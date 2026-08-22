@@ -50,6 +50,7 @@ from app.behavior.models import (
 from app.dna.breakpoints import SESSION_BUCKETS, detect_breakpoint
 from app.dna.performance import activity_rate, build_performance_map, death_rate
 from app.dna.recency import effective_sample_size, recency_weight, weighted_mean, weighted_median
+from app.dna.sessions import SessionResult
 from app.hero_portfolio.config import PORTFOLIO_CONFIG
 from app.hero_portfolio.version import (
     HERO_EXPRESSIONS_VERSION,
@@ -135,6 +136,7 @@ _P03_SEMANTIC_DEMANDS = (
     ("micro", "micro"),
 )
 _PRESENCE_MIN_SAMPLE = 5
+_PRESENCE_MIN_CONTEXT_CONFIDENCE = 0.50
 _PRESENCE_FUNCTION_THRESHOLD = 0.68
 _PRESENCE_ACTIVE_LEVEL = 0.60
 _PRESENCE_SAFE_LEVEL = 0.40
@@ -192,6 +194,7 @@ def attach_pattern_actions(
     matches: Sequence[NormalizedSummaryMatch],
     taxonomy: HeroTaxonomy,
     hero_knowledge: HeroKnowledgeProvider | None = None,
+    sessions: SessionResult | None = None,
 ) -> tuple[PatternResult, ...]:
     """Attach only reviewed actions to qualified Pattern results."""
 
@@ -234,6 +237,7 @@ def attach_pattern_actions(
                     matches,
                     taxonomy,
                     direction="fade" if pattern.key == "session_fade" else "rise",
+                    sessions=sessions,
                 )
         if (
             pattern.key == "versatile_core"
@@ -265,12 +269,40 @@ def build_session_curve_action(
     taxonomy: HeroTaxonomy,
     *,
     direction: Literal["fade", "rise"],
+    sessions: SessionResult | None = None,
 ) -> SessionCurveAction:
     """Build one breakpoint-oriented curve for either mirrored session Pattern."""
 
-    values, _observations = build_performance_map(matches)
+    session_metadata = (
+        {item.session_id: item for item in sessions.sessions}
+        if sessions is not None
+        else {}
+    )
+    if sessions is None:
+        curve_matches = tuple(matches)
+        left_censored_session_ids: set[str] = set()
+    else:
+        # A current/latest session is right-censored until the inactivity
+        # anchor proves it ended.  Keep the session metadata as the authority
+        # instead of letting an action infer censoring from row order.
+        curve_matches = tuple(
+            item
+            for item in matches
+            if item.session_id is not None
+            and (metadata := session_metadata.get(item.session_id)) is not None
+            and not metadata.corrupt
+            and not metadata.right_censored
+            and not item.session_corrupt
+        )
+        left_censored_session_ids = {
+            metadata.session_id
+            for metadata in sessions.sessions
+            if metadata.left_censored and not metadata.corrupt and not metadata.right_censored
+        }
+
+    values, _observations = build_performance_map(curve_matches)
     grouped: dict[str, list[NormalizedSummaryMatch]] = {}
-    for item in matches:
+    for item in curve_matches:
         if item.session_id is not None and not item.session_corrupt:
             grouped.setdefault(item.session_id, []).append(item)
     ordered_groups = [
@@ -279,20 +311,28 @@ def build_session_curve_action(
         if len(rows) >= 2
     ]
     ordered_groups.sort(key=lambda rows: (rows[0].started_at or 0, rows[0].match_id))
-    left_censored_session_id = ordered_groups[0][0].session_id if ordered_groups else None
-    if ordered_groups:
+    left_censored_session_id = (
+        next(iter(left_censored_session_ids), None)
+        if sessions is not None
+        else ordered_groups[0][0].session_id if ordered_groups else None
+    )
+    if sessions is None and ordered_groups:
         # The first observed session is left-censored by the yearly window in
         # the absence of a pre-window anchor; do not manufacture its Game 1.
         ordered_groups[0] = ordered_groups[0][1:] or []
     ordered_groups = [rows for rows in ordered_groups if rows]
-    window_end = max((item.started_at or 0 for item in matches), default=0)
+    window_end = (
+        sessions.window_end
+        if sessions is not None and sessions.window_end is not None
+        else max((item.started_at or 0 for item in curve_matches), default=0)
+    )
     weights_by_match = {
         item.match_id: (
             recency_weight(item.started_at, window_end=window_end)
             if item.started_at is not None and window_end
             else 1.0
         )
-        for item in matches
+        for item in curve_matches
     }
     session_records: dict[str, dict[str, list[float]]] = {}
     session_starts: dict[str, int] = {}
@@ -383,7 +423,7 @@ def build_session_curve_action(
         curve=tuple(curve),
         breakpoint_state=breakpoint.state,  # type: ignore[arg-type]
         breakpoint_bucket=breakpoint.bucket,
-        companion_signals=_session_companion_signals(matches, values, direction),
+        companion_signals=_session_companion_signals(curve_matches, values, direction),
         independent_session_count=supported_sessions,
         confidence_score=confidence,
         limitations=(
@@ -621,7 +661,22 @@ def build_versatile_core_action(
     if hero_knowledge is not None:
         complementarity_qualified = _semantic_complementarity_qualified(core_ids, profile, coverage)
     recommendation_candidates = (
-        _semantic_addition_candidates(matches, hero_knowledge)
+        _semantic_addition_candidates(
+            matches,
+            hero_knowledge,
+            target_family=(
+                next(
+                    (
+                        family
+                        for family, label in coverage.family_map.items()
+                        if label == coverage.primary_gap
+                    ),
+                    None,
+                )
+                if coverage.primary_gap
+                else None
+            ),
+        )
         if hero_knowledge is not None and complementarity_qualified
         else _versatile_addition_candidates(matches, taxonomy, profile, coverage)
         if hero_knowledge is None
@@ -979,10 +1034,16 @@ def _semantic_coverage_summary(
         profile = build_semantic_pool_profile(matches, provider, hero_ids=core_ids)
     relevant_families = tuple(profile.role_relevant_families) or tuple(COVERAGE_FAMILIES)
     family_counts: Counter[str] = Counter()
+    reviewed_core_count = 0
     for hero_id in core_ids:
         entry = provider.get(hero_id)
-        if entry is None:
+        if (
+            entry is None
+            or entry.review_status not in {"approved", "reviewed"}
+            or not (entry.primary_functions or entry.secondary_functions)
+        ):
             continue
+        reviewed_core_count += 1
         jobs = set((*entry.primary_functions, *entry.secondary_functions))
         families = {
             family
@@ -990,7 +1051,7 @@ def _semantic_coverage_summary(
             if (family := family_for_function(job)) is not None
         }
         family_counts.update(families)
-    strong_gate = max(2, (len(core_ids) + 1) // 2)
+    strong_gate = max(2, (reviewed_core_count + 1) // 2)
     family_label = {
         key: str(definition["public_label"])
         for key, definition in COVERAGE_FAMILIES.items()
@@ -1016,6 +1077,7 @@ def _semantic_coverage_summary(
         primary_gap=primary_gap,
         secondary_gaps=secondary_gaps,
         semantic_coverage=profile.semantic_coverage,
+        structural_semantic_coverage=getattr(profile, "structural_semantic_coverage", None),
         role_adjusted_coverage=(
             sum(family_counts[key] > 0 for key in relevant_families) / max(len(relevant_families), 1)
         ),
@@ -1032,6 +1094,7 @@ def _semantic_complementarity_qualified(
     return (
         PORTFOLIO_CONFIG.p04_min_core_heroes <= len(core_ids) <= PORTFOLIO_CONFIG.p04_max_core_heroes
         and float(profile.semantic_coverage) >= PORTFOLIO_CONFIG.p04_min_semantic_coverage
+        and float(profile.reviewed_semantic_coverage) >= PORTFOLIO_CONFIG.p04_min_semantic_coverage
         and role_coverage >= PORTFOLIO_CONFIG.p04_min_role_relevant_family_coverage
         and float(profile.pairwise_functional_overlap) <= PORTFOLIO_CONFIG.p04_max_functional_overlap
         and int(profile.unique_contribution_count) >= PORTFOLIO_CONFIG.p04_min_unique_contributions
@@ -1043,12 +1106,17 @@ def _semantic_complementarity_qualified(
 def _semantic_addition_candidates(
     matches: Sequence[NormalizedSummaryMatch],
     provider: HeroKnowledgeProvider,
+    *,
+    target_family: str | None,
 ) -> list[HeroAdditionRecommendation]:
+    if target_family is None:
+        return []
     rationales = recommend_semantic_heroes(
         matches,
         provider,
         intent="fill_gap",
         limit=3,
+        target_family=target_family,
     )
     return [_addition_from_rationale(rationale, provider) for rationale in rationales]
 
@@ -1062,7 +1130,13 @@ def _addition_from_rationale(
         raise ValueError(f"Semantic recommendation references unknown hero {rationale.hero_id}")
     adds = tuple(job_display_label(key) for key in rationale.adds[:4])
     anchors = tuple(job_display_label(key) for key in rationale.familiar_anchors[:3])
-    first_add = adds[0] if adds else "a distinct answer"
+    target_label = (
+        str(COVERAGE_FAMILIES[rationale.target_family]["public_label"])
+        if rationale.target_family in COVERAGE_FAMILIES
+        else None
+    )
+    first_add = target_label or (adds[0] if adds else "a distinct answer")
+    target_clause = f" for {target_label}" if target_label else ""
     confidence = {"high": 0.90, "medium": 0.65, "low": 0.25}[rationale.confidence]
     return HeroAdditionRecommendation(
         hero_id=entry.hero_id,
@@ -1072,7 +1146,7 @@ def _addition_from_rationale(
         solves_gap=f"adds {first_add} to the current core",
         player_facing_reason=(
             f"{entry.display_name} keeps {', '.join(anchors) or 'a reviewed anchor'} "
-            f"and adds {', '.join(adds) or 'a new answer'}."
+            f"and adds {', '.join(adds) or 'a new answer'}{target_clause}."
         ),
         confidence_score=confidence,
         semantic_rationale=rationale,
@@ -1281,7 +1355,7 @@ def _hero_semantics_available(
         entry = hero_knowledge.get(hero_id)
         return bool(
             entry is not None
-            and entry.review_status not in {"unknown", "stale", "draft"}
+            and entry.review_status in {"approved", "reviewed"}
             and (entry.primary_functions or entry.secondary_functions)
         )
     taxonomy_entry = taxonomy.get(hero_id)
@@ -1728,6 +1802,7 @@ def build_controlled_presence_action(
         for item in contexts
         if item.involvement_level >= _PRESENCE_ACTIVE_LEVEL
         and item.death_exposure_level <= _PRESENCE_SAFE_LEVEL
+        and item.confidence_score >= _PRESENCE_MIN_CONTEXT_CONFIDENCE
     ]
     if not candidates:
         return ControlledPresenceAction(
@@ -1764,7 +1839,12 @@ def build_presence_tax_action(
     hero_knowledge: HeroKnowledgeProvider | None = None,
 ) -> PresenceTaxAction:
     contexts = _presence_contexts(matches, taxonomy, hero_knowledge=hero_knowledge)
-    involved = [item for item in contexts if item.involvement_level >= _PRESENCE_ACTIVE_LEVEL]
+    supported = [
+        item
+        for item in contexts
+        if item.confidence_score >= _PRESENCE_MIN_CONTEXT_CONFIDENCE
+    ]
+    involved = [item for item in supported if item.involvement_level >= _PRESENCE_ACTIVE_LEVEL]
     exposed = [item for item in involved if item.death_exposure_level >= _PRESENCE_EXPOSED_LEVEL]
     exposed.sort(key=lambda item: (-item.death_exposure_level, -_presence_specificity(item), -item.confidence_score, item.label))
     if not exposed:
@@ -1902,7 +1982,11 @@ def _hero_function_exposure_gap(
     strongest_gap = 0.0
     for (hero_id, family), hero_rows in hero_groups.items():
         peers = [item for item in function_groups.get(family, ()) if item.hero_id != hero_id]
-        if len(hero_rows) < _PRESENCE_MIN_SAMPLE or len(peers) < _PRESENCE_MIN_SAMPLE:
+        if (
+            len(hero_rows) < _PRESENCE_MIN_SAMPLE
+            or len(peers) < _PRESENCE_MIN_SAMPLE
+            or min(len(hero_rows), len(peers)) < 20 * _PRESENCE_MIN_CONTEXT_CONFIDENCE
+        ):
             continue
         hero_involvement, hero_deaths = _presence_levels(hero_rows)
         _peer_involvement, peer_deaths = _presence_levels(peers)

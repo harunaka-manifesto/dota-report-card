@@ -324,10 +324,10 @@ def _score_toolkit_breadth(context: SummaryBehaviorContext) -> ElementResult:
 def _score_semantic_toolkit_breadth(context: SummaryBehaviorContext) -> ElementResult:
     """Score breadth from canonical jobs and coverage families.
 
-    Structural full-roster records are usable for shape measurement but their
-    review status lowers confidence. Unknown records are excluded from both
-    the numerator and the claim, so the scorer fails closed instead of treating
-    missing semantics as an empty toolkit.
+    Structural full-roster records remain a diagnostic denominator, but only
+    reviewed records can support the breadth statistic or a strong claim.
+    Unknown records are excluded so missing semantics never become an empty
+    toolkit or a neutral score.
     """
 
     provider = context.hero_knowledge
@@ -356,23 +356,28 @@ def _score_semantic_toolkit_breadth(context: SummaryBehaviorContext) -> ElementR
             if (family := family_for_function(function)) is not None
         }
         usable.append((item, functions, families, entry.review_status in {"approved", "reviewed"}))
-    coverage = len(usable) / max(len(rows), 1)
-    reviewed_coverage = sum(item[3] for item in usable) / max(len(usable), 1)
-    if len(usable) < 30 or coverage < 0.80:
+    structural_coverage = len(usable) / max(len(rows), 1)
+    reviewed_coverage = sum(item[3] for item in usable) / max(len(rows), 1)
+    reviewed_usable = [item for item in usable if item[3]]
+    # Structural fallback can describe a shape, but it cannot satisfy a
+    # strong semantic story. Only reviewed rows enter the breadth statistic;
+    # retain structural coverage as a diagnostic so missing review is visible.
+    if len(reviewed_usable) < 30 or reviewed_coverage < 0.80:
         return _result(
             "toolkit_breadth",
             score=None,
-            sample_size=len(usable),
-            effective_sample_size=len(usable),
-            coverage=coverage,
-            quality=0.55 + 0.45 * reviewed_coverage,
+            sample_size=len(reviewed_usable),
+            effective_sample_size=len(reviewed_usable),
+            coverage=reviewed_coverage,
+            quality=1.0,
             raw_metrics={
-                "semantic_coverage": coverage,
+                "semantic_coverage": reviewed_coverage,
+                "structural_semantic_coverage": structural_coverage,
                 "reviewed_semantic_coverage": reviewed_coverage,
                 "role_adjusted_coverage": 0.0,
             },
             missing_reasons=("insufficient_semantic_coverage",),
-            source_match_ids=tuple(item.match_id for item, *_ in usable),
+            source_match_ids=tuple(item.match_id for item, *_ in reviewed_usable),
         )
 
     functions_by_hero: dict[int, set[str]] = {}
@@ -382,7 +387,7 @@ def _score_semantic_toolkit_breadth(context: SummaryBehaviorContext) -> ElementR
     roles = Counter(item.role_hint for item, *_ in usable if item.role_hint)
     credible_roles = tuple(role for role, count in roles.items() if count >= 3)
     relevant_families = role_relevant_families(credible_roles)
-    for item, functions, families, _reviewed in usable:
+    for item, functions, families, _reviewed in reviewed_usable:
         hero_id = int(item.hero_id or 0)
         functions_by_hero.setdefault(hero_id, set()).update(functions)
         families_by_hero.setdefault(hero_id, set()).update(families)
@@ -421,19 +426,20 @@ def _score_semantic_toolkit_breadth(context: SummaryBehaviorContext) -> ElementR
     return _result(
         "toolkit_breadth",
         score=score,
-        sample_size=len(usable),
+        sample_size=len(reviewed_usable),
         effective_sample_size=effective,
-        coverage=coverage,
-        quality=0.55 + 0.45 * reviewed_coverage,
+        coverage=reviewed_coverage,
+        quality=1.0,
         evidence=(
-            BehaviorEvidence("family_entropy", round(family_entropy, 4), "normalized breadth", len(usable)),
-            BehaviorEvidence("atomic_entropy", round(atomic_entropy, 4), "normalized breadth", len(usable)),
+            BehaviorEvidence("family_entropy", round(family_entropy, 4), "normalized breadth", len(reviewed_usable)),
+            BehaviorEvidence("atomic_entropy", round(atomic_entropy, 4), "normalized breadth", len(reviewed_usable)),
             BehaviorEvidence("functional_distance", round(pairwise_distance, 4), "distance", len(functions_by_hero)),
             BehaviorEvidence("role_adjusted_coverage", round(role_adjusted_coverage, 4), "share", len(relevant_families)),
             BehaviorEvidence("unique_functional_contributions", unique_contributions, "jobs", len(functions_by_hero)),
         ),
         raw_metrics={
-            "semantic_coverage": coverage,
+            "semantic_coverage": reviewed_coverage,
+            "structural_semantic_coverage": structural_coverage,
             "reviewed_semantic_coverage": reviewed_coverage,
             "family_entropy": family_entropy,
             "atomic_entropy": atomic_entropy,
@@ -444,7 +450,7 @@ def _score_semantic_toolkit_breadth(context: SummaryBehaviorContext) -> ElementR
             "family_count": sum(bool(family_counts[family]) for family in COVERAGE_FAMILIES),
         },
         confounders=("hero semantic records are versioned and review status affects confidence",),
-        source_match_ids=tuple(item.match_id for item, *_ in usable),
+        source_match_ids=tuple(item.match_id for item, *_ in reviewed_usable),
     )
 
 
@@ -466,17 +472,41 @@ def _score_post_loss_familiarity_shift(context: SummaryBehaviorContext) -> Eleme
     losses: list[float] = []
     wins: list[float] = []
     ordered = context.ordered_matches
-    for index, current in enumerate(ordered):
-        if current.hero_id is None or current.session_id is None or current.session_index in (None, 1):
-            continue
-        previous = next((item for item in ordered[:index][::-1] if item.session_id == current.session_id), None)
-        if previous is None or previous.won is None:
-            continue
-        familiar = _familiar_set([item for item in ordered[:index] if item.hero_id is not None])
-        if not familiar:
-            continue
-        is_familiar = 1.0 if current.hero_id in familiar else 0.0
-        (losses if previous.won is False else wins).append(is_familiar)
+    position_by_id = {item.match_id: index for index, item in enumerate(ordered)}
+    by_id = context.by_id
+    for session in context.sessions.sessions:
+        session_rows = sorted(
+            (
+                by_id[match_id]
+                for match_id in session.match_ids
+                if match_id in by_id
+            ),
+            key=lambda item: (item.session_index is None, item.session_index or 0, item.match_id),
+        )
+        for previous, current in zip(session_rows, session_rows[1:], strict=False):
+            if (
+                current.hero_id is None
+                or current.session_id is None
+                or current.session_index in (None, 1)
+                or current.session_corrupt
+                or previous.won is None
+                or previous.session_corrupt
+            ):
+                continue
+            current_position = position_by_id.get(current.match_id)
+            if current_position is None:
+                continue
+            familiar = _familiar_set(
+                [
+                    item
+                    for item in ordered[:current_position]
+                    if item.hero_id is not None and not item.session_corrupt
+                ]
+            )
+            if not familiar:
+                continue
+            is_familiar = 1.0 if current.hero_id in familiar else 0.0
+            (losses if previous.won is False else wins).append(is_familiar)
     sample = len(losses) + len(wins)
     if len(losses) < 15 or len(wins) < 15:
         return _result("post_loss_familiarity_shift", score=None, sample_size=sample, effective_sample_size=min(len(losses), len(wins)) * 2, coverage=sample / max(len(context.matches), 1), missing_reasons=("insufficient_post_result_transitions",))
@@ -687,6 +717,11 @@ def _score_session_length_tendency(context: SummaryBehaviorContext) -> ElementRe
 def _score_late_session_performance(context: SummaryBehaviorContext) -> ElementResult:
     by_id = context.by_id
     performance = context.features.performance_by_match
+    eligible_sessions = {
+        session.session_id: session
+        for session in context.sessions.sessions
+        if not session.corrupt and not session.right_censored
+    }
     sessions = {
         session.session_id: [
             by_id[match_id]
@@ -695,7 +730,7 @@ def _score_late_session_performance(context: SummaryBehaviorContext) -> ElementR
             and match_id in performance
             and not by_id[match_id].session_corrupt
         ]
-        for session in context.sessions.sessions
+        for session in eligible_sessions.values()
     }
     sessions = {
         session_id: sorted(
@@ -705,10 +740,11 @@ def _score_late_session_performance(context: SummaryBehaviorContext) -> ElementR
         for session_id, rows in sessions.items()
         if len(rows) >= 2
     }
-    session_order = sorted(
-        sessions,
-        key=lambda session_id: min((item.started_at or 0 for item in sessions[session_id]), default=0),
-    )
+    left_censored_session_ids = {
+        session_id
+        for session_id, session in eligible_sessions.items()
+        if session.left_censored
+    }
     bucket_by_session: dict[str, dict[str, float]] = {}
     source_ids: list[int] = []
     fallback_counts: Counter[str] = Counter()
@@ -723,7 +759,7 @@ def _score_late_session_performance(context: SummaryBehaviorContext) -> ElementR
             continue
         observations: dict[str, list[float]] = {}
         for item in rows:
-            if session_order and session_id == session_order[0] and item.session_index == 1:
+            if session_id in left_censored_session_ids and item.session_index == 1:
                 continue
             resolution = resolve_leave_group_out_baseline(
                 target=item,
