@@ -24,12 +24,11 @@ from app.api.schemas import (
     InteractionSessionResponse,
     normalize_interaction_patch,
     normalize_interaction_state,
-    validate_recommendation_baseline,
 )
 from app.core.errors import AnalysisNotFound, AnalysisRateLimited, AppError, ReportNotFound
 from app.core.metrics import record_metric
 from app.core.security import RateLimiter, parse_player_identifier
-from app.share.service import RENDERER_VERSION, build_share_svg
+from app.share.service import RENDERER_VERSION, V6_RENDERER_VERSION, build_share_svg
 from app.storage.repository import (
     InteractionRevisionConflict,
     InteractionSessionExpired,
@@ -159,7 +158,36 @@ def _report_question(report: Mapping[str, Any], question_id: str) -> dict[str, A
     return None
 
 
+def _report_recommendation(report: Mapping[str, Any], recommendation_id: str) -> dict[str, Any] | None:
+    """Resolve a server-authored v6 recommendation by its stable ID."""
+
+    for finding in report.get("findings") or []:
+        if not isinstance(finding, Mapping):
+            continue
+        candidates = [
+            finding.get("recommendation"),
+            (finding.get("claim_contract") or {}).get("recommendation")
+            if isinstance(finding.get("claim_contract"), Mapping)
+            else None,
+        ]
+        for candidate in candidates:
+            if isinstance(candidate, Mapping) and (candidate.get("recommendation_id") or candidate.get("id")) == recommendation_id:
+                return dict(candidate)
+    for page in report.get("pages") or []:
+        if not isinstance(page, Mapping):
+            continue
+        content_value = page.get("content")
+        content: Mapping[str, Any] = content_value if isinstance(content_value, Mapping) else {}
+        for candidate in (page.get("recommendation"), content.get("recommendation")):
+            if isinstance(candidate, Mapping) and (candidate.get("recommendation_id") or candidate.get("id")) == recommendation_id:
+                return dict(candidate)
+    return None
+
+
 def _selection_plan_for_question(question: Mapping[str, Any]) -> dict[str, Any]:
+    question_spec = question.get("question_spec")
+    if not isinstance(question_spec, Mapping):
+        question_spec = dict(question)
     primary = (
         question.get("primary_hypothesis_id")
         or question.get("primary_hypothesis")
@@ -188,6 +216,7 @@ def _selection_plan_for_question(question: Mapping[str, Any]) -> dict[str, Any]:
         secondary_id = None
     return {
         "version": "deep-diagnostics-2.0.0",
+        "question_spec": json.loads(json.dumps(dict(question_spec), ensure_ascii=False, sort_keys=True)),
         "primary_hypothesis_id": str(primary_id) if primary_id else None,
         "secondary_hypothesis_id": str(secondary_id) if secondary_id else None,
         "secondary_reuse_fraction": round(max(0.0, min(1.0, reuse)), 4),
@@ -296,6 +325,9 @@ def _context_matches(row: Mapping[str, Any], baseline: Mapping[str, Any]) -> boo
         actual = row.get(key)
         if key == "hero_id" and expected is None:
             expected = context.get("hero")
+        if key == "hero_id" and isinstance(context.get("core_hero_ids"), (list, tuple, set)):
+            comparisons.append(actual in context["core_hero_ids"])
+            continue
         if expected is None and actual is None:
             continue
         if expected is not None and actual is not None:
@@ -303,21 +335,47 @@ def _context_matches(row: Mapping[str, Any], baseline: Mapping[str, Any]) -> boo
     return all(comparisons) if comparisons else True
 
 
-def _follow_up_metric(rows: Sequence[Mapping[str, Any]], metric: str) -> float | None:
+SUPPORTED_FOLLOW_UP_METRICS = frozenset({
+    "involvement_per_minute",
+    "finishing_share",
+    "death_exposure_per_ten",
+    "win_rate",
+    "core_hero_share",
+    "stretch_hero_share",
+})
+
+
+def _follow_up_metric(rows: Sequence[Mapping[str, Any]], metric: str, context: Mapping[str, Any] | None = None) -> float | None:
     if not rows:
         return None
-    if metric in {"win_rate", "wins"}:
+    if metric == "win_rate":
         win_values = [row.get("won", row.get("radiant_win", row.get("win"))) for row in rows]
         known_win_values = [bool(value) for value in win_values if value is not None]
         return sum(known_win_values) / len(known_win_values) if known_win_values else None
     metric_values: list[float] = []
+    context = context or {}
+    if metric in {"core_hero_share", "stretch_hero_share"}:
+        hero_ids = context.get("core_hero_ids") if metric == "core_hero_share" else context.get("stretch_hero_ids")
+        if not isinstance(hero_ids, (list, tuple, set)) or not rows:
+            return None
+        observed = [row.get("hero_id") in hero_ids for row in rows]
+        return sum(observed) / len(observed)
     for row in rows:
         value = row.get(metric)
-        if value is None and metric in {"deaths_per_match", "death_exposure"}:
-            value = row.get("deaths")
-        if value is None and metric == "duration_minutes":
-            value = row.get("duration")
-            value = float(value) / 60.0 if value is not None else None
+        if value is None and metric == "involvement_per_minute":
+            duration = row.get("duration_seconds", row.get("duration"))
+            if duration:
+                value = (float(row.get("kills", 0) or 0) + float(row.get("assists", 0) or 0)) / (float(duration) / 60.0)
+        if value is None and metric == "finishing_share":
+            kills = row.get("kills")
+            assists = row.get("assists")
+            if kills is not None and assists is not None and float(kills) + float(assists) > 0:
+                value = float(kills) / (float(kills) + float(assists))
+        if value is None and metric == "death_exposure_per_ten":
+            duration = row.get("duration_seconds", row.get("duration"))
+            deaths = row.get("deaths")
+            if duration and deaths is not None:
+                value = float(deaths) / (float(duration) / 60.0) * 10.0
         if isinstance(value, (int, float)):
             metric_values.append(float(value))
     return sum(metric_values) / len(metric_values) if metric_values else None
@@ -364,22 +422,20 @@ async def create_interaction_session(
         raise ReportNotFound("Report was not found")
     try:
         state = normalize_interaction_state(payload)
-        baseline = validate_recommendation_baseline(
-            payload.recommendation_baseline
-            or payload.baseline
-            or report.get("recommendation_baseline")
-            or (report.get("metadata") or {}).get("recommendation_baseline")
-        )
     except ValueError as exc:
         _raise_state_validation(exc)
-    if payload.history_cutoff is not None and payload.history_cutoff < 0:
-        _interaction_error("INTERACTION_STATE_INVALID", 422, "history_cutoff must be non-negative")
+    # Recommendation baselines are server-owned and empty until a published
+    # recommendation is committed.  Client-supplied baseline/cutoff fields
+    # are intentionally ignored rather than accepted as analytical truth.
+    baseline: dict[str, Any] = {}
+    cutoff_getter = getattr(repository, "get_report_cutoff", None)
+    server_cutoff = cutoff_getter(report_id) if cutoff_getter is not None else None
     try:
         session, access_token = repository.create_interaction_session(
             report_id,
             state=state,
             recommendation_baseline=baseline,
-            history_cutoff=payload.history_cutoff,
+            history_cutoff=server_cutoff,
         )
     except InteractionSessionNotFound as exc:
         raise ReportNotFound(str(exc)) from exc
@@ -427,12 +483,48 @@ async def patch_interaction_session(
     # whole document so concurrent browser tabs cannot silently overwrite a
     # newer answer.
     state = {**dict(session.state), **state}
+    commitment = state.get("user_reported", {}).get("commitment") if isinstance(state.get("user_reported"), Mapping) else None
+    lock_baseline: dict[str, Any] | None = None
+    lock_cutoff: int | None = None
+    if isinstance(commitment, Mapping):
+        recommendation_id = commitment.get("recommendation_id") or state.get("user_reported", {}).get("recommendation_id")
+        if not isinstance(recommendation_id, str) or not recommendation_id:
+            _interaction_error("RECOMMENDATION_INVALID", 422, "A five-game commitment requires a recommendation ID")
+        report = repository.get_report(session.report_id) or {}
+        recommendation = _report_recommendation(report, recommendation_id)
+        if recommendation is None:
+            _interaction_error("RECOMMENDATION_INVALID", 422, "The recommendation was not authored by this report")
+        assert recommendation is not None
+        follow_up_value = recommendation.get("follow_up")
+        follow_up: Mapping[str, Any] = follow_up_value if isinstance(follow_up_value, Mapping) else {}
+        metric = recommendation.get("metric") or follow_up.get("metric")
+        baseline_value = recommendation.get("baseline_value")
+        if baseline_value is None:
+            baseline_value = follow_up.get("baseline_value")
+        context_value = recommendation.get("context")
+        context = context_value if isinstance(context_value, Mapping) else follow_up.get("context", {})
+        if not isinstance(metric, str) or metric not in SUPPORTED_FOLLOW_UP_METRICS:
+            _interaction_error("RECOMMENDATION_INVALID", 422, "The recommendation does not name a supported follow-up metric")
+        lock_baseline = {
+            "recommendation_id": recommendation_id,
+            "metric": metric,
+            "value": baseline_value,
+            "context": context if isinstance(context, Mapping) else {},
+            "supported_metric_keys": [metric],
+            "causal": False,
+            "identity_updated": False,
+            "source": "report_recommendation",
+        }
+        lock_cutoff_getter = getattr(repository, "get_report_cutoff", None)
+        lock_cutoff = lock_cutoff_getter(session.report_id) if lock_cutoff_getter is not None else session.history_cutoff
     try:
         updated = repository.update_interaction_session(
             session_id,
             token,
             expected_revision=expected_revision,
             state=state,
+            recommendation_baseline=lock_baseline,
+            history_cutoff=lock_cutoff,
         )
     except InteractionRevisionConflict as exc:
         _interaction_error(
@@ -444,6 +536,8 @@ async def patch_interaction_session(
         _interaction_error("INTERACTION_SESSION_EXPIRED", 410, "Interaction session has expired")
     except InteractionSessionUnauthorized:
         _interaction_error("INTERACTION_TOKEN_INVALID", 401, "The bearer token is invalid")
+    except ValueError as exc:
+        _interaction_error("RECOMMENDATION_INVALID", 422, str(exc))
     response = JSONResponse(content=_session_response(updated))
     response.headers["ETag"] = f'"{updated.revision}"'
     return response
@@ -496,13 +590,18 @@ async def interaction_follow_up(
 
     eligible = [row for row in new_rows if _eligible_summary(row)]
     baseline = session.recommendation_baseline
+    if not baseline:
+        _interaction_error("FOLLOW_UP_NOT_COMMITTED", 422, "Commit to a server-authored recommendation before checking in")
     context_rows = [row for row in eligible if _context_matches(row, baseline)]
     context_rows.sort(key=lambda row: (_epoch(row.get("start_time")) or 0, row.get("match_id", 0)))
-    selected = context_rows[-5:]
-    completed = min(5, len(context_rows))
+    selected = context_rows[:5]
+    completed = len(selected)
     ready = completed >= 5
     metric = str(baseline.get("metric") or "win_rate")
-    observed_value = _follow_up_metric(selected, metric) if ready else None
+    if metric not in SUPPORTED_FOLLOW_UP_METRICS:
+        _interaction_error("FOLLOW_UP_METRIC_UNSUPPORTED", 422, "The recommendation does not name a supported follow-up metric")
+    context = baseline.get("context") if isinstance(baseline.get("context"), Mapping) else {}
+    observed_value = _follow_up_metric(selected, metric, context) if ready else None
     baseline_value = baseline.get("value", baseline.get("baseline_value"))
     if not isinstance(baseline_value, (int, float)):
         baseline_value = None
@@ -747,14 +846,15 @@ async def get_share_card(
     except ValueError as exc:
         record_metric("share.render.failed", tags={"card_type": card_type})
         return Response(str(exc), status_code=422, media_type="text/plain")
-    record_metric("share.render.completed", tags={"card_type": card_type, "renderer": RENDERER_VERSION})
+    renderer_version = V6_RENDERER_VERSION if report.get("schema_version") == "free-dna-report-6.0.0" else RENDERER_VERSION
+    record_metric("share.render.completed", tags={"card_type": card_type, "renderer": renderer_version})
     return Response(
         svg,
         media_type="image/svg+xml",
         headers={
             "Cache-Control": "public, max-age=3600, immutable",
             "ETag": cache_key,
-            "X-Share-Renderer": RENDERER_VERSION,
+            "X-Share-Renderer": renderer_version,
             "X-Robots-Tag": "noindex, nofollow, noarchive",
         },
     )

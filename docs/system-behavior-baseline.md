@@ -20,3 +20,22 @@ The active baseline is Free DNA v5.2 at repository baseline `3670c49`:
 
 The contract is enforced by the v5 Pydantic schema, registry validation,
 summary-only source tests, and the web story fixture.
+
+## Additive v6 baseline
+
+The v6 path is implemented but opt-in and disabled by default. It preserves the
+v5 baseline above and adds a strict `free-dna-report-6.0.0` validator, seven
+summary-only Elements, five FDR-controlled finding families, a nine-beat story,
+and token-protected interaction state. Free v6 has one history request and
+exactly zero detail, parse, and parse-status requests.
+
+Startup is fail-closed when the flag is enabled: both
+`FREE_DNA_V6_BASELINE_ARTIFACT` and `FREE_DNA_V6_THRESHOLD_ARTIFACT` must point
+to validated, versioned, non-MMR artifacts. The checked-in artifacts are test
+fixtures only. Production release remains blocked on the real 1,000-profile
+player-exclusive calibration and holdout gates, including interval coverage,
+family FDR, identity coverage, split-half agreement, and reviewer precision.
+
+Deep v2 is an explicitly selected continuation from an immutable report
+question. Its actual acquisition budget is at most 25 detail reads, 25 parses,
+and 160 relative cost units; unsupported evidence yields a recorded abstention.

@@ -53,7 +53,7 @@ class HealthResponse(BaseModel):
 
 
 class EvidenceResponse(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     insight_id: str
     publication_status: str
@@ -70,27 +70,24 @@ MAX_INTERACTION_BASELINE_BYTES = 8 * 1024
 class InteractionSessionCreateRequest(BaseModel):
     """Initial state accepted by the resumable report story.
 
-    ``extra=allow`` deliberately supports additive beat-specific state while
-    the route normalizes unwrapped state into ``state``.  Computed/evidence
-    namespaces are rejected by ``validate_interaction_state`` so a browser
-    cannot overwrite analytical truth.
+    The client may submit only user-owned state. Server-owned baseline and
+    history-cutoff fields are intentionally absent from this request model.
     """
 
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     state: dict[str, Any] | None = None
     initial_state: dict[str, Any] | None = None
     user_reported: dict[str, Any] | None = None
-    recommendation_baseline: dict[str, Any] | None = None
-    baseline: dict[str, Any] | None = None
-    history_cutoff: int | None = None
+    state_schema_version: str | None = None
 
 
 class InteractionSessionPatchRequest(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    model_config = ConfigDict(extra="forbid")
 
     state: dict[str, Any] | None = None
     user_reported: dict[str, Any] | None = None
+    state_schema_version: str | None = None
 
 
 class FollowUpRequest(BaseModel):
@@ -153,14 +150,7 @@ def normalize_interaction_state(payload: InteractionSessionCreateRequest) -> dic
             state["user_reported"] = dict(payload.user_reported)
     else:
         extras = payload.model_extra or {}
-        known = {
-            "state",
-            "initial_state",
-            "user_reported",
-            "recommendation_baseline",
-            "baseline",
-            "history_cutoff",
-        }
+        known = {"state", "initial_state", "user_reported", "state_schema_version"}
         state = {
             key: value
             for key, value in extras.items()
@@ -174,7 +164,7 @@ def normalize_interaction_state(payload: InteractionSessionCreateRequest) -> dic
 def normalize_interaction_patch(payload: InteractionSessionPatchRequest) -> dict[str, Any]:
     if payload.state is not None:
         return validate_interaction_state(dict(payload.state))
-    known = {"state", "user_reported"}
+    known = {"state", "user_reported", "state_schema_version"}
     extras = payload.model_extra or {}
     state = {key: value for key, value in extras.items() if key not in known}
     if payload.user_reported is not None:
@@ -185,7 +175,7 @@ def normalize_interaction_patch(payload: InteractionSessionPatchRequest) -> dict
 def validate_interaction_state(state: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(state, dict):
         raise ValueError("Interaction state must be an object")
-    forbidden = {"observed", "computed", "evidence", "analytical_truth"}
+    forbidden = {"observed", "computed", "evidence", "analytical_truth", "recommendation_baseline", "baseline"}
     if _contains_forbidden_namespace(state, forbidden):
         raise ValueError("Computed and evidence state is server-owned")
     try:

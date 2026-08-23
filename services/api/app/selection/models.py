@@ -124,7 +124,11 @@ class SelectionPlan:
 
     @property
     def parse_request_count(self) -> int:
-        return sum(item.parse_required for item in self.selected)
+        return sum(
+            item.parse_required
+            or bool(item.candidate.metadata.get("parse_required_families"))
+            for item in self.selected
+        )
 
     @property
     def estimated_cost_units(self) -> float:

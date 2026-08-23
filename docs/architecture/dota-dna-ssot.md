@@ -439,3 +439,27 @@ baseline hierarchy, action evidence contract, or public interpretation must:
 Do not create a second current-model definition in prose, UI code, fixtures, or
 generated documentation. Derive those artifacts from the registries and typed
 report contract wherever practical.
+
+## 14. Opt-in v6 remediation path
+
+Free DNA v6 is a versioned path beside this v5 SSOT. It is not a rewrite of the
+18-Element/11-Pattern contract above and is selected only when
+`FREE_DNA_V6_ENABLED=true`.
+
+The v6 report has exactly seven public Elements—Breadth, Toolkit, Involvement,
+Finishing, Death Exposure, Transfer, and Consistency—and five finding families:
+Pool Shape, Transfer, Post-Loss Response, Combat Expression, and Session Drift.
+Free v6 reads summary history only: no detail, parse, or parse-status request is
+allowed. Context-adjusted metrics resolve a frozen non-MMR baseline per match,
+and all uncertainty resamples independent sessions. Transfer, Consistency,
+Post-Loss, and Session Drift use native multi-signal/session calculations rather
+than v5 feature fields or one-value bootstrap placeholders.
+
+The public version set is `free-dna-report-6.0.0`,
+`free-elements-6.0.0`, `free-findings-6.0.0`,
+`context-baseline-2.0.0`, `metric-thresholds-6.0.0`,
+`deep-diagnostics-2.0.0`, and `report-interactions-1.0.0`. The v6 validator
+rejects inferred position labels, rank/MMR-shaped artifacts, client-owned
+observations, and limited-history finding recommendations. See
+`dota-player-analysis-revision-implementation-plan.md` and the v6 statistics
+and Deep architecture notes for the complete additive contract.

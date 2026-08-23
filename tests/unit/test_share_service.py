@@ -59,3 +59,35 @@ def test_share_card_escapes_personal_copy_and_does_not_render_analytical_proof()
     assert "<Pattern>" not in svg
     for term in ("confidence", "coverage", "evidence", "provenance", "cohort", "sample size"):
         assert term not in svg.lower()
+
+
+def test_v6_share_cards_require_server_eligibility_and_scan_rendered_copy() -> None:
+    report = {
+        "report_id": "v6-report-42",
+        "schema_version": "free-dna-report-6.0.0",
+        "identity": {"display_name": "V6 player"},
+        "identity_summary": {"headline": "Your pool covers a compact set of jobs."},
+        "share_candidates": [
+            {
+                "id": "identity",
+                "kind": "dynamic_identity",
+                "eligible": True,
+                "payload": {"title": "Compact toolkit", "reason": "High-confidence observed summary"},
+            },
+            {
+                "id": "hero-mirror",
+                "kind": "hero_mirror",
+                "eligible": False,
+                "payload": {"title": "Mirror", "reason": "Not enough evidence"},
+            },
+        ],
+    }
+    svg, cache_key = build_share_svg(report, card_type="identity", show_name=False)
+    assert "COMPACT TOOLKIT" in svg
+    assert "V6 player" not in svg
+    assert cache_key
+
+    import pytest
+
+    with pytest.raises(ValueError, match="not eligible"):
+        build_share_svg(report, card_type="hero-mirror")

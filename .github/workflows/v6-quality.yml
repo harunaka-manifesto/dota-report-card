@@ -1,0 +1,62 @@
+name: Free DNA v6 quality
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install backend
+        run: python -m pip install --upgrade pip && pip install -e ".[dev]"
+      - name: Ruff
+        run: ruff check .
+      - name: Mypy
+        run: mypy services/api/app
+      - name: Tests
+        run: pytest -q --ignore=tests/calibration
+
+  calibration-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install backend
+        run: python -m pip install --upgrade pip && pip install -e ".[dev]"
+      - name: Deterministic calibration gates
+        run: pytest -q tests/calibration
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        working-directory: apps/web
+        run: pnpm run typecheck
+      - name: Build
+        working-directory: apps/web
+        run: pnpm run build
+      - name: Install Playwright Chromium
+        working-directory: apps/web
+        run: pnpm exec playwright install --with-deps chromium
+      - name: v6 E2E
+        working-directory: apps/web
+        run: pnpm exec playwright test tests/e2e/report-v6.spec.ts --project=chromium

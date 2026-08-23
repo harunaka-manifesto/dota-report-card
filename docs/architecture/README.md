@@ -15,6 +15,8 @@ Read in order:
 11. [Hero knowledge](hero-knowledge.md)
 12. [Model catalog](model-catalog.md)
 13. [v5.2 SSOT and version compatibility](dota-dna-ssot.md)
+14. [Free DNA v6 statistics](free-dna-v6-statistics.md)
+15. [Deep diagnostics v2](deep-diagnostics-v2.md)
 
 The catalog is generated from production registries. Change a registry first,
 then run make dna-catalog and make docs-check.

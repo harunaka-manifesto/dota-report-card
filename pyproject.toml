@@ -53,6 +53,7 @@ pythonpath = ["services/api", "."]
 asyncio_mode = "auto"
 markers = [
   "live: opt-in network smoke test",
+  "calibration: deterministic calibration-artifact and holdout gate checks",
 ]
 
 [tool.mypy]

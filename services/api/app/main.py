@@ -20,6 +20,7 @@ from app.features.models import MatchFeature
 from app.identity.steam import SteamWebResolver
 from app.opendota.cache import RedisCache
 from app.opendota.client import OpenDotaClient
+from app.opendota.parse_client import OpenDotaParseClient
 from app.storage.repository import InMemoryRepository, SqlAlchemyRepository
 
 
@@ -60,12 +61,14 @@ def create_app(
         if settings.steam_api_key
         else None
     )
+    parse_transport = OpenDotaParseClient(settings) if isinstance(source, OpenDotaClient) else None
     service = AnalysisService(
         cast(AnalysisSource, source),
         repository=repository,
         settings=settings,
         cohort_population=cohort_population,
         identity_resolver=identity_resolver,
+        parse_transport=parse_transport,
     )
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> Any:
@@ -74,6 +77,8 @@ def create_app(
         retention_task = asyncio.create_task(_retention_loop(repository)) if hasattr(repository, "purge_expired") else None
         if isinstance(source, OpenDotaClient):
             await source.__aenter__()
+        if parse_transport is not None:
+            await parse_transport.__aenter__()
         try:
             yield
         finally:
@@ -86,6 +91,8 @@ def create_app(
             await service.shutdown()
             if isinstance(source, OpenDotaClient):
                 await source.aclose()
+            if parse_transport is not None:
+                await parse_transport.aclose()
             if identity_resolver is not None:
                 await identity_resolver.aclose()
 

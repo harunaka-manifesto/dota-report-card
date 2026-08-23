@@ -250,13 +250,34 @@ const v6Finding = (family, label, published, confidence = "high") => ({
   ...v6Estimate(.24, "standardized difference", family === "session_drift" ? "mixed" : "positive"),
   confidence,
   signal_keys: [`${family}:signal-a`, `${family}:signal-b`],
-  adjusted_p_value: published ? .018 : .18,
+  outcome_key: family === "transfer" ? "transfers" : family === "pool_shape" ? "broad_names_versatile_jobs" : family === "combat_expression" ? "high_involvement_low_exposure" : family === "session_drift" ? "session_fade" : "post_loss_shift_positive",
+  raw_p_value: published ? .018 : 1,
+  adjusted_q_value: published ? .045 : 1,
   evidence_refs: [`fixture:${family}:a`, `fixture:${family}:b`],
   claim_contract: {
     claim: `${label} is visible in this summary sample.`,
     evidence: "Two independent summary signals agree and the session-clustered interval clears the practical margin.",
     interpretation: "This describes a repeatable association without assigning a cause.",
-    recommendation: published ? "Keep the supported context constant for five games and watch the same metric." : null
+    recommendation: published ? {
+      recommendation_id: `REC_${family.toUpperCase()}`,
+      family,
+      title: "Run one bounded five-game check",
+      instruction: "Keep the supported context visible for five games and observe the named metric.",
+      action: "Run one bounded five-game check in the supported context.",
+      rationale: "This action is limited to the evidence published in the report.",
+      evidence_requirement: "Five eligible summary games after the saved history cutoff in the named context.",
+      verification_rule: "Compare the named metric in those first five eligible games with the locked report baseline.",
+      metric: "win_rate",
+      baseline_value: .5,
+      context: {},
+      supported_metric_keys: ["win_rate"],
+      evidence_refs: [`fixture:${family}:a`],
+      causal: false,
+      identity_updated: false,
+      baseline_locked_on_commit: true,
+      follow_up: { metric: "win_rate", baseline_value: .5, context: {}, direction: "observe", target_games: 5 },
+      version: "free-dna-recommendations-6.0.0"
+    } : null
   }
 });
 const v6Findings = [
@@ -272,9 +293,22 @@ const v6Report = {
   report_variant: "free_dna_report",
   noindex: true,
   identity: { display_name: "V6 fixture player", avatar_url: null },
-  metadata: { created_at: "2026-08-23T00:00:00+07:00", processed_matches: 72, eligible_matches: 72, history_tier: "normal" },
-  versions: { story: "free-story-6.0.0", elements: "free-elements-6.0.0", findings: "free-findings-6.0.0" },
-  quality: { overall_confidence: "high", history_tier: "normal", published_findings: 3 },
+  metadata: { created_at: "2026-08-23T00:00:00+07:00", expires_at: null, data_from: "2025-08-23T00:00:00+07:00", data_to: "2026-08-23T00:00:00+07:00", processed_matches: 72, eligible_matches: 72, history_limit: null, raw_history_hash: "fixture-v6-history", history_tier: "normal" },
+  versions: {
+    elements: "free-elements-6.0.0", findings: "free-findings-6.0.0", expression: "summary-expression-multisignal-1.0.0",
+    statistics: "stats-cluster-bootstrap-1.0.0", context_baseline: "context-baseline-2.0.0", thresholds: "metric-thresholds-6.0.0",
+    claims: "claim-contract-1.0.0", story: "free-story-6.0.0", copy: "free-dna-semantic-copy-6.0.0",
+    deep_diagnostics: "deep-diagnostics-2.0.0", share_renderer: "share-svg-6.0.0", interactions: "report-interactions-1.0.0",
+    model: "free-dna-model-6.0.0", template: "templates-1.0.0", analysis_version_fingerprint: "fixture-v6"
+  },
+  reproducibility: {
+    generated_at: "2026-08-23T00:00:00+07:00", input_snapshot_hash: "fixture-v6-history",
+    window_start: "2025-08-23T00:00:00+07:00", window_end: "2026-08-23T00:00:00+07:00",
+    raw_match_count: 72, usable_match_count: 72, independent_session_count: 18,
+    bootstrap_iterations: 2000, bootstrap_seed: "6000", session_gap_minutes: 90,
+    baseline_artifact: "context-baseline-2.0.0", threshold_artifact: "metric-thresholds-6.0.0"
+  },
+  quality: { overall_confidence: "high", history_tier: "normal", partial: false, warnings: [], missing_data_flags: [], available_elements: 7, published_findings: 3 },
   elements: v6Elements,
   findings: v6Findings,
   identity_summary: {
@@ -313,27 +347,138 @@ const v6Report = {
     }
   },
   diagnostic_questions: [
-    { id: "deep-v6-transfer", prompt: "What changes when you leave your familiar heroes?", finding_family: "transfer", evidence_refs: ["fixture:transfer:a"], confidence: "high" },
-    { id: "deep-v6-combat", prompt: "Where do involvement and exposure diverge?", finding_family: "combat_expression", evidence_refs: ["fixture:combat_expression:a"], confidence: "high" }
+    { id: "deep-v6-transfer", prompt: "What changes when you leave your familiar heroes?", statement: "What changes when you leave familiar heroes?", finding_family: "transfer", evidence_refs: ["fixture:transfer:a"], confidence: "high", context: { comparison: "core_to_stretch", causal: false }, primary_hypothesis: { hypothesis_id: "v6-transfer-primary", statement: "Outcome, activity, and survival change differently between familiar and stretch choices.", explanation_type: "core_to_stretch_transfer", required_data_families: ["summary", "role", "economy", "events"], positive_definition: { name: "stretch_source_context" }, negative_definition: { name: "core_source_context" }, control_definition: { name: "same_lane_core_context" }, min_positive: 3, min_negative: 3, min_control: 3, target_positive: 8, target_negative: 8, target_control: 8, confounders_to_control: ["lane_context"] }, secondary_hypothesis: { hypothesis_id: "v6-transfer-secondary", statement: "The difference remains visible after session-position control.", explanation_type: "session_position_reuse", required_data_families: ["summary"], positive_definition: { name: "late_session" }, negative_definition: { name: "early_session" }, control_definition: { name: "same_session_position" }, min_positive: 3, min_negative: 3, min_control: 3, target_positive: 5, target_negative: 5, target_control: 5, confounders_to_control: ["session_position"] }, secondary_reuse_fraction: .5, required_summary_metrics: ["hero_id", "won"], required_detail_metrics: ["match_context"], required_parse_metrics: ["events"], question_spec: { diagnostic_question_id: "deep-v6-transfer", family: "transfer" }, available: true, skippable: true },
+    { id: "deep-v6-combat", prompt: "Where do involvement and exposure diverge?", statement: "Where do participation and exposure diverge?", finding_family: "combat_expression", evidence_refs: ["fixture:combat_expression:a"], confidence: "high", context: { comparison: "involvement_to_death_exposure", causal: false }, primary_hypothesis: { hypothesis_id: "v6-combat-primary", statement: "Participation and exposure show a stable two-signal relationship.", explanation_type: "participation_exposure_quadrant", required_data_families: ["summary", "role", "events"], positive_definition: { name: "high_expression" }, negative_definition: { name: "opposite_expression" }, control_definition: { name: "typical_expression" }, min_positive: 3, min_negative: 3, min_control: 3, target_positive: 8, target_negative: 8, target_control: 8, confounders_to_control: ["duration_bucket"] }, secondary_hypothesis: null, secondary_reuse_fraction: 0, required_summary_metrics: ["kills", "assists", "deaths"], required_detail_metrics: [], required_parse_metrics: ["events"], question_spec: { diagnostic_question_id: "deep-v6-combat", family: "combat_expression" }, available: true, skippable: true }
   ],
   story: { version: "free-story-6.0.0", ordered_beats: v6BeatIds },
-  pages: v6BeatIds.map((id, index) => ({ id, index, kind: id, title: id.replaceAll("-", " "), skippable: true })),
+  pages: v6BeatIds.map((id, index) => ({
+    id, index, kind: id, title: id.replaceAll("-", " "), prompt: id === "self-estimate" ? "How would you describe your pool?" : id === "combat-expression" ? "How do participation and exposure travel together?" : "Open the observed evidence.",
+    body: "The report keeps self-reported answers separate from server-owned observations.", interaction: "optional", observed: {},
+    options: id === "self-estimate" ? [
+      { id: "focused_repeat", label: "I mostly repeat a small hero set." }, { id: "same_jobs_many_heroes", label: "I rotate heroes, but I usually solve similar jobs." }, { id: "different_jobs", label: "I change jobs as much as I change heroes." }, { id: "not_sure", label: "I’m not sure yet." }
+    ] : id === "combat-expression" ? [
+      { id: "often_high_exposure", label: "I’m involved often and I’m exposed often." }, { id: "often_low_exposure", label: "I’m involved often with lower exposure." }, { id: "selective_low_exposure", label: "I’m more selective and usually less exposed." }, { id: "varies", label: "It changes a lot by game." }
+    ] : id === "pool-evolution" ? [{ id: "focused", label: "A focused repeat pool" }, { id: "many_jobs", label: "Many heroes solving similar jobs" }, { id: "different_jobs", label: "A pool spanning different jobs" }] : [],
+    evidence_refs: [], available: id !== "recommendation" || v6Findings.some((item) => item.published && item.claim_contract?.recommendation), skippable: true
+  })),
   share_candidates: [
-    { id: "identity", kind: "dynamic_identity", eligible: true, confidence: "high", payload: { title: "Compact toolkit, visible transfer", reason: "High-confidence identity synthesis" } },
-    { id: "hero-mirror", kind: "hero_mirror", eligible: true, confidence: "high", payload: { title: "Axe Hero Mirror", reason: "High-confidence mirror" } }
+    { id: "identity", kind: "dynamic_identity", eligible: true, confidence: "high", evidence_refs: ["fixture:pool_shape:a", "fixture:transfer:a"], payload: { title: "Compact toolkit, visible transfer", reason: "High-confidence identity synthesis" } },
+    { id: "strongest-finding", kind: "strongest_finding", eligible: true, confidence: "high", evidence_refs: ["fixture:pool_shape:a"], payload: { title: "Pool Shape", reason: "Published high-confidence finding" } },
+    { id: "hero-mirror", kind: "hero_mirror", eligible: true, confidence: "high", evidence_refs: ["fixture:hero-mirror"], payload: { title: "Axe Hero Mirror", reason: "High-confidence mirror" } }
   ],
-  methodology: { free_summary_only: true, notes: ["Session-clustered summary evidence."] },
-  cost: { history_requests: 1, detail_requests: 0, parse_requests: 0, estimated_cost_units: 1 }
+  methodology: { free_summary_only: true, population_window_days: 365, weighting: "equal", lane_context: ["carry"], notes: ["Session-clustered summary evidence."] },
+  cost: { history_requests: 1, detail_requests: 0, parse_requests: 0, parse_status_requests: 0, cache_hits: 0, estimated_cost_units: 1 }
 };
+
+// Keep the fixture's Deep payload on the same predicate vocabulary as the
+// server generator.  The browser only receives the serialized question; it
+// never invents these definitions.
+const v6TransferPrimary = {
+  ...v6Report.diagnostic_questions[0].primary_hypothesis,
+  positive_definition: { name: "hero_set", params: { hero_ids: [3, 4] } },
+  negative_definition: { name: "hero_set", params: { hero_ids: [1, 2] } },
+  control_definition: { name: "hero_set_lane", params: { hero_ids: [1, 2], lane_context: "mid" } }
+};
+const v6TransferSecondary = {
+  ...v6Report.diagnostic_questions[0].secondary_hypothesis,
+  positive_definition: { name: "session_position_range", params: { min: 3 } },
+  negative_definition: { name: "session_position_range", params: { min: 1, max: 2 } },
+  control_definition: { name: "duration_bucket", params: { bucket: "medium" } }
+};
+const v6CombatPrimary = {
+  ...v6Report.diagnostic_questions[1].primary_hypothesis,
+  positive_definition: { name: "expression_quadrant", params: { involvement_zone: "high", exposure_zone: "low", involvement_cutoff: 0.5, exposure_cutoff: 2.5 } },
+  negative_definition: { name: "expression_quadrant", params: { involvement_zone: "high", exposure_zone: "high", involvement_cutoff: 0.5, exposure_cutoff: 2.5 } },
+  control_definition: { name: "duration_bucket", params: { bucket: "medium" } }
+};
+function syncV6Question(question, primary, secondary = null) {
+  const questionSpec = {
+    version: "deep-diagnostics-2.0.0",
+    diagnostic_question_id: question.id,
+    family: question.finding_family,
+    statement: question.statement,
+    context: question.context,
+    required_data_families: primary.required_data_families ?? [],
+    required_summary_metrics: question.required_summary_metrics ?? [],
+    required_detail_metrics: question.required_detail_metrics ?? [],
+    required_parse_metrics: question.required_parse_metrics ?? [],
+    primary_hypothesis: primary,
+    secondary_hypothesis: secondary,
+    secondary_reuse_fraction: question.secondary_reuse_fraction ?? 0
+  };
+  return { ...question, version: "deep-diagnostics-2.0.0", primary_hypothesis: primary, secondary_hypothesis: secondary, question_spec: questionSpec };
+}
+v6Report.diagnostic_questions = [
+  syncV6Question(v6Report.diagnostic_questions[0], v6TransferPrimary, v6TransferSecondary),
+  syncV6Question(v6Report.diagnostic_questions[1], v6CombatPrimary)
+];
+
 const reports = new Map([[reportId, report], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report]]);
+const interactionSessions = new Map();
+const deepJobs = new Map();
+let nextSessionNumber = 1;
+let nextDeepJobNumber = 1;
 
 function sendJson(response, status, value) {
   response.writeHead(status, { "Content-Type": "application/json" });
   response.end(JSON.stringify(value));
 }
 
-const api = http.createServer((request, response) => {
+function readJson(request) {
+  return new Promise((resolve) => {
+    let body = "";
+    request.on("data", (chunk) => { body += chunk; });
+    request.on("end", () => {
+      if (!body) return resolve({});
+      try { resolve(JSON.parse(body)); } catch { resolve({}); }
+    });
+  });
+}
+
+function bearer(request) {
+  const header = request.headers.authorization ?? "";
+  return header.startsWith("Bearer ") ? header.slice(7) : "";
+}
+
+function ifMatchRevision(request, fallback) {
+  const header = request.headers["if-match"];
+  if (typeof header !== "string") return fallback;
+  const value = header.trim().replace(/^W\//, "").replace(/^\"|\"$/g, "");
+  const revision = Number(value);
+  return Number.isFinite(revision) ? revision : NaN;
+}
+
+function sessionResponse(session, includeToken = false) {
+  return {
+    session_id: session.session_id,
+    report_id: session.report_id,
+    state_schema_version: "report-interactions-1.0.0",
+    revision: session.revision,
+    state: session.state,
+    recommendation_baseline: session.recommendation_baseline,
+    history_cutoff: session.history_cutoff,
+    created_at: session.created_at,
+    updated_at: session.updated_at,
+    expires_at: session.expires_at,
+    ...(includeToken ? { access_token: session.token } : {})
+  };
+}
+
+function reportRecommendation(recommendationId) {
+  for (const finding of v6Report.findings) {
+    const recommendation = finding.claim_contract?.recommendation;
+    if (recommendation && (recommendation.recommendation_id === recommendationId || recommendation.id === recommendationId)) return recommendation;
+  }
+  return null;
+}
+
+function v6Question(questionId) {
+  return v6Report.diagnostic_questions.find((question) => question.id === questionId) ?? null;
+}
+
+const api = http.createServer(async (request, response) => {
   const url = new URL(request.url ?? "/", `http://127.0.0.1:${apiPort}`);
+  const body = ["POST", "PATCH", "PUT"].includes(request.method ?? "") ? await readJson(request) : {};
   const reportMatch = url.pathname.match(/^\/v1\/reports\/([^/]+)$/);
   const requestedReport = reportMatch ? reports.get(reportMatch[1]) : undefined;
   if (request.method === "GET" && requestedReport) return sendJson(response, 200, requestedReport);
@@ -342,9 +487,120 @@ const api = http.createServer((request, response) => {
     response.writeHead(200, { "Content-Type": "image/svg+xml", "X-Robots-Tag": "noindex" });
     return response.end(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350"><text>Dota DNA final</text></svg>`);
   }
+  const createInteraction = url.pathname.match(/^\/v1\/reports\/([^/]+)\/interaction-sessions$/);
+  if (request.method === "POST" && createInteraction) {
+    if (!reports.has(createInteraction[1])) return sendJson(response, 404, { message: "Report not found" });
+    const now = new Date().toISOString();
+    const session = {
+      session_id: `v6-session-${nextSessionNumber++}`,
+      report_id: createInteraction[1],
+      token: `v6-fixture-token-${nextSessionNumber}`,
+      revision: 1,
+      state: body && typeof body.state === "object" ? body.state : {},
+      recommendation_baseline: {},
+      history_cutoff: 0,
+      created_at: now,
+      updated_at: now,
+      expires_at: "2026-11-21T00:00:00.000Z"
+    };
+    interactionSessions.set(session.session_id, session);
+    return sendJson(response, 201, sessionResponse(session, true));
+  }
+  const interactionMatch = url.pathname.match(/^\/v1\/report-interactions\/([^/]+)(?:\/(follow-up))?$/);
+  if (interactionMatch) {
+    const session = interactionSessions.get(interactionMatch[1]);
+    if (!session) return sendJson(response, 404, { message: "Interaction session not found" });
+    if (bearer(request) !== session.token) return sendJson(response, 401, { message: "Interaction token invalid" });
+    if (interactionMatch[2] === "follow-up" && request.method === "POST") {
+      if (!session.recommendation_baseline.metric) return sendJson(response, 422, { message: "Commit first" });
+      const baseline = Number(session.recommendation_baseline.value ?? 0.5);
+      const followUp = 0.6;
+      return sendJson(response, 200, {
+        session_id: session.session_id,
+        revision: session.revision,
+        status: "ready",
+        eligible_new_matches: 5,
+        context_matching_matches: 5,
+        progress: { completed: 5, required: 5, remaining: 0 },
+        comparison: { label: "what_changed_in_these_five_games", metric: session.recommendation_baseline.metric, baseline, follow_up: followUp, delta: followUp - baseline, match_ids: [7001, 7002, 7003, 7004, 7005], causal: false, identity_updated: false },
+        stop_reason: "five_context_matches_ready"
+      });
+    }
+    if (request.method === "GET") return sendJson(response, 200, sessionResponse(session));
+    if (request.method === "DELETE") {
+      interactionSessions.delete(session.session_id);
+      response.writeHead(204);
+      return response.end();
+    }
+    if (request.method === "PATCH") {
+      const nextState = body && typeof body.state === "object" ? body.state : {};
+      const expected = ifMatchRevision(request, session.revision);
+      if (expected !== session.revision) return sendJson(response, 409, sessionResponse(session));
+      const commitment = nextState.user_reported?.commitment;
+      if (commitment?.recommendation_id) {
+        const recommendation = reportRecommendation(commitment.recommendation_id);
+        if (!recommendation) return sendJson(response, 422, { message: "Recommendation not authored by report" });
+        if (session.recommendation_baseline.recommendation_id && session.recommendation_baseline.recommendation_id !== commitment.recommendation_id) {
+          return sendJson(response, 409, { message: "Recommendation baseline is already locked" });
+        }
+        if (!session.recommendation_baseline.recommendation_id) {
+          session.recommendation_baseline = {
+            recommendation_id: commitment.recommendation_id,
+            metric: recommendation.metric,
+            value: recommendation.baseline_value,
+            context: recommendation.context ?? {},
+            supported_metric_keys: [recommendation.metric],
+            causal: false,
+            identity_updated: false,
+            source: "report_recommendation"
+          };
+        }
+      }
+      session.state = nextState;
+      session.revision += 1;
+      session.updated_at = new Date().toISOString();
+      return sendJson(response, 200, sessionResponse(session));
+    }
+  }
+  const deepMatch = url.pathname.match(/^\/v1\/reports\/([^/]+)\/deep-analyses$/);
+  if (request.method === "POST" && deepMatch) {
+    const question = v6Question(body?.diagnostic_question_id);
+    if (!reports.has(deepMatch[1]) || !question) return sendJson(response, 422, { message: "Diagnostic question was not offered" });
+    const interactionId = body?.interaction_session_id;
+    if (interactionId) {
+      const session = interactionSessions.get(interactionId);
+      if (!session || bearer(request) !== session.token) return sendJson(response, 401, { message: "Interaction token invalid" });
+    }
+    const jobId = `v6-deep-job-${nextDeepJobNumber++}`;
+    const job = { job_id: jobId, parent_report_id: deepMatch[1], diagnostic_question_id: question.id, status: "queued", question };
+    deepJobs.set(jobId, job);
+    return sendJson(response, 202, {
+      job_id: jobId,
+      analysis_job_id: jobId,
+      status: "queued",
+      analysis_mode: "deep_scan",
+      parent_report_id: deepMatch[1],
+      diagnostic_question_id: question.id,
+      entitlement_decision: { allowed: true, source: "fixture" },
+      selection_plan: { version: "deep-diagnostics-2.0.0", question_spec: question.question_spec, limits: { max_detail_requests: 25, max_parse_requests: 25, max_data_cost: 160, detail_min_marginal_information_gain: .05, parse_min_marginal_information_gain: .10 }, cached_evidence_preferred: true, stopping_reason: "awaiting_evidence" },
+      stopping_reason: "awaiting_evidence",
+      events_url: `/v1/analyses/${jobId}/events`
+    });
+  }
   if (request.method === "POST" && url.pathname === "/v1/analyses") return sendJson(response, 202, { job_id: "fixture-job", status: "queued", reused: false, events_url: "/v1/analyses/fixture-job/events" });
   if (request.method === "GET" && url.pathname === "/v1/analyses/fixture-job") return sendJson(response, 200, { job_id: "fixture-job", status: "completed", stage: "completed", warnings: [], report_id: reportId, message: null, failure_code: null });
+  const deepJobMatch = url.pathname.match(/^\/v1\/analyses\/(v6-deep-job-[^/]+)$/);
+  if (request.method === "GET" && deepJobMatch && deepJobs.has(deepJobMatch[1])) return sendJson(response, 200, { job_id: deepJobMatch[1], status: "completed", stage: "completed", warnings: [], report_id: null, parent_report_id: deepJobs.get(deepJobMatch[1]).parent_report_id, diagnostic_question_id: deepJobs.get(deepJobMatch[1]).diagnostic_question_id, message: null, failure_code: null });
   if (request.method === "GET" && url.pathname === "/v1/analyses/fixture-job/events") {
+    response.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" });
+    return response.end("data: {\"stage\":\"completed\",\"status\":\"completed\"}\n\n");
+  }
+  if (request.method === "GET" && deepJobMatch && deepJobs.has(deepJobMatch[1])) {
+    response.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" });
+    return response.end("data: {\"stage\":\"completed\",\"status\":\"completed\"}\n\n");
+  }
+  const deepEventsMatch = url.pathname.match(/^\/v1\/analyses\/(v6-deep-job-[^/]+)\/events$/);
+  if (request.method === "GET" && deepEventsMatch && deepJobs.has(deepEventsMatch[1])) {
     response.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" });
     return response.end("data: {\"stage\":\"completed\",\"status\":\"completed\"}\n\n");
   }

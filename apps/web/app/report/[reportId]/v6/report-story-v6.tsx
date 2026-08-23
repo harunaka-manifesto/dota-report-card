@@ -38,10 +38,12 @@ import {
   type V6Finding,
   type V6HeroMirror,
   type V6Element,
+  type V6Recommendation,
   type V6Report,
   type V6StoryBeat,
   type V6TimelinePoint,
 } from "./types";
+import { Glyph } from "../../../components/story/glyph-registry";
 import styles from "./report-story-v6.module.css";
 
 const BEAT_IDS = [
@@ -202,7 +204,8 @@ export default function ReportStoryV6({ report }: { report: V6Report }) {
     updateJourney((state) => ({
       ...state,
       current_beat: nextIndex,
-      completed_beats: uniqueNumbers([...state.completed_beats, index]),
+      completed_beats: uniqueNumbers([...state.completed_beats, index]).filter((item) => !state.skipped_beats.includes(item)),
+      skipped_beats: state.skipped_beats.filter((item) => item !== index),
     }));
     if (next > index) scrollToBeat(BEAT_IDS[nextIndex]);
   }
@@ -212,7 +215,7 @@ export default function ReportStoryV6({ report }: { report: V6Report }) {
       ...state,
       current_beat: clampBeat(index + 1),
       skipped_beats: uniqueNumbers([...state.skipped_beats, index]),
-      completed_beats: uniqueNumbers([...state.completed_beats, index]),
+      completed_beats: state.completed_beats.filter((item) => item !== index),
     }));
     track("report.v6.beat_skipped.v1", { beat: BEAT_IDS[index] });
     if (index < BEAT_IDS.length - 1) scrollToBeat(BEAT_IDS[index + 1]);
@@ -403,8 +406,8 @@ export default function ReportStoryV6({ report }: { report: V6Report }) {
         <div className={styles.content}>
           <div className={styles.progressHeader}>
             <span>Beat {currentBeat + 1} of 9</span>
-            <progress value={journey.completed_beats.length + journey.skipped_beats.length} max={9} aria-label="Story progress" />
-            <span>{journey.completed_beats.length + journey.skipped_beats.length}/9 complete</span>
+            <progress value={progressCount(journey)} max={9} aria-label="Story progress" />
+            <span>{progressCount(journey)}/9 complete</span>
           </div>
 
           <section id="v6-beat-1" className={`${styles.beat} ${styles.beatEstimate}`} aria-labelledby="v6-beat-1-title">
@@ -546,19 +549,19 @@ function ChoiceQuestion({ legend, choices, selected, onSelect, emptyMessage }: {
 
 function ElementLedger({ elements }: { elements: V6Element[] }) {
   if (elements.length === 0) return <EmptyState message="The report did not publish its seven identity Elements." />;
-  return <section className={styles.elementLedger} aria-label="Seven public identity Elements"><div className={styles.elementLedgerHeader}><span className={styles.eyebrow}>Seven public Elements</span><p>Observed summary signals stay distinct from your self-reported answers.</p></div><div className={styles.elementGrid}>{elements.map((element) => { const metric = metricFor(element); const value = metricValue(metric); return <article className={styles.elementCard} key={element.key}><div className={styles.elementHeader}><strong>{element.label}</strong><span>{displayConfidence(element.confidence ?? metric.confidence)}</span></div><p>{formatMetric(value, metric.unit ?? element.unit)}</p><small>{element.zone ?? metric.zone ?? "No zone"} · {element.sample_size ?? metric.sample_size ?? "—"} matches</small></article>; })}</div></section>;
+  return <section className={styles.elementLedger} aria-label="Seven public identity Elements"><div className={styles.elementLedgerHeader}><span className={styles.eyebrow}>Seven public Elements</span><p>Observed summary signals stay distinct from your self-reported answers.</p></div><div className={styles.elementGrid}>{elements.map((element) => { const metric = metricFor(element); const value = metricValue(metric); return <article className={styles.elementCard} key={element.key}><div className={styles.elementHeader}><Glyph decorative glyph={elementGlyphKey(element.key)} size={32} /><strong>{element.label}</strong><span>{displayConfidence(element.confidence ?? metric.confidence)}</span></div><p>{formatMetric(value, metric.unit ?? element.unit)}</p><small>{element.zone ?? metric.zone ?? "No zone"} · {element.sample_size ?? metric.sample_size ?? "—"} matches</small></article>; })}</div></section>;
 }
 
 function FindingReveal({ finding, revealed, onReveal }: { finding: V6Finding | null; revealed: boolean; onReveal: () => void }) {
   if (!finding) return <EmptyState message="Combat Expression is unavailable in this report." />;
   const text = findingLayers(finding);
-  return <article className={styles.findingReveal}><span className={styles.eyebrow}>{firstNonEmpty(finding.family, finding.label, "Observed finding")}</span>{revealed ? <><h2>{firstNonEmpty(finding.claim, text.claim, finding.title, finding.label, "Observed result unavailable")}</h2><p>{firstNonEmpty(findingEvidenceText(finding), text.evidence, finding.observation, "")}</p><MetricReceipt item={finding} /></> : <><p>Ready to compare your estimate with the observed evidence.</p><button className={styles.secondaryButton} type="button" onClick={onReveal}>Reveal observed expression</button></>}</article>;
+  return <article className={styles.findingReveal}><span className={styles.eyebrow}><Glyph decorative glyph={familyGlyphKey(finding.family)} size={28} />{firstNonEmpty(finding.family, finding.label, "Observed finding")}</span>{revealed ? <><h2>{firstNonEmpty(finding.claim, text.claim, finding.title, finding.label, "Observed result unavailable")}</h2><p>{firstNonEmpty(findingEvidenceText(finding), text.evidence, finding.observation, "")}</p><MetricReceipt item={finding} /></> : <><p>Ready to compare your estimate with the observed evidence.</p><button className={styles.secondaryButton} type="button" onClick={onReveal}>Reveal observed expression</button></>}</article>;
 }
 
 function FindingPanel({ finding, comparisonLabel }: { finding: V6Finding | null; comparisonLabel: string }) {
   if (!finding) return <EmptyState message="No strongest finding was published for this report." />;
   const layers = findingLayers(finding);
-  return <article className={styles.findingPanel}><div className={styles.findingMain}><span className={styles.eyebrow}>{firstNonEmpty(finding.family, "Finding")}</span><h2 id="v6-beat-5-title">{firstNonEmpty(finding.claim, layers.claim, finding.title, finding.label, "Finding claim unavailable")}</h2><p>{firstNonEmpty(finding.interpretation, layers.interpretation, "")}</p><MetricReceipt item={finding} /></div>{finding.comparison && <Comparison comparison={finding.comparison} label={comparisonLabel} />}</article>;
+  return <article className={styles.findingPanel}><div className={styles.findingMain}><span className={styles.eyebrow}><Glyph decorative glyph={familyGlyphKey(finding.family)} size={28} />{firstNonEmpty(finding.family, "Finding")}</span><h2 id="v6-beat-5-title">{firstNonEmpty(finding.claim, layers.claim, finding.title, finding.label, "Finding claim unavailable")}</h2><p>{firstNonEmpty(finding.interpretation, layers.interpretation, "")}</p><MetricReceipt item={finding} /></div>{finding.comparison && <Comparison comparison={finding.comparison} label={comparisonLabel} />}</article>;
 }
 
 function LayeredFinding({ finding, activeLayer, onLayerChange }: { finding: V6Finding | null; activeLayer: ClaimLayer; onLayerChange: (layer: ClaimLayer) => void }) {
@@ -568,7 +571,7 @@ function LayeredFinding({ finding, activeLayer, onLayerChange }: { finding: V6Fi
     claim: firstNonEmpty(layers.claim, finding.claim, finding.title, finding.label, "Claim unavailable"),
     evidence: firstNonEmpty(layers.evidence, findingEvidenceText(finding), finding.observation, "Evidence unavailable"),
     interpretation: firstNonEmpty(layers.interpretation, finding.interpretation, "Interpretation unavailable"),
-    recommendation: firstNonEmpty(layers.recommendation, recommendationBody(finding.recommendation), "Recommendation unavailable"),
+    recommendation: firstNonEmpty(recommendationBody(layers.recommendation), recommendationBody(finding.recommendation), "Recommendation unavailable"),
   };
   return <article className={styles.layeredFinding}><div className={styles.layerTabs} role="tablist" aria-label="Finding detail layers">{CLAIM_LAYERS.map((layer) => <button key={layer} className={activeLayer === layer ? styles.layerTabActive : styles.layerTab} type="button" role="tab" aria-selected={activeLayer === layer} aria-controls={`v6-layer-${layer}`} onClick={() => onLayerChange(layer)}>{layer}</button>)}</div><div className={styles.layerPanel} id={`v6-layer-${activeLayer}`} role="tabpanel" tabIndex={0}><span className={styles.eyebrow}>{activeLayer}</span><p>{values[activeLayer]}</p>{activeLayer === "evidence" && <MetricReceipt item={finding} />}</div><EvidenceRefs refs={findingEvidenceRefs(finding)} /></article>;
 }
@@ -630,11 +633,11 @@ function ResultNotice({ result }: { result: unknown }) {
 }
 
 function chooseStrongestFinding(findings: V6Finding[]): V6Finding | null {
-  return findings.find((finding) => isPublished(finding) && (finding.confidence === "high" || finding.confidence === "moderate")) ?? findings.find(isPublished) ?? findings[0] ?? null;
+  return findings.find((finding) => isPublished(finding) && (finding.confidence === "high" || finding.confidence === "moderate")) ?? findings.find(isPublished) ?? null;
 }
 
 function chooseSecondaryFinding(findings: V6Finding[], strongest: V6Finding | null): V6Finding | null {
-  return findings.find((finding) => finding !== strongest && isPublished(finding)) ?? findings.find((finding) => finding !== strongest) ?? null;
+  return findings.find((finding) => finding !== strongest && isPublished(finding)) ?? null;
 }
 
 function findFamily(findings: V6Finding[], family: string): V6Finding | null {
@@ -642,18 +645,17 @@ function findFamily(findings: V6Finding[], family: string): V6Finding | null {
 }
 
 function isPublished(finding: V6Finding): boolean {
-  if (finding.published === false) return false;
-  return finding.status !== "suppressed" && finding.status !== "unavailable";
+  return finding.published === true && finding.status !== "suppressed" && finding.status !== "unavailable";
 }
 
 function recommendationChoices(report: V6Report, ...findings: Array<V6Finding | null>): V6Choice[] {
   const choices: V6Choice[] = [];
   for (const finding of findings) {
-    const recommendation = finding?.recommendation;
+    const recommendation = finding?.recommendation ?? finding?.claim_contract?.recommendation;
     if (recommendation && typeof recommendation === "object") {
       const options = recommendation.options ?? [];
       if (options.length > 0) choices.push(...options);
-      else choices.push({ id: recommendation.id ?? finding?.key ?? finding?.family, label: firstNonEmpty(recommendation.title, recommendation.label, recommendation.action, finding?.label, "Recommendation"), description: firstNonEmpty(recommendation.body, recommendation.context, "") });
+      else choices.push({ id: recommendation.recommendation_id ?? recommendation.id ?? finding?.key ?? finding?.family, label: firstNonEmpty(recommendation.title, recommendation.label, recommendation.instruction, recommendation.action, finding?.label, "Recommendation"), description: firstNonEmpty(recommendation.body, recommendation.instruction, recommendation.rationale, recommendationContextText(recommendation.context)) });
     }
   }
   const beatOptions = storyPages(report).find((beat) => beat.kind === "recommendation" || beat.key === "recommendation")?.options ?? [];
@@ -700,7 +702,16 @@ function shareCandidateId(candidate: V6Report["share_candidates"][number]): stri
 
 function recommendationBody(recommendation: V6Finding["recommendation"]): string {
   if (!recommendation) return "";
-  return typeof recommendation === "string" ? recommendation : firstNonEmpty(recommendation.body, recommendation.action, recommendation.context, recommendation.title);
+  return typeof recommendation === "string" ? recommendation : firstNonEmpty(recommendation.instruction, recommendation.body, recommendation.action, recommendation.rationale, recommendationContextText(recommendation.context), recommendation.title);
+}
+
+function recommendationContextText(context: V6Recommendation["context"]): string {
+  if (typeof context === "string") return context;
+  if (!context || typeof context !== "object") return "";
+  return Object.entries(context)
+    .filter(([, value]) => ["string", "number", "boolean"].includes(typeof value))
+    .map(([key, value]) => `${key.replaceAll("_", " ")}: ${String(value)}`)
+    .join(" · ");
 }
 
 function formatRow(row: { value?: string | number | null; estimate?: number | null; unit?: string | null }): string {
@@ -726,7 +737,7 @@ function normalizeInteractionState(state: V6InteractionState): V6InteractionStat
     ...initialInteractionState(),
     ...safeState,
     current_beat: clampBeat(state.current_beat),
-    completed_beats: uniqueNumbers(state.completed_beats ?? []).filter((item) => item >= 0 && item < 9),
+    completed_beats: uniqueNumbers(state.completed_beats ?? []).filter((item) => item >= 0 && item < 9 && !(state.skipped_beats ?? []).includes(item)),
     skipped_beats: uniqueNumbers(state.skipped_beats ?? []).filter((item) => item >= 0 && item < 9),
     user_reported: { ...(state.user_reported ?? {}) },
     ui_state: { ...(state.ui_state ?? {}) },
@@ -744,6 +755,28 @@ function clampTimelineIndex(index: number | undefined, length: number): number {
 
 function uniqueNumbers(values: number[]): number[] {
   return [...new Set(values)];
+}
+
+function elementGlyphKey(key: string): string {
+  if (key.includes("toolkit")) return "toolkit";
+  if (key.includes("involvement")) return "involvement";
+  if (key.includes("finishing")) return "finishing";
+  if (key.includes("death")) return "death_exposure";
+  if (key.includes("transfer")) return "transfer";
+  if (key.includes("consistency")) return "consistency";
+  return "breadth";
+}
+
+function familyGlyphKey(family: string): string {
+  if (family.includes("transfer")) return "transfer_finding";
+  if (family.includes("post_loss")) return "post_loss_response";
+  if (family.includes("combat")) return "combat_expression";
+  if (family.includes("session")) return "session_drift";
+  return "pool_shape";
+}
+
+function progressCount(state: V6InteractionState): number {
+  return Math.min(9, new Set([...(state.completed_beats ?? []), ...(state.skipped_beats ?? [])]).size);
 }
 
 function beatLabel(id: BeatId): string {

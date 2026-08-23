@@ -9,9 +9,12 @@ from typing import Any
 from urllib.parse import urlparse
 
 from app.content.renderer import resolve_evolution_copy
+from app.player_analysis_v6.copy import forbidden_copy_violations
 
 RENDERER_VERSION = "share-svg-5.0.0"
+V6_RENDERER_VERSION = "share-svg-6.0.0"
 CARD_TYPES = frozenset({"final"})
+V6_CARD_TYPES = frozenset({"final", "identity", "strongest-finding", "hero-mirror"})
 
 _VOID = "#0B0C0B"
 _SURFACE = "#141513"
@@ -36,7 +39,11 @@ def share_cache_key(
     show_avatar: bool = True,
     aspect_ratio: str = "4:5",
 ) -> str:
-    content = _card_content(report, card_type, show_name=show_name, show_avatar=show_avatar)
+    is_v6 = report.get("schema_version") == "free-dna-report-6.0.0"
+    if is_v6:
+        content = _v6_card_content(report, card_type, show_name=show_name)
+    else:
+        content = _card_content(report, card_type, show_name=show_name, show_avatar=show_avatar)
     value = {
         "report_id": report.get("report_id"),
         "report_schema": report.get("schema_version"),
@@ -44,7 +51,7 @@ def share_cache_key(
         "aspect_ratio": aspect_ratio,
         "show_name": show_name,
         "show_avatar": show_avatar,
-        "renderer": RENDERER_VERSION,
+        "renderer": V6_RENDERER_VERSION if is_v6 else RENDERER_VERSION,
         "content": content,
     }
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -57,6 +64,8 @@ def build_share_svg(
     show_name: bool = True,
     show_avatar: bool = True,
 ) -> tuple[str, str]:
+    if report.get("schema_version") == "free-dna-report-6.0.0":
+        return _build_v6_share_svg(report, card_type=card_type, show_name=show_name)
     if card_type not in CARD_TYPES:
         raise ValueError("Unsupported share card")
     content = _card_content(report, card_type, show_name=show_name, show_avatar=show_avatar)
@@ -125,6 +134,87 @@ def build_share_svg(
   </style>
 </svg>'''
     return svg, cache_key
+
+
+def _build_v6_share_svg(
+    report: dict[str, Any],
+    *,
+    card_type: str,
+    show_name: bool,
+) -> tuple[str, str]:
+    content = _v6_card_content(report, card_type, show_name=show_name)
+    cache_key = share_cache_key(report, card_type=card_type, show_name=show_name, show_avatar=False)
+    title = html.escape(str(content["title"]))
+    subtitle = html.escape(str(content["subtitle"]))
+    sections = _section_markup(content["sections"])
+    identity = html.escape(str(content["identity_headline"]))
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-labelledby="v6-title v6-subtitle">
+  <title id="v6-title">{title}</title><desc id="v6-subtitle">{subtitle}</desc>
+  <rect width="1080" height="1350" fill="{_VOID}"/>
+  <rect x="36" y="36" width="1008" height="1278" fill="none" stroke="{_LINE}" stroke-width="2"/>
+  <text x="72" y="104" class="eyebrow">DOTA DNA / FREE V6</text>
+  <text x="72" y="178" class="title">{title}</text>
+  <text x="72" y="220" class="subtitle">{subtitle}</text>
+  <rect x="72" y="246" width="936" height="190" fill="{_RAISED}" stroke="{_LINE}" stroke-width="2"/>
+  <text x="104" y="302" class="identity-kicker">OBSERVED SUMMARY SHAPE</text>
+  {_text_lines(identity, x=104, y=366, class_name="identity", max_chars=31, line_height=54)}
+  {sections}
+  <line x1="72" y1="1260" x2="1008" y2="1260" stroke="{_LINE}" stroke-width="2"/>
+  <text x="72" y="1294" class="footer">PRIVATE BY DEFAULT · NO PLAYER ID · NO RAW MATCH DATA</text>
+  <text x="1008" y="1294" text-anchor="end" class="footer">FREE DNA / {V6_RENDERER_VERSION.upper()}</text>
+  <style>
+    .eyebrow{{font:700 20px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:4px;fill:{_SAFFRON}}}
+    .title{{font:800 64px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:-2px;fill:{_TEXT}}}
+    .subtitle{{font:500 20px 'Plus Jakarta Sans',Arial,sans-serif;fill:{_MUTED}}}
+    .identity-kicker,.section-heading{{font:700 16px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:3px;fill:{_SAFFRON}}}
+    .identity{{font:800 42px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:-1px;fill:{_TEXT}}}
+    .section-heading-dark{{font:700 16px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:3px;fill:{_SAFFRON}}}
+    .section-line{{font:650 24px 'Plus Jakarta Sans',Arial,sans-serif;fill:{_TEXT}}}
+    .footer{{font:600 13px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:1.4px;fill:{_MUTED}}}
+  </style>
+</svg>'''
+    return svg, cache_key
+
+
+def _v6_card_content(report: dict[str, Any], card_type: str, *, show_name: bool) -> dict[str, Any]:
+    if card_type not in V6_CARD_TYPES:
+        raise ValueError("Unsupported v6 share card")
+    candidates = [
+        item for item in report.get("share_candidates", [])
+        if isinstance(item, dict) and item.get("eligible") is True
+    ]
+    if card_type != "final":
+        wanted = {
+            "identity": {"identity", "dynamic_identity"},
+            "strongest-finding": {"strongest-finding", "strongest_finding", "finding"},
+            "hero-mirror": {"hero-mirror", "hero_mirror"},
+        }[card_type]
+        candidates = [
+            item for item in candidates
+            if str(item.get("id") or item.get("candidate_id") or item.get("kind")) in wanted
+        ]
+    if not candidates:
+        raise ValueError("The requested v6 share card is not eligible")
+
+    identity_summary_value = report.get("identity_summary")
+    identity_summary: dict[str, Any] = dict(identity_summary_value) if isinstance(identity_summary_value, dict) else {}
+    headline = str(identity_summary.get("headline") or "Your observed summary shape")
+    sections: list[dict[str, Any]] = []
+    for candidate in candidates[:4]:
+        payload_value = candidate.get("payload")
+        payload: dict[str, Any] = dict(payload_value) if isinstance(payload_value, dict) else {}
+        heading = str(payload.get("title") or candidate.get("title") or candidate.get("kind") or "Observed signal")
+        line = str(payload.get("reason") or candidate.get("reason") or "Eligible server-authored evidence")
+        sections.append({"heading": heading.upper()[:24], "lines": [line]})
+    identity_value = report.get("identity")
+    identity: dict[str, Any] = dict(identity_value) if isinstance(identity_value, dict) else {}
+    title = str(identity.get("display_name") or "Your Dota DNA") if show_name else "Your Dota DNA"
+    subtitle = " · ".join(str(section["lines"][0]) for section in sections[:2])
+    text_payload = {"title": title, "subtitle": subtitle, "identity_headline": headline, "sections": sections}
+    violations = forbidden_copy_violations(text_payload)
+    if violations:
+        raise ValueError("v6 share copy contains forbidden summary inference: " + ", ".join(violations))
+    return text_payload
 
 
 def _section_markup(sections: Any) -> str:

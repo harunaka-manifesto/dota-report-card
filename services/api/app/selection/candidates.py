@@ -4,6 +4,7 @@ from collections.abc import Iterable, Mapping
 
 from app.features.summary_models import SummaryFeatureSet, SummaryMatchFeature
 from app.hypotheses.models import Hypothesis
+from app.ingestion.coverage import REPLAY_FAMILIES
 from app.selection.models import CandidateMatch
 
 
@@ -65,6 +66,7 @@ def generate_candidate_matches(
             for hypothesis_id in hypothesis_ids
             for family in hypothesis_map[hypothesis_id].required_data_families
         }
+        missing_parse_families = sorted(required.intersection(REPLAY_FAMILIES) - available)
         already_sufficient = bool(required) and required.issubset(
             available if summary_satisfies_requirements else frozenset(
                 available_families_by_match.get(match_id, frozenset())
@@ -85,7 +87,10 @@ def generate_candidate_matches(
                 already_available=already_sufficient,
                 estimated_detail_cost=0.0 if already_sufficient else detail_cost_units,
                 estimated_parse_cost=0.0 if already_sufficient else parse_cost_units,
-                metadata={"missing_data_families": sorted(required - available)},
+                metadata={
+                    "missing_data_families": sorted(required - available),
+                    "parse_required_families": missing_parse_families,
+                },
             )
         )
     return sorted(candidates, key=lambda item: (-item.relevance, item.match_id))

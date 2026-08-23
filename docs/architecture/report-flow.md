@@ -135,3 +135,30 @@ interaction state and accessible rendering; `share/service.py` owns the final
 card hierarchy; `analytics.ts` owns event sanitization. Any version change to
 one of these contracts must update the API client, model catalog/docs, tests,
 and the version fingerprint in the same change.
+
+## v6 opt-in flow
+
+The v6 renderer is selected only for `free-dna-report-6.0.0` snapshots. Its
+server-owned flow is:
+
+```text
+365-day summary history
+→ normalization and literal lane context
+→ 90-minute sessionization and frozen non-MMR baseline resolution
+→ seven Elements and five finding families
+→ clustered intervals, finite-family p-values, BH q-values, and max-three ranking
+→ deterministic identity, nine skippable beats, diagnostic specs, and share candidates
+```
+
+The browser renders the supplied payload; it does not recompute scores, choose
+suppressed findings, create recommendation text, or synthesize Deep predicates.
+Self-estimates are stored only under `user_reported`; server observations remain
+server-owned. Recommendation commitments resolve a report-authored structured
+recommendation, lock its one follow-up metric and baseline, and compare the
+first five qualifying post-cutoff games without changing stable identity.
+
+Deep v2 receives only the offered diagnostic-question ID. The API retrieves the
+immutable serialized question specification, persists it in job metadata, and
+the worker executes the two-stage detail/parse acquisition path under 25-detail,
+25-parse, and 160-relative-unit ceilings. Missing parse transport produces an
+explicit abstention rather than a successful-looking parse result.

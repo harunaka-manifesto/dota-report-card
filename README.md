@@ -4,6 +4,11 @@ An anonymous OpenDota player report built from one bounded summary-history read.
 
 summary history → 18 Elements → 11 Patterns → Hero Portfolio → interactive story → Hero Mirror → share
 
+An additive Free DNA v6 path is implemented behind `FREE_DNA_V6_ENABLED`:
+summary history → 7 Elements → 5 finding families → 9-beat story → interactions → Deep diagnostics.
+It remains disabled until the checked-in artifact schemas and the external
+1,000-profile calibration gates are satisfied.
+
 Free DNA describes observable match behavior. It does not infer motives,
 psychological states, grades, or replay-level causes.
 
@@ -49,6 +54,14 @@ Mirror. Deep Scan remains an explicit separate mode with its own budgets.
 
 The archive contains superseded material and is not the active implementation
 contract.
+
+The v6 implementation record is
+[dota-player-analysis-revision-implementation-plan.md](dota-player-analysis-revision-implementation-plan.md).
+Its statistical and Deep contracts are documented in
+[v6 statistics](docs/architecture/free-dna-v6-statistics.md) and
+[Deep diagnostics v2](docs/architecture/deep-diagnostics-v2.md). Build reviewed
+artifacts with `scripts/build_v6_calibration_artifacts.py`; do not place
+production artifacts in `tests/fixtures/v6`.
 
 ## Verification
 

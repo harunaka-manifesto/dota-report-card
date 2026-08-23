@@ -14,6 +14,60 @@ class MatchPredicate:
     params: dict[str, Any]
 
     def matches(self, match: SummaryMatchFeature) -> bool:
+        if self.name == "hero_set":
+            hero_ids = self.params.get("hero_ids", ())
+            return bool(hero_ids) and match.hero_id in set(hero_ids)
+        if self.name == "outside_hero_set":
+            hero_ids = self.params.get("hero_ids", ())
+            return bool(hero_ids) and match.hero_id not in set(hero_ids)
+        if self.name == "hero_set_lane":
+            hero_ids = self.params.get("hero_ids", ())
+            lane = self.params.get("lane_context")
+            return bool(hero_ids) and match.hero_id in set(hero_ids) and (lane is None or match.role_hint == lane)
+        if self.name == "match_id_set":
+            match_ids = self.params.get("match_ids", ())
+            return bool(match_ids) and match.match_id in set(match_ids)
+        if self.name == "outside_match_id_set":
+            match_ids = self.params.get("match_ids", ())
+            return bool(match_ids) and match.match_id not in set(match_ids)
+        if self.name == "session_position_range":
+            position = match.session_index or 0
+            minimum = int(self.params.get("min", 0))
+            maximum = self.params.get("max")
+            return position >= minimum and (maximum is None or position <= int(maximum))
+        if self.name == "expression_quadrant":
+            duration = match.duration_minutes
+            if duration <= 0 or match.kills is None or match.assists is None or match.deaths is None:
+                return False
+            involvement = (match.kills + match.assists) / duration
+            exposure = match.deaths / duration * 10.0
+            involvement_zone = self.params.get("involvement_zone")
+            exposure_zone = self.params.get("exposure_zone")
+            involvement_cutoff = float(self.params.get("involvement_cutoff", 0.0))
+            exposure_cutoff = float(self.params.get("exposure_cutoff", 0.0))
+            typical_band = max(0.0, float(self.params.get("typical_band", 0.0)))
+            involvement_band = max(
+                0.0,
+                float(self.params.get("involvement_typical_band", typical_band)),
+            )
+            exposure_band = max(
+                0.0,
+                float(self.params.get("exposure_typical_band", typical_band)),
+            )
+            observed_involvement = (
+                "typical"
+                if involvement_band and abs(involvement - involvement_cutoff) <= involvement_band
+                else "high" if involvement > involvement_cutoff else "low"
+            )
+            observed_exposure = (
+                "typical"
+                if exposure_band and abs(exposure - exposure_cutoff) <= exposure_band
+                else "high" if exposure > exposure_cutoff else "low"
+            )
+            return observed_involvement == involvement_zone and observed_exposure == exposure_zone
+        if self.name == "post_loss_transition":
+            match_ids = self.params.get("match_ids", ())
+            return bool(match_ids) and match.match_id in set(match_ids)
         if self.name == "hero_and_outcome":
             return match.hero_id == self.params.get("hero_id") and match.won == self.params.get("won")
         if self.name == "hero":

@@ -64,6 +64,7 @@ class VersionsV6Schema(PublicV6Model):
     expression: Literal["summary-expression-multisignal-1.0.0"]
     statistics: Literal["stats-cluster-bootstrap-1.0.0"]
     context_baseline: Literal["context-baseline-2.0.0"]
+    thresholds: Literal["metric-thresholds-6.0.0"]
     claims: Literal["claim-contract-1.0.0"]
     story: Literal["free-story-6.0.0"]
     copy_: Literal["free-dna-semantic-copy-6.0.0"] = Field(alias="copy")
@@ -116,7 +117,8 @@ class ClaimContractV6Schema(PublicV6Model):
     claim: str | None = None
     evidence: str | None = None
     interpretation: str | None = None
-    recommendation: str | None = None
+    recommendation: dict[str, Any] | None = None
+    copy_version: str | None = None
 
 
 class MeasurementV6Schema(PublicV6Model):
@@ -147,7 +149,9 @@ class FindingV6Schema(MeasurementV6Schema):
     family: str
     published: bool = False
     signal_keys: list[str] = Field(default_factory=list)
-    adjusted_p_value: float | None = Field(default=None, ge=0, le=1)
+    outcome_key: str | None = None
+    raw_p_value: float = Field(default=1.0, ge=0, le=1)
+    adjusted_q_value: float = Field(default=1.0, ge=0, le=1)
     claim_contract: ClaimContractV6Schema
 
 
@@ -160,10 +164,25 @@ class IdentitySummaryV6Schema(PublicV6Model):
 
 class DiagnosticQuestionV6Schema(PublicV6Model):
     id: str
+    version: Literal["deep-diagnostics-2.0.0"]
     prompt: str
     finding_family: str
     evidence_refs: list[str] = Field(min_length=1)
     confidence: Literal["moderate", "high"]
+    diagnostic_question_id: str | None = None
+    statement: str | None = None
+    context: dict[str, Any] = Field(default_factory=dict)
+    primary_hypothesis: dict[str, Any] = Field(default_factory=dict)
+    secondary_hypothesis: dict[str, Any] | None = None
+    required_summary_metrics: list[str] = Field(default_factory=list)
+    required_detail_metrics: list[str] = Field(default_factory=list)
+    required_parse_metrics: list[str] = Field(default_factory=list)
+    question_spec: dict[str, Any] = Field(default_factory=dict)
+    secondary_reuse_fraction: float = Field(default=0.0, ge=0, le=1)
+    options: list[dict[str, Any]] = Field(default_factory=list)
+    observed: dict[str, Any] = Field(default_factory=dict)
+    available: bool = True
+    skippable: bool = True
 
 
 class StoryV6Schema(PublicV6Model):
@@ -176,7 +195,12 @@ class StoryPageV6Schema(PublicV6Model):
     kind: str
     observed: dict[str, Any] = Field(default_factory=dict)
     content: dict[str, Any] = Field(default_factory=dict)
+    title: str | None = None
+    prompt: str | None = None
+    body: str | None = None
+    options: list[dict[str, Any]] = Field(default_factory=list)
     evidence_refs: list[str] = Field(default_factory=list)
+    available: bool = True
     skippable: Literal[True] = True
 
 

@@ -1,4 +1,8 @@
-"""Seven public v6 Elements computed from summary history only."""
+"""The seven summary-only Free DNA v6 Elements.
+
+Point estimates use match rows; uncertainty resamples complete sessions. Every
+context-adjusted metric resolves its baseline per match.
+"""
 
 from __future__ import annotations
 
@@ -7,15 +11,15 @@ from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from .baselines import BaselineContext, BaselineResolver
+from .baselines import BaselineResolver
 from .constants import DEFAULT_BOOTSTRAP_ITERATIONS, MIN_CONSISTENCY_SESSIONS, PUBLIC_ELEMENT_KEYS
+from .context_adjustment import adjusted_value_for_match, match_field, match_hero_id
 from .metrics import (
-    compare_consistency_signals,
-    compare_transfer_signals,
     death_exposure_per_ten_minutes,
     finishing_share,
     involvement_per_minute,
     match_weighted_effective_count,
+    robust_dispersion,
     shannon_effective_count,
 )
 from .models import ElementDefinition, ElementResultV6, Estimate
@@ -23,80 +27,13 @@ from .statistics import BootstrapResult, bootstrap_stability, clustered_bootstra
 from .thresholds import DEFAULT_THRESHOLDS, MetricThreshold, threshold_for
 
 ELEMENT_DEFINITIONS: tuple[ElementDefinition, ...] = (
-    ElementDefinition(
-        "breadth",
-        "Hero Breadth",
-        "How widely your matches are distributed across heroes.",
-        "effective heroes",
-        "breadth_effective_count",
-        axis_left="focused pool",
-        axis_right="broad pool",
-    ),
-    ElementDefinition(
-        "toolkit",
-        "Toolkit Range",
-        "How many functional jobs your hero choices cover in the reviewed taxonomy.",
-        "effective jobs",
-        "toolkit_effective_count",
-        minimum_coverage=0.80,
-        axis_left="narrow toolkit",
-        axis_right="versatile toolkit",
-    ),
-    ElementDefinition(
-        "involvement",
-        "Involvement",
-        "Context-adjusted kills plus assists per minute.",
-        "kills+assists/minute",
-        "involvement_per_minute",
-        minimum_sessions=8,
-        axis_left="quieter participation",
-        axis_right="frequent participation",
-        forbidden_claims=("aggression", "positioning", "fight entry"),
-    ),
-    ElementDefinition(
-        "finishing",
-        "Finishing",
-        "Context-adjusted share of known kill-plus-assist events that are kills.",
-        "kill share",
-        "finishing_share",
-        minimum_sessions=8,
-        axis_left="shared conversion",
-        axis_right="personal conversion",
-        forbidden_claims=("intent", "objective conversion"),
-    ),
-    ElementDefinition(
-        "death_exposure",
-        "Death Exposure",
-        "Context-adjusted deaths per ten minutes.",
-        "deaths/10 minutes",
-        "death_exposure_per_ten",
-        minimum_sessions=8,
-        axis_left="lower exposure",
-        axis_right="higher exposure",
-        forbidden_claims=("death quality", "positioning", "intention"),
-    ),
-    ElementDefinition(
-        "transfer",
-        "Transfer",
-        "Agreement when a familiar hero context is compared with stretch choices.",
-        "multi-signal agreement",
-        "transfer_agreement",
-        minimum_sessions=8,
-        axis_left="does not transfer",
-        axis_right="transfers across choices",
-        forbidden_claims=("causality", "positioning", "intent"),
-    ),
-    ElementDefinition(
-        "consistency",
-        "Consistency",
-        "Robust session-to-session agreement across outcome, activity, and death exposure.",
-        "session consistency",
-        "consistency_dispersion",
-        minimum_sessions=MIN_CONSISTENCY_SESSIONS,
-        axis_left="variable expression",
-        axis_right="consistent expression",
-        forbidden_claims=("intent", "tilt", "causality"),
-    ),
+    ElementDefinition("breadth", "Breadth", "How widely your matches are distributed across heroes.", "effective heroes", "breadth_effective_count", axis_left="focused pool", axis_right="broad pool"),
+    ElementDefinition("toolkit", "Toolkit", "How many functional jobs your hero choices cover in the reviewed taxonomy.", "effective jobs", "toolkit_effective_count", minimum_coverage=0.80, axis_left="narrow toolkit", axis_right="versatile toolkit"),
+    ElementDefinition("involvement", "Involvement", "Context-adjusted kills plus assists per minute.", "kills+assists/minute", "involvement_adjusted", minimum_sessions=8, axis_left="quieter participation", axis_right="frequent participation", forbidden_claims=("aggression", "positioning", "fight entry")),
+    ElementDefinition("finishing", "Finishing", "Context-adjusted share of known kill-plus-assist events that are kills.", "kill share", "finishing_adjusted", minimum_sessions=8, axis_left="shared conversion", axis_right="personal conversion", forbidden_claims=("intent", "objective conversion")),
+    ElementDefinition("death_exposure", "Death Exposure", "Context-adjusted deaths per ten minutes.", "deaths/10 minutes", "death_exposure_adjusted", minimum_sessions=8, axis_left="lower exposure", axis_right="higher exposure", forbidden_claims=("death quality", "positioning", "intention")),
+    ElementDefinition("transfer", "Transfer", "Agreement when a familiar hero context is compared with stretch choices.", "multi-signal agreement", "transfer_outcome_delta", minimum_sessions=8, axis_left="does not transfer", axis_right="transfers across choices", forbidden_claims=("causality", "positioning", "intent")),
+    ElementDefinition("consistency", "Consistency", "Robust session-to-session agreement across outcome, activity, and death exposure.", "session consistency", "consistency_outcome_dispersion", minimum_sessions=MIN_CONSISTENCY_SESSIONS, axis_left="variable expression", axis_right="consistent expression", forbidden_claims=("intent", "tilt", "causality")),
 )
 
 
@@ -111,7 +48,7 @@ def _get(item: Any, key: str, default: Any = None) -> Any:
 
 
 def _hero(item: Any) -> Any:
-    return _get(item, "hero_id")
+    return match_hero_id(item)
 
 
 def _session_id(item: Any, index: int) -> str:
@@ -126,165 +63,166 @@ def _session_groups(matches: Sequence[Any]) -> tuple[tuple[str, tuple[Any, ...]]
     return tuple((key, tuple(groups[key])) for key in sorted(groups))
 
 
-def _numeric_values(matches: Sequence[Any], getter: Any) -> tuple[list[float], list[str], float]:
-    values: list[float] = []
-    session_ids: list[str] = []
-    denominator = len(matches)
-    for index, item in enumerate(matches):
-        value = getter(item)
-        try:
-            numeric = float(value)
-        except (TypeError, ValueError):
-            continue
-        if not math.isfinite(numeric):
-            continue
-        values.append(numeric)
-        session_ids.append(_session_id(item, index))
-    return values, session_ids, len(values) / denominator if denominator else 0.0
+def _finite(value: Any) -> float | None:
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    return numeric if math.isfinite(numeric) else None
 
 
-def _bootstrap(
-    values: Sequence[float],
-    session_ids: Sequence[str],
-    *,
-    estimator: Any = None,
-    iterations: int,
-    seed: int,
-) -> BootstrapResult:
-    return clustered_bootstrap(
-        values,
-        session_ids,
-        estimator=estimator or (lambda sample: sum(sample) / len(sample) if sample else math.nan),
-        iterations=iterations,
-        seed=seed,
-    )
+def _threshold(key: str, thresholds: Mapping[str, MetricThreshold]) -> MetricThreshold:
+    return threshold_for(key, thresholds)
 
 
-def _confidence(threshold: MetricThreshold, result: BootstrapResult, coverage: float, sample_size: int, sessions: int) -> tuple[str, float]:
-    stability = 0.0
-    if result.replicates:
-        # A scalar metric's practical region is unknown here; confidence is
-        # based on repeatability around its point estimate.  Baseline-aware
-        # direction stability is applied by the caller where available.
-        spread = (result.upper - result.lower) if result.lower is not None and result.upper is not None else math.inf
-        scale = abs(result.point_estimate or 0.0) + threshold.practical_margin
-        stability = max(0.0, min(1.0, 1.0 - spread / (2.0 * max(scale, 1e-9))))
-    tier = threshold.supports_confidence(
-        sample_size=sample_size,
-        independent_sessions=sessions,
-        coverage=coverage,
-        stability=stability,
-    )
-    return tier, stability
+def _stability(result: BootstrapResult, threshold: MetricThreshold, *, direction: str, zone: str, center: float = 0.0) -> float:
+    if not result.replicates:
+        return 0.0
+    if threshold.zone_mode in {"cutoff", "dispersion"}:
+        # Consistency's public bootstrap is an agreement score (+1 stable,
+        # -1 variable, 0 mixed), while its calibration artifact stores the
+        # underlying dispersion cutoffs. Translate that score back to the
+        # low/high dispersion zones before measuring classification stability.
+        if threshold.zone_mode == "dispersion" and all(-1.0 <= float(value) <= 1.0 for value in result.replicates):
+            return sum(
+                ("low" if float(value) > 0.5 else "high" if float(value) < -0.5 else "typical") == zone
+                for value in result.replicates
+            ) / len(result.replicates)
+        return sum(threshold.zone(value) == zone for value in result.replicates) / len(result.replicates)
+    if direction in {"positive", "negative"}:
+        return bootstrap_stability(result.replicates, direction=direction, center=center, practical_margin=threshold.practical_margin)
+    return bootstrap_stability(result.replicates, center=center, practical_margin=threshold.practical_margin)
 
 
-def _estimate(
-    key: str,
+def _interval_clears_zone(result: BootstrapResult, threshold: MetricThreshold, zone: str) -> bool:
+    if result.interval is None or zone == "unknown":
+        return False
+    lower, upper = result.interval
+    if threshold.zone_mode == "dispersion":
+        # The consistency Element reports the signed agreement score rather
+        # than exposing a synthetic aggregate dispersion as its public value.
+        if all(-1.0 <= float(value) <= 1.0 for value in result.replicates):
+            if zone == "low":
+                return lower > 0.0
+            if zone == "high":
+                return upper < 0.0
+        if zone == "low" and threshold.stable_cutoff is not None:
+            return upper < threshold.stable_cutoff
+        if zone == "high" and threshold.variable_cutoff is not None:
+            return lower > threshold.variable_cutoff
+        if zone == "typical" and threshold.stable_cutoff is not None and threshold.variable_cutoff is not None:
+            return lower >= threshold.stable_cutoff and upper <= threshold.variable_cutoff
+        return False
+    if threshold.low_cutoff is None or threshold.high_cutoff is None:
+        low = -threshold.practical_margin
+        high = threshold.practical_margin
+    else:
+        low, high = threshold.low_cutoff, threshold.high_cutoff
+    if zone == "low":
+        return upper < low
+    if zone == "high":
+        return lower > high
+    if zone == "typical":
+        return lower >= low and upper <= high
+    return False
+
+
+def _status_and_limitations(
     definition: ElementDefinition,
-    values: Sequence[float],
-    session_ids: Sequence[str],
     *,
+    sample_size: int,
+    sessions: int,
     coverage: float,
-    baseline: float | None = None,
-    raw_metrics: Mapping[str, Any] | None = None,
-    evidence_refs: tuple[str, ...] = (),
-    iterations: int,
-    seed: int,
-    thresholds: Mapping[str, MetricThreshold],
-    direction_override: str | None = None,
-    value_override: float | None = None,
-    status_override: str | None = None,
-    limitation: str | None = None,
-    sample_size_override: int | None = None,
-    sessions_override: int | None = None,
-) -> ElementResultV6:
-    threshold = threshold_for(definition.metric_key, thresholds)
-    sample_size = len(values) if sample_size_override is None else max(0, int(sample_size_override))
-    sessions = len(set(session_ids)) if sessions_override is None else max(0, int(sessions_override))
-    if sample_size == 0 or status_override == "unavailable":
-        estimate = Estimate(
-            None,
-            definition.unit,
-            zone="unknown",
-            direction="unknown",
-            sample_size=sample_size,
-            independent_sessions=sessions,
-            coverage=coverage,
-            confidence="unavailable",
-            status="unavailable",
-            evidence_refs=evidence_refs,
-            limitations=tuple(item for item in (limitation or "metric unavailable",) if item),
-            forbidden_claims=definition.forbidden_claims,
-        )
-        return ElementResultV6(key, definition.label, estimate, raw_metrics=raw_metrics or {}, evidence_refs=evidence_refs)
-    result = _bootstrap(values, session_ids, iterations=iterations, seed=seed)
-    point = value_override if value_override is not None else result.point_estimate
-    zone = threshold.zone(point, baseline=baseline)
-    direction = direction_override or {"low": "negative", "high": "positive", "typical": "neutral", "unknown": "unknown"}[zone]
-    tier, stability = _confidence(threshold, result, coverage, sample_size, sessions)
-    status = "available" if sample_size >= definition.minimum_sample else "limited"
-    if sessions < definition.minimum_sessions or coverage < definition.minimum_coverage:
+    threshold: MetricThreshold,
+    stability: float,
+    requested_status: str | None = None,
+    extra: Sequence[str] = (),
+) -> tuple[str, str, tuple[str, ...]]:
+    minimum_sample = max(definition.minimum_sample, threshold.min_sample)
+    minimum_sessions = max(definition.minimum_sessions, threshold.min_sessions)
+    minimum_coverage = max(definition.minimum_coverage, threshold.min_coverage)
+    status = "available" if sample_size >= minimum_sample else "limited"
+    if sessions < minimum_sessions or coverage < minimum_coverage:
         status = "limited"
-    if status_override in {"available", "limited"}:
-        status = status_override
+    if requested_status in {"available", "limited", "unavailable"}:
+        status = requested_status
     limitations: list[str] = []
-    if sample_size < definition.minimum_sample:
-        limitations.append(f"fewer than {definition.minimum_sample} usable matches")
-    if sessions < definition.minimum_sessions:
-        limitations.append(f"fewer than {definition.minimum_sessions} independent sessions")
-    if coverage < definition.minimum_coverage:
-        limitations.append(f"coverage below {definition.minimum_coverage:.0%}")
-    if limitation:
-        limitations.append(limitation)
-    if status == "limited" and tier == "high":
-        tier = "descriptive"
-    estimate = Estimate(
-        point,
-        definition.unit,
-        interval=result.interval,
-        zone=zone,
-        direction=direction,  # type: ignore[arg-type]
-        stability=stability,
-        sample_size=sample_size,
-        independent_sessions=sessions,
-        coverage=coverage,
-        confidence=tier,  # type: ignore[arg-type]
-        status=status,  # type: ignore[arg-type]
-        evidence_refs=evidence_refs,
-        limitations=tuple(dict.fromkeys(limitations)),
-        supported_claims=(definition.description,),
-        forbidden_claims=definition.forbidden_claims,
-        bootstrap_method=result.method,
-    )
-    return ElementResultV6(key, definition.label, estimate, raw_metrics=raw_metrics or {}, evidence_refs=evidence_refs)
+    if sample_size < minimum_sample:
+        limitations.append(f"fewer than {minimum_sample} usable matches")
+    if sessions < minimum_sessions:
+        limitations.append(f"fewer than {minimum_sessions} independent sessions")
+    if coverage < minimum_coverage:
+        limitations.append(f"coverage below {minimum_coverage:.0%}")
+    limitations.extend(str(item) for item in extra if item)
+    confidence = threshold.supports_confidence(sample_size=sample_size, independent_sessions=sessions, coverage=coverage, stability=stability)
+    if status in {"limited", "unavailable"} and confidence == "high":
+        confidence = "descriptive"
+    if status == "unavailable":
+        confidence = "unavailable"
+    return status, confidence, tuple(dict.fromkeys(limitations))
 
 
-def _unavailable(key: str, definition: ElementDefinition, *, sample_size: int, coverage: float, sessions: int, reason: str) -> ElementResultV6:
-    estimate = Estimate(
-        None,
-        definition.unit,
-        zone="unknown",
-        direction="unknown",
-        sample_size=sample_size,
-        independent_sessions=sessions,
-        coverage=coverage,
-        confidence="unavailable",
-        status="unavailable",
-        evidence_refs=(f"element:{key}",),
-        limitations=(reason,),
-        forbidden_claims=definition.forbidden_claims,
-    )
-    return ElementResultV6(key, definition.label, estimate, evidence_refs=(f"element:{key}",))
+def _element(
+    definition: ElementDefinition,
+    *,
+    result: BootstrapResult | None,
+    value: float | None,
+    direction: str,
+    zone: str,
+    sample_size: int,
+    sessions: int,
+    coverage: float,
+    thresholds: Mapping[str, MetricThreshold],
+    evidence_refs: Sequence[str],
+    raw_metrics: Mapping[str, Any] | None = None,
+    requested_status: str | None = None,
+    extra_limitations: Sequence[str] = (),
+) -> ElementResultV6:
+    threshold = _threshold(definition.metric_key, thresholds)
+    if result is None or value is None:
+        estimate = Estimate(None, definition.unit, zone="unknown", direction="unknown", sample_size=sample_size, independent_sessions=sessions, coverage=coverage, confidence="unavailable", status="unavailable", evidence_refs=tuple(evidence_refs), limitations=tuple(extra_limitations) or ("metric unavailable",), forbidden_claims=definition.forbidden_claims)
+        return ElementResultV6(definition.key, definition.label, estimate, raw_metrics=raw_metrics or {}, evidence_refs=tuple(evidence_refs))
+    stability = _stability(result, threshold, direction=direction, zone=zone)
+    status, confidence, limitations = _status_and_limitations(definition, sample_size=sample_size, sessions=sessions, coverage=coverage, threshold=threshold, stability=stability, requested_status=requested_status, extra=extra_limitations)
+    if confidence == "high" and not _interval_clears_zone(result, threshold, zone):
+        confidence = "moderate"
+        limitations = tuple(dict.fromkeys((*limitations, "95% interval does not clear the reported zone boundary")))
+    estimate = Estimate(value, definition.unit, interval=result.interval, zone=zone, direction=direction, stability=stability, sample_size=sample_size, independent_sessions=sessions, coverage=coverage, confidence=confidence, status=status, evidence_refs=tuple(evidence_refs), limitations=limitations, supported_claims=(definition.description,), forbidden_claims=definition.forbidden_claims, bootstrap_method=result.method)  # type: ignore[arg-type]
+    metrics = dict(raw_metrics or {})
+    metrics.setdefault("bootstrap", result.as_dict(include_replicates=False))
+    metrics.setdefault("bootstrap_replicates", list(result.replicates))
+    return ElementResultV6(definition.key, definition.label, estimate, raw_metrics=metrics, evidence_refs=tuple(evidence_refs))
 
 
-def _context_from(metadata: Mapping[str, Any] | None) -> BaselineContext:
-    metadata = metadata or {}
-    return BaselineContext(
-        patch=metadata.get("patch"),
-        hero_id=metadata.get("hero_id"),
-        hero_function=metadata.get("hero_function"),
-        lane_context=metadata.get("lane_context", metadata.get("lane")),
-    )
+def _unavailable(definition: ElementDefinition, sample_size: int, sessions: int, coverage: float, reason: str) -> ElementResultV6:
+    estimate = Estimate(None, definition.unit, zone="unknown", direction="unknown", sample_size=sample_size, independent_sessions=sessions, coverage=coverage, confidence="unavailable", status="unavailable", evidence_refs=(f"element:{definition.key}",), limitations=(reason,), forbidden_claims=definition.forbidden_claims)
+    return ElementResultV6(definition.key, definition.label, estimate, evidence_refs=(f"element:{definition.key}",))
+
+
+def _metric_raw(item: Any, key: str) -> float | None:
+    duration = match_field(item, "duration_seconds", match_field(item, "duration"))
+    if key == "involvement_adjusted":
+        return involvement_per_minute(match_field(item, "kills"), match_field(item, "assists"), duration)
+    if key == "finishing_adjusted":
+        return finishing_share(match_field(item, "kills"), match_field(item, "assists"))
+    if key == "death_exposure_adjusted":
+        return death_exposure_per_ten_minutes(match_field(item, "deaths"), duration)
+    return None
+
+
+def _adjusted_rows(matches: Sequence[Any], metric: str, *, baseline_resolver: BaselineResolver | None, taxonomy_by_hero: Mapping[Any, Any] | None) -> tuple[list[float], list[str], float, list[dict[str, Any]]]:
+    values: list[float] = []
+    sessions: list[str] = []
+    audit: list[dict[str, Any]] = []
+    for index, item in enumerate(matches):
+        raw = _metric_raw(item, metric)
+        adjusted, resolution = adjusted_value_for_match(item, metric, raw, baseline_resolver=baseline_resolver, taxonomy_by_hero=taxonomy_by_hero)
+        if adjusted is None:
+            continue
+        values.append(adjusted)
+        sessions.append(_session_id(item, index))
+        audit.append({"match_id": _get(item, "match_id", index), "context": resolution.as_dict() if resolution else None})
+    return values, sessions, len(values) / len(matches) if matches else 0.0, audit
 
 
 def _core_and_stretch(matches: Sequence[Any]) -> tuple[set[Any], set[Any]]:
@@ -303,36 +241,146 @@ def _core_and_stretch(matches: Sequence[Any]) -> tuple[set[Any], set[Any]]:
     return core, set(counts).difference(core)
 
 
-def _transfer_values(matches: Sequence[Any], baseline_resolver: BaselineResolver | None, metadata: Mapping[str, Any] | None) -> tuple[float | None, Any, tuple[str, ...]]:
-    core, stretch = _core_and_stretch(matches)
-    if not core or not stretch:
-        return None, None, ("familiar and stretch hero contexts both require evidence",)
-    groups: dict[str, list[Any]] = defaultdict(list)
-    for _index, item in enumerate(matches):
-        if _hero(item) in core:
-            groups["core"].append(item)
-        elif _hero(item) in stretch:
-            groups["stretch"].append(item)
-    signals: dict[str, float | None] = {}
+def _outcome(item: Any) -> float | None:
+    value = match_field(item, "won")
+    return None if value is None else (1.0 if bool(value) else 0.0)
+
+
+def _adjusted_component(item: Any, component: str, *, baseline_resolver: BaselineResolver | None, taxonomy_by_hero: Mapping[Any, Any] | None) -> float | None:
+    if component == "outcome":
+        return _outcome(item)
+    metric = "involvement_adjusted" if component == "activity" else "death_exposure_adjusted"
+    raw = _metric_raw(item, metric)
+    value, _ = adjusted_value_for_match(item, metric, raw, baseline_resolver=baseline_resolver, taxonomy_by_hero=taxonomy_by_hero)
+    return None if value is None else (-value if component == "survival" else value)
+
+
+def _transfer_components(records: Sequence[Mapping[str, Any]]) -> dict[str, float | None]:
+    grouped: dict[str, dict[str, list[float]]] = {"core": defaultdict(list), "stretch": defaultdict(list)}
+    for record in records:
+        bucket = str(record.get("bucket", ""))
+        if bucket not in grouped:
+            continue
+        for component in ("outcome", "activity", "survival"):
+            value = _finite(record.get(component))
+            if value is not None:
+                grouped[bucket][component].append(value)
+    result: dict[str, float | None] = {}
     for component in ("outcome", "activity", "survival"):
-        component_values: dict[str, list[float]] = {"core": [], "stretch": []}
-        for label in component_values:
-            for item in groups[label]:
-                if component == "outcome":
-                    value = _get(item, "won")
-                    numeric = None if value is None else (1.0 if bool(value) else 0.0)
-                elif component == "activity":
-                    numeric = involvement_per_minute(_get(item, "kills"), _get(item, "assists"), _get(item, "duration_seconds", _get(item, "duration")))
-                else:
-                    deaths = death_exposure_per_ten_minutes(_get(item, "deaths"), _get(item, "duration_seconds", _get(item, "duration")))
-                    numeric = None if deaths is None else -deaths
-                if numeric is not None:
-                    component_values[label].append(numeric)
-        if component_values["core"] and component_values["stretch"]:
-            signals[component] = sum(component_values["stretch"]) / len(component_values["stretch"]) - sum(component_values["core"]) / len(component_values["core"])
-    comparison = compare_transfer_signals(signals, practical_margin=0.0)
-    value = {"positive": 1.0, "negative": -1.0, "mixed": 0.0, "unknown": None}[comparison.direction]
-    return value, comparison, tuple(f"transfer:{component}" for component in signals)
+        left, right = grouped["core"][component], grouped["stretch"][component]
+        result[component] = sum(right) / len(right) - sum(left) / len(left) if left and right else None
+    return result
+
+
+def _transfer_component_directions(
+    components: Mapping[str, float | None],
+    thresholds: Mapping[str, MetricThreshold],
+) -> dict[str, str]:
+    keys = {
+        "outcome": "transfer_outcome_delta",
+        "activity": "transfer_activity_delta",
+        "survival": "transfer_survival_delta",
+    }
+    directions: dict[str, str] = {}
+    for component, threshold_key in keys.items():
+        threshold = _threshold(threshold_key, thresholds)
+        directions[component] = threshold.direction(components.get(component))
+    return directions
+
+
+def _transfer_direction(directions: Mapping[str, str]) -> str:
+    positive = sum(value == "positive" for value in directions.values())
+    negative = sum(value == "negative" for value in directions.values())
+    if positive >= 2 and negative == 0:
+        return "positive"
+    if negative >= 2 and positive == 0:
+        return "negative"
+    if positive and negative:
+        return "mixed"
+    if positive + negative < 2:
+        return "unknown"
+    return "mixed"
+
+
+def _transfer_score(records: Sequence[Mapping[str, Any]], thresholds: Mapping[str, MetricThreshold]) -> float:
+    components = _transfer_components(records)
+    direction = _transfer_direction(_transfer_component_directions(components, thresholds))
+    positive = sum(value == "positive" for value in _transfer_component_directions(components, thresholds).values())
+    negative = sum(value == "negative" for value in _transfer_component_directions(components, thresholds).values())
+    if direction == "positive":
+        return 1.0 if positive == 3 else 2.0 / 3.0
+    if direction == "negative":
+        return -1.0 if negative == 3 else -2.0 / 3.0
+    if direction == "mixed":
+        return 0.0
+    return math.nan
+
+
+def _consistency_rows(matches: Sequence[Any], *, baseline_resolver: BaselineResolver | None, taxonomy_by_hero: Mapping[Any, Any] | None) -> tuple[dict[str, Any], ...]:
+    rows: list[dict[str, Any]] = []
+    for session_id, group in _session_groups(matches):
+        row: dict[str, Any] = {"session_id": session_id}
+        for component in ("outcome", "activity", "survival"):
+            values = [_adjusted_component(item, component, baseline_resolver=baseline_resolver, taxonomy_by_hero=taxonomy_by_hero) for item in group]
+            usable = [value for value in values if value is not None]
+            if usable:
+                row[component] = sum(usable) / len(usable)
+        if len(row) >= 3:
+            rows.append(row)
+    return tuple(rows)
+
+
+def _consistency_component_key(component: str) -> str:
+    return {
+        "outcome": "consistency_outcome_dispersion",
+        "activity": "consistency_activity_dispersion",
+        "survival": "consistency_death_dispersion",
+    }[component]
+
+
+def _consistency_classification(
+    rows: Sequence[Mapping[str, Any]],
+    thresholds: Mapping[str, MetricThreshold],
+) -> tuple[str, dict[str, str], dict[str, float | None]]:
+    directions: dict[str, str] = {}
+    dispersions: dict[str, float | None] = {}
+    for component in ("outcome", "activity", "survival"):
+        values = [float(row[component]) for row in rows if _finite(row.get(component)) is not None]
+        dispersion = robust_dispersion(values)
+        dispersions[component] = dispersion
+        threshold = _threshold(_consistency_component_key(component), thresholds)
+        stable = threshold.stable_cutoff
+        variable = threshold.variable_cutoff
+        if dispersion is None:
+            directions[component] = "unknown"
+        elif stable is not None and dispersion < stable:
+            directions[component] = "stable"
+        elif variable is not None and dispersion > variable:
+            directions[component] = "variable"
+        elif stable is None and dispersion <= threshold.practical_margin:
+            directions[component] = "stable"
+        elif variable is None and dispersion > threshold.practical_margin:
+            directions[component] = "variable"
+        else:
+            directions[component] = "neutral"
+    stable_count = sum(value == "stable" for value in directions.values())
+    variable_count = sum(value == "variable" for value in directions.values())
+    if stable_count >= 2 and variable_count == 0:
+        direction = "stable"
+    elif variable_count >= 2 and stable_count == 0:
+        direction = "variable"
+    elif stable_count and variable_count:
+        direction = "mixed"
+    elif stable_count + variable_count < 2:
+        direction = "unknown"
+    else:
+        direction = "mixed"
+    return direction, directions, dispersions
+
+
+def _consistency_score(rows: Sequence[Mapping[str, Any]], thresholds: Mapping[str, MetricThreshold]) -> float:
+    direction, _components, _dispersions = _consistency_classification(rows, thresholds)
+    return {"stable": 1.0, "variable": -1.0, "mixed": 0.0, "unknown": math.nan}[direction]
 
 
 def compute_elements(
@@ -346,187 +394,206 @@ def compute_elements(
     seed: int = 0,
     bootstrap_iterations: int = DEFAULT_BOOTSTRAP_ITERATIONS,
 ) -> tuple[ElementResultV6, ...]:
-    """Compute exactly seven Elements, preserving unavailable states."""
+    """Compute exactly seven Elements with no v5 feature dependency."""
 
+    del metadata
     items = tuple(matches)
     sample_size = len(items)
     session_count = len({_session_id(item, index) for index, item in enumerate(items)})
-    coverage = 1.0 if items else 0.0
-    metadata = metadata or {}
     thresholds = thresholds or DEFAULT_THRESHOLDS
-    context = _context_from(metadata)
-
     definitions = {item.key: item for item in ELEMENT_DEFINITIONS}
     result: dict[str, ElementResultV6] = {}
-    def evidence(key: str) -> tuple[str, ...]:
-        return (f"element:{key}",)
 
     hero_counts = Counter(_hero(item) for item in items if _hero(item) is not None)
-    hero_values = {session: tuple(_hero(item) for item in group if _hero(item) is not None) for session, group in _session_groups(items)}
     if hero_counts:
-        def breadth_estimator(values: Sequence[Any]) -> float:
-            return shannon_effective_count(Counter(value for value in values if value is not None))
-        bread = clustered_bootstrap(hero_values, estimator=breadth_estimator, iterations=bootstrap_iterations, seed=seed)
-        threshold = threshold_for("breadth_effective_count", thresholds)
-        tier = threshold.supports_confidence(sample_size=sample_size, independent_sessions=session_count, coverage=coverage, stability=bootstrap_stability(bread.replicates, center=bread.point_estimate or 0.0, practical_margin=threshold.practical_margin))
-        result["breadth"] = ElementResultV6(
-            "breadth",
-            definitions["breadth"].label,
-            Estimate(
-                bread.point_estimate,
-                definitions["breadth"].unit,
-                interval=bread.interval,
-                zone="typical",
-                direction="neutral",
-                stability=bootstrap_stability(bread.replicates, center=bread.point_estimate or 0.0, practical_margin=threshold.practical_margin),
-                sample_size=sample_size,
-                independent_sessions=session_count,
-                coverage=coverage,
-                confidence=tier,  # type: ignore[arg-type]
-                status="available" if sample_size >= 30 else "limited",
-                evidence_refs=evidence("breadth"),
-                supported_claims=(definitions["breadth"].description,),
-                forbidden_claims=definitions["breadth"].forbidden_claims,
-                bootstrap_method=bread.method,
-            ),
-            raw_metrics={"hero_counts": dict(hero_counts)},
-            evidence_refs=evidence("breadth"),
-        )
+        groups = {session_id: [_hero(row) for row in group if _hero(row) is not None] for session_id, group in _session_groups(items)}
+        breadth_boot = clustered_bootstrap(groups, estimator=lambda values: shannon_effective_count(Counter(value for value in values if value is not None)), iterations=bootstrap_iterations, seed=seed)
+        breadth_threshold = _threshold(definitions["breadth"].metric_key, thresholds)
+        breadth_zone = breadth_threshold.zone(breadth_boot.point_estimate)
+        breadth_direction = breadth_threshold.direction(breadth_boot.point_estimate)
+        result["breadth"] = _element(definitions["breadth"], result=breadth_boot, value=breadth_boot.point_estimate, direction=breadth_direction, zone=breadth_zone, sample_size=sum(hero_counts.values()), sessions=session_count, coverage=sum(hero_counts.values()) / len(items) if items else 0.0, thresholds=thresholds, evidence_refs=("element:breadth",), raw_metrics={"hero_counts": dict(hero_counts)})
     else:
-        result["breadth"] = _unavailable("breadth", definitions["breadth"], sample_size=sample_size, coverage=coverage, sessions=session_count, reason="no hero identifiers")
+        result["breadth"] = _unavailable(definitions["breadth"], sample_size, session_count, 0.0, "no hero identifiers")
 
-    taxonomy = taxonomy_by_match or {getattr(item, "match_id", index): taxonomy_by_hero.get(_hero(item)) if taxonomy_by_hero else None for index, item in enumerate(items)}
-    toolkit, taxonomy_coverage = match_weighted_effective_count(taxonomy)
+    by_match: dict[Any, Any] = {}
+    for index, item in enumerate(items):
+        match_id = _get(item, "match_id", index)
+        if taxonomy_by_match and match_id in taxonomy_by_match:
+            by_match[match_id] = taxonomy_by_match[match_id]
+        elif taxonomy_by_hero and _hero(item) in taxonomy_by_hero:
+            by_match[match_id] = taxonomy_by_hero[_hero(item)]
+    toolkit, taxonomy_coverage = match_weighted_effective_count(by_match)
     if toolkit is None:
-        result["toolkit"] = _unavailable("toolkit", definitions["toolkit"], sample_size=sample_size, coverage=taxonomy_coverage, sessions=session_count, reason="taxonomy coverage below 80%")
+        result["toolkit"] = _unavailable(definitions["toolkit"], sample_size, session_count, taxonomy_coverage, "taxonomy coverage below 80%")
     else:
-        # One label per match is sufficient for the bootstrap estimate; the
-        # point estimate itself retains the full match-weighted taxonomy.
-        labels_by_session: dict[str, list[Any]] = defaultdict(list)
+        label_groups: dict[str, list[tuple[str, ...]]] = defaultdict(list)
         for index, item in enumerate(items):
-            raw = taxonomy.get(_get(item, "match_id", index))
+            raw = by_match.get(_get(item, "match_id", index))
             if raw is None:
                 continue
-            labels = (raw,) if isinstance(raw, str) else tuple(raw) if not isinstance(raw, Mapping) else tuple(raw)
-            labels_by_session[_session_id(item, index)].extend(labels)
-        def toolkit_estimator(values: Sequence[Any]) -> float:
-            return shannon_effective_count(Counter(value for value in values if value is not None))
-        boot = clustered_bootstrap(labels_by_session, estimator=toolkit_estimator, iterations=bootstrap_iterations, seed=seed + 1)
-        stability = bootstrap_stability(boot.replicates, center=boot.point_estimate or toolkit, practical_margin=threshold_for("toolkit_effective_count", thresholds).practical_margin)
-        result["toolkit"] = ElementResultV6(
-            "toolkit",
-            definitions["toolkit"].label,
-            Estimate(
-                toolkit,
-                definitions["toolkit"].unit,
-                interval=boot.interval,
-                zone="typical",
-                direction="neutral",
-                stability=stability,
-                sample_size=sample_size,
-                independent_sessions=session_count,
-                coverage=taxonomy_coverage,
-                confidence=threshold_for("toolkit_effective_count", thresholds).supports_confidence(sample_size=sample_size, independent_sessions=session_count, coverage=taxonomy_coverage, stability=stability),  # type: ignore[arg-type]
-                status="available" if sample_size >= 30 and taxonomy_coverage >= 0.80 else "limited",
-                evidence_refs=evidence("toolkit"),
-                supported_claims=(definitions["toolkit"].description,),
-                forbidden_claims=definitions["toolkit"].forbidden_claims,
-                bootstrap_method=boot.method,
-            ),
-            raw_metrics={"taxonomy_coverage": taxonomy_coverage},
-            evidence_refs=evidence("toolkit"),
-        )
+            if isinstance(raw, str):
+                labels: tuple[str, ...] = (raw,)
+            elif isinstance(raw, Mapping):
+                labels = tuple(str(key) for key, value in raw.items() if value)
+            else:
+                labels = tuple(str(value) for value in raw if value is not None)
+            if labels:
+                label_groups[_session_id(item, index)].append(tuple(dict.fromkeys(labels)))
+        def estimate_toolkit(rows: Sequence[Any]) -> float:
+            counts: dict[str, float] = defaultdict(float)
+            for labels in rows:
+                if isinstance(labels, (tuple, list)) and labels:
+                    weight = 1.0 / len(labels)
+                    for label in labels:
+                        counts[str(label)] += weight
+            return shannon_effective_count(counts)
+        toolkit_boot = clustered_bootstrap(label_groups, estimator=estimate_toolkit, iterations=bootstrap_iterations, seed=seed + 1)
+        toolkit_threshold = _threshold(definitions["toolkit"].metric_key, thresholds)
+        toolkit_zone = toolkit_threshold.zone(toolkit)
+        result["toolkit"] = _element(definitions["toolkit"], result=toolkit_boot, value=toolkit, direction=toolkit_threshold.direction(toolkit), zone=toolkit_zone, sample_size=sample_size, sessions=session_count, coverage=taxonomy_coverage, thresholds=thresholds, evidence_refs=("element:toolkit",), raw_metrics={"taxonomy_coverage": taxonomy_coverage})
 
-    formulas = {
-        "involvement": lambda item: involvement_per_minute(_get(item, "kills"), _get(item, "assists"), _get(item, "duration_seconds", _get(item, "duration"))),
-        "finishing": lambda item: finishing_share(_get(item, "kills"), _get(item, "assists")),
-        "death_exposure": lambda item: death_exposure_per_ten_minutes(_get(item, "deaths"), _get(item, "duration_seconds", _get(item, "duration"))),
-    }
-    for key, formula in formulas.items():
-        values, session_ids, metric_coverage = _numeric_values(items, formula)
-        baseline = None
-        baseline_limitation = None
-        if baseline_resolver is not None:
-            resolution = baseline_resolver.resolve(context, definitions[key].metric_key)
-            baseline = resolution.value if resolution.available else None
-            baseline_limitation = "; ".join(resolution.limitations) if resolution.limitations else None
-        result[key] = _estimate(
-            key,
-            definitions[key],
-            values,
-            session_ids,
-            coverage=metric_coverage,
-            baseline=baseline,
-            raw_metrics={"baseline": baseline},
-            evidence_refs=evidence(key),
+    for offset, key in enumerate(("involvement", "finishing", "death_exposure"), start=2):
+        metric = definitions[key].metric_key
+        values, session_ids, metric_coverage, audit = _adjusted_rows(items, metric, baseline_resolver=baseline_resolver, taxonomy_by_hero=taxonomy_by_hero)
+        if not values:
+            result[key] = _unavailable(definitions[key], sample_size, session_count, metric_coverage, "no usable context-adjusted summary values")
+            continue
+        boot = clustered_bootstrap(values, session_ids, iterations=bootstrap_iterations, seed=seed + offset)
+        metric_threshold = _threshold(metric, thresholds)
+        direction = metric_threshold.direction(boot.point_estimate)
+        zone = metric_threshold.zone(boot.point_estimate)
+        result[key] = _element(definitions[key], result=boot, value=boot.point_estimate, direction=direction, zone=zone, sample_size=len(values), sessions=len(set(session_ids)), coverage=metric_coverage, thresholds=thresholds, evidence_refs=(f"element:{key}",), raw_metrics={"baseline_audit": audit})
+
+    core, stretch = _core_and_stretch(items)
+    records: list[dict[str, Any]] = []
+    for index, item in enumerate(items):
+        bucket = "core" if _hero(item) in core else "stretch" if _hero(item) in stretch else ""
+        if not bucket:
+            continue
+        record: dict[str, Any] = {"bucket": bucket, "session_id": _session_id(item, index)}
+        for component in ("outcome", "activity", "survival"):
+            record[component] = _adjusted_component(item, component, baseline_resolver=baseline_resolver, taxonomy_by_hero=taxonomy_by_hero)
+        if any(record[component] is not None for component in ("outcome", "activity", "survival")):
+            records.append(record)
+    usable_core = sum(any(record.get(component) is not None for component in ("outcome", "activity", "survival")) for record in records if record.get("bucket") == "core")
+    usable_stretch = sum(any(record.get(component) is not None for component in ("outcome", "activity", "survival")) for record in records if record.get("bucket") == "stretch")
+    transfer_sessions = len({str(record["session_id"]) for record in records})
+    if not core or not stretch or not records:
+        result["transfer"] = _unavailable(definitions["transfer"], sample_size, session_count, 0.0, "familiar and stretch hero contexts both require evidence")
+    else:
+        ids = [str(record["session_id"]) for record in records]
+        point_components = _transfer_components(records)
+        component_directions = _transfer_component_directions(point_components, thresholds)
+        direction = _transfer_direction(component_directions)
+        transfer_boot = clustered_bootstrap(
+            records,
+            ids,
+            estimator=lambda rows: _transfer_score(rows, thresholds),
             iterations=bootstrap_iterations,
-            seed=seed + len(result),
-            thresholds=thresholds,
-            limitation=baseline_limitation,
-        )
-
-    transfer_value, transfer_comparison, transfer_refs = _transfer_values(items, baseline_resolver, metadata)
-    if transfer_value is None or transfer_comparison is None:
-        result["transfer"] = _unavailable("transfer", definitions["transfer"], sample_size=sample_size, coverage=coverage, sessions=session_count, reason="familiar/stretch comparison unavailable")
-    else:
-        direction = {"positive": "positive", "negative": "negative", "mixed": "mixed", "unknown": "unknown"}[transfer_comparison.direction]
-        result["transfer"] = _estimate(
-            "transfer",
-            definitions["transfer"],
-            [transfer_value],
-            ["transfer"],
-            coverage=len(transfer_refs) / 3 if transfer_refs else 0.0,
-            value_override=transfer_value,
-            direction_override=direction,
-            raw_metrics=transfer_comparison.as_dict(),
-            evidence_refs=transfer_refs or evidence("transfer"),
-            iterations=max(1, min(bootstrap_iterations, 250)),
-            seed=seed + 4,
-            thresholds=thresholds,
-            status_override="available" if session_count >= 8 else "limited",
-            sample_size_override=sample_size,
-            sessions_override=session_count,
-        )
-
-    session_component_values: dict[str, list[float]] = {"outcome": [], "activity": [], "death_exposure": []}
-    for _, group in _session_groups(items):
-        outcomes = [1.0 if bool(_get(item, "won")) else 0.0 for item in group if _get(item, "won") is not None]
-        activity = [value for item in group if (value := involvement_per_minute(_get(item, "kills"), _get(item, "assists"), _get(item, "duration_seconds", _get(item, "duration")))) is not None]
-        deaths = [value for item in group if (value := death_exposure_per_ten_minutes(_get(item, "deaths"), _get(item, "duration_seconds", _get(item, "duration")))) is not None]
-        if outcomes:
-            session_component_values["outcome"].append(sum(outcomes) / len(outcomes))
-        if activity:
-            session_component_values["activity"].append(sum(activity) / len(activity))
-        if deaths:
-            session_component_values["death_exposure"].append(sum(deaths) / len(deaths))
-    consistency = compare_consistency_signals(session_component_values, usable_sessions=session_count)
-    if consistency.direction == "unknown":
-        result["consistency"] = _unavailable("consistency", definitions["consistency"], sample_size=sample_size, coverage=coverage, sessions=session_count, reason=f"requires {MIN_CONSISTENCY_SESSIONS} usable sessions and two-of-three agreement")
-    else:
-        consistency_value = 1.0 if consistency.direction == "stable" else 0.0 if consistency.direction == "variable" else 0.5
-        direction = "positive" if consistency.direction == "stable" else "negative" if consistency.direction == "variable" else "mixed"
-        result["consistency"] = _estimate(
-            "consistency",
-            definitions["consistency"],
-            [consistency_value],
-            ["consistency"],
-            coverage=sum(value is not None for value in session_component_values.values()) / 3,
-            value_override=consistency_value,
-            direction_override=direction,
-            raw_metrics=consistency.as_dict(),
-            evidence_refs=tuple(f"consistency:{key}" for key in consistency.component_directions),
-            iterations=max(1, min(bootstrap_iterations, 250)),
             seed=seed + 5,
+        )
+        component_intervals: dict[str, list[float] | None] = {}
+        component_replicates: dict[str, tuple[float, ...]] = {}
+        for component_index, component in enumerate(("outcome", "activity", "survival")):
+            def component_estimator(rows: Sequence[Mapping[str, Any]], component: str = component) -> float:
+                value = _transfer_components(rows).get(component)
+                return float(value) if value is not None else math.nan
+            component_boot = clustered_bootstrap(records, ids, estimator=component_estimator, iterations=bootstrap_iterations, seed=seed + 20 + component_index)
+            component_intervals[component] = list(component_boot.interval) if component_boot.interval else None
+            component_replicates[component] = component_boot.replicates
+        baseline_opportunities = sum(record.get("activity") is not None or record.get("survival") is not None for record in records)
+        resolved_baseline_values = sum(record.get(component) is not None for record in records for component in ("activity", "survival"))
+        transfer_coverage = resolved_baseline_values / max(1, 2 * baseline_opportunities)
+        transfer_limitations: list[str] = []
+        if usable_core < 10:
+            transfer_limitations.append("fewer than 10 usable core matches")
+        if usable_stretch < 10:
+            transfer_limitations.append("fewer than 10 usable stretch matches")
+        if transfer_sessions < 8:
+            transfer_limitations.append("fewer than 8 independent sessions")
+        if transfer_coverage < _threshold("transfer_activity_delta", thresholds).min_coverage:
+            transfer_limitations.append("comparable baseline coverage below 70%")
+        if transfer_limitations:
+            status = "limited"
+        else:
+            status = None
+        result["transfer"] = _element(
+            definitions["transfer"],
+            result=transfer_boot,
+            value=transfer_boot.point_estimate,
+            direction=direction,
+            # Low dispersion is the stable/right-side public outcome; the
+            # direction remains positive for stable and negative for variable.
+            zone={"positive": "high", "negative": "low", "mixed": "typical", "unknown": "unknown"}[direction],
+            sample_size=len(records),
+            sessions=transfer_sessions,
+            coverage=transfer_coverage,
             thresholds=thresholds,
-            status_override="available" if session_count >= MIN_CONSISTENCY_SESSIONS else "limited",
-            sample_size_override=sample_size,
-            sessions_override=session_count,
+            evidence_refs=tuple(f"transfer:{component}" for component in point_components if point_components[component] is not None),
+            raw_metrics={
+                "core_hero_ids": sorted(core, key=repr),
+                "stretch_hero_ids": sorted(stretch, key=repr),
+                "usable_core_matches": usable_core,
+                "usable_stretch_matches": usable_stretch,
+                "components": {"direction": direction, "component_deltas": point_components, "component_directions": component_directions},
+                "component_intervals": component_intervals,
+                "component_bootstrap_replicates": component_replicates,
+            },
+            requested_status=status,
+            extra_limitations=transfer_limitations,
+        )
+
+    consistency_rows: list[dict[str, Any]] = []
+    for session_id, group in _session_groups(items):
+        row: dict[str, Any] = {"session_id": session_id}
+        for component in ("outcome", "activity", "survival"):
+            component_values = [_adjusted_component(item, component, baseline_resolver=baseline_resolver, taxonomy_by_hero=taxonomy_by_hero) for item in group]
+            usable = [value for value in component_values if value is not None]
+            if usable:
+                row[component] = sum(usable) / len(usable)
+        if len(row) >= 3:
+            consistency_rows.append(row)
+    if len(consistency_rows) < MIN_CONSISTENCY_SESSIONS:
+        result["consistency"] = _unavailable(definitions["consistency"], sample_size, session_count, 0.0, f"requires {MIN_CONSISTENCY_SESSIONS} usable sessions and two-of-three agreement")
+    else:
+        ids = [str(row["session_id"]) for row in consistency_rows]
+        consistency_boot = clustered_bootstrap(
+            consistency_rows,
+            ids,
+            estimator=lambda rows: _consistency_score(rows, thresholds),
+            iterations=bootstrap_iterations,
+            seed=seed + 6,
+        )
+        consistency_direction, component_directions, component_dispersions = _consistency_classification(consistency_rows, thresholds)
+        direction = {"stable": "positive", "variable": "negative", "mixed": "mixed", "unknown": "unknown"}[consistency_direction]
+        consistency_component_replicates: dict[str, tuple[float, ...]] = {}
+        consistency_component_intervals: dict[str, list[float] | None] = {}
+        for component_index, component in enumerate(("outcome", "activity", "survival")):
+            def component_estimator(rows: Sequence[Mapping[str, Any]], component: str = component) -> float:
+                values = [float(row[component]) for row in rows if _finite(row.get(component)) is not None]
+                dispersion = robust_dispersion(values)
+                return float(dispersion) if dispersion is not None else math.nan
+            component_boot = clustered_bootstrap(consistency_rows, ids, estimator=component_estimator, iterations=bootstrap_iterations, seed=seed + 30 + component_index)
+            consistency_component_replicates[component] = component_boot.replicates
+            consistency_component_intervals[component] = list(component_boot.interval) if component_boot.interval else None
+        consistency_coverage = len(consistency_rows) / session_count if session_count else 0.0
+        result["consistency"] = _element(
+            definitions["consistency"],
+            result=consistency_boot,
+            value=consistency_boot.point_estimate,
+            direction=direction,
+            zone={"positive": "low", "negative": "high", "mixed": "typical", "unknown": "unknown"}[direction],
+            sample_size=sample_size,
+            sessions=len(consistency_rows),
+            coverage=consistency_coverage,
+            thresholds=thresholds,
+            evidence_refs=tuple(f"consistency:{key}" for key in component_directions),
+            raw_metrics={"components": {"direction": consistency_direction, "component_directions": component_directions, "component_dispersion": component_dispersions}, "component_intervals": consistency_component_intervals, "component_bootstrap_replicates": consistency_component_replicates},
         )
 
     return tuple(result[key] for key in PUBLIC_ELEMENT_KEYS)
 
 
 calculate_elements = compute_elements
-
 
 __all__ = ["ELEMENT_DEFINITIONS", "element_registry", "compute_elements", "calculate_elements"]

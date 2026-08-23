@@ -6,6 +6,23 @@
 
 Production generation remains disabled by default behind `FREE_DNA_V6_ENABLED`. Enabling it requires the calibration and rollout gates in this record; existing v5 reports, schemas, renderers, semantic catalogs, and share cards are not rewritten.
 
+## Current implementation status
+
+Implementation is complete in the working tree, with public release blocked on
+the calibration corpus/gates. The checked-in path includes strict baseline and
+threshold artifact loaders, deterministic artifact construction, the summary-
+only v6 analytical pipeline, real clustered uncertainty and FDR fields, the
+server-owned nine-beat payload, token-protected follow-up state, serialized
+Deep question specifications, actual parse transport execution, the dedicated
+v6 glyph registry, fixture-server interaction routes, and the v6 quality
+workflow.
+
+The repository fixtures prove contract behavior and deterministic smoke gates;
+they are not production calibration data. A real 1,000-profile player-level
+calibration corpus and the external Dota reviewer precision assessment remain
+the only release prerequisites outside this repository. Until those gates are
+reviewed, `FREE_DNA_V6_ENABLED` must remain false.
+
 ## Product contract
 
 - Audience: experienced casual players with at least 30 eligible public matches in the 365-day window.

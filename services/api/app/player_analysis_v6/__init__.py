@@ -6,6 +6,13 @@ API boundary can use ``report.as_dict()`` or
 :func:`build_free_dna_report_v6`.
 """
 
+from .artifacts import (
+    ArtifactValidationError,
+    ContextBaselineArtifact,
+    build_baseline_resolver,
+    load_context_baseline_artifact,
+    validate_context_baseline_artifact,
+)
 from .baselines import (
     BASELINE_HIERARCHY,
     BaselineCell,
@@ -13,6 +20,13 @@ from .baselines import (
     BaselineResolution,
     BaselineResolver,
     resolve_baseline,
+)
+from .calibration import (
+    REQUIRED_THRESHOLD_KEYS,
+    ThresholdArtifact,
+    build_thresholds,
+    load_threshold_artifact,
+    validate_threshold_artifact,
 )
 from .constants import (
     BOOTSTRAP_VERSION,
@@ -32,6 +46,7 @@ from .costs import (
     new_free_cost_ledger,
 )
 from .elements import ELEMENT_DEFINITIONS, compute_elements, element_registry
+from .family_statistics import benjamini_hochberg_five, family_p_values, family_statistics
 from .findings import (
     FAMILY_DEFINITIONS,
     evaluate_families,
@@ -102,6 +117,16 @@ __all__ = [
     "BaselineResolver",
     "BASELINE_HIERARCHY",
     "resolve_baseline",
+    "ArtifactValidationError",
+    "ContextBaselineArtifact",
+    "load_context_baseline_artifact",
+    "build_baseline_resolver",
+    "validate_context_baseline_artifact",
+    "ThresholdArtifact",
+    "REQUIRED_THRESHOLD_KEYS",
+    "load_threshold_artifact",
+    "build_thresholds",
+    "validate_threshold_artifact",
     "Estimate",
     "ElementDefinition",
     "ElementResultV6",
@@ -141,6 +166,9 @@ __all__ = [
     "bootstrap_session_clusters",
     "bootstrap_stability",
     "benjamini_hochberg",
+    "benjamini_hochberg_five",
+    "family_p_values",
+    "family_statistics",
     "MetricThreshold",
     "DEFAULT_THRESHOLDS",
     "threshold_for",

@@ -6,9 +6,19 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal
 
-from .constants import ELEMENTS_VERSION, MIN_CONSISTENCY_SESSIONS, MIN_STABLE_SESSIONS
+from .constants import MIN_CONSISTENCY_SESSIONS, MIN_STABLE_SESSIONS, THRESHOLDS_VERSION
 
 MetricZone = Literal["low", "typical", "high", "unknown"]
+
+_METRIC_ALIASES = {
+    "involvement_per_minute": "involvement_adjusted",
+    "finishing_share": "finishing_adjusted",
+    "death_exposure_per_ten": "death_exposure_adjusted",
+    "transfer_agreement": "transfer_outcome_delta",
+    "consistency_dispersion": "consistency_outcome_dispersion",
+    "post_loss_response": "post_loss_outcome_delta",
+    "session_drift": "session_drift_outcome_delta",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -22,11 +32,20 @@ class MetricThreshold:
     min_coverage: float = 0.0
     moderate_stability: float = 0.75
     high_stability: float = 0.90
-    version: str = ELEMENTS_VERSION
+    version: str = THRESHOLDS_VERSION
+    zone_mode: str = "centered"
+    stable_cutoff: float | None = None
+    variable_cutoff: float | None = None
 
     def zone(self, value: float | None, *, baseline: float | None = None) -> MetricZone:
         if value is None:
             return "unknown"
+        if self.zone_mode == "dispersion" and self.stable_cutoff is not None and self.variable_cutoff is not None:
+            if value < self.stable_cutoff:
+                return "low"
+            if value > self.variable_cutoff:
+                return "high"
+            return "typical"
         low = self.low_cutoff
         high = self.high_cutoff
         if baseline is not None:
@@ -78,6 +97,9 @@ def threshold_for(key: str, thresholds: Mapping[str, MetricThreshold] | None = N
     source = thresholds or DEFAULT_THRESHOLDS
     if key in source:
         return source[key]
+    alias = _METRIC_ALIASES.get(key)
+    if alias is not None and alias in source:
+        return source[alias]
     # Unknown metrics receive a conservative, explicit threshold rather than
     # silently inheriting an unrelated global boundary.
     return MetricThreshold(key, 0.10, min_sample=30, min_sessions=MIN_STABLE_SESSIONS)

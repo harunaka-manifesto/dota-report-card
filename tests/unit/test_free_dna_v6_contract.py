@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime
+from pathlib import Path
 
 from app.analysis.service import AnalysisService
 from app.analysis.source import MappingSource
@@ -10,6 +11,7 @@ from app.core.config import Settings
 from app.storage.repository import InMemoryRepository
 
 _WINDOW_END = int(datetime.now(UTC).timestamp())
+_V6_FIXTURES = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "v6"
 
 
 def _summary(index: int) -> dict[str, int | bool]:
@@ -39,7 +41,11 @@ def _report(count: int) -> dict[str, object]:
     service = AnalysisService(
         source,
         repository=repository,
-        settings=Settings(free_dna_v6_enabled=True),
+        settings=Settings(
+            free_dna_v6_enabled=True,
+            free_dna_v6_baseline_artifact_path=_V6_FIXTURES / "context-baseline-2.0.0.fixture.json",
+            free_dna_v6_threshold_artifact_path=_V6_FIXTURES / "metric-thresholds-6.0.0.fixture.json",
+        ),
     )
     job, _ = asyncio.run(service.create_analysis("42", enqueue=False))
     asyncio.run(service.run_job(job))

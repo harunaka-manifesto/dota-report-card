@@ -26,19 +26,17 @@ import json
 import random
 import re
 import sys
-import time
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable
 from urllib.parse import parse_qsl, urlencode, urljoin, urlparse, urlunparse
 from urllib.robotparser import RobotFileParser
 
 import requests
 import trafilatura
 from bs4 import BeautifulSoup
-from playwright.async_api import Browser, Page, TimeoutError as PlaywrightTimeoutError, async_playwright
+from playwright.async_api import Browser, Page, async_playwright
 from slugify import slugify
 
 BASE = "https://www.dota2.com"
@@ -608,7 +606,7 @@ def main() -> None:
         raise SystemExit(asyncio.run(main_async(args)))
     except KeyboardInterrupt:
         print("\nInterrupted.", file=sys.stderr)
-        raise SystemExit(130)
+        raise SystemExit(130) from None
 
 
 if __name__ == "__main__":

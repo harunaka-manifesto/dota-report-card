@@ -30,6 +30,7 @@ from app.core.errors import (
 from app.core.metrics import record_metric
 from app.core.security import PlayerIdentifier, parse_player_identifier
 from app.dna.pipeline import analyze_dna
+from app.dna.sessions import SessionPolicy, infer_sessions
 from app.features.calculators import calculate_match_features
 from app.features.models import MatchFeature
 from app.features.summary_calculators import calculate_summary_features
@@ -46,6 +47,8 @@ from app.ingestion.summary_normalize import (
 from app.insights.evaluator import InsightContext, evaluate_insights
 from app.opendota.cache import payload_hash
 from app.patterns.detector import detect_patterns
+from app.player_analysis_v6.artifacts import ArtifactValidationError, load_context_baseline_artifact
+from app.player_analysis_v6.calibration import load_threshold_artifact
 from app.reports.assembly import assemble_player_dna_report, assemble_report
 from app.reports.dna_assembly import assemble_free_dna_report_v4
 from app.reports.dna_assembly_v6 import assemble_free_dna_report_v6
@@ -63,15 +66,39 @@ class AnalysisService:
         settings: Settings | None = None,
         cohort_population: Iterable[MatchFeature] = (),
         identity_resolver: SteamVanityResolver | None = None,
+        parse_transport: Any | None = None,
     ) -> None:
         self.source = source
         self.repository = repository or InMemoryRepository()
         self.settings = settings or get_settings()
         self.cohort_population = tuple(cohort_population)
         self.identity_resolver = identity_resolver
+        self.parse_transport = parse_transport
+        self.v6_baseline_resolver = None
+        self.v6_thresholds = None
+        if self.settings.free_dna_v6_enabled:
+            self.v6_baseline_resolver, self.v6_thresholds = self._load_v6_artifacts()
         self._tasks: set[asyncio.Task[None]] = set()
         self._scheduled_job_ids: set[str] = set()
         self._semaphore: asyncio.Semaphore | None = None
+
+    def _load_v6_artifacts(self) -> tuple[Any, Any]:
+        """Load validated artifacts before the v6 flag can serve traffic."""
+
+        baseline_path = self.settings.free_dna_v6_baseline_artifact_path
+        threshold_path = self.settings.free_dna_v6_threshold_artifact_path
+        if baseline_path is None or threshold_path is None:
+            raise ArtifactValidationError(
+                "FREE_DNA_V6_ENABLED requires explicit validated baseline and threshold artifact paths"
+            )
+        try:
+            baseline_artifact = load_context_baseline_artifact(baseline_path)
+            threshold_artifact = load_threshold_artifact(threshold_path)
+        except ArtifactValidationError:
+            # Configuration errors must stop startup; no v5 fallback is safe
+            # when the caller explicitly enabled v6.
+            raise
+        return baseline_artifact.resolver(), threshold_artifact.metrics
 
     async def create_analysis(
         self,
@@ -134,7 +161,7 @@ class AnalysisService:
                 versions = {
                     **default_versions(),
                     "eligibility": "summary-eligibility-1.0.0",
-                    "model": self.settings.model_version,
+                    "model": self.settings.free_dna_v6_model_version,
                     "template": self.settings.template_version,
                 }
                 digest = hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest()
@@ -526,6 +553,53 @@ class AnalysisService:
             )
         history_tier = "limited" if job.eligible_matches < 60 else "normal"
 
+        if self.settings.free_dna_v6_enabled:
+            # v6 consumes the normalized summary window directly.  The v5
+            # behavior model is intentionally not constructed on this path.
+            session_result = infer_sessions(
+                windowed_matches,
+                SessionPolicy(gap_minutes=self.settings.effective_session_gap_minutes),
+                window_start=window_start,
+                window_end=window_end,
+            )
+            v6_matches = session_result.matches
+            completed_sessions = {
+                session.session_id: session in session_result.completed_sessions
+                for session in session_result.sessions
+            }
+            self.repository.update_job(
+                job,
+                stage="rendering_report",
+                message="Building your v6 identity, findings, and story report",
+            )
+            report = assemble_free_dna_report_v6(
+                account_id=identifier.account_id,
+                profile=_profile_for_report(profile, identifier.account_id),
+                analysis=tuple(v6_matches),
+                processed_matches=job.processed_matches,
+                eligible_matches=job.eligible_matches,
+                raw_payload_hash=payload_hash(history),
+                history_limit=history_limit,
+                model_version=self.settings.free_dna_v6_model_version,
+                template_version=self.settings.template_version,
+                cost_ledger=cost_ledger,
+                analysis_version_fingerprint=job.model_version,
+                baseline_resolver=self.v6_baseline_resolver,
+                thresholds=self.v6_thresholds,
+                completed_sessions=completed_sessions,
+            )
+            report = validate_free_dna_report(report)
+            report_id = self.repository.save_report(
+                account_id=identifier.account_id,
+                data_cutoff=max((item.start_time or 0 for item in windowed_matches), default=None),
+                model_version=job.model_version,
+                template_version=self.settings.template_version,
+                report=report,
+                evidence=[],
+            )
+            self.repository.complete_job(job, report_id)
+            return
+
         # Free DNA and finding synthesis must share one eligible population.
         # Ineligible rows remain available only to the private exclusion ledger.
         dna_analysis = analyze_dna(
@@ -629,10 +703,12 @@ class AnalysisService:
         normalized = await acquire_selected_matches(
             selection_plan,
             source=self.source,
+            parse_transport=self.parse_transport,
             repository=self.repository,
             account_id=identifier.account_id,
             ledger=cost_ledger,
             policy=cost_policy,
+            parse_min_marginal_information_gain=self.settings.effective_min_parse_information_gain,
         )
         if not normalized:
             self.repository.add_warning(

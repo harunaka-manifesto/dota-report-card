@@ -1,0 +1,32 @@
+{
+  "version": "metric-thresholds-6.0.0",
+  "generated_at": "2026-08-23T00:00:00Z",
+  "derivation": {
+    "train_profile_count": 70,
+    "holdout_profile_count": 30,
+    "split_method": "player-level-70-30",
+    "noise_method": "session-odd-even-split",
+    "mmr_used": false
+  },
+  "metrics": {
+    "breadth_effective_count": {"zone_mode": "centered", "practical_margin": 0.75, "low_cutoff": 0.0, "high_cutoff": 0.75, "min_sample": 30, "min_sessions": 1, "min_coverage": 0.0, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "toolkit_effective_count": {"zone_mode": "centered", "practical_margin": 0.2, "low_cutoff": 0.0, "high_cutoff": 0.2, "min_sample": 30, "min_sessions": 1, "min_coverage": 0.8, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "involvement_adjusted": {"zone_mode": "centered", "practical_margin": 0.08, "low_cutoff": -0.08, "high_cutoff": 0.08, "min_sample": 30, "min_sessions": 8, "min_coverage": 0.8, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "finishing_adjusted": {"zone_mode": "centered", "practical_margin": 0.06, "low_cutoff": -0.06, "high_cutoff": 0.06, "min_sample": 30, "min_sessions": 8, "min_coverage": 0.8, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "death_exposure_adjusted": {"zone_mode": "centered", "practical_margin": 0.35, "low_cutoff": -0.35, "high_cutoff": 0.35, "min_sample": 30, "min_sessions": 8, "min_coverage": 0.8, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "transfer_outcome_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 8, "min_coverage": 0.8, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "transfer_activity_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 8, "min_coverage": 0.8, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "transfer_survival_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 8, "min_coverage": 0.8, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "consistency_outcome_dispersion": {"zone_mode": "dispersion", "practical_margin": 0.1, "low_cutoff": null, "high_cutoff": null, "stable_cutoff": 0.05, "variable_cutoff": 0.15, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "consistency_activity_dispersion": {"zone_mode": "dispersion", "practical_margin": 0.1, "low_cutoff": null, "high_cutoff": null, "stable_cutoff": 0.05, "variable_cutoff": 0.15, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "consistency_death_dispersion": {"zone_mode": "dispersion", "practical_margin": 0.1, "low_cutoff": null, "high_cutoff": null, "stable_cutoff": 0.05, "variable_cutoff": 0.15, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "post_loss_outcome_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "post_loss_activity_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "post_loss_survival_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "post_loss_familiarity_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "post_loss_tempo_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "session_drift_outcome_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "session_drift_activity_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"},
+    "session_drift_survival_delta": {"zone_mode": "centered", "practical_margin": 0.1, "low_cutoff": -0.1, "high_cutoff": 0.1, "min_sample": 30, "min_sessions": 12, "min_coverage": 0.5, "moderate_stability": 0.75, "high_stability": 0.9, "version": "metric-thresholds-6.0.0"}
+  }
+}

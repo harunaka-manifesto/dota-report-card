@@ -42,6 +42,15 @@ def generate_diagnostic_hypotheses(
         if isinstance(question, DiagnosticQuestion)
         else DiagnosticQuestion.from_mapping(dict(question) if isinstance(question, Mapping) else question)
     )
+    metadata = normalized.metadata or {}
+    is_v6_spec = metadata.get("version") == "deep-diagnostics-2.0.0" or bool(
+        metadata.get("question_spec")
+    )
+    if is_v6_spec:
+        primary_spec = normalized.primary_hypothesis or {}
+        required = ("positive_definition", "negative_definition", "control_definition")
+        if any(key not in primary_spec for key in required):
+            raise ValueError("Free v6 diagnostic questions require their complete hypothesis predicates")
     primary = _hypothesis_from_diagnostic(
         normalized.diagnostic_question_id,
         normalized.primary_hypothesis or {},

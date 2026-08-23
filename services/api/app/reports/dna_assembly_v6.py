@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
 from app.analysis.budget import DataCostLedger
 from app.dna.pipeline import DnaAnalysisResult
 from app.player_analysis_v6 import analyze_free_dna_v6
+from app.player_analysis_v6.baselines import BaselineResolver
 from app.player_analysis_v6.constants import (
     BASELINE_VERSION,
     BOOTSTRAP_VERSION,
@@ -21,7 +23,9 @@ from app.player_analysis_v6.constants import (
     SEMANTIC_COPY_VERSION,
     SHARE_VERSION,
     STORY_VERSION,
+    THRESHOLDS_VERSION,
 )
+from app.player_analysis_v6.thresholds import MetricThreshold
 
 REPORT_SCHEMA_VERSION_V6 = REPORT_VERSION
 
@@ -42,7 +46,7 @@ def assemble_free_dna_report_v6(
     *,
     account_id: int,
     profile: dict[str, Any],
-    analysis: DnaAnalysisResult,
+    analysis: DnaAnalysisResult | Sequence[Any],
     processed_matches: int,
     eligible_matches: int,
     raw_payload_hash: str,
@@ -51,6 +55,9 @@ def assemble_free_dna_report_v6(
     template_version: str,
     cost_ledger: DataCostLedger | None,
     analysis_version_fingerprint: str,
+    baseline_resolver: BaselineResolver | None = None,
+    thresholds: Mapping[str, MetricThreshold] | None = None,
+    completed_sessions: Mapping[str, bool] | None = None,
 ) -> dict[str, Any]:
     """Assemble one immutable v6 snapshot without altering v5 projection code."""
 
@@ -63,6 +70,9 @@ def assemble_free_dna_report_v6(
         profile=profile,
         metadata={"history_tier": history_tier},
         seed=seed,
+        baseline_resolver=baseline_resolver,
+        thresholds=thresholds,
+        completed_sessions=completed_sessions,
     )
     public = core.as_dict()
     elements = [_element(item) for item in core.elements]
@@ -76,14 +86,20 @@ def assemble_free_dna_report_v6(
         {
             "id": public_id,
             "kind": beat.key,
-            "observed": {},
+            "observed": dict(beat.observed),
             "content": {
                 "title": beat.title,
                 "prompt": beat.prompt,
                 "interaction": beat.interaction,
+                "observed": dict(beat.observed),
             },
-            "evidence_refs": [ref for ref in beat.payload_refs if ref in evidence_refs],
-            "skippable": True,
+            "title": beat.title,
+            "prompt": beat.prompt,
+            "body": beat.prompt,
+            "options": [dict(option) for option in beat.options],
+            "evidence_refs": [ref for ref in beat.evidence_refs if ref in evidence_refs],
+            "available": beat.available,
+            "skippable": beat.skippable,
         }
         for public_id, beat in zip(_PUBLIC_STORY_IDS, core.story, strict=True)
     ]
@@ -113,6 +129,7 @@ def assemble_free_dna_report_v6(
             "expression": EXPRESSION_VERSION,
             "statistics": BOOTSTRAP_VERSION,
             "context_baseline": BASELINE_VERSION,
+            "thresholds": THRESHOLDS_VERSION,
             "claims": CLAIM_VERSION,
             "story": STORY_VERSION,
             "copy": SEMANTIC_COPY_VERSION,
@@ -137,9 +154,9 @@ def assemble_free_dna_report_v6(
                 public.get("reproducibility", {}).get("bootstrap_iterations", 2_000)
             ),
             "bootstrap_seed": str(seed),
-            "session_gap_minutes": analysis.sessions.policy.gap_minutes,
+            "session_gap_minutes": getattr(getattr(getattr(analysis, "sessions", None), "policy", None), "gap_minutes", 90),
             "baseline_artifact": BASELINE_VERSION,
-            "threshold_artifact": "metric-thresholds-6.0.0",
+            "threshold_artifact": THRESHOLDS_VERSION,
         },
         "quality": _quality(core, history_tier, analysis),
         "elements": elements,
@@ -156,6 +173,21 @@ def assemble_free_dna_report_v6(
                 "id": item.question_id,
                 "prompt": item.prompt,
                 "finding_family": item.family,
+                "diagnostic_question_id": item.question_id,
+                "version": item.version,
+                "statement": item.statement or item.prompt,
+                "context": dict(item.context),
+                "primary_hypothesis": dict(item.primary_hypothesis),
+                "secondary_hypothesis": dict(item.secondary_hypothesis) if item.secondary_hypothesis is not None else None,
+                "required_summary_metrics": list(item.required_summary_metrics),
+                "required_detail_metrics": list(item.required_detail_metrics),
+                "required_parse_metrics": list(item.required_parse_metrics),
+                "secondary_reuse_fraction": item.secondary_reuse_fraction,
+                "options": [dict(option) for option in item.options],
+                "observed": dict(item.observed),
+                "available": item.available,
+                "skippable": item.skippable,
+                "question_spec": dict(item.question_spec),
                 "evidence_refs": [ref for ref in item.evidence_refs if ref in evidence_refs],
                 "confidence": item.confidence,
             }
@@ -207,7 +239,7 @@ def _finding(item: Any, *, limited: bool) -> dict[str, Any]:
     estimate = item.estimate
     evidence_refs = list(item.evidence_refs)
     signal_keys = [signal.key for signal in item.evidence]
-    recommendation = None if limited else item.recommendation
+    recommendation = None if limited else item.recommendation if isinstance(item.recommendation, dict) else None
     return {
         "key": item.family,
         "label": item.family.replace("_", " ").title(),
@@ -235,12 +267,15 @@ def _finding(item: Any, *, limited: bool) -> dict[str, Any]:
         "forbidden_claims": [],
         "published": bool(item.published),
         "signal_keys": signal_keys,
-        "adjusted_p_value": item.q_value,
+        "outcome_key": getattr(item, "outcome_key", None),
+        "raw_p_value": item.raw_p_value if item.raw_p_value is not None else 1.0,
+        "adjusted_q_value": item.adjusted_q_value if item.adjusted_q_value is not None else 1.0,
         "claim_contract": {
             "claim": item.claim,
             "evidence": item.evidence_text,
             "interpretation": item.interpretation,
             "recommendation": recommendation,
+            "copy_version": "free-dna-semantic-copy-6.0.0",
         },
     }
 
@@ -280,7 +315,7 @@ def _interval(value: tuple[float, float] | None) -> dict[str, float] | None:
     return {"lower": value[0], "upper": value[1], "level": 0.95}
 
 
-def _quality(core: Any, history_tier: str, analysis: DnaAnalysisResult) -> dict[str, Any]:
+def _quality(core: Any, history_tier: str, analysis: Any) -> dict[str, Any]:
     available = sum(item.status == "available" for item in core.elements)
     published = sum(item.published for item in core.findings)
     confidence_order = {"unavailable": 0, "descriptive": 1, "moderate": 2, "high": 3}
@@ -292,20 +327,33 @@ def _quality(core: Any, history_tier: str, analysis: DnaAnalysisResult) -> dict[
     return {
         "overall_confidence": overall,
         "history_tier": history_tier,
-        "partial": history_tier == "limited" or bool(analysis.warnings),
-        "warnings": list(dict.fromkeys(analysis.warnings)),
+        "partial": history_tier == "limited" or bool(getattr(analysis, "warnings", ()) or ()),
+        "warnings": list(dict.fromkeys(getattr(analysis, "warnings", ()) or ())),
         "missing_data_flags": [item.key for item in core.elements if item.status == "unavailable"],
         "available_elements": available,
         "published_findings": published,
     }
 
 
-def _date_bounds(analysis: DnaAnalysisResult) -> tuple[str | None, str | None]:
-    if analysis.features.window_start is None or analysis.features.window_end is None:
-        return None, None
+def _date_bounds(analysis: Any) -> tuple[str | None, str | None]:
+    features = getattr(analysis, "features", None)
+    start = getattr(features, "window_start", None)
+    end = getattr(features, "window_end", None)
+    if start is None or end is None:
+        rows = tuple(analysis) if isinstance(analysis, Sequence) and not isinstance(analysis, (str, bytes)) else ()
+        timestamps: list[float] = []
+        for row in rows:
+            value = getattr(row, "start_time", None)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                timestamps.append(float(value))
+        if not timestamps:
+            return None, None
+        start, end = min(timestamps), max(timestamps)
+    start_value = float(start)
+    end_value = float(end)
     return (
-        datetime.fromtimestamp(analysis.features.window_start, tz=UTC).isoformat(),
-        datetime.fromtimestamp(analysis.features.window_end, tz=UTC).isoformat(),
+        datetime.fromtimestamp(start_value, tz=UTC).isoformat(),
+        datetime.fromtimestamp(end_value, tz=UTC).isoformat(),
     )
 
 

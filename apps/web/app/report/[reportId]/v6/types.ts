@@ -44,12 +44,22 @@ export type V6EvidenceReference = {
 };
 
 export type V6Recommendation = {
+  recommendation_id?: string;
   id?: string;
   title?: string | null;
   label?: string | null;
+  instruction?: string | null;
+  rationale?: string | null;
   body?: string | null;
   action?: string | null;
-  context?: string | null;
+  context?: Record<string, unknown> | string | null;
+  family?: string | null;
+  supported_metric_keys?: string[];
+  evidence_refs?: string[];
+  causal?: boolean;
+  identity_updated?: boolean;
+  baseline_locked_on_commit?: boolean;
+  version?: string | null;
   evidence_requirement?: string | null;
   verification_rule?: string | null;
   target?: string | null;
@@ -117,7 +127,7 @@ export type V6ClaimLayers = {
   observation?: string | null;
   evidence?: string | null;
   interpretation?: string | null;
-  recommendation?: string | null;
+  recommendation?: string | V6Recommendation | null;
   recommendation_detail?: V6Recommendation | null;
 };
 
@@ -149,6 +159,9 @@ export type V6Finding = {
   evidence_text?: string | null;
   interpretation?: string | null;
   recommendation?: string | V6Recommendation | null;
+  outcome_key?: string | null;
+  raw_p_value?: number | null;
+  adjusted_q_value?: number | null;
   claim_contract?: V6ClaimLayers | null;
   layers?: V6ClaimLayers | null;
   evidence_refs?: string[];
@@ -283,6 +296,17 @@ export type V6DiagnosticQuestion = {
   finding_family?: string;
   evidence_refs?: string[];
   eligibility?: V6Availability;
+  statement?: string | null;
+  primary_hypothesis?: Record<string, unknown> | null;
+  secondary_hypothesis?: Record<string, unknown> | null;
+  required_summary_metrics?: string[];
+  required_detail_metrics?: string[];
+  required_parse_metrics?: string[];
+  options?: V6Choice[];
+  observed?: Record<string, unknown> | null;
+  available?: boolean;
+  skippable?: boolean;
+  question_spec?: Record<string, unknown> | null;
 };
 
 export type V6Report = {
@@ -293,7 +317,6 @@ export type V6Report = {
   identity: {
     display_name?: string | null;
     avatar_url?: string | null;
-    rank_tier?: number | null;
   };
   metadata?: {
     created_at?: string;

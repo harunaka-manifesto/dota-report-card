@@ -7,7 +7,10 @@ from dataclasses import replace
 from typing import Any, Literal
 
 from .constants import FDR_Q, FINDING_FAMILY_KEYS, FORBIDDEN_FREE_TERMS, NORMAL_REPORT_MATCHES
+from .copy import family_copy
+from .family_statistics import benjamini_hochberg_five
 from .models import ElementResultV6, Estimate, FamilyEvidence, FindingFamilyResult
+from .recommendations import recommendation_for_family
 from .statistics import benjamini_hochberg
 
 FAMILY_DEFINITIONS: Mapping[str, Mapping[str, Any]] = {
@@ -39,15 +42,15 @@ FAMILY_DEFINITIONS: Mapping[str, Mapping[str, Any]] = {
         "label": "Combat Expression",
         "required": ("involvement", "death_exposure"),
         "min_signals": 2,
-        "description": "Summary-visible participation and death exposure describe combat expression without judging death quality.",
+        "description": "Summary-visible participation and exposure remain separate combat-expression signals.",
         "question": "How do participation and exposure travel together?",
     },
     "session_drift": {
         "label": "Session Drift",
-        "required": ("duration", "late_session"),
+        "required": (),
         "min_signals": 2,
         "min_sessions": 12,
-        "description": "Expression shifts across longer completed sessions in the available summary evidence.",
+        "description": "Expression shifts across positions in completed sessions in the available summary evidence.",
         "question": "What changes as a play session gets longer?",
     },
 }
@@ -88,6 +91,7 @@ def _evidence(key: str, value: Any, *, default_sample: int = 0, default_sessions
             estimate.coverage,
             estimate.evidence_refs or (f"element:{key}",),
             estimate.limitations,
+            estimate.stability,
         )
     if isinstance(value, Mapping):
         numeric = value.get("value", value.get("estimate", value.get("delta")))
@@ -117,12 +121,13 @@ def _evidence(key: str, value: Any, *, default_sample: int = 0, default_sessions
             float(value.get("coverage", default_coverage) or 0.0),
             tuple(value.get("evidence_refs", (f"family:{key}",))),
             tuple(value.get("limitations", ())),
+            float(value.get("stability", 0.0) or 0.0),
         )
     try:
         numeric = float(value)
     except (TypeError, ValueError):
         return None
-    return FamilyEvidence(key, numeric, sample_size=default_sample, independent_sessions=default_sessions, coverage=default_coverage, evidence_refs=(f"family:{key}",))
+    return FamilyEvidence(key, numeric, sample_size=default_sample, independent_sessions=default_sessions, coverage=default_coverage, evidence_refs=(f"family:{key}",), stability=0.0)
 
 
 def _signal_keys(evidence: Sequence[FamilyEvidence]) -> tuple[str, ...]:
@@ -147,14 +152,10 @@ def _infer_direction(evidence: Sequence[FamilyEvidence]) -> str:
 def _confidence(evidence: Sequence[FamilyEvidence], sample_size: int, sessions: int, comparable_coverage: float) -> tuple[str, float]:
     if not evidence:
         return "unavailable", 0.0
-    stability_values = []
-    for item in evidence:
-        if item.interval and item.value is not None:
-            width = abs(item.interval[1] - item.interval[0])
-            stability_values.append(max(0.0, min(1.0, 1.0 - width / (2.0 * (abs(item.value) + 0.1)))))
-        else:
-            stability_values.append(1.0 if item.value is not None else 0.0)
-    score = sum(stability_values) / len(stability_values)
+    # Confidence is derived from the bootstrap zone/direction stability that
+    # each estimator records.  Interval width is not a cross-metric proxy.
+    stability_values = [item.stability for item in evidence if item.value is not None]
+    score = sum(stability_values) / len(stability_values) if stability_values else 0.0
     if sample_size >= NORMAL_REPORT_MATCHES and sessions >= 8 and comparable_coverage >= 0.5 and score >= 0.90:
         return "high", score
     if sample_size >= 30 and sessions >= 8 and comparable_coverage >= 0.5 and score >= 0.75:
@@ -174,7 +175,7 @@ def qualify_family(
     direction: str = "unknown",
     claim: str | None = None,
     interpretation: str | None = None,
-    recommendation: str | None = None,
+    recommendation: Mapping[str, Any] | str | None = None,
     blocking_confounders: Sequence[str] = (),
 ) -> FindingFamilyResult:
     """Build one family result, preserving suppressed/unavailable states."""
@@ -228,8 +229,9 @@ def qualify_family(
         reasons.append("fewer than two meaningfully independent signals")
     if sample_size < 30:
         reasons.append("fewer than 30 eligible matches")
-    if 30 <= sample_size < NORMAL_REPORT_MATCHES:
-        reasons.append("limited history; strength/weakness recommendation suppressed")
+    limited_history = 30 <= sample_size < NORMAL_REPORT_MATCHES
+    if limited_history:
+        reasons.append("limited history; this sample is descriptive")
     if independent_sessions < int(definition.get("min_sessions", 1)):
         reasons.append(f"fewer than {definition['min_sessions']} independent sessions")
     if transitions < int(definition.get("min_transitions", 0)):
@@ -243,21 +245,48 @@ def qualify_family(
         if item.independent_sessions and item.independent_sessions < min_sessions:
             reasons.append(f"{item.key}: fewer than {min_sessions} independent sessions")
     confidence, confidence_score = _confidence(items, sample_size, independent_sessions, comparable_context_coverage)
-    if reasons:
-        status = "suppressed" if items else "unavailable"
+    hard_reasons = [reason for reason in reasons if reason != "limited history; this sample is descriptive"]
+    if not items:
+        status = "unavailable"
+    elif hard_reasons:
+        status = "suppressed"
     else:
         status = "qualified"
     if q_value is not None and q_value > FDR_Q:
         reasons.append(f"BH FDR q-value exceeds {FDR_Q:.2f}")
         status = "suppressed"
-    text_values = (claim, interpretation, recommendation)
+    evidence_text = "; ".join(f"{item.key}={item.value:g}" for item in items if item.value is not None)
+    copy_payload = family_copy(
+        family,
+        direction=direction if direction in {"positive", "negative", "mixed"} else "mixed",
+        evidence_labels=signals,
+        evidence_refs=tuple(ref for item in items for ref in item.evidence_refs),
+        recommendation=recommendation if isinstance(recommendation, Mapping) else None,
+    )
+    claim = claim or copy_payload.get("claim")
+    evidence_text = evidence_text or str(copy_payload.get("evidence") or "")
+    interpretation = interpretation or str(copy_payload.get("interpretation") or "")
+    if limited_history:
+        claim = f"In this sample, {claim[0].lower() + claim[1:] if claim else 'the available evidence remains descriptive.'}"
+        interpretation = "In this sample, the observed association is descriptive and does not establish cause."
+        recommendation = None
+    def _copy_texts(value: Any) -> tuple[str, ...]:
+        if isinstance(value, str):
+            return (value,)
+        if isinstance(value, Mapping):
+            return tuple(text for child in value.values() for text in _copy_texts(child))
+        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+            return tuple(text for child in value for text in _copy_texts(child))
+        return ()
+
+    text_values = (claim, interpretation, *_copy_texts(recommendation))
     violations = tuple(dict.fromkeys(term for text in text_values for term in forbidden_inference_violations(text)))
     if violations:
         reasons.append("forbidden summary inference: " + ", ".join(violations))
         status = "suppressed"
     if direction == "unknown":
         direction = _infer_direction(items)
-    evidence_text = "; ".join(f"{item.key}={item.value:g}" for item in items if item.value is not None)
+    evidence_text = evidence_text or "; ".join(f"{item.key}={item.value:g}" for item in items if item.value is not None)
     numeric_values = [item.value for item in items if item.value is not None]
     estimate_value = sum(numeric_values) / len(numeric_values) if numeric_values else None
     intervals = [item.interval for item in items if item.interval is not None]
@@ -335,7 +364,11 @@ def _family_input(
         return {"response": choose("post_loss_response", "response"), "familiarity_or_tempo": choose("familiarity", "tempo")}
     if family == "combat_expression":
         return {"involvement": elements.get("involvement"), "death_exposure": elements.get("death_exposure")}
-    return {"duration": choose("duration", "session_duration"), "late_session": choose("late_session", "drift")}
+    return {
+        "drift_outcome": choose("drift_outcome"),
+        "drift_activity": choose("drift_activity"),
+        "drift_survival": choose("drift_survival"),
+    }
 
 
 def evaluate_families(
@@ -386,22 +419,38 @@ def rank_findings(
     """Apply BH FDR and publish at most three diverse qualified families."""
 
     values = tuple(findings)
-    p_items = [(item.family, item.p_value) for item in values if item.p_value is not None]
-    q_map = benjamini_hochberg({key: float(value) for key, value in p_items}, q=q) if p_items else {}
+    raw_map = {item.family: (1.0 if item.p_value is None else float(item.p_value)) for item in values}
+    q_map = benjamini_hochberg_five(raw_map)
     corrected: list[FindingFamilyResult] = []
     for item in values:
-        q_value = q_map.get(item.family) if isinstance(q_map, Mapping) else None
+        raw_p_value = raw_map[item.family]
+        q_value = q_map[item.family]
         status = item.status
         reason = item.qualification_reason
-        if q_value is not None and q_value > q:
+        if q_value > q:
             status = "suppressed"
             reason = "; ".join(filter(None, (reason, f"BH FDR q-value exceeds {q:.2f}")))
-        corrected.append(replace(item, q_value=q_value, status=status, published=False, qualification_reason=reason))
-    candidates = [item for item in corrected if item.status == "qualified" and (item.q_value is None or item.q_value <= q)]
+        corrected.append(replace(item, p_value=raw_p_value, q_value=q_value, status=status, published=False, qualification_reason=reason))
+    candidates: list[FindingFamilyResult] = []
+    for item in corrected:
+        if item.status == "qualified" and item.q_value is not None and item.p_value is not None and item.q_value <= q and item.p_value < 1.0:
+            candidates.append(item)
     order = {family: index for index, family in enumerate(FINDING_FAMILY_KEYS)}
     candidates.sort(key=lambda item: (-item.confidence_score, -item.identity_value, -item.actionability, -item.diversity_score, order[item.family]))
     published = {item.family for item in candidates[: max(0, int(max_published))]}
-    return tuple(replace(item, published=item.family in published) for item in corrected)
+    result: list[FindingFamilyResult] = []
+    for item in corrected:
+        is_published = item.family in published
+        recommendation = None if item.sample_size < NORMAL_REPORT_MATCHES else recommendation_for_family(
+            item.family,
+            status=item.status,
+            confidence=item.confidence,
+            published=is_published,
+            evidence_refs=item.evidence_refs,
+            supported_metric_keys=tuple(evidence.key for evidence in item.evidence),
+        )
+        result.append(replace(item, published=is_published, recommendation=recommendation))
+    return tuple(result)
 
 
 rank_finding_families = rank_findings

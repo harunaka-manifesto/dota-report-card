@@ -610,6 +610,8 @@ class InMemoryRepository:
         *,
         expected_revision: int,
         state: dict[str, Any],
+        recommendation_baseline: dict[str, Any] | None = None,
+        history_cutoff: int | None = None,
         now: datetime | None = None,
     ) -> ReportInteractionSession:
         with self._lock:
@@ -618,6 +620,13 @@ class InMemoryRepository:
             assert stored is not None
             if current.revision != expected_revision:
                 raise InteractionRevisionConflict(expected_revision, current.revision)
+            if recommendation_baseline is not None:
+                if stored.recommendation_baseline and stored.recommendation_baseline != recommendation_baseline:
+                    raise ValueError("Recommendation baseline is already locked")
+                if not stored.recommendation_baseline:
+                    stored.recommendation_baseline = deepcopy(recommendation_baseline)
+                    if history_cutoff is not None:
+                        stored.history_cutoff = int(history_cutoff)
             stored.state = deepcopy(state)
             stored.revision += 1
             stored.updated_at = _as_aware(now) if now is not None else datetime.now(UTC)
@@ -1339,6 +1348,8 @@ class SqlAlchemyRepository:
         *,
         expected_revision: int,
         state: dict[str, Any],
+        recommendation_baseline: dict[str, Any] | None = None,
+        history_cutoff: int | None = None,
         now: datetime | None = None,
     ) -> ReportInteractionSession:
         current = _as_aware(now) if now is not None else datetime.now(UTC)
@@ -1354,6 +1365,14 @@ class SqlAlchemyRepository:
                 raise InteractionSessionUnauthorized("Interaction session token is invalid")
             if record.revision != expected_revision:
                 raise InteractionRevisionConflict(expected_revision, record.revision)
+            if recommendation_baseline is not None:
+                current_baseline = deepcopy(record.recommendation_baseline_json or {})
+                if current_baseline and current_baseline != recommendation_baseline:
+                    raise ValueError("Recommendation baseline is already locked")
+                if not current_baseline:
+                    record.recommendation_baseline_json = deepcopy(recommendation_baseline)
+                    if history_cutoff is not None:
+                        record.history_cutoff = int(history_cutoff)
             record.state_json = deepcopy(state)
             record.revision += 1
             record.updated_at = current

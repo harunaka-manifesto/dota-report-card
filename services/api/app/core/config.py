@@ -87,6 +87,9 @@ class Settings:
     report_retention_days: int = DEFAULT_REPORT_RETENTION_DAYS
     report_interaction_retention_days: int = DEFAULT_REPORT_INTERACTION_RETENTION_DAYS
     free_dna_v6_enabled: bool = False
+    free_dna_v6_baseline_artifact_path: Path | None = None
+    free_dna_v6_threshold_artifact_path: Path | None = None
+    free_dna_v6_model_version: str = "free-dna-model-6.0.0"
     replay_coverage_threshold: float = 0.60
     summary_coverage_threshold: float = 0.60
     cors_origins: tuple[str, ...] = DEFAULT_CORS_ORIGINS
@@ -186,6 +189,13 @@ class Settings:
                 )
             ),
             free_dna_v6_enabled=_as_bool(os.getenv("FREE_DNA_V6_ENABLED")),
+            free_dna_v6_baseline_artifact_path=(
+                Path(value) if (value := os.getenv("FREE_DNA_V6_BASELINE_ARTIFACT")) else None
+            ),
+            free_dna_v6_threshold_artifact_path=(
+                Path(value) if (value := os.getenv("FREE_DNA_V6_THRESHOLD_ARTIFACT")) else None
+            ),
+            free_dna_v6_model_version=os.getenv("FREE_DNA_V6_MODEL_VERSION", cls.free_dna_v6_model_version),
             replay_coverage_threshold=float(
                 os.getenv("REPLAY_COVERAGE_THRESHOLD", str(cls.replay_coverage_threshold))
             ),

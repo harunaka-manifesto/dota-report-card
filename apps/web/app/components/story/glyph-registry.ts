@@ -1,10 +1,10 @@
-/** Public frontend seam for the typed report glyph vocabulary. */
+/** Public frontend seam for the typed v6 glyph vocabulary. */
 export {
   ELEMENT_GLYPHS,
+  FAMILY_GLYPHS,
   GLYPH_BY_KEY,
   GLYPH_REGISTRY,
-  PATTERN_GLYPHS,
   Glyph,
   glyphRegistryIsUnique,
-} from "./glyphs";
-export type { GlyphCategory, GlyphDefinition } from "./glyphs";
+} from "./glyphs-v6";
+export type { GlyphCategory, GlyphDefinition } from "./glyphs-v6";

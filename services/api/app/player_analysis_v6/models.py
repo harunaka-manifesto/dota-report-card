@@ -260,11 +260,14 @@ class FamilyEvidence:
     coverage: float = 0.0
     evidence_refs: tuple[str, ...] = ()
     limitations: tuple[str, ...] = ()
+    stability: float = 0.0
 
     def __post_init__(self) -> None:
         _finite(self.value, "family evidence value")
         if not 0 <= self.coverage <= 1:
             raise ValueError("family evidence coverage must be within [0, 1]")
+        if not 0 <= self.stability <= 1:
+            raise ValueError("family evidence stability must be within [0, 1]")
         object.__setattr__(self, "evidence_refs", tuple(str(item) for item in self.evidence_refs))
         object.__setattr__(self, "limitations", tuple(str(item) for item in self.limitations))
 
@@ -278,6 +281,7 @@ class FamilyEvidence:
             "sample_size": self.sample_size,
             "independent_sessions": self.independent_sessions,
             "coverage": self.coverage,
+            "stability": self.stability,
             "evidence_refs": list(self.evidence_refs),
             "limitations": list(self.limitations),
         }
@@ -301,7 +305,7 @@ class FindingFamilyResult:
     claim: str | None = None
     evidence_text: str | None = None
     interpretation: str | None = None
-    recommendation: str | None = None
+    recommendation: Mapping[str, Any] | str | None = None
     qualification_reason: str | None = None
     limitations: tuple[str, ...] = ()
     diagnostic_question_ids: tuple[str, ...] = ()
@@ -358,18 +362,65 @@ class FindingFamilyResult:
     def zone(self) -> str | None:
         return self.estimate.zone if self.estimate else self.direction
 
+    @property
+    def raw_p_value(self) -> float | None:
+        """The unadjusted family p-value used by the fixed five-slot FDR."""
+
+        return self.p_value
+
+    @property
+    def adjusted_q_value(self) -> float | None:
+        """The BH-adjusted q-value across exactly the five family slots."""
+
+        return self.q_value
+
+    @property
+    def outcome_key(self) -> str:
+        if self.family == "pool_shape":
+            component_directions = {item.key: item.signal for item in self.evidence}
+            breadth = component_directions.get("breadth", self.direction)
+            toolkit = component_directions.get("toolkit", self.direction)
+            if breadth == "positive" and toolkit == "negative":
+                return "broad_names_narrow_jobs"
+            if breadth == "negative" and toolkit == "positive":
+                return "focused_names_versatile_jobs"
+            if breadth == "positive" and toolkit == "positive":
+                return "broad_names_versatile_jobs"
+            if breadth == "negative" and toolkit == "negative":
+                return "focused_names_narrow_jobs"
+            return "mixed_or_typical"
+        if self.family == "transfer":
+            return {"positive": "transfers", "negative": "does_not_transfer", "mixed": "mixed_transfer"}.get(self.direction, "unknown_transfer")
+        if self.family == "post_loss_response":
+            return {"positive": "post_loss_shift_positive", "negative": "post_loss_shift_negative", "mixed": "post_loss_shift_mixed"}.get(self.direction, "post_loss_no_clear_shift")
+        if self.family == "combat_expression":
+            component_directions = {item.key: item.signal for item in self.evidence}
+            involvement = component_directions.get("involvement")
+            exposure = component_directions.get("death_exposure")
+            if involvement == "positive" and exposure == "negative":
+                return "high_involvement_low_exposure"
+            if involvement == "positive" and exposure == "positive":
+                return "high_involvement_high_exposure"
+            if involvement == "negative" and exposure == "negative":
+                return "low_involvement_low_exposure"
+            if involvement == "negative" and exposure == "positive":
+                return "low_involvement_high_exposure"
+            return "typical_or_mixed"
+        return {"positive": "session_rise", "negative": "session_fade", "mixed": "session_mixed"}.get(self.direction, "session_no_clear_shift")
+
     def as_dict(self, *, public: bool = True) -> dict[str, Any]:
         result: dict[str, Any] = {
             "family": self.family,
             "status": self.status,
             "direction": self.direction,
+            "outcome_key": self.outcome_key,
             "confidence": self.confidence,
             "confidence_score": round(self.confidence_score, 6),
             "identity_value": round(self.identity_value, 6),
             "actionability": round(self.actionability, 6),
             "diversity_score": round(self.diversity_score, 6),
-            "p_value": self.p_value,
-            "q_value": self.q_value,
+            "raw_p_value": self.raw_p_value,
+            "adjusted_q_value": self.adjusted_q_value,
             "published": self.published,
             "estimate": self.estimate.as_dict() if self.estimate else None,
             "evidence": [item.as_dict() for item in self.evidence],
@@ -430,23 +481,80 @@ class DiagnosticQuestion:
     offered: bool = True
     order: int = 0
     version: str = DIAGNOSTICS_VERSION
+    statement: str | None = None
+    context: Mapping[str, Any] = field(default_factory=dict)
+    primary_hypothesis: Mapping[str, Any] = field(default_factory=dict)
+    secondary_hypothesis: Mapping[str, Any] | None = None
+    required_summary_metrics: tuple[str, ...] = ()
+    required_detail_metrics: tuple[str, ...] = ()
+    required_parse_metrics: tuple[str, ...] = ()
+    options: tuple[Mapping[str, Any], ...] = ()
+    observed: Mapping[str, Any] = field(default_factory=dict)
+    available: bool = True
+    skippable: bool = True
+    secondary_reuse_fraction: float = 0.0
 
     def __post_init__(self) -> None:
         if self.family not in FINDING_FAMILY_KEYS:
             raise ValueError(f"Unknown diagnostic family: {self.family}")
         object.__setattr__(self, "evidence_refs", tuple(str(item) for item in self.evidence_refs))
+        object.__setattr__(self, "context", _freeze(self.context))
+        object.__setattr__(self, "primary_hypothesis", _freeze(self.primary_hypothesis))
+        if self.secondary_hypothesis is not None:
+            object.__setattr__(self, "secondary_hypothesis", _freeze(self.secondary_hypothesis))
+        object.__setattr__(self, "required_summary_metrics", tuple(str(item) for item in self.required_summary_metrics))
+        object.__setattr__(self, "required_detail_metrics", tuple(str(item) for item in self.required_detail_metrics))
+        object.__setattr__(self, "required_parse_metrics", tuple(str(item) for item in self.required_parse_metrics))
+        object.__setattr__(self, "options", tuple(_freeze(item) for item in self.options))
+        object.__setattr__(self, "observed", _freeze(self.observed))
+        if not 0.0 <= float(self.secondary_reuse_fraction) <= 1.0:
+            raise ValueError("secondary_reuse_fraction must be within [0, 1]")
 
     def as_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "question_id": self.question_id,
+            "diagnostic_question_id": self.question_id,
             "prompt": self.prompt,
+            "statement": self.statement or self.prompt,
             "family": self.family,
+            "version": self.version,
             "evidence_refs": list(self.evidence_refs),
             "confidence": self.confidence,
             "offered": self.offered,
             "order": self.order,
-            "version": self.version,
+            "context": _plain(self.context),
+            "primary_hypothesis": _plain(self.primary_hypothesis),
+            "secondary_hypothesis": _plain(self.secondary_hypothesis) if self.secondary_hypothesis is not None else None,
+            "required_summary_metrics": list(self.required_summary_metrics),
+            "required_detail_metrics": list(self.required_detail_metrics),
+            "required_parse_metrics": list(self.required_parse_metrics),
+            "options": [_plain(item) for item in self.options],
+            "observed": _plain(self.observed),
+            "available": self.available,
+            "skippable": self.skippable,
+            "secondary_reuse_fraction": self.secondary_reuse_fraction,
         }
+        result["question_spec"] = _plain(self.question_spec)
+        return result
+
+    @property
+    def question_spec(self) -> Mapping[str, Any]:
+        """Immutable full diagnostic spec carried through the Deep seam."""
+
+        value: dict[str, Any] = {
+            "diagnostic_question_id": self.question_id,
+            "version": self.version,
+            "statement": self.statement or self.prompt,
+            "family": self.family,
+            "context": _plain(self.context),
+            "primary_hypothesis": _plain(self.primary_hypothesis),
+            "secondary_hypothesis": _plain(self.secondary_hypothesis) if self.secondary_hypothesis is not None else None,
+            "required_summary_metrics": list(self.required_summary_metrics),
+            "required_detail_metrics": list(self.required_detail_metrics),
+            "required_parse_metrics": list(self.required_parse_metrics),
+            "secondary_reuse_fraction": self.secondary_reuse_fraction,
+        }
+        return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -462,10 +570,22 @@ class StoryBeat:
     available: bool = True
     payload_refs: tuple[str, ...] = ()
     version: str = STORY_VERSION
+    options: tuple[Mapping[str, Any], ...] = ()
+    observed: Mapping[str, Any] = field(default_factory=dict)
+    evidence_refs: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.order < 1:
+            raise ValueError("story beat order must be positive")
+        object.__setattr__(self, "payload_refs", tuple(str(item) for item in self.payload_refs))
+        object.__setattr__(self, "options", tuple(_freeze(item) for item in self.options))
+        object.__setattr__(self, "observed", _freeze(self.observed))
+        object.__setattr__(self, "evidence_refs", tuple(str(item) for item in self.evidence_refs))
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "key": self.key,
+            "id": self.key,
             "order": self.order,
             "title": self.title,
             "prompt": self.prompt,
@@ -475,6 +595,9 @@ class StoryBeat:
             "reduced_motion_safe": self.reduced_motion_safe,
             "available": self.available,
             "payload_refs": list(self.payload_refs),
+            "options": [_plain(item) for item in self.options],
+            "observed": _plain(self.observed),
+            "evidence_refs": list(self.evidence_refs or self.payload_refs),
             "version": self.version,
         }
 

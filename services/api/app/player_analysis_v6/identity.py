@@ -6,32 +6,40 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Literal
 
 from .constants import FINDING_FAMILY_KEYS
+from .copy import forbidden_copy_violations
 from .findings import forbidden_inference_violations
 from .models import ElementResultV6, FindingFamilyResult, IdentitySummary
 
 _HEADLINES: Mapping[tuple[str, str], str] = {
-    ("pool_shape", "positive"): "You make your hero pool do more than one job.",
-    ("pool_shape", "negative"): "You keep a clear shape to the jobs you repeat.",
-    ("pool_shape", "mixed"): "Your hero pool carries a useful tension between range and repetition.",
-    ("transfer", "positive"): "You carry your game beyond familiar heroes.",
-    ("transfer", "negative"): "Your strongest expression is clearest in familiar heroes.",
-    ("transfer", "mixed"): "Your transfer story changes by signal, not by a single score.",
-    ("post_loss_response", "positive"): "A loss changes what you choose in a visible way.",
-    ("post_loss_response", "negative"): "Your next choice after a loss often stays close to your established path.",
-    ("post_loss_response", "mixed"): "Your post-loss response has more than one observable shape.",
-    ("combat_expression", "positive"): "You show up often in the action with lower death exposure in context.",
-    ("combat_expression", "negative"): "Your participation and exposure pull in different directions.",
-    ("combat_expression", "mixed"): "Your combat expression is a balance of participation and exposure.",
-    ("session_drift", "positive"): "Your summary expression holds its shape across sessions.",
-    ("session_drift", "negative"): "Your summary expression shifts as sessions run longer.",
-    ("session_drift", "mixed"): "Longer sessions reveal more than one expression pattern.",
+    ("pool_shape", "broad_names_narrow_jobs"): "Your hero pool covers many names around a narrower set of jobs.",
+    ("pool_shape", "focused_names_versatile_jobs"): "Your focused hero set covers more than one functional job.",
+    ("pool_shape", "broad_names_versatile_jobs"): "Your hero pool covers many names and functional jobs.",
+    ("pool_shape", "focused_names_narrow_jobs"): "Your repeated hero set and jobs have a compact shape.",
+    ("pool_shape", "mixed_or_typical"): "Your hero pool has more than one observable shape.",
+    ("transfer", "transfers"): "You carry your game beyond familiar heroes.",
+    ("transfer", "does_not_transfer"): "Your strongest expression is clearest in familiar heroes.",
+    ("transfer", "mixed_transfer"): "Your transfer story changes by signal, not by a single score.",
+    ("transfer", "unknown_transfer"): "Your transfer evidence is still forming.",
+    ("post_loss_response", "post_loss_shift_positive"): "A loss changes what you choose in a visible way.",
+    ("post_loss_response", "post_loss_shift_negative"): "Your next choice after a loss stays close to your established path.",
+    ("post_loss_response", "post_loss_shift_mixed"): "Your post-loss response has more than one observable shape.",
+    ("post_loss_response", "post_loss_no_clear_shift"): "Your post-loss evidence does not yet show one clear shift.",
+    ("combat_expression", "high_involvement_low_exposure"): "Your involvement is high while exposure stays lower in context.",
+    ("combat_expression", "high_involvement_high_exposure"): "Your involvement and exposure are both high in context.",
+    ("combat_expression", "low_involvement_low_exposure"): "Your involvement and exposure are both lower in context.",
+    ("combat_expression", "low_involvement_high_exposure"): "Your involvement is lower while exposure is higher in context.",
+    ("combat_expression", "typical_or_mixed"): "Your combat expression is a balance of participation and exposure.",
+    ("session_drift", "session_rise"): "Your summary expression rises across completed session positions.",
+    ("session_drift", "session_fade"): "Your summary expression shifts across completed session positions.",
+    ("session_drift", "session_mixed"): "Completed sessions reveal more than one expression pattern.",
+    ("session_drift", "session_no_clear_shift"): "Completed sessions do not yet show one clear shift.",
 }
 
 _SUPPORT_LINES: Mapping[str, str] = {
     "pool_shape": "Breadth and toolkit coverage provide the pool evidence.",
     "transfer": "Outcome, activity, and survival are compared as separate signals.",
     "post_loss_response": "The comparison uses observed transitions and comparable context.",
-    "combat_expression": "Involvement and death exposure are reported without judging death quality.",
+    "combat_expression": "Involvement and exposure remain separate summary signals.",
     "session_drift": "Completed sessions provide the time-order context for this finding.",
 }
 
@@ -80,7 +88,7 @@ def synthesize_identity(
         return IdentitySummary(headline, fallback_lines, fallback_confidence, (), anchor, (),)
 
     strongest = eligible[0]
-    headline = _HEADLINES.get((strongest.family, strongest.direction), _HEADLINES.get((strongest.family, "mixed"), "Your summary history has a distinct expression."))
+    headline = _HEADLINES.get((strongest.family, strongest.outcome_key), "Your summary history has a distinct expression.")
     if strongest.confidence == "moderate":
         headline = headline.replace("You ", "You tend to ", 1)
     lines: list[str] = []
@@ -100,6 +108,16 @@ def synthesize_identity(
     evidence_refs = tuple(dict.fromkeys(ref for item in (strongest, second) if item is not None for ref in item.evidence_refs))
     confidence: Literal["high", "moderate"] = "high" if strongest.confidence == "high" else "moderate"
     families = tuple(item.family for item in (strongest, second) if item is not None)
+    public_text = {"headline": headline, "supporting_lines": lines[:3]}
+    if forbidden_copy_violations(public_text):
+        return IdentitySummary(
+            "Your identity is still forming from this sample.",
+            ("More stable evidence will make the identity more specific.",),
+            "descriptive",
+            evidence_refs,
+            anchor,
+            families,
+        )
     return IdentitySummary(headline, tuple(lines[:3]), confidence, evidence_refs, anchor, families)
 
 

@@ -9,6 +9,7 @@ from app.features.models import MatchFeature
 from app.features.summary_models import SummaryFeatureSet
 from app.hypotheses.generator import generate_diagnostic_hypotheses, generate_hypotheses
 from app.hypotheses.models import DiagnosticQuestion, Hypothesis
+from app.ingestion.coverage import coverage_for_match
 from app.ingestion.eligibility import assess_match
 from app.ingestion.normalize import NormalizedMatch, normalize_match
 from app.patterns.models import PatternCandidate
@@ -38,7 +39,7 @@ class DeepFinding:
     observation: str
     evidence: dict[str, Any]
     impact: str
-    recommendation: str
+    recommendation: str | None
     confidence: str
     positive_match_ids: tuple[int, ...]
     negative_match_ids: tuple[int, ...]
@@ -47,6 +48,7 @@ class DeepFinding:
     rejected_alternatives: tuple[str, ...] = ()
     stopping_reason: str | None = None
     abstention_reason: str | None = None
+    verification_rule: str | None = None
 
     @property
     def abstained(self) -> bool:
@@ -60,6 +62,7 @@ class DeepFinding:
             "evidence": dict(self.evidence),
             "impact": self.impact,
             "recommendation": self.recommendation,
+            "verification_rule": self.verification_rule,
             "confidence": self.confidence,
             "positive_match_ids": list(self.positive_match_ids),
             "negative_match_ids": list(self.negative_match_ids),
@@ -214,7 +217,10 @@ def plan_diagnostic_deep_scan(
         feature_set,
         available_families_by_match=available_families_by_match,
         detail_cost_units=1.0,
-        parse_cost_units=5.0,
+        # Stage A selects summary/detail candidates only. Parse marginal gain
+        # is evaluated after detail hydration, so parse cost is not charged
+        # while the detail plan is being built.
+        parse_cost_units=0.0,
     )
     plan = plan_selection(
         hypotheses,
@@ -298,7 +304,7 @@ def evaluate_deep_hypotheses(
                         "data_quality": round(data_quality, 4),
                     },
                     impact="No causal recommendation was published.",
-                    recommendation="Collect the missing evidence only if this hypothesis remains high priority.",
+                    recommendation=None,
                     confidence="low",
                     positive_match_ids=tuple(item.match_id for item in positive),
                     negative_match_ids=tuple(item.match_id for item in negative),
@@ -311,6 +317,7 @@ def evaluate_deep_hypotheses(
                         if not minimums_met
                         else "A required evidence family was unavailable or incomplete."
                     ),
+                    verification_rule=None,
                 )
             )
             continue
@@ -346,16 +353,31 @@ def evaluate_deep_hypotheses(
                     "data_quality": data_quality,
                 },
                 impact="Use this as a targeted behavior experiment, not a permanent identity label.",
-                recommendation="Review the selected positive, negative, and control matches together before changing the behavior.",
+                recommendation=_deep_recommendation(hypothesis.explanation_type, effect),
                 confidence=confidence,
                 positive_match_ids=tuple(item.match_id for item in positive),
                 negative_match_ids=tuple(item.match_id for item in negative),
                 control_match_ids=tuple(item.match_id for item in control),
                 data_families_used=required,
                 stopping_reason="resolved" if confidence != "low" else "practical_effect_or_quality_not_met",
+                verification_rule="Recheck the same positive, negative, and control definitions on the next eligible evidence batch.",
             )
         )
     return findings
+
+
+def _deep_recommendation(explanation_type: str, effect: float | None) -> str:
+    """Select finite, template-owned Deep guidance from the hypothesis type."""
+
+    del effect
+    return {
+        "functional_job_reuse": "Compare one repeated job across two different heroes in the selected evidence.",
+        "core_to_stretch_transfer": "Compare one familiar hero context with one stretch hero context while keeping the declared lane context visible.",
+        "session_position_reuse": "Compare the same evidence definition in early and later session positions.",
+        "same_session_post_loss_transition": "Record the next eligible match after a loss and compare it with the declared comparable context.",
+        "participation_exposure_quadrant": "Review participation and exposure together across the selected evidence groups.",
+        "session_position_shift": "Compare early and later matches from completed sessions using the declared evidence groups.",
+    }.get(explanation_type, "Review the declared evidence groups using the stored comparison context.")
 
 
 def _hypothesis_values(
@@ -439,14 +461,29 @@ async def acquire_selected_matches(
     plan: SelectionPlan,
     *,
     source: Any,
+    parse_transport: Any | None = None,
     repository: Any,
     account_id: int,
     ledger: DataCostLedger,
     policy: CostPolicy,
+    parse_min_marginal_information_gain: float = 0.10,
 ) -> list[NormalizedMatch]:
     """Hydrate only the globally selected matches, preferring local payloads."""
 
     normalized: list[NormalizedMatch] = []
+    parse_transport = parse_transport or (source if callable(getattr(source, "request_parse", None)) else None)
+    parse_service = None
+    if parse_transport is not None:
+        possible_parse_requests = sum(
+            bool(selected.parse_required or selected.candidate.metadata.get("parse_required_families"))
+            for selected in plan.selected
+        )
+        parse_budget = BudgetState(
+            max_parse_requests=min(25, max(0, possible_parse_requests)),
+            max_data_cost_per_report=160.0,
+            estimated_cost_units=ledger.estimated_cost_units,
+        )
+        parse_service = ParseRequestService(parse_transport, budget=parse_budget, ledger=ledger, policy=policy)
     for selected in plan.selected:
         match_id = selected.match_id
         detail = _cached_detail(repository, match_id)
@@ -478,6 +515,90 @@ async def acquire_selected_matches(
                 units=0.0,
                 metadata={"reason": "cached deep payload"},
             )
+        target_player: dict[str, Any] | None = next(
+            (
+                player
+                for player in detail.get("players", [])
+                if isinstance(player, dict) and player.get("account_id") == account_id
+            ),
+            None,
+        )
+        detail_families = coverage_for_match(detail, target_player).by_family
+        parse_families = {
+            str(item)
+            for item in selected.candidate.metadata.get("parse_required_families", ())
+            if detail_families.get(str(item), 0.0) < 1.0
+        }
+        if selected.parse_required:
+            parse_families.update(
+                str(item)
+                for item in selected.candidate.metadata.get("parse_required_families", ())
+                if detail_families.get(str(item), 0.0) < 1.0
+            )
+            if not parse_families:
+                # A manually constructed plan may mark a parse as required
+                # without naming families; retain the explicit request.
+                parse_families.add("events")
+        if parse_families:
+            raw_parse_gain = selected.candidate.metadata.get("parse_marginal_gain")
+            try:
+                parse_gain = float(raw_parse_gain) if raw_parse_gain is not None else float(selected.marginal_gain)
+            except (TypeError, ValueError):
+                parse_gain = float(selected.marginal_gain)
+            # Stage A's score is the information value before the parse read.
+            # Apply the same relative cost penalty used by candidate scoring so
+            # Stage B cannot spend on a marginal gain below the v6 0.10 floor.
+            if raw_parse_gain is None:
+                parse_gain -= 0.04 * policy.units_for("parse")
+            minimum_parse_gain = max(0.10, float(parse_min_marginal_information_gain))
+            if parse_gain < minimum_parse_gain:
+                ledger.events.append({
+                    "operation": "parse_skipped",
+                    "match_id": match_id,
+                    "estimated_units": 0.0,
+                    "metadata": {
+                        "reason": "parse marginal information gain below threshold",
+                        "parse_marginal_gain": round(parse_gain, 6),
+                        "minimum_parse_marginal_information_gain": minimum_parse_gain,
+                        "required_families": sorted(parse_families),
+                    },
+                })
+                parse_families = set()
+        if parse_families:
+            if parse_service is None:
+                ledger.events.append({
+                    "operation": "parse_unavailable",
+                    "match_id": match_id,
+                    "estimated_units": 0.0,
+                    "metadata": {"reason": "selected parse marker had no parse transport"},
+                })
+            else:
+                parse_result = await parse_service.request_parse(
+                    match_id,
+                    hypothesis_ids=selected.candidate.hypothesis_ids,
+                    required_families=tuple(sorted(parse_families)),
+                    hypothesis_priority=max(0.01, selected.score),
+                )
+                if parse_result.allowed and isinstance(parse_result.payload, dict):
+                    parse_payload = parse_result.payload
+                    job_id = parse_payload.get("job") or parse_payload.get("job_id")
+                    if job_id and callable(getattr(parse_transport, "get_parse_request", None)):
+                        status_payload = await parse_service.get_parse_status(str(job_id))
+                        if isinstance(status_payload, dict):
+                            parse_payload = {**parse_payload, **status_payload}
+                    nested = parse_payload.get("match")
+                    if isinstance(nested, Mapping):
+                        detail = {**detail, **dict(nested)}
+                    else:
+                        detail = {**detail, **parse_payload}
+                    repository.persist_raw_payload(f"/matches/{match_id}/parse", str(match_id), parse_payload)
+                else:
+                    ledger.events.append({
+                        "operation": "parse_abstained",
+                        "match_id": match_id,
+                        "estimated_units": 0.0,
+                        "metadata": {"reason": parse_result.reason},
+                    })
         eligibility = assess_match(detail, detail=detail, account_id=account_id)
         if not eligibility.eligible:
             continue
