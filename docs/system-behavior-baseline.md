@@ -31,10 +31,11 @@ exactly zero detail, parse, and parse-status requests.
 
 Startup is fail-closed when the flag is enabled: both
 `FREE_DNA_V6_BASELINE_ARTIFACT` and `FREE_DNA_V6_THRESHOLD_ARTIFACT` must point
-to validated, versioned, non-MMR artifacts. The checked-in artifacts are test
-fixtures only. Production release remains blocked on the real 1,000-profile
-player-exclusive calibration and holdout gates, including interval coverage,
-family FDR, identity coverage, split-half agreement, and reviewer precision.
+to validated, versioned, non-MMR artifacts. The checked-in fixtures are not
+production calibration. A private 1,130-profile corpus has produced 791-player
+training candidates and a sealed 339-player holdout; those candidates are not
+approved production artifacts until measured synthetic/holdout gates, external
+review, promotion checks, and operator authorization pass.
 
 Deep v2 is an explicitly selected continuation from an immutable report
 question. Its actual acquisition budget is at most 25 detail reads, 25 parses,

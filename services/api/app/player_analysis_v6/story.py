@@ -53,6 +53,7 @@ def assemble_story(
     identity: IdentitySummary,
     findings: Sequence[FindingFamilyResult] | Mapping[str, FindingFamilyResult],
     *,
+    elements: Sequence[Any] | Mapping[str, Any] = (),
     diagnostic_questions: Sequence[DiagnosticQuestion] = (),
     hero_portfolio: Mapping[str, Any] | None = None,
 ) -> tuple[StoryBeat, ...]:
@@ -63,6 +64,13 @@ def assemble_story(
     published.sort(key=lambda item: (-item.confidence_score, -item.identity_value, FINDING_FAMILY_KEYS.index(item.family)))
     strongest_refs = published[0].evidence_refs if published else ()
     secondary_refs = published[1].evidence_refs if len(published) > 1 else ()
+    element_values = tuple(elements.values()) if isinstance(elements, Mapping) else tuple(elements)
+    combat_finding = next((item for item in values if item.family == "combat_expression"), None)
+    recommendation_values = [
+        dict(item.recommendation)
+        for item in published
+        if isinstance(item.recommendation, Mapping)
+    ]
     payloads: Mapping[str, tuple[str, ...]] = {
         "self_estimate": (),
         "identity_reveal": identity.evidence_refs,
@@ -96,6 +104,15 @@ def assemble_story(
         available = key not in {"strongest_finding", "secondary_finding"} or bool(payloads[key])
         if key == "recommendation":
             available = any(item.published and item.recommendation for item in values)
+        elif key == "pool_prediction":
+            available = bool(
+                (hero_portfolio or {}).get("prediction", {}).get("options", ())
+                or (hero_portfolio or {}).get("timeline", ())
+            )
+        elif key == "hero_mirror":
+            available = bool((hero_portfolio or {}).get("hero_mirror"))
+        elif key == "deep_fork":
+            available = any(item.offered and item.available for item in diagnostic_questions)
         options: tuple[Mapping[str, Any], ...] = ()
         if key == "self_estimate":
             options = _SELF_ESTIMATE_OPTIONS
@@ -114,6 +131,35 @@ def assemble_story(
                 for item in published
                 if isinstance(item.recommendation, Mapping)
             )
+        observed: Mapping[str, Any]
+        if key == "self_estimate":
+            observed = {"user_reported": None}
+        elif key == "identity_reveal":
+            observed = {
+                "identity": identity.as_dict(),
+                "elements": [item.as_dict() for item in element_values],
+            }
+        elif key == "pool_prediction":
+            observed = {
+                "prediction": dict((hero_portfolio or {}).get("prediction", {})),
+                "evolution": dict((hero_portfolio or {}).get("evolution", {})),
+                "timeline": list((hero_portfolio or {}).get("timeline", ())),
+            }
+        elif key == "combat_expression":
+            observed = {
+                "user_reported": None,
+                "finding": combat_finding.as_dict() if combat_finding is not None else None,
+            }
+        elif key == "strongest_finding":
+            observed = {"finding": published[0].as_dict() if published else None}
+        elif key == "secondary_finding":
+            observed = {"finding": published[1].as_dict() if len(published) > 1 else None}
+        elif key == "recommendation":
+            observed = {"recommendations": recommendation_values}
+        elif key == "hero_mirror":
+            observed = {"hero_mirror": dict((hero_portfolio or {}).get("hero_mirror", {}))}
+        else:
+            observed = {"diagnostic_questions": [item.as_dict() for item in diagnostic_questions if item.offered]}
         result.append(
             StoryBeat(
                 key,
@@ -128,10 +174,7 @@ def assemble_story(
                 payload_refs=tuple(dict.fromkeys(payloads[key])),
                 evidence_refs=tuple(dict.fromkeys(payloads[key])),
                 options=options,
-                observed={
-                    "published": bool(published),
-                    "finding_family": published[0].family if published and key == "strongest_finding" else published[1].family if len(published) > 1 and key == "secondary_finding" else None,
-                },
+                observed=observed,
             )
         )
     return tuple(result)

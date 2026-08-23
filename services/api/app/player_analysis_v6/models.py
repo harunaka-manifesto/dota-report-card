@@ -427,7 +427,7 @@ class FindingFamilyResult:
             "claim": self.claim,
             "evidence_text": self.evidence_text,
             "interpretation": self.interpretation,
-            "recommendation": self.recommendation,
+            "recommendation": _plain(self.recommendation),
             "qualification_reason": self.qualification_reason,
             "limitations": list(self.limitations),
             "diagnostic_question_ids": list(self.diagnostic_question_ids),

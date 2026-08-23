@@ -21,6 +21,7 @@ from .metrics import (
     match_weighted_effective_count,
     robust_dispersion,
     shannon_effective_count,
+    taxonomy_labels,
 )
 from .models import ElementDefinition, ElementResultV6, Estimate
 from .statistics import BootstrapResult, bootstrap_stability, clustered_bootstrap
@@ -288,25 +289,35 @@ def _transfer_component_directions(
     return directions
 
 
-def _transfer_direction(directions: Mapping[str, str]) -> str:
+def _transfer_direction(
+    directions: Mapping[str, str],
+    confident_directions: Mapping[str, str] | None = None,
+) -> str:
+    confident_directions = confident_directions or directions
+    usable = sum(value != "unknown" for value in directions.values())
+    if usable < 2:
+        return "unknown"
     positive = sum(value == "positive" for value in directions.values())
     negative = sum(value == "negative" for value in directions.values())
-    if positive >= 2 and negative == 0:
+    confidently_positive = any(value == "positive" for value in confident_directions.values())
+    confidently_negative = any(value == "negative" for value in confident_directions.values())
+    if positive >= 2 and not confidently_negative:
         return "positive"
-    if negative >= 2 and positive == 0:
+    if negative >= 2 and not confidently_positive:
         return "negative"
-    if positive and negative:
-        return "mixed"
-    if positive + negative < 2:
-        return "unknown"
     return "mixed"
 
 
-def _transfer_score(records: Sequence[Mapping[str, Any]], thresholds: Mapping[str, MetricThreshold]) -> float:
+def _transfer_score(
+    records: Sequence[Mapping[str, Any]],
+    thresholds: Mapping[str, MetricThreshold],
+    confident_directions: Mapping[str, str] | None = None,
+) -> float:
     components = _transfer_components(records)
-    direction = _transfer_direction(_transfer_component_directions(components, thresholds))
-    positive = sum(value == "positive" for value in _transfer_component_directions(components, thresholds).values())
-    negative = sum(value == "negative" for value in _transfer_component_directions(components, thresholds).values())
+    component_directions = _transfer_component_directions(components, thresholds)
+    direction = _transfer_direction(component_directions, confident_directions)
+    positive = sum(value == "positive" for value in component_directions.values())
+    negative = sum(value == "negative" for value in component_directions.values())
     if direction == "positive":
         return 1.0 if positive == 3 else 2.0 / 3.0
     if direction == "negative":
@@ -341,6 +352,7 @@ def _consistency_component_key(component: str) -> str:
 def _consistency_classification(
     rows: Sequence[Mapping[str, Any]],
     thresholds: Mapping[str, MetricThreshold],
+    confident_directions: Mapping[str, str] | None = None,
 ) -> tuple[str, dict[str, str], dict[str, float | None]]:
     directions: dict[str, str] = {}
     dispersions: dict[str, float | None] = {}
@@ -363,23 +375,33 @@ def _consistency_classification(
             directions[component] = "variable"
         else:
             directions[component] = "neutral"
+    confident_directions = confident_directions or directions
+    usable_count = sum(value != "unknown" for value in directions.values())
+    if usable_count < 2:
+        return "unknown", directions, dispersions
     stable_count = sum(value == "stable" for value in directions.values())
     variable_count = sum(value == "variable" for value in directions.values())
-    if stable_count >= 2 and variable_count == 0:
+    confidently_stable = any(value == "stable" for value in confident_directions.values())
+    confidently_variable = any(value == "variable" for value in confident_directions.values())
+    if stable_count >= 2 and not confidently_variable:
         direction = "stable"
-    elif variable_count >= 2 and stable_count == 0:
+    elif variable_count >= 2 and not confidently_stable:
         direction = "variable"
-    elif stable_count and variable_count:
-        direction = "mixed"
-    elif stable_count + variable_count < 2:
-        direction = "unknown"
     else:
         direction = "mixed"
     return direction, directions, dispersions
 
 
-def _consistency_score(rows: Sequence[Mapping[str, Any]], thresholds: Mapping[str, MetricThreshold]) -> float:
-    direction, _components, _dispersions = _consistency_classification(rows, thresholds)
+def _consistency_score(
+    rows: Sequence[Mapping[str, Any]],
+    thresholds: Mapping[str, MetricThreshold],
+    confident_directions: Mapping[str, str] | None = None,
+) -> float:
+    direction, _components, _dispersions = _consistency_classification(
+        rows,
+        thresholds,
+        confident_directions,
+    )
     return {"stable": 1.0, "variable": -1.0, "mixed": 0.0, "unknown": math.nan}[direction]
 
 
@@ -418,6 +440,9 @@ def compute_elements(
     by_match: dict[Any, Any] = {}
     for index, item in enumerate(items):
         match_id = _get(item, "match_id", index)
+        # Preserve missing taxonomy rows in the denominator. Omitting them
+        # would make any non-empty partial mapping appear to have 100% coverage.
+        by_match[match_id] = None
         if taxonomy_by_match and match_id in taxonomy_by_match:
             by_match[match_id] = taxonomy_by_match[match_id]
         elif taxonomy_by_hero and _hero(item) in taxonomy_by_hero:
@@ -431,12 +456,7 @@ def compute_elements(
             raw = by_match.get(_get(item, "match_id", index))
             if raw is None:
                 continue
-            if isinstance(raw, str):
-                labels: tuple[str, ...] = (raw,)
-            elif isinstance(raw, Mapping):
-                labels = tuple(str(key) for key, value in raw.items() if value)
-            else:
-                labels = tuple(str(value) for value in raw if value is not None)
+            labels = taxonomy_labels(raw)
             if labels:
                 label_groups[_session_id(item, index)].append(tuple(dict.fromkeys(labels)))
         def estimate_toolkit(rows: Sequence[Any]) -> float:
@@ -450,7 +470,8 @@ def compute_elements(
         toolkit_boot = clustered_bootstrap(label_groups, estimator=estimate_toolkit, iterations=bootstrap_iterations, seed=seed + 1)
         toolkit_threshold = _threshold(definitions["toolkit"].metric_key, thresholds)
         toolkit_zone = toolkit_threshold.zone(toolkit)
-        result["toolkit"] = _element(definitions["toolkit"], result=toolkit_boot, value=toolkit, direction=toolkit_threshold.direction(toolkit), zone=toolkit_zone, sample_size=sample_size, sessions=session_count, coverage=taxonomy_coverage, thresholds=thresholds, evidence_refs=("element:toolkit",), raw_metrics={"taxonomy_coverage": taxonomy_coverage})
+        covered_matches = sum(bool(taxonomy_labels(raw)) for raw in by_match.values())
+        result["toolkit"] = _element(definitions["toolkit"], result=toolkit_boot, value=toolkit, direction=toolkit_threshold.direction(toolkit), zone=toolkit_zone, sample_size=covered_matches, sessions=session_count, coverage=taxonomy_coverage, thresholds=thresholds, evidence_refs=("element:toolkit",), raw_metrics={"taxonomy_coverage": taxonomy_coverage})
 
     for offset, key in enumerate(("involvement", "finishing", "death_exposure"), start=2):
         metric = definitions[key].metric_key
@@ -484,16 +505,9 @@ def compute_elements(
         ids = [str(record["session_id"]) for record in records]
         point_components = _transfer_components(records)
         component_directions = _transfer_component_directions(point_components, thresholds)
-        direction = _transfer_direction(component_directions)
-        transfer_boot = clustered_bootstrap(
-            records,
-            ids,
-            estimator=lambda rows: _transfer_score(rows, thresholds),
-            iterations=bootstrap_iterations,
-            seed=seed + 5,
-        )
         component_intervals: dict[str, list[float] | None] = {}
         component_replicates: dict[str, tuple[float, ...]] = {}
+        confident_component_directions: dict[str, str] = {}
         for component_index, component in enumerate(("outcome", "activity", "survival")):
             def component_estimator(rows: Sequence[Mapping[str, Any]], component: str = component) -> float:
                 value = _transfer_components(rows).get(component)
@@ -501,9 +515,28 @@ def compute_elements(
             component_boot = clustered_bootstrap(records, ids, estimator=component_estimator, iterations=bootstrap_iterations, seed=seed + 20 + component_index)
             component_intervals[component] = list(component_boot.interval) if component_boot.interval else None
             component_replicates[component] = component_boot.replicates
-        baseline_opportunities = sum(record.get("activity") is not None or record.get("survival") is not None for record in records)
+            threshold = _threshold(f"transfer_{component}_delta", thresholds)
+            if component_boot.interval is None:
+                confident_component_directions[component] = "unknown"
+            elif component_boot.lower is not None and component_boot.lower > threshold.practical_margin:
+                confident_component_directions[component] = "positive"
+            elif component_boot.upper is not None and component_boot.upper < -threshold.practical_margin:
+                confident_component_directions[component] = "negative"
+            else:
+                confident_component_directions[component] = "neutral"
+        direction = _transfer_direction(component_directions, confident_component_directions)
+        transfer_boot = clustered_bootstrap(
+            records,
+            ids,
+            estimator=lambda rows: _transfer_score(rows, thresholds, confident_component_directions),
+            iterations=bootstrap_iterations,
+            seed=seed + 5,
+        )
         resolved_baseline_values = sum(record.get(component) is not None for record in records for component in ("activity", "survival"))
-        transfer_coverage = resolved_baseline_values / max(1, 2 * baseline_opportunities)
+        # Every core/stretch match is an opportunity for each adjusted
+        # component.  Excluding fully unresolved matches from the denominator
+        # would inflate coverage precisely when the baseline is weakest.
+        transfer_coverage = resolved_baseline_values / max(1, 2 * len(records))
         transfer_limitations: list[str] = []
         if usable_core < 10:
             transfer_limitations.append("fewer than 10 usable core matches")
@@ -535,7 +568,7 @@ def compute_elements(
                 "stretch_hero_ids": sorted(stretch, key=repr),
                 "usable_core_matches": usable_core,
                 "usable_stretch_matches": usable_stretch,
-                "components": {"direction": direction, "component_deltas": point_components, "component_directions": component_directions},
+                "components": {"direction": direction, "component_deltas": point_components, "component_directions": component_directions, "confident_component_directions": confident_component_directions},
                 "component_intervals": component_intervals,
                 "component_bootstrap_replicates": component_replicates,
             },
@@ -557,17 +590,9 @@ def compute_elements(
         result["consistency"] = _unavailable(definitions["consistency"], sample_size, session_count, 0.0, f"requires {MIN_CONSISTENCY_SESSIONS} usable sessions and two-of-three agreement")
     else:
         ids = [str(row["session_id"]) for row in consistency_rows]
-        consistency_boot = clustered_bootstrap(
-            consistency_rows,
-            ids,
-            estimator=lambda rows: _consistency_score(rows, thresholds),
-            iterations=bootstrap_iterations,
-            seed=seed + 6,
-        )
-        consistency_direction, component_directions, component_dispersions = _consistency_classification(consistency_rows, thresholds)
-        direction = {"stable": "positive", "variable": "negative", "mixed": "mixed", "unknown": "unknown"}[consistency_direction]
         consistency_component_replicates: dict[str, tuple[float, ...]] = {}
         consistency_component_intervals: dict[str, list[float] | None] = {}
+        consistency_confident_directions: dict[str, str] = {}
         for component_index, component in enumerate(("outcome", "activity", "survival")):
             def component_estimator(rows: Sequence[Mapping[str, Any]], component: str = component) -> float:
                 values = [float(row[component]) for row in rows if _finite(row.get(component)) is not None]
@@ -576,6 +601,30 @@ def compute_elements(
             component_boot = clustered_bootstrap(consistency_rows, ids, estimator=component_estimator, iterations=bootstrap_iterations, seed=seed + 30 + component_index)
             consistency_component_replicates[component] = component_boot.replicates
             consistency_component_intervals[component] = list(component_boot.interval) if component_boot.interval else None
+            threshold = _threshold(_consistency_component_key(component), thresholds)
+            stable_cutoff = threshold.stable_cutoff if threshold.stable_cutoff is not None else threshold.practical_margin
+            variable_cutoff = threshold.variable_cutoff if threshold.variable_cutoff is not None else threshold.practical_margin
+            if component_boot.interval is None:
+                consistency_confident_directions[component] = "unknown"
+            elif component_boot.upper is not None and component_boot.upper < stable_cutoff:
+                consistency_confident_directions[component] = "stable"
+            elif component_boot.lower is not None and component_boot.lower > variable_cutoff:
+                consistency_confident_directions[component] = "variable"
+            else:
+                consistency_confident_directions[component] = "neutral"
+        consistency_direction, component_directions, component_dispersions = _consistency_classification(
+            consistency_rows,
+            thresholds,
+            consistency_confident_directions,
+        )
+        direction = {"stable": "positive", "variable": "negative", "mixed": "mixed", "unknown": "unknown"}[consistency_direction]
+        consistency_boot = clustered_bootstrap(
+            consistency_rows,
+            ids,
+            estimator=lambda rows: _consistency_score(rows, thresholds, consistency_confident_directions),
+            iterations=bootstrap_iterations,
+            seed=seed + 6,
+        )
         consistency_coverage = len(consistency_rows) / session_count if session_count else 0.0
         result["consistency"] = _element(
             definitions["consistency"],
@@ -588,7 +637,7 @@ def compute_elements(
             coverage=consistency_coverage,
             thresholds=thresholds,
             evidence_refs=tuple(f"consistency:{key}" for key in component_directions),
-            raw_metrics={"components": {"direction": consistency_direction, "component_directions": component_directions, "component_dispersion": component_dispersions}, "component_intervals": consistency_component_intervals, "component_bootstrap_replicates": consistency_component_replicates},
+            raw_metrics={"components": {"direction": consistency_direction, "component_directions": component_directions, "confident_component_directions": consistency_confident_directions, "component_dispersion": component_dispersions}, "component_intervals": consistency_component_intervals, "component_bootstrap_replicates": consistency_component_replicates},
         )
 
     return tuple(result[key] for key in PUBLIC_ELEMENT_KEYS)

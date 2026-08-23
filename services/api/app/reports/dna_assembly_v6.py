@@ -57,6 +57,7 @@ def assemble_free_dna_report_v6(
     analysis_version_fingerprint: str,
     baseline_resolver: BaselineResolver | None = None,
     thresholds: Mapping[str, MetricThreshold] | None = None,
+    taxonomy_by_hero: Mapping[Any, Any] | None = None,
     completed_sessions: Mapping[str, bool] | None = None,
 ) -> dict[str, Any]:
     """Assemble one immutable v6 snapshot without altering v5 projection code."""
@@ -72,6 +73,7 @@ def assemble_free_dna_report_v6(
         seed=seed,
         baseline_resolver=baseline_resolver,
         thresholds=thresholds,
+        taxonomy_by_hero=taxonomy_by_hero,
         completed_sessions=completed_sessions,
     )
     public = core.as_dict()
@@ -80,23 +82,29 @@ def assemble_free_dna_report_v6(
     evidence_refs = {
         ref for item in [*elements, *findings] for ref in item.get("evidence_refs", [])
     }
+    evidence_refs.update(str(ref) for ref in public.get("hero_portfolio", {}).get("evidence_refs", ()))
+    evidence_refs.update(
+        str(ref)
+        for question in core.diagnostic_questions
+        for ref in question.evidence_refs
+    )
     identity_refs = [ref for ref in core.identity.evidence_refs if ref in evidence_refs]
     data_from, data_to = _date_bounds(analysis)
     pages = [
         {
             "id": public_id,
             "kind": beat.key,
-            "observed": dict(beat.observed),
+            "observed": _plain_json(beat.observed),
             "content": {
                 "title": beat.title,
                 "prompt": beat.prompt,
                 "interaction": beat.interaction,
-                "observed": dict(beat.observed),
+                "observed": _plain_json(beat.observed),
             },
             "title": beat.title,
             "prompt": beat.prompt,
             "body": beat.prompt,
-            "options": [dict(option) for option in beat.options],
+            "options": [_plain_json(option) for option in beat.options],
             "evidence_refs": [ref for ref in beat.evidence_refs if ref in evidence_refs],
             "available": beat.available,
             "skippable": beat.skippable,
@@ -313,6 +321,14 @@ def _interval(value: tuple[float, float] | None) -> dict[str, float] | None:
     if value is None:
         return None
     return {"lower": value[0], "upper": value[1], "level": 0.95}
+
+
+def _plain_json(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {str(key): _plain_json(item) for key, item in value.items()}
+    if isinstance(value, (tuple, list, set, frozenset)):
+        return [_plain_json(item) for item in value]
+    return value
 
 
 def _quality(core: Any, history_tier: str, analysis: Any) -> dict[str, Any]:

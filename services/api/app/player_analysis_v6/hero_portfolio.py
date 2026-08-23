@@ -6,7 +6,11 @@ from collections import Counter
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from app.heroes.knowledge import FullRosterHeroKnowledgeProvider
+from app.heroes.taxonomy import load_default_taxonomy
+
 from .context_adjustment import match_field
+from .metrics import taxonomy_labels
 
 
 def _get(value: Any, key: str, default: Any = None) -> Any:
@@ -15,13 +19,34 @@ def _get(value: Any, key: str, default: Any = None) -> Any:
     return getattr(value, key, default)
 
 
+def load_v6_hero_taxonomy() -> dict[int, dict[str, Any]]:
+    """Load the checked-in reviewed functional taxonomy used by v6."""
+
+    taxonomy = load_default_taxonomy()
+    provider = FullRosterHeroKnowledgeProvider(taxonomy)
+    result: dict[int, dict[str, Any]] = {}
+    for hero_id in sorted(taxonomy.heroes):
+        entry = provider.get(hero_id)
+        if entry is None or entry.review_status not in {"approved", "reviewed"}:
+            continue
+        jobs = tuple(dict.fromkeys((*entry.primary_functions, *entry.secondary_functions)))
+        if not jobs:
+            continue
+        result[hero_id] = {
+            "hero_function": jobs[0],
+            "functional_jobs": jobs,
+            "source_version": provider.version,
+        }
+    return result
+
+
 def build_v6_hero_portfolio(
     matches: Sequence[Any],
     *,
     taxonomy_by_hero: Mapping[Any, Any] | None = None,
     min_hero_matches: int = 5,
 ) -> dict[str, Any]:
-    """Return semantic portfolio context without archetype labels or rank."""
+    """Return semantic portfolio context without fixed identity labels or rank."""
 
     counts = Counter(match_field(item, "hero_id") for item in matches if match_field(item, "hero_id") is not None)
     established = [(hero, count) for hero, count in counts.items() if count >= min_hero_matches]
@@ -40,12 +65,7 @@ def build_v6_hero_portfolio(
     hero_rows: list[dict[str, Any]] = []
     for hero, count in established:
         taxonomy = taxonomy_by_hero.get(hero) if taxonomy_by_hero else None
-        if isinstance(taxonomy, Mapping):
-            jobs = tuple(str(key) for key, value in taxonomy.items() if value)
-        elif isinstance(taxonomy, str):
-            jobs = (taxonomy,)
-        else:
-            jobs = tuple(str(item) for item in (taxonomy or ()) if item is not None)
+        jobs = taxonomy_labels(taxonomy)
         hero_rows.append({
             "hero_id": hero,
             "match_count": count,
@@ -90,6 +110,12 @@ def build_v6_hero_portfolio(
         "heroes": hero_rows,
         "evidence_refs": refs,
         "hero_mirror_refs": refs,
+        "hero_mirror": {
+            "title": "Hero Mirror",
+            "common_thread": thread,
+            "heroes": hero_rows[:3],
+            "evidence_refs": refs,
+        },
         "prediction_refs": ["portfolio:prediction"],
         "timeline_refs": ["portfolio:timeline"],
         "prediction": {
@@ -110,4 +136,4 @@ def build_v6_hero_portfolio(
 
 adapt_hero_portfolio = build_v6_hero_portfolio
 
-__all__ = ["build_v6_hero_portfolio", "adapt_hero_portfolio"]
+__all__ = ["build_v6_hero_portfolio", "adapt_hero_portfolio", "load_v6_hero_taxonomy"]

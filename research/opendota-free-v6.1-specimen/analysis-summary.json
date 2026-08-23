@@ -1,0 +1,7113 @@
+{
+  "artifact": {
+    "raw_sha256": "7f08e56bac7844850a9123203cfb6cdcc2366440a6bbc9a4042e92b608c84458",
+    "request_contract": {
+      "date_days": 365,
+      "endpoint": "/players/{account_id}/matches",
+      "limit": null,
+      "offset": null,
+      "physical_http_requests": 1,
+      "requested_but_absent": [
+        "leagueid"
+      ],
+      "requested_fields": [
+        "match_id",
+        "player_slot",
+        "radiant_win",
+        "hero_id",
+        "hero_variant",
+        "start_time",
+        "duration",
+        "game_mode",
+        "lobby_type",
+        "version",
+        "cluster",
+        "leagueid",
+        "kills",
+        "deaths",
+        "assists",
+        "level",
+        "last_hits",
+        "denies",
+        "gold_per_min",
+        "xp_per_min",
+        "hero_damage",
+        "tower_damage",
+        "hero_healing",
+        "leaver_status",
+        "party_size",
+        "lane",
+        "lane_role",
+        "is_roaming",
+        "skill",
+        "average_rank",
+        "item_0",
+        "item_1",
+        "item_2",
+        "item_3",
+        "item_4",
+        "item_5",
+        "item_neutral"
+      ],
+      "returned_fields": [
+        "assists",
+        "average_rank",
+        "cluster",
+        "deaths",
+        "denies",
+        "duration",
+        "game_mode",
+        "gold_per_min",
+        "hero_damage",
+        "hero_healing",
+        "hero_id",
+        "hero_variant",
+        "is_roaming",
+        "item_0",
+        "item_1",
+        "item_2",
+        "item_3",
+        "item_4",
+        "item_5",
+        "item_neutral",
+        "kills",
+        "lane",
+        "lane_role",
+        "last_hits",
+        "leaver_status",
+        "level",
+        "lobby_type",
+        "match_id",
+        "party_size",
+        "player_slot",
+        "radiant_win",
+        "skill",
+        "start_time",
+        "tower_damage",
+        "version",
+        "xp_per_min"
+      ],
+      "significant": 1
+    },
+    "retrieved_at": "2026-08-23T12:50:18Z",
+    "schema_version": "free-v6.1-specimen-analysis-1.0.0",
+    "source": "local-only analysis of raw-history.json"
+  },
+  "boundary_findings": {
+    "lane_context_coverage": 0.024941,
+    "local_time_unavailable": "start_time is UTC and cluster is not a reliable player-time-zone identifier",
+    "party_size_coverage": 0.362233,
+    "rank_metadata_excluded_from_identity": {
+      "average_rank_coverage": 1.0,
+      "skill_coverage": 0.0
+    },
+    "scoreboard_extra_coverage": {
+      "denies": 1.0,
+      "gold_per_min": 1.0,
+      "hero_damage": 1.0,
+      "hero_healing": 1.0,
+      "last_hits": 1.0,
+      "level": 1.0,
+      "tower_damage": 1.0,
+      "xp_per_min": 1.0
+    },
+    "source_version_coverage": 0.024941,
+    "team_kill_context_unavailable": "one player's K+A cannot reconstruct team kills or fight participation",
+    "true_hero_discovery_unavailable": "the left-bounded window cannot establish lifetime novelty"
+  },
+  "contexts": {
+    "clusters": {
+      "123": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 4.604966,
+            "median": 4.604966,
+            "q25": 4.604966,
+            "q75": 4.604966
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.108352,
+            "median": 0.108352,
+            "q25": 0.108352,
+            "q75": 0.108352
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.454545,
+            "median": 0.454545,
+            "q25": 0.454545,
+            "q75": 0.454545
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 256.0,
+            "median": 256.0,
+            "q25": 256.0,
+            "q75": 256.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 762.311512,
+            "median": 762.311512,
+            "q25": 762.311512,
+            "q75": 762.311512
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.297968,
+            "median": 0.297968,
+            "q25": 0.297968,
+            "q75": 0.297968
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.677201,
+            "median": 0.677201,
+            "q25": 0.677201,
+            "q75": 0.677201
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 343.0,
+            "median": 343.0,
+            "q25": 343.0,
+            "q75": 343.0
+          }
+        },
+        "n": 1
+      },
+      "151": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.890253,
+            "median": 1.752848,
+            "q25": 1.249995,
+            "q75": 2.464321
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.123446,
+            "median": 0.087125,
+            "q25": 0.048251,
+            "q75": 0.166837
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.284876,
+            "median": 0.259259,
+            "q25": 0.166667,
+            "q75": 0.364211
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 445.775701,
+            "median": 424.0,
+            "q25": 353.0,
+            "q75": 515.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 559.680362,
+            "median": 544.287132,
+            "q25": 400.287358,
+            "q75": 697.537083
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 64.46797,
+            "median": 10.8413,
+            "q25": 0.0,
+            "q75": 86.086795
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.508284,
+            "median": 0.498489,
+            "q25": 0.384044,
+            "q75": 0.61572
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.329309,
+            "median": 3.906511,
+            "q25": 1.982693,
+            "q75": 6.554678
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 51.321012,
+            "median": 7.863105,
+            "q25": 1.179633,
+            "q75": 33.15804
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.429907,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 654.140187,
+            "median": 620.0,
+            "q25": 512.0,
+            "q75": 767.5
+          }
+        },
+        "n": 107
+      },
+      "152": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.92159,
+            "median": 1.844532,
+            "q25": 1.22449,
+            "q75": 2.532617
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.122429,
+            "median": 0.089241,
+            "q25": 0.027548,
+            "q75": 0.164103
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.282332,
+            "median": 0.25,
+            "q25": 0.157895,
+            "q75": 0.380952
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 461.669725,
+            "median": 438.0,
+            "q25": 366.0,
+            "q75": 545.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 591.056392,
+            "median": 569.583859,
+            "q25": 388.994943,
+            "q75": 712.048411
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 94.313911,
+            "median": 14.809091,
+            "q25": 0.0,
+            "q75": 137.150259
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.545045,
+            "median": 0.523842,
+            "q25": 0.422111,
+            "q75": 0.652734
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.552565,
+            "median": 4.46281,
+            "q25": 1.791383,
+            "q75": 6.582624
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 52.871822,
+            "median": 10.8096,
+            "q25": 2.94686,
+            "q75": 49.477266
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.513761,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 679.954128,
+            "median": 674.0,
+            "q25": 527.0,
+            "q75": 819.0
+          }
+        },
+        "n": 109
+      },
+      "153": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.876798,
+            "median": 1.815431,
+            "q25": 1.251714,
+            "q75": 2.362211
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.113678,
+            "median": 0.080863,
+            "q25": 0.042781,
+            "q75": 0.160019
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.27434,
+            "median": 0.25,
+            "q25": 0.136364,
+            "q75": 0.377976
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 451.868132,
+            "median": 445.0,
+            "q25": 346.0,
+            "q75": 522.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 555.861579,
+            "median": 530.445158,
+            "q25": 378.660787,
+            "q75": 678.816091
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 85.050628,
+            "median": 9.889727,
+            "q25": 0.0,
+            "q75": 139.58714
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.53322,
+            "median": 0.534918,
+            "q25": 0.388332,
+            "q75": 0.66173
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.319529,
+            "median": 4.107946,
+            "q25": 1.766313,
+            "q75": 5.944001
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 59.539922,
+            "median": 11.783505,
+            "q25": 2.618752,
+            "q75": 63.611685
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.505495,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 658.769231,
+            "median": 663.0,
+            "q25": 497.5,
+            "q75": 785.0
+          }
+        },
+        "n": 91
+      },
+      "154": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.465599,
+            "median": 2.660162,
+            "q25": 2.519004,
+            "q75": 2.704669
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.129123,
+            "median": 0.073255,
+            "q25": 0.026104,
+            "q75": 0.128683
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.245718,
+            "median": 0.173363,
+            "q25": 0.146205,
+            "q75": 0.214286
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 373.0,
+            "median": 390.5,
+            "q25": 359.25,
+            "q75": 403.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 455.45309,
+            "median": 331.522452,
+            "q25": 267.474679,
+            "q75": 571.043096
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 109.095039,
+            "median": 10.499449,
+            "q25": 0.0,
+            "q75": 58.157842
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.456149,
+            "median": 0.418695,
+            "q25": 0.279463,
+            "q75": 0.522806
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 3.168205,
+            "median": 2.479531,
+            "q25": 2.183508,
+            "q75": 3.885992
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.91985,
+            "median": 4.176686,
+            "q25": 1.802135,
+            "q75": 7.056456
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.166667,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 540.0,
+            "median": 568.5,
+            "q25": 450.25,
+            "q75": 599.0
+          }
+        },
+        "n": 6
+      },
+      "182": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.428827,
+            "median": 0.428827,
+            "q25": 0.428827,
+            "q75": 0.428827
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.333333,
+            "median": 0.333333,
+            "q25": 0.333333,
+            "q75": 0.333333
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 628.0,
+            "median": 628.0,
+            "q25": 628.0,
+            "q75": 628.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 281.453246,
+            "median": 281.453246,
+            "q25": 281.453246,
+            "q75": 281.453246
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.428827,
+            "median": 0.428827,
+            "q25": 0.428827,
+            "q75": 0.428827
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 10.506254,
+            "median": 10.506254,
+            "q25": 10.506254,
+            "q75": 10.506254
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 490.434783,
+            "median": 490.434783,
+            "q25": 490.434783,
+            "q75": 490.434783
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "q25": 1.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 646.0,
+            "median": 646.0,
+            "q25": 646.0,
+            "q75": 646.0
+          }
+        },
+        "n": 1
+      },
+      "183": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.08243,
+            "median": 2.08243,
+            "q25": 2.08243,
+            "q75": 2.08243
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.104121,
+            "median": 0.104121,
+            "q25": 0.104121,
+            "q75": 0.104121
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.344828,
+            "median": 0.344828,
+            "q25": 0.344828,
+            "q75": 0.344828
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 443.0,
+            "median": 443.0,
+            "q25": 443.0,
+            "q75": 443.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 719.583514,
+            "median": 719.583514,
+            "q25": 719.583514,
+            "q75": 719.583514
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 75.800434,
+            "median": 75.800434,
+            "q25": 75.800434,
+            "q75": 75.800434
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.754881,
+            "median": 0.754881,
+            "q25": 0.754881,
+            "q75": 0.754881
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 1.926247,
+            "median": 1.926247,
+            "q25": 1.926247,
+            "q75": 1.926247
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 33.631236,
+            "median": 33.631236,
+            "q25": 33.631236,
+            "q75": 33.631236
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 1.0,
+            "median": 1.0,
+            "q25": 1.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 567.0,
+            "median": 567.0,
+            "q25": 567.0,
+            "q75": 567.0
+          }
+        },
+        "n": 1
+      },
+      "184": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.699055,
+            "median": 2.699055,
+            "q25": 2.699055,
+            "q75": 2.699055
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.026991,
+            "median": 0.026991,
+            "q25": 0.026991,
+            "q75": 0.026991
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 169.0,
+            "median": 169.0,
+            "q25": 169.0,
+            "q75": 169.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 32.091768,
+            "median": 32.091768,
+            "q25": 32.091768,
+            "q75": 32.091768
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 188.987854,
+            "median": 188.987854,
+            "q25": 188.987854,
+            "q75": 188.987854
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.188934,
+            "median": 0.188934,
+            "q25": 0.188934,
+            "q75": 0.188934
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.161943,
+            "median": 0.161943,
+            "q25": 0.161943,
+            "q75": 0.161943
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 288.0,
+            "median": 288.0,
+            "q25": 288.0,
+            "q75": 288.0
+          }
+        },
+        "n": 1
+      },
+      "185": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 3.191489,
+            "median": 3.191489,
+            "q25": 3.191489,
+            "q75": 3.191489
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.035461,
+            "median": 0.035461,
+            "q25": 0.035461,
+            "q75": 0.035461
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 300.0,
+            "median": 300.0,
+            "q25": 300.0,
+            "q75": 300.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 320.070922,
+            "median": 320.070922,
+            "q25": 320.070922,
+            "q75": 320.070922
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.390071,
+            "median": 0.390071,
+            "q25": 0.390071,
+            "q75": 0.390071
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 1.702128,
+            "median": 1.702128,
+            "q25": 1.702128,
+            "q75": 1.702128
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 466.0,
+            "median": 466.0,
+            "q25": 466.0,
+            "q75": 466.0
+          }
+        },
+        "n": 1
+      },
+      "191": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.394628,
+            "median": 1.576174,
+            "q25": 0.316431,
+            "q75": 1.923708
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.190062,
+            "median": 0.22699,
+            "q25": 0.042794,
+            "q75": 0.289651
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.267233,
+            "median": 0.238636,
+            "q25": 0.173953,
+            "q75": 0.334615
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 488.9,
+            "median": 476.5,
+            "q25": 337.25,
+            "q75": 623.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 574.049544,
+            "median": 575.362004,
+            "q25": 285.663518,
+            "q75": 798.106068
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 91.922255,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.507577,
+            "median": 0.591296,
+            "q25": 0.357151,
+            "q75": 0.620618
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 5.047118,
+            "median": 4.889611,
+            "q25": 0.838528,
+            "q75": 7.583898
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 109.138165,
+            "median": 35.985962,
+            "q25": 11.387175,
+            "q75": 113.484484
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.6,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 667.4,
+            "median": 639.0,
+            "q25": 554.0,
+            "q75": 823.25
+          }
+        },
+        "n": 10
+      },
+      "192": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.587212,
+            "median": 2.587212,
+            "q25": 2.254802,
+            "q75": 2.919622
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.032974,
+            "median": 0.032974,
+            "q25": 0.028102,
+            "q75": 0.037847
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.199605,
+            "median": 0.199605,
+            "q25": 0.190711,
+            "q75": 0.208498
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 354.0,
+            "median": 354.0,
+            "q25": 344.0,
+            "q75": 364.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 518.98179,
+            "median": 518.98179,
+            "q25": 451.569873,
+            "q75": 586.393708
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.501156,
+            "median": 0.501156,
+            "q25": 0.496217,
+            "q75": 0.506095
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 1.569549,
+            "median": 1.569549,
+            "q25": 1.297412,
+            "q75": 1.841685
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.847851,
+            "median": 0.847851,
+            "q25": 0.423926,
+            "q75": 1.271777
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.5,
+            "median": 0.5,
+            "q25": 0.25,
+            "q75": 0.75
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 646.5,
+            "median": 646.5,
+            "q25": 643.25,
+            "q75": 649.75
+          }
+        },
+        "n": 2
+      },
+      "193": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.272203,
+            "median": 1.423434,
+            "q25": 0.935551,
+            "q75": 1.760086
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.179,
+            "median": 0.140037,
+            "q25": 0.129913,
+            "q75": 0.189125
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.205377,
+            "median": 0.240385,
+            "q25": 0.191595,
+            "q75": 0.254167
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 452.0,
+            "median": 497.5,
+            "q25": 392.0,
+            "q75": 557.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 483.742935,
+            "median": 435.494908,
+            "q25": 408.46795,
+            "q75": 510.769893
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 191.389478,
+            "median": 176.257796,
+            "q25": 0.0,
+            "q75": 367.647274
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.535652,
+            "median": 0.54698,
+            "q25": 0.3825,
+            "q75": 0.700133
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 3.977652,
+            "median": 4.406174,
+            "q25": 2.139893,
+            "q75": 6.243933
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 181.154998,
+            "median": 85.099912,
+            "q25": 23.317228,
+            "q75": 242.937682
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.75,
+            "median": 1.0,
+            "q25": 0.75,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 640.5,
+            "median": 590.0,
+            "q25": 519.75,
+            "q75": 710.75
+          }
+        },
+        "n": 4
+      },
+      "271": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.833258,
+            "median": 1.731575,
+            "q25": 1.244772,
+            "q75": 2.205519
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.099012,
+            "median": 0.070309,
+            "q25": 0.036951,
+            "q75": 0.12086
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.279225,
+            "median": 0.238613,
+            "q25": 0.166667,
+            "q75": 0.358333
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 443.436364,
+            "median": 418.0,
+            "q25": 326.5,
+            "q75": 539.75
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 566.538597,
+            "median": 518.677559,
+            "q25": 385.521023,
+            "q75": 675.517746
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 77.938162,
+            "median": 12.914458,
+            "q25": 0.0,
+            "q75": 110.574164
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.558564,
+            "median": 0.549251,
+            "q25": 0.42073,
+            "q75": 0.673557
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.256802,
+            "median": 3.66596,
+            "q25": 1.623752,
+            "q75": 6.500181
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 40.643383,
+            "median": 8.625811,
+            "q25": 0.521253,
+            "q75": 38.068847
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.536364,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 666.3,
+            "median": 654.5,
+            "q25": 493.25,
+            "q75": 797.75
+          }
+        },
+        "n": 110
+      },
+      "272": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.898869,
+            "median": 1.720958,
+            "q25": 1.221873,
+            "q75": 2.424246
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.099086,
+            "median": 0.065467,
+            "q25": 0.032228,
+            "q75": 0.147593
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.259817,
+            "median": 0.246951,
+            "q25": 0.16,
+            "q75": 0.333333
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 442.12987,
+            "median": 418.5,
+            "q25": 327.0,
+            "q75": 532.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 567.272451,
+            "median": 505.337406,
+            "q25": 375.194539,
+            "q75": 729.359537
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 64.439332,
+            "median": 3.711683,
+            "q25": 0.0,
+            "q75": 100.057119
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.555124,
+            "median": 0.538878,
+            "q25": 0.385358,
+            "q75": 0.704353
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.300843,
+            "median": 3.546836,
+            "q25": 1.583773,
+            "q75": 6.563228
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 51.84993,
+            "median": 9.663315,
+            "q25": 0.534443,
+            "q75": 49.233219
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.5,
+            "median": 0.5,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 658.935065,
+            "median": 625.5,
+            "q25": 488.25,
+            "q75": 812.75
+          }
+        },
+        "n": 154
+      },
+      "273": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.751562,
+            "median": 1.641752,
+            "q25": 1.197463,
+            "q75": 2.283967
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.104529,
+            "median": 0.080107,
+            "q25": 0.040867,
+            "q75": 0.137728
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.260225,
+            "median": 0.225403,
+            "q25": 0.165541,
+            "q75": 0.333333
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 455.242647,
+            "median": 418.0,
+            "q25": 357.25,
+            "q75": 536.75
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 555.259239,
+            "median": 508.03501,
+            "q25": 382.131882,
+            "q75": 687.496038
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 78.602812,
+            "median": 19.973915,
+            "q25": 0.0,
+            "q75": 106.480395
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.557233,
+            "median": 0.529079,
+            "q25": 0.418817,
+            "q75": 0.685472
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.480407,
+            "median": 4.380486,
+            "q25": 1.707901,
+            "q75": 6.203325
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 52.13897,
+            "median": 7.987504,
+            "q25": 0.820361,
+            "q75": 50.481985
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.522059,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 687.323529,
+            "median": 654.5,
+            "q25": 542.75,
+            "q75": 821.75
+          }
+        },
+        "n": 136
+      },
+      "274": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.969676,
+            "median": 1.92696,
+            "q25": 1.196583,
+            "q75": 2.534679
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.10022,
+            "median": 0.08193,
+            "q25": 0.035942,
+            "q75": 0.145067
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.261517,
+            "median": 0.232051,
+            "q25": 0.153846,
+            "q75": 0.365584
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 455.564815,
+            "median": 436.5,
+            "q25": 369.75,
+            "q75": 526.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 585.936564,
+            "median": 567.269465,
+            "q25": 399.801721,
+            "q75": 729.567127
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 72.657219,
+            "median": 3.846664,
+            "q25": 0.0,
+            "q75": 88.993434
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.595733,
+            "median": 0.587083,
+            "q25": 0.452893,
+            "q75": 0.740598
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.268204,
+            "median": 4.012553,
+            "q25": 1.923944,
+            "q75": 6.307585
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 45.457842,
+            "median": 11.726556,
+            "q25": 2.074076,
+            "q75": 34.218681
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.583333,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 696.259259,
+            "median": 698.5,
+            "q25": 559.0,
+            "q75": 792.25
+          }
+        },
+        "n": 108
+      }
+    },
+    "duration_bands": {
+      "30-40": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.0042,
+            "median": 1.905626,
+            "q25": 1.235839,
+            "q75": 2.728651
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.12118,
+            "median": 0.08933,
+            "q25": 0.032769,
+            "q75": 0.162382
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.273337,
+            "median": 0.25,
+            "q25": 0.166667,
+            "q75": 0.36
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 415.263736,
+            "median": 398.0,
+            "q25": 327.0,
+            "q75": 480.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 506.906874,
+            "median": 485.241685,
+            "q25": 361.619469,
+            "q75": 639.823009
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 77.371388,
+            "median": 12.283718,
+            "q25": 0.0,
+            "q75": 84.732221
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.564092,
+            "median": 0.547814,
+            "q25": 0.354545,
+            "q75": 0.74331
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 3.856103,
+            "median": 3.329161,
+            "q25": 1.5,
+            "q75": 5.695007
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 54.530416,
+            "median": 9.062937,
+            "q25": 0.0,
+            "q75": 56.473829
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.501832,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 577.846154,
+            "median": 563.0,
+            "q25": 433.0,
+            "q75": 700.0
+          }
+        },
+        "n": 273
+      },
+      "40-50": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.854578,
+            "median": 1.769279,
+            "q25": 1.228465,
+            "q75": 2.389189
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.105276,
+            "median": 0.072965,
+            "q25": 0.040844,
+            "q75": 0.149141
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.270103,
+            "median": 0.232051,
+            "q25": 0.156661,
+            "q75": 0.352941
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 459.175159,
+            "median": 435.0,
+            "q25": 350.0,
+            "q75": 542.25
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 583.609983,
+            "median": 563.236185,
+            "q25": 398.164039,
+            "q75": 708.360214
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 84.168517,
+            "median": 19.472673,
+            "q25": 0.0,
+            "q75": 125.067317
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.557786,
+            "median": 0.543764,
+            "q25": 0.423442,
+            "q75": 0.667339
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.540215,
+            "median": 4.260039,
+            "q25": 1.720831,
+            "q75": 6.865441
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 55.192002,
+            "median": 9.663315,
+            "q25": 1.044453,
+            "q75": 38.388839
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.531847,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 695.019108,
+            "median": 669.0,
+            "q25": 543.5,
+            "q75": 800.75
+          }
+        },
+        "n": 314
+      },
+      "50+": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.631088,
+            "median": 1.624549,
+            "q25": 1.170732,
+            "q75": 2.005013
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.087779,
+            "median": 0.069105,
+            "q25": 0.034863,
+            "q75": 0.122592
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.263508,
+            "median": 0.233333,
+            "q25": 0.15625,
+            "q75": 0.348837
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 495.300469,
+            "median": 471.0,
+            "q25": 392.0,
+            "q75": 588.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 641.843351,
+            "median": 585.442893,
+            "q25": 411.26463,
+            "q75": 786.501057
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 71.977215,
+            "median": 0.775781,
+            "q25": 0.0,
+            "q75": 112.537563
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.54147,
+            "median": 0.530452,
+            "q25": 0.433213,
+            "q75": 0.651791
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.834532,
+            "median": 4.500429,
+            "q25": 2.110803,
+            "q75": 6.963103
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 41.669043,
+            "median": 10.676441,
+            "q25": 2.563315,
+            "q75": 40.060373
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.525822,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 796.126761,
+            "median": 778.0,
+            "q25": 651.0,
+            "q75": 908.0
+          }
+        },
+        "n": 213
+      },
+      "<30": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.433232,
+            "median": 2.444374,
+            "q25": 1.335454,
+            "q75": 3.587314
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.176516,
+            "median": 0.118958,
+            "q25": 0.044752,
+            "q75": 0.261764
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.274324,
+            "median": 0.25,
+            "q25": 0.166667,
+            "q75": 0.360963
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 369.333333,
+            "median": 358.0,
+            "q25": 301.5,
+            "q75": 406.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 442.377926,
+            "median": 384.861404,
+            "q25": 311.55896,
+            "q75": 537.614566
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 39.842911,
+            "median": 0.906344,
+            "q25": 0.0,
+            "q75": 28.727521
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.426576,
+            "median": 0.402633,
+            "q25": 0.214767,
+            "q75": 0.530555
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 3.543504,
+            "median": 3.35792,
+            "q25": 1.395486,
+            "q75": 4.897234
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 57.314341,
+            "median": 0.721784,
+            "q25": 0.0,
+            "q75": 55.774668
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.357143,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 428.880952,
+            "median": 429.5,
+            "q25": 331.75,
+            "q75": 502.5
+          }
+        },
+        "n": 42
+      }
+    },
+    "game_modes": {
+      "22": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.875418,
+            "median": 1.771593,
+            "q25": 1.221499,
+            "q75": 2.428105
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.10956,
+            "median": 0.079858,
+            "q25": 0.0355,
+            "q75": 0.149956
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.269694,
+            "median": 0.24,
+            "q25": 0.158194,
+            "q75": 0.352941
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 449.595012,
+            "median": 422.5,
+            "q25": 349.0,
+            "q75": 531.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 566.4271,
+            "median": 531.903552,
+            "q25": 380.930499,
+            "q75": 698.369807
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 76.669658,
+            "median": 6.708368,
+            "q25": 0.0,
+            "q75": 106.465023
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.549158,
+            "median": 0.534431,
+            "q25": 0.400035,
+            "q75": 0.67866
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.343143,
+            "median": 3.965391,
+            "q25": 1.702847,
+            "q75": 6.436146
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 51.662471,
+            "median": 9.663315,
+            "q25": 0.929314,
+            "q75": 45.621845
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.511876,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 669.330166,
+            "median": 651.0,
+            "q25": 513.0,
+            "q75": 801.0
+          }
+        },
+        "n": 842
+      }
+    },
+    "lobby_types": {
+      "0": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.474956,
+            "median": 2.474956,
+            "q25": 2.474956,
+            "q75": 2.474956
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.10607,
+            "median": 0.10607,
+            "q25": 0.10607,
+            "q75": 0.10607
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.3,
+            "median": 0.3,
+            "q25": 0.3,
+            "q75": 0.3
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 397.0,
+            "median": 397.0,
+            "q25": 397.0,
+            "q75": 397.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 380.506777,
+            "median": 380.506777,
+            "q25": 380.506777,
+            "q75": 380.506777
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.353565,
+            "median": 0.353565,
+            "q25": 0.353565,
+            "q75": 0.353565
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.065999,
+            "median": 4.065999,
+            "q25": 4.065999,
+            "q75": 4.065999
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 15.875074,
+            "median": 15.875074,
+            "q25": 15.875074,
+            "q75": 15.875074
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 437.0,
+            "median": 437.0,
+            "q25": 437.0,
+            "q75": 437.0
+          }
+        },
+        "n": 1
+      },
+      "7": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.874705,
+            "median": 1.770861,
+            "q25": 1.221001,
+            "q75": 2.427921
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.109564,
+            "median": 0.079823,
+            "q25": 0.035461,
+            "q75": 0.149966
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.269658,
+            "median": 0.24,
+            "q25": 0.157895,
+            "q75": 0.352941
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 449.657551,
+            "median": 423.0,
+            "q25": 349.0,
+            "q75": 531.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 566.64817,
+            "median": 532.417582,
+            "q25": 381.011152,
+            "q75": 698.962433
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 76.760823,
+            "median": 6.785396,
+            "q25": 0.0,
+            "q75": 106.795017
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.549391,
+            "median": 0.534578,
+            "q25": 0.40014,
+            "q75": 0.678989
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.343472,
+            "median": 3.959108,
+            "q25": 1.702128,
+            "q75": 6.437677
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 51.705024,
+            "median": 9.649891,
+            "q25": 0.923077,
+            "q75": 45.755003
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.512485,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 669.606421,
+            "median": 651.0,
+            "q25": 513.0,
+            "q75": 801.0
+          }
+        },
+        "n": 841
+      }
+    },
+    "portfolio_tiers": {
+      "core": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.868932,
+            "median": 1.786122,
+            "q25": 1.255486,
+            "q75": 2.430012
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.086954,
+            "median": 0.06688,
+            "q25": 0.030306,
+            "q75": 0.116332
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.245196,
+            "median": 0.225806,
+            "q25": 0.148148,
+            "q75": 0.333333
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 448.159004,
+            "median": 422.0,
+            "q25": 357.0,
+            "q75": 514.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 556.730659,
+            "median": 533.740039,
+            "q25": 386.785632,
+            "q75": 681.661694
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 103.805119,
+            "median": 54.564306,
+            "q25": 0.0,
+            "q75": 147.222367
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.571232,
+            "median": 0.555015,
+            "q25": 0.418546,
+            "q75": 0.694478
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.304684,
+            "median": 3.871371,
+            "q25": 2.019485,
+            "q75": 5.823077
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 42.051957,
+            "median": 8.354086,
+            "q25": 0.958474,
+            "q75": 36.624463
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.542146,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 664.436782,
+            "median": 651.5,
+            "q25": 515.25,
+            "q75": 781.75
+          }
+        },
+        "n": 522
+      },
+      "experimental_edge": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.868947,
+            "median": 1.734104,
+            "q25": 1.203534,
+            "q75": 2.191602
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.124936,
+            "median": 0.08424,
+            "q25": 0.029572,
+            "q75": 0.191613
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.315678,
+            "median": 0.277778,
+            "q25": 0.186343,
+            "q75": 0.454545
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 434.183099,
+            "median": 419.0,
+            "q25": 321.5,
+            "q75": 531.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 525.683268,
+            "median": 497.548209,
+            "q25": 337.448042,
+            "q75": 677.26625
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 47.627174,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 5.412271
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.500293,
+            "median": 0.479419,
+            "q25": 0.375727,
+            "q75": 0.635064
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.031992,
+            "median": 3.840196,
+            "q25": 1.395083,
+            "q75": 6.536388
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 38.750098,
+            "median": 9.901579,
+            "q25": 0.423404,
+            "q75": 31.620249
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.450704,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 661.338028,
+            "median": 671.0,
+            "q25": 508.5,
+            "q75": 790.0
+          }
+        },
+        "n": 71
+      },
+      "reliable_stretch": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.89086,
+            "median": 1.758671,
+            "q25": 1.199201,
+            "q75": 2.428167
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.152567,
+            "median": 0.116129,
+            "q25": 0.056022,
+            "q75": 0.210379
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.307937,
+            "median": 0.28,
+            "q25": 0.181818,
+            "q75": 0.423077
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 457.0,
+            "median": 434.0,
+            "q25": 334.0,
+            "q75": 561.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 598.372297,
+            "median": 548.351759,
+            "q25": 375.438596,
+            "q75": 784.571429
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 28.06446,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 10.8413
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.516818,
+            "median": 0.515685,
+            "q25": 0.368239,
+            "q75": 0.651911
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.512488,
+            "median": 4.344828,
+            "q25": 1.234676,
+            "q75": 7.188581
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 75.491654,
+            "median": 14.676425,
+            "q25": 1.185567,
+            "q75": 85.058824
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.465863,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 681.86747,
+            "median": 646.0,
+            "q25": 515.0,
+            "q75": 851.0
+          }
+        },
+        "n": 249
+      }
+    },
+    "primary_jobs": {
+      "burst": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.755637,
+            "median": 1.466993,
+            "q25": 1.074593,
+            "q75": 2.219737
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.162247,
+            "median": 0.14437,
+            "q25": 0.068346,
+            "q75": 0.205668
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.357185,
+            "median": 0.3125,
+            "q25": 0.227743,
+            "q75": 0.486842
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 484.305085,
+            "median": 432.0,
+            "q25": 350.0,
+            "q75": 597.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 763.28439,
+            "median": 666.297444,
+            "q25": 462.7118,
+            "q75": 993.076695
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.560645,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.532084,
+            "median": 0.518732,
+            "q25": 0.396197,
+            "q75": 0.692299
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.77477,
+            "median": 4.031283,
+            "q25": 1.36645,
+            "q75": 7.612327
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 75.383828,
+            "median": 17.799043,
+            "q25": 2.690688,
+            "q75": 70.433644
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.525424,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 726.847458,
+            "median": 724.0,
+            "q25": 567.0,
+            "q75": 866.0
+          }
+        },
+        "n": 59
+      },
+      "catch": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.991659,
+            "median": 1.903663,
+            "q25": 1.402962,
+            "q75": 2.504348
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.084642,
+            "median": 0.072405,
+            "q25": 0.035789,
+            "q75": 0.103538
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.264075,
+            "median": 0.25,
+            "q25": 0.178571,
+            "q75": 0.333333
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 464.210191,
+            "median": 451.0,
+            "q25": 367.0,
+            "q75": 556.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 566.324564,
+            "median": 560.402844,
+            "q25": 401.481806,
+            "q75": 689.144582
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 85.210974,
+            "median": 72.159401,
+            "q25": 2.347721,
+            "q75": 137.150259
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.561224,
+            "median": 0.540338,
+            "q25": 0.420382,
+            "q75": 0.679048
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.842707,
+            "median": 5.150812,
+            "q25": 2.075623,
+            "q75": 7.237354
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 29.533025,
+            "median": 7.109005,
+            "q25": 0.0,
+            "q75": 34.465921
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.496815,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 688.649682,
+            "median": 704.0,
+            "q25": 523.0,
+            "q75": 821.0
+          }
+        },
+        "n": 157
+      },
+      "fight_control": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.99507,
+            "median": 1.91344,
+            "q25": 1.325083,
+            "q75": 2.631491
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.039443,
+            "median": 0.031537,
+            "q25": 0.0,
+            "q75": 0.06359
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.193513,
+            "median": 0.166667,
+            "q25": 0.112698,
+            "q75": 0.245
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 371.615385,
+            "median": 378.0,
+            "q25": 318.0,
+            "q75": 406.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 540.113934,
+            "median": 480.800267,
+            "q25": 388.579872,
+            "q75": 609.250787
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 143.272901,
+            "median": 116.364465,
+            "q25": 3.035113,
+            "q75": 220.322828
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.583714,
+            "median": 0.548542,
+            "q25": 0.392057,
+            "q75": 0.699627
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 2.19758,
+            "median": 1.956746,
+            "q25": 1.517138,
+            "q75": 2.766157
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 58.794371,
+            "median": 26.395904,
+            "q25": 7.937689,
+            "q75": 91.315519
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.512821,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 541.333333,
+            "median": 563.0,
+            "q25": 446.5,
+            "q75": 614.0
+          }
+        },
+        "n": 39
+      },
+      "forced_movement": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.356774,
+            "median": 1.419558,
+            "q25": 0.84972,
+            "q75": 1.796896
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.322216,
+            "median": 0.326975,
+            "q25": 0.216309,
+            "q75": 0.401761
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.471526,
+            "median": 0.45,
+            "q25": 0.3,
+            "q75": 0.629121
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 563.782609,
+            "median": 561.0,
+            "q25": 453.0,
+            "q75": 663.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 763.693218,
+            "median": 708.760976,
+            "q25": 552.147536,
+            "q75": 885.489042
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.707101,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.4689,
+            "median": 0.465608,
+            "q25": 0.31001,
+            "q75": 0.633682
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 7.293598,
+            "median": 8.035477,
+            "q25": 6.822346,
+            "q75": 8.714716
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 101.647796,
+            "median": 27.657729,
+            "q25": 2.341723,
+            "q75": 209.323458
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.391304,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 784.391304,
+            "median": 761.0,
+            "q25": 635.5,
+            "q75": 880.0
+          }
+        },
+        "n": 23
+      },
+      "frontline": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.980547,
+            "median": 1.886719,
+            "q25": 1.367327,
+            "q75": 2.478882
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.138356,
+            "median": 0.109788,
+            "q25": 0.066367,
+            "q75": 0.191779
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.272304,
+            "median": 0.237647,
+            "q25": 0.161622,
+            "q75": 0.375
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 480.965,
+            "median": 477.5,
+            "q25": 415.75,
+            "q75": 543.25
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 569.688737,
+            "median": 526.659087,
+            "q25": 410.590982,
+            "q75": 701.274845
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 12.270287,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.529147,
+            "median": 0.516642,
+            "q25": 0.389685,
+            "q75": 0.653792
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 5.291584,
+            "median": 5.079661,
+            "q25": 4.224231,
+            "q75": 6.326656
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 47.955629,
+            "median": 15.028238,
+            "q25": 2.485584,
+            "q75": 55.552609
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.48,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 708.365,
+            "median": 708.0,
+            "q25": 561.5,
+            "q75": 843.25
+          }
+        },
+        "n": 200
+      },
+      "global_presence": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.122822,
+            "median": 2.241943,
+            "q25": 1.850762,
+            "q75": 2.338975
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.066407,
+            "median": 0.034612,
+            "q25": 0.009731,
+            "q75": 0.133307
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.222668,
+            "median": 0.222222,
+            "q25": 0.162815,
+            "q75": 0.291228
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 324.0,
+            "median": 328.0,
+            "q25": 279.5,
+            "q75": 379.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 441.074035,
+            "median": 418.664508,
+            "q25": 367.595541,
+            "q75": 477.140503
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 1.074334,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.992268
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.612584,
+            "median": 0.661693,
+            "q25": 0.484089,
+            "q75": 0.740305
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.761547,
+            "median": 0.797924,
+            "q25": 0.420319,
+            "q75": 0.98347
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 3.369559,
+            "median": 1.185567,
+            "q25": 0.0,
+            "q75": 6.362303
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.428571,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 480.285714,
+            "median": 444.0,
+            "q25": 402.5,
+            "q75": 530.5
+          }
+        },
+        "n": 7
+      },
+      "initiation": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.84288,
+            "median": 1.749968,
+            "q25": 1.26498,
+            "q75": 2.249937
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.095151,
+            "median": 0.075256,
+            "q25": 0.03862,
+            "q75": 0.101563
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.244856,
+            "median": 0.225806,
+            "q25": 0.122596,
+            "q75": 0.315257
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 473.645833,
+            "median": 478.5,
+            "q25": 410.25,
+            "q75": 548.25
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 584.178156,
+            "median": 580.007221,
+            "q25": 408.798735,
+            "q75": 696.033712
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 52.243446,
+            "median": 40.616509,
+            "q25": 0.0,
+            "q75": 85.038698
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.611796,
+            "median": 0.583864,
+            "q25": 0.458417,
+            "q75": 0.723876
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.84583,
+            "median": 5.139966,
+            "q25": 3.947479,
+            "q75": 6.011005
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 48.537019,
+            "median": 35.971106,
+            "q25": 9.301234,
+            "q75": 69.836546
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.5625,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 723.375,
+            "median": 714.0,
+            "q25": 621.75,
+            "q75": 821.75
+          }
+        },
+        "n": 48
+      },
+      "mobility": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.34717,
+            "median": 1.410437,
+            "q25": 0.882029,
+            "q75": 1.841118
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.221216,
+            "median": 0.192678,
+            "q25": 0.137489,
+            "q75": 0.269596
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.43511,
+            "median": 0.4,
+            "q25": 0.285714,
+            "q75": 0.545455
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 531.8,
+            "median": 524.0,
+            "q25": 436.0,
+            "q75": 647.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 567.567742,
+            "median": 614.127273,
+            "q25": 437.511244,
+            "q75": 717.166124
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 42.93546,
+            "median": 15.713486,
+            "q25": 0.0,
+            "q75": 45.562005
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.454025,
+            "median": 0.426338,
+            "q25": 0.313987,
+            "q75": 0.570789
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 6.882644,
+            "median": 6.798561,
+            "q25": 4.88072,
+            "q75": 8.820287
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 152.405935,
+            "median": 27.12358,
+            "q25": 0.0,
+            "q75": 263.665492
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.44,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 758.52,
+            "median": 787.0,
+            "q25": 636.0,
+            "q75": 883.0
+          }
+        },
+        "n": 25
+      },
+      "push": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.580645,
+            "median": 2.580645,
+            "q25": 2.580645,
+            "q75": 2.580645
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.025806,
+            "median": 0.025806,
+            "q25": 0.025806,
+            "q75": 0.025806
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.111111,
+            "median": 0.111111,
+            "q25": 0.111111,
+            "q75": 0.111111
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 268.0,
+            "median": 268.0,
+            "q25": 268.0,
+            "q75": 268.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 456.954839,
+            "median": 456.954839,
+            "q25": 456.954839,
+            "q75": 456.954839
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.464516,
+            "median": 0.464516,
+            "q25": 0.464516,
+            "q75": 0.464516
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 1.625806,
+            "median": 1.625806,
+            "q25": 1.625806,
+            "q75": 1.625806
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 16.516129,
+            "median": 16.516129,
+            "q25": 16.516129,
+            "q75": 16.516129
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 379.0,
+            "median": 379.0,
+            "q25": 379.0,
+            "q75": 379.0
+          }
+        },
+        "n": 1
+      },
+      "save": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.89228,
+            "median": 1.742739,
+            "q25": 1.224351,
+            "q75": 2.341302
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.069991,
+            "median": 0.040802,
+            "q25": 0.01934,
+            "q75": 0.088688
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.158192,
+            "median": 0.151515,
+            "q25": 0.086957,
+            "q75": 0.215251
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 307.949367,
+            "median": 310.0,
+            "q25": 272.5,
+            "q75": 338.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 300.807967,
+            "median": 287.487941,
+            "q25": 227.6937,
+            "q75": 364.38707
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 287.182523,
+            "median": 319.772296,
+            "q25": 0.0,
+            "q75": 445.24306
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.612443,
+            "median": 0.615648,
+            "q25": 0.454861,
+            "q75": 0.744039
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.847789,
+            "median": 0.718993,
+            "q25": 0.458362,
+            "q75": 0.952096
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 7.842136,
+            "median": 0.989821,
+            "q25": 0.0,
+            "q75": 5.239244
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.594937,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 514.911392,
+            "median": 516.0,
+            "q25": 438.5,
+            "q75": 590.5
+          }
+        },
+        "n": 79
+      },
+      "scaling": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 0.945196,
+            "median": 0.965147,
+            "q25": 0.452905,
+            "q75": 1.422222
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.183915,
+            "median": 0.171612,
+            "q25": 0.113938,
+            "q75": 0.234407
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.448877,
+            "median": 0.4375,
+            "q25": 0.333333,
+            "q75": 0.555556
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 703.085106,
+            "median": 713.0,
+            "q25": 608.5,
+            "q75": 810.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 870.030733,
+            "median": 844.517016,
+            "q25": 644.981921,
+            "q75": 1048.692873
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.081085,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.496825,
+            "median": 0.514163,
+            "q25": 0.387374,
+            "q75": 0.614955
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 10.051563,
+            "median": 10.462633,
+            "q25": 8.934552,
+            "q75": 11.639435
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 245.386674,
+            "median": 235.203892,
+            "q25": 36.425498,
+            "q75": 396.162789
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.638298,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 938.829787,
+            "median": 937.0,
+            "q25": 748.5,
+            "q75": 1099.5
+          }
+        },
+        "n": 47
+      },
+      "sustain": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.965575,
+            "median": 1.847354,
+            "q25": 1.341672,
+            "q75": 2.613986
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.047803,
+            "median": 0.039006,
+            "q25": 0.020203,
+            "q75": 0.066876
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.202816,
+            "median": 0.191392,
+            "q25": 0.125,
+            "q75": 0.267308
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 371.735714,
+            "median": 370.0,
+            "q25": 330.75,
+            "q75": 414.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 506.984716,
+            "median": 497.82834,
+            "q25": 377.239326,
+            "q75": 656.089497
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 113.549542,
+            "median": 86.02438,
+            "q25": 37.866274,
+            "q75": 153.603052
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.551197,
+            "median": 0.533936,
+            "q25": 0.410615,
+            "q75": 0.689301
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 2.416303,
+            "median": 2.235379,
+            "q25": 1.618055,
+            "q75": 2.983007
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 12.303626,
+            "median": 4.635502,
+            "q25": 0.797319,
+            "q75": 11.742419
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.528571,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 584.542857,
+            "median": 584.5,
+            "q25": 496.0,
+            "q75": 694.25
+          }
+        },
+        "n": 140
+      },
+      "sustained_damage": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.884294,
+            "median": 2.971932,
+            "q25": 2.08243,
+            "q75": 3.452244
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.077281,
+            "median": 0.049505,
+            "q25": 0.033463,
+            "q75": 0.108352
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.318007,
+            "median": 0.333333,
+            "q25": 0.2,
+            "q75": 0.444444
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 321.705882,
+            "median": 311.0,
+            "q25": 264.0,
+            "q75": 361.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 530.023265,
+            "median": 472.127574,
+            "q25": 388.711656,
+            "q75": 687.004964
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 48.113476,
+            "median": 11.624482,
+            "q25": 3.807692,
+            "q75": 61.933257
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.537448,
+            "median": 0.50868,
+            "q25": 0.363236,
+            "q75": 0.657244
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.813571,
+            "median": 0.767327,
+            "q25": 0.527601,
+            "q75": 0.89158
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 8.130926,
+            "median": 0.923077,
+            "q25": 0.0,
+            "q75": 5.028825
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.294118,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 451.941176,
+            "median": 482.0,
+            "q25": 342.0,
+            "q75": 541.0
+          }
+        },
+        "n": 17
+      }
+    }
+  },
+  "core_minus_noncore_cluster_bootstrap": [
+    {
+      "bootstrap_probability_positive": 0.989,
+      "cluster_bootstrap_95": [
+        0.012157,
+        0.144876
+      ],
+      "definition": "left minus right",
+      "iterations": 2000,
+      "metric": "won",
+      "n_left": 522,
+      "n_right": 320,
+      "point": 0.079646
+    },
+    {
+      "bootstrap_probability_positive": 1.0,
+      "cluster_bootstrap_95": [
+        0.030261,
+        0.083864
+      ],
+      "definition": "left minus right",
+      "iterations": 2000,
+      "metric": "involvement_per_minute",
+      "n_left": 522,
+      "n_right": 320,
+      "point": 0.05808
+    },
+    {
+      "bootstrap_probability_positive": 0.391,
+      "cluster_bootstrap_95": [
+        -0.156748,
+        0.117701
+      ],
+      "definition": "left minus right",
+      "iterations": 2000,
+      "metric": "death_exposure_per_ten",
+      "n_left": 522,
+      "n_right": 320,
+      "point": -0.017067
+    },
+    {
+      "bootstrap_probability_positive": 0.0,
+      "cluster_bootstrap_95": [
+        -0.087258,
+        -0.040885
+      ],
+      "definition": "left minus right",
+      "iterations": 2000,
+      "metric": "finishing_share",
+      "n_left": 522,
+      "n_right": 320,
+      "point": -0.064458
+    },
+    {
+      "bootstrap_probability_positive": 0.353,
+      "cluster_bootstrap_95": [
+        -24.654536,
+        15.820906
+      ],
+      "definition": "left minus right",
+      "iterations": 2000,
+      "metric": "gold_per_min",
+      "n_left": 522,
+      "n_right": 320,
+      "point": -3.778496
+    },
+    {
+      "bootstrap_probability_positive": 0.2005,
+      "cluster_bootstrap_95": [
+        -41.684716,
+        16.419975
+      ],
+      "definition": "left minus right",
+      "iterations": 2000,
+      "metric": "xp_per_min",
+      "n_left": 522,
+      "n_right": 320,
+      "point": -12.875718
+    },
+    {
+      "bootstrap_probability_positive": 0.1065,
+      "cluster_bootstrap_95": [
+        -67.462915,
+        16.49111
+      ],
+      "definition": "left minus right",
+      "iterations": 2000,
+      "metric": "hero_damage_per_minute",
+      "n_left": 522,
+      "n_right": 320,
+      "point": -25.51376
+    },
+    {
+      "bootstrap_probability_positive": 0.0,
+      "cluster_bootstrap_95": [
+        -39.491596,
+        -11.782663
+      ],
+      "definition": "left minus right",
+      "iterations": 2000,
+      "metric": "tower_damage_per_minute",
+      "n_left": 522,
+      "n_right": 320,
+      "point": -25.287664
+    }
+  ],
+  "evolution": {
+    "adjacent_third_divergence": [
+      {
+        "from_third": 1,
+        "hero_js": 0.214626,
+        "job_js": 0.009707,
+        "name_change_minus_job_change": 0.204919,
+        "to_third": 2
+      },
+      {
+        "from_third": 2,
+        "hero_js": 0.159044,
+        "job_js": 0.014225,
+        "name_change_minus_job_change": 0.144819,
+        "to_third": 3
+      }
+    ],
+    "change_point_note": "Exploratory maximum split over session boundaries; session-block randomization controls repeated-match clustering. Production should use held-out thresholds and PELT/segment-neighborhood validation.",
+    "hero_change_point": {
+      "cluster_permutation_p": 0.001996,
+      "left_top": [
+        [
+          129,
+          52.0
+        ],
+        [
+          110,
+          45.0
+        ],
+        [
+          135,
+          27.0
+        ],
+        [
+          37,
+          24.0
+        ],
+        [
+          94,
+          22.0
+        ],
+        [
+          111,
+          20.0
+        ],
+        [
+          86,
+          15.0
+        ],
+        [
+          96,
+          14.0
+        ],
+        [
+          20,
+          14.0
+        ],
+        [
+          138,
+          10.0
+        ],
+        [
+          30,
+          9.0
+        ],
+        [
+          72,
+          8.0
+        ]
+      ],
+      "minimum_segment_matches": 120,
+      "randomization_iterations": 500,
+      "raw_js_divergence": 0.192212,
+      "right_top": [
+        [
+          110,
+          87.0
+        ],
+        [
+          135,
+          57.0
+        ],
+        [
+          129,
+          45.0
+        ],
+        [
+          29,
+          30.0
+        ],
+        [
+          111,
+          28.0
+        ],
+        [
+          108,
+          25.0
+        ],
+        [
+          2,
+          25.0
+        ],
+        [
+          86,
+          23.0
+        ],
+        [
+          94,
+          14.0
+        ],
+        [
+          54,
+          13.0
+        ],
+        [
+          31,
+          13.0
+        ],
+        [
+          138,
+          12.0
+        ]
+      ],
+      "split_date_utc": "2026-02-01",
+      "split_match_index": 335,
+      "split_session_index": 143,
+      "split_time": 1769943021,
+      "weighted_js_score": 0.184192
+    },
+    "job_change_point": {
+      "cluster_permutation_p": 0.003992,
+      "left_top": [
+        [
+          "catch",
+          103.07619
+        ],
+        [
+          "sustain",
+          65.080952
+        ],
+        [
+          "sustained_damage",
+          57.469048
+        ],
+        [
+          "fight_control",
+          53.566667
+        ],
+        [
+          "forced_movement",
+          37.22381
+        ],
+        [
+          "repositioning",
+          29.180952
+        ],
+        [
+          "vision",
+          25.759524
+        ],
+        [
+          "initiation",
+          24.995238
+        ],
+        [
+          "frontline",
+          21.535714
+        ],
+        [
+          "burst",
+          18.459524
+        ],
+        [
+          "push",
+          17.580952
+        ],
+        [
+          "wave_clear",
+          15.438095
+        ]
+      ],
+      "minimum_segment_matches": 120,
+      "randomization_iterations": 500,
+      "raw_js_divergence": 0.01466,
+      "right_top": [
+        [
+          "catch",
+          60.909524
+        ],
+        [
+          "sustain",
+          44.707143
+        ],
+        [
+          "sustained_damage",
+          36.419048
+        ],
+        [
+          "fight_control",
+          36.290476
+        ],
+        [
+          "initiation",
+          24.209524
+        ],
+        [
+          "vision",
+          19.916667
+        ],
+        [
+          "forced_movement",
+          19.107143
+        ],
+        [
+          "frontline",
+          18.342857
+        ],
+        [
+          "wave_clear",
+          11.369048
+        ],
+        [
+          "global_presence",
+          9.085714
+        ],
+        [
+          "repositioning",
+          8.616667
+        ],
+        [
+          "burst",
+          7.419048
+        ]
+      ],
+      "split_date_utc": "2026-04-18",
+      "split_match_index": 523,
+      "split_session_index": 238,
+      "split_time": 1776499304,
+      "weighted_js_score": 0.013799
+    },
+    "thirds": [
+      {
+        "effective_heroes": 20.106085,
+        "effective_jobs": 12.844749,
+        "end_date_utc": "2025-12-21",
+        "matches": 280,
+        "start_date_utc": "2025-08-25",
+        "third": 1,
+        "top_heroes": [
+          [
+            129,
+            45.0
+          ],
+          [
+            110,
+            36.0
+          ],
+          [
+            135,
+            24.0
+          ],
+          [
+            37,
+            22.0
+          ],
+          [
+            94,
+            19.0
+          ],
+          [
+            111,
+            18.0
+          ],
+          [
+            86,
+            13.0
+          ],
+          [
+            96,
+            11.0
+          ]
+        ],
+        "top_jobs": [
+          [
+            "catch",
+            55.27619
+          ],
+          [
+            "sustain",
+            37.961905
+          ],
+          [
+            "sustained_damage",
+            29.288095
+          ],
+          [
+            "fight_control",
+            26.866667
+          ],
+          [
+            "forced_movement",
+            20.861905
+          ],
+          [
+            "repositioning",
+            14.892857
+          ],
+          [
+            "vision",
+            14.033333
+          ],
+          [
+            "initiation",
+            12.528571
+          ]
+        ],
+        "win_rate": 0.503571
+      },
+      {
+        "effective_heroes": 23.942209,
+        "effective_jobs": 12.419161,
+        "end_date_utc": "2026-05-01",
+        "matches": 281,
+        "start_date_utc": "2025-12-21",
+        "third": 2,
+        "top_heroes": [
+          [
+            110,
+            45.0
+          ],
+          [
+            129,
+            23.0
+          ],
+          [
+            135,
+            19.0
+          ],
+          [
+            86,
+            19.0
+          ],
+          [
+            108,
+            19.0
+          ],
+          [
+            29,
+            15.0
+          ],
+          [
+            111,
+            14.0
+          ],
+          [
+            94,
+            12.0
+          ]
+        ],
+        "top_jobs": [
+          [
+            "catch",
+            56.42619
+          ],
+          [
+            "sustained_damage",
+            33.87381
+          ],
+          [
+            "sustain",
+            33.069048
+          ],
+          [
+            "fight_control",
+            31.22619
+          ],
+          [
+            "forced_movement",
+            17.878571
+          ],
+          [
+            "repositioning",
+            15.347619
+          ],
+          [
+            "vision",
+            14.97619
+          ],
+          [
+            "initiation",
+            14.609524
+          ]
+        ],
+        "win_rate": 0.52669
+      },
+      {
+        "effective_heroes": 20.114545,
+        "effective_jobs": 12.19599,
+        "end_date_utc": "2026-08-22",
+        "matches": 281,
+        "start_date_utc": "2026-05-01",
+        "third": 3,
+        "top_heroes": [
+          [
+            110,
+            51.0
+          ],
+          [
+            135,
+            41.0
+          ],
+          [
+            129,
+            29.0
+          ],
+          [
+            2,
+            23.0
+          ],
+          [
+            111,
+            16.0
+          ],
+          [
+            29,
+            15.0
+          ],
+          [
+            128,
+            6.0
+          ],
+          [
+            30,
+            6.0
+          ]
+        ],
+        "top_jobs": [
+          [
+            "catch",
+            52.283333
+          ],
+          [
+            "sustain",
+            38.757143
+          ],
+          [
+            "fight_control",
+            31.764286
+          ],
+          [
+            "sustained_damage",
+            30.72619
+          ],
+          [
+            "initiation",
+            22.066667
+          ],
+          [
+            "forced_movement",
+            17.590476
+          ],
+          [
+            "frontline",
+            17.283333
+          ],
+          [
+            "vision",
+            16.666667
+          ]
+        ],
+        "win_rate": 0.505338
+      }
+    ]
+  },
+  "field_inventory": [
+    {
+      "coverage": 1.0,
+      "current_v6_use": "Involvement and Finishing",
+      "eligible_coverage": 1.0,
+      "field": "assists",
+      "max": 47.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 46
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "prohibited from V6 baselines, thresholds, and copy",
+      "eligible_coverage": 1.0,
+      "field": "average_rank",
+      "max": 64.0,
+      "min": 15.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 23
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "region derivation when static mapping is available",
+      "eligible_coverage": 1.0,
+      "field": "cluster",
+      "max": 274.0,
+      "min": 123.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 16
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "Death Exposure",
+      "eligible_coverage": 1.0,
+      "field": "deaths",
+      "max": 23.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 23
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "denies",
+      "max": 27.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 25
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "eligibility and per-minute normalization",
+      "eligible_coverage": 1.0,
+      "field": "duration",
+      "max": 5425.0,
+      "min": 452.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 723
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "eligibility/context",
+      "eligible_coverage": 1.0,
+      "field": "game_mode",
+      "max": 22.0,
+      "min": 2.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 3
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "gold_per_min",
+      "max": 950.0,
+      "min": 158.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 431
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "hero_damage",
+      "max": 138495.0,
+      "min": 654.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 888
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "hero_healing",
+      "max": 46582.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 454
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "Breadth, Toolkit, pool, Transfer, sequences",
+      "eligible_coverage": 1.0,
+      "field": "hero_id",
+      "max": 138.0,
+      "min": 1.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 72
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "retained but not analytically used",
+      "eligible_coverage": 1.0,
+      "field": "hero_variant",
+      "max": 5.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 6
+    },
+    {
+      "coverage": 0.024444,
+      "current_v6_use": "literal roaming context when present",
+      "eligible_coverage": 0.024941,
+      "field": "is_roaming",
+      "max": null,
+      "min": null,
+      "nonnull": 22,
+      "null": 878,
+      "types": {
+        "bool": 22
+      },
+      "unique_count": 1
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "item_0",
+      "max": 1869.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 84
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "item_1",
+      "max": 4206.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 96
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "item_2",
+      "max": 1872.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 100
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "item_3",
+      "max": 4206.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 101
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "item_4",
+      "max": 4205.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 103
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "item_5",
+      "max": 4205.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 100
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "item_neutral",
+      "max": 2190.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 52
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "Involvement and Finishing",
+      "eligible_coverage": 1.0,
+      "field": "kills",
+      "max": 25.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 25
+    },
+    {
+      "coverage": 0.024444,
+      "current_v6_use": "literal lane context when present",
+      "eligible_coverage": 0.024941,
+      "field": "lane",
+      "max": 3.0,
+      "min": 1.0,
+      "nonnull": 22,
+      "null": 878,
+      "types": {
+        "int": 22
+      },
+      "unique_count": 3
+    },
+    {
+      "coverage": 0.024444,
+      "current_v6_use": "literal lane context when present",
+      "eligible_coverage": 0.024941,
+      "field": "lane_role",
+      "max": 3.0,
+      "min": 1.0,
+      "nonnull": 22,
+      "null": 878,
+      "types": {
+        "int": 22
+      },
+      "unique_count": 3
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "last_hits",
+      "max": 1179.0,
+      "min": 3.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 413
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "eligibility",
+      "eligible_coverage": 1.0,
+      "field": "leaver_status",
+      "max": 2.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 3
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "level",
+      "max": 30.0,
+      "min": 5.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 25
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "eligibility/context",
+      "eligible_coverage": 1.0,
+      "field": "lobby_type",
+      "max": 9.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 3
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "identity/evidence and chronology tie-break",
+      "eligible_coverage": 1.0,
+      "field": "match_id",
+      "max": 8959741311.0,
+      "min": 8431452911.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 900
+    },
+    {
+      "coverage": 0.345556,
+      "current_v6_use": "supporting context when present",
+      "eligible_coverage": 0.362233,
+      "field": "party_size",
+      "max": 10.0,
+      "min": 1.0,
+      "nonnull": 311,
+      "null": 589,
+      "types": {
+        "int": 311
+      },
+      "unique_count": 5
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "side and player win derivation",
+      "eligible_coverage": 1.0,
+      "field": "player_slot",
+      "max": 132.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 10
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "player win derivation",
+      "eligible_coverage": 1.0,
+      "field": "radiant_win",
+      "max": null,
+      "min": null,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "bool": 900
+      },
+      "unique_count": 2
+    },
+    {
+      "coverage": 0.0,
+      "current_v6_use": "stored as source context but prohibited from thresholds/copy",
+      "eligible_coverage": 0.0,
+      "field": "skill",
+      "max": null,
+      "min": null,
+      "nonnull": 0,
+      "null": 900,
+      "types": {},
+      "unique_count": 0
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "window, chronology, sessions, transitions, recent state",
+      "eligible_coverage": 1.0,
+      "field": "start_time",
+      "max": 1787419210.0,
+      "min": 1756050715.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 900
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "tower_damage",
+      "max": 27391.0,
+      "min": 0.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 623
+    },
+    {
+      "coverage": 0.024444,
+      "current_v6_use": "context baseline source version when present",
+      "eligible_coverage": 0.024941,
+      "field": "version",
+      "max": 22.0,
+      "min": 22.0,
+      "nonnull": 22,
+      "null": 878,
+      "types": {
+        "int": 22
+      },
+      "unique_count": 1
+    },
+    {
+      "coverage": 1.0,
+      "current_v6_use": "ignored by V6 stable identity path",
+      "eligible_coverage": 1.0,
+      "field": "xp_per_min",
+      "max": 1411.0,
+      "min": 135.0,
+      "nonnull": 900,
+      "null": 0,
+      "types": {
+        "int": 900
+      },
+      "unique_count": 522
+    }
+  ],
+  "global_metrics": {
+    "death_exposure_per_ten": {
+      "coverage": 1.0,
+      "mean": 1.875418,
+      "median": 1.771593,
+      "q25": 1.221499,
+      "q75": 2.428105
+    },
+    "denies_per_minute": {
+      "coverage": 1.0,
+      "mean": 0.10956,
+      "median": 0.079858,
+      "q25": 0.0355,
+      "q75": 0.149956
+    },
+    "finishing_share": {
+      "coverage": 1.0,
+      "mean": 0.269694,
+      "median": 0.24,
+      "q25": 0.158194,
+      "q75": 0.352941
+    },
+    "gold_per_min": {
+      "coverage": 1.0,
+      "mean": 449.595012,
+      "median": 422.5,
+      "q25": 349.0,
+      "q75": 531.0
+    },
+    "hero_damage_per_minute": {
+      "coverage": 1.0,
+      "mean": 566.4271,
+      "median": 531.903552,
+      "q25": 380.930499,
+      "q75": 698.369807
+    },
+    "hero_healing_per_minute": {
+      "coverage": 1.0,
+      "mean": 76.669658,
+      "median": 6.708368,
+      "q25": 0.0,
+      "q75": 106.465023
+    },
+    "involvement_per_minute": {
+      "coverage": 1.0,
+      "mean": 0.549158,
+      "median": 0.534431,
+      "q25": 0.400035,
+      "q75": 0.67866
+    },
+    "last_hits_per_minute": {
+      "coverage": 1.0,
+      "mean": 4.343143,
+      "median": 3.965391,
+      "q25": 1.702847,
+      "q75": 6.436146
+    },
+    "tower_damage_per_minute": {
+      "coverage": 1.0,
+      "mean": 51.662471,
+      "median": 9.663315,
+      "q25": 0.929314,
+      "q75": 45.621845
+    },
+    "won": {
+      "coverage": 1.0,
+      "mean": 0.511876,
+      "median": 1.0,
+      "q25": 0.0,
+      "q75": 1.0
+    },
+    "xp_per_min": {
+      "coverage": 1.0,
+      "mean": 669.330166,
+      "median": 651.0,
+      "q25": 513.0,
+      "q75": 801.0
+    }
+  },
+  "lifecycle": {
+    "bounded_window_warning": "These are first-observed-in-window entries, not true lifetime discoveries; the 365-day left boundary prevents stronger lifecycle labels.",
+    "burn_in_days": 60,
+    "first_observed_after_burn_in": 36,
+    "median_days_first_to_fifth_for_adopted": 81.987054,
+    "reaches_10_games": {
+      "n": 36,
+      "rate": 0.055556,
+      "successes": 2,
+      "wilson_95": [
+        0.01537,
+        0.181447
+      ]
+    },
+    "reaches_3_games": {
+      "n": 36,
+      "rate": 0.416667,
+      "successes": 15,
+      "wilson_95": [
+        0.271406,
+        0.577997
+      ]
+    },
+    "reaches_5_games": {
+      "n": 36,
+      "rate": 0.222222,
+      "successes": 8,
+      "wilson_95": [
+        0.117163,
+        0.380847
+      ]
+    },
+    "rediscoveries": [
+      {
+        "gap_days": 258.832164,
+        "hero_id": 85,
+        "hero_name": "Undying",
+        "return_won": true
+      },
+      {
+        "gap_days": 238.516759,
+        "hero_id": 22,
+        "hero_name": "Zeus",
+        "return_won": true
+      },
+      {
+        "gap_days": 227.015475,
+        "hero_id": 47,
+        "hero_name": "Viper",
+        "return_won": false
+      },
+      {
+        "gap_days": 206.242685,
+        "hero_id": 16,
+        "hero_name": "Sand King",
+        "return_won": true
+      },
+      {
+        "gap_days": 172.043079,
+        "hero_id": 12,
+        "hero_name": "Phantom Lancer",
+        "return_won": true
+      },
+      {
+        "gap_days": 171.111076,
+        "hero_id": 17,
+        "hero_name": "Storm Spirit",
+        "return_won": true
+      },
+      {
+        "gap_days": 154.043275,
+        "hero_id": 84,
+        "hero_name": "Ogre Magi",
+        "return_won": false
+      },
+      {
+        "gap_days": 146.831146,
+        "hero_id": 38,
+        "hero_name": "Beastmaster",
+        "return_won": true
+      },
+      {
+        "gap_days": 140.844525,
+        "hero_id": 131,
+        "hero_name": "Ring Master",
+        "return_won": true
+      },
+      {
+        "gap_days": 132.990995,
+        "hero_id": 29,
+        "hero_name": "Tidehunter",
+        "return_won": true
+      },
+      {
+        "gap_days": 131.095509,
+        "hero_id": 114,
+        "hero_name": "Monkey King",
+        "return_won": false
+      },
+      {
+        "gap_days": 115.355278,
+        "hero_id": 9,
+        "hero_name": "Mirana",
+        "return_won": true
+      },
+      {
+        "gap_days": 105.22838,
+        "hero_id": 42,
+        "hero_name": "Wraith King",
+        "return_won": true
+      },
+      {
+        "gap_days": 104.092569,
+        "hero_id": 2,
+        "hero_name": "Axe",
+        "return_won": false
+      },
+      {
+        "gap_days": 96.960822,
+        "hero_id": 100,
+        "hero_name": "Tusk",
+        "return_won": false
+      },
+      {
+        "gap_days": 96.926377,
+        "hero_id": 39,
+        "hero_name": "Queen of Pain",
+        "return_won": true
+      },
+      {
+        "gap_days": 92.989676,
+        "hero_id": 96,
+        "hero_name": "Centaur Warrunner",
+        "return_won": false
+      },
+      {
+        "gap_days": 90.995093,
+        "hero_id": 119,
+        "hero_name": "Dark Willow",
+        "return_won": false
+      },
+      {
+        "gap_days": 86.752523,
+        "hero_id": 16,
+        "hero_name": "Sand King",
+        "return_won": true
+      },
+      {
+        "gap_days": 84.812801,
+        "hero_id": 5,
+        "hero_name": "Crystal Maiden",
+        "return_won": true
+      },
+      {
+        "gap_days": 84.565,
+        "hero_id": 42,
+        "hero_name": "Wraith King",
+        "return_won": false
+      },
+      {
+        "gap_days": 84.18978,
+        "hero_id": 31,
+        "hero_name": "Lich",
+        "return_won": true
+      },
+      {
+        "gap_days": 83.827766,
+        "hero_id": 102,
+        "hero_name": "Abaddon",
+        "return_won": true
+      },
+      {
+        "gap_days": 82.584086,
+        "hero_id": 9,
+        "hero_name": "Mirana",
+        "return_won": true
+      },
+      {
+        "gap_days": 77.56,
+        "hero_id": 42,
+        "hero_name": "Wraith King",
+        "return_won": true
+      },
+      {
+        "gap_days": 77.232581,
+        "hero_id": 7,
+        "hero_name": "Earthshaker",
+        "return_won": true
+      },
+      {
+        "gap_days": 74.577454,
+        "hero_id": 10,
+        "hero_name": "Morphling",
+        "return_won": true
+      },
+      {
+        "gap_days": 74.079803,
+        "hero_id": 7,
+        "hero_name": "Earthshaker",
+        "return_won": true
+      },
+      {
+        "gap_days": 73.689456,
+        "hero_id": 102,
+        "hero_name": "Abaddon",
+        "return_won": true
+      },
+      {
+        "gap_days": 72.921562,
+        "hero_id": 75,
+        "hero_name": "Silencer",
+        "return_won": false
+      }
+    ],
+    "rediscovery_after_60d_count": 36,
+    "second_game_ever_in_remaining_window": {
+      "n": 36,
+      "rate": 0.583333,
+      "successes": 21,
+      "wilson_95": [
+        0.422003,
+        0.728594
+      ]
+    },
+    "second_game_within_30d_after_first_loss": {
+      "n": 24,
+      "rate": 0.25,
+      "successes": 6,
+      "wilson_95": [
+        0.119994,
+        0.448994
+      ]
+    },
+    "second_game_within_30d_after_first_win": {
+      "n": 12,
+      "rate": 0.25,
+      "successes": 3,
+      "wilson_95": [
+        0.088942,
+        0.532305
+      ]
+    }
+  },
+  "population": {
+    "eligibility_rate": 0.935556,
+    "eligible_rows": 842,
+    "exclusion_reasons_nonexclusive": {
+      "abandoned": 7,
+      "unsupported_game_mode": 52,
+      "unsupported_lobby_type": 22
+    },
+    "first_match_date_utc": "2025-08-24",
+    "first_match_time": 1756050715,
+    "last_match_date_utc": "2026-08-22",
+    "last_match_time": 1787419210,
+    "matches_per_observed_week": 16.234174,
+    "observed_span_days": 363.061285,
+    "raw_rows": 900
+  },
+  "portfolio": {
+    "established_heroes_5_plus": 28,
+    "experimental_tail_under_5": 35,
+    "fractional_job_distribution": {
+      "burst": 25.878571,
+      "catch": 163.985714,
+      "counter_initiation": 4.366667,
+      "fight_control": 89.857143,
+      "forced_movement": 56.330952,
+      "frontline": 39.878571,
+      "global_presence": 19.704762,
+      "initiation": 49.204762,
+      "mobility": 21.980952,
+      "push": 23.257143,
+      "repositioning": 37.797619,
+      "save": 21.430952,
+      "scaling": 12.166667,
+      "sustain": 109.788095,
+      "sustained_damage": 93.888095,
+      "vision": 45.67619,
+      "wave_clear": 26.807143
+    },
+    "fractional_shannon_effective_jobs": 12.645547,
+    "gini_across_played_heroes": 0.682992,
+    "heroes": [
+      {
+        "core_60": true,
+        "functional_jobs": [
+          "sustain",
+          "sustained_damage",
+          "catch",
+          "vision"
+        ],
+        "hero_id": 110,
+        "hero_name": "Phoenix",
+        "matches": 132,
+        "share": 0.15677
+      },
+      {
+        "core_60": true,
+        "functional_jobs": [
+          "frontline",
+          "forced_movement",
+          "sustain",
+          "fight_control",
+          "initiation",
+          "catch",
+          "push"
+        ],
+        "hero_id": 129,
+        "hero_name": "Mars",
+        "matches": 97,
+        "share": 0.115202
+      },
+      {
+        "core_60": true,
+        "functional_jobs": [
+          "catch",
+          "sustain",
+          "forced_movement",
+          "global_presence",
+          "wave_clear"
+        ],
+        "hero_id": 135,
+        "hero_name": "Dawnbreaker",
+        "matches": 84,
+        "share": 0.099762
+      },
+      {
+        "core_60": true,
+        "functional_jobs": [
+          "save",
+          "sustain",
+          "catch",
+          "fight_control",
+          "sustained_damage"
+        ],
+        "hero_id": 111,
+        "hero_name": "Oracle",
+        "matches": 48,
+        "share": 0.057007
+      },
+      {
+        "core_60": true,
+        "functional_jobs": [
+          "catch",
+          "forced_movement",
+          "repositioning"
+        ],
+        "hero_id": 86,
+        "hero_name": "Rubick",
+        "matches": 38,
+        "share": 0.045131
+      },
+      {
+        "core_60": true,
+        "functional_jobs": [
+          "scaling",
+          "sustained_damage",
+          "catch",
+          "repositioning"
+        ],
+        "hero_id": 94,
+        "hero_name": "Medusa",
+        "matches": 36,
+        "share": 0.042755
+      },
+      {
+        "core_60": true,
+        "functional_jobs": [
+          "initiation",
+          "fight_control",
+          "catch"
+        ],
+        "hero_id": 29,
+        "hero_name": "Tidehunter",
+        "matches": 31,
+        "share": 0.036817
+      },
+      {
+        "core_60": true,
+        "functional_jobs": [
+          "frontline",
+          "fight_control",
+          "initiation"
+        ],
+        "hero_id": 2,
+        "hero_name": "Axe",
+        "matches": 28,
+        "share": 0.033254
+      },
+      {
+        "core_60": true,
+        "functional_jobs": [
+          "fight_control",
+          "push",
+          "sustain",
+          "catch"
+        ],
+        "hero_id": 37,
+        "hero_name": "Warlock",
+        "matches": 28,
+        "share": 0.033254
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "frontline",
+          "fight_control",
+          "initiation",
+          "catch",
+          "mobility",
+          "repositioning",
+          "sustained_damage"
+        ],
+        "hero_id": 108,
+        "hero_name": "Underlord",
+        "matches": 25,
+        "share": 0.029691
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "save",
+          "mobility",
+          "repositioning",
+          "sustain",
+          "catch",
+          "fight_control",
+          "forced_movement"
+        ],
+        "hero_id": 20,
+        "hero_name": "Vengeful Spirit",
+        "matches": 23,
+        "share": 0.027316
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "forced_movement",
+          "burst",
+          "catch",
+          "sustain",
+          "sustained_damage"
+        ],
+        "hero_id": 138,
+        "hero_name": "Muerta",
+        "matches": 22,
+        "share": 0.026128
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "frontline",
+          "fight_control",
+          "initiation",
+          "catch",
+          "counter_initiation"
+        ],
+        "hero_id": 96,
+        "hero_name": "Centaur Warrunner",
+        "matches": 21,
+        "share": 0.024941
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "frontline",
+          "mobility",
+          "sustained_damage",
+          "sustain"
+        ],
+        "hero_id": 54,
+        "hero_name": "Lifestealer",
+        "matches": 19,
+        "share": 0.022565
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "sustained_damage",
+          "catch",
+          "vision"
+        ],
+        "hero_id": 30,
+        "hero_name": "Witch Doctor",
+        "matches": 17,
+        "share": 0.02019
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "burst",
+          "fight_control",
+          "save",
+          "sustain"
+        ],
+        "hero_id": 31,
+        "hero_name": "Lich",
+        "matches": 16,
+        "share": 0.019002
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "burst",
+          "sustained_damage",
+          "wave_clear",
+          "catch"
+        ],
+        "hero_id": 72,
+        "hero_name": "Gyrocopter",
+        "matches": 14,
+        "share": 0.016627
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "burst",
+          "wave_clear",
+          "fight_control",
+          "vision"
+        ],
+        "hero_id": 101,
+        "hero_name": "Skywrath Mage",
+        "matches": 14,
+        "share": 0.016627
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "mobility",
+          "repositioning",
+          "sustained_damage",
+          "catch",
+          "forced_movement"
+        ],
+        "hero_id": 10,
+        "hero_name": "Morphling",
+        "matches": 13,
+        "share": 0.015439
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "catch",
+          "fight_control",
+          "burst"
+        ],
+        "hero_id": 5,
+        "hero_name": "Crystal Maiden",
+        "matches": 12,
+        "share": 0.014252
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "catch",
+          "fight_control",
+          "sustain",
+          "sustained_damage"
+        ],
+        "hero_id": 128,
+        "hero_name": "Snapfire",
+        "matches": 9,
+        "share": 0.010689
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "scaling",
+          "sustained_damage",
+          "initiation"
+        ],
+        "hero_id": 12,
+        "hero_name": "Phantom Lancer",
+        "matches": 7,
+        "share": 0.008314
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "burst",
+          "catch",
+          "sustain"
+        ],
+        "hero_id": 42,
+        "hero_name": "Wraith King",
+        "matches": 7,
+        "share": 0.008314
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "fight_control",
+          "wave_clear",
+          "push",
+          "sustained_damage",
+          "catch"
+        ],
+        "hero_id": 64,
+        "hero_name": "Jakiro",
+        "matches": 7,
+        "share": 0.008314
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "global_presence",
+          "fight_control",
+          "catch"
+        ],
+        "hero_id": 75,
+        "hero_name": "Silencer",
+        "matches": 7,
+        "share": 0.008314
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "save",
+          "sustain",
+          "catch",
+          "sustained_damage",
+          "fight_control"
+        ],
+        "hero_id": 50,
+        "hero_name": "Dazzle",
+        "matches": 6,
+        "share": 0.007126
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "frontline",
+          "fight_control",
+          "initiation"
+        ],
+        "hero_id": 99,
+        "hero_name": "Bristleback",
+        "matches": 5,
+        "share": 0.005938
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "sustain",
+          "fight_control",
+          "save",
+          "sustained_damage"
+        ],
+        "hero_id": 102,
+        "hero_name": "Abaddon",
+        "matches": 5,
+        "share": 0.005938
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "mobility",
+          "repositioning",
+          "vision"
+        ],
+        "hero_id": 8,
+        "hero_name": "Juggernaut",
+        "matches": 4,
+        "share": 0.004751
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "catch",
+          "mobility",
+          "repositioning",
+          "vision"
+        ],
+        "hero_id": 9,
+        "hero_name": "Mirana",
+        "matches": 4,
+        "share": 0.004751
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "initiation",
+          "sustain",
+          "burst",
+          "catch",
+          "fight_control"
+        ],
+        "hero_id": 26,
+        "hero_name": "Lion",
+        "matches": 4,
+        "share": 0.004751
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "mobility",
+          "catch",
+          "repositioning",
+          "burst",
+          "sustain",
+          "sustained_damage"
+        ],
+        "hero_id": 39,
+        "hero_name": "Queen of Pain",
+        "matches": 4,
+        "share": 0.004751
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "frontline",
+          "fight_control",
+          "sustain"
+        ],
+        "hero_id": 85,
+        "hero_name": "Undying",
+        "matches": 4,
+        "share": 0.004751
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "initiation",
+          "repositioning",
+          "catch",
+          "mobility",
+          "sustain",
+          "sustained_damage"
+        ],
+        "hero_id": 114,
+        "hero_name": "Monkey King",
+        "matches": 4,
+        "share": 0.004751
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "initiation",
+          "fight_control",
+          "catch",
+          "repositioning"
+        ],
+        "hero_id": 7,
+        "hero_name": "Earthshaker",
+        "matches": 3,
+        "share": 0.003563
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "initiation",
+          "mobility",
+          "fight_control",
+          "catch",
+          "sustained_damage"
+        ],
+        "hero_id": 16,
+        "hero_name": "Sand King",
+        "matches": 3,
+        "share": 0.003563
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "burst",
+          "repositioning",
+          "wave_clear",
+          "catch",
+          "global_presence",
+          "mobility",
+          "sustained_damage"
+        ],
+        "hero_id": 22,
+        "hero_name": "Zeus",
+        "matches": 3,
+        "share": 0.003563
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "sustain",
+          "save",
+          "forced_movement",
+          "mobility",
+          "repositioning",
+          "sustained_damage",
+          "wave_clear"
+        ],
+        "hero_id": 91,
+        "hero_name": "Io",
+        "matches": 3,
+        "share": 0.003563
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "burst",
+          "fight_control",
+          "mobility",
+          "catch"
+        ],
+        "hero_id": 119,
+        "hero_name": "Dark Willow",
+        "matches": 3,
+        "share": 0.003563
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "fight_control",
+          "forced_movement",
+          "mobility",
+          "sustained_damage",
+          "vision",
+          "wave_clear"
+        ],
+        "hero_id": 131,
+        "hero_name": "Ring Master",
+        "matches": 3,
+        "share": 0.003563
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "mobility",
+          "repositioning",
+          "forced_movement",
+          "sustained_damage",
+          "catch"
+        ],
+        "hero_id": 17,
+        "hero_name": "Storm Spirit",
+        "matches": 2,
+        "share": 0.002375
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "catch",
+          "sustained_damage",
+          "push",
+          "sustain"
+        ],
+        "hero_id": 38,
+        "hero_name": "Beastmaster",
+        "matches": 2,
+        "share": 0.002375
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "scaling",
+          "catch",
+          "sustained_damage",
+          "burst",
+          "mobility",
+          "repositioning"
+        ],
+        "hero_id": 44,
+        "hero_name": "Phantom Assassin",
+        "matches": 2,
+        "share": 0.002375
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "catch",
+          "frontline",
+          "sustained_damage"
+        ],
+        "hero_id": 47,
+        "hero_name": "Viper",
+        "matches": 2,
+        "share": 0.002375
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "catch",
+          "sustained_damage",
+          "save"
+        ],
+        "hero_id": 84,
+        "hero_name": "Ogre Magi",
+        "matches": 2,
+        "share": 0.002375
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "catch",
+          "forced_movement",
+          "sustained_damage",
+          "fight_control"
+        ],
+        "hero_id": 100,
+        "hero_name": "Tusk",
+        "matches": 2,
+        "share": 0.002375
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "scaling",
+          "mobility",
+          "repositioning",
+          "sustained_damage",
+          "catch",
+          "counter_initiation"
+        ],
+        "hero_id": 1,
+        "hero_name": "Anti-Mage",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "frontline",
+          "forced_movement",
+          "fight_control",
+          "initiation"
+        ],
+        "hero_id": 14,
+        "hero_name": "Pudge",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "mobility",
+          "repositioning",
+          "catch",
+          "burst",
+          "push",
+          "sustained_damage"
+        ],
+        "hero_id": 21,
+        "hero_name": "Windranger",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "burst",
+          "wave_clear",
+          "catch",
+          "sustained_damage"
+        ],
+        "hero_id": 25,
+        "hero_name": "Lina",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "push",
+          "sustained_damage",
+          "vision"
+        ],
+        "hero_id": 27,
+        "hero_name": "Shadow Shaman",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "initiation",
+          "fight_control",
+          "forced_movement",
+          "catch"
+        ],
+        "hero_id": 33,
+        "hero_name": "Enigma",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "initiation",
+          "fight_control",
+          "catch",
+          "sustained_damage",
+          "vision"
+        ],
+        "hero_id": 41,
+        "hero_name": "Faceless Void",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "initiation",
+          "catch",
+          "fight_control",
+          "global_presence",
+          "sustained_damage",
+          "forced_movement",
+          "vision"
+        ],
+        "hero_id": 51,
+        "hero_name": "Clockwerk",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "catch",
+          "frontline",
+          "sustained_damage",
+          "sustain"
+        ],
+        "hero_id": 69,
+        "hero_name": "Doom",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "mobility",
+          "repositioning",
+          "sustained_damage"
+        ],
+        "hero_id": 70,
+        "hero_name": "Ursa",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "burst",
+          "save"
+        ],
+        "hero_id": 76,
+        "hero_name": "Outworld Devourer",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "catch",
+          "sustain",
+          "sustained_damage"
+        ],
+        "hero_id": 95,
+        "hero_name": "Troll Warlord",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "forced_movement",
+          "initiation",
+          "fight_control",
+          "catch"
+        ],
+        "hero_id": 97,
+        "hero_name": "Magnus",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "save",
+          "sustain",
+          "fight_control",
+          "sustained_damage"
+        ],
+        "hero_id": 104,
+        "hero_name": "Legion Commander",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "scaling",
+          "sustained_damage",
+          "sustain"
+        ],
+        "hero_id": 109,
+        "hero_name": "Terrorblade",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "save",
+          "sustained_damage",
+          "sustain",
+          "fight_control"
+        ],
+        "hero_id": 112,
+        "hero_name": "Winter Wyvern",
+        "matches": 1,
+        "share": 0.001188
+      },
+      {
+        "core_60": false,
+        "functional_jobs": [
+          "fight_control",
+          "burst",
+          "catch",
+          "sustain"
+        ],
+        "hero_id": 121,
+        "hero_name": "Grimstroke",
+        "matches": 1,
+        "share": 0.001188
+      }
+    ],
+    "heroes_for_50_percent": 6,
+    "heroes_for_60_percent_core": 9,
+    "heroes_for_80_percent": 17,
+    "heroes_for_90_percent": 26,
+    "hhi": 0.064469,
+    "long_tail_matches": 71,
+    "primary_job_distribution": {
+      "burst": 59,
+      "catch": 157,
+      "fight_control": 39,
+      "forced_movement": 23,
+      "frontline": 200,
+      "global_presence": 7,
+      "initiation": 48,
+      "mobility": 25,
+      "push": 1,
+      "save": 79,
+      "scaling": 47,
+      "sustain": 140,
+      "sustained_damage": 17
+    },
+    "primary_job_effective_count": 8.647422,
+    "shannon_effective_heroes": 25.665947,
+    "simpson_effective_heroes": 15.511399,
+    "taxonomy_coverage": 1.0,
+    "top_1_share": 0.15677,
+    "top_3_share": 0.371734,
+    "top_5_share": 0.473872,
+    "unique_heroes": 63
+  },
+  "public_element_descriptives": {
+    "breadth": 25.665947,
+    "consistency_note": "See global and conditional metric dispersions; production zones require calibrated thresholds.",
+    "death_exposure_raw_per_ten": 1.875418,
+    "finishing_raw_share": 0.269694,
+    "involvement_raw_per_minute": 0.549158,
+    "toolkit": 12.645547,
+    "transfer_note": "See core_minus_noncore_cluster_bootstrap; no external context baseline is applied in this specimen audit."
+  },
+  "sequences": {
+    "after_exactly_one_loss": {
+      "any_job_overlap": {
+        "n": 192,
+        "rate": 0.921875,
+        "successes": 177,
+        "wilson_95": [
+          0.875114,
+          0.952086
+        ]
+      },
+      "n": 192,
+      "next_core": {
+        "n": 192,
+        "rate": 0.630208,
+        "successes": 121,
+        "wilson_95": [
+          0.559995,
+          0.695313
+        ]
+      },
+      "next_death_exposure_mean": 1.883845,
+      "next_experimental": {
+        "n": 192,
+        "rate": 0.072917,
+        "successes": 14,
+        "wilson_95": [
+          0.043929,
+          0.118659
+        ]
+      },
+      "next_involvement_mean": 0.56942,
+      "next_win": {
+        "n": 192,
+        "rate": 0.510417,
+        "successes": 98,
+        "wilson_95": [
+          0.4402,
+          0.580224
+        ]
+      },
+      "same_hero": {
+        "n": 192,
+        "rate": 0.114583,
+        "successes": 22,
+        "wilson_95": [
+          0.076897,
+          0.167389
+        ]
+      },
+      "same_primary_job": {
+        "n": 192,
+        "rate": 0.25,
+        "successes": 48,
+        "wilson_95": [
+          0.194061,
+          0.315747
+        ]
+      }
+    },
+    "after_exactly_one_win": {
+      "any_job_overlap": {
+        "n": 154,
+        "rate": 0.922078,
+        "successes": 142,
+        "wilson_95": [
+          0.868746,
+          0.954866
+        ]
+      },
+      "n": 154,
+      "next_core": {
+        "n": 154,
+        "rate": 0.642857,
+        "successes": 99,
+        "wilson_95": [
+          0.564549,
+          0.714212
+        ]
+      },
+      "next_death_exposure_mean": 1.72802,
+      "next_experimental": {
+        "n": 154,
+        "rate": 0.071429,
+        "successes": 11,
+        "wilson_95": [
+          0.04035,
+          0.123368
+        ]
+      },
+      "next_involvement_mean": 0.557793,
+      "next_win": {
+        "n": 154,
+        "rate": 0.532468,
+        "successes": 82,
+        "wilson_95": [
+          0.453836,
+          0.609519
+        ]
+      },
+      "same_hero": {
+        "n": 154,
+        "rate": 0.116883,
+        "successes": 18,
+        "wilson_95": [
+          0.075226,
+          0.177188
+        ]
+      },
+      "same_primary_job": {
+        "n": 154,
+        "rate": 0.246753,
+        "successes": 38,
+        "wilson_95": [
+          0.185378,
+          0.320455
+        ]
+      }
+    },
+    "after_loss": {
+      "any_job_overlap": {
+        "n": 265,
+        "rate": 0.924528,
+        "successes": 245,
+        "wilson_95": [
+          0.886309,
+          0.950615
+        ]
+      },
+      "n": 265,
+      "next_core": {
+        "n": 265,
+        "rate": 0.581132,
+        "successes": 154,
+        "wilson_95": [
+          0.520985,
+          0.63896
+        ]
+      },
+      "next_death_exposure_mean": 1.891029,
+      "next_experimental": {
+        "n": 265,
+        "rate": 0.098113,
+        "successes": 26,
+        "wilson_95": [
+          0.067837,
+          0.139875
+        ]
+      },
+      "next_involvement_mean": 0.5605,
+      "next_win": {
+        "n": 265,
+        "rate": 0.516981,
+        "successes": 137,
+        "wilson_95": [
+          0.457004,
+          0.576473
+        ]
+      },
+      "same_hero": {
+        "n": 265,
+        "rate": 0.113208,
+        "successes": 30,
+        "wilson_95": [
+          0.080459,
+          0.15701
+        ]
+      },
+      "same_primary_job": {
+        "n": 265,
+        "rate": 0.245283,
+        "successes": 65,
+        "wilson_95": [
+          0.197363,
+          0.300482
+        ]
+      }
+    },
+    "after_two_plus_losses": {
+      "any_job_overlap": {
+        "n": 73,
+        "rate": 0.931507,
+        "successes": 68,
+        "wilson_95": [
+          0.849479,
+          0.970391
+        ]
+      },
+      "n": 73,
+      "next_core": {
+        "n": 73,
+        "rate": 0.452055,
+        "successes": 33,
+        "wilson_95": [
+          0.343147,
+          0.565757
+        ]
+      },
+      "next_death_exposure_mean": 1.909921,
+      "next_experimental": {
+        "n": 73,
+        "rate": 0.164384,
+        "successes": 12,
+        "wilson_95": [
+          0.096613,
+          0.26571
+        ]
+      },
+      "next_involvement_mean": 0.537038,
+      "next_win": {
+        "n": 73,
+        "rate": 0.534247,
+        "successes": 39,
+        "wilson_95": [
+          0.420989,
+          0.64408
+        ]
+      },
+      "same_hero": {
+        "n": 73,
+        "rate": 0.109589,
+        "successes": 8,
+        "wilson_95": [
+          0.056587,
+          0.201626
+        ]
+      },
+      "same_primary_job": {
+        "n": 73,
+        "rate": 0.232877,
+        "successes": 17,
+        "wilson_95": [
+          0.150789,
+          0.341673
+        ]
+      }
+    },
+    "after_two_plus_wins": {
+      "any_job_overlap": {
+        "n": 57,
+        "rate": 0.982456,
+        "successes": 56,
+        "wilson_95": [
+          0.907093,
+          0.996896
+        ]
+      },
+      "n": 57,
+      "next_core": {
+        "n": 57,
+        "rate": 0.508772,
+        "successes": 29,
+        "wilson_95": [
+          0.382599,
+          0.633837
+        ]
+      },
+      "next_death_exposure_mean": 2.016048,
+      "next_experimental": {
+        "n": 57,
+        "rate": 0.175439,
+        "successes": 10,
+        "wilson_95": [
+          0.098189,
+          0.293674
+        ]
+      },
+      "next_involvement_mean": 0.57148,
+      "next_win": {
+        "n": 57,
+        "rate": 0.54386,
+        "successes": 31,
+        "wilson_95": [
+          0.415907,
+          0.666274
+        ]
+      },
+      "same_hero": {
+        "n": 57,
+        "rate": 0.087719,
+        "successes": 5,
+        "wilson_95": [
+          0.038052,
+          0.189449
+        ]
+      },
+      "same_primary_job": {
+        "n": 57,
+        "rate": 0.22807,
+        "successes": 13,
+        "wilson_95": [
+          0.138419,
+          0.35206
+        ]
+      }
+    },
+    "after_win": {
+      "any_job_overlap": {
+        "n": 211,
+        "rate": 0.938389,
+        "successes": 198,
+        "wilson_95": [
+          0.897456,
+          0.963644
+        ]
+      },
+      "n": 211,
+      "next_core": {
+        "n": 211,
+        "rate": 0.606635,
+        "successes": 128,
+        "wilson_95": [
+          0.53938,
+          0.670077
+        ]
+      },
+      "next_death_exposure_mean": 1.805829,
+      "next_experimental": {
+        "n": 211,
+        "rate": 0.099526,
+        "successes": 21,
+        "wilson_95": [
+          0.066021,
+          0.147353
+        ]
+      },
+      "next_involvement_mean": 0.56149,
+      "next_win": {
+        "n": 211,
+        "rate": 0.535545,
+        "successes": 113,
+        "wilson_95": [
+          0.468217,
+          0.601602
+        ]
+      },
+      "same_hero": {
+        "n": 211,
+        "rate": 0.109005,
+        "successes": 23,
+        "wilson_95": [
+          0.073741,
+          0.158251
+        ]
+      },
+      "same_primary_job": {
+        "n": 211,
+        "rate": 0.241706,
+        "successes": 51,
+        "wilson_95": [
+          0.188892,
+          0.303757
+        ]
+      }
+    },
+    "motif_legend": {
+      "C": "60% core",
+      "E": "experimental edge (<5 annual games)",
+      "L": "loss",
+      "R": "reliable stretch (5+ annual games)",
+      "W": "win"
+    },
+    "same_hero_run_position": {
+      "1": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.874338,
+            "median": 1.770658,
+            "q25": 1.221001,
+            "q75": 2.426694
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.11106,
+            "median": 0.081338,
+            "q25": 0.038735,
+            "q75": 0.152439
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.273592,
+            "median": 0.243902,
+            "q25": 0.162162,
+            "q75": 0.36
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 452.247148,
+            "median": 430.0,
+            "q25": 349.0,
+            "q75": 533.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 569.835251,
+            "median": 534.581353,
+            "q25": 380.903614,
+            "q75": 702.57764
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 76.431321,
+            "median": 4.760736,
+            "q25": 0.0,
+            "q75": 106.795017
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.549974,
+            "median": 0.537364,
+            "q25": 0.402106,
+            "q75": 0.679048
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.402154,
+            "median": 4.104683,
+            "q25": 1.711304,
+            "q75": 6.471852
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 52.64412,
+            "median": 9.838649,
+            "q25": 0.956256,
+            "q75": 45.755003
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.510773,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 672.244613,
+            "median": 651.0,
+            "q25": 517.0,
+            "q75": 805.0
+          }
+        },
+        "n": 789
+      },
+      "2": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.844214,
+            "median": 1.760176,
+            "q25": 1.21519,
+            "q75": 2.493075
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.093537,
+            "median": 0.050083,
+            "q25": 0.022002,
+            "q75": 0.10158
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.210251,
+            "median": 0.2,
+            "q25": 0.12,
+            "q75": 0.272727
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 413.979592,
+            "median": 388.0,
+            "q25": 349.0,
+            "q75": 488.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 512.43499,
+            "median": 515.346535,
+            "q25": 381.242129,
+            "q75": 660.883406
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 81.335777,
+            "median": 38.12596,
+            "q25": 0.0,
+            "q75": 107.471483
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.54154,
+            "median": 0.492765,
+            "q25": 0.382422,
+            "q75": 0.667904
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 3.519132,
+            "median": 2.748092,
+            "q25": 1.616022,
+            "q75": 4.454504
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 37.949053,
+            "median": 5.872576,
+            "q25": 0.657201,
+            "q75": 34.646018
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.55102,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 630.877551,
+            "median": 626.0,
+            "q25": 499.0,
+            "q75": 742.0
+          }
+        },
+        "n": 49
+      },
+      "3": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.588296,
+            "median": 2.787706,
+            "q25": 2.317498,
+            "q75": 2.958798
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.013306,
+            "median": 0.018473,
+            "q25": 0.009236,
+            "q75": 0.019958
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.268106,
+            "median": 0.272727,
+            "q25": 0.254011,
+            "q75": 0.284512
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 364.333333,
+            "median": 357.0,
+            "q25": 335.0,
+            "q75": 390.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 576.135965,
+            "median": 639.885633,
+            "q25": 465.983505,
+            "q75": 718.16326
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 68.444672,
+            "median": 88.669797,
+            "q25": 55.496442,
+            "q75": 91.505465
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.500872,
+            "median": 0.498768,
+            "q25": 0.485267,
+            "q75": 0.515425
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 2.474743,
+            "median": 2.294496,
+            "q25": 1.726278,
+            "q75": 3.133085
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 32.428715,
+            "median": 7.241379,
+            "q25": 6.483449,
+            "q75": 45.780314
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.333333,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.5
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 588.666667,
+            "median": 546.0,
+            "q25": 517.0,
+            "q75": 639.0
+          }
+        },
+        "n": 3
+      },
+      "4+": {
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 2.117647,
+            "median": 2.117647,
+            "q25": 2.117647,
+            "q75": 2.117647
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.111111,
+            "median": 0.111111,
+            "q25": 0.111111,
+            "q75": 0.111111
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 358.0,
+            "median": 358.0,
+            "q25": 358.0,
+            "q75": 358.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 493.882353,
+            "median": 493.882353,
+            "q25": 493.882353,
+            "q75": 493.882353
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 60.752941,
+            "median": 60.752941,
+            "q25": 60.752941,
+            "q75": 60.752941
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.423529,
+            "median": 0.423529,
+            "q25": 0.423529,
+            "q75": 0.423529
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 3.764706,
+            "median": 3.764706,
+            "q25": 3.764706,
+            "q75": 3.764706
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 6.8,
+            "median": 6.8,
+            "q25": 6.8,
+            "q75": 6.8
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.0,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 0.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 496.0,
+            "median": 496.0,
+            "q25": 496.0,
+            "q75": 496.0
+          }
+        },
+        "n": 1
+      }
+    },
+    "top_state_motifs": [
+      {
+        "count": 11,
+        "length": 3,
+        "motif": [
+          "WC",
+          "WC",
+          "WC"
+        ]
+      },
+      {
+        "count": 9,
+        "length": 3,
+        "motif": [
+          "WC",
+          "LC",
+          "LC"
+        ]
+      },
+      {
+        "count": 8,
+        "length": 3,
+        "motif": [
+          "LC",
+          "LC",
+          "LC"
+        ]
+      },
+      {
+        "count": 8,
+        "length": 3,
+        "motif": [
+          "LC",
+          "WC",
+          "WC"
+        ]
+      },
+      {
+        "count": 6,
+        "length": 3,
+        "motif": [
+          "LC",
+          "LC",
+          "WC"
+        ]
+      },
+      {
+        "count": 6,
+        "length": 3,
+        "motif": [
+          "LC",
+          "WC",
+          "WR"
+        ]
+      },
+      {
+        "count": 6,
+        "length": 3,
+        "motif": [
+          "WC",
+          "LC",
+          "WC"
+        ]
+      },
+      {
+        "count": 6,
+        "length": 3,
+        "motif": [
+          "WC",
+          "LC",
+          "WR"
+        ]
+      },
+      {
+        "count": 5,
+        "length": 3,
+        "motif": [
+          "LC",
+          "LR",
+          "LR"
+        ]
+      },
+      {
+        "count": 5,
+        "length": 3,
+        "motif": [
+          "LC",
+          "WC",
+          "LR"
+        ]
+      },
+      {
+        "count": 5,
+        "length": 3,
+        "motif": [
+          "LR",
+          "WR",
+          "WC"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LC",
+          "LC",
+          "LR"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LC",
+          "LR",
+          "WC"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LC",
+          "LR",
+          "WR"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LC",
+          "WC",
+          "LC"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LC",
+          "WR",
+          "WC"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LR",
+          "LC",
+          "WC"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LR",
+          "LR",
+          "LR"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LR",
+          "LR",
+          "WR"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LR",
+          "WC",
+          "LC"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "LR",
+          "WC",
+          "LR"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "WC",
+          "LR",
+          "WC"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "WC",
+          "WC",
+          "LC"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "WC",
+          "WC",
+          "LR"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 3,
+        "motif": [
+          "WC",
+          "WR",
+          "LE"
+        ]
+      },
+      {
+        "count": 4,
+        "length": 4,
+        "motif": [
+          "WC",
+          "WC",
+          "WC",
+          "WC"
+        ]
+      },
+      {
+        "count": 3,
+        "length": 3,
+        "motif": [
+          "WC",
+          "LR",
+          "LC"
+        ]
+      },
+      {
+        "count": 3,
+        "length": 3,
+        "motif": [
+          "WC",
+          "WC",
+          "WE"
+        ]
+      },
+      {
+        "count": 3,
+        "length": 3,
+        "motif": [
+          "WC",
+          "WR",
+          "LC"
+        ]
+      },
+      {
+        "count": 3,
+        "length": 3,
+        "motif": [
+          "WC",
+          "WR",
+          "WR"
+        ]
+      }
+    ],
+    "transition_count": 476
+  },
+  "sessions": {
+    "completed_uncensored_sessions": 364,
+    "match_count_mean": 2.300546,
+    "match_count_median": 2.0,
+    "match_count_q90": 4.0,
+    "position_profiles": {
+      "1": {
+        "core_pick_rate": 0.653846,
+        "hero_repeat_from_previous_rate": null,
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.90628,
+            "median": 1.81305,
+            "q25": 1.22449,
+            "q75": 2.478623
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.111971,
+            "median": 0.081863,
+            "q25": 0.039047,
+            "q75": 0.153521
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.270583,
+            "median": 0.243573,
+            "q25": 0.166667,
+            "q75": 0.35
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 444.942308,
+            "median": 422.0,
+            "q25": 350.75,
+            "q75": 512.25
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 559.200667,
+            "median": 517.793212,
+            "q25": 390.05639,
+            "q75": 696.078697
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 74.928356,
+            "median": 4.607493,
+            "q25": 0.0,
+            "q75": 109.302031
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.532563,
+            "median": 0.51511,
+            "q25": 0.390134,
+            "q75": 0.655042
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.288449,
+            "median": 3.905329,
+            "q25": 1.866949,
+            "q75": 5.997201
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 51.004315,
+            "median": 9.363805,
+            "q25": 0.825416,
+            "q75": 42.870624
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.491758,
+            "median": 0.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 660.771978,
+            "median": 635.0,
+            "q25": 513.75,
+            "q75": 780.25
+          }
+        },
+        "n": 364
+      },
+      "2": {
+        "core_pick_rate": 0.641256,
+        "hero_repeat_from_previous_rate": 0.143498,
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.798573,
+            "median": 1.697913,
+            "q25": 1.181296,
+            "q75": 2.347993
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.101987,
+            "median": 0.075973,
+            "q25": 0.033067,
+            "q75": 0.143171
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.26528,
+            "median": 0.234043,
+            "q25": 0.163333,
+            "q75": 0.352941
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 454.766816,
+            "median": 421.0,
+            "q25": 344.0,
+            "q75": 537.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 579.923076,
+            "median": 541.550734,
+            "q25": 384.768894,
+            "q75": 706.165187
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 78.273167,
+            "median": 5.5358,
+            "q25": 0.0,
+            "q75": 109.878561
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.570187,
+            "median": 0.563225,
+            "q25": 0.418507,
+            "q75": 0.702546
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.327956,
+            "median": 3.822715,
+            "q25": 1.622672,
+            "q75": 6.454604
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 53.856317,
+            "median": 8.367876,
+            "q25": 1.101014,
+            "q75": 45.017765
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.515695,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 678.381166,
+            "median": 675.0,
+            "q25": 508.5,
+            "q75": 819.0
+          }
+        },
+        "n": 223
+      },
+      "3": {
+        "core_pick_rate": 0.512605,
+        "hero_repeat_from_previous_rate": 0.10084,
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.984689,
+            "median": 1.889339,
+            "q25": 1.399581,
+            "q75": 2.578098
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.113403,
+            "median": 0.077973,
+            "q25": 0.031297,
+            "q75": 0.15448
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.293565,
+            "median": 0.25,
+            "q25": 0.166667,
+            "q75": 0.402381
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 455.747899,
+            "median": 433.0,
+            "q25": 342.0,
+            "q75": 543.5
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 583.092933,
+            "median": 548.205349,
+            "q25": 372.97703,
+            "q75": 738.962155
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 62.329761,
+            "median": 5.395941,
+            "q25": 0.0,
+            "q75": 77.303109
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.536335,
+            "median": 0.532081,
+            "q25": 0.396407,
+            "q75": 0.658777
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.506095,
+            "median": 4.500429,
+            "q25": 1.708559,
+            "q75": 6.700656
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 48.773464,
+            "median": 10.818995,
+            "q25": 1.182292,
+            "q75": 46.005706
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.537815,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 673.97479,
+            "median": 660.0,
+            "q25": 502.0,
+            "q75": 835.0
+          }
+        },
+        "n": 119
+      },
+      "4": {
+        "core_pick_rate": 0.561404,
+        "hero_repeat_from_previous_rate": 0.052632,
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.775608,
+            "median": 1.628538,
+            "q25": 1.075654,
+            "q75": 2.249784
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.117728,
+            "median": 0.08991,
+            "q25": 0.042659,
+            "q75": 0.147783
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.254576,
+            "median": 0.25,
+            "q25": 0.151515,
+            "q75": 0.35
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 442.807018,
+            "median": 412.0,
+            "q25": 362.0,
+            "q75": 508.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 540.723432,
+            "median": 487.725904,
+            "q25": 368.309456,
+            "q75": 668.428036
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 84.265884,
+            "median": 10.8413,
+            "q25": 0.0,
+            "q75": 112.243211
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.571473,
+            "median": 0.55934,
+            "q25": 0.423529,
+            "q75": 0.690858
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.024224,
+            "median": 3.334351,
+            "q25": 1.541168,
+            "q75": 6.327543
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 46.946711,
+            "median": 8.151139,
+            "q25": 1.414977,
+            "q75": 44.626263
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.54386,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 675.385965,
+            "median": 665.0,
+            "q25": 545.0,
+            "q75": 763.0
+          }
+        },
+        "n": 57
+      },
+      "5+": {
+        "core_pick_rate": 0.6,
+        "hero_repeat_from_previous_rate": 0.08,
+        "metrics": {
+          "death_exposure_per_ten": {
+            "coverage": 1.0,
+            "mean": 1.857051,
+            "median": 1.770658,
+            "q25": 1.267961,
+            "q75": 2.321084
+          },
+          "denies_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.110747,
+            "median": 0.071514,
+            "q25": 0.038025,
+            "q75": 0.141282
+          },
+          "finishing_share": {
+            "coverage": 1.0,
+            "mean": 0.258334,
+            "median": 0.210526,
+            "q25": 0.1225,
+            "q75": 0.362185
+          },
+          "gold_per_min": {
+            "coverage": 1.0,
+            "mean": 455.786667,
+            "median": 445.0,
+            "q25": 342.0,
+            "q75": 558.0
+          },
+          "hero_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 558.644911,
+            "median": 534.74606,
+            "q25": 362.724048,
+            "q75": 688.635137
+          },
+          "hero_healing_per_minute": {
+            "coverage": 1.0,
+            "mean": 89.036947,
+            "median": 11.847538,
+            "q25": 0.0,
+            "q75": 96.491854
+          },
+          "involvement_per_minute": {
+            "coverage": 1.0,
+            "mean": 0.562325,
+            "median": 0.542553,
+            "q25": 0.40269,
+            "q75": 0.699541
+          },
+          "last_hits_per_minute": {
+            "coverage": 1.0,
+            "mean": 4.768261,
+            "median": 4.347826,
+            "q25": 1.88127,
+            "q75": 6.844069
+          },
+          "tower_damage_per_minute": {
+            "coverage": 1.0,
+            "mean": 57.804113,
+            "median": 16.423513,
+            "q25": 1.304863,
+            "q75": 53.082659
+          },
+          "won": {
+            "coverage": 1.0,
+            "mean": 0.52,
+            "median": 1.0,
+            "q25": 0.0,
+            "q75": 1.0
+          },
+          "xp_per_min": {
+            "coverage": 1.0,
+            "mean": 678.346667,
+            "median": 691.0,
+            "q25": 542.0,
+            "q75": 818.5
+          }
+        },
+        "n": 75
+      }
+    },
+    "session_count": 366,
+    "sessions_4_plus": 57,
+    "sessions_5_plus": 34,
+    "stopping": {
+      "after_loss": {
+        "n": 410,
+        "rate": 0.356098,
+        "successes": 146,
+        "wilson_95": [
+          0.31128,
+          0.403587
+        ]
+      },
+      "after_one_loss": {
+        "n": 282,
+        "rate": 0.322695,
+        "successes": 91,
+        "wilson_95": [
+          0.270829,
+          0.379327
+        ]
+      },
+      "after_one_win": {
+        "n": 315,
+        "rate": 0.514286,
+        "successes": 162,
+        "wilson_95": [
+          0.459254,
+          0.568974
+        ]
+      },
+      "after_two_plus_losses": {
+        "n": 128,
+        "rate": 0.429688,
+        "successes": 55,
+        "wilson_95": [
+          0.347212,
+          0.516261
+        ]
+      },
+      "after_two_plus_wins": {
+        "n": 113,
+        "rate": 0.495575,
+        "successes": 56,
+        "wilson_95": [
+          0.405063,
+          0.586378
+        ]
+      },
+      "after_win": {
+        "n": 428,
+        "rate": 0.509346,
+        "successes": 218,
+        "wilson_95": [
+          0.462113,
+          0.556413
+        ]
+      },
+      "boundary_note": "First and last window sessions excluded; a 90-minute gap operationally defines stopping."
+    }
+  }
+}

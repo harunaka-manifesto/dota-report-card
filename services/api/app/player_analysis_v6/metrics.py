@@ -42,6 +42,34 @@ effective_hero_count = shannon_effective_count
 effective_toolkit_count = shannon_effective_count
 
 
+def taxonomy_labels(raw: Any) -> tuple[str, ...]:
+    """Extract reviewed functional-job labels from supported taxonomy shapes."""
+
+    values: tuple[Any, ...]
+    if raw is None:
+        return ()
+    if isinstance(raw, str):
+        values = (raw,)
+    elif isinstance(raw, Mapping):
+        structured = (
+            raw.get("functional_jobs")
+            or raw.get("jobs")
+            or raw.get("labels")
+            or tuple(raw.get("primary_functions", ()))
+            + tuple(raw.get("secondary_functions", ()))
+        )
+        if structured:
+            values = (structured,) if isinstance(structured, str) else tuple(structured)
+        else:
+            values = tuple(str(key) for key, value in raw.items() if isinstance(value, (int, float, bool)) and value)
+    else:
+        try:
+            values = tuple(raw)
+        except TypeError:
+            values = (raw,)
+    return tuple(dict.fromkeys(str(item) for item in values if item not in (None, "")))
+
+
 def match_weighted_effective_count(
     taxonomy_by_match: Mapping[Any, Any],
     *,
@@ -59,19 +87,7 @@ def match_weighted_effective_count(
     total = len(taxonomy_by_match)
     covered = 0
     for raw in taxonomy_by_match.values():
-        labels: tuple[str, ...]
-        if raw is None:
-            continue
-        if isinstance(raw, str):
-            labels = (raw,)
-        elif isinstance(raw, Mapping):
-            labels = tuple(str(key) for key, value in raw.items() if value)
-        else:
-            try:
-                labels = tuple(str(item) for item in raw if item is not None)
-            except TypeError:
-                labels = (str(raw),)
-        labels = tuple(dict.fromkeys(label for label in labels if label))
+        labels = taxonomy_labels(raw)
         if not labels:
             continue
         covered += 1

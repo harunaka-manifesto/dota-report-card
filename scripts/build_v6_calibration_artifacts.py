@@ -14,11 +14,13 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import random
 import statistics
 import sys
 from collections import Counter, defaultdict
 from collections.abc import Mapping
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -26,7 +28,17 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
+from app.heroes.taxonomy import load_default_taxonomy  # noqa: E402
+from app.player_analysis_v6.artifacts import load_context_baseline_artifact  # noqa: E402
 from app.player_analysis_v6.calibration import REQUIRED_THRESHOLD_KEYS  # noqa: E402
+from app.player_analysis_v6.calibration_corpus import (  # noqa: E402
+    load_calibration_corpus,
+    migrate_calibration_corpus,
+)
+from app.player_analysis_v6.calibration_derivation import (  # noqa: E402
+    derive_profile_estimates,
+    odd_even_session_ids,
+)
 from app.player_analysis_v6.constants import BASELINE_VERSION, THRESHOLDS_VERSION  # noqa: E402
 
 BASELINE_METRICS = (
@@ -41,6 +53,22 @@ BASELINE_ALIASES = {
     "death_exposure_adjusted": "death_exposure_per_ten",
 }
 EPSILON = 1e-9
+
+
+def _atomic_json(path: Path, payload: Mapping[str, Any], *, mode: int | None = None) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700 if mode == 0o600 else 0o755)
+    if mode == 0o600:
+        path.parent.chmod(0o700)
+    temporary = path.with_name(f".{path.name}.tmp")
+    temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if mode is not None:
+        temporary.chmod(mode)
+    temporary.replace(path)
+
+
+def _taxonomy_mapping() -> dict[int, dict[str, Any]]:
+    taxonomy = load_default_taxonomy()
+    return {hero_id: {"functional_jobs": list(hero.roles)} for hero_id, hero in taxonomy.heroes.items()}
 
 
 def _number(value: Any) -> float | None:
@@ -178,12 +206,15 @@ def _cell_key(row: Mapping[str, Any], level: str) -> tuple[Any, ...]:
     return tuple(row.get(key) for key in dimensions)
 
 
-def build_baseline(rows: list[dict[str, Any]], *, train_profiles: set[Any] | None = None) -> dict[str, Any]:
+def build_baseline(rows: list[dict[str, Any]], *, train_profiles: set[Any] | None = None, generated_at: str | None = None) -> dict[str, Any]:
     source_rows = [row for row in rows if train_profiles is None or _profile_id(row) in train_profiles]
     grouped: dict[tuple[str, tuple[Any, ...]], list[dict[str, Any]]] = defaultdict(list)
     for row in source_rows:
         for level in ("patch+hero+lane", "patch+hero_function+lane", "patch+hero", "patch+lane", "patch", "overall"):
-            grouped[(level, _cell_key(row, level))].append(row)
+            dimensions = _cell_key(row, level)
+            if level != "overall" and any(value is None for value in dimensions):
+                continue
+            grouped[(level, dimensions)].append(row)
     cells: list[dict[str, Any]] = []
     for (level, dimensions), group in sorted(grouped.items(), key=lambda item: repr(item[0])):
         metrics: dict[str, float] = {}
@@ -219,7 +250,7 @@ def build_baseline(rows: list[dict[str, Any]], *, train_profiles: set[Any] | Non
     total = sum(lobby_counts.values()) or 1
     return {
         "version": BASELINE_VERSION,
-        "generated_at": datetime.now(UTC).isoformat(),
+        "generated_at": generated_at or datetime.now(UTC).isoformat(),
         "corpus": {
             "profile_count": len({_profile_id(row) for row in source_rows}),
             "match_count": len(source_rows),
@@ -287,6 +318,18 @@ def _coverage_for(key: str) -> float:
     return 0.0
 
 
+def _min_sessions_for(key: str) -> int:
+    if key.startswith(("consistency_", "post_loss_", "session_drift_")):
+        return 12
+    if key.startswith("transfer_") or key in {
+        "involvement_adjusted",
+        "finishing_adjusted",
+        "death_exposure_adjusted",
+    }:
+        return 8
+    return 1
+
+
 def build_thresholds(
     rows: list[dict[str, Any]],
     *,
@@ -334,7 +377,7 @@ def build_thresholds(
             "low_cutoff": low_cutoff,
             "high_cutoff": high_cutoff,
             "min_sample": 30,
-            "min_sessions": 12 if key.startswith(("consistency_", "post_loss_", "session_drift_")) else 8,
+            "min_sessions": _min_sessions_for(key),
             "min_coverage": _coverage_for(key),
             "moderate_stability": 0.75,
             "high_stability": 0.90,
@@ -353,6 +396,158 @@ def build_thresholds(
         },
         "metrics": metrics,
     }
+
+
+def build_thresholds_from_raw_corpus(
+    rows: list[dict[str, Any]],
+    *,
+    train_profiles: set[Any],
+    holdout_profiles: set[Any],
+    baseline_path: Path,
+    generated_at: str,
+    checkpoint_dir: Path | None = None,
+    completed_sessions_by_profile: Mapping[str, Mapping[str, bool]] | None = None,
+    corpus_checksum: str = "",
+    workers: int = 1,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Derive full/A/B player estimates from raw rows, never holdout outcomes."""
+
+    resolver = load_context_baseline_artifact(baseline_path).resolver()
+    taxonomy = _taxonomy_mapping()
+    by_profile: dict[Any, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        if _profile_id(row) in train_profiles:
+            by_profile[_profile_id(row)].append(row)
+    checkpoint_path = checkpoint_dir / "player-estimates.jsonl" if checkpoint_dir else None
+    completed: dict[str, dict[str, Any]] = {}
+    input_digest = hashlib.sha256(
+        b"v6-calibration-derivation-1.0.0\0"
+        + corpus_checksum.encode("ascii")
+        + json.dumps(sorted(map(str, train_profiles)), separators=(",", ":")).encode("utf-8")
+        + baseline_path.read_bytes()
+    ).hexdigest()
+    if checkpoint_path and checkpoint_path.exists():
+        lines = checkpoint_path.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                if index == len(lines) - 1:
+                    break
+                raise
+            if record.get("input_digest") != input_digest:
+                raise ValueError("threshold checkpoint input checksum mismatch")
+            completed[str(record["profile_digest"])] = record
+    ordered_profiles = sorted(train_profiles, key=repr)
+
+    def derive_record(profile_id: Any) -> dict[str, Any]:
+        profile_digest = hashlib.sha256(str(profile_id).encode("utf-8")).hexdigest()
+        if profile_digest in completed:
+            return completed[profile_digest]
+        profile_rows = by_profile[profile_id]
+        odd_ids, even_ids = odd_even_session_ids(profile_rows)
+        subsets = {
+            "full": profile_rows,
+            "a": [row for row in profile_rows if str(row["session_id"]) in odd_ids],
+            "b": [row for row in profile_rows if str(row["session_id"]) in even_ids],
+        }
+        derived: dict[str, Any] = {}
+        completion = dict((completed_sessions_by_profile or {}).get(str(profile_id), {}))
+        for name, subset in subsets.items():
+            subset_completion = {
+                str(row["session_id"]): completion.get(str(row["session_id"]), False)
+                for row in subset
+            }
+            estimates = derive_profile_estimates(
+                subset,
+                baseline_resolver=resolver,
+                taxonomy_by_hero=taxonomy,
+                completed_sessions=subset_completion,
+            )
+            derived[name] = {
+                key: {
+                    "value": estimate.value,
+                    "usable_count": estimate.usable_count,
+                    "independent_sessions": estimate.independent_sessions,
+                    "coverage": estimate.coverage,
+                    "unavailable_reason": estimate.unavailable_reason,
+                }
+                for key, estimate in estimates.metrics.items()
+            }
+        record = {"input_digest": input_digest, "profile_digest": profile_digest, "estimates": derived}
+        return record
+
+    executor: ThreadPoolExecutor | None = None
+    try:
+        if workers > 1:
+            executor = ThreadPoolExecutor(max_workers=workers)
+            derived_records = executor.map(derive_record, ordered_profiles)
+        else:
+            derived_records = map(derive_record, ordered_profiles)
+        records: list[dict[str, Any]] = []
+        for position, record in enumerate(derived_records, start=1):
+            records.append(record)
+            profile_digest = str(record["profile_digest"])
+            if checkpoint_path and profile_digest not in completed:
+                checkpoint_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+                checkpoint_path.parent.chmod(0o700)
+                descriptor = os.open(checkpoint_path, os.O_APPEND | os.O_CREAT | os.O_WRONLY, 0o600)
+                try:
+                    os.write(descriptor, (json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8"))
+                    os.fsync(descriptor)
+                finally:
+                    os.close(descriptor)
+                checkpoint_path.chmod(0o600)
+            if position % 25 == 0 or position == len(train_profiles):
+                print(f"derived aggregate training progress: {position}/{len(train_profiles)} profiles", flush=True)
+    finally:
+        if executor is not None:
+            executor.shutdown(wait=True)
+    metrics: dict[str, dict[str, Any]] = {}
+    diagnostics: dict[str, Any] = {}
+    for key in REQUIRED_THRESHOLD_KEYS:
+        full = [float(record["estimates"]["full"][key]["value"]) for record in records if record["estimates"]["full"][key]["value"] is not None]
+        noise = [
+            abs(float(record["estimates"]["a"][key]["value"]) - float(record["estimates"]["b"][key]["value"]))
+            for record in records
+            if record["estimates"]["a"][key]["value"] is not None and record["estimates"]["b"][key]["value"] is not None
+        ]
+        if not full or not noise:
+            reasons = Counter(
+                record["estimates"]["full"][key]["unavailable_reason"] or "available"
+                for record in records
+            )
+            raise ValueError(f"metric {key!r} has no defensible training distribution/noise sample; aggregate_reasons={dict(reasons)}")
+        margin = max(EPSILON, _quantile(noise, 0.90) / 2.0)
+        mode = "dispersion" if key.startswith("consistency_") else "cutoff" if key in {"breadth_effective_count", "toolkit_effective_count"} else "centered"
+        low = high = stable = variable = None
+        fallback = False
+        if mode == "dispersion":
+            stable, variable = _quantile(full, 1 / 3), _quantile(full, 2 / 3)
+            if variable - stable < 2 * margin:
+                center, fallback = statistics.median(full), True
+                stable, variable = center - margin, center + margin
+        elif mode == "cutoff":
+            low, high = _quantile(full, 1 / 3), _quantile(full, 2 / 3)
+            if high - low < 2 * margin:
+                center, fallback = statistics.median(full), True
+                low, high = center - margin, center + margin
+        else:
+            low, high = -margin, margin
+        metrics[key] = {
+            "zone_mode": mode, "practical_margin": margin, "low_cutoff": low, "high_cutoff": high,
+            "min_sample": 30, "min_sessions": _min_sessions_for(key),
+            "min_coverage": _coverage_for(key), "moderate_stability": 0.75, "high_stability": 0.90,
+            "version": THRESHOLDS_VERSION,
+            **({"stable_cutoff": stable, "variable_cutoff": variable} if mode == "dispersion" else {}),
+        }
+        reasons = Counter(record["estimates"]["full"][key]["unavailable_reason"] or "available" for record in records)
+        diagnostics[key] = {"full_estimate_count": len(full), "split_pair_count": len(noise), "margin": margin, "fallback_used": fallback, "missing_reasons": dict(sorted(reasons.items()))}
+    return ({
+        "version": THRESHOLDS_VERSION, "generated_at": generated_at,
+        "derivation": {"train_profile_count": len(train_profiles), "holdout_profile_count": len(holdout_profiles), "split_method": "player-level-70-30", "noise_method": "session-odd-even-split", "mmr_used": False},
+        "metrics": metrics,
+    }, diagnostics)
 
 
 def build_evaluation(rows: list[dict[str, Any]], train: set[Any], holdout: set[Any], thresholds: Mapping[str, Any]) -> dict[str, Any]:
@@ -381,7 +576,85 @@ def build_evaluation(rows: list[dict[str, Any]], train: set[Any], holdout: set[A
     }
 
 
+def _staged_main(command: str, argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog=f"{Path(__file__).name} {command}")
+    parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--seed", type=int, default=6000)
+    parser.add_argument("--generated-at", default="2000-01-01T00:00:00+00:00")
+    if command == "migrate":
+        parser.add_argument("--output", type=Path, required=True)
+        args = parser.parse_args(argv)
+        diagnostics = migrate_calibration_corpus(args.input, args.output)
+        print(json.dumps(diagnostics, sort_keys=True))
+        return 0
+    if command == "validate":
+        parser.add_argument("--split-manifest", type=Path)
+        parser.add_argument(
+            "--split-source",
+            type=Path,
+            help="validated legacy source used only to preserve an already-established split across migration",
+        )
+        args = parser.parse_args(argv)
+        corpus = load_calibration_corpus(args.input)
+        split_rows: list[dict[str, Any]] = _rows(args.split_source) if args.split_source else [dict(row) for row in corpus.matches]
+        if {_profile_id(row) for row in split_rows} != set(corpus.profile_ids):
+            raise ValueError("split source and validated corpus have different profile populations")
+        train, holdout = split_profiles(split_rows, seed=args.seed)
+        manifest_path = args.split_manifest or args.input.parent / "manifests" / f"split-{args.seed}.json"
+        manifest = {
+            "version": "v6-player-split-1.0.0", "seed": args.seed, "algorithm": "player-level-stratified-70-30",
+            "corpus_sha256": corpus.checksum,
+            "split_source_sha256": hashlib.sha256(args.split_source.read_bytes()).hexdigest() if args.split_source else corpus.checksum,
+            "train_profile_ids": sorted(map(str, train)), "holdout_profile_ids": sorted(map(str, holdout)),
+            "train_digest": hashlib.sha256("\n".join(sorted(map(str, train))).encode()).hexdigest(),
+            "holdout_digest": hashlib.sha256("\n".join(sorted(map(str, holdout))).encode()).hexdigest(),
+            "train_profile_count": len(train), "holdout_profile_count": len(holdout),
+        }
+        _atomic_json(manifest_path, manifest, mode=0o600)
+        print(json.dumps({**corpus.aggregate_diagnostics(), "train_profile_count": len(train), "holdout_profile_count": len(holdout), "split_manifest": str(manifest_path)}, sort_keys=True))
+        return 0
+    parser.add_argument("--split-manifest", type=Path, required=True)
+    if command == "baseline":
+        parser.add_argument("--baseline-output", type=Path, required=True)
+        args = parser.parse_args(argv)
+        corpus = load_calibration_corpus(args.input)
+        split = json.loads(args.split_manifest.read_text(encoding="utf-8"))
+        if split.get("corpus_sha256") != corpus.checksum:
+            raise ValueError("split manifest corpus checksum mismatch")
+        baseline = build_baseline([dict(row) for row in corpus.matches], train_profiles=set(split["train_profile_ids"]), generated_at=args.generated_at)
+        _atomic_json(args.baseline_output, baseline, mode=0o600)
+        print(f"wrote candidate v6 baseline: {args.baseline_output}")
+        return 0
+    if command == "thresholds":
+        parser.add_argument("--baseline-input", type=Path, required=True)
+        parser.add_argument("--threshold-output", type=Path, required=True)
+        parser.add_argument("--checkpoint-dir", type=Path)
+        parser.add_argument("--workers", type=int, default=1)
+        args = parser.parse_args(argv)
+        if args.workers < 1:
+            parser.error("--workers must be positive")
+        corpus = load_calibration_corpus(args.input)
+        split = json.loads(args.split_manifest.read_text(encoding="utf-8"))
+        if split.get("corpus_sha256") != corpus.checksum:
+            raise ValueError("split manifest corpus checksum mismatch")
+        thresholds, diagnostics = build_thresholds_from_raw_corpus(
+            [dict(row) for row in corpus.matches], train_profiles=set(split["train_profile_ids"]), holdout_profiles=set(split["holdout_profile_ids"]),
+            baseline_path=args.baseline_input, generated_at=args.generated_at, checkpoint_dir=args.checkpoint_dir,
+            completed_sessions_by_profile=corpus.completed_sessions_by_profile,
+            corpus_checksum=corpus.checksum,
+            workers=args.workers,
+        )
+        _atomic_json(args.threshold_output, thresholds, mode=0o600)
+        diagnostics_path = args.threshold_output.with_name("threshold-derivation-diagnostics-6.0.0.json")
+        _atomic_json(diagnostics_path, diagnostics, mode=0o600)
+        print(f"wrote candidate v6 thresholds: {args.threshold_output}")
+        return 0
+    parser.error(f"unsupported command {command}")
+
+
 def main() -> int:
+    if len(sys.argv) > 1 and sys.argv[1] in {"migrate", "validate", "baseline", "thresholds"}:
+        return _staged_main(sys.argv[1], sys.argv[2:])
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True, help="real calibration corpus JSON")
     parser.add_argument("--output-dir", type=Path, help="legacy convenience directory for three outputs")
@@ -389,25 +662,33 @@ def main() -> int:
     parser.add_argument("--threshold-output", type=Path, help="metric-thresholds-6.0.0.json output path")
     parser.add_argument("--evaluation-output", type=Path, help="machine-readable holdout evaluation output path")
     parser.add_argument("--seed", type=int, default=6000, help="deterministic player split seed")
+    parser.add_argument(
+        "--baseline-only",
+        action="store_true",
+        help="write the training-only context baseline without deriving thresholds",
+    )
     args = parser.parse_args()
     output_dir = args.output_dir
     baseline_path = args.baseline_output or (output_dir / "context-baseline-2.0.0.json" if output_dir else None)
     threshold_path = args.threshold_output or (output_dir / "metric-thresholds-6.0.0.json" if output_dir else None)
-    if baseline_path is None or threshold_path is None:
-        parser.error("provide --output-dir or both --baseline-output and --threshold-output")
+    if baseline_path is None or (threshold_path is None and not args.baseline_only):
+        parser.error("provide --output-dir or the required explicit output paths")
     rows = _rows(args.input)
     train, holdout = split_profiles(rows, seed=args.seed)
     baseline = build_baseline(rows, train_profiles=train)
+    baseline_path.parent.mkdir(parents=True, exist_ok=True)
+    baseline_path.write_text(json.dumps(baseline, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"wrote v6 baseline: {baseline_path}")
+    if args.baseline_only:
+        return 0
+    assert threshold_path is not None
     thresholds = build_thresholds(rows, train_profiles=train, holdout_profiles=holdout, seed=args.seed)
     evaluation = build_evaluation(rows, train, holdout, thresholds["metrics"])
-    baseline_path.parent.mkdir(parents=True, exist_ok=True)
     threshold_path.parent.mkdir(parents=True, exist_ok=True)
-    baseline_path.write_text(json.dumps(baseline, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     threshold_path.write_text(json.dumps(thresholds, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     evaluation_path = args.evaluation_output or threshold_path.parent / "calibration-evaluation-6.0.0.json"
     evaluation_path.parent.mkdir(parents=True, exist_ok=True)
     evaluation_path.write_text(json.dumps(evaluation, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"wrote v6 baseline: {baseline_path}")
     print(f"wrote v6 thresholds: {threshold_path}")
     print(f"wrote calibration evaluation: {evaluation_path}")
     return 0

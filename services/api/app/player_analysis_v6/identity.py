@@ -1,4 +1,4 @@
-"""Deterministic dynamic identity synthesis for v6 (no archetype labels)."""
+"""Deterministic dynamic identity synthesis for v6 without fixed labels."""
 
 from __future__ import annotations
 
@@ -50,6 +50,29 @@ def _map_findings(findings: Sequence[FindingFamilyResult] | Mapping[str, Finding
     return tuple(sorted(values, key=lambda item: (-item.confidence_score, -item.identity_value, order.get(item.family, 999))))
 
 
+def _descriptive_element_support(
+    elements: Sequence[ElementResultV6] | Mapping[str, Any] | None,
+) -> tuple[tuple[ElementResultV6, ...], tuple[str, ...]]:
+    if not elements:
+        return (), ()
+    values = tuple(elements.values()) if isinstance(elements, Mapping) else tuple(elements)
+    available = tuple(
+        item
+        for item in values
+        if isinstance(item, ElementResultV6)
+        and item.status in {"available", "limited"}
+        and item.confidence != "unavailable"
+    )
+    refs = tuple(
+        dict.fromkeys(
+            ref
+            for item in available
+            for ref in (item.evidence_refs or item.estimate.evidence_refs)
+        )
+    )
+    return available, refs
+
+
 def _anchor_value(hero_portfolio: Mapping[str, Any] | None) -> tuple[str | None, str | None]:
     if not hero_portfolio:
         return None, None
@@ -82,6 +105,17 @@ def synthesize_identity(
         eligible = [item for item in ordered if item.status == "qualified"]
     anchor_key, anchor = _anchor_value(hero_portfolio)
     if not eligible:
+        descriptive_elements, element_refs = _descriptive_element_support(elements)
+        if len(descriptive_elements) >= 3 and element_refs:
+            labels = ", ".join(item.label for item in descriptive_elements[:3])
+            return IdentitySummary(
+                "Your identity is still forming across the available summary elements.",
+                (f"{labels} provide the current descriptive evidence.",),
+                "descriptive",
+                element_refs,
+                anchor,
+                (),
+            )
         headline = "Your identity is still forming from this sample."
         fallback_lines = ("More stable evidence will make the identity more specific.",)
         fallback_confidence: Literal["descriptive", "unavailable"] = "descriptive" if ordered else "unavailable"

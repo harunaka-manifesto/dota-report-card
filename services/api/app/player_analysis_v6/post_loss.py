@@ -93,6 +93,11 @@ def _metric(match: Any, key: str, resolver: BaselineResolver | None, taxonomy: M
     return None if value is None else -value
 
 
+def _mean_precomputed_delta(rows: Sequence[tuple[float | None, str]]) -> float:
+    values = [value for value, _session_id in rows if value is not None]
+    return sum(values) / len(values) if values else float("nan")
+
+
 @dataclass(frozen=True, slots=True)
 class PostLossResult:
     transitions: tuple[PostLossTransition, ...]
@@ -143,35 +148,60 @@ def compute_post_loss_response(
     transitions = build_post_loss_transitions(matches)
     after_loss = [item.current for item in transitions]
     transition_ids = {id(item.current) for item in transitions}
+    trigger_ids = {id(item.previous) for item in transitions}
     controls: list[Any] = []
     pairs: list[tuple[Any, Any, str]] = []
-    comparable = 0
+    ordered_candidates = [
+        item
+        for item in _ordered(matches)
+        if id(item) not in transition_ids and id(item) not in trigger_ids
+    ]
     for target in after_loss:
-        for candidate in matches:
-            if id(candidate) in transition_ids:
-                continue
-            if any(_same_comparable_context(target, candidate, level, taxonomy_by_hero=taxonomy_by_hero) for level in range(4)):
-                controls.append(candidate)
-                pairs.append((target, candidate, _session(target, 0)))
-                comparable += 1
-                break
-    coverage = comparable / len(after_loss) if after_loss else 0.0
+        control = next(
+            (
+                candidate
+                for level in range(4)
+                for candidate in ordered_candidates
+                if _same_comparable_context(
+                    target,
+                    candidate,
+                    level,
+                    taxonomy_by_hero=taxonomy_by_hero,
+                )
+            ),
+            None,
+        )
+        if control is not None:
+            controls.append(control)
+            pairs.append((target, control, _session(target, 0)))
+    coverage = len(pairs) / len(after_loss) if after_loss else 0.0
+    pair_session_ids = [session_id for _after, _control, session_id in pairs]
+    precomputed_deltas: dict[str, tuple[tuple[float | None, str], ...]] = {}
     components: dict[str, float | None] = {}
     directions: dict[str, str] = {}
     for key in ("outcome", "activity", "survival"):
-        left = [_metric(item, key, baseline_resolver, taxonomy_by_hero) for item in after_loss]
-        right = [_metric(item, key, baseline_resolver, taxonomy_by_hero) for item in controls]
-        left_values = [float(value) for value in left if value is not None]
-        right_values = [float(value) for value in right if value is not None]
-        delta = (sum(left_values) / len(left_values) - sum(right_values) / len(right_values)) if left_values and right_values else None
+        rows: list[tuple[float | None, str]] = []
+        for after, control, session_id in pairs:
+            left = _metric(after, key, baseline_resolver, taxonomy_by_hero)
+            right = _metric(control, key, baseline_resolver, taxonomy_by_hero)
+            rows.append((left - right if left is not None and right is not None else None, session_id))
+        precomputed_deltas[key] = tuple(rows)
+        point_estimate = _mean_precomputed_delta(rows)
+        delta = None if point_estimate != point_estimate else point_estimate
         components[key] = delta
         directions[key] = threshold_for(f"post_loss_{key}_delta", thresholds).direction(delta)
     # Familiarity is based on frozen core membership; it is descriptive support,
     # not a recency-weighted identity input.
     if core_heroes:
-        after_share = sum(match_hero_id(item) in core_heroes for item in after_loss) / len(after_loss) if after_loss else None
-        control_share = sum(match_hero_id(item) in core_heroes for item in controls) / len(controls) if controls else None
-        familiarity = after_share - control_share if after_share is not None and control_share is not None else None
+        familiarity = (
+            sum(
+                (match_hero_id(after) in core_heroes) - (match_hero_id(control) in core_heroes)
+                for after, control, _session_id in pairs
+            )
+            / len(pairs)
+            if pairs
+            else None
+        )
     else:
         familiarity = None
     tempo = components.get("activity")
@@ -191,32 +221,39 @@ def compute_post_loss_response(
     component_intervals: dict[str, tuple[float, float] | None] = {}
     component_replicates: dict[str, tuple[float, ...]] = {}
     for index, key in enumerate(("outcome", "activity", "survival")):
-        def pair_estimator(rows: Sequence[tuple[Any, Any, str]], key: str = key) -> float:
-            values: list[float] = []
-            for after, control, _session_id in rows:
-                left, right = _metric(after, key, baseline_resolver, taxonomy_by_hero), _metric(control, key, baseline_resolver, taxonomy_by_hero)
-                if left is not None and right is not None:
-                    values.append(left - right)
-            return sum(values) / len(values) if values else float("nan")
-        boot = clustered_bootstrap(pairs, [item[2] for item in pairs], estimator=pair_estimator, iterations=bootstrap_iterations, seed=seed + index)
+        boot = clustered_bootstrap(
+            precomputed_deltas[key],
+            pair_session_ids,
+            estimator=_mean_precomputed_delta,
+            iterations=bootstrap_iterations,
+            seed=seed + index,
+        )
         component_intervals[key] = boot.interval
         component_replicates[key] = boot.replicates
     support_replicates: dict[str, tuple[float, ...]] = {}
     if core_heroes:
-        def familiarity_estimator(rows: Sequence[tuple[Any, Any, str]]) -> float:
-            if not rows:
-                return float("nan")
-            return sum((match_hero_id(after) in core_heroes) - (match_hero_id(control) in core_heroes) for after, control, _session_id in rows) / len(rows)
-        familiarity_boot = clustered_bootstrap(pairs, [item[2] for item in pairs], estimator=familiarity_estimator, iterations=bootstrap_iterations, seed=seed + 10)
+        familiarity_rows = tuple(
+            (
+                float((match_hero_id(after) in core_heroes) - (match_hero_id(control) in core_heroes)),
+                session_id,
+            )
+            for after, control, session_id in pairs
+        )
+        familiarity_boot = clustered_bootstrap(
+            familiarity_rows,
+            pair_session_ids,
+            estimator=_mean_precomputed_delta,
+            iterations=bootstrap_iterations,
+            seed=seed + 10,
+        )
         support_replicates["familiarity"] = familiarity_boot.replicates
-    def tempo_estimator(rows: Sequence[tuple[Any, Any, str]]) -> float:
-        values: list[float] = []
-        for after, control, _session_id in rows:
-            left, right = _metric(after, "activity", baseline_resolver, taxonomy_by_hero), _metric(control, "activity", baseline_resolver, taxonomy_by_hero)
-            if left is not None and right is not None:
-                values.append(left - right)
-        return sum(values) / len(values) if values else float("nan")
-    tempo_boot = clustered_bootstrap(pairs, [item[2] for item in pairs], estimator=tempo_estimator, iterations=bootstrap_iterations, seed=seed + 11)
+    tempo_boot = clustered_bootstrap(
+        precomputed_deltas["activity"],
+        pair_session_ids,
+        estimator=_mean_precomputed_delta,
+        iterations=bootstrap_iterations,
+        seed=seed + 11,
+    )
     support_replicates["tempo"] = tempo_boot.replicates
     limitations: list[str] = []
     if len(transitions) < 30:

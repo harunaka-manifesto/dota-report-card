@@ -9,7 +9,7 @@ Production generation remains disabled by default behind `FREE_DNA_V6_ENABLED`. 
 ## Current implementation status
 
 Implementation is complete in the working tree, with public release blocked on
-the calibration corpus/gates. The checked-in path includes strict baseline and
+measured release and human gates. The checked-in path includes strict baseline and
 threshold artifact loaders, deterministic artifact construction, the summary-
 only v6 analytical pipeline, real clustered uncertainty and FDR fields, the
 server-owned nine-beat payload, token-protected follow-up state, serialized
@@ -18,10 +18,11 @@ v6 glyph registry, fixture-server interaction routes, and the v6 quality
 workflow.
 
 The repository fixtures prove contract behavior and deterministic smoke gates;
-they are not production calibration data. A real 1,000-profile player-level
-calibration corpus and the external Dota reviewer precision assessment remain
-the only release prerequisites outside this repository. Until those gates are
-reviewed, `FREE_DNA_V6_ENABLED` must remain false.
+they are not production calibration data. A private 1,130-profile corpus has
+produced training-only baseline and threshold candidates with a frozen 791/339
+split. Synthetic coverage/FDR, sealed-holdout results, external review,
+promotion, and operator rollout authorization must still be recorded. Until
+those gates are reviewed, `FREE_DNA_V6_ENABLED` must remain false.
 
 ## Product contract
 

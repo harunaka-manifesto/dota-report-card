@@ -13,7 +13,10 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS-http://localhost:3000}
       STORAGE_BACKEND: database
       ANALYSIS_EXECUTION_BACKEND: celery
-      FREE_HISTORY_LIMIT: 500
+      FREE_DNA_V6_ENABLED: ${FREE_DNA_V6_ENABLED-false}
+      FREE_DNA_V6_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/context-baseline-2.0.0.json
+      FREE_DNA_V6_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/metric-thresholds-6.0.0.json
+      FREE_DNA_V6_MODEL_VERSION: free-dna-model-6.0.0
       REPORT_RETENTION_DAYS: 30
     ports:
       - "8000:8000"
@@ -35,7 +38,10 @@ services:
       STEAM_API_KEY: ${STEAM_API_KEY-}
       DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
       REDIS_URL: redis://redis:6379/0
-      FREE_HISTORY_LIMIT: 500
+      FREE_DNA_V6_ENABLED: ${FREE_DNA_V6_ENABLED-false}
+      FREE_DNA_V6_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/context-baseline-2.0.0.json
+      FREE_DNA_V6_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/metric-thresholds-6.0.0.json
+      FREE_DNA_V6_MODEL_VERSION: free-dna-model-6.0.0
       REPORT_RETENTION_DAYS: 30
       STORAGE_BACKEND: database
       ANALYSIS_EXECUTION_BACKEND: celery

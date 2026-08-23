@@ -18,6 +18,7 @@ test-results/
 *.log
 services/api/.cache/
 tests/.tmp/
+.local/
 .DS_Store
 *.swp
 *.swo

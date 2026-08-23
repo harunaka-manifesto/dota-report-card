@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 from app.analysis.budget import CostPolicy, DataCostLedger
-from app.analysis.deep_scan import acquire_selected_matches
+from app.analysis.deep_scan import acquire_selected_matches, evaluate_deep_hypotheses
 from app.analysis.service import AnalysisService
 from app.core.config import Settings
 from app.features.summary_calculators import calculate_summary_features
+from app.hypotheses.models import Hypothesis, MatchPredicate
 from app.selection.models import CandidateMatch, SelectedMatch, SelectionPlan
 from app.storage.repository import InMemoryRepository
 
@@ -194,3 +195,88 @@ async def test_deep_scan_skips_parse_below_marginal_gain_floor() -> None:
     assert source.parse_requests == []
     assert ledger.parse_requests == 0
     assert any(event["operation"] == "parse_skipped" for event in ledger.events)
+
+
+async def test_cached_parsed_evidence_prevents_detail_and_parse_calls() -> None:
+    summary = _summary(1, 1, True)
+    source = ParseTrackingSource([summary], {1: _detail(summary)})
+    repository = InMemoryRepository()
+    repository.persist_raw_payload("/matches/1", "1", _detail(summary))
+    repository.persist_raw_payload(
+        "/matches/1/parse",
+        "1",
+        {"match": {"objectives": [{"type": "tower"}]}},
+    )
+    ledger = DataCostLedger()
+
+    normalized = await acquire_selected_matches(
+        _parse_plan(parse_marginal_gain=0.20),
+        source=source,
+        repository=repository,
+        account_id=42,
+        ledger=ledger,
+        policy=CostPolicy(),
+    )
+
+    assert len(normalized) == 1
+    assert source.requests == []
+    assert source.parse_requests == []
+    assert ledger.detail_requests == 0
+    assert ledger.parse_requests == 0
+
+
+def test_summary_only_selected_evidence_is_evaluated_without_hydration() -> None:
+    summaries = [_summary(index, index, index == 1) for index in range(1, 4)]
+    features = calculate_summary_features(summaries, account_id=42).matches
+    hypothesis = Hypothesis(
+        hypothesis_id="summary-only",
+        source_pattern_id="summary-only",
+        statement="Summary evidence can resolve this diagnostic.",
+        explanation_type="outcome_difference",
+        priority=1.0,
+        pattern_strength=1.0,
+        actionability=1.0,
+        required_data_families=("summary",),
+        positive_definition=MatchPredicate("match_id_set", {"match_ids": [1]}),
+        negative_definition=MatchPredicate("match_id_set", {"match_ids": [2]}),
+        control_definition=MatchPredicate("match_id_set", {"match_ids": [3]}),
+        min_positive=1,
+        min_negative=1,
+        min_control=1,
+        target_positive=1,
+        target_negative=1,
+        target_control=1,
+        confounders_to_control=(),
+    )
+    roles = ("positive", "negative", "control")
+    candidates = tuple(
+        CandidateMatch(
+            match_id=feature.match_id,
+            feature=feature,
+            hypothesis_ids=(hypothesis.hypothesis_id,),
+            evidence_roles={hypothesis.hypothesis_id: role},
+            relevance=1.0,
+            contrast_value=1.0,
+            comparability=1.0,
+            extremeness=1.0,
+            available_families=feature.summary_families,
+            already_available=True,
+            estimated_detail_cost=0.0,
+        )
+        for feature, role in zip(features, roles, strict=True)
+    )
+    plan = SelectionPlan(
+        candidates=candidates,
+        selected=tuple(
+            SelectedMatch(candidate, index, 1.0, 1.0, ((hypothesis.hypothesis_id, role),), "cached")
+            for index, (candidate, role) in enumerate(zip(candidates, roles, strict=True), start=1)
+        ),
+        needs=(),
+        stopping_reason="requirements_satisfied",
+    )
+
+    finding = evaluate_deep_hypotheses((hypothesis,), plan, features)[0]
+
+    assert finding.status == "moderate"
+    assert finding.evidence["data_quality"] == 1.0
+    assert finding.abstention_reason is None

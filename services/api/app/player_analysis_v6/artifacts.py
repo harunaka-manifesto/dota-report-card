@@ -181,6 +181,22 @@ def validate_context_baseline_artifact(payload: Mapping[str, Any]) -> None:
         level = str(raw["level"])
         if level not in BASELINE_HIERARCHY:
             raise ArtifactValidationError(f"cells[{index}] has unsupported level {level!r}")
+        required_dimensions = {
+            "patch+hero+lane": {"patch", "hero_id", "lane_context"},
+            "patch+hero_function+lane": {"patch", "hero_function", "lane_context"},
+            "patch+hero": {"patch", "hero_id"},
+            "patch+lane": {"patch", "lane_context"},
+            "patch": {"patch"},
+            "overall": set(),
+        }[level]
+        dimension_fields = {"patch", "hero_id", "hero_function", "lane_context"}
+        missing_dimensions = sorted(name for name in required_dimensions if raw.get(name) in (None, ""))
+        unexpected_dimensions = sorted(name for name in dimension_fields - required_dimensions if raw.get(name) not in (None, ""))
+        if missing_dimensions or unexpected_dimensions:
+            raise ArtifactValidationError(
+                f"cells[{index}] dimensions do not match {level}; "
+                f"missing={missing_dimensions}, unexpected={unexpected_dimensions}"
+            )
         key = _logical_cell_key(raw)
         if key in seen:
             raise ArtifactValidationError(f"duplicate logical baseline cell: {key!r}")

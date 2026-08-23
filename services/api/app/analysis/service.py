@@ -49,6 +49,7 @@ from app.opendota.cache import payload_hash
 from app.patterns.detector import detect_patterns
 from app.player_analysis_v6.artifacts import ArtifactValidationError, load_context_baseline_artifact
 from app.player_analysis_v6.calibration import load_threshold_artifact
+from app.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy
 from app.reports.assembly import assemble_player_dna_report, assemble_report
 from app.reports.dna_assembly import assemble_free_dna_report_v4
 from app.reports.dna_assembly_v6 import assemble_free_dna_report_v6
@@ -76,8 +77,10 @@ class AnalysisService:
         self.parse_transport = parse_transport
         self.v6_baseline_resolver = None
         self.v6_thresholds = None
+        self.v6_taxonomy_by_hero = None
         if self.settings.free_dna_v6_enabled:
             self.v6_baseline_resolver, self.v6_thresholds = self._load_v6_artifacts()
+            self.v6_taxonomy_by_hero = load_v6_hero_taxonomy()
         self._tasks: set[asyncio.Task[None]] = set()
         self._scheduled_job_ids: set[str] = set()
         self._semaphore: asyncio.Semaphore | None = None
@@ -85,6 +88,10 @@ class AnalysisService:
     def _load_v6_artifacts(self) -> tuple[Any, Any]:
         """Load validated artifacts before the v6 flag can serve traffic."""
 
+        if self.settings.free_dna_v6_model_version != "free-dna-model-6.0.0":
+            raise ArtifactValidationError(
+                "FREE_DNA_V6_MODEL_VERSION must match the approved v6 runtime model"
+            )
         baseline_path = self.settings.free_dna_v6_baseline_artifact_path
         threshold_path = self.settings.free_dna_v6_threshold_artifact_path
         if baseline_path is None or threshold_path is None:
@@ -586,6 +593,7 @@ class AnalysisService:
                 analysis_version_fingerprint=job.model_version,
                 baseline_resolver=self.v6_baseline_resolver,
                 thresholds=self.v6_thresholds,
+                taxonomy_by_hero=self.v6_taxonomy_by_hero,
                 completed_sessions=completed_sessions,
             )
             report = validate_free_dna_report(report)
@@ -709,7 +717,15 @@ class AnalysisService:
             ledger=cost_ledger,
             policy=cost_policy,
             parse_min_marginal_information_gain=self.settings.effective_min_parse_information_gain,
+            max_detail_requests=self.settings.effective_max_deep_matches,
+            max_parse_requests=self.settings.effective_max_parse_requests,
+            max_data_cost=self.settings.effective_max_data_cost_per_report,
         )
+        selected_summary_features = [
+            selected.candidate.feature
+            for selected in selection_plan.selected
+            if selected.candidate.already_available
+        ]
         if not normalized:
             self.repository.add_warning(
                 job,
@@ -731,6 +747,31 @@ class AnalysisService:
             )
             report["report_variant"] = "deep_scan"
             report["evidence_scope"]["exclusion_reasons"] = _reason_counts(exclusion_ledger)
+            deep_findings = evaluate_deep_hypotheses(
+                hypotheses,
+                selection_plan,
+                selected_summary_features,
+            )
+            report["deep_scan"] = {
+                "patterns": [item.as_dict() for item in patterns],
+                "hypotheses": [item.as_dict() for item in hypotheses],
+                "selection": selection_plan.as_dict(),
+                "findings": [item.as_dict() for item in deep_findings],
+            }
+            report["cost"] = cost_ledger.as_dict()
+            report["telemetry"] = {
+                "summary_matches_considered": job.processed_matches,
+                "eligible_summary_matches": job.eligible_matches,
+                "patterns_detected": len(patterns),
+                "hypotheses_investigated": len(hypotheses),
+                "hypotheses_resolved": sum(item.status == "resolved" for item in deep_findings),
+                "candidate_matches": len(selection_plan.candidates),
+                "deep_matches_selected": len(selection_plan.selected),
+                "detail_requests": cost_ledger.detail_requests,
+                "parse_requests": cost_ledger.parse_requests,
+                "estimated_data_cost_units": cost_ledger.estimated_cost_units,
+                "stopping_reason": selection_plan.stopping_reason,
+            }
             report_id = self.repository.save_report(
                 account_id=identifier.account_id,
                 data_cutoff=max(
@@ -752,7 +793,12 @@ class AnalysisService:
         features = calculate_match_features(normalized)
         for feature in features:
             self.repository.save_derived_feature(feature.match_id, feature.as_dict())
-        deep_findings = evaluate_deep_hypotheses(hypotheses, selection_plan, features)
+        hydrated_ids = {item.match_id for item in features}
+        deep_findings = evaluate_deep_hypotheses(
+            hypotheses,
+            selection_plan,
+            [*features, *(item for item in selected_summary_features if item.match_id not in hydrated_ids)],
+        )
 
         self.repository.update_job(
             job,
@@ -950,17 +996,22 @@ def _available_families(
     available: dict[int, frozenset[str]] = {}
     for feature in feature_set.matches:
         detail = getter(f"/matches/{feature.match_id}", str(feature.match_id))
-        if not isinstance(detail, dict):
+        parsed = getter(f"/matches/{feature.match_id}/parse", str(feature.match_id))
+        if not isinstance(detail, dict) and not isinstance(parsed, dict):
             continue
+        combined = dict(detail) if isinstance(detail, dict) else {}
+        if isinstance(parsed, dict):
+            nested = parsed.get("match")
+            combined.update(dict(nested) if isinstance(nested, dict) else parsed)
         target = next(
             (
                 row
-                for row in detail.get("players") or []
+                for row in combined.get("players") or []
                 if isinstance(row, dict) and _as_int(row.get("account_id")) == account_id
             ),
             None,
         )
-        coverage = coverage_for_match(detail, target)
+        coverage = coverage_for_match(combined, target)
         families = frozenset(family for family, value in coverage.by_family.items() if value >= 1.0)
         if families:
             available[feature.match_id] = families

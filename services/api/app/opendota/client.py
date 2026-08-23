@@ -3,8 +3,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
-from collections.abc import Awaitable, Callable, Mapping
-from typing import Any
+from collections.abc import Awaitable, Callable, Mapping, Sequence
+from typing import Any, cast
 
 import httpx
 
@@ -16,6 +16,8 @@ from app.opendota.cache import CacheBackend, MemoryCache, RedisCache
 
 logger = logging.getLogger(__name__)
 Sleep = Callable[[float], Awaitable[None]]
+MATCH_HISTORY_PAGE_SIZE = 200
+MAX_MATCH_HISTORY_PAGES = 50
 
 
 class OpenDotaClient:
@@ -72,7 +74,7 @@ class OpenDotaClient:
         self,
         endpoint: str,
         *,
-        params: Mapping[str, Any] | None = None,
+        params: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         cache_key: str | None = None,
         cache_ttl: int | None = None,
         immutable: bool = False,
@@ -90,7 +92,7 @@ class OpenDotaClient:
             inflight = asyncio.create_task(
                 self._request_json_uncached(
                     endpoint,
-                    params=params,
+                    params=cast(Any, params),
                     cache_key=cache_key,
                     cache_ttl=cache_ttl,
                     immutable=immutable,
@@ -115,7 +117,7 @@ class OpenDotaClient:
         self,
         endpoint: str,
         *,
-        params: Mapping[str, Any] | None = None,
+        params: Mapping[str, Any] | Sequence[tuple[str, Any]] | None = None,
         cache_key: str | None = None,
         cache_ttl: int | None = None,
         immutable: bool = False,
@@ -130,7 +132,7 @@ class OpenDotaClient:
             try:
                 response = await self._http.get(
                     url,
-                    params=dict(params or {}),
+                    params=cast(Any, params),
                     headers=self.auth_headers,
                 )
             except (httpx.TimeoutException, httpx.NetworkError) as exc:
@@ -199,24 +201,63 @@ class OpenDotaClient:
         *,
         limit: int | None = FREE_HISTORY_LIMIT,
         days: int = FREE_HISTORY_WINDOW_DAYS,
-        project: str | None = None,
+        project: str | Sequence[str] | None = None,
     ) -> list[dict[str, Any]]:
         configured_limit = self.settings.effective_free_history_limit
         effective_limit = limit if limit is not None else configured_limit
         if configured_limit is not None and effective_limit is not None:
             effective_limit = min(effective_limit, configured_limit)
-        params: dict[str, Any] = {"date": max(1, int(days))}
-        if effective_limit is not None:
-            params["limit"] = max(1, int(effective_limit))
-        if project:
-            params["project"] = project
-        value = await self._request_json(
-            f"/players/{account_id}/matches",
-            params=params,
-            cache_key=f"matches:{account_id}:{params['date']}:{effective_limit or 'all'}:{project or ''}",
-            cache_ttl=120,
+        projects = (
+            tuple(value for value in project if value)
+            if project is not None and not isinstance(project, str)
+            else ((project,) if project else ())
         )
-        rows = list(value or [])
+        days_value = max(1, int(days))
+        rows: list[dict[str, Any]] = []
+        seen_match_ids: set[int] = set()
+        offset = 0
+        for _page_number in range(MAX_MATCH_HISTORY_PAGES):
+            remaining = (
+                None if effective_limit is None else max(0, effective_limit - len(rows))
+            )
+            if remaining == 0:
+                break
+            page_limit = min(MATCH_HISTORY_PAGE_SIZE, remaining or MATCH_HISTORY_PAGE_SIZE)
+            params: list[tuple[str, Any]] = [
+                ("date", days_value),
+                ("limit", page_limit),
+            ]
+            if offset:
+                params.append(("offset", offset))
+            params.extend(("project", value) for value in projects)
+            value = await self._request_json(
+                f"/players/{account_id}/matches",
+                params=params,
+                cache_key=(
+                    f"matches:{account_id}:{days_value}:{page_limit}:{offset}:"
+                    f"{','.join(projects)}"
+                ),
+                cache_ttl=120,
+            )
+            page = [row for row in list(value or []) if isinstance(row, dict)]
+            if not page:
+                break
+            added = 0
+            for row in page:
+                match_id = row.get("match_id")
+                if isinstance(match_id, int):
+                    if match_id in seen_match_ids:
+                        continue
+                    seen_match_ids.add(match_id)
+                rows.append(row)
+                added += 1
+            if effective_limit is not None and len(rows) >= effective_limit:
+                break
+            if len(page) != page_limit or added == 0:
+                break
+            offset += page_limit
+        else:
+            raise OpenDotaUnavailable("OpenDota match history exceeded the pagination safety limit")
         return rows if effective_limit is None else rows[:effective_limit]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:

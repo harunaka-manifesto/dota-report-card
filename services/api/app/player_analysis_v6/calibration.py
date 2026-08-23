@@ -52,6 +52,23 @@ _METRIC_FIELDS = {
     "variable_cutoff",
 }
 _FORBIDDEN = {"rank", "rank_tier", "mmr", "mmr_bucket", "skill_bracket", "medal"}
+_MIN_COVERAGE = {
+    "toolkit_effective_count": 0.80,
+    "involvement_adjusted": 0.80,
+    "finishing_adjusted": 0.80,
+    "death_exposure_adjusted": 0.80,
+    "transfer_outcome_delta": 0.70,
+    "transfer_activity_delta": 0.70,
+    "transfer_survival_delta": 0.70,
+    "post_loss_outcome_delta": 0.50,
+    "post_loss_activity_delta": 0.50,
+    "post_loss_survival_delta": 0.50,
+    "post_loss_familiarity_delta": 0.50,
+    "post_loss_tempo_delta": 0.50,
+    "session_drift_outcome_delta": 0.50,
+    "session_drift_activity_delta": 0.50,
+    "session_drift_survival_delta": 0.50,
+}
 
 
 def _keys(value: Any) -> set[str]:
@@ -204,14 +221,24 @@ def validate_threshold_artifact(payload: Mapping[str, Any]) -> None:
             raise ArtifactValidationError(f"metrics.{key} has invalid or missing fields")
         if raw["zone_mode"] not in {"centered", "cutoff", "dispersion"}:
             raise ArtifactValidationError(f"metrics.{key}.zone_mode is unsupported")
-        _number(raw["practical_margin"], f"metrics.{key}.practical_margin", minimum=0.0)
+        if _number(raw["practical_margin"], f"metrics.{key}.practical_margin", minimum=0.0) <= 0:
+            raise ArtifactValidationError(f"metrics.{key}.practical_margin must be positive")
         _integer(raw["min_sample"], f"metrics.{key}.min_sample")
         _integer(raw["min_sessions"], f"metrics.{key}.min_sessions")
-        _number(raw["min_coverage"], f"metrics.{key}.min_coverage", minimum=0.0, maximum=1.0)
+        coverage = _number(raw["min_coverage"], f"metrics.{key}.min_coverage", minimum=0.0, maximum=1.0)
+        if int(raw["min_sample"]) < 30:
+            raise ArtifactValidationError(f"metrics.{key}.min_sample must be at least 30")
+        required_sessions = 12 if key.startswith(("consistency_", "post_loss_", "session_drift_")) else 8 if key.startswith("transfer_") or key in {"involvement_adjusted", "finishing_adjusted", "death_exposure_adjusted"} else 1
+        if int(raw["min_sessions"]) < required_sessions:
+            raise ArtifactValidationError(f"metrics.{key}.min_sessions must be at least {required_sessions}")
+        if coverage < _MIN_COVERAGE.get(key, 0.0):
+            raise ArtifactValidationError(f"metrics.{key}.min_coverage is below the approved product gate")
         _number(raw["moderate_stability"], f"metrics.{key}.moderate_stability", minimum=0.0, maximum=1.0)
         _number(raw["high_stability"], f"metrics.{key}.high_stability", minimum=0.0, maximum=1.0)
         if raw["moderate_stability"] != 0.75 or raw["high_stability"] != 0.90:
             raise ArtifactValidationError(f"metrics.{key} must use v6 stability gates")
+        if raw["version"] != THRESHOLDS_VERSION:
+            raise ArtifactValidationError(f"metrics.{key}.version must be {THRESHOLDS_VERSION}")
         for cutoff in ("low_cutoff", "high_cutoff", "stable_cutoff", "variable_cutoff"):
             if cutoff in raw and raw[cutoff] is not None:
                 _number(raw[cutoff], f"metrics.{key}.{cutoff}")
@@ -222,6 +249,8 @@ def validate_threshold_artifact(payload: Mapping[str, Any]) -> None:
                 raise ArtifactValidationError(f"metrics.{key} dispersion cutoffs must be ordered")
         elif raw.get("low_cutoff") is None or raw.get("high_cutoff") is None:
             raise ArtifactValidationError(f"metrics.{key} {raw['zone_mode']} thresholds require low_cutoff and high_cutoff")
+        elif float(raw["low_cutoff"]) > float(raw["high_cutoff"]):
+            raise ArtifactValidationError(f"metrics.{key} cutoffs must be ordered")
 
 
 def load_threshold_artifact(path: str | Path) -> ThresholdArtifact:

@@ -55,6 +55,24 @@ def _normal_ppf(value: float) -> float:
     return NormalDist().inv_cdf(min(1.0 - 1e-12, max(1e-12, value)))
 
 
+def _bca_probabilities(alpha: float, bias_correction: float, acceleration: float) -> tuple[float, float] | None:
+    def adjusted(probability: float) -> float:
+        z_alpha = _normal_ppf(probability)
+        denominator = 1.0 - acceleration * (bias_correction + z_alpha)
+        if abs(denominator) < 1e-12:
+            return math.nan
+        return _normal_cdf(
+            bias_correction
+            + (bias_correction + z_alpha) / denominator
+        )
+
+    lower = adjusted(alpha)
+    upper = adjusted(1.0 - alpha)
+    if not (math.isfinite(lower) and math.isfinite(upper) and 0.0 <= lower < upper <= 1.0):
+        return None
+    return lower, upper
+
+
 def _flatten_groups(
     observations: Sequence[Any] | Mapping[Any, Sequence[Any] | Any],
     session_ids: Sequence[Hashable] | None,
@@ -252,15 +270,13 @@ def clustered_bootstrap(
             acceleration = numerator / denominator if denominator else 0.0
             bias_correction = z0
 
-            def adjusted(probability: float) -> float:
-                z_alpha = _normal_ppf(probability)
-                denominator_value = 1.0 - acceleration * (z0 + z_alpha)
-                if abs(denominator_value) < 1e-12:
-                    return probability
-                return _normal_cdf(z0 + (z0 + z_alpha) / denominator_value)
-
-            low_probability = adjusted(alpha)
-            high_probability = adjusted(1.0 - alpha)
+            probabilities = _bca_probabilities(alpha, z0, acceleration)
+            if probabilities is None:
+                method = "clustered-percentile-approximation-1.0.0"
+                bias_correction = None
+                acceleration = None
+            else:
+                low_probability, high_probability = probabilities
         else:
             method = "clustered-percentile-approximation-1.0.0"
     else:

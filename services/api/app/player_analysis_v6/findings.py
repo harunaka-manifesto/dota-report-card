@@ -155,7 +155,9 @@ def _confidence(evidence: Sequence[FamilyEvidence], sample_size: int, sessions: 
     # Confidence is derived from the bootstrap zone/direction stability that
     # each estimator records.  Interval width is not a cross-metric proxy.
     stability_values = [item.stability for item in evidence if item.value is not None]
-    score = sum(stability_values) / len(stability_values) if stability_values else 0.0
+    # A family is only as stable as its weakest required signal. Averaging can
+    # let one highly stable metric conceal another that misses its gate.
+    score = min(stability_values) if stability_values else 0.0
     if sample_size >= NORMAL_REPORT_MATCHES and sessions >= 8 and comparable_coverage >= 0.5 and score >= 0.90:
         return "high", score
     if sample_size >= 30 and sessions >= 8 and comparable_coverage >= 0.5 and score >= 0.75:
@@ -198,7 +200,7 @@ def qualify_family(
     if independent_sessions <= 0:
         independent_sessions = max((item.independent_sessions for item in items), default=0)
     if comparable_context_coverage == 1.0 and items:
-        comparable_context_coverage = max(item.coverage for item in items)
+        comparable_context_coverage = min(item.coverage for item in items)
     signals = _signal_keys(items)
     missing = tuple(str(item) for item in definition.get("required", ()) if item not in signals and not (item == "breadth_or_toolkit" and ({"breadth", "toolkit"} & set(signals))))
     if not items:
@@ -304,7 +306,7 @@ def qualify_family(
         stability=confidence_score,
         sample_size=max(sample_size, max((item.sample_size for item in items), default=0)),
         independent_sessions=max(independent_sessions, max((item.independent_sessions for item in items), default=0)),
-        coverage=max(comparable_context_coverage, max((item.coverage for item in items), default=0.0)),
+        coverage=min(comparable_context_coverage, min((item.coverage for item in items), default=comparable_context_coverage)),
         confidence=confidence,  # type: ignore[arg-type]
         status="available" if status == "qualified" else "limited",
         evidence_refs=tuple(dict.fromkeys(ref for item in items for ref in item.evidence_refs)),
@@ -350,20 +352,20 @@ def _family_input(
     def choose(*keys: str) -> Any:
         for key in keys:
             value = elements.get(key, signals.get(key))
-            if isinstance(value, ElementResultV6) and value.estimate.status == "unavailable":
+            if isinstance(value, ElementResultV6) and value.estimate.status != "available":
                 continue
             if value is not None:
                 return value
         return None
 
     if family == "pool_shape":
-        return {"breadth": elements.get("breadth"), "toolkit": elements.get("toolkit")}
+        return {"breadth": choose("breadth"), "toolkit": choose("toolkit")}
     if family == "transfer":
         return {"transfer": choose("transfer"), "breadth_or_toolkit": choose("breadth", "toolkit")}
     if family == "post_loss_response":
         return {"response": choose("post_loss_response", "response"), "familiarity_or_tempo": choose("familiarity", "tempo")}
     if family == "combat_expression":
-        return {"involvement": elements.get("involvement"), "death_exposure": elements.get("death_exposure")}
+        return {"involvement": choose("involvement"), "death_exposure": choose("death_exposure")}
     return {
         "drift_outcome": choose("drift_outcome"),
         "drift_activity": choose("drift_activity"),

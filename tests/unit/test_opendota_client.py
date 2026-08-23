@@ -56,7 +56,51 @@ async def test_default_match_history_request_uses_year_window_without_hidden_lim
 
     assert len(matches) == 1_001
     assert seen[0].url.params["date"] == "365"
-    assert "limit" not in seen[0].url.params
+    assert seen[0].url.params["limit"] == "200"
+
+
+async def test_unbounded_match_history_paginates_past_opendota_page_ceiling() -> None:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        offset = int(request.url.params.get("offset", "0"))
+        count = 200 if offset == 0 else 2
+        return httpx.Response(
+            200,
+            json=[{"match_id": offset + index + 1} for index in range(count)],
+        )
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as http_client:
+        client = OpenDotaClient(Settings(), http_client=http_client)
+        matches = await client.get_matches(42)
+
+    assert len(matches) == 202
+    assert [request.url.params.get("offset", "0") for request in seen] == ["0", "200"]
+
+
+async def test_match_history_supports_repeated_projection_parameters() -> None:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=[])
+
+    transport = httpx.MockTransport(handler)
+    async with httpx.AsyncClient(transport=transport) as http_client:
+        client = OpenDotaClient(Settings(), http_client=http_client)
+        await client.get_matches(
+            42,
+            project=("cluster", "lane", "lane_role", "is_roaming"),
+        )
+
+    assert seen[0].url.params.get_list("project") == [
+        "cluster",
+        "lane",
+        "lane_role",
+        "is_roaming",
+    ]
 
 
 async def test_concurrent_cache_misses_share_one_transport_request() -> None:

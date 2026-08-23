@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from app.analysis.budget import BudgetState, CostPolicy, DataCostLedger
-from app.features.models import MatchFeature
 from app.features.summary_models import SummaryFeatureSet
 from app.hypotheses.generator import generate_diagnostic_hypotheses, generate_hypotheses
 from app.hypotheses.models import DiagnosticQuestion, Hypothesis
@@ -266,14 +265,14 @@ def _select_primary_hypotheses(
 def evaluate_deep_hypotheses(
     hypotheses: Iterable[Hypothesis],
     plan: SelectionPlan,
-    features: Iterable[MatchFeature],
+    features: Iterable[Any],
 ) -> list[DeepFinding]:
     """Evaluate only the evidence roles actually selected and hydrated."""
 
     by_match_id = {feature.match_id: feature for feature in features}
     findings: list[DeepFinding] = []
     for hypothesis in hypotheses:
-        groups: dict[str, list[MatchFeature]] = {"positive": [], "negative": [], "control": []}
+        groups: dict[str, list[Any]] = {"positive": [], "negative": [], "control": []}
         for selected in plan.selected:
             role = selected.candidate.evidence_roles.get(hypothesis.hypothesis_id)
             feature = by_match_id.get(selected.match_id)
@@ -382,9 +381,9 @@ def _deep_recommendation(explanation_type: str, effect: float | None) -> str:
 
 def _hypothesis_values(
     hypothesis: Hypothesis,
-    positive: list[MatchFeature],
-    negative: list[MatchFeature],
-    control: list[MatchFeature],
+    positive: list[Any],
+    negative: list[Any],
+    control: list[Any],
 ) -> tuple[float | None, float | None, float | None, str]:
     if hypothesis.explanation_type in {"death_risk_difference", "late_death_risk", "session_risk"}:
         return (
@@ -408,15 +407,22 @@ def _hypothesis_values(
     )
 
 
-def _data_quality(features: list[MatchFeature], required: tuple[str, ...]) -> float:
+def _data_quality(features: list[Any], required: tuple[str, ...]) -> float:
     if not features:
         return 0.0
-    scores = [
-        min(feature.coverage.by_family.get(family, 0.0) for family in required)
-        if required
-        else 1.0
-        for feature in features
-    ]
+    scores: list[float] = []
+    for feature in features:
+        coverage = getattr(feature, "coverage", None)
+        by_family = getattr(coverage, "by_family", {})
+        summary_families: frozenset[str] = getattr(feature, "summary_families", frozenset())
+        scores.append(
+            min(
+                float(by_family.get(family, 1.0 if family in summary_families else 0.0))
+                for family in required
+            )
+            if required
+            else 1.0
+        )
     return sum(scores) / len(scores)
 
 
@@ -444,12 +450,12 @@ def _observation_text(
     )
 
 
-def _mean(values: Iterable[float | int]) -> float | None:
-    values = list(values)
-    return sum(values) / len(values) if values else None
+def _mean(values: Iterable[float | int | None]) -> float | None:
+    usable = [float(value) for value in values if value is not None]
+    return sum(usable) / len(usable) if usable else None
 
 
-def _rate(features: list[MatchFeature]) -> float | None:
+def _rate(features: list[Any]) -> float | None:
     return sum(item.won for item in features) / len(features) if features else None
 
 
@@ -467,10 +473,16 @@ async def acquire_selected_matches(
     ledger: DataCostLedger,
     policy: CostPolicy,
     parse_min_marginal_information_gain: float = 0.10,
+    max_detail_requests: int = 25,
+    max_parse_requests: int = 25,
+    max_data_cost: float = 160.0,
 ) -> list[NormalizedMatch]:
     """Hydrate only the globally selected matches, preferring local payloads."""
 
     normalized: list[NormalizedMatch] = []
+    detail_limit = min(25, max(0, int(max_detail_requests)))
+    parse_limit = min(25, max(0, int(max_parse_requests)))
+    cost_limit = min(160.0, max(0.0, float(max_data_cost)))
     parse_transport = parse_transport or (source if callable(getattr(source, "request_parse", None)) else None)
     parse_service = None
     if parse_transport is not None:
@@ -479,8 +491,8 @@ async def acquire_selected_matches(
             for selected in plan.selected
         )
         parse_budget = BudgetState(
-            max_parse_requests=min(25, max(0, possible_parse_requests)),
-            max_data_cost_per_report=160.0,
+            max_parse_requests=min(parse_limit, max(0, possible_parse_requests)),
+            max_data_cost_per_report=cost_limit,
             estimated_cost_units=ledger.estimated_cost_units,
         )
         parse_service = ParseRequestService(parse_transport, budget=parse_budget, ledger=ledger, policy=policy)
@@ -498,6 +510,26 @@ async def acquire_selected_matches(
                     metadata={"reason": "summary families satisfy hypothesis"},
                 )
                 continue
+            detail_cost = policy.units_for("detail")
+            if (
+                ledger.detail_requests >= detail_limit
+                or ledger.estimated_cost_units + detail_cost > cost_limit
+            ):
+                ledger.events.append(
+                    {
+                        "operation": "detail_abstained",
+                        "match_id": match_id,
+                        "estimated_units": 0.0,
+                        "metadata": {
+                            "reason": (
+                                "MAX_DETAIL_REQUESTS"
+                                if ledger.detail_requests >= detail_limit
+                                else "MAX_DATA_COST_PER_REPORT"
+                            )
+                        },
+                    }
+                )
+                break
             detail = await source.get_match(match_id)
             ledger.record(
                 "detail",
@@ -524,18 +556,22 @@ async def acquire_selected_matches(
             None,
         )
         detail_families = coverage_for_match(detail, target_player).by_family
-        parse_families = {
+        declared_parse_families = tuple(
             str(item)
             for item in selected.candidate.metadata.get("parse_required_families", ())
+        )
+        parse_families = {
+            str(item)
+            for item in declared_parse_families
             if detail_families.get(str(item), 0.0) < 1.0
         }
         if selected.parse_required:
             parse_families.update(
                 str(item)
-                for item in selected.candidate.metadata.get("parse_required_families", ())
+                for item in declared_parse_families
                 if detail_families.get(str(item), 0.0) < 1.0
             )
-            if not parse_families:
+            if not declared_parse_families and not parse_families:
                 # A manually constructed plan may mark a parse as required
                 # without naming families; retain the explicit request.
                 parse_families.add("events")
@@ -616,7 +652,12 @@ def _cached_detail(repository: Any, match_id: int) -> dict[str, Any] | None:
     if getter is None:
         return None
     value = getter(f"/matches/{match_id}", str(match_id))
-    return value if isinstance(value, dict) else None
+    parsed = getter(f"/matches/{match_id}/parse", str(match_id))
+    detail = dict(value) if isinstance(value, dict) else {}
+    if isinstance(parsed, Mapping):
+        nested = parsed.get("match")
+        detail.update(dict(nested) if isinstance(nested, Mapping) else dict(parsed))
+    return detail or None
 
 
 def _normalized_record(match: NormalizedMatch) -> dict[str, Any]:

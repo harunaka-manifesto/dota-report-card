@@ -52,9 +52,15 @@ tests and corrected together with Benjamini–Hochberg at `q ≤ 0.05`. Missing 
 neutral evidence has p=1.0. Ranking happens only after q-value qualification,
 with at most three published families.
 
-The calibration builder performs a deterministic player-exclusive 70/30 split,
-stratified by annual volume, pool concentration, lobby mix, and region. It
-derives practical margins from P90 odd/even independent-session noise, freezes
-Breadth/Toolkit Q33/Q67 cutoffs and Consistency stable/variable cutoffs, and
-emits a holdout evaluation report. The builder does not mark output release
-ready; the real corpus and external review are required.
+The calibration workflow validates the private corpus, freezes a deterministic
+player-exclusive 70/30 split stratified by annual volume, pool concentration,
+lobby mix, and region, and derives all 19 full/A/B point estimates without
+running bootstrap during training. Practical margins are P90 odd/even-session
+noise divided by two. Breadth/Toolkit and Consistency use training Q33/Q67 with
+the approved median±margin fallback.
+
+Synthetic and sealed-holdout evaluation are independent, resumable commands.
+The aggregate evaluation derives every gate value and remains fail-closed when
+evidence or external approval is missing. Evaluation and release manifests are
+audit evidence; only the baseline and threshold artifacts are runtime analysis
+inputs.

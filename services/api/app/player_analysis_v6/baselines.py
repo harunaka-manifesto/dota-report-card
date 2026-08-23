@@ -204,17 +204,31 @@ class BaselineResolver:
         self.min_matches = max(1, int(min_matches))
         self.min_players = max(1, int(min_players))
         self.version = version
+        index: dict[tuple[str, tuple[Any, ...]], list[BaselineCell]] = {}
+        for cell in self.cells:
+            dimensions = tuple(
+                getattr(cell, dimension) for dimension in _level_dimensions(cell.level)
+            )
+            index.setdefault((cell.level, dimensions), []).append(cell)
+        self._index = {
+            key: tuple(values)
+            for key, values in index.items()
+        }
 
     def resolve(self, context: BaselineContext, metric: str, *, default: float | None = None) -> BaselineResolution:
         attempted: list[str] = []
         ineligible_reasons: list[str] = []
         for level in BASELINE_HIERARCHY:
             attempted.append(level)
+            dimensions = tuple(
+                getattr(context, dimension) for dimension in _level_dimensions(level)
+            )
+            if any(value is None for value in dimensions):
+                continue
             matching = [
                 cell
-                for cell in self.cells
-                if _cell_matches(cell, context, level)
-                and cell.match_count >= self.min_matches
+                for cell in self._index.get((level, dimensions), ())
+                if cell.match_count >= self.min_matches
                 and cell.distinct_players >= self.min_players
                 and cell.metric(metric) is not None
             ]

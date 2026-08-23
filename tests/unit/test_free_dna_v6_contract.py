@@ -4,10 +4,12 @@ import asyncio
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
 from app.analysis.service import AnalysisService
 from app.analysis.source import MappingSource
 from app.api.report_schemas import validate_free_dna_report
 from app.core.config import Settings
+from app.player_analysis_v6.artifacts import ArtifactValidationError
 from app.storage.repository import InMemoryRepository
 
 _WINDOW_END = int(datetime.now(UTC).timestamp())
@@ -79,3 +81,51 @@ def test_limited_v6_report_never_publishes_finding_recommendations() -> None:
         item["claim_contract"]["recommendation"] is None for item in report["findings"]
     )
     validate_free_dna_report(report)
+
+
+def test_disabled_v6_constructs_without_artifacts() -> None:
+    AnalysisService(MappingSource(player={}, matches=[], details={}), settings=Settings())
+
+
+@pytest.mark.parametrize(
+    ("baseline", "thresholds", "message"),
+    [
+        (None, _V6_FIXTURES / "metric-thresholds-6.0.0.fixture.json", "explicit validated"),
+        (_V6_FIXTURES / "context-baseline-2.0.0.fixture.json", None, "explicit validated"),
+        (_V6_FIXTURES / "missing.json", _V6_FIXTURES / "metric-thresholds-6.0.0.fixture.json", "missing"),
+    ],
+)
+def test_enabled_v6_fails_closed_for_missing_artifacts(
+    baseline: Path | None,
+    thresholds: Path | None,
+    message: str,
+) -> None:
+    with pytest.raises(ArtifactValidationError, match=message):
+        AnalysisService(
+            MappingSource(player={}, matches=[], details={}),
+            settings=Settings(
+                free_dna_v6_enabled=True,
+                free_dna_v6_baseline_artifact_path=baseline,
+                free_dna_v6_threshold_artifact_path=thresholds,
+            ),
+        )
+
+
+def test_enabled_v6_rejects_mismatched_model_version() -> None:
+    with pytest.raises(ArtifactValidationError, match="MODEL_VERSION"):
+        AnalysisService(
+            MappingSource(player={}, matches=[], details={}),
+            settings=Settings(
+                free_dna_v6_enabled=True,
+                free_dna_v6_model_version="free-dna-model-6.0.1",
+                free_dna_v6_baseline_artifact_path=_V6_FIXTURES / "context-baseline-2.0.0.fixture.json",
+                free_dna_v6_threshold_artifact_path=_V6_FIXTURES / "metric-thresholds-6.0.0.fixture.json",
+            ),
+        )
+
+
+def test_compose_uses_identical_unlimited_v6_configuration_for_api_and_worker() -> None:
+    compose = (Path(__file__).resolve().parents[2] / "infra" / "compose.yaml").read_text(encoding="utf-8")
+    assert "FREE_HISTORY_LIMIT" not in compose
+    assert compose.count("/app/services/api/artifacts/free_dna_v6/6.0.0/context-baseline-2.0.0.json") == 2
+    assert compose.count("/app/services/api/artifacts/free_dna_v6/6.0.0/metric-thresholds-6.0.0.json") == 2

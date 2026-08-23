@@ -61,7 +61,13 @@ def _hero_function(hero_id: Any, taxonomy: Mapping[Any, Any] | None) -> str | No
             value = entry.get(key)
             if value:
                 return str(value)
-        roles = entry.get("roles") or entry.get("jobs") or entry.get("labels")
+        roles = (
+            entry.get("functional_jobs")
+            or entry.get("jobs")
+            or entry.get("labels")
+            or entry.get("primary_functions")
+            or entry.get("roles")
+        )
     else:
         roles = getattr(entry, "hero_function", None) or getattr(entry, "function", None)
         if roles is None:

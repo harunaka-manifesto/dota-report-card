@@ -20,6 +20,7 @@ from app.player_analysis_v6.family_statistics import benjamini_hochberg_five, fa
 from app.player_analysis_v6.statistics import clustered_bootstrap
 
 from scripts.build_v6_calibration_artifacts import (
+    build_baseline,
     build_evaluation,
     build_thresholds,
     split_profiles,
@@ -55,6 +56,24 @@ def test_threshold_rejects_mmr_derivation() -> None:
     payload["derivation"]["mmr_used"] = True
     with pytest.raises(ArtifactValidationError):
         validate_threshold_artifact(payload)
+
+
+def test_threshold_rejects_weakened_product_gates_and_wrong_metric_version() -> None:
+    payload = _load("metric-thresholds-6.0.0.fixture.json")
+    payload["metrics"]["involvement_adjusted"]["min_coverage"] = 0.1
+    with pytest.raises(ArtifactValidationError):
+        validate_threshold_artifact(payload)
+    payload = _load("metric-thresholds-6.0.0.fixture.json")
+    payload["metrics"]["breadth_effective_count"]["version"] = "wrong"
+    with pytest.raises(ArtifactValidationError):
+        validate_threshold_artifact(payload)
+
+
+def test_baseline_rejects_dimensions_that_do_not_match_the_declared_level() -> None:
+    payload = _load("context-baseline-2.0.0.fixture.json")
+    payload["cells"][0]["patch"] = "7.41"
+    with pytest.raises(ArtifactValidationError):
+        validate_context_baseline_artifact(payload)
 
 
 def test_context_adjustment_changes_when_baseline_cell_changes() -> None:
@@ -128,3 +147,28 @@ def test_calibration_builder_is_player_exclusive_stratified_and_not_release_read
     assert evaluation["release_ready"] is False
     assert evaluation["status"] == "external-review-required"
     assert evaluation["gates"]["minimum_profiles"]["passed"] is False
+
+
+def test_baseline_builder_omits_specific_cells_with_missing_dimensions() -> None:
+    rows = [
+        {
+            "profile_id": profile_id,
+            "patch": "7.41",
+            "hero_id": 1,
+            "hero_function": "carry",
+            "lane_context": None,
+            "region": 1,
+            "lobby_type": 7,
+            "metrics": {"outcome": float(profile_id % 2)},
+        }
+        for profile_id in range(50)
+        for _ in range(4)
+    ]
+
+    artifact = build_baseline(rows)
+    validate_context_baseline_artifact(artifact)
+
+    assert all(
+        cell["level"] not in {"patch+hero+lane", "patch+hero_function+lane", "patch+lane"}
+        for cell in artifact["cells"]
+    )

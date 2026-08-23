@@ -232,23 +232,23 @@ class Settings:
 
     @property
     def effective_max_deep_matches(self) -> int:
-        return max(0, self.max_deep_matches)
+        return min(DEFAULT_MAX_DEEP_MATCHES, max(0, self.max_deep_matches))
 
     @property
     def effective_max_parse_requests(self) -> int:
-        return max(0, self.max_parse_requests)
+        return min(DEFAULT_MAX_PARSE_REQUESTS, max(0, self.max_parse_requests))
 
     @property
     def effective_max_data_cost_per_report(self) -> float:
-        return max(0.0, self.max_data_cost_per_report)
+        return min(DEFAULT_MAX_DATA_COST_PER_REPORT, max(0.0, self.max_data_cost_per_report))
 
     @property
     def effective_min_marginal_information_gain(self) -> float:
-        return max(0.0, self.min_marginal_information_gain)
+        return max(DEFAULT_MIN_MARGINAL_INFORMATION_GAIN, self.min_marginal_information_gain)
 
     @property
     def effective_min_parse_information_gain(self) -> float:
-        return max(0.0, self.min_parse_information_gain)
+        return max(DEFAULT_MIN_PARSE_INFORMATION_GAIN, self.min_parse_information_gain)
 
     @property
     def effective_max_primary_hypotheses(self) -> int:

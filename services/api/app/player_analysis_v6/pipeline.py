@@ -228,7 +228,12 @@ def _signal_inputs(matches: Sequence[Any], elements: Mapping[str, Any], *, basel
     for component, values in (transfer_replicates.items() if isinstance(transfer_replicates, Mapping) else ()):
         direction = transfer_directions.get(component)
         threshold = thresholds.get(f"transfer_{component}_delta")
-        if direction in {"positive", "negative"} and isinstance(threshold, MetricThreshold):
+        if (
+            transfer_element is not None
+            and direction == transfer_element.estimate.direction
+            and direction in {"positive", "negative"}
+            and isinstance(threshold, MetricThreshold)
+        ):
             transfer_p_values.append(finite_sample_directional_p(tuple(float(value) for value in values), direction=direction, practical_margin=threshold.practical_margin))
     if transfer_element is not None and transfer_element.estimate.direction not in {"positive", "negative"}:
         transfer_p_values = []
@@ -426,7 +431,7 @@ def analyze_free_dna_v6(
         portfolio = build_v6_hero_portfolio(matches, taxonomy_by_hero=taxonomy)
     identity = synthesize_identity(findings, elements=element_map, hero_portfolio=portfolio)
     diagnostics = build_diagnostic_questions(findings, elements=element_map, matches=matches, hero_portfolio=portfolio)
-    story = assemble_story(identity, findings, diagnostic_questions=diagnostics, hero_portfolio=portfolio)
+    story = assemble_story(identity, findings, elements=element_map, diagnostic_questions=diagnostics, hero_portfolio=portfolio)
     shares = build_share_candidates(identity, findings, hero_portfolio=portfolio)
     cost = new_free_cost_ledger(history_reads=1)
     versions = {

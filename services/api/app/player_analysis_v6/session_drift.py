@@ -30,7 +30,9 @@ def _completed(item: Any, completed_sessions: Mapping[str, bool] | None) -> bool
     if completed_sessions is not None and session_id in completed_sessions:
         return bool(completed_sessions[session_id])
     value = _get(item, "session_completed", _get(item, "completed"))
-    return True if value is None else bool(value)
+    # Completion/censoring evidence is mandatory. Treating missing metadata as
+    # completed would turn an interrupted history window into a drift signal.
+    return False if value is None else bool(value)
 
 
 def session_position_buckets(
@@ -133,7 +135,17 @@ def compute_session_drift(
         starts = [float(value) for value in starts if value is not None]
         if len(starts) >= 2:
             elapsed_minutes.append((max(starts) - min(starts)) / 60.0)
-    deltas = {key: (sum(values) / len(values) if values else None) for key, values in component_rows.items()}
+    # Only sessions with at least two supported components qualify for the
+    # family. Keep point estimates and bootstrap inputs on that same sample.
+    deltas = {
+        key: (
+            sum(float(row[key]) for row in session_rows if row.get(key) is not None)
+            / sum(row.get(key) is not None for row in session_rows)
+            if any(row.get(key) is not None for row in session_rows)
+            else None
+        )
+        for key in component_rows
+    }
     directions = {key: threshold_for(f"session_drift_{key}_delta", thresholds).direction(value) for key, value in deltas.items()}
     positive = sum(value == "positive" for value in directions.values())
     negative = sum(value == "negative" for value in directions.values())
@@ -148,16 +160,17 @@ def compute_session_drift(
     else:
         direction = "mixed"
     limitations: list[str] = []
-    if len(buckets) < 12:
+    qualifying_sessions = len(session_rows)
+    if qualifying_sessions < 12:
         limitations.append("requires at least 12 completed sessions with four matches")
-    if total_session_count and len(buckets) / total_session_count < 0.50:
+    if total_session_count and qualifying_sessions / total_session_count < 0.50:
         limitations.append("qualifying-session coverage below 50%")
     if sum(value is not None for value in deltas.values()) < 2:
         limitations.append("fewer than two usable late-minus-early components")
     duration = {
         "session_match_count": sum(len(early) + len(late) for _, early, late in buckets) / len(buckets) if buckets else 0.0,
         "elapsed_session_minutes": sum(elapsed_minutes) / len(elapsed_minutes) if elapsed_minutes else 0.0,
-        "qualifying_session_fraction": len(buckets) / total_session_count if total_session_count else 0.0,
+        "qualifying_session_fraction": qualifying_sessions / total_session_count if total_session_count else 0.0,
     }
     component_intervals: dict[str, tuple[float, float] | None] = {}
     component_replicates: dict[str, tuple[float, ...]] = {}
@@ -170,12 +183,12 @@ def compute_session_drift(
         component_intervals[key] = boot.interval
         component_replicates[key] = boot.replicates
     return SessionDriftResult(
-        len(buckets),
+        qualifying_sessions,
         deltas,
         directions,
         direction,
         duration,
-        len(buckets) / total_session_count if total_session_count else 0.0,
+        qualifying_sessions / total_session_count if total_session_count else 0.0,
         not limitations,
         component_intervals,
         component_replicates,

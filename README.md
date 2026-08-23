@@ -6,8 +6,8 @@ summary history → 18 Elements → 11 Patterns → Hero Portfolio → interacti
 
 An additive Free DNA v6 path is implemented behind `FREE_DNA_V6_ENABLED`:
 summary history → 7 Elements → 5 finding families → 9-beat story → interactions → Deep diagnostics.
-It remains disabled until the checked-in artifact schemas and the external
-1,000-profile calibration gates are satisfied.
+It remains disabled until measured synthetic and sealed-holdout gates, human
+review, checksum-linked promotion, and operator rollout authorization pass.
 
 Free DNA describes observable match behavior. It does not infer motives,
 psychological states, grades, or replay-level causes.
@@ -61,7 +61,8 @@ Its statistical and Deep contracts are documented in
 [v6 statistics](docs/architecture/free-dna-v6-statistics.md) and
 [Deep diagnostics v2](docs/architecture/deep-diagnostics-v2.md). Build reviewed
 artifacts with `scripts/build_v6_calibration_artifacts.py`; do not place
-production artifacts in `tests/fixtures/v6`.
+production artifacts in `tests/fixtures/v6`. The operator workflow is in the
+[v6 release and rollback runbook](docs/operations/free-dna-v6-release.md).
 
 ## Verification
 

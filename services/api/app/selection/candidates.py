@@ -119,7 +119,7 @@ def _contrast(feature: SummaryMatchFeature) -> float:
 def _comparability(feature: SummaryMatchFeature) -> float:
     available = sum(
         item is not None
-        for item in (feature.lane_role, feature.average_rank, feature.party_size, feature.start_time)
+        for item in (feature.lane_role, feature.party_size, feature.start_time, feature.patch)
     )
     return min(1.0, 0.4 + available * 0.15)
 
