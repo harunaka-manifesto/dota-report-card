@@ -1,7 +1,7 @@
 # Product Tone of Voice Guideline
 ## A Dota-native voice system derived from the supplied Dota 2 News articles
 
-**Version:** 1.0  
+**Version:** 1.1
 **Purpose:** Editorial, product UI, player insights, email, chat, notifications, social/share surfaces, support, and AI-generated copy  
 
 ---
@@ -1984,3 +1984,66 @@ If a writer remembers only ten rules, remember these:
 8. **Describe tradeoffs; do not judge the player.**
 9. **When money, errors, privacy, rules, or risk are involved, get plain.**
 10. **The best line makes the player say: “Yeah. That is me.”**
+
+---
+
+# 41. Free DNA identity cadence
+
+Free DNA is a personal identity read, not an analytics worksheet. The report
+can qualify findings with private gates, but the player-facing sentence should
+lead with what feels recognisable in their game. The reader should meet a
+conclusion before they meet a measurement.
+
+## The five-beat cadence
+
+Use this order when a finding has enough shape to show:
+
+1. **Personal conclusion.** Say the thing the player can recognise in one
+   breath: “You keep arriving before the fight becomes somebody else’s
+   problem.”
+2. **Recognisable explanation.** Name the behaviour or contrast that gives the
+   conclusion its shape, using Dota language where it is the natural word.
+3. **Optional vivid personal statistic.** Include one number only when it makes
+   the identity more memorable. A number is a spotlight, not a receipt.
+4. **Useful implication.** Give the player one action, draft question, or
+   decision to try next.
+5. **Optional dry turn.** Add one calm, specific aside when the situation has
+   earned it: “Whether that is helpful depends, rather inconveniently, on what
+   happens next.”
+
+Every chapter may earn roughly one dry beat. A finding does not need all five
+beats when a shorter line is clearer; the order is the default, not a quota.
+
+## Named anti-patterns
+
+- **The evidence dump:** listing receipts, denominators, sample counts, or
+  source explanations before saying what the player should notice.
+- **Confidence cosplay:** turning internal qualification, confidence, or
+  coverage gates into visible labels that make a conclusion sound bureaucratic.
+- **The methodology throat-clear:** explaining how the report was assembled
+  when the player asked what their game looks like.
+- **The verdict voice:** converting one pattern into a judgement about the
+  player’s character, skill, mood, or intent.
+- **The template chorus:** repeating “What we saw,” “Why it matters,” and “What
+  this actually means” for every card. Give each finding its own heading.
+- **Joke confetti:** adding a punchline to every paragraph until the insight
+  has to queue behind the writer’s personality.
+- **The source recital:** narrating where a conclusion came from instead of
+  letting the conclusion do its job.
+- **The empty identity:** using a grand label such as “aggressive” or
+  “versatile” without a recognisable Dota behaviour underneath it.
+
+## Chapter checks
+
+- **Summary:** Can the player name their leading shape without opening another
+  chapter?
+- **Elements:** Does each tile feel like a piece of the player rather than a
+  metric definition?
+- **Patterns:** Does the relationship arrive as a useful “that is me” moment?
+- **Heroes:** Does the portfolio make the hero choices feel connected, with one
+  practical next experiment?
+- **You:** Does the Mirror feel like a reveal, not a personality diagnosis?
+
+Keep privacy, errors, destructive actions, permissions, and sharing literal.
+When a finding cannot resolve, use a short human state and move on; do not
+fill the space with a smaller-print explanation of the gate.

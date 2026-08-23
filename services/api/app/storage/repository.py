@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
+import secrets
 import threading
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -23,8 +25,84 @@ from app.storage.models import (
     EvidenceObjectRecord,
     MatchRecord,
     RawPayloadRecord,
+    ReportInteractionSessionRecord,
     ReportRecord,
 )
+
+INTERACTION_STATE_SCHEMA_VERSION = "report-interactions-1.0.0"
+INTERACTION_SESSION_TTL = timedelta(days=90)
+
+
+class InteractionSessionError(Exception):
+    """Base error raised by the repository's interaction-session seam."""
+
+
+class InteractionSessionNotFound(InteractionSessionError):
+    pass
+
+
+class InteractionSessionUnauthorized(InteractionSessionError):
+    pass
+
+
+class InteractionSessionExpired(InteractionSessionError):
+    pass
+
+
+class InteractionRevisionConflict(InteractionSessionError):
+    def __init__(self, expected: int, actual: int) -> None:
+        super().__init__(f"Expected revision {expected}, current revision is {actual}")
+        self.expected = expected
+        self.actual = actual
+
+
+@dataclass(slots=True)
+class ReportInteractionSession:
+    session_id: str
+    report_id: str
+    account_id: int
+    state_schema_version: str
+    revision: int
+    state: dict[str, Any]
+    recommendation_baseline: dict[str, Any]
+    history_cutoff: int | None
+    created_at: datetime
+    updated_at: datetime
+    expires_at: datetime
+    # This is a digest, never the caller's raw bearer token.
+    access_token_hash: str = ""
+
+    @property
+    def token_hash(self) -> str:
+        """Compatibility name used by security/audit callers."""
+
+        return self.access_token_hash
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "session_id": self.session_id,
+            "report_id": self.report_id,
+            "account_id": self.account_id,
+            "state_schema_version": self.state_schema_version,
+            "revision": self.revision,
+            "state": deepcopy(self.state),
+            "recommendation_baseline": deepcopy(self.recommendation_baseline),
+            "history_cutoff": self.history_cutoff,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "expires_at": self.expires_at.isoformat(),
+        }
+
+
+def _new_access_token() -> tuple[str, str]:
+    """Create a 256-bit bearer token and its storage-safe SHA-256 digest."""
+
+    token = secrets.token_urlsafe(32)
+    return token, hashlib.sha256(token.encode("ascii")).hexdigest()
+
+
+def _token_digest(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 @dataclass(slots=True)
@@ -61,6 +139,11 @@ class AnalysisJob:
     failure_code: str | None = None
     failure_detail: str | None = None
     report_id: str | None = None
+    parent_report_id: str | None = None
+    diagnostic_question_id: str | None = None
+    entitlement_decision: dict[str, Any] | None = None
+    selection_plan: dict[str, Any] | None = None
+    stopping_reason: str | None = None
     model_version: str = ""
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -80,6 +163,11 @@ class AnalysisJob:
             "failure_code": self.failure_code,
             "message": self.failure_detail,
             "report_id": self.report_id,
+            "parent_report_id": self.parent_report_id,
+            "diagnostic_question_id": self.diagnostic_question_id,
+            "entitlement_decision": deepcopy(self.entitlement_decision),
+            "selection_plan": deepcopy(self.selection_plan),
+            "stopping_reason": self.stopping_reason,
             "events_url": f"/v1/analyses/{self.job_id}/events",
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
@@ -90,7 +178,12 @@ class AnalysisJob:
 class InMemoryRepository:
     """Deterministic local store mirroring the production persistence seams."""
 
-    def __init__(self, *, report_retention_days: int = 30) -> None:
+    def __init__(
+        self,
+        *,
+        report_retention_days: int = 30,
+        interaction_retention_days: int = 90,
+    ) -> None:
         self._lock = threading.RLock()
         self.jobs: dict[str, AnalysisJob] = {}
         self.reports: dict[str, dict[str, Any]] = {}
@@ -99,9 +192,11 @@ class InMemoryRepository:
         self.raw_payloads: list[dict[str, Any]] = []
         self.normalized_matches: dict[int, dict[str, Any]] = {}
         self.derived_features: dict[int, dict[str, Any]] = {}
+        self.interaction_sessions: dict[str, ReportInteractionSession] = {}
         self._completed: dict[tuple[int, str, str], str] = {}
         self._raw_payload_index: set[tuple[str, str, str]] = set()
         self.report_retention = timedelta(days=max(1, report_retention_days))
+        self.interaction_retention = timedelta(days=max(1, interaction_retention_days))
 
     def create_job(
         self,
@@ -109,12 +204,23 @@ class InMemoryRepository:
         canonical_player: str,
         model_version: str,
         analysis_mode: str = "free",
+        *,
+        parent_report_id: str | None = None,
+        diagnostic_question_id: str | None = None,
+        entitlement_decision: dict[str, Any] | None = None,
+        selection_plan: dict[str, Any] | None = None,
+        stopping_reason: str | None = None,
     ) -> AnalysisJob:
         job = AnalysisJob(
             str(uuid4()),
             account_id,
             canonical_player,
             analysis_mode=analysis_mode,
+            parent_report_id=parent_report_id,
+            diagnostic_question_id=diagnostic_question_id,
+            entitlement_decision=deepcopy(entitlement_decision),
+            selection_plan=deepcopy(selection_plan),
+            stopping_reason=stopping_reason,
             model_version=model_version,
         )
         with self._lock:
@@ -376,6 +482,7 @@ class InMemoryRepository:
                 (item["endpoint"], item["source_id"], item["payload_hash"])
                 for item in self.raw_payloads
             }
+            self.purge_expired_interaction_sessions(now=cutoff)
             return len(expired_reports)
 
     def get_evidence(self, report_id: str, insight_id: str | None = None) -> list[dict[str, Any]]:
@@ -384,6 +491,180 @@ class InMemoryRepository:
         if insight_id is None:
             return values
         return [item for item in values if item["insight_id"] == insight_id]
+
+    # --- v6 report interaction state -------------------------------------
+
+    def get_report_owner(self, report_id: str) -> int | None:
+        with self._lock:
+            private = self._report_private.get(report_id)
+            if private is not None:
+                return int(private["account_id"])
+            report = self.reports.get(report_id) or {}
+            identity = report.get("identity") or {}
+            value = identity.get("account_id")
+            try:
+                return int(value) if value is not None else None
+            except (TypeError, ValueError):
+                return None
+
+    def get_report_cutoff(self, report_id: str) -> int | None:
+        with self._lock:
+            private = self._report_private.get(report_id)
+            if private is not None:
+                value = private.get("data_cutoff")
+                try:
+                    return int(value) if value is not None else None
+                except (TypeError, ValueError):
+                    return None
+            report = self.reports.get(report_id) or {}
+            for source in (report.get("metadata") or {}, report):
+                for key in ("history_cutoff", "data_cutoff", "cutoff"):
+                    value = source.get(key)
+                    try:
+                        if value is not None:
+                            return int(value)
+                    except (TypeError, ValueError):
+                        continue
+            return None
+
+    def create_interaction_session(
+        self,
+        report_id: str,
+        *,
+        account_id: int | None = None,
+        state: dict[str, Any] | None = None,
+        recommendation_baseline: dict[str, Any] | None = None,
+        history_cutoff: int | None = None,
+        state_schema_version: str = INTERACTION_STATE_SCHEMA_VERSION,
+        now: datetime | None = None,
+    ) -> tuple[ReportInteractionSession, str]:
+        with self._lock:
+            if self.get_report(report_id) is None:
+                raise InteractionSessionNotFound("Report was not found")
+            owner = account_id if account_id is not None else self.get_report_owner(report_id)
+            if owner is None:
+                raise InteractionSessionNotFound("Report owner was not found")
+            token, token_hash = _new_access_token()
+            created_at = _as_aware(now) if now is not None else datetime.now(UTC)
+            cutoff = history_cutoff if history_cutoff is not None else self.get_report_cutoff(report_id)
+            session = ReportInteractionSession(
+                session_id=str(uuid4()),
+                report_id=report_id,
+                account_id=int(owner),
+                state_schema_version=state_schema_version,
+                revision=1,
+                state=deepcopy(state or {}),
+                recommendation_baseline=deepcopy(recommendation_baseline or {}),
+                history_cutoff=cutoff,
+                created_at=created_at,
+                updated_at=created_at,
+                expires_at=created_at + self.interaction_retention,
+                access_token_hash=token_hash,
+            )
+            self.interaction_sessions[session.session_id] = session
+            return deepcopy(session), token
+
+    # Explicit alias keeps the repository seam discoverable to callers that
+    # use the public resource name rather than the table name.
+    create_report_interaction_session = create_interaction_session
+
+    def get_interaction_session(
+        self, session_id: str, *, now: datetime | None = None
+    ) -> ReportInteractionSession | None:
+        with self._lock:
+            session = self.interaction_sessions.get(session_id)
+            if session is None:
+                return None
+            current = _as_aware(now) if now is not None else datetime.now(UTC)
+            if session.expires_at <= current:
+                self.interaction_sessions.pop(session_id, None)
+                return None
+            return deepcopy(session)
+
+    def authenticate_interaction_session(
+        self,
+        session_id: str,
+        access_token: str,
+        *,
+        now: datetime | None = None,
+    ) -> ReportInteractionSession:
+        with self._lock:
+            session = self.interaction_sessions.get(session_id)
+            if session is None:
+                raise InteractionSessionNotFound("Interaction session was not found")
+            current = _as_aware(now) if now is not None else datetime.now(UTC)
+            if session.expires_at <= current:
+                self.interaction_sessions.pop(session_id, None)
+                raise InteractionSessionExpired("Interaction session has expired")
+            if not hmac.compare_digest(session.access_token_hash, _token_digest(access_token)):
+                raise InteractionSessionUnauthorized("Interaction session token is invalid")
+            return deepcopy(session)
+
+    get_interaction_session_for_token = authenticate_interaction_session
+    get_report_interaction_session = get_interaction_session
+
+    def update_interaction_session(
+        self,
+        session_id: str,
+        access_token: str,
+        *,
+        expected_revision: int,
+        state: dict[str, Any],
+        now: datetime | None = None,
+    ) -> ReportInteractionSession:
+        with self._lock:
+            current = self.authenticate_interaction_session(session_id, access_token, now=now)
+            stored = self.interaction_sessions.get(session_id)
+            assert stored is not None
+            if current.revision != expected_revision:
+                raise InteractionRevisionConflict(expected_revision, current.revision)
+            stored.state = deepcopy(state)
+            stored.revision += 1
+            stored.updated_at = _as_aware(now) if now is not None else datetime.now(UTC)
+            return deepcopy(stored)
+
+    def record_interaction_follow_up(
+        self,
+        session_id: str,
+        access_token: str,
+        *,
+        follow_up: dict[str, Any],
+        now: datetime | None = None,
+    ) -> ReportInteractionSession:
+        with self._lock:
+            self.authenticate_interaction_session(session_id, access_token, now=now)
+            stored = self.interaction_sessions.get(session_id)
+            assert stored is not None
+            state = deepcopy(stored.state)
+            observed = state.get("observed")
+            observed_state = deepcopy(observed) if isinstance(observed, dict) else {}
+            observed_state["follow_up"] = deepcopy(follow_up)
+            state["observed"] = observed_state
+            stored.state = state
+            stored.revision += 1
+            stored.updated_at = _as_aware(now) if now is not None else datetime.now(UTC)
+            return deepcopy(stored)
+
+    update_report_interaction_session = update_interaction_session
+
+    def delete_interaction_session(self, session_id: str, access_token: str) -> None:
+        with self._lock:
+            self.authenticate_interaction_session(session_id, access_token)
+            self.interaction_sessions.pop(session_id, None)
+
+    delete_report_interaction_session = delete_interaction_session
+
+    def purge_expired_interaction_sessions(self, *, now: datetime | None = None) -> int:
+        current = _as_aware(now) if now is not None else datetime.now(UTC)
+        with self._lock:
+            expired = [
+                session_id
+                for session_id, session in self.interaction_sessions.items()
+                if session.expires_at <= current
+            ]
+            for session_id in expired:
+                self.interaction_sessions.pop(session_id, None)
+            return len(expired)
 
 
 class SqlAlchemyRepository:
@@ -396,6 +677,9 @@ class SqlAlchemyRepository:
         self._lock = threading.RLock()
         self.report_retention = timedelta(
             days=max(1, int(getattr(settings, "effective_report_retention_days", 30)))
+        )
+        self.interaction_retention = timedelta(
+            days=max(1, int(getattr(settings, "effective_report_interaction_retention_days", 90)))
         )
 
     @staticmethod
@@ -429,6 +713,11 @@ class SqlAlchemyRepository:
             failure_code=record.failure_code,
             failure_detail=record.failure_detail,
             report_id=record.report_id,
+            parent_report_id=getattr(record, "parent_report_id", None),
+            diagnostic_question_id=getattr(record, "diagnostic_question_id", None),
+            entitlement_decision=deepcopy(getattr(record, "entitlement_decision_json", None)),
+            selection_plan=deepcopy(getattr(record, "selection_plan_json", None)),
+            stopping_reason=getattr(record, "stopping_reason", None),
             model_version=record.model_version,
             created_at=created_at,
             updated_at=updated_at,
@@ -462,6 +751,11 @@ class SqlAlchemyRepository:
         record.failure_code = job.failure_code
         record.failure_detail = job.failure_detail
         record.report_id = job.report_id
+        record.parent_report_id = job.parent_report_id
+        record.diagnostic_question_id = job.diagnostic_question_id
+        record.entitlement_decision_json = deepcopy(job.entitlement_decision)
+        record.selection_plan_json = deepcopy(job.selection_plan)
+        record.stopping_reason = job.stopping_reason
         record.updated_at = job.updated_at
         record.events_json = [event.as_dict() for event in job.events]
 
@@ -471,12 +765,23 @@ class SqlAlchemyRepository:
         canonical_player: str,
         model_version: str,
         analysis_mode: str = "free",
+        *,
+        parent_report_id: str | None = None,
+        diagnostic_question_id: str | None = None,
+        entitlement_decision: dict[str, Any] | None = None,
+        selection_plan: dict[str, Any] | None = None,
+        stopping_reason: str | None = None,
     ) -> AnalysisJob:
         job = AnalysisJob(
             str(uuid4()),
             account_id,
             canonical_player,
             analysis_mode=analysis_mode,
+            parent_report_id=parent_report_id,
+            diagnostic_question_id=diagnostic_question_id,
+            entitlement_decision=deepcopy(entitlement_decision),
+            selection_plan=deepcopy(selection_plan),
+            stopping_reason=stopping_reason,
             model_version=model_version,
         )
         with self._session_factory() as session:
@@ -486,11 +791,19 @@ class SqlAlchemyRepository:
                     account_id=account_id,
                     canonical_player=canonical_player,
                     analysis_mode=analysis_mode,
-                    active_key=self._active_key(account_id, model_version, analysis_mode),
+                    # Explicit jobs (including a user-selected Deep
+                    # continuation) are not an idempotent request key.  The
+                    # coalescing path uses ``get_or_create_inflight_job``.
+                    active_key=None,
                     status=job.status,
                     stage=job.stage,
                     warnings_json=[],
                     events_json=[],
+                    parent_report_id=parent_report_id,
+                    diagnostic_question_id=diagnostic_question_id,
+                    entitlement_decision_json=deepcopy(entitlement_decision),
+                    selection_plan_json=deepcopy(selection_plan),
+                    stopping_reason=stopping_reason,
                     model_version=model_version,
                     created_at=job.created_at,
                     updated_at=job.updated_at,
@@ -853,7 +1166,7 @@ class SqlAlchemyRepository:
             }
 
     def purge_expired(self, *, now: datetime | None = None) -> int:
-        current = now or datetime.now(UTC)
+        current = _as_aware(now) if now is not None else datetime.now(UTC)
         cutoff = current - self.report_retention
         with self._session_factory() as session:
             reports = session.scalars(select(ReportRecord)).all()
@@ -871,6 +1184,11 @@ class SqlAlchemyRepository:
                 )
                 session.execute(delete(ReportRecord).where(ReportRecord.report_id.in_(expired)))
             session.execute(delete(RawPayloadRecord).where(RawPayloadRecord.fetched_at < cutoff))
+            session.execute(
+                delete(ReportInteractionSessionRecord).where(
+                    ReportInteractionSessionRecord.expires_at <= current
+                )
+            )
             session.commit()
             return len(expired)
 
@@ -880,6 +1198,229 @@ class SqlAlchemyRepository:
             if insight_id is not None:
                 query = query.where(EvidenceObjectRecord.insight_id == insight_id)
             return [dict(record.evidence_json or {}) for record in session.scalars(query).all()]
+
+    # --- v6 report interaction state -------------------------------------
+
+    def get_report_owner(self, report_id: str) -> int | None:
+        with self._session_factory() as session:
+            record = session.get(ReportRecord, report_id)
+            return int(record.account_id) if record is not None else None
+
+    def get_report_cutoff(self, report_id: str) -> int | None:
+        with self._session_factory() as session:
+            record = session.get(ReportRecord, report_id)
+            if record is None:
+                return None
+            if record.data_cutoff is not None:
+                return int(record.data_cutoff)
+            report = record.report_json or {}
+            for source in (report.get("metadata") or {}, report):
+                for key in ("history_cutoff", "data_cutoff", "cutoff"):
+                    value = source.get(key)
+                    try:
+                        if value is not None:
+                            return int(value)
+                    except (TypeError, ValueError):
+                        continue
+            return None
+
+    @staticmethod
+    def _interaction_from_record(
+        record: ReportInteractionSessionRecord,
+    ) -> ReportInteractionSession:
+        return ReportInteractionSession(
+            session_id=record.session_id,
+            report_id=record.report_id,
+            account_id=record.account_id,
+            state_schema_version=record.state_schema_version,
+            revision=record.revision,
+            state=deepcopy(record.state_json or {}),
+            recommendation_baseline=deepcopy(record.recommendation_baseline_json or {}),
+            history_cutoff=record.history_cutoff,
+            created_at=_as_aware(record.created_at),
+            updated_at=_as_aware(record.updated_at),
+            expires_at=_as_aware(record.expires_at),
+            access_token_hash=record.access_token_hash,
+        )
+
+    def create_interaction_session(
+        self,
+        report_id: str,
+        *,
+        account_id: int | None = None,
+        state: dict[str, Any] | None = None,
+        recommendation_baseline: dict[str, Any] | None = None,
+        history_cutoff: int | None = None,
+        state_schema_version: str = INTERACTION_STATE_SCHEMA_VERSION,
+        now: datetime | None = None,
+    ) -> tuple[ReportInteractionSession, str]:
+        owner = account_id if account_id is not None else self.get_report_owner(report_id)
+        if owner is None or self.get_report(report_id) is None:
+            raise InteractionSessionNotFound("Report was not found")
+        token, token_hash = _new_access_token()
+        created_at = _as_aware(now) if now is not None else datetime.now(UTC)
+        cutoff = history_cutoff if history_cutoff is not None else self.get_report_cutoff(report_id)
+        session_value = ReportInteractionSession(
+            session_id=str(uuid4()),
+            report_id=report_id,
+            account_id=int(owner),
+            state_schema_version=state_schema_version,
+            revision=1,
+            state=deepcopy(state or {}),
+            recommendation_baseline=deepcopy(recommendation_baseline or {}),
+            history_cutoff=cutoff,
+            created_at=created_at,
+            updated_at=created_at,
+            expires_at=created_at + self.interaction_retention,
+            access_token_hash=token_hash,
+        )
+        with self._session_factory() as session:
+            session.add(
+                ReportInteractionSessionRecord(
+                    session_id=session_value.session_id,
+                    report_id=report_id,
+                    account_id=int(owner),
+                    access_token_hash=token_hash,
+                    state_schema_version=state_schema_version,
+                    revision=1,
+                    state_json=deepcopy(state or {}),
+                    recommendation_baseline_json=deepcopy(recommendation_baseline or {}),
+                    history_cutoff=cutoff,
+                    created_at=created_at,
+                    updated_at=created_at,
+                    expires_at=session_value.expires_at,
+                )
+            )
+            session.commit()
+        return deepcopy(session_value), token
+
+    create_report_interaction_session = create_interaction_session
+
+    def get_interaction_session(
+        self, session_id: str, *, now: datetime | None = None
+    ) -> ReportInteractionSession | None:
+        current = _as_aware(now) if now is not None else datetime.now(UTC)
+        with self._session_factory() as session:
+            record = session.get(ReportInteractionSessionRecord, session_id)
+            if record is None:
+                return None
+            if _as_aware(record.expires_at) <= current:
+                session.delete(record)
+                session.commit()
+                return None
+            return self._interaction_from_record(record)
+
+    def authenticate_interaction_session(
+        self,
+        session_id: str,
+        access_token: str,
+        *,
+        now: datetime | None = None,
+    ) -> ReportInteractionSession:
+        current = _as_aware(now) if now is not None else datetime.now(UTC)
+        with self._session_factory() as session:
+            record = session.get(ReportInteractionSessionRecord, session_id)
+            if record is None:
+                raise InteractionSessionNotFound("Interaction session was not found")
+            if _as_aware(record.expires_at) <= current:
+                session.delete(record)
+                session.commit()
+                raise InteractionSessionExpired("Interaction session has expired")
+            if not hmac.compare_digest(record.access_token_hash, _token_digest(access_token)):
+                raise InteractionSessionUnauthorized("Interaction session token is invalid")
+            return self._interaction_from_record(record)
+
+    get_interaction_session_for_token = authenticate_interaction_session
+
+    def update_interaction_session(
+        self,
+        session_id: str,
+        access_token: str,
+        *,
+        expected_revision: int,
+        state: dict[str, Any],
+        now: datetime | None = None,
+    ) -> ReportInteractionSession:
+        current = _as_aware(now) if now is not None else datetime.now(UTC)
+        with self._session_factory() as session:
+            record = session.get(ReportInteractionSessionRecord, session_id)
+            if record is None:
+                raise InteractionSessionNotFound("Interaction session was not found")
+            if _as_aware(record.expires_at) <= current:
+                session.delete(record)
+                session.commit()
+                raise InteractionSessionExpired("Interaction session has expired")
+            if not hmac.compare_digest(record.access_token_hash, _token_digest(access_token)):
+                raise InteractionSessionUnauthorized("Interaction session token is invalid")
+            if record.revision != expected_revision:
+                raise InteractionRevisionConflict(expected_revision, record.revision)
+            record.state_json = deepcopy(state)
+            record.revision += 1
+            record.updated_at = current
+            session.commit()
+            return self._interaction_from_record(record)
+
+    def record_interaction_follow_up(
+        self,
+        session_id: str,
+        access_token: str,
+        *,
+        follow_up: dict[str, Any],
+        now: datetime | None = None,
+    ) -> ReportInteractionSession:
+        current = _as_aware(now) if now is not None else datetime.now(UTC)
+        with self._session_factory() as session:
+            record = session.get(ReportInteractionSessionRecord, session_id)
+            if record is None:
+                raise InteractionSessionNotFound("Interaction session was not found")
+            if _as_aware(record.expires_at) <= current:
+                session.delete(record)
+                session.commit()
+                raise InteractionSessionExpired("Interaction session has expired")
+            if not hmac.compare_digest(record.access_token_hash, _token_digest(access_token)):
+                raise InteractionSessionUnauthorized("Interaction session token is invalid")
+            state = deepcopy(record.state_json or {})
+            observed = state.get("observed")
+            observed_state = deepcopy(observed) if isinstance(observed, dict) else {}
+            observed_state["follow_up"] = deepcopy(follow_up)
+            state["observed"] = observed_state
+            record.state_json = state
+            record.revision += 1
+            record.updated_at = current
+            session.commit()
+            return self._interaction_from_record(record)
+
+    def delete_interaction_session(self, session_id: str, access_token: str) -> None:
+        with self._session_factory() as session:
+            record = session.get(ReportInteractionSessionRecord, session_id)
+            if record is None:
+                raise InteractionSessionNotFound("Interaction session was not found")
+            if _as_aware(record.expires_at) <= datetime.now(UTC):
+                session.delete(record)
+                session.commit()
+                raise InteractionSessionExpired("Interaction session has expired")
+            if not hmac.compare_digest(record.access_token_hash, _token_digest(access_token)):
+                raise InteractionSessionUnauthorized("Interaction session token is invalid")
+            session.delete(record)
+            session.commit()
+
+    def purge_expired_interaction_sessions(self, *, now: datetime | None = None) -> int:
+        current = _as_aware(now) if now is not None else datetime.now(UTC)
+        with self._session_factory() as session:
+            records = session.scalars(select(ReportInteractionSessionRecord)).all()
+            expired = [
+                record.session_id
+                for record in records
+                if _as_aware(record.expires_at) <= current
+            ]
+            if expired:
+                session.execute(
+                    delete(ReportInteractionSessionRecord).where(
+                        ReportInteractionSessionRecord.session_id.in_(expired)
+                    )
+                )
+                session.commit()
+            return len(expired)
 
 
 def _as_aware(value: datetime) -> datetime:

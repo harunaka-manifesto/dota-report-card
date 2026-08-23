@@ -23,7 +23,7 @@ def copy_version() -> str:
 
 @lru_cache(maxsize=1)
 def load_free_dna_semantic_copy() -> dict[str, Any]:
-    """Load the finite v5.2 semantic outcome and recommendation library."""
+    """Load the finite v5.3 semantic outcome and recommendation library."""
 
     path = Path(__file__).with_name("free_dna") / "semantic_en.json"
     value = json.loads(path.read_text(encoding="utf-8"))

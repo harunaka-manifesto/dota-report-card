@@ -40,7 +40,9 @@ def marginal_information_gain(
 
     base = candidate_base_value(candidate, hypotheses)
     redundancy_penalty = min(0.7, len(state.selected) * 0.015)
-    cost_penalty = 0.04 * candidate.estimated_detail_cost
+    cost_penalty = 0.04 * (
+        candidate.estimated_detail_cost + candidate.estimated_parse_cost
+    )
     return max(0.0, base + information - redundancy_penalty - cost_penalty), tuple(
         newly_supported
     )

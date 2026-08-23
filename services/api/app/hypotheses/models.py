@@ -80,6 +80,12 @@ class Hypothesis:
     target_control: int
     confounders_to_control: tuple[str, ...]
     expected_cost: float | None = None
+    # v6 diagnostic questions may name one primary hypothesis and one
+    # secondary whose evidence is shared with the primary.  Keeping these as
+    # metadata preserves the v5 PatternCandidate constructor contract.
+    diagnostic_question_id: str | None = None
+    primary: bool = True
+    evidence_reuse_fraction: float = 1.0
 
     @property
     def evidence_targets(self) -> dict[str, int]:
@@ -110,4 +116,78 @@ class Hypothesis:
             "target_control": self.target_control,
             "confounders_to_control": list(self.confounders_to_control),
             "expected_cost": self.expected_cost,
+            "diagnostic_question_id": self.diagnostic_question_id,
+            "primary": self.primary,
+            "evidence_reuse_fraction": round(self.evidence_reuse_fraction, 4),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class DiagnosticQuestion:
+    """Serializable question offered by a Free v6 report.
+
+    Report payloads are intentionally allowed to carry richer copy and
+    evidence metadata than this selector needs.  ``from_mapping`` extracts a
+    stable identifier and the optional hypothesis definitions while ignoring
+    presentation-only keys.
+    """
+
+    diagnostic_question_id: str
+    statement: str = ""
+    primary_hypothesis: dict[str, Any] | None = None
+    secondary_hypothesis: dict[str, Any] | None = None
+    secondary_reuse_fraction: float = 0.0
+    required_data_families: tuple[str, ...] = ()
+    metadata: dict[str, Any] | None = None
+
+    @classmethod
+    def from_mapping(cls, value: dict[str, Any] | str) -> DiagnosticQuestion:
+        if isinstance(value, str):
+            return cls(value)
+        identifier = (
+            value.get("diagnostic_question_id")
+            or value.get("question_id")
+            or value.get("id")
+            or value.get("key")
+        )
+        if not identifier:
+            raise ValueError("Diagnostic question requires an id")
+        primary = value.get("primary_hypothesis")
+        if primary is None and value.get("primary_hypothesis_id"):
+            primary = {"hypothesis_id": value["primary_hypothesis_id"]}
+        if primary is None and any(key in value for key in ("hypothesis_id", "statement", "explanation_type")):
+            primary = value
+        secondary = value.get("secondary_hypothesis")
+        if secondary is None and value.get("secondary_hypothesis_id"):
+            secondary = {"hypothesis_id": value["secondary_hypothesis_id"]}
+        reuse = value.get(
+            "secondary_reuse_fraction",
+            value.get("reuse_fraction", value.get("evidence_reuse", value.get("reuse", 0.0))),
+        )
+        try:
+            reuse_value = max(0.0, min(1.0, float(reuse)))
+        except (TypeError, ValueError):
+            reuse_value = 0.0
+        required = value.get("required_data_families") or value.get("evidence_families") or ()
+        return cls(
+            diagnostic_question_id=str(identifier),
+            statement=str(value.get("statement") or value.get("question") or value.get("prompt") or ""),
+            primary_hypothesis=dict(primary) if isinstance(primary, dict) else None,
+            secondary_hypothesis=dict(secondary) if isinstance(secondary, dict) else None,
+            secondary_reuse_fraction=reuse_value,
+            required_data_families=tuple(str(item) for item in required),
+            metadata=dict(value),
+        )
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "diagnostic_question_id": self.diagnostic_question_id,
+            "statement": self.statement,
+            "primary_hypothesis": dict(self.primary_hypothesis or {}),
+            "secondary_hypothesis": dict(self.secondary_hypothesis or {})
+            if self.secondary_hypothesis is not None
+            else None,
+            "secondary_reuse_fraction": round(self.secondary_reuse_fraction, 4),
+            "required_data_families": list(self.required_data_families),
+            "metadata": dict(self.metadata or {}),
         }

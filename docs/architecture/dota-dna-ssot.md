@@ -248,9 +248,9 @@ The active v5.2 meaning layer is finite and separate from presentation prose:
 - `pattern-outcomes-5.2.0` registers 32 semantic outcome branches across P01–P11.
 - `hero-recommendations-semantic-1.1.0` registers 14 recommendation IDs,
   including the shared `HR_PRACTICE_FALLBACK` and the P01 specialist branch.
-- `free-dna-semantic-copy-5.2.0` supplies the active branch copy for every
+- `free-dna-semantic-copy-5.3.0` supplies the active branch copy for every
   outcome and recommendation ID.
-- `free-dna-copy-5.4.0` remains the legacy 11-record presentation catalog for
+- `free-dna-copy-5.5.0` remains the legacy 11-record presentation catalog for
   historical snapshots and compatibility reads.
 
 The API keeps the legacy `outcome_id`, `recommendation_id`, and `deep_dive_id`
@@ -332,8 +332,8 @@ Current versions are:
 | Story | `free-story-5.3.0` |
 | Pattern presentation | `pattern-presentation-5.2.0` |
 | Model content | `free-dna-model-5.2.0` |
-| Legacy copy content | `free-dna-copy-5.4.0` |
-| Semantic copy content | `free-dna-semantic-copy-5.2.0` |
+| Legacy copy content | `free-dna-copy-5.5.0` |
+| Semantic copy content | `free-dna-semantic-copy-5.3.0` |
 | Semantic outcome branches | `pattern-outcomes-5.2.0` (32 IDs) |
 | Semantic recommendations | `hero-recommendations-semantic-1.1.0` (14 IDs) |
 | Hero knowledge schema | `hero-knowledge-schema-1.0.0` |

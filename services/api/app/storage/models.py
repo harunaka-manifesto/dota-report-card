@@ -152,6 +152,13 @@ class AnalysisJobRecord(Base):
     failure_detail: Mapped[str | None] = mapped_column(String(500))
     events_json: Mapped[list[dict[str, Any]]] = mapped_column(JSON_DOCUMENT, default=list)
     report_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    # Deep v2 continuation metadata.  These fields are intentionally nullable
+    # so historical v5/free jobs retain their original shape.
+    parent_report_id: Mapped[str | None] = mapped_column(String(36), index=True)
+    diagnostic_question_id: Mapped[str | None] = mapped_column(String(128), index=True)
+    entitlement_decision_json: Mapped[dict[str, Any] | None] = mapped_column(JSON_DOCUMENT)
+    selection_plan_json: Mapped[dict[str, Any] | None] = mapped_column(JSON_DOCUMENT)
+    stopping_reason: Mapped[str | None] = mapped_column(String(64))
     model_version: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -166,6 +173,33 @@ class ReportRecord(Base):
     template_version: Mapped[str] = mapped_column(String(64))
     report_json: Mapped[dict[str, Any]] = mapped_column(JSON_DOCUMENT)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ReportInteractionSessionRecord(Base):
+    """Minimal, bearer-token protected state for the v6 report story.
+
+    ``access_token_hash`` is the only representation of the access token that
+    crosses the persistence boundary.  The raw random token is generated and
+    returned by the API once, then discarded.
+    """
+
+    __tablename__ = "report_interaction_sessions"
+    session_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    report_id: Mapped[str] = mapped_column(ForeignKey("reports.report_id"), index=True)
+    account_id: Mapped[int] = mapped_column(Integer, index=True)
+    access_token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    state_schema_version: Mapped[str] = mapped_column(String(64))
+    revision: Mapped[int] = mapped_column(Integer, default=1)
+    state_json: Mapped[dict[str, Any]] = mapped_column(JSON_DOCUMENT, default=dict)
+    recommendation_baseline_json: Mapped[dict[str, Any]] = mapped_column(JSON_DOCUMENT, default=dict)
+    history_cutoff: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+    @property
+    def token_hash(self) -> str:
+        return self.access_token_hash
 
 
 class EvidenceObjectRecord(Base):

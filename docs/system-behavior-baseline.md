@@ -12,8 +12,8 @@ The active baseline is Free DNA v5.2 at repository baseline `3670c49`:
 - Deterministic ranking, copy, version fingerprints, and cache keys.
 - `pattern-outcomes-5.2.0` covers 32 semantic outcome branches across P01–P11;
   `hero-recommendations-semantic-1.1.0` covers 14 recommendation IDs.
-- Active semantic copy is `free-dna-semantic-copy-5.2.0`; the
-  `free-dna-copy-5.4.0` catalog is retained for historical compatibility.
+- Active semantic copy is `free-dna-semantic-copy-5.3.0`; the
+  `free-dna-copy-5.5.0` catalog is retained for historical compatibility.
 - Hero knowledge uses the `hero-knowledge-semantic-freeze-full-roster-v1`
   snapshot declared by the checked-in manifest; structural taxonomy fallback is
   compatibility-only for unavailable or unapproved records.

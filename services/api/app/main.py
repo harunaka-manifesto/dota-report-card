@@ -43,7 +43,8 @@ def create_app(
             SqlAlchemyRepository(settings)
             if settings.effective_storage_backend == "database"
             else InMemoryRepository(
-                report_retention_days=settings.effective_report_retention_days
+                report_retention_days=settings.effective_report_retention_days,
+                interaction_retention_days=settings.effective_report_interaction_retention_days,
             )
         )
     identity_resolver = (
@@ -99,8 +100,9 @@ def create_app(
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(settings.cors_origins),
-        allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "Accept", "Authorization"],
+        allow_methods=["GET", "POST", "PATCH", "DELETE"],
+        allow_headers=["Content-Type", "Accept", "Authorization", "If-Match"],
+        expose_headers=["ETag"],
     )
 
     from app.workers.tasks import configure_service

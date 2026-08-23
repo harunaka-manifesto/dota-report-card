@@ -2,11 +2,15 @@ import Link from "next/link";
 
 export default function ReportNotFound() {
   return (
-    <main className="shell report-shell">
-      <p className="eyebrow">Report unavailable</p>
-      <h1>This report has expired.</h1>
-      <p className="lede">Reports are retained for a limited time in this experiment. Build a new report to continue.</p>
-      <Link className="back-link" href="/">← Build a new report</Link>
+    <main className="state-shell report-not-found-state">
+      <p className="eyebrow">Free DNA / Report unavailable</p>
+      <h1>That report is no longer available.</h1>
+      <p className="lede">
+        Reports are temporary by design. Build a new one when you&apos;re ready to look again.
+      </p>
+      <div className="state-actions">
+        <Link className="state-primary-action" href="/">Build a new report</Link>
+      </div>
     </main>
   );
 }

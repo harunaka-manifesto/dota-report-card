@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
+from typing import Any
 
-from app.hypotheses.models import Hypothesis, MatchPredicate
+from app.hypotheses.models import DiagnosticQuestion, Hypothesis, MatchPredicate
 from app.patterns.models import PatternCandidate
 
 
@@ -22,6 +23,122 @@ def generate_hypotheses(
     if max_hypotheses is not None:
         return hypotheses[: max(0, max_hypotheses)]
     return hypotheses
+
+
+def generate_diagnostic_hypotheses(
+    question: DiagnosticQuestion | Mapping[str, Any] | str,
+) -> list[Hypothesis]:
+    """Build the v6 primary plus an optional high-reuse secondary.
+
+    A report can provide fully serializable predicate definitions.  When it
+    only provides copy, conservative outcome predicates preserve the
+    positive/negative/control contract without inventing a causal claim.
+    The secondary is dropped unless its declared evidence reuse is at least
+    50%, as required by the Deep budget policy.
+    """
+
+    normalized = (
+        question
+        if isinstance(question, DiagnosticQuestion)
+        else DiagnosticQuestion.from_mapping(dict(question) if isinstance(question, Mapping) else question)
+    )
+    primary = _hypothesis_from_diagnostic(
+        normalized.diagnostic_question_id,
+        normalized.primary_hypothesis or {},
+        primary=True,
+        reuse_fraction=1.0,
+        required_families=normalized.required_data_families,
+        fallback_statement=normalized.statement,
+    )
+    hypotheses = [primary]
+    if normalized.secondary_hypothesis is not None and normalized.secondary_reuse_fraction >= 0.5:
+        hypotheses.append(
+            _hypothesis_from_diagnostic(
+                normalized.diagnostic_question_id,
+                normalized.secondary_hypothesis,
+                primary=False,
+                reuse_fraction=normalized.secondary_reuse_fraction,
+                required_families=normalized.required_data_families,
+                fallback_statement=normalized.statement,
+                suffix="secondary",
+            )
+        )
+    return hypotheses
+
+
+def _hypothesis_from_diagnostic(
+    question_id: str,
+    value: Mapping[str, Any],
+    *,
+    primary: bool,
+    reuse_fraction: float,
+    required_families: tuple[str, ...],
+    fallback_statement: str,
+    suffix: str = "primary",
+) -> Hypothesis:
+    hypothesis_id = str(
+        value.get("hypothesis_id")
+        or value.get("id")
+        or f"{question_id}:{suffix}"
+    )
+    required = tuple(
+        str(item)
+        for item in (value.get("required_data_families") or required_families or ("summary",))
+    )
+    return Hypothesis(
+        hypothesis_id=hypothesis_id,
+        source_pattern_id=f"diagnostic:{question_id}",
+        statement=str(value.get("statement") or value.get("question") or fallback_statement),
+        explanation_type=str(value.get("explanation_type") or "diagnostic_comparison"),
+        priority=_bounded_float(value.get("priority"), 1.0),
+        pattern_strength=_bounded_float(value.get("pattern_strength", value.get("strength")), 1.0),
+        actionability=_bounded_float(value.get("actionability"), 1.0),
+        required_data_families=required,
+        positive_definition=_predicate(value.get("positive_definition"), "outcome", {"won": True}),
+        negative_definition=_predicate(value.get("negative_definition"), "outcome", {"won": False}),
+        control_definition=_predicate(value.get("control_definition"), "duration_bucket", {"bucket": "medium"}),
+        min_positive=max(1, _as_int(value.get("min_positive"), 3)),
+        min_negative=max(1, _as_int(value.get("min_negative"), 3)),
+        min_control=max(1, _as_int(value.get("min_control"), 3)),
+        target_positive=max(1, _as_int(value.get("target_positive"), 3)),
+        target_negative=max(1, _as_int(value.get("target_negative"), 3)),
+        target_control=max(1, _as_int(value.get("target_control"), 3)),
+        confounders_to_control=tuple(str(item) for item in value.get("confounders_to_control", ())),
+        expected_cost=float(value["expected_cost"]) if value.get("expected_cost") is not None else None,
+        diagnostic_question_id=question_id,
+        primary=primary,
+        evidence_reuse_fraction=max(0.0, min(1.0, reuse_fraction)),
+    )
+
+
+def _predicate(value: Any, fallback_name: str, fallback_params: dict[str, Any]) -> MatchPredicate:
+    if isinstance(value, MatchPredicate):
+        return value
+    if isinstance(value, Mapping):
+        name = value.get("name")
+        params = value.get("params")
+        if isinstance(name, str) and isinstance(params, Mapping):
+            return MatchPredicate(name, dict(params))
+    return MatchPredicate(fallback_name, dict(fallback_params))
+
+
+def _bounded_float(value: Any, fallback: float) -> float:
+    try:
+        return max(0.0, min(1.0, float(value))) if value is not None else fallback
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _as_int(value: Any, fallback: int) -> int:
+    try:
+        return int(value) if value is not None else fallback
+    except (TypeError, ValueError):
+        return fallback
+
+
+# Naming aliases used by the v6 diagnostic-entry documentation.
+generate_question_hypotheses = generate_diagnostic_hypotheses
+generate_diagnostic_question_hypotheses = generate_diagnostic_hypotheses
 
 
 def _for_pattern(pattern: PatternCandidate) -> list[Hypothesis]:

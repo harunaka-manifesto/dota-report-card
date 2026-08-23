@@ -17,13 +17,15 @@ MAX_FREE_HISTORY_LIMIT: int | None = None
 MATCH_HISTORY_LIMIT = FREE_HISTORY_LIMIT
 RECENCY_HALF_LIFE_DAYS = 180.0
 DEFAULT_MAX_DEEP_MATCHES = 25
-DEFAULT_MAX_PARSE_REQUESTS = 0
-DEFAULT_MAX_DATA_COST_PER_REPORT = 50.0
+DEFAULT_MAX_PARSE_REQUESTS = 25
+DEFAULT_MAX_DATA_COST_PER_REPORT = 160.0
 DEFAULT_MIN_MARGINAL_INFORMATION_GAIN = 0.05
-DEFAULT_MAX_PRIMARY_HYPOTHESES = 3
+DEFAULT_MIN_PARSE_INFORMATION_GAIN = 0.10
+DEFAULT_MAX_PRIMARY_HYPOTHESES = 2
 DEFAULT_SESSION_GAP_MINUTES = 90
 DEFAULT_SUMMARY_HISTORY_CACHE_TTL_SECONDS = 120
 DEFAULT_REPORT_RETENTION_DAYS = 30
+DEFAULT_REPORT_INTERACTION_RETENTION_DAYS = 90
 DEFAULT_STEAM_RESOLVER_BASE_URL = "https://api.steampowered.com"
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:3000",
@@ -76,12 +78,15 @@ class Settings:
     max_parse_requests: int = DEFAULT_MAX_PARSE_REQUESTS
     max_data_cost_per_report: float = DEFAULT_MAX_DATA_COST_PER_REPORT
     min_marginal_information_gain: float = DEFAULT_MIN_MARGINAL_INFORMATION_GAIN
+    min_parse_information_gain: float = DEFAULT_MIN_PARSE_INFORMATION_GAIN
     max_primary_hypotheses: int = DEFAULT_MAX_PRIMARY_HYPOTHESES
     session_gap_minutes: int = DEFAULT_SESSION_GAP_MINUTES
     default_analysis_mode: str = "free"
     compatible_analysis_ttl_seconds: int = 3600
     summary_history_cache_ttl_seconds: int = DEFAULT_SUMMARY_HISTORY_CACHE_TTL_SECONDS
     report_retention_days: int = DEFAULT_REPORT_RETENTION_DAYS
+    report_interaction_retention_days: int = DEFAULT_REPORT_INTERACTION_RETENTION_DAYS
+    free_dna_v6_enabled: bool = False
     replay_coverage_threshold: float = 0.60
     summary_coverage_threshold: float = 0.60
     cors_origins: tuple[str, ...] = DEFAULT_CORS_ORIGINS
@@ -129,12 +134,8 @@ class Settings:
                 os.getenv("FREE_HISTORY_LIMIT", os.getenv("HISTORY_LIMIT")),
                 default=cls.free_history_limit,
             ),
-            max_deep_matches=int(
-                os.getenv("MAX_DEEP_MATCHES", str(cls.max_deep_matches))
-            ),
-            max_parse_requests=int(
-                os.getenv("MAX_PARSE_REQUESTS", str(cls.max_parse_requests))
-            ),
+            max_deep_matches=int(os.getenv("MAX_DEEP_MATCHES", str(cls.max_deep_matches))),
+            max_parse_requests=int(os.getenv("MAX_PARSE_REQUESTS", str(cls.max_parse_requests))),
             max_data_cost_per_report=float(
                 os.getenv(
                     "MAX_DATA_COST_PER_REPORT",
@@ -147,15 +148,19 @@ class Settings:
                     str(cls.min_marginal_information_gain),
                 )
             ),
+            min_parse_information_gain=float(
+                os.getenv(
+                    "MIN_PARSE_INFORMATION_GAIN",
+                    str(cls.min_parse_information_gain),
+                )
+            ),
             max_primary_hypotheses=int(
                 os.getenv(
                     "MAX_PRIMARY_HYPOTHESES",
                     str(cls.max_primary_hypotheses),
                 )
             ),
-            session_gap_minutes=int(
-                os.getenv("SESSION_GAP_MINUTES", str(cls.session_gap_minutes))
-            ),
+            session_gap_minutes=int(os.getenv("SESSION_GAP_MINUTES", str(cls.session_gap_minutes))),
             default_analysis_mode=os.getenv(
                 "DEFAULT_ANALYSIS_MODE", cls.default_analysis_mode
             ).lower(),
@@ -174,6 +179,13 @@ class Settings:
             report_retention_days=int(
                 os.getenv("REPORT_RETENTION_DAYS", str(cls.report_retention_days))
             ),
+            report_interaction_retention_days=int(
+                os.getenv(
+                    "REPORT_INTERACTION_RETENTION_DAYS",
+                    str(cls.report_interaction_retention_days),
+                )
+            ),
+            free_dna_v6_enabled=_as_bool(os.getenv("FREE_DNA_V6_ENABLED")),
             replay_coverage_threshold=float(
                 os.getenv("REPLAY_COVERAGE_THRESHOLD", str(cls.replay_coverage_threshold))
             ),
@@ -182,9 +194,7 @@ class Settings:
             ),
             cors_origins=cors_origins or DEFAULT_CORS_ORIGINS,
             storage_backend=os.getenv("STORAGE_BACKEND", "auto").lower(),
-            analysis_execution_backend=os.getenv(
-                "ANALYSIS_EXECUTION_BACKEND", "auto"
-            ).lower(),
+            analysis_execution_backend=os.getenv("ANALYSIS_EXECUTION_BACKEND", "auto").lower(),
         )
 
     @property
@@ -199,12 +209,16 @@ class Settings:
 
     @property
     def effective_free_history_limit(self) -> int | None:
-        requested = self.history_limit if self.history_limit is not None else self.free_history_limit
+        requested = (
+            self.history_limit if self.history_limit is not None else self.free_history_limit
+        )
         if requested is None:
             return None
         if requested <= 0:
             return None
-        return requested if MAX_FREE_HISTORY_LIMIT is None else min(requested, MAX_FREE_HISTORY_LIMIT)
+        return (
+            requested if MAX_FREE_HISTORY_LIMIT is None else min(requested, MAX_FREE_HISTORY_LIMIT)
+        )
 
     @property
     def effective_max_deep_matches(self) -> int:
@@ -223,6 +237,10 @@ class Settings:
         return max(0.0, self.min_marginal_information_gain)
 
     @property
+    def effective_min_parse_information_gain(self) -> float:
+        return max(0.0, self.min_parse_information_gain)
+
+    @property
     def effective_max_primary_hypotheses(self) -> int:
         return max(1, self.max_primary_hypotheses)
 
@@ -237,6 +255,10 @@ class Settings:
     @property
     def effective_report_retention_days(self) -> int:
         return max(1, self.report_retention_days)
+
+    @property
+    def effective_report_interaction_retention_days(self) -> int:
+        return max(1, self.report_interaction_retention_days)
 
     @property
     def effective_storage_backend(self) -> str:

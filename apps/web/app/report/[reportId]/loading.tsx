@@ -1,10 +1,10 @@
 export default function ReportLoading() {
   return (
-    <main className="shell report-shell" aria-busy="true" aria-live="polite">
-      <p className="eyebrow">Reading your report</p>
-      <h1>Putting the Dota back in the numbers.</h1>
-      <p className="lede">The report is loading its bounded history and evidence. This usually takes a moment.</p>
-      <div className="report-loading-bar" aria-hidden="true"><span /></div>
+    <main className="state-shell report-loading-state" aria-busy="true" aria-live="polite">
+      <p className="eyebrow">Free DNA / One moment</p>
+      <h1>Putting your Dota shape together.</h1>
+      <p className="lede">Your report is getting its final pass. The useful parts are almost here.</p>
+      <div className="state-progress-track" aria-hidden="true"><span /></div>
     </main>
   );
 }

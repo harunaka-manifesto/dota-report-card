@@ -1,0 +1,81 @@
+:root {
+  /* Midnight Specimen core palette. Keep these names stable for report chapters. */
+  --color-void: #0b0c0b;
+  --color-surface: #141513;
+  --color-raised: #1c1e1b;
+  --color-line: #30332e;
+  --color-paper: #f2efe7;
+  --color-muted-paper: #ddd9cf;
+  --color-ink: #101110;
+  --color-text: #f7f4ec;
+  --color-muted-text: #a3a59d;
+  --color-coral: #f27d68;
+  --color-saffron: #f4bb57;
+  --color-lilac: #b7a8e8;
+  --color-cobalt: #4c7dff;
+  --color-cyan: #68d4d8;
+  --color-violet: #8f70d8;
+  --color-magenta: #e96ba7;
+  --color-orange: #f18b47;
+  --color-chartreuse: #b9e65d;
+  --color-amber: #f4b04f;
+  --color-aqua: #5dd4c6;
+  --color-crimson: #e35b63;
+  --color-electric-blue: #549bff;
+
+  /* Compatibility aliases for existing report primitives. */
+  --ink: var(--color-ink);
+  --muted: var(--color-muted-text);
+  --paper: var(--color-paper);
+  --card: var(--color-surface);
+  --line: var(--color-line);
+  --accent: var(--color-coral);
+  --accent-dark: #b95043;
+  --green: #9acb70;
+  --story-paper: var(--color-paper);
+  --story-line: #c9c3b8;
+
+  --font-body: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --weight-regular: 500;
+  --weight-medium: 600;
+  --weight-bold: 700;
+  --weight-display: 800;
+
+  --text-display-size: 56px;
+  --text-display-leading: 0.91;
+  --text-display-tracking: -0.055em;
+  --text-chapter-size: 40px;
+  --text-chapter-leading: 0.96;
+  --text-card-size: 24px;
+  --text-card-leading: 1.04;
+  --text-lead-size: 18px;
+  --text-lead-leading: 1.38;
+  --text-body-size: 15px;
+  --text-body-leading: 1.5;
+  --text-label-size: 11px;
+  --text-label-leading: 1.2;
+  --text-meta-size: 12px;
+  --text-meta-leading: 1.35;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+  --mobile-gutter: 20px;
+  --grid-gap: 8px;
+  --dock-height: 64px;
+  --control-height: 48px;
+
+  /* Square geometry is the default. Components may opt in deliberately. */
+  --radius-default: 0px;
+  --radius-avatar: 50%;
+  --radius-artifact: 12px;
+
+  --shadow-ink: 0 20px 60px rgba(0, 0, 0, 0.26);
+  --focus-ring: 0 0 0 3px var(--color-void), 0 0 0 5px var(--color-saffron);
+}

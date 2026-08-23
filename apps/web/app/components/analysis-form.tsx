@@ -137,27 +137,45 @@ export default function AnalysisForm() {
     throw new Error("The analysis is taking longer than expected. Please try again.");
   }
 
+  const statusMessage = status ? stageCopy(status.stage) : "Opening your public profile.";
+
   return (
-    <form className="lookup" onSubmit={submit}>
-      <label htmlFor="player">OpenDota profile, Steam ID, or Steam profile URL</label>
+    <form className={`lookup${busy ? " is-busy" : ""}`} onSubmit={submit} aria-busy={busy}>
+      <label className="lookup-label" htmlFor="player">
+        Public profile, Steam ID, or Steam profile URL
+      </label>
       <div className="lookup-row">
         <input
           id="player"
           name="player"
           aria-label="OpenDota profile or Steam32 ID"
+          aria-describedby="player-hint"
           value={player}
           onChange={(event) => setPlayer(event.target.value)}
           placeholder="193875165"
           autoComplete="off"
           required
         />
-        <button type="submit" disabled={busy}>
-          {busy ? "Reading matches…" : requestedMode === "deep_scan" ? "Start Deep Scan" : "Build report"}
+        <button className="lookup-submit" type="submit" disabled={busy}>
+          {busy ? "Reading your pattern…" : requestedMode === "deep_scan" ? "Start Deep Scan" : "Build report"}
         </button>
       </div>
-      <p className="hint">Try 193875165 for the recorded sample account.</p>
-      {status && <p className="status" aria-live="polite">{stageCopy(status.stage)}</p>}
-      {error && <p className="error" role="alert">{error}</p>}
+      <p className="lookup-hint" id="player-hint">
+        Try 193875165 if you want to take it for a spin.
+      </p>
+      {busy && (
+        <section className="lookup-status" aria-live="polite" aria-atomic="true">
+          <span className="lookup-status-kicker">Free DNA / Reading</span>
+          <h2>Finding the shape in your matches.</h2>
+          <div className="lookup-status-track" aria-hidden="true"><span /></div>
+          <p className="lookup-status-message">
+            <span className="lookup-status-pulse" aria-hidden="true" />
+            {statusMessage}
+          </p>
+        </section>
+      )}
+      {status && !busy && <p className="status lookup-stage-status" aria-live="polite">{statusMessage}</p>}
+      {error && <p className="error lookup-error" role="alert">{error}</p>}
     </form>
   );
 }
@@ -204,24 +222,24 @@ async function streamEvents(
 
 function stageCopy(stage: string): string {
   const copy: Record<string, string> = {
-    resolving_player: "Resolving your public player profile.",
-    player_found: "Found your player.",
-    fetching_history: "Finding your recent matches.",
-    filtering_matches: "Sorting the matches we can read.",
-    normalizing_history: "Sorting the matches we can read.",
-    feature_extraction: "Mapping hero, role, and session evidence.",
-    hero_features: "Mapping your hero habits.",
-    role_features: "Reading your role patterns.",
-    session_inference: "Rebuilding your play sessions.",
-    dimension_scoring: "Finding the Elements your history can support.",
-    behavior_elements: "Measuring the Elements behind the report.",
-    behavior_patterns: "Checking which Patterns have enough evidence.",
-    hero_portfolio: "Comparing your established hero pool.",
-    rendering_report: "Building your Dota DNA.",
-    completed: "We found your pattern.",
-    failed: "The analysis failed."
+    resolving_player: "Finding your public profile.",
+    player_found: "Your player is in view.",
+    fetching_history: "Looking through your recent matches.",
+    filtering_matches: "Finding the moments that repeat.",
+    normalizing_history: "Finding the moments that repeat.",
+    feature_extraction: "Turning match history into habits.",
+    hero_features: "Looking for the heroes that feel like you.",
+    role_features: "Reading how you show up in a role.",
+    session_inference: "Noticing how your sessions change shape.",
+    dimension_scoring: "Giving your Elements a name.",
+    behavior_elements: "Arranging your Elements.",
+    behavior_patterns: "Connecting the Patterns.",
+    hero_portfolio: "Building your Hero Portfolio.",
+    rendering_report: "Putting your Dota shape together.",
+    completed: "Your pattern is ready.",
+    failed: "Analysis failed. We couldn't finish the read."
   };
-  return copy[stage] ?? `${stage.replaceAll("_", " ")}.`;
+  return copy[stage] ?? "Reading the next part of your pattern.";
 }
 
 function classifyInput(value: string): string {

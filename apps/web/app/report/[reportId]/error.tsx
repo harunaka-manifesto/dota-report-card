@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 export default function ReportError({
   error,
-  reset
+  reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
@@ -15,13 +15,18 @@ export default function ReportError({
   }, [error]);
 
   return (
-    <main className="shell report-shell">
-      <p className="eyebrow">Report error</p>
-      <h1>We could not load this report.</h1>
-      <p className="lede">The API may be temporarily unavailable. Retry once, or start a new report if the problem continues.</p>
-      <div className="lookup-row">
-        <button type="button" onClick={() => reset()}>Retry</button>
-        <Link className="back-link" href="/">← New report</Link>
+    <main className="state-shell report-error-state">
+      <p className="eyebrow">Free DNA / Report error</p>
+      <h1>We couldn&apos;t open that report.</h1>
+      <p className="lede">
+        Something interrupted the handoff. Try once more, or start a new report if the problem
+        keeps happening.
+      </p>
+      <div className="state-actions">
+        <button className="state-primary-action" type="button" onClick={() => reset()}>
+          Try again
+        </button>
+        <Link className="back-link" href="/">Start a new report</Link>
       </div>
     </main>
   );

@@ -14,6 +14,7 @@ def generate_candidate_matches(
     available_families_by_match: Mapping[int, frozenset[str]] | None = None,
     detail_cost_units: float = 1.0,
     parse_cost_units: float = 0.0,
+    summary_satisfies_requirements: bool = True,
 ) -> list[CandidateMatch]:
     """Create a merged search space; selection happens globally later."""
 
@@ -64,7 +65,11 @@ def generate_candidate_matches(
             for hypothesis_id in hypothesis_ids
             for family in hypothesis_map[hypothesis_id].required_data_families
         }
-        already_sufficient = bool(required) and required.issubset(available)
+        already_sufficient = bool(required) and required.issubset(
+            available if summary_satisfies_requirements else frozenset(
+                available_families_by_match.get(match_id, frozenset())
+            )
+        )
         candidates.append(
             CandidateMatch(
                 match_id=match_id,

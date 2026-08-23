@@ -2,16 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Dota Report Card",
-  description: "Evidence-backed OpenDota player insights",
+  title: "Free DNA — Your Dota habits, made visible",
+  description: "A personal portrait built from the way you actually play Dota.",
   robots: { index: false, follow: false }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="app-body">{children}</body>
     </html>
   );
 }
-

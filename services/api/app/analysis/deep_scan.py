@@ -7,8 +7,8 @@ from typing import Any, Protocol
 from app.analysis.budget import BudgetState, CostPolicy, DataCostLedger
 from app.features.models import MatchFeature
 from app.features.summary_models import SummaryFeatureSet
-from app.hypotheses.generator import generate_hypotheses
-from app.hypotheses.models import Hypothesis
+from app.hypotheses.generator import generate_diagnostic_hypotheses, generate_hypotheses
+from app.hypotheses.models import DiagnosticQuestion, Hypothesis
 from app.ingestion.eligibility import assess_match
 from app.ingestion.normalize import NormalizedMatch, normalize_match
 from app.patterns.models import PatternCandidate
@@ -45,6 +45,12 @@ class DeepFinding:
     control_match_ids: tuple[int, ...]
     data_families_used: tuple[str, ...]
     rejected_alternatives: tuple[str, ...] = ()
+    stopping_reason: str | None = None
+    abstention_reason: str | None = None
+
+    @property
+    def abstained(self) -> bool:
+        return self.abstention_reason is not None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -60,6 +66,9 @@ class DeepFinding:
             "control_match_ids": list(self.control_match_ids),
             "data_families_used": list(self.data_families_used),
             "rejected_alternatives": list(self.rejected_alternatives),
+            "stopping_reason": self.stopping_reason,
+            "abstention_reason": self.abstention_reason,
+            "abstained": self.abstained,
         }
 
 
@@ -125,16 +134,40 @@ class ParseRequestService:
 
 
 def plan_deep_scan(
-    patterns: Iterable[PatternCandidate],
+    patterns: Iterable[PatternCandidate] | DiagnosticQuestion | Mapping[str, Any] | str,
     feature_set: SummaryFeatureSet,
     *,
     max_primary_hypotheses: int = 3,
     max_deep_matches: int = 25,
-    max_parse_requests: int = 0,
-    max_data_cost: float = 50.0,
+    max_parse_requests: int = 25,
+    max_data_cost: float = 160.0,
     min_marginal_information_gain: float = 0.05,
+    parse_min_marginal_information_gain: float = 0.10,
     available_families_by_match: Mapping[int, frozenset[str]] | None = None,
+    diagnostic_question: DiagnosticQuestion | Mapping[str, Any] | str | None = None,
 ) -> tuple[list[Hypothesis], SelectionPlan]:
+    if diagnostic_question is not None:
+        return plan_diagnostic_deep_scan(
+            diagnostic_question,
+            feature_set,
+            available_families_by_match=available_families_by_match,
+            max_deep_matches=max_deep_matches,
+            max_parse_requests=max_parse_requests,
+            max_data_cost=max_data_cost,
+            min_marginal_information_gain=min_marginal_information_gain,
+            parse_min_marginal_information_gain=parse_min_marginal_information_gain,
+        )
+    if isinstance(patterns, (DiagnosticQuestion, str, Mapping)):
+        return plan_diagnostic_deep_scan(
+            patterns,
+            feature_set,
+            available_families_by_match=available_families_by_match,
+            max_deep_matches=max_deep_matches,
+            max_parse_requests=max_parse_requests,
+            max_data_cost=max_data_cost,
+            min_marginal_information_gain=min_marginal_information_gain,
+            parse_min_marginal_information_gain=parse_min_marginal_information_gain,
+        )
     hypotheses = generate_hypotheses(patterns)
     primary = _select_primary_hypotheses(hypotheses, max_primary_hypotheses)
     candidates = generate_candidate_matches(
@@ -142,6 +175,7 @@ def plan_deep_scan(
         feature_set,
         available_families_by_match=available_families_by_match,
         parse_cost_units=0.0,
+        summary_satisfies_requirements=False,
     )
     plan = plan_selection(
         primary,
@@ -152,6 +186,51 @@ def plan_deep_scan(
         min_marginal_information_gain=min_marginal_information_gain,
     )
     return primary, plan
+
+
+def plan_diagnostic_deep_scan(
+    question: DiagnosticQuestion | Mapping[str, Any] | str,
+    feature_set: SummaryFeatureSet,
+    *,
+    available_families_by_match: Mapping[int, frozenset[str]] | None = None,
+    max_deep_matches: int = 25,
+    max_parse_requests: int = 25,
+    max_data_cost: float = 160.0,
+    min_marginal_information_gain: float = 0.05,
+    parse_min_marginal_information_gain: float = 0.10,
+) -> tuple[list[Hypothesis], SelectionPlan]:
+    """Plan Deep v2 from one report-offered diagnostic question.
+
+    The question produces one user-primary hypothesis and at most one
+    secondary.  ``generate_candidate_matches`` marks summary/cached evidence
+    as free, while the selector prefers those candidates before spending on
+    detail/parse reads.  Detail and parse ceilings remain separate and the
+    cost ceiling accounts for both operations.
+    """
+
+    hypotheses = generate_diagnostic_hypotheses(question)
+    candidates = generate_candidate_matches(
+        hypotheses,
+        feature_set,
+        available_families_by_match=available_families_by_match,
+        detail_cost_units=1.0,
+        parse_cost_units=5.0,
+    )
+    plan = plan_selection(
+        hypotheses,
+        candidates,
+        max_deep_matches=min(25, max(0, max_deep_matches)),
+        max_parse_requests=min(25, max(0, max_parse_requests)),
+        max_data_cost=min(160.0, max(0.0, max_data_cost)),
+        min_marginal_information_gain=max(0.05, min_marginal_information_gain),
+        parse_min_marginal_information_gain=max(0.10, parse_min_marginal_information_gain),
+        prefer_cached=True,
+    )
+    return hypotheses, plan
+
+
+# Short alias used by callers that refer to the feature as Deep Diagnostics.
+plan_deep_diagnostics = plan_diagnostic_deep_scan
 
 
 def _select_primary_hypotheses(
@@ -226,6 +305,12 @@ def evaluate_deep_hypotheses(
                     control_match_ids=tuple(item.match_id for item in control),
                     data_families_used=required,
                     rejected_alternatives=("Sample adequacy or required evidence-family coverage was insufficient.",),
+                    stopping_reason="evidence_sufficiency_not_met",
+                    abstention_reason=(
+                        "Positive, negative, or control evidence did not meet the declared minimums."
+                        if not minimums_met
+                        else "A required evidence family was unavailable or incomplete."
+                    ),
                 )
             )
             continue
@@ -267,6 +352,7 @@ def evaluate_deep_hypotheses(
                 negative_match_ids=tuple(item.match_id for item in negative),
                 control_match_ids=tuple(item.match_id for item in control),
                 data_families_used=required,
+                stopping_reason="resolved" if confidence != "low" else "practical_effect_or_quality_not_met",
             )
         )
     return findings

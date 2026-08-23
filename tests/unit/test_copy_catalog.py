@@ -24,7 +24,7 @@ def test_copy_catalog_covers_every_active_model_entry() -> None:
 
 
 def test_copy_resolvers_require_exact_parameters() -> None:
-    assert resolve_page_copy("final_card")["title"] == "The part worth sharing"
+    assert resolve_page_copy("final_card")["title"] == "The part worth taking with you"
     assert resolve_portfolio_copy("common_thread.question")
     assert (
         resolve_portfolio_copy("exception.no_clear_insight.headline")

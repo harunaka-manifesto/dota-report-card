@@ -214,7 +214,118 @@ noClearReport.pages = noClearReport.pages.map((page) => page.id === "hero-except
   ? { ...page, options: noClearReport.hero_portfolio.exception.options }
   : page);
 noClearReport.story.ordered_pages = noClearReport.pages.map((page) => page.id);
-const reports = new Map([[reportId, report], [noClearReport.report_id, noClearReport]]);
+const v6BeatIds = [
+  "self-estimate", "identity-reveal", "pool-evolution", "combat-expression",
+  "strongest-finding", "secondary-finding", "recommendation", "hero-mirror",
+  "deep-diagnostic"
+];
+const v6Estimate = (value, unit, direction = "positive") => ({
+  estimate: value,
+  unit,
+  interval: { lower: value - .08, upper: value + .08, level: .95 },
+  direction,
+  bootstrap_stability: .93,
+  sample_size: 72,
+  independent_session_count: 18,
+  coverage: .94,
+  confidence: "high",
+  evidence_refs: [`fixture:${unit}`],
+  limitations: []
+});
+const v6Elements = [
+  ["breadth", "Breadth", 4.7, "effective heroes"],
+  ["toolkit", "Toolkit", 3.4, "effective jobs"],
+  ["involvement", "Involvement", .61, "context-adjusted rate"],
+  ["finishing", "Finishing", .42, "context-adjusted share"],
+  ["death_exposure", "Death Exposure", -.18, "deaths per ten minutes"],
+  ["transfer", "Transfer", .21, "multi-signal difference"],
+  ["consistency", "Consistency", .76, "session expression"]
+].map(([key, label, value, unit]) => ({ key, label, status: "available", ...v6Estimate(value, unit) }));
+const v6Finding = (family, label, published, confidence = "high") => ({
+  key: family,
+  family,
+  label,
+  status: published ? "available" : "suppressed",
+  published,
+  ...v6Estimate(.24, "standardized difference", family === "session_drift" ? "mixed" : "positive"),
+  confidence,
+  signal_keys: [`${family}:signal-a`, `${family}:signal-b`],
+  adjusted_p_value: published ? .018 : .18,
+  evidence_refs: [`fixture:${family}:a`, `fixture:${family}:b`],
+  claim_contract: {
+    claim: `${label} is visible in this summary sample.`,
+    evidence: "Two independent summary signals agree and the session-clustered interval clears the practical margin.",
+    interpretation: "This describes a repeatable association without assigning a cause.",
+    recommendation: published ? "Keep the supported context constant for five games and watch the same metric." : null
+  }
+});
+const v6Findings = [
+  v6Finding("pool_shape", "Pool Shape", true),
+  v6Finding("transfer", "Transfer", true),
+  v6Finding("post_loss_response", "Post-Loss Response", false, "descriptive"),
+  v6Finding("combat_expression", "Combat Expression", true),
+  v6Finding("session_drift", "Session Drift", false, "descriptive")
+];
+const v6Report = {
+  report_id: "v6-fixture",
+  schema_version: "free-dna-report-6.0.0",
+  report_variant: "free_dna_report",
+  noindex: true,
+  identity: { display_name: "V6 fixture player", avatar_url: null },
+  metadata: { created_at: "2026-08-23T00:00:00+07:00", processed_matches: 72, eligible_matches: 72, history_tier: "normal" },
+  versions: { story: "free-story-6.0.0", elements: "free-elements-6.0.0", findings: "free-findings-6.0.0" },
+  quality: { overall_confidence: "high", history_tier: "normal", published_findings: 3 },
+  elements: v6Elements,
+  findings: v6Findings,
+  identity_summary: {
+    headline: "You carry a compact toolkit beyond familiar heroes.",
+    supporting_lines: ["Pool Shape and Transfer provide the strongest compatible evidence."],
+    confidence: "high",
+    evidence_refs: ["fixture:pool_shape:a", "fixture:transfer:a"],
+    options: [
+      { id: "focused", label: "Focused specialist" },
+      { id: "adaptive", label: "Adaptive regular" },
+      { id: "explorer", label: "Pool explorer" }
+    ]
+  },
+  hero_portfolio: {
+    prediction: {
+      prompt: "How has your pool changed?",
+      options: [{ id: "stable", label: "Mostly stable" }, { id: "wider", label: "Wider lately" }],
+      answer: "wider",
+      reveal: "New names are appearing while the functional toolkit stays compact."
+    },
+    evolution: {
+      title: "Pool Evolution",
+      points: [
+        { id: "early", label: "Earlier", position: 0, summary: "Three repeated heroes" },
+        { id: "middle", label: "Middle", position: 1, summary: "One exploratory branch" },
+        { id: "recent", label: "Recent", position: 2, summary: "Five names, three recurring jobs" }
+      ]
+    },
+    hero_mirror: {
+      status: "available",
+      hero_id: 2,
+      hero_name: "Axe",
+      headline: "Axe mirrors the way your usual involvement and exposure travel together.",
+      similarity_score: .84,
+      evidence_refs: ["fixture:hero-mirror"]
+    }
+  },
+  diagnostic_questions: [
+    { id: "deep-v6-transfer", prompt: "What changes when you leave your familiar heroes?", finding_family: "transfer", evidence_refs: ["fixture:transfer:a"], confidence: "high" },
+    { id: "deep-v6-combat", prompt: "Where do involvement and exposure diverge?", finding_family: "combat_expression", evidence_refs: ["fixture:combat_expression:a"], confidence: "high" }
+  ],
+  story: { version: "free-story-6.0.0", ordered_beats: v6BeatIds },
+  pages: v6BeatIds.map((id, index) => ({ id, index, kind: id, title: id.replaceAll("-", " "), skippable: true })),
+  share_candidates: [
+    { id: "identity", kind: "dynamic_identity", eligible: true, confidence: "high", payload: { title: "Compact toolkit, visible transfer", reason: "High-confidence identity synthesis" } },
+    { id: "hero-mirror", kind: "hero_mirror", eligible: true, confidence: "high", payload: { title: "Axe Hero Mirror", reason: "High-confidence mirror" } }
+  ],
+  methodology: { free_summary_only: true, notes: ["Session-clustered summary evidence."] },
+  cost: { history_requests: 1, detail_requests: 0, parse_requests: 0, estimated_cost_units: 1 }
+};
+const reports = new Map([[reportId, report], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report]]);
 
 function sendJson(response, status, value) {
   response.writeHead(status, { "Content-Type": "application/json" });

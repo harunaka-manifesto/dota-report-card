@@ -1,660 +1,348 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   BehaviorElement,
   BehaviorPattern,
-  BouncebackAction,
   ChoiceOption,
   FreeDnaReportV4,
-  ComfortEdgeAction,
-  ControlledPresenceAction,
-  PartialTransferDiagnostic,
-  PerformanceSlideAction,
-  ProvenFlexibilityAction,
   HeroException,
-  PatternActionCopy,
-  SamePlaybookAction,
-  PresenceTaxAction,
-  SessionCurveAction,
-  VersatileCoreAction,
   StoryPage,
 } from "../../../../../../packages/api-client/src";
 import { track } from "../../../lib/analytics";
-import { DeepDiveTeaser, EvidenceReceipt, MethodologySheet, Spectrum, StoryPage as StoryPageFrame } from "../../../components/story/primitives";
-import { PatternStoryScreen } from "../../../components/story/patterns/pattern-story-screen";
 import ShareControls from "../../../components/share/share-controls";
+import { GLYPH_BY_KEY, GLYPH_REGISTRY, Glyph, glyphRegistryIsUnique, type GlyphDefinition } from "../../../components/story/glyphs";
+
+export type ReportChapter = {
+  id: "summary" | "elements" | "patterns" | "heroes" | "you";
+  label: string;
+  palette: "summary" | "elements" | "patterns" | "heroes" | "you";
+};
+
+export const REPORT_CHAPTERS: readonly ReportChapter[] = [
+  { id: "summary", label: "Summary", palette: "summary" },
+  { id: "elements", label: "Elements", palette: "elements" },
+  { id: "patterns", label: "Patterns", palette: "patterns" },
+  { id: "heroes", label: "Heroes", palette: "heroes" },
+  { id: "you", label: "You", palette: "you" },
+];
+
+const ELEMENT_COPY: Record<string, string> = {
+  hero_pool_breadth: "You keep more answers on the table than most fights strictly require.",
+  hero_pool_stability: "A steady center keeps your decisions recognizable when the map gets noisy.",
+  hero_exploration_rate: "You are willing to leave the familiar route when it looks worth the trouble.",
+  toolkit_breadth: "Your heroes solve different problems, even when your taste is consistent.",
+  post_loss_familiarity_shift: "A rough game changes what you reach for next, but not always in the obvious direction.",
+  role_breadth: "You can occupy more than one job without turning the draft into a group project.",
+  combat_involvement: "You tend to be present where the important decisions become visible.",
+  finisher_orientation: "When a fight closes, you are often close to the final punctuation.",
+  death_exposure: "You spend time in the places where the map can answer back.",
+  off_pool_performance: "Your familiar decisions travel better than your hero names suggest.",
+  off_pool_activity_stability: "A new hero does not automatically make you disappear from the game.",
+  performance_volatility: "Some sessions arrive with a little more weather than others.",
+  recent_form_shift: "Your recent games have a direction, not just a collection of incidents.",
+  recent_activity_shift: "Your recent pace has its own rhythm, and it is not particularly shy about it.",
+  session_length_tendency: "You tend to stay with a session until it feels finished—or until it objects.",
+  late_session_performance: "The later part of a session adds a different shade to your usual pattern.",
+  post_loss_activity_shift: "After a loss, your tempo changes before your identity does.",
+  post_loss_performance_response: "A loss is information for you, even when it arrives wearing a smug little hat.",
+};
+
+const PATTERN_COPY: Record<string, { lead: string; detail: string; experiment: string }> = {
+  same_playbook: { lead: "Your hero names change. The job keeps coming back.", detail: "Different picks keep finding a familiar way to help.", experiment: "Try one hero that keeps the job intact while changing the route there." },
+  comfort_edge: { lead: "Your anchors are clearer than the learning problem.", detail: "The heroes you know best give you a reliable place to stretch from.", experiment: "Borrow one demand from the edge of your pool and keep one anchor decision intact." },
+  partial_transfer: { lead: "The transfer gap is real. Its source is still taking the scenic route.", detail: "Your familiar involvement does not always arrive with familiar results.", experiment: "Change one entry decision on an unfamiliar hero and leave the rest alone." },
+  versatile_core: { lead: "Small pool. Different answers.", detail: "A compact group of heroes is already covering more than one kind of problem.", experiment: "Try the missing job with the least dramatic change to your current habits." },
+  proven_flexibility: { lead: "Your range is real, just spread out.", detail: "Flexibility shows up as a repeatable habit rather than a one-week stunt.", experiment: "Keep one reliable anchor visible while you rotate the next answer." },
+  controlled_presence: { lead: "You stay involved without paying the full cost.", detail: "You find ways to matter in a fight without volunteering for every consequence.", experiment: "Keep the same presence and practice leaving one beat earlier." },
+  session_fade: { lead: "Later games ask for a little more from you.", detail: "Your session has a point where the familiar rhythm starts to soften.", experiment: "Add a reset before that point: water, a pause, or one deliberately simple draft." },
+  session_rise: { lead: "You warm into the right shape.", detail: "The session tends to improve once your first decisions have had time to settle.", experiment: "Start with a familiar job, then use the later game to widen the answer." },
+  bounceback: { lead: "A loss can sharpen your next game.", detail: "You often return with a more useful version of the same intent.", experiment: "Name the one decision you want to repeat before the next queue pops." },
+  performance_slide: { lead: "A loss can make the next game heavier.", detail: "Your next decisions sometimes carry the previous game farther than they should.", experiment: "Change one transition after a loss instead of rebuilding the entire plan." },
+  presence_tax: { lead: "You get to the important places—and sometimes pay toll on the way out.", detail: "High involvement can bring a real cost when the context turns against you.", experiment: "Keep the presence; practice identifying the first safe exit." },
+};
+
+const EVOLUTION_LABELS: Record<string, string> = {
+  new_heroes_new_toolkit: "New heroes. New tools.",
+  new_heroes_same_toolkit: "New heroes. Same taste.",
+  stable_core_new_branch: "A stable core with a new branch.",
+  broadly_stable: "The pool is holding its shape.",
+};
+
+const ELEMENT_ORDER = [
+  "hero_pool_breadth", "hero_pool_stability", "hero_exploration_rate", "toolkit_breadth", "post_loss_familiarity_shift", "role_breadth", "combat_involvement", "finisher_orientation", "death_exposure", "off_pool_performance", "off_pool_activity_stability", "performance_volatility", "recent_form_shift", "recent_activity_shift", "session_length_tendency", "late_session_performance", "post_loss_activity_shift", "post_loss_performance_response",
+];
+
+const PATTERN_ORDER = ["same_playbook", "comfort_edge", "partial_transfer", "versatile_core", "proven_flexibility", "controlled_presence", "session_fade", "session_rise", "bounceback", "performance_slide", "presence_tax"];
 
 export default function ReportStoryV4({ report }: { report: FreeDnaReportV4 }) {
-  // Pool Evolution is a choose → reveal interaction. Older v5 payloads also
-  // include a second `pool_evolution_reveal` page for the same payoff; keep
-  // that page's copy as context, but render the payoff once in the question
-  // screen so the reader does not get two reveal screens in a row.
-  const pages = useMemo(() => {
-    const hasEvolutionQuestion = report.pages.some((page) => page.kind === "pool_evolution_question");
-    if (!hasEvolutionQuestion) return report.pages;
-    return report.pages.filter((page) => page.kind !== "pool_evolution_reveal");
-  }, [report.pages]);
-  const evolutionRevealPage = useMemo(
-    () => report.pages.find((page) => page.kind === "pool_evolution_reveal"),
-    [report.pages]
-  );
-  const pageRefs = useRef<Record<string, HTMLElement | null>>({});
-  const [activePage, setActivePage] = useState(pages[0]?.id ?? "");
-  const activePageRef = useRef(activePage);
+  const [activeChapter, setActiveChapter] = useState<ReportChapter["id"]>("summary");
+  const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [selectedPattern, setSelectedPattern] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
-  const [methodologyOpen, setMethodologyOpen] = useState(false);
-  const seenPageIds = useRef<Set<string>>(new Set());
-  const elements = useMemo(() => new Map(report.elements.map((item) => [item.key, item])), [report.elements]);
-  const patterns = useMemo(() => new Map(report.patterns.map((item) => [item.key, item])), [report.patterns]);
+  const chapterRefs = useRef<Record<string, HTMLElement | null>>({});
+  const seenChapters = useRef(new Set<string>());
+
+  const elements = useMemo(() => orderByKeys(report.elements, ELEMENT_ORDER), [report.elements]);
+  const patterns = useMemo(() => orderByKeys(report.patterns.filter((pattern) => pattern.status === "qualified"), PATTERN_ORDER), [report.patterns]);
+  const readableElements = useMemo(() => elements.filter((element) => element.status !== "unavailable"), [elements]);
+  const leadingElement = useMemo(() => {
+    const highlighted = report.highlights.element_keys.map((key) => elements.find((element) => element.key === key)).find((element) => element && element.status !== "unavailable");
+    return highlighted ?? readableElements[0] ?? null;
+  }, [elements, readableElements, report.highlights.element_keys]);
+  const leadingPattern = useMemo(() => {
+    const highlighted = report.highlights.pattern_keys.map((key) => patterns.find((pattern) => pattern.key === key)).find(Boolean);
+    return highlighted ?? patterns[0] ?? null;
+  }, [patterns, report.highlights.pattern_keys]);
+  const chosenElement = readableElements.find((element) => element.key === selectedElement) ?? leadingElement;
+  const chosenPattern = patterns.find((pattern) => pattern.key === selectedPattern) ?? leadingPattern;
+  const pageByKind = useMemo(() => new Map(report.pages.map((page) => [page.kind, page])), [report.pages]);
+  const elementPages = useMemo(() => new Map(report.pages.filter((page) => page.kind === "element_highlight" && page.element_key).map((page) => [page.element_key as string, page])), [report.pages]);
+  const patternPages = useMemo(() => new Map(report.pages.filter((page) => page.kind === "pattern_highlight" && page.pattern_key).map((page) => [page.pattern_key as string, page])), [report.pages]);
 
   useEffect(() => {
     document.documentElement.dataset.reportStory = "true";
-    const emitPageImpression = (page: StoryPage) => {
-      if (seenPageIds.current.has(page.id)) return;
-      seenPageIds.current.add(page.id);
-      const base = { page: page.id, page_kind: page.kind, section: page.section, report_schema_version: report.schema_version };
-      track("report.page_viewed.v1", base);
-      if (page.kind === "element_scan") track("report.element_scan_viewed.v1", base);
-      if (page.kind === "element_highlight") track("report.element_highlight_viewed.v1", { ...base, element_key: page.element_key ?? null });
-      if (page.kind === "pattern_highlight") track("report.pattern_viewed.v1", { ...base, pattern_key: page.pattern_key ?? null });
-      if (page.kind === "hero_common_thread_question" || page.kind === "hero_exception_question" || page.kind === "pool_evolution_question") {
-        track("hero_portfolio.question_viewed.v1", { ...base, question_key: page.portfolio_key ?? page.kind, portfolio_model_version: report.versions.hero_portfolio });
-      }
-    };
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting || entry.intersectionRatio < 0.55) continue;
-        const id = entry.target.getAttribute("data-page-id");
-        const page = pages.find((item) => item.id === id);
-        if (!id || !page) continue;
-        if (id !== activePageRef.current) {
-          activePageRef.current = id;
-          setActivePage(id);
+    document.documentElement.style.scrollSnapType = "none";
+    const observers = Object.values(chapterRefs.current).filter(Boolean).map((element) => {
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting || entry.intersectionRatio < 0.35) continue;
+          const id = entry.target.getAttribute("data-chapter-id") as ReportChapter["id"] | null;
+          if (!id) continue;
+          setActiveChapter(id);
+          if (!seenChapters.current.has(id)) {
+            seenChapters.current.add(id);
+            track("report.chapter_viewed.v1", { chapter: id, report_schema_version: report.schema_version });
+          }
         }
-        emitPageImpression(page);
-      }
-    }, { threshold: [0.55, 0.8] });
-    Object.values(pageRefs.current).forEach((element) => element && observer.observe(element));
-    if (pages[0]) emitPageImpression(pages[0]);
+      }, { threshold: [0.35, 0.6] });
+      observer.observe(element as Element);
+      return observer;
+    });
+    if (!seenChapters.current.has("summary")) {
+      seenChapters.current.add("summary");
+      track("report.chapter_viewed.v1", { chapter: "summary", report_schema_version: report.schema_version });
+    }
     return () => {
-      observer.disconnect();
+      observers.forEach((observer) => observer.disconnect());
+      document.documentElement.style.removeProperty("scroll-snap-type");
       delete document.documentElement.dataset.reportStory;
     };
-  }, [pages, report.schema_version, report.versions.hero_portfolio]);
+  }, [report.schema_version]);
 
-  const activeIndex = Math.max(0, pages.findIndex((page) => page.id === activePage));
-  return (
-    <main className="report-story report-story-v4" aria-label="Dota Elements, Patterns, and Hero Portfolio report">
-      <nav className="story-progress" aria-label="Report progress">
-        <span>{String(activeIndex + 1).padStart(2, "0")} / {String(pages.length).padStart(2, "0")}</span>
-        <div className="story-progress-track"><span style={{ width: `${((activeIndex + 1) / Math.max(1, pages.length)) * 100}%` }} /></div>
-        <a href="#hero-mirror" className="story-progress-link">Hero Mirror</a>
-      </nav>
-      {pages.map((page, index) => (
-        <div key={page.id} ref={(element) => { pageRefs.current[page.id] = element; }}>
-          <StoryPageFrame id={page.id} index={index} kind={page.kind}>
-            {renderPage(page, { report, elements, patterns, answers, revealed, setAnswers, setRevealed, methodologyOpen, setMethodologyOpen, evolutionRevealPage })}
-          </StoryPageFrame>
-        </div>
-      ))}
-    </main>
-  );
-}
-
-type StoryContext = {
-  report: FreeDnaReportV4;
-  elements: Map<string, BehaviorElement>;
-  patterns: Map<string, BehaviorPattern>;
-  answers: Record<string, string>;
-  revealed: Record<string, boolean>;
-  setAnswers: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  setRevealed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
-  methodologyOpen: boolean;
-  setMethodologyOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  evolutionRevealPage?: StoryPage;
-};
-
-function renderPage(page: StoryPage, context: StoryContext) {
-  const { report } = context;
-  if (page.kind === "element_scan") return <ElementScan page={page} context={context} />;
-  if (page.kind === "element_highlight") return <ElementHighlightPage page={page} context={context} />;
-  if (page.kind === "pattern_highlight") return <PatternHighlightPage page={page} context={context} />;
-  if (page.kind === "hero_common_thread_question") return <PortfolioQuestion page={page} context={context} kind="common_thread" />;
-  if (page.kind === "hero_exception_question") return <PortfolioQuestion page={page} context={context} kind="exception" />;
-  if (page.kind === "pool_evolution_question") return <EvolutionQuestion page={page} context={context} />;
-  if (page.kind === "pool_evolution_reveal") return <EvolutionReveal page={page} context={context} />;
-  if (page.kind === "hero_mirror_reveal") return <MirrorPage page={page} context={context} />;
-  if (page.kind === "final_card") return <FinalCard page={page} report={report} />;
-  if (page.kind === "deep_dive") return <DeepDiveTeaser href={report.deep_dive.href} title={page.title} body={page.body} headingId={`${page.id}-heading`} onClick={() => track("deep_dive.cta_clicked.v1", { page: page.id, report_schema_version: report.schema_version })} />;
-  return <FallbackPage page={page} />;
-}
-
-function ElementScan({ page, context }: { page: StoryPage; context: StoryContext }) {
-  const { report, setMethodologyOpen } = context;
-  const highlightKeys = new Set(report.highlights.element_keys);
-  const [scanStage, setScanStage] = useState<"scanning" | "ready">("scanning");
-
-  useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) {
-      setScanStage("ready");
-      return;
-    }
-    const timer = window.setTimeout(() => setScanStage("ready"), 700);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  return (
-    <article className={`element-scan is-${scanStage}`} data-scan-state={scanStage}>
-      <p className="eyebrow">18 Elements · summary history only</p>
-      <h2 id={`${page.id}-heading`}>{page.title}</h2>
-      <p className="story-lede" aria-live="polite">{scanStage === "scanning" ? page.content?.scanning_body ?? page.body : page.content?.ready_body ?? page.body}</p>
-      <div className="element-scan-grid">
-        {report.elements.map((element, index) => <ElementTile key={element.key} element={element} featured={scanStage === "ready" && highlightKeys.has(element.key)} scanIndex={index} />)}
-      </div>
-      <button type="button" className="methodology-button" onClick={() => setMethodologyOpen(true)}>How the Elements are measured</button>
-      <MethodologySheet open={context.methodologyOpen} title="Observable Elements" body="Each Element is a reviewed, versioned summary-history measurement. Unavailable fields stay unavailable; a score is never filled with a neutral guess." onClose={() => setMethodologyOpen(false)} />
-    </article>
-  );
-}
-
-function ElementTile({ element, featured = false, scanIndex = 0 }: { element: BehaviorElement; featured?: boolean; scanIndex?: number }) {
-  return (
-    <article className={`element-tile is-${element.status}${featured ? " is-featured" : ""}`} style={{ "--scan-index": scanIndex } as React.CSSProperties}>
-      <div className="element-tile-heading"><span className="eyebrow">{element.status}</span><strong>{element.label}</strong></div>
-      <Spectrum score={element.score} left={element.axis.left} right={element.axis.right} disabled={element.status === "unavailable"} />
-      <div className="element-tile-meta"><span>{element.zone ?? "No zone yet"}</span><span>{element.sample_size ? `${element.sample_size} matches` : "No sample"}</span></div>
-    </article>
-  );
-}
-
-function ElementHighlightPage({ page, context }: { page: StoryPage; context: StoryContext }) {
-  const element = page.element_key ? context.elements.get(page.element_key) : undefined;
-  if (!element) return <FallbackPage page={page} />;
-  return (
-    <article className="element-highlight-page">
-      <p className="eyebrow">Element highlight</p>
-      <h2 id={`${page.id}-heading`}>{element.label}</h2>
-      <p className="story-lede">{page.content?.observation ?? page.body}</p>
-      <Spectrum score={element.score} left={element.axis.left} right={element.axis.right} disabled={element.status === "unavailable"} />
-    <div className="signal-status"><strong>{element.zone ?? "Signal unavailable"}</strong><span>{element.confidence} confidence · {element.sample_size ? `${element.sample_size} matches` : "no readable sample"}</span></div>
-      {page.content?.why_highlight && <p>{page.content.why_highlight}</p>}
-      <EvidenceReceipt evidence={element.receipts} />
-      {page.content?.evidence && <p className="muted">{page.content.evidence}</p>}
-      {page.content?.what_to_notice && <p><strong>What to notice.</strong> {page.content.what_to_notice}</p>}
-      {page.content?.guardrail && <p className="muted"><strong>Do not overread this.</strong> {page.content.guardrail}</p>}
-      {element.missing_reasons.length > 0 && <p className="muted">{element.missing_reasons.join(" ")}</p>}
-    </article>
-  );
-}
-
-function PatternHighlightPage({ page, context }: { page: StoryPage; context: StoryContext }) {
-  const pattern = page.pattern_key ? context.patterns.get(page.pattern_key) : undefined;
-  if (!pattern) return <FallbackPage page={page} />;
-  if (pattern.presentation && page.content?.presentation_copy) {
-    return <PatternStoryScreen pattern={pattern} page={page} reportSchemaVersion={context.report.schema_version} />;
+  function navigate(chapter: ReportChapter["id"]) {
+    setActiveChapter(chapter);
+    track("report.chapter_navigation.v1", { chapter, source: "report_nav", report_schema_version: report.schema_version });
+    const behavior = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    chapterRefs.current[chapter]?.scrollIntoView({ behavior, block: "start" });
   }
-  const actionCopy = page.content?.action_copy ?? undefined;
-  const ingredientMap = new Map([...pattern.element_keys, ...pattern.modifier_element_keys].map((key) => [key, context.elements.get(key)]));
-  return (
-    <article className={`pattern-highlight-page pattern-tier-${pattern.tier}`}>
-      <p className="eyebrow">Pattern highlight</p>
-      <h2 id={`${page.id}-heading`}>{pattern.label}</h2>
-      <p className="story-lede">{page.content?.meaning ?? page.body}</p>
-      <div className="pattern-verdict"><strong>What these signals share</strong><span>{pattern.confidence} confidence</span></div>
-      {page.content?.observations && <div className="pattern-observations"><span className="eyebrow">What we observed</span>{page.content.observations.map((observation) => <p key={observation}>{observation}</p>)}</div>}
-      {page.content?.worth_noticing && <p><strong>The part worth noticing.</strong> {page.content.worth_noticing}</p>}
-      {page.content?.player_read && <p><strong>What this says about your Dota.</strong> {page.content.player_read}</p>}
-      <EvidenceReceipt evidence={pattern.receipts} />
-      <div className="pattern-ingredients-visible">
-        <span className="eyebrow">Element ingredients</span>
-        <IngredientGroup title="Required Elements" keys={pattern.element_keys} ingredientMap={ingredientMap} />
-        {pattern.modifier_element_keys.length > 0 && <IngredientGroup title="Modifier Elements" keys={pattern.modifier_element_keys} ingredientMap={ingredientMap} />}
-      </div>
-      <details className="pattern-ingredients" onToggle={(event) => { if ((event.currentTarget as HTMLDetailsElement).open) track("report.pattern_element_expanded.v1", { pattern_key: pattern.key }); }}>
-        <summary>See methodology detail</summary>
-        <div className="ingredient-list"><span>How clearly it repeats: {Math.round(pattern.strength * 100)}% · Tier {pattern.tier} · {pattern.family}</span></div>
-      </details>
-      {page.content?.takeaway && <p><strong>Useful takeaway.</strong> {page.content.takeaway}</p>}
-      {pattern.action?.action_type === "same_playbook" && <SamePlaybookActionPanel action={pattern.action} copy={actionCopy} />}
-      {pattern.action?.action_type === "comfort_edge" && <ComfortEdgeActionPanel action={pattern.action} copy={actionCopy} />}
-      {pattern.action?.action_type === "partial_transfer" && <PartialTransferActionPanel action={pattern.action} copy={actionCopy} />}
-      {pattern.action?.action_type === "versatile_core" && <VersatileCoreActionPanel action={pattern.action} copy={actionCopy} />}
-      {pattern.action?.action_type === "proven_flexibility" && <ProvenFlexibilityActionPanel action={pattern.action} copy={actionCopy} />}
-      {(pattern.action?.action_type === "bounceback" || pattern.action?.action_type === "performance_slide") && <RecoveryActionPanel action={pattern.action} copy={actionCopy} />}
-      {(pattern.action?.action_type === "session_fade" || pattern.action?.action_type === "session_rise") && <SessionCurveActionPanel action={pattern.action} copy={actionCopy} />}
-      {pattern.action?.action_type === "controlled_presence" && <ControlledPresenceActionPanel action={pattern.action} copy={actionCopy} />}
-      {pattern.action?.action_type === "presence_tax" && <PresenceTaxActionPanel action={pattern.action} copy={actionCopy} />}
-      {page.content?.guardrail && <p className="muted"><strong>Do not overread this.</strong> {page.content.guardrail}</p>}
-      {pattern.suppression_reasons.length > 0 && <p className="muted">{pattern.suppression_reasons.join(" ")}</p>}
-    </article>
-  );
-}
 
-function ControlledPresenceActionPanel({ action, copy }: { action: ControlledPresenceAction; copy?: PatternActionCopy | null }) {
-  return <section className="pattern-action" aria-labelledby="controlled-presence-heading">
-    <span className="eyebrow">{copy?.controlled_presence_kicker ?? "Your cleanest presence"}</span>
-    <h3 id="controlled-presence-heading">{action.strongest_context?.label ?? "The overall pattern is the strongest supported level"}</h3>
-    {action.strongest_context && <p>High involvement · low death exposure · {action.strongest_context.sample_size} usable matches</p>}
-    {action.comparison_rows.length > 0 && <div className="pattern-action-cards">{action.comparison_rows.map((row) => <article className="pattern-action-card" key={`${row.label}-${row.hero_id ?? row.function_family}`}><h4>{row.label}</h4><p>Involvement {Math.round(row.involvement_level * 100)} · death exposure {Math.round(row.death_exposure_level * 100)}</p><small>{row.sample_size} matches · {Math.round(row.confidence_score * 100)}% confidence</small></article>)}</div>}
-    {action.finishing_flavor && <p><strong>{copy?.controlled_presence_finishing_label ?? "Finishing flavor."}</strong> {action.finishing_flavor === "controlled_setup_presence" ? "Your involvement leans toward setup and assists." : "Your involvement leans toward final kill credit."}</p>}
-    <p className="muted">{action.limitations.join(" ")}</p>
-  </section>;
-}
+  function chooseAnswer(question: string, option: ChoiceOption) {
+    setAnswers((current) => ({ ...current, [question]: option.key }));
+    const result = report.hero_portfolio[question as "common_thread" | "exception" | "evolution"];
+    const correct = "correct_option_key" in result ? result.correct_option_key : null;
+    track("hero_portfolio.answer_selected.v1", { question_key: question, selected_option_key: option.key, matched_computed_answer: correct !== null && option.key === correct, report_schema_version: report.schema_version, portfolio_model_version: report.versions.hero_portfolio });
+  }
 
-function PresenceTaxActionPanel({ action, copy }: { action: PresenceTaxAction; copy?: PatternActionCopy | null }) {
-  const shape = {
-    hero_specific: "Hero-specific",
-    job_shaped: "Job-specific",
-    cross_context: "Across contexts",
-    unresolved: "Context still forming",
-  }[action.shape] ?? "Context still forming";
-  return <section className="pattern-action" aria-labelledby="presence-tax-heading">
-    <span className="eyebrow">{copy?.presence_tax_kicker ?? "Where does the tax come from?"}</span>
-    <h3 id="presence-tax-heading">{shape || copy?.presence_tax_heading}</h3>
-    {action.comparison_contexts.length > 0 && <div className="pattern-action-cards">{action.comparison_contexts.map((row) => <article className="pattern-action-card" key={`${row.label}-${row.hero_id ?? row.function_family}`}><h4>{row.label}</h4><p>Involvement {Math.round(row.involvement_level * 100)} · death exposure {Math.round(row.death_exposure_level * 100)}</p><small>{row.sample_size} matches · {Math.round(row.confidence_score * 100)}% confidence</small></article>)}</div>}
-    {action.deep_analysis_candidate && <p><strong>{copy?.presence_tax_deep_label ?? "Deeper evidence needed."}</strong> We can see where the death cost concentrates. Replay-level evidence is needed to explain what those deaths are buying—or why they are happening.</p>}
-    {action.shape === "unresolved" && <p>{copy?.presence_tax_unresolved_body ?? "The summary history shows the cost, but not a stable context for it yet."}</p>}
-    <p className="muted">{action.limitations.join(" ")}</p>
-  </section>;
-}
+  function revealAnswer(question: string) {
+    setRevealed((current) => ({ ...current, [question]: true }));
+    const result = report.hero_portfolio[question as "common_thread" | "exception" | "evolution"];
+    const correct = "correct_option_key" in result ? result.correct_option_key : null;
+    track("hero_portfolio.reveal_viewed.v1", { question_key: question, matched_computed_answer: answers[question] !== undefined && correct !== null && answers[question] === correct, report_schema_version: report.schema_version, portfolio_model_version: report.versions.hero_portfolio });
+  }
 
-function PartialTransferActionPanel({ action, copy }: { action: PartialTransferDiagnostic; copy?: PatternActionCopy | null }) {
-  const signalLabels: Record<string, string> = {
-    combat_involvement: "Fight presence",
-    result_distribution: "Results",
-    death_exposure: "Death cost",
-    finisher_orientation: "Finishing",
-  };
-  const capabilityLabels: Record<string, string> = {
-    commitment: "Commitment",
-    access: "Access",
-    repositioning: "Repositioning",
-    economy: "Resource needs",
-    timing: "Timing",
-    execution: "Execution",
-    exposure: "Exposure",
-    micro: "Attention load",
-  };
-  const statusLabel = action.status.replaceAll("_", " ");
-  return <section className="pattern-action" aria-labelledby="partial-transfer-heading">
-    <span className="eyebrow">{copy?.partial_transfer_kicker ?? "Where the transfer bends"}</span>
-    <h3 id="partial-transfer-heading">{action.status === "unresolved" ? copy?.partial_transfer_unresolved_heading ?? "The gap is real; the cause is not proven" : copy?.partial_transfer_heading ?? "One learning demand may explain the gap"}</h3>
-    {action.strongest_supported_lead && <p>{action.strongest_supported_lead}</p>}
-    {action.summary_differences.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_direct_label ?? "Observable difference"}</span>{action.summary_differences.map((difference) => <article className="pattern-action-card" key={difference.signal_key}><h4>{signalLabels[difference.signal_key] ?? "Observable signal"}</h4><p>{difference.player_facing_claim}</p><small>{Math.round(difference.confidence_score * 100)}% confidence</small></article>)}</div>}
-    {action.capability_hypotheses.length > 0 && <div className="pattern-action-cards"><span className="eyebrow">{copy?.partial_transfer_hypothesis_label ?? "Capability lead"}</span>{action.capability_hypotheses.map((hypothesis) => <article className="pattern-action-card" key={hypothesis.capability_key}><h4>{capabilityLabels[hypothesis.capability_key] ?? "Capability lead"}</h4><p>{hypothesis.player_facing_hypothesis}</p><small>{Math.round(hypothesis.confidence_score * 100)}% confidence</small></article>)}</div>}
-    <p className="muted">Evidence level: {statusLabel}. {action.deep_analysis_eligible && (copy?.partial_transfer_deep_label ?? "Worth a deeper evidence pass.")}</p>
-    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
-  </section>;
-}
-
-function VersatileCoreActionPanel({ action, copy }: { action: VersatileCoreAction; copy?: PatternActionCopy | null }) {
-  const coverage = action.coverage_summary;
-  const familyMap = coverage.family_map ?? {};
-  const familyDescriptions = coverage.family_descriptions ?? {};
-  const coverageGroups = Object.entries(familyMap).map(([key, label]) => ({
-    key,
-    label,
-    description: familyDescriptions[key],
-    state: coverage.missing.includes(label)
-      ? "gap"
-      : coverage.thin_coverage.includes(label) || coverage.single_point_coverage.includes(label)
-        ? "thin"
-        : "covered",
-  }));
-  const legacyGroups = [
-    ["Strongly covered", coverage.strongly_covered],
-    ["One hero", coverage.single_point_coverage],
-    ["Thin", coverage.thin_coverage],
-    ["Missing", coverage.missing],
-  ] as const;
-  const qualified = action.complementarity_qualified !== false;
-  return <section className="pattern-action" aria-labelledby="versatile-core-heading">
-    <span className="eyebrow">{copy?.versatile_core_kicker ?? "Your compact toolkit"}</span>
-    <h3 id="versatile-core-heading">{qualified ? copy?.versatile_core_heading ?? "Small pool. Different answers." : "No clear versatility read yet"}</h3>
-    <div className="pattern-action-cards"><span className="eyebrow">{copy?.versatile_core_jobs_label ?? "Ways of helping in the core"}</span>{action.hero_job_maps.map((hero) => <article className="pattern-action-card" key={hero.hero_id}><h4>{hero.hero_name}</h4><p>{hero.primary_jobs.length > 0 ? hero.primary_jobs.map((job) => <SemanticChip key={job} label={job} />) : "No clear map yet"}</p>{hero.expression_summary && <small>{hero.expression_summary}</small>}</article>)}</div>
-    <div className="descriptor-list" aria-label={copy?.versatile_core_coverage_label ?? "Coverage map"}>{coverageGroups.length > 0 ? coverageGroups.map((family) => <span key={family.key}><SemanticChip label={family.label} description={family.description} />: {family.state === "gap" ? "Needs coverage" : family.state === "thin" ? "One or two heroes" : "Covered by the core"}</span>) : legacyGroups.map(([label, jobs]) => jobs.length > 0 && <span key={label}><strong>{label}:</strong> {jobs.map((job) => <SemanticChip key={job} label={job} />)}</span>)}</div>
-    {coverage.primary_gap && <p><strong>Primary gap.</strong> {coverage.primary_gap}. {coverage.secondary_gaps?.length ? `Secondary gaps: ${coverage.secondary_gaps.join(", ")}.` : ""}</p>}
-    {qualified && action.recommended_addition ? <article className="pattern-action-card"><span className="eyebrow">{copy?.versatile_core_next_tool_label ?? "One useful next tool"}</span><h4>{action.recommended_addition.hero_name}</h4><p>{action.recommended_addition.player_facing_reason}</p><small>{action.recommended_addition.solves_gap}</small></article> : <p><strong>{qualified ? copy?.versatile_core_no_gap_heading ?? "No obvious hole needs filling" : "The family map is useful context, but it is not strong enough for a headline."}</strong></p>}
-    {action.alternative_additions.length > 0 && <p><strong>{copy?.versatile_core_alternatives_label ?? "Other viable additions"}.</strong> {action.alternative_additions.map((hero) => hero.hero_name).join(", ")}</p>}
-    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
-  </section>;
-}
-
-function ProvenFlexibilityActionPanel({ action, copy }: { action: ProvenFlexibilityAction; copy?: PatternActionCopy | null }) {
-  const roster = action.hero_names.map((name, index) => `${name} · ${action.hero_game_counts[index]?.[1] ?? 0}`);
-  return <section className="pattern-action" aria-labelledby="proven-flexibility-heading">
-    <span className="eyebrow">{copy?.proven_flexibility_kicker ?? "Proof of range"}</span>
-    <h3 id="proven-flexibility-heading">{action.status === "distributed_flexibility" ? copy?.proven_flexibility_distributed_heading ?? "Your flexibility is distributed" : copy?.proven_flexibility_heading ?? "Your flexibility shows up in the calendar"}</h3>
-    {action.window_start && action.window_end && <p>{action.window_start} → {action.window_end} · {action.total_games} games</p>}
-    <p><strong>{copy?.proven_flexibility_roster_label ?? "Heroes in the window"}.</strong> {roster.join(", ") || "No reviewed hero roster yet."}</p>
-    <p><strong>{copy?.proven_flexibility_proof_label ?? "What repeats"}.</strong> {action.functional_jobs.length > 0 ? action.functional_jobs.map((job) => <SemanticChip key={job} label={job} />) : "No clear range yet."}. {action.secondary_proof ?? `${action.meaningful_hero_count} meaningful heroes cover ${action.functional_job_count} ways of helping.`}</p>
-    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
-  </section>;
-}
-
-function RecoveryActionPanel({ action, copy }: { action: BouncebackAction | PerformanceSlideAction; copy?: PatternActionCopy | null }) {
-  const positive = action.action_type === "bounceback";
-  const context = action.strongest_context;
-  const delta = context ? Math.abs(context.performance_delta).toFixed(2) : "0.00";
-  return <section className="pattern-action" aria-labelledby={`${action.action_type}-heading`}>
-    <span className="eyebrow">{positive ? copy?.bounceback_kicker ?? "Your best rebound tool" : copy?.performance_slide_kicker ?? "Your roughest post-loss tool"}</span>
-    <h3 id={`${action.action_type}-heading`}>{context?.label ?? (positive ? copy?.bounceback_heading ?? "Where your post-loss performance recovers most" : copy?.performance_slide_heading ?? "Where the post-loss drop is largest")}</h3>
-    {context ? <><p><strong>{positive ? "+" : "-"}{delta}</strong> compared with similar games · {context.sample_size} transitions across {context.session_count} sessions.</p><p><strong>{copy?.recovery_context_label ?? "Comparable context"}.</strong> {context.primary_jobs.length > 0 ? context.primary_jobs.map((job) => <SemanticChip key={job} label={job} />) : "Overall summary context"}.</p></> : <UnavailableMessage limitations={action.limitations} />}
-    {action.comparison_contexts.length > 0 && <div className="pattern-action-cards">{action.comparison_contexts.map((row) => <article className="pattern-action-card" key={`${row.label}-${row.hero_id ?? row.function_family ?? row.role_context ?? "overall"}`}><h4>{row.label}</h4><p>{row.performance_delta >= 0 ? "+" : ""}{row.performance_delta.toFixed(2)} similar-game comparison units · {row.sample_size} transitions</p><small>{Math.round(row.confidence_score * 100)}% confidence</small></article>)}</div>}
-    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
-  </section>;
-}
-
-function SessionCurveActionPanel({ action, copy }: { action: SessionCurveAction; copy?: PatternActionCopy | null }) {
-  const rising = action.action_type === "session_rise";
-  const heading = rising
-    ? copy?.session_rise_heading ?? "Where the session curve starts to lift"
-    : copy?.session_fade_heading ?? "Where the session curve starts to fade";
-  const breakpointLabel = rising
-    ? copy?.session_rise_breakpoint_label ?? "Earliest supported lift"
-    : copy?.session_fade_breakpoint_label ?? "Earliest supported fade";
-  const gradualLabel = rising
-    ? copy?.session_rise_gradual_label ?? "The movement is gradual"
-    : copy?.session_fade_gradual_label ?? "The movement is gradual";
-  return <section className="pattern-action session-curve-action" aria-labelledby={`${action.action_type}-heading`}>
-    <span className="eyebrow">{rising ? copy?.session_rise_kicker ?? "A session curve" : copy?.session_fade_kicker ?? "A session curve"}</span>
-    <h3 id={`${action.action_type}-heading`}>{heading}</h3>
-    <p>This is a relative performance-proxy curve, balanced by independent sessions. The values are not calibrated percentages and do not establish fatigue, warm-up, or a stopping point.</p>
-    <div className="pattern-action-cards" aria-label="Session position curve">
-      {action.curve.map((point) => <article className={`pattern-action-card${point.supported ? "" : " is-muted"}`} key={point.bucket}>
-        <h4>{point.bucket}</h4>
-        <p>{point.supported ? `${point.relative_delta >= 0 ? "+" : ""}${point.relative_delta.toFixed(2)} comparison units` : "Not enough independent sessions"}</p>
-        <small>{point.sample_size} matches · weighted comparison {point.effective_sample_size.toFixed(1)}</small>
-      </article>)}
+  return <main className="report-story report-story-v5" data-glyph-registry-size={GLYPH_REGISTRY.length} data-glyph-registry-unique={glyphRegistryIsUnique() ? "true" : "false"} data-glyph-registry-geometries={GLYPH_REGISTRY.map((definition) => definition.geometry).join(",")} aria-label="Your Dota identity report">
+    <DesktopChapterRail activeChapter={activeChapter} onNavigate={navigate} />
+    <div className="report-story-content">
+      <header className="report-topline"><a className="report-wordmark" href="#summary" onClick={(event) => { event.preventDefault(); navigate("summary"); }}>FREE DNA</a><span>PERSONAL IDENTITY REPORT</span><span className="report-topline-name">{report.identity.display_name || "Anonymous player"}</span></header>
+      <ChapterSection id="summary" palette="summary" chapterRefs={chapterRefs}><SummaryChapter report={report} leadingElement={leadingElement} leadingPattern={leadingPattern} elementPages={elementPages} patternPages={patternPages} onNavigate={navigate} /></ChapterSection>
+      <ChapterSection id="elements" palette="elements" chapterRefs={chapterRefs}><ElementsChapter elements={readableElements} elementPages={elementPages} selected={chosenElement} onSelect={(element) => { setSelectedElement(element.key); track("report.element_selected.v1", { element_key: element.key, report_schema_version: report.schema_version }); }} /></ChapterSection>
+      <ChapterSection id="patterns" palette="patterns" chapterRefs={chapterRefs}><PatternsChapter patterns={patterns} patternPages={patternPages} selected={chosenPattern} onSelect={(pattern) => { setSelectedPattern(pattern.key); track("report.pattern_selected.v1", { pattern_key: pattern.key, report_schema_version: report.schema_version }); }} /></ChapterSection>
+      <ChapterSection id="heroes" palette="heroes" chapterRefs={chapterRefs}><HeroesChapter report={report} pageByKind={pageByKind} answers={answers} revealed={revealed} onChoose={chooseAnswer} onReveal={revealAnswer} /></ChapterSection>
+      <ChapterSection id="you" palette="you" chapterRefs={chapterRefs}><YouChapter report={report} pageByKind={pageByKind} revealed={Boolean(revealed.hero_mirror)} onReveal={() => setRevealed((current) => ({ ...current, hero_mirror: true }))} /></ChapterSection>
     </div>
-    {action.breakpoint_state === "stable_breakpoint" && action.breakpoint_bucket && <p><strong>{breakpointLabel}:</strong> {action.breakpoint_bucket}. {action.independent_session_count} independent sessions support the curve.</p>}
-    {action.breakpoint_state === "gradual" && <p><strong>{gradualLabel}.</strong> No single earliest bucket clears the stable-breakpoint rule.</p>}
-    {action.companion_signals.length > 0 && <p><strong>Companion signals.</strong> {action.companion_signals.join(" ")}</p>}
-    {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
-  </section>;
+    <MobileChapterDock activeChapter={activeChapter} onNavigate={navigate} />
+  </main>;
 }
 
-function SamePlaybookActionPanel({ action, copy }: { action: SamePlaybookAction; copy?: PatternActionCopy | null }) {
-  const [direction, setDirection] = useState<"deepen" | "stretch">("deepen");
-  const recommendations = direction === "deepen" ? action.deepen : action.stretch;
-  if (action.status === "unavailable") return <UnavailableMessage limitations={action.limitations} />;
-  return (
-    <section className="pattern-action same-playbook-action" aria-labelledby="same-playbook-action-heading">
-      <span className="eyebrow">{copy?.same_playbook_kicker ?? "A useful next step"}</span>
-      <h3 id="same-playbook-action-heading">{copy?.same_playbook_heading ?? "Where do you want to take this?"}</h3>
-      <p>{copy?.same_playbook_intro ?? "Both directions are valid: keep solving the same kind of Dota problem, or add range without abandoning your anchors."}</p>
-      <div className="choice-grid" role="radiogroup" aria-label="Same Playbook direction">
-        <button type="button" role="radio" aria-checked={direction === "deepen"} className={direction === "deepen" ? "is-selected" : ""} onClick={() => setDirection("deepen")}>
-          <strong>{copy?.same_playbook_deepen_label ?? "Go deeper"}</strong><span>{copy?.same_playbook_deepen_description ?? "More heroes that keep your current game familiar."}</span>
-        </button>
-        <button type="button" role="radio" aria-checked={direction === "stretch"} className={direction === "stretch" ? "is-selected" : ""} onClick={() => setDirection("stretch")}>
-          <strong>{copy?.same_playbook_stretch_label ?? "Stretch comfortably"}</strong><span>{copy?.same_playbook_stretch_description ?? "Bridge heroes that add a new answer while preserving an anchor."}</span>
-        </button>
-      </div>
-      <p className="muted">{copy?.same_playbook_recurring_core_label ?? "Your recurring core:"} {action.dominant_traits.join(" · ") || "not clear yet"}.</p>
-      {recommendations.length > 0 ? <div className="pattern-action-cards">{recommendations.map((recommendation) => <article className="pattern-action-card" key={recommendation.hero_id}>
-        <h4>{recommendation.hero_name}</h4>
-        <p>{recommendation.why_it_fits}</p>
-        <p><strong>{copy?.same_playbook_familiar_label ?? "What stays familiar."}</strong> {recommendation.what_stays_familiar}</p>
-        <p><strong>{copy?.same_playbook_changes_label ?? "What changes."}</strong> {recommendation.what_changes}</p>
-      </article>)}</div> : <UnavailableMessage limitations={[copy?.same_playbook_empty_direction ?? "No candidate had enough evidence and a close enough learning step for this direction."]} />}
-      {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
-    </section>
-  );
+function ChapterSection({ id, palette, chapterRefs, children }: { id: ReportChapter["id"]; palette: ReportChapter["palette"]; chapterRefs: React.MutableRefObject<Record<string, HTMLElement | null>>; children: React.ReactNode }) {
+  return <section id={id} data-chapter-id={id} data-palette={palette} className={`report-chapter report-chapter-${palette}`} ref={(element) => { chapterRefs.current[id] = element; }} aria-labelledby={`${palette}-heading`}>{children}</section>;
 }
 
-function ComfortEdgeActionPanel({ action, copy }: { action: ComfortEdgeAction; copy?: PatternActionCopy | null }) {
-  if (action.status === "unavailable") return <UnavailableMessage limitations={action.limitations} />;
-  return (
-    <section className="pattern-action comfort-edge-action" aria-labelledby="comfort-edge-action-heading">
-      <span className="eyebrow">{copy?.comfort_edge_kicker ?? "Build the pool with a reason"}</span>
-      <h3 id="comfort-edge-action-heading">{copy?.comfort_edge_heading ?? "Your strongest heroes are the safest part of this pool today."}</h3>
-      <p>{copy?.comfort_edge_intro ?? "Here is why the other established heroes can still be worth learning. This is a player-relative reliability read, not a meta ranking."}</p>
-      <ol className="hero-reliability-list" aria-label={copy?.comfort_edge_reliability_label ?? "Established hero reliability"}>
-        {action.ranked_heroes.map((hero) => <li key={hero.hero_id} className={hero.reliability_rank <= 2 ? "is-reference-core" : "is-development-side"}>
-          <span>#{hero.reliability_rank}</span><strong>{hero.hero_name}</strong><small>{hero.matches} usable matches · {Math.round(hero.confidence_score * 100)}% confidence</small>
-        </li>)}
-      </ol>
-      {action.development.length > 0 && <div className="pattern-action-cards">{action.development.map((reason) => <article className="pattern-action-card" key={reason.hero_id}>
-        <span className="eyebrow">{copy?.comfort_edge_why_learn_label ?? "Why learn"} {reason.hero_name}?</span>
-        <h4>{reason.hero_name}</h4>
-        <p>{reason.why_learn}</p>
-        {reason.useful_situations.length > 0 && <p><strong>{copy?.comfort_edge_useful_when_label ?? "Useful when."}</strong> {reason.useful_situations.join(" ")}</p>}
-        {reason.enemy_example_names.length > 0 && <p><strong>{copy?.comfort_edge_enemy_examples_label ?? "Enemy examples."}</strong> {reason.enemy_example_names.join(", ")}</p>}
-        {reason.teammate_example_names.length > 0 && <p><strong>{copy?.comfort_edge_teammate_examples_label ?? "Teammate examples."}</strong> {reason.teammate_example_names.join(", ")}</p>}
-        {reason.tradeoffs.length > 0 && <p className="muted"><strong>{copy?.comfort_edge_tradeoff_label ?? "Tradeoff."}</strong> {reason.tradeoffs.join(" ")}</p>}
-        {reason.limitations.length > 0 && <p className="muted">{reason.limitations.join(" ")}</p>}
-      </article>)}</div>}
-      {action.limitations.length > 0 && <p className="muted">{action.limitations.join(" ")}</p>}
-    </section>
-  );
+function DesktopChapterRail({ activeChapter, onNavigate }: { activeChapter: ReportChapter["id"]; onNavigate: (chapter: ReportChapter["id"]) => void }) {
+  return <aside className="chapter-rail" aria-label="Report chapters"><span className="rail-mark" aria-hidden="true">◈</span><nav>{REPORT_CHAPTERS.map((chapter) => <button key={chapter.id} type="button" className={activeChapter === chapter.id ? "is-active" : ""} aria-current={activeChapter === chapter.id ? "page" : undefined} onClick={() => onNavigate(chapter.id)}><span className="rail-dot" aria-hidden="true" />{chapter.label}</button>)}</nav><span className="rail-footer">DOTA<br />IDENTITY</span></aside>;
 }
 
-function IngredientGroup({ title, keys, ingredientMap }: { title: string; keys: string[]; ingredientMap: Map<string, BehaviorElement | undefined> }) {
-  return <div className="ingredient-group"><span className="eyebrow">{title}</span>{keys.map((key) => { const element = ingredientMap.get(key); return <div className="ingredient-row" key={key}><strong>{element?.label ?? key}</strong><span>{element?.zone ?? "Unavailable"}</span></div>; })}</div>;
+function MobileChapterDock({ activeChapter, onNavigate }: { activeChapter: ReportChapter["id"]; onNavigate: (chapter: ReportChapter["id"]) => void }) {
+  return <nav className="chapter-dock" aria-label="Report chapters">{REPORT_CHAPTERS.map((chapter) => <button key={chapter.id} type="button" className={activeChapter === chapter.id ? "is-active" : ""} aria-current={activeChapter === chapter.id ? "page" : undefined} onClick={() => onNavigate(chapter.id)}><span className="dock-glyph" aria-hidden="true">{chapter.id === "summary" ? "✦" : chapter.id === "elements" ? "◇" : chapter.id === "patterns" ? "⌘" : chapter.id === "heroes" ? "✷" : "●"}</span><span>{chapter.label}</span></button>)}</nav>;
 }
 
-function PortfolioQuestion({ page, context, kind }: { page: StoryPage; context: StoryContext; kind: "common_thread" | "exception" }) {
-  const result = context.report.hero_portfolio[kind];
-  const selected = context.answers[kind];
-  const isRevealed = context.revealed[kind];
-  const options = result.options;
+function SummaryChapter({ report, leadingElement, leadingPattern, elementPages, patternPages, onNavigate }: { report: FreeDnaReportV4; leadingElement: BehaviorElement | null; leadingPattern: BehaviorPattern | null; elementPages: Map<string, StoryPage>; patternPages: Map<string, StoryPage>; onNavigate: (chapter: ReportChapter["id"]) => void }) {
+  const elementPage = leadingElement ? elementPages.get(leadingElement.key) : undefined;
+  const patternPage = leadingPattern ? patternPages.get(leadingPattern.key) : undefined;
+  const localIdentity = leadingPattern ? PATTERN_COPY[leadingPattern.key]?.lead ?? `${leadingPattern.label} is part of your current Dota shape.` : leadingElement ? ELEMENT_COPY[leadingElement.key] : "Your Dota has a shape. It is not obliged to fit neatly in a box.";
+  const localSignature = leadingPattern ? PATTERN_COPY[leadingPattern.key]?.detail ?? "A pattern that keeps its appointment." : leadingElement ? ELEMENT_COPY[leadingElement.key] : "The clearest parts of your report are still taking form.";
+  const identityCopy = safeCatalogCopy(patternPage?.content.presentation_copy?.headline ?? patternPage?.content.meaning ?? elementPage?.content.observation ?? elementPage?.content.why_highlight ?? elementPage?.body, localIdentity);
+  const signature = safeCatalogCopy(patternPage?.content.presentation_copy?.subheadline ?? patternPage?.content.presentation_copy?.interpretation.body ?? elementPage?.content.why_highlight ?? elementPage?.content.observation ?? elementPage?.body, localSignature);
+  return <div className="chapter-inner summary-inner"><div className="chapter-kicker"><span className="chapter-index">01</span><span>SUMMARY / YOUR CURRENT SHAPE</span></div><div className="summary-hero-grid"><div className="summary-copy"><p className="eyebrow">{report.identity.display_name || "Your Dota identity"}</p><h1 id="summary-heading">{identityCopy}</h1><p className="chapter-lede">{signature}</p><div className="summary-actions"><button type="button" className="primary-action" onClick={() => onNavigate("elements")}>See the pieces <span aria-hidden="true">↘</span></button><button type="button" className="quiet-action" onClick={() => onNavigate("heroes")}>Meet the hero pool</button></div></div><div className="identity-tile summary-tile"><Glyph decorative glyph={leadingPattern?.key ?? leadingElement?.key ?? "hero_pool_breadth"} size={172} /><span className="tile-caption">YOUR LEADING SIGNAL</span><strong>{leadingPattern?.label ?? leadingElement?.label ?? "Still forming"}</strong><p>{leadingPattern ? "A pattern that keeps its appointment." : "A useful first line, with more on the way."}</p></div></div><div className="summary-strip"><span><strong>01</strong> Read the headline</span><span><strong>02</strong> Follow the texture</span><span><strong>03</strong> Choose your next experiment</span></div></div>;
+}
+
+function ElementsChapter({ elements, elementPages, selected, onSelect }: { elements: BehaviorElement[]; elementPages: Map<string, StoryPage>; selected: BehaviorElement | null; onSelect: (element: BehaviorElement) => void }) {
+  return <div className="chapter-inner"><ChapterHeading index="02" eyebrow="ELEMENTS / THE RAW MATERIAL" title="The pieces of your Dota pattern" body="These are the tendencies that keep turning up in the way you move through a game." palette="elements" />{elements.length === 0 ? <UnavailableMessage message="Your Elements are still forming. There is nothing useful to force into a tile." /> : <><div className="glyph-grid element-grid">{elements.map((element) => <button key={element.key} type="button" className={`glyph-tile${selected?.key === element.key ? " is-selected" : ""}`} aria-pressed={selected?.key === element.key} onClick={() => onSelect(element)}><span className="glyph-tile-art"><Glyph decorative glyph={element.key} size={52} /></span><span className="tile-caption">ELEMENT</span><strong>{element.label}</strong><span className="tile-description">{elementNarrative(element, elementPages.get(element.key))}</span></button>)}</div>{selected && <ElementDetail element={selected} page={elementPages.get(selected.key)} />}</>}</div>;
+}
+
+function ElementDetail({ element, page }: { element: BehaviorElement; page?: StoryPage }) {
+  const score = element.score === null ? null : Math.round(Math.max(0, Math.min(1, element.score)) * 100);
+  const localDetail = ELEMENT_COPY[element.key] ?? "A signal with a particular shape.";
+  const detail = safeCatalogCopy(page?.content.observation ?? page?.content.meaning ?? page?.content.why_highlight ?? page?.body, localDetail);
+  const note = safeCatalogCopy(page?.content.why_highlight, element.zone ? `Right now, this reads as ${element.zone.toLowerCase()}.` : "The useful read is still taking shape.");
+  return <article className="detail-panel element-detail" aria-labelledby="element-detail-heading"><div className="detail-art"><Glyph decorative glyph={element.key} size={88} /></div><div className="detail-copy"><p className="eyebrow">{element.label}</p><h3 id="element-detail-heading">{detail}</h3>{score === null ? <p className="detail-note">This one is still finding its edges.</p> : <div className="lean-meter" role="img" aria-label={`${element.label} is leaning toward ${element.axis.right ?? "the right side"}`}><div className="lean-meter-labels"><span>{element.axis.left ?? "Less"}</span><span>{element.axis.right ?? "More"}</span></div><div className="lean-meter-track"><span style={{ left: `${score}%` }} /></div></div>}<p className="detail-note">{note}</p></div></article>;
+}
+
+function PatternsChapter({ patterns, patternPages, selected, onSelect }: { patterns: BehaviorPattern[]; patternPages: Map<string, StoryPage>; selected: BehaviorPattern | null; onSelect: (pattern: BehaviorPattern) => void }) {
+  return <div className="chapter-inner"><ChapterHeading index="03" eyebrow="PATTERNS / THE CONNECTIONS" title="The habits hiding between the heroes" body="A pattern is the part that keeps happening even when the surface details change." palette="patterns" />{patterns.length === 0 ? <UnavailableMessage message="No pattern wants the spotlight yet. That is a valid answer." /> : <><div className="glyph-grid pattern-grid">{patterns.map((pattern) => { const catalog = patternPages.get(pattern.key); const lead = safeCatalogCopy(catalog?.content.presentation_copy?.headline ?? catalog?.content.meaning ?? catalog?.body, PATTERN_COPY[pattern.key]?.lead ?? "A recurring shape in your current report."); return <button key={pattern.key} type="button" className={`glyph-tile${selected?.key === pattern.key ? " is-selected" : ""}`} aria-pressed={selected?.key === pattern.key} onClick={() => onSelect(pattern)}><span className="glyph-tile-art"><Glyph decorative glyph={pattern.key} size={52} /></span><span className="tile-caption">PATTERN</span><strong>{pattern.label}</strong><span className="tile-description">{lead}</span></button>; })}</div>{selected && <PatternDetail pattern={selected} page={patternPages.get(selected.key)} />}</>}</div>;
+}
+
+function PatternDetail({ pattern, page }: { pattern: BehaviorPattern; page?: StoryPage }) {
+  const copy = PATTERN_COPY[pattern.key] ?? { lead: pattern.label, detail: "This pattern is part of your current Dota shape.", experiment: "Try one deliberate change and see what remains familiar." };
+  const presentation = page?.content.presentation_copy;
+  const catalogLead = safeCatalogCopy(presentation?.headline ?? page?.content.meaning ?? page?.body, copy.lead);
+  const catalogDetail = safeCatalogCopy(presentation?.interpretation.body ?? presentation?.subheadline, copy.detail);
+  const catalogExperiment = safeCatalogCopy(presentation?.recommendation?.body, copy.experiment);
+  return <article className="detail-panel pattern-detail" aria-labelledby="pattern-detail-heading"><div className="detail-art"><Glyph decorative glyph={pattern.key} size={92} /></div><div className="detail-copy"><p className="eyebrow">{pattern.label}</p><h3 id="pattern-detail-heading">{catalogDetail}</h3><p>{catalogLead}</p><div className="experiment-card"><span className="tile-caption">NEXT EXPERIMENT</span><strong>{catalogExperiment}</strong></div></div></article>;
+}
+
+function HeroesChapter({ report, pageByKind, answers, revealed, onChoose, onReveal }: { report: FreeDnaReportV4; pageByKind: Map<string, StoryPage>; answers: Record<string, string>; revealed: Record<string, boolean>; onChoose: (question: string, option: ChoiceOption) => void; onReveal: (question: string) => void }) {
+  const portfolio = report.hero_portfolio;
+  const commonPage = pageByKind.get("hero_common_thread_question");
+  const exceptionPage = pageByKind.get("hero_exception_question");
+  const evolutionPage = pageByKind.get("pool_evolution_question");
+  return <div className="chapter-inner"><ChapterHeading index="04" eyebrow="HEROES / THE PORTFOLIO" title="Your hero pool is a point of view" body="The names move around. The way you solve problems leaves a clearer trail." palette="heroes" /><div className="portfolio-overview"><PortfolioStat label="Common thread" value={portfolio.common_thread.trait_label ?? "Still forming"} body={portfolio.common_thread.status === "available" ? "The job that keeps finding you." : "No single job wants to claim the whole room."} /><PortfolioStat label="The exception" value={portfolio.exception.hero_name ?? "No odd one out"} body={portfolio.exception.status === "available" ? "The pick that bends the pattern." : "Your pool is more coherent than dramatic."} /><PortfolioStat label="Pool evolution" value={portfolio.evolution.variant ? EVOLUTION_LABELS[portfolio.evolution.variant] ?? "A new chapter" : "Still in motion"} body="Your current pool, in one honest sentence." /></div><div className="portfolio-questions"><PortfolioQuestion id="hero-common-thread" title="What keeps showing up across your established heroes?" result={portfolio.common_thread} page={commonPage} question="common_thread" answer={answers.common_thread} isRevealed={Boolean(revealed.common_thread)} onChoose={onChoose} onReveal={onReveal} /><PortfolioQuestion id="hero-exception" title="Which hero takes a different route?" result={portfolio.exception} page={exceptionPage} question="exception" answer={answers.exception} isRevealed={Boolean(revealed.exception)} onChoose={onChoose} onReveal={onReveal} /><PortfolioQuestion id="pool-evolution-question" title="How has your pool changed?" result={portfolio.evolution} page={evolutionPage} question="evolution" answer={answers.evolution} isRevealed={Boolean(revealed.evolution)} onChoose={onChoose} onReveal={onReveal} /></div></div>;
+}
+
+function PortfolioStat({ label, value, body }: { label: string; value: string; body: string }) {
+  return <article className="portfolio-stat"><span className="tile-caption">{label}</span><strong>{value}</strong><p>{body}</p></article>;
+}
+
+function PortfolioQuestion({ id, title, result, page, question, answer, isRevealed, onChoose, onReveal }: { id: string; title: string; result: FreeDnaReportV4["hero_portfolio"]["common_thread"] | FreeDnaReportV4["hero_portfolio"]["exception"] | FreeDnaReportV4["hero_portfolio"]["evolution"]; page?: StoryPage; question: "common_thread" | "exception" | "evolution"; answer?: string; isRevealed: boolean; onChoose: (question: string, option: ChoiceOption) => void; onReveal: (question: string) => void }) {
+  const options = "options" in result ? result.options : page?.options ?? [];
   const unavailable = result.status === "unavailable";
-  const noClearThread = kind === "common_thread" && result.status === "no_clear_thread";
-  const noClearException = kind === "exception" && result.status === "no_clear_exception";
-  const correct = result.correct_option_key;
-  const choose = (option: ChoiceOption) => {
-    context.setAnswers((current) => ({ ...current, [kind]: option.key }));
-    track("hero_portfolio.answer_selected.v1", {
-      question_key: kind,
-      selected_option_key: option.key,
-      matched_computed_answer: correct !== null && option.key === correct,
-      report_schema_version: context.report.schema_version,
-      portfolio_model_version: context.report.versions.hero_portfolio,
-    });
-  };
-  const reveal = () => {
-    context.setRevealed((current) => ({ ...current, [kind]: true }));
-    track("hero_portfolio.reveal_viewed.v1", {
-      question_key: kind,
-      matched_computed_answer: selected !== undefined && selected === correct,
-      report_schema_version: context.report.schema_version,
-      portfolio_model_version: context.report.versions.hero_portfolio,
-    });
-  };
-  return (
-    <article className="portfolio-question">
-      <p className="eyebrow">Hero Portfolio · {kind === "common_thread" ? "Common Thread" : "The Exception"}</p>
-      <h2 id={`${page.id}-heading`}>{page.title}</h2>
-      <p className="story-lede">{page.body}</p>
-      {unavailable ? <UnavailableMessage limitations={result.limitations} /> : noClearThread ? <ExceptionNoClearInsight copy={page.content.no_clear_insight} fallbackBody={result.limitations[0]} /> : noClearException ? <ExceptionNoClearInsight copy={page.content.no_clear_insight} fallbackBody={result.limitations[0]} /> : <>
-        <div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>
-          {options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}
-        </div>
-        {selected && <p className="choice-status" role="status" aria-live="polite">Selected: {options.find((option) => option.key === selected)?.label}</p>}
-        <button type="button" className="reveal-button" disabled={!selected || isRevealed} onClick={reveal}>{isRevealed ? "Answer revealed" : "Reveal"}</button>
-        {isRevealed && <div aria-live="polite"><PortfolioReveal kind={kind} selected={selected} correct={correct} result={result} content={page.content} /></div>}
-      </>}
-    </article>
-  );
+  const noClear = result.status === "no_clear_thread" || result.status === "no_clear_exception";
+  return <article id={id} className="portfolio-question"><div className="question-topline"><span className="tile-caption">{question === "evolution" ? "POOL EVOLUTION" : question === "common_thread" ? "COMMON THREAD" : "THE EXCEPTION"}</span><span className="question-mark" aria-hidden="true">?</span></div><h3>{title}</h3>{unavailable ? <UnavailableMessage message="This part of the portfolio is still forming." /> : noClear ? <div className="question-result"><span className="tile-caption">USEFUL ANSWER</span><strong>{question === "exception" ? "Your pool has no odd one out." : "No single thread takes the whole stage."}</strong><p>The useful answer is that your pool does not need a forced headline here.</p></div> : <><div className="choice-grid" role="radiogroup" aria-label={title}>{options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={answer === option.key} className={answer === option.key ? "is-selected" : ""} onClick={() => onChoose(question, option)}>{option.label}</button>)}</div><button type="button" className="reveal-button" disabled={!answer || isRevealed} onClick={() => onReveal(question)}>{isRevealed ? "Read revealed" : "Reveal the read"}</button>{isRevealed && <PortfolioResult question={question} result={result} page={page} answer={answer} />}</>}</article>;
 }
 
-type NoClearInsightCopy = NonNullable<StoryPage["content"]["no_clear_insight"]>;
-
-function ExceptionNoClearInsight({ copy, fallbackBody }: { copy?: NoClearInsightCopy; fallbackBody?: string }) {
-  const resolved = copy && typeof copy === "object" ? copy : {
-    eyebrow: "Exception read",
-    headline: "No clear odd one out.",
-    body: fallbackBody ?? "The pool did not clear one hero as a distinct outlier.",
-    boundary: "Different does not mean better or worse.",
-  };
-  return <div className="portfolio-reveal exception-no-clear" aria-live="polite"><span className="eyebrow">{resolved.eyebrow}</span><h3>{resolved.headline}</h3><p>{resolved.body}</p><p className="muted">{resolved.boundary}</p></div>;
-}
-
-function PortfolioReveal({ kind, selected, correct, result, content }: { kind: "common_thread" | "exception"; selected?: string; correct: string | null; result: FreeDnaReportV4["hero_portfolio"]["common_thread"] | HeroException; content?: StoryPage["content"] }) {
-  const right = selected !== undefined && selected === correct;
-  const selectedOption = result.options.find((option) => option.key === selected);
-  const resultLabel = right ? content?.correct_label ?? "You spotted it." : content?.incorrect_label ?? "A useful correction.";
-  if (kind === "common_thread") {
+function PortfolioResult({ question, result, page, answer }: { question: "common_thread" | "exception" | "evolution"; result: FreeDnaReportV4["hero_portfolio"]["common_thread"] | FreeDnaReportV4["hero_portfolio"]["exception"] | FreeDnaReportV4["hero_portfolio"]["evolution"]; page?: StoryPage; answer?: string }) {
+  if (question === "common_thread") {
     const common = result as FreeDnaReportV4["hero_portfolio"]["common_thread"];
-    return <div className="portfolio-reveal"><span className="eyebrow">{resultLabel}</span><h3>{common.trait_label ?? "No clear common thread"}</h3><p>{selectedOption?.feedback ?? common.limitations.join(" ")}</p><div className="descriptor-list">{common.secondary_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div>;
+    const right = answer !== undefined && answer === common.correct_option_key;
+    return <div className="question-result" aria-live="polite"><span className="tile-caption">{right ? "YOU SPOTTED IT" : "A USEFUL CORRECTION"}</span><strong>{common.trait_label ?? "No single thread yet"}</strong><p>{right ? `${common.trait_label} is the strongest recurring way of helping across the established pool.` : `${common.trait_label ?? "That thread"} has the stronger recurring role in your pool.`}</p><div className="tag-row">{common.secondary_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div>;
   }
-  const exception = result as HeroException;
-  return <div className="portfolio-reveal"><span className="eyebrow">{resultLabel}</span><h3>{exception.hero_name ?? (exception.status === "no_clear_exception" ? "Your pool has no odd one out." : "No exception yet")}</h3><p>{selectedOption?.feedback ?? exception.limitations.join(" ")}</p><div className="descriptor-list">{exception.exception_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div>;
-}
-
-function EvolutionQuestion({ page, context }: { page: StoryPage; context: StoryContext }) {
-  const selected = context.answers.evolution;
-  const isRevealed = context.revealed.evolution;
-  const choose = (option: ChoiceOption) => {
-    context.setAnswers((current) => ({ ...current, evolution: option.key }));
-    track("hero_portfolio.answer_selected.v1", {
-      question_key: "evolution",
-      selected_option_key: option.key,
-      matched_computed_answer: null,
-      report_schema_version: context.report.schema_version,
-      portfolio_model_version: context.report.versions.hero_portfolio,
-    });
-  };
-  return <article className="portfolio-question"><p className="eyebrow">Hero Portfolio · Pool Evolution</p><h2 id={`${page.id}-heading`}>{page.title}</h2><p className="story-lede">{page.body}</p><div className="choice-grid" role="radiogroup" aria-labelledby={`${page.id}-heading`}>{page.options.map((option) => <button key={option.key} type="button" role="radio" aria-checked={selected === option.key} className={selected === option.key ? "is-selected" : ""} onClick={() => choose(option)}>{option.label}</button>)}</div>{selected && <p className="choice-status" role="status" aria-live="polite">Your read: {page.options.find((option) => option.key === selected)?.label}</p>}<button type="button" className="reveal-button" disabled={!selected || isRevealed} onClick={() => { context.setRevealed((current) => ({ ...current, evolution: true })); track("hero_portfolio.reveal_viewed.v1", { question_key: "evolution", matched_computed_answer: null, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_portfolio }); }}>{isRevealed ? "Answer revealed" : "Reveal"}</button>{isRevealed && <div aria-live="polite"><EvolutionResult evolution={context.report.hero_portfolio.evolution} content={context.evolutionRevealPage?.content ?? page.content} /></div>}</article>;
-}
-
-function EvolutionReveal({ page, context }: { page: StoryPage; context: StoryContext }) {
-  const evolution = context.report.hero_portfolio.evolution;
-  if (!context.revealed.evolution) {
-    return <article className="evolution-reveal"><p className="eyebrow">Pool Evolution · report read</p><h2 id={`${page.id}-heading`}>{page.title}</h2><div className="unavailable-message"><strong>{page.content?.locked_copy ?? "Complete the self-assessment above to see the report read."}</strong></div></article>;
+  if (question === "exception") {
+    const exception = result as HeroException;
+    const right = answer !== undefined && answer === exception.correct_option_key;
+    return <div className="question-result" aria-live="polite"><span className="tile-caption">{right ? "YOU SPOTTED IT" : "A USEFUL CORRECTION"}</span><strong>{exception.hero_name ?? "No exception yet"}</strong><p>{right ? `${exception.hero_name} takes the clearest different route through your pool.` : `${exception.hero_name ?? "This hero"} stands apart more clearly.`}</p><div className="tag-row">{exception.exception_traits.map((trait) => <span key={trait}>{trait}</span>)}</div></div>;
   }
-  return <article className="evolution-reveal"><p className="eyebrow">Pool Evolution · report read</p><h2 id={`${page.id}-heading`}>{page.title}</h2><EvolutionResult evolution={evolution} content={page.content} /></article>;
+  const evolution = result as FreeDnaReportV4["hero_portfolio"]["evolution"];
+  const variant = evolution.variant ? EVOLUTION_LABELS[evolution.variant] ?? "The pool is in motion." : page?.content?.payoff_heading ?? "The pool is still forming.";
+  return <div className="question-result" aria-live="polite"><span className="tile-caption">POOL READ</span><strong>{variant}</strong><p>{page?.content?.copy && !containsAnalysisLanguage(page.content.copy) ? page.content.copy : "Your recent heroes add texture without erasing the older shape."}</p><div className="tag-row">{[...evolution.earlier_traits.slice(0, 3), ...evolution.recent_traits.slice(0, 3)].map((trait, index) => <span key={`${trait}-${index}`}>{trait}</span>)}</div></div>;
 }
 
-function EvolutionResult({ evolution, content }: { evolution: FreeDnaReportV4["hero_portfolio"]["evolution"]; content?: StoryPage["content"] }) {
-  if (evolution.status !== "available" || !evolution.variant) return <UnavailableMessage limitations={evolution.limitations} />;
-  const dateRange = (start?: string | null, end?: string | null) => start && end ? ` · ${start}–${end}` : "";
-  return <section className="portfolio-reveal evolution-payoff"><span className="eyebrow">Pool Evolution · report read</span><h3>{content?.payoff_heading ?? "Pool Evolution"}</h3><p className="story-lede">{content?.copy ?? "Your hero names changed; here is what changed underneath."}</p><div className="evolution-columns"><div><span className="eyebrow">Previous {evolution.earlier_sample_size} matches{dateRange(evolution.earlier_start, evolution.earlier_end)}</span><div className="descriptor-list">{evolution.earlier_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div><div><span className="eyebrow">Latest {evolution.recent_sample_size} matches{dateRange(evolution.recent_start, evolution.recent_end)}</span><div className="descriptor-list">{evolution.recent_traits.map((trait) => <SemanticChip key={trait} label={trait} />)}</div></div></div></section>;
+function YouChapter({ report, pageByKind, revealed, onReveal }: { report: FreeDnaReportV4; pageByKind: Map<string, StoryPage>; revealed: boolean; onReveal: () => void }) {
+  const mirror = report.hero_portfolio.hero_mirror;
+  const mirrorPage = pageByKind.get("hero_mirror_reveal");
+  return <div className="chapter-inner"><ChapterHeading index="05" eyebrow="YOU / THE MIRROR" title="One last comparison" body="The report ends with the hero who most clearly reflects your usual decisions." palette="you" /><MirrorCard mirror={mirror} page={mirrorPage} open={revealed} onReveal={onReveal} report={report} /><div id="final-card" className="final-share"><div><p className="eyebrow">KEEP THE SIGNAL</p><h3>Make the read yours.</h3><p>Choose what travels with the card. Your account ID stays out of it.</p></div>{report.report_id ? <ShareControls reportId={report.report_id} reportSchema={report.schema_version} /> : <UnavailableMessage message="Sharing is unavailable for this report." />}</div></div>;
 }
 
-const SEMANTIC_JOB_DESCRIPTIONS: Record<string, string> = {
-  "Fight start": "Starts fights on your terms.",
-  "Counter-engage": "Punishes enemies after they commit.",
-  Catch: "Locks down a target before they escape.",
-  "Fight control": "Restricts where enemies can move or act once the fight starts.",
-  Frontline: "Can occupy dangerous space for the team.",
-  Save: "Prevents an ally from dying or being disabled.",
-  Sustain: "Keeps allies healthy through longer fights.",
-  "Forced movement": "Moves heroes from where they wanted to be.",
-  Repositioning: "Reaches a better position during the fight.",
-  Mobility: "Reaches or leaves positions quickly.",
-  "Burst damage": "Deals a lot of damage in a short window.",
-  "Sustained damage": "Keeps damage flowing through longer fights.",
-  "Wave clear": "Removes creep waves quickly.",
-  "Tower pressure": "Converts space into building pressure.",
-  "Global reach": "Influences distant parts of the map quickly.",
-  Vision: "Creates or denies information.",
-  "Late-game scaling": "Gains more value as resources accumulate.",
-};
-
-function SemanticChip({ label, description }: { label: string; description?: string }) {
-  const explanation = description || SEMANTIC_JOB_DESCRIPTIONS[label] || "A reviewed way this hero can contribute.";
-  const [open, setOpen] = useState(false);
-  const explanationId = useId();
-  return <span className={`semantic-chip${open ? " is-open" : ""}`}>
-    <button
-      type="button"
-      className="semantic-chip-trigger"
-      title={explanation}
-      aria-label={`${label}: ${explanation}`}
-      aria-expanded={open}
-      aria-describedby={open ? explanationId : undefined}
-      onClick={() => setOpen((current) => !current)}
-      onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}
-    >{label}<span aria-hidden="true">ⓘ</span></button>
-    <span id={explanationId} className="semantic-chip-tooltip" role="tooltip">{explanation}</span>
-  </span>;
-}
-
-function MirrorPage({ page, context }: { page: StoryPage; context: StoryContext }) {
-  const mirror = context.report.hero_portfolio.hero_mirror;
-  const open = context.revealed.hero_mirror;
+function MirrorCard({ mirror, page, open, onReveal, report }: { mirror: FreeDnaReportV4["hero_portfolio"]["hero_mirror"]; page?: StoryPage; open: boolean; onReveal: () => void; report: FreeDnaReportV4 }) {
   const [dragProgress, setDragProgress] = useState(0);
   const dragProgressRef = useRef(0);
-  const pointer = useRef<{ id: number; startX: number; startY: number; dragging: boolean } | null>(null);
+  const pointer = useRef<{ id: number; startX: number; dragging: boolean } | null>(null);
   const started = useRef(false);
   const completed = useRef(false);
-  const trackStart = (interaction: string) => {
-    if (started.current) return;
-    started.current = true;
-    track("hero_mirror.reveal_started.v1", { interaction, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_mirror });
-  };
   const reveal = (interaction: string) => {
-    trackStart(interaction);
     if (open) return;
-    context.setRevealed((current) => ({ ...current, hero_mirror: true }));
+    if (!started.current) {
+      started.current = true;
+      track("hero_mirror.reveal_started.v1", { interaction, report_schema_version: report.schema_version, portfolio_model_version: report.versions.hero_mirror });
+    }
+    onReveal();
     if (!completed.current) {
       completed.current = true;
-      track("hero_mirror.reveal_completed.v1", { result_status: mirror.status, report_schema_version: context.report.schema_version, portfolio_model_version: context.report.versions.hero_mirror });
+      track("hero_mirror.reveal_completed.v1", { result_status: mirror.status, report_schema_version: report.schema_version, portfolio_model_version: report.versions.hero_mirror });
     }
   };
-  const onPointerDown = (event: React.PointerEvent<HTMLElement>) => {
-    if (open || (event.pointerType === "mouse" && event.button !== 0)) return;
-    pointer.current = { id: event.pointerId, startX: event.clientX, startY: event.clientY, dragging: false };
-  };
-  const onPointerMove = (event: React.PointerEvent<HTMLElement>) => {
-    const current = pointer.current;
-    if (!current || current.id !== event.pointerId || open) return;
-    const dx = event.clientX - current.startX;
-    const dy = event.clientY - current.startY;
-    if (!current.dragging) {
-      if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy)) return;
-      current.dragging = true;
-      event.currentTarget.setPointerCapture(event.pointerId);
-      trackStart("drag");
-    }
-    event.preventDefault();
-    const width = Math.max(event.currentTarget.clientWidth, 1);
-    const progress = Math.min(1, Math.abs(dx) / width);
-    dragProgressRef.current = progress;
-    setDragProgress(progress);
-  };
-  const onPointerUp = (event: React.PointerEvent<HTMLElement>) => {
-    const current = pointer.current;
-    if (!current || current.id !== event.pointerId) return;
-    if (current.dragging) {
-      if (dragProgressRef.current >= 0.35) reveal("drag");
-      else {
-        dragProgressRef.current = 0;
-        setDragProgress(0);
-      }
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    pointer.current = null;
-  };
-  const onPointerCancel = () => {
-    pointer.current = null;
-    dragProgressRef.current = 0;
-    setDragProgress(0);
-  };
-  return <article className={`mirror-card${open ? " is-open" : ""}${dragProgress > 0 && !open ? " is-dragging" : ""}`} style={{ "--mirror-progress": dragProgress } as React.CSSProperties} tabIndex={0} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerCancel} onKeyDown={(event) => { if ((event.key === "Enter" || event.key === " ") && !open) { event.preventDefault(); reveal("keyboard"); } }}><div className="mirror-cover"><p className="eyebrow">ONE LAST COMPARISON</p><h2 id={`${page.id}-heading`}>{page.content?.title ?? page.title}</h2>{!open && <><p className="story-lede">{page.content?.closed ?? page.body}</p><button type="button" className="mirror-reveal-button" onClick={() => reveal("button")}>Reveal Hero Mirror</button><p className="muted mirror-gesture-hint">Swipe across this card, or use the button.</p></>}</div>{open && <MirrorReveal mirror={mirror} content={page.content ?? {}} />}</article>;
+  return (
+    <section id="hero-mirror" className="mirror-stage" aria-labelledby="hero-mirror-heading">
+      <article
+        className={`mirror-card${open ? " is-open" : ""}${dragProgress > 0 && !open ? " is-dragging" : ""}`}
+        style={{ "--mirror-progress": dragProgress } as React.CSSProperties}
+        tabIndex={0}
+        onPointerDown={(event) => {
+          if (!open && (event.pointerType !== "mouse" || event.button === 0)) pointer.current = { id: event.pointerId, startX: event.clientX, dragging: false };
+        }}
+        onPointerMove={(event) => {
+          const current = pointer.current;
+          if (!current || current.id !== event.pointerId || open) return;
+          const dx = event.clientX - current.startX;
+          if (!current.dragging && Math.abs(dx) < 8) return;
+          current.dragging = true;
+          event.currentTarget.setPointerCapture(event.pointerId);
+          event.preventDefault();
+          const progress = Math.min(1, Math.abs(dx) / Math.max(event.currentTarget.clientWidth, 1));
+          dragProgressRef.current = progress;
+          setDragProgress(progress);
+        }}
+        onPointerUp={(event) => {
+          const current = pointer.current;
+          if (!current || current.id !== event.pointerId) return;
+          if (current.dragging && dragProgressRef.current >= 0.35) reveal("drag");
+          else { dragProgressRef.current = 0; setDragProgress(0); }
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+          pointer.current = null;
+        }}
+        onPointerCancel={() => { pointer.current = null; dragProgressRef.current = 0; setDragProgress(0); }}
+        onKeyDown={(event) => { if ((event.key === "Enter" || event.key === " ") && !open) { event.preventDefault(); reveal("keyboard"); } }}
+      >
+        <div className="mirror-cover"><span className="tile-caption">HERO MIRROR</span><h2 id="hero-mirror-heading">{page?.content?.title && !containsAnalysisLanguage(page.content.title) ? page.content.title : "Which hero looks a little too familiar?"}</h2><p>{page?.content?.closed && !containsAnalysisLanguage(page.content.closed) ? page.content.closed : "There is one hero who resembles your usual decisions from a different angle."}</p><button type="button" className="mirror-reveal-button" onClick={() => reveal("button")}>Reveal Hero Mirror</button><span className="mirror-gesture-hint">Swipe across the card, or use the button.</span></div>
+        {open && <MirrorReveal mirror={mirror} />}
+      </article>
+    </section>
+  );
 }
 
-function MirrorReveal({ mirror, content }: { mirror: FreeDnaReportV4["hero_portfolio"]["hero_mirror"]; content: StoryPage["content"] }) {
-  if (mirror.status !== "available" || !mirror.hero_name) return <UnavailableMessage limitations={[content.unavailable ?? "No played hero matches your usual behavior clearly enough to earn the mirror yet."]} />;
+function MirrorReveal({ mirror }: { mirror: FreeDnaReportV4["hero_portfolio"]["hero_mirror"] }) {
+  if (mirror.status !== "available" || !mirror.hero_name) return <div className="mirror-result" aria-live="polite"><span className="tile-caption">THE MIRROR</span><h3>No single hero mirrors your current shape yet.</h3><p>That is still a useful result. Your identity is not asking for one mascot today.</p></div>;
   const rows = ["involvement", "finishing", "deaths", "role_context"];
-  return <div className="mirror-reveal" aria-live="polite"><p className="story-lede">{content.available ?? `Hero Mirror: ${mirror.hero_name}`}</p><p className="muted">{content.qualifier}</p><div className="hero-behavior-table" role="table" aria-label="Player and hero behavior comparison"><div className="hero-behavior-row header" role="row"><span>Observable behavior</span><span>Your history</span><span>{mirror.hero_name}</span></div>{rows.map((key) => <div className="hero-behavior-row" role="row" key={key}><strong>{key.replaceAll("_", " ")}</strong><span>{mirror.player_behavior[key] ?? "Not available"}</span><span>{mirror.hero_behavior[key] ?? "Not available"}</span></div>)}</div><p className="muted">{content.guardrail} {mirror.limitations.join(" ")}</p></div>;
+  return <div className="mirror-result" aria-live="polite"><span className="tile-caption">THE MIRROR</span><h3>{mirror.hero_name} is where your usual Dota shows up most clearly.</h3><div className="hero-behavior-table" role="table" aria-label="Player and hero behavior comparison"><div className="hero-behavior-row header" role="row"><span>Behavior</span><span>Your shape</span><span>{mirror.hero_name}</span></div>{rows.map((key) => <div className="hero-behavior-row" role="row" key={key}><strong>{key.replaceAll("_", " ")}</strong><span>{mirror.player_behavior[key] ?? "Still forming"}</span><span>{mirror.hero_behavior[key] ?? "Still forming"}</span></div>)}</div></div>;
 }
 
-function FinalCard({ page, report }: { page: StoryPage; report: FreeDnaReportV4 }) {
-  const strongestElements = report.highlights.element_keys.map((key) => report.elements.find((element) => element.key === key)).filter((element): element is BehaviorElement => Boolean(element));
-  const strongestPatterns = report.highlights.pattern_keys.map((key) => report.patterns.find((pattern) => pattern.key === key)).filter((pattern): pattern is BehaviorPattern => Boolean(pattern));
-  return <article className="final-card"><p className="eyebrow">{page.title}</p><h2 id={`${page.id}-heading`}>{report.identity.display_name || "Your Dota DNA"}</h2><p className="story-lede">{page.body}</p><div className="final-summary"><div><span className="eyebrow">Elements</span><div className="descriptor-list">{strongestElements.map((element) => <span key={element.key}>{element.label} · {element.zone ?? "Unavailable"}</span>)}</div></div><div><span className="eyebrow">Patterns</span><div className="descriptor-list">{strongestPatterns.map((pattern) => <span key={pattern.key}>{pattern.label}</span>)}</div></div><div><span className="eyebrow">Hero Portfolio</span><p>{report.shares.final.hero_portfolio.common_thread ?? "No clear Common Thread yet."}</p><p>{report.shares.final.hero_portfolio.exception_hero ? `Exception · ${report.shares.final.hero_portfolio.exception_hero}` : "No clear Exception yet."}</p><p>{report.shares.final.hero_portfolio.pool_direction ?? "Pool Evolution is unavailable yet."}</p></div><div><span className="eyebrow">Hero Mirror</span><p>{report.shares.final.hero_mirror?.hero_name ?? "No clear Mirror yet."}</p></div></div>{report.report_id && <ShareControls reportId={report.report_id} reportSchema={report.schema_version} />}</article>;
+function ChapterHeading({ index, eyebrow, title, body, palette }: { index: string; eyebrow: string; title: string; body: string; palette: ReportChapter["palette"] }) {
+  return <div className="chapter-heading"><div className="chapter-kicker"><span className="chapter-index">{index}</span><span>{eyebrow}</span></div><h2 id={`${palette}-heading`}>{title}</h2><p className="chapter-lede">{body}</p></div>;
 }
 
-function UnavailableMessage({ limitations }: { limitations: string[] }) {
-  return <div className="unavailable-message"><strong>Not enough evidence yet</strong><p>{limitations.join(" ") || "These matches did not support a clear answer yet."}</p></div>;
+function UnavailableMessage({ message }: { message: string }) {
+  return <div className="unavailable-message"><strong>Still forming</strong><p>{message}</p></div>;
 }
 
-function FallbackPage({ page }: { page: StoryPage }) {
-  return <article className="story-summary"><p className="eyebrow">Dota DNA</p><h2 id={`${page.id}-heading`}>{page.title}</h2>{page.body && <p>{page.body}</p>}</article>;
+function orderByKeys<T extends { key: string }>(items: T[], order: string[]): T[] {
+  const index = new Map(order.map((key, position) => [key, position]));
+  return [...items].sort((a, b) => (index.get(a.key) ?? order.length) - (index.get(b.key) ?? order.length));
+}
+
+function containsAnalysisLanguage(value: string | null | undefined): boolean {
+  if (!value) return false;
+  return /confidence|coverage|evidence|provenance|sample|cohort|methodology|source|denominator|matches|played enough|\btrust\b|qualified relationship|evidence-backed|bounded (summary|history)|summary history|observable (summary|history)|raw metrics/i.test(value);
+}
+
+function safeCatalogCopy(value: string | null | undefined, fallback: string): string {
+  return value && !containsAnalysisLanguage(value) ? value : fallback;
+}
+
+function elementNarrative(element: BehaviorElement, page?: StoryPage): string {
+  return safeCatalogCopy(page?.content.observation ?? page?.content.meaning ?? page?.content.why_highlight ?? page?.body, ELEMENT_COPY[element.key] ?? "A distinct part of your current Dota shape.");
+}
+
+export function glyphDefinitionFor(key: string): GlyphDefinition | undefined {
+  return GLYPH_BY_KEY[key];
 }

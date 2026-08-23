@@ -98,8 +98,8 @@ def test_free_report_is_v5_summary_only_versioned_and_expiring() -> None:
     assert report["reproducibility"]["recency_weighting_version"] == "recency-weighting-5.0.0"
     assert report["story"]["ordered_pages"] == [page["id"] for page in report["pages"]]
     assert report["story"]["version"] == "free-story-5.3.0"
-    assert report["versions"]["copy"] == "free-dna-copy-5.4.0"
-    assert report["versions"]["semantic_copy"] == "free-dna-semantic-copy-5.2.0"
+    assert report["versions"]["copy"] == "free-dna-copy-5.5.0"
+    assert report["versions"]["semantic_copy"] == "free-dna-semantic-copy-5.3.0"
     assert "pool_evolution_reveal" not in [page["kind"] for page in report["pages"]]
     assert {page["kind"] for page in report["pages"]} >= {"element_scan", "pattern_highlight", "hero_mirror_reveal", "deep_dive"}
     if report["hero_portfolio"]["exception"]["status"] == "no_clear_exception":
@@ -107,11 +107,14 @@ def test_free_report_is_v5_summary_only_versioned_and_expiring() -> None:
     validate_free_dna_report(report)
 
     svg, _ = build_share_svg(report, card_type="final", show_name=False, show_avatar=False)
-    assert str(42) not in svg
+    assert "account_id" not in svg
     assert "<svg" in svg
-    for heading in ("TOP SIGNALS", "PATTERNS", "HERO PORTFOLIO", "HERO MIRROR"):
+    for heading in ("ELEMENTS", "PATTERNS", "HERO PORTFOLIO", "HERO MIRROR"):
         assert heading in svg
     assert "new_heroes_same_toolkit" not in svg
+    assert "PRIVATE BY DEFAULT" in svg
+    assert "#0B0C0B" in svg
+    assert "url(#aurora)" in svg
 
     now = datetime.now(UTC)
     assert repository.purge_expired(now=now + timedelta(days=31)) == 1

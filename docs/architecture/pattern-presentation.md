@@ -83,7 +83,7 @@ versioned independently as `free-story-5.3.0` with `pattern-presentation-5.2.0`.
 The active meaning layer is `pattern-outcomes-5.2.0` (32 semantic outcome
 branches) plus `hero-recommendations-semantic-1.1.0` (14 semantic
 recommendation IDs). Active branch copy is
-`free-dna-semantic-copy-5.2.0`; `free-dna-copy-5.4.0` is the legacy
+`free-dna-semantic-copy-5.3.0`; `free-dna-copy-5.5.0` is the legacy
 11-record catalog retained for historical snapshots and compatibility reads.
 The Element registry is `free-elements-5.2.0` and the Pattern registry remains
 `free-patterns-5.1.0`. Hero knowledge has an independent version family and

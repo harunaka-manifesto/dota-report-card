@@ -10,8 +10,22 @@ from urllib.parse import urlparse
 
 from app.content.renderer import resolve_evolution_copy
 
-RENDERER_VERSION = "share-svg-4.1.0"
+RENDERER_VERSION = "share-svg-5.0.0"
 CARD_TYPES = frozenset({"final"})
+
+_VOID = "#0B0C0B"
+_SURFACE = "#141513"
+_RAISED = "#1C1E1B"
+_LINE = "#30332E"
+_PAPER = "#F2EFE7"
+_TEXT = "#F7F4EC"
+_MUTED = "#A3A59D"
+_CORAL = "#F26B5E"
+_SAFFRON = "#F3B744"
+_LILAC = "#B7A4FF"
+_CYAN = "#64D9E7"
+_MAGENTA = "#F065B7"
+_CHARTREUSE = "#C8EE62"
 
 
 def share_cache_key(
@@ -52,24 +66,63 @@ def build_share_svg(
         show_name=show_name,
         show_avatar=show_avatar,
     )
-    title = html.escape(str(content.get("title") or "Your Dota DNA"))
+    title = html.escape(_compact_title(str(content.get("title") or "Your Dota DNA")))
     subtitle = html.escape(str(content.get("subtitle") or ""))
+    identity_headline = str(content.get("identity_headline") or "Your Dota keeps a shape of its own.")
     avatar_markup = ""
     avatar_url = content.get("avatar_url")
     if isinstance(avatar_url, str) and avatar_url:
         avatar_markup = (
-            f'<image href="{html.escape(avatar_url, quote=True)}" x="870" y="90" '
-            'width="120" height="120" preserveAspectRatio="xMidYMid slice" '
-            'clip-path="circle(60px at 60px 60px)"/>'
+            f'<circle cx="922" cy="142" r="64" fill="{_RAISED}" stroke="{_PAPER}" '
+            f'stroke-width="2"/><image href="{html.escape(avatar_url, quote=True)}" x="858" y="78" '
+            'width="128" height="128" preserveAspectRatio="xMidYMid slice" '
+            'clip-path="circle(64px at 64px 64px)"/>'
         )
     section_markup = _section_markup(content.get("sections", []))
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-labelledby="title subtitle">
   <title id="title">{title}</title><desc id="subtitle">{subtitle}</desc>
-  <rect width="1080" height="1350" fill="#f7f2e8"/><rect x="48" y="48" width="984" height="1254" rx="24" fill="none" stroke="#c8c0b1" stroke-width="3"/>
-  <text x="90" y="130" class="eyebrow">DOTA DNA</text><text x="90" y="260" class="title">{title}</text><text x="90" y="330" class="subtitle">{subtitle}</text>
-  <line x1="90" y1="410" x2="990" y2="410" stroke="#c8c0b1" stroke-width="2"/>{section_markup}
-  {avatar_markup}<text x="90" y="1240" class="footer">Summary history · deterministic snapshot</text>
-  <style>.eyebrow{{font:700 24px Arial;letter-spacing:5px;fill:#9b3d22}}.title{{font:700 72px Arial;fill:#20231f}}.subtitle{{font:400 28px Arial;fill:#6e685d}}.section-heading{{font:700 18px Arial;letter-spacing:3px;fill:#9b3d22}}.section-line{{font:700 27px Arial;fill:#20231f}}.footer{{font:400 20px Arial;fill:#7e776b}}</style>
+  <defs>
+    <linearGradient id="aurora" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="{_CORAL}"/><stop offset="0.46" stop-color="{_SAFFRON}"/><stop offset="1" stop-color="{_LILAC}"/>
+    </linearGradient>
+    <radialGradient id="aurora-glow" cx="25%" cy="20%" r="85%">
+      <stop offset="0" stop-color="{_CYAN}" stop-opacity="0.9"/><stop offset="0.48" stop-color="{_MAGENTA}" stop-opacity="0.62"/><stop offset="1" stop-color="{_VOID}" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grain" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M0 2h1M6 8h1M10 4h1M3 11h1" stroke="{_PAPER}" stroke-opacity="0.1" stroke-width="1"/>
+    </pattern>
+    <clipPath id="identity-cell"><rect x="72" y="246" width="936" height="300"/></clipPath>
+  </defs>
+  <rect width="1080" height="1350" fill="{_VOID}"/>
+  <rect x="36" y="36" width="1008" height="1278" fill="none" stroke="{_LINE}" stroke-width="2"/>
+  <rect x="72" y="246" width="936" height="300" fill="{_RAISED}"/>
+  <g clip-path="url(#identity-cell)">
+    <rect x="72" y="246" width="936" height="300" fill="url(#aurora)" opacity="0.55"/>
+    <rect x="72" y="246" width="936" height="300" fill="url(#aurora-glow)" opacity="0.78"/>
+    <rect x="72" y="246" width="936" height="300" fill="url(#grain)"/>
+    <path d="M72 510C260 410 390 570 560 430S870 280 1008 370V546H72Z" fill="{_VOID}" opacity="0.62"/>
+  </g>
+  <text x="72" y="104" class="eyebrow">DOTA DNA / FREE</text>
+  <text x="72" y="178" class="title">{title}</text>
+  <text x="72" y="220" class="subtitle">{subtitle}</text>
+  <text x="104" y="318" class="identity-kicker">YOUR PLAYING SHAPE</text>
+  {_text_lines(identity_headline, x=104, y=390, class_name="identity", max_chars=28, line_height=62)}
+  {avatar_markup}
+  {section_markup}
+  <line x1="72" y1="1260" x2="1008" y2="1260" stroke="{_LINE}" stroke-width="2"/>
+  <text x="72" y="1294" class="footer">PRIVATE BY DEFAULT · NO PLAYER ID · NO RAW MATCH DATA</text>
+  <text x="1008" y="1294" text-anchor="end" class="footer">FREE DNA / {RENDERER_VERSION.upper()}</text>
+  <style>
+    .eyebrow{{font:700 20px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:4px;fill:{_SAFFRON}}}
+    .title{{font:800 64px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:-2px;fill:{_TEXT}}}
+    .subtitle{{font:500 20px 'Plus Jakarta Sans',Arial,sans-serif;fill:{_MUTED}}}
+    .identity-kicker,.section-heading{{font:700 16px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:3px;fill:{_VOID}}}
+    .identity{{font:800 48px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:-1.5px;fill:{_VOID}}}
+    .section-heading-dark{{font:700 16px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:3px;fill:{_SAFFRON}}}
+    .section-line{{font:650 24px 'Plus Jakarta Sans',Arial,sans-serif;fill:{_TEXT}}}
+    .section-note{{font:500 18px 'Plus Jakarta Sans',Arial,sans-serif;fill:{_MUTED}}}
+    .footer{{font:600 13px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:1.4px;fill:{_MUTED}}}
+  </style>
 </svg>'''
     return svg, cache_key
 
@@ -78,21 +131,70 @@ def _section_markup(sections: Any) -> str:
     if not isinstance(sections, list):
         return ""
     markup: list[str] = []
-    y = 470
-    for section in sections:
+    positions = (
+        (72, 598, 456, 236),
+        (552, 598, 456, 236),
+        (72, 882, 456, 300),
+        (552, 882, 456, 300),
+    )
+    for index, section in enumerate(sections[:4]):
         if not isinstance(section, dict):
             continue
         heading = html.escape(str(section.get("heading") or ""))
         lines = section.get("lines")
         if not heading or not isinstance(lines, list):
             continue
-        markup.append(f'<text x="90" y="{y}" class="section-heading">{heading}</text>')
-        y += 38
+        x, y, width, height = positions[index]
+        markup.append(
+            f'<rect x="{x}" y="{y}" width="{width}" height="{height}" fill="{_SURFACE}" stroke="{_LINE}" stroke-width="2"/>'
+        )
+        markup.append(f'<text x="{x + 24}" y="{y + 38}" class="section-heading-dark">{heading}</text>')
+        line_y = y + 82
         for line in lines[:3]:
-            markup.append(f'<text x="90" y="{y}" class="section-line">{html.escape(str(line))}</text>')
-            y += 38
-        y += 30
+            rendered = _text_lines(str(line), x=x + 24, y=line_y, class_name="section-line", max_chars=30, line_height=31)
+            markup.append(rendered)
+            line_y += 62
     return "".join(markup)
+
+
+def _text_lines(
+    value: str,
+    *,
+    x: int,
+    y: int,
+    class_name: str,
+    max_chars: int,
+    line_height: int,
+) -> str:
+    """Render deterministic, escaped text lines without relying on SVG wrapping."""
+
+    words = value.split()
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if current and len(candidate) > max_chars:
+            lines.append(current)
+            current = word
+        else:
+            current = candidate
+    if current:
+        lines.append(current)
+    if not lines:
+        return ""
+    return "".join(
+        f'<text x="{x}" y="{y + index * line_height}" class="{class_name}">{html.escape(line)}</text>'
+        for index, line in enumerate(lines[:3])
+    )
+
+
+def _compact_title(value: str, *, max_chars: int = 24) -> str:
+    """Keep a user-provided display name inside the fixed share-card grid."""
+
+    value = " ".join(value.split())
+    if len(value) <= max_chars:
+        return value
+    return value[: max_chars - 1].rstrip() + "…"
 
 
 def _card_content(
@@ -118,22 +220,30 @@ def _card_content(
         for item in card.get("strongest_patterns", [])
         if isinstance(item, dict) and item.get("label")
     ]
-    common_thread = portfolio.get("common_thread") or "No clear Common Thread yet."
+    common_thread = portfolio.get("common_thread") or "Your pool is still writing its common thread."
     exception = portfolio.get("exception_hero")
-    exception_line = f"Exception · {exception}" if exception else "No clear Exception yet."
+    exception_line = f"Exception · {exception}" if exception else "No exception has stepped forward yet."
     evolution = _human_evolution_copy(portfolio.get("pool_direction"))
     mirror = card.get("hero_mirror") or {}
-    mirror_line = str(mirror.get("hero_name")) if mirror.get("hero_name") else "No clear Mirror yet."
+    mirror_line = str(mirror.get("hero_name")) if mirror.get("hero_name") else "Your mirror is still offstage."
+    strongest_pattern = patterns[0] if patterns else None
+    strongest_element = elements[0] if elements else None
+    identity_headline = (
+        f"Your Dota keeps returning to {strongest_pattern}."
+        if strongest_pattern
+        else f"Your Dota keeps showing {strongest_element or 'a shape of its own'}."
+    )
     sections = [
-        {"heading": "TOP SIGNALS", "lines": elements or ["No highlighted Element cleared the display gate yet."]},
-        {"heading": "PATTERNS", "lines": [" · ".join(patterns)] if patterns else ["No Pattern highlight cleared the display gate yet."]},
-        {"heading": "HERO PORTFOLIO", "lines": [str(common_thread), exception_line, evolution or "Pool Evolution is unavailable yet."]},
+        {"heading": "ELEMENTS", "lines": elements or ["No Element is taking the spotlight yet."]},
+        {"heading": "PATTERNS", "lines": patterns or ["No Pattern has stepped forward yet."]},
+        {"heading": "HERO PORTFOLIO", "lines": [str(common_thread), exception_line, evolution or "Your pool is holding its cards for now."]},
         {"heading": "HERO MIRROR", "lines": [mirror_line]},
     ]
     facts = [line for section in sections for line in section["lines"]]
     return {
         "title": identity.get("display_name") if show_name else "Your Dota DNA",
-        "subtitle": " · ".join(facts[:2]) or "A bounded snapshot of observable Dota patterns.",
+        "subtitle": " · ".join(facts[:2]) or "A personal snapshot of the way you play.",
+        "identity_headline": identity_headline,
         "facts": facts,
         "sections": sections,
         "show_avatar": show_avatar,

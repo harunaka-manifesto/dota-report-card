@@ -30,8 +30,8 @@ story.
 
 Current Pattern pages repeat that payload and add catalog-backed
 `presentation_copy` for the five Wrapped + Depth layers. The active semantic
-copy catalog is `free-dna-semantic-copy-5.2.0`; the legacy
-`free-dna-copy-5.4.0` catalog remains only for compatibility reads of older
+copy catalog is `free-dna-semantic-copy-5.3.0`; the legacy
+`free-dna-copy-5.5.0` catalog remains only for compatibility reads of older
 snapshots. The web app chooses this renderer only when the payload exists;
 historical pages use the legacy body/action renderer. See the
 [v5.2 SSOT](dota-dna-ssot.md) for the outcome, recommendation, hero snapshot,
@@ -120,7 +120,7 @@ The privacy-safe 4:5 SVG is a deliberate hierarchy, not a flattened list:
 5. HERO MIRROR: the available hero or a clear unavailable state.
 6. Summary-history footer and deterministic renderer version in the cache key.
 
-The renderer is `share-svg-4.1.0`. Avatar URLs are HTTPS-only and allowlisted;
+The renderer is `share-svg-5.0.0`. Avatar URLs are HTTPS-only and allowlisted;
 query strings and fragments are rejected. Name and avatar preferences are
 explicit share controls. The SVG has a title/description for assistive tools,
 escapes all interpolated text, and keeps raw enum values out of the human

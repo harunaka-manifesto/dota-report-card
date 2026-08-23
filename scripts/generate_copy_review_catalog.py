@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the human review surface for every reachable v5.2 Pattern story.
+"""Generate the human review surface for every reachable v5.3 Pattern story.
 
 The legacy presentation catalog remains in the output for historical snapshot
 compatibility. The active semantic catalog is reviewed separately so every
@@ -116,7 +116,7 @@ def _semantic_recommendation_copy(
 def render_catalog() -> str:
     catalog = validate_copy_catalog()
     semantic_catalog = load_free_dna_semantic_copy()
-    approval_status = "reviewed for the v5.2 product-closure pass"
+    approval_status = "reviewed for the v5.3 identity-copy pass"
     lines = [
         "# Free DNA v5.2 copy review catalog",
         "",
@@ -133,7 +133,7 @@ def render_catalog() -> str:
         "## Historical compatibility copy",
         "",
         "These 11 presentation records remain readable for historical snapshots.\n"
-        "Active v5.2 story pages use the semantic branch records below.",
+        "Active story pages use the v5.3 semantic branch records below.",
         "",
     ]
     for index, (pattern_key, contract) in enumerate(PATTERN_PRESENTATION_CONTRACT.items(), start=1):

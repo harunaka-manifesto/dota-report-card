@@ -6,6 +6,7 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.api.report_schemas_v6 import FreeDnaReportV6Schema, validate_free_dna_report_v6
 from app.behavior.presentation import PATTERN_PRESENTATION_CONTRACT, PATTERN_PRESENTATION_VERSION
 
 
@@ -819,9 +820,10 @@ class FreeDnaReportV4Schema(PublicModel):
                 if presentation.presentation_version != PATTERN_PRESENTATION_VERSION:
                     raise ValueError(f"Pattern {pattern.key} presentation has the wrong version")
                 if self.story.version == "free-story-5.3.0":
-                    if presentation.semantic_outcome_id not in SEMANTIC_OUTCOME_BRANCHES[
-                        pattern.key
-                    ]:
+                    if (
+                        presentation.semantic_outcome_id
+                        not in SEMANTIC_OUTCOME_BRANCHES[pattern.key]
+                    ):
                         raise ValueError(
                             f"Current Pattern {pattern.key} is missing a valid semantic outcome"
                         )
@@ -1015,14 +1017,17 @@ FreeDnaReportV5Schema = FreeDnaReportV4Schema
 
 
 def validate_free_dna_report(report: dict[str, Any]) -> dict[str, Any]:
-    """Validate a new immutable v5 snapshot at the public API boundary."""
+    """Validate an immutable Free DNA snapshot at its versioned API boundary."""
 
+    if report.get("schema_version") == "free-dna-report-6.0.0":
+        return validate_free_dna_report_v6(report)
     return FreeDnaReportV4Schema.model_validate(report).model_dump(mode="json", by_alias=True)
 
 
 __all__ = [
     "FreeDnaReportV4Schema",
     "FreeDnaReportV5Schema",
+    "FreeDnaReportV6Schema",
     "PatternPresentationSchema",
     "validate_free_dna_report",
 ]

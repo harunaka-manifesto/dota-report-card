@@ -104,6 +104,11 @@ class SelectionPlan:
     selected: tuple[SelectedMatch, ...]
     needs: tuple[EvidenceNeed, ...]
     stopping_reason: str
+    abstention_reason: str | None = None
+
+    @property
+    def abstained(self) -> bool:
+        return self.abstention_reason is not None
 
     @property
     def selected_match_ids(self) -> tuple[int, ...]:
@@ -113,15 +118,35 @@ class SelectionPlan:
     def already_sufficient_count(self) -> int:
         return sum(item.candidate.already_available for item in self.selected)
 
+    @property
+    def detail_request_count(self) -> int:
+        return sum(item.candidate.estimated_detail_cost > 0 for item in self.selected)
+
+    @property
+    def parse_request_count(self) -> int:
+        return sum(item.parse_required for item in self.selected)
+
+    @property
+    def estimated_cost_units(self) -> float:
+        return sum(
+            item.candidate.estimated_detail_cost + item.candidate.estimated_parse_cost
+            for item in self.selected
+        )
+
     def as_dict(self) -> dict[str, Any]:
         return {
             "candidate_matches": len(self.candidates),
             "selected_match_ids": list(self.selected_match_ids),
             "deep_matches_selected": len(self.selected),
+            "detail_requests": self.detail_request_count,
+            "parse_requests": self.parse_request_count,
+            "estimated_cost_units": round(self.estimated_cost_units, 4),
             "already_sufficient": self.already_sufficient_count,
             "needs": [need.as_dict() for need in self.needs],
             "selected": [item.as_dict() for item in self.selected],
             "stopping_reason": self.stopping_reason,
+            "abstention_reason": self.abstention_reason,
+            "abstained": self.abstained,
         }
 
 
@@ -140,7 +165,10 @@ class SelectionState:
     def add(self, selected: SelectedMatch) -> None:
         self.selected_ids.add(selected.match_id)
         self.selected.append(selected)
-        self.estimated_cost += selected.candidate.estimated_detail_cost
+        self.estimated_cost += (
+            selected.candidate.estimated_detail_cost
+            + selected.candidate.estimated_parse_cost
+        )
         if selected.parse_required:
             self.parse_requests += 1
         for hypothesis_id, group in selected.newly_supported_needs:

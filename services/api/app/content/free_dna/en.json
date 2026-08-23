@@ -1,119 +1,119 @@
 {
-  "copy_version": "free-dna-copy-5.4.0",
+  "copy_version": "free-dna-copy-5.5.0",
   "pages": {
     "analysis": {
-      "title": "Reading your recent matches.",
-      "body": "Sorting the fields that the summary history can support."
+      "title": "Reading the way you play.",
+      "body": "Your recent games have a few habits worth meeting."
     },
     "report_reveal": {
-      "title": "The pattern is in the details.",
-      "body": "A summary-history read of the way your matches tend to look."
+      "title": "There you are.",
+      "body": "The shape of your Dota is starting to introduce itself."
     },
     "element_scan": {
-      "title": "The pieces of your Dota pattern",
-      "body": "Eighteen observable Elements make the report legible.",
-      "scanning_body": "Reconstructing the signals we found. The strongest three get a closer look next.",
-      "ready_body": "Eighteen observable Elements make the report legible. The strongest three get a closer look next."
+      "title": "Your Dota ingredients",
+      "body": "The small habits that make your game recognizably yours.",
+      "scanning_body": "Pulling the clearest pieces into focus. Three are about to make a scene.",
+      "ready_body": "The small habits that make your game recognizably yours. Three are about to make a scene."
     },
     "final_card": {
-      "title": "The part worth sharing",
-      "body": "A bounded snapshot of Elements, Patterns, and Hero Portfolio."
+      "title": "The part worth taking with you",
+      "body": "A personal snapshot of Elements, Patterns, and your Hero Portfolio."
     },
     "deep_dive": {
-      "title": "Tell me more",
-      "body": "Selected match-detail analysis can investigate mechanisms behind summary-level discoveries."
+      "title": "Follow the thread",
+      "body": "Take one discovery into match detail when the summary leaves you curious."
     }
   },
   "elements": {
     "hero_pool_breadth": {
       "title": "Breadth",
-      "body": "How wide the meaningful hero pool is."
+      "body": "How many different heroes you keep ready for a real game."
     },
     "hero_pool_stability": {
       "title": "Stability",
-      "body": "How settled versus shifting the hero pool is."
+      "body": "Where the centre of gravity sits in your hero pool."
     },
     "hero_exploration_rate": {
       "title": "Exploration",
-      "body": "How often new or unfamiliar heroes enter the pool."
+      "body": "How often a new name gets invited into the pool."
     },
     "toolkit_breadth": {
       "title": "Toolkit",
-      "body": "How varied the Dota jobs underneath the picks are."
+      "body": "The different jobs your heroes keep taking on."
     },
     "post_loss_familiarity_shift": {
       "title": "Familiarity",
-      "body": "Where hero choice moves after a loss."
+      "body": "Where your picks go after a loss."
     },
     "role_breadth": {
       "title": "Role",
-      "body": "How broad the credible role contexts are."
+      "body": "How many roles feel natural in your pool."
     },
     "combat_involvement": {
       "title": "Involvement",
-      "body": "How often the player appears in kill events per time."
+      "body": "How often you arrive where the action is."
     },
     "finisher_orientation": {
       "title": "Finishing",
-      "body": "How involvement splits between kills and assists."
+      "body": "Whether your presence ends fights or keeps them moving."
     },
     "death_exposure": {
       "title": "Deaths",
-      "body": "How exposed the player is to deaths per time."
+      "body": "How often danger collects your name."
     },
     "off_pool_performance": {
       "title": "Transfer",
-      "body": "Whether observable performance holds outside the familiar pool."
+      "body": "Whether your usual contribution travels to less familiar heroes."
     },
     "off_pool_activity_stability": {
       "title": "Presence",
-      "body": "Whether combat activity holds outside the familiar pool."
+      "body": "Whether you keep showing up outside your usual pool."
     },
     "performance_volatility": {
       "title": "Volatility",
-      "body": "How variable observable performance is match to match."
+      "body": "How much your results swing from game to game."
     },
     "recent_form_shift": {
       "title": "Form",
-      "body": "How recent observable form moved against an earlier window."
+      "body": "How your recent games changed shape."
     },
     "recent_activity_shift": {
       "title": "Pace",
-      "body": "How recent combat activity moved against an earlier window."
+      "body": "How your recent activity changed shape."
     },
     "session_length_tendency": {
       "title": "Duration",
-      "body": "What session length tends to appear."
+      "body": "The session length your history seems to prefer."
     },
     "late_session_performance": {
       "title": "Drift",
-      "body": "How your results tend to move later in longer sessions."
+      "body": "How your results move through longer sessions."
     },
     "post_loss_activity_shift": {
       "title": "Tempo",
-      "body": "How next-game activity moves after a loss."
+      "body": "How your next-game activity changes after a loss."
     },
     "post_loss_performance_response": {
       "title": "Recovery",
-      "body": "How your next game in the same session tends to move after a loss."
+      "body": "How your next game changes after a loss."
     }
   },
   "patterns": {
     "same_playbook": {
       "title": "Same Playbook",
-      "body": "Hero names change more than the toolkit underneath."
+      "body": "The hero names move; the way you help keeps returning."
     },
     "comfort_edge": {
       "title": "Comfort Edge",
-      "body": "Selection range and result range diverge."
+      "body": "Your playable range is wider than your steadiest range."
     },
     "partial_transfer": {
       "title": "Partial Transfer",
-      "body": "Presence travels off-pool better than results do."
+      "body": "Your fight presence travels farther than your results."
     },
     "versatile_core": {
       "title": "Versatile Core",
-      "body": "A focused pool still covers different Dota jobs."
+      "body": "A focused pool still gives you different ways to help."
     },
     "proven_flexibility": {
       "title": "Proven Flexibility",
@@ -121,50 +121,50 @@
     },
     "controlled_presence": {
       "title": "Controlled Presence",
-      "body": "High involvement coexists with low-to-moderate death exposure."
+      "body": "You stay in the fight without paying the full death bill."
     },
     "session_fade": {
       "title": "Session Fade",
-      "body": "Your results usually start slipping later in longer sessions."
+      "body": "Long sessions eventually ask more of your results."
     },
     "session_rise": {
       "title": "Session Rise",
-      "body": "Later-session results improve often enough to stand out."
+      "body": "Your later games find another gear."
     },
     "bounceback": {
       "title": "Bounceback",
-      "body": "Recovery improves while Familiarity or Tempo also moves."
+      "body": "Your next game often finds its feet after a loss."
     },
     "performance_slide": {
       "title": "Performance Slide",
-      "body": "Recovery declines while Familiarity or Tempo also moves."
+      "body": "Your next game can lose its footing after a loss."
     },
     "presence_tax": {
       "title": "Presence Tax",
-      "body": "High involvement carries a visible death cost whose context may be localized."
+      "body": "You show up often, and danger sends an invoice."
     }
   },
   "portfolio": {
     "common_thread": {
-      "question": "What keeps showing up across your established heroes?",
-      "question_body": "Choose the way of helping you think keeps recurring, then compare it with the evidence-backed read.",
+      "question": "What keeps returning across your heroes?",
+      "question_body": "Pick the kind of help that feels most like your default.",
       "correct": "You got it.",
       "incorrect": "Not quite.",
-      "correct_feedback": "Yes — {trait} is the strongest recurring way of helping across the established pool.",
-      "incorrect_feedback": "{selected} shows up in the pool, but {trait} has the stronger cross-hero coverage.",
-    "answer": "A common way of helping runs through the pool: {trait}.",
-    "reveal": "{trait} is the strongest recurring way of helping across {hero_count} established heroes.",
-    "boundary": "This describes what the heroes tend to offer; it does not prove those tools were used correctly in every match.",
+      "correct_feedback": "Yes — {trait} is the strongest recurring way of helping across your established pool.",
+      "incorrect_feedback": "{selected} shows up in the pool, but {trait} keeps returning across more of your heroes.",
+    "answer": "The thread through your pool: {trait}.",
+    "reveal": "{trait} keeps returning across {hero_count} of your established heroes.",
+    "boundary": "This is the job your heroes keep offering, not a scorecard for every match.",
     "no_clear_insight": {
       "eyebrow": "The useful answer",
       "headline": "Your pool doesn't have one defining job.",
-      "body": "The established heroes keep solving different problems, and no single contribution dominates enough to define the pool.",
-      "boundary": "Range is the conclusion here, not a missing result."
+      "body": "Your established heroes keep solving different problems. That range is the point.",
+      "boundary": "Range is the conclusion here."
     }
     },
     "exception": {
       "question": "Which hero gives your pool a different kind of Dota?",
-      "question_body": "Pick the hero you expect to feel most different from the rest of the pool.",
+      "question_body": "Pick the hero you expect to feel most different from the rest.",
       "correct": "Yep.",
       "incorrect": "Good guess — but not this one.",
       "correct_feedback": "Yes — {hero} stands apart from the rest of the pool most clearly.",
@@ -182,11 +182,11 @@
     },
     "evolution": {
       "question": "How do you think your hero pool has changed recently?",
-      "question_body": "Choose the description that feels closest. This is a self-assessment, not a score.",
+      "question_body": "Choose the description that feels closest. This is your read before the reveal.",
       "check": "Let’s check.",
-    "unavailable": "There are not enough comparable matches to show how the pool changed yet.",
-      "unavailable_heading": "Pool Evolution is unavailable for now.",
-      "locked": "Complete the self-assessment above to see the report read.",
+    "unavailable": "Your pool has not changed shape clearly enough to show it yet.",
+      "unavailable_heading": "Pool Evolution is taking a rain check.",
+      "locked": "Complete the self-assessment above to see the reveal.",
       "option_more_experimental": "I’ve become more experimental",
       "option_same_style": "My heroes changed, but my style didn’t",
       "option_different_kind": "I’ve shifted toward a different kind of hero",
@@ -197,7 +197,7 @@
       },
       "new_heroes_same_toolkit": {
         "heading": "New heroes. Same taste.",
-        "body": "Your recent picks look different, but the jobs you keep asking your heroes to perform barely moved."
+        "body": "Your recent picks look different, but the jobs you keep asking them to perform barely moved."
       },
       "stable_core_new_branch": {
         "heading": "Your pool is growing a new branch.",
@@ -205,37 +205,37 @@
       },
       "broadly_stable": {
         "heading": "More stable than it feels.",
-        "body": "The edges moved a little, but the core hero mix and the kinds of jobs it covers stayed broadly recognizable."
+        "body": "The edges moved a little, but your core hero mix and its favourite jobs stayed recognizable."
       }
     },
   "hero_mirror": {
     "title": "Your Hero Mirror",
-    "closed": "One last comparison: your observable behavior against a hero-shaped reference.",
-      "available": "Of the heroes you've played enough for us to trust, {hero} is where your usual Dota shows up most clearly.",
-    "unavailable": "No played hero matches your usual behavior clearly enough to earn the mirror yet.",
+    "closed": "One last comparison: the hero whose games look most like your usual Dota.",
+      "available": "Among the heroes you return to, {hero} looks most like your usual Dota.",
+    "unavailable": "No played hero looks enough like your usual Dota to earn the mirror yet.",
       "qualifier": "Not your best hero. Not necessarily your most played.",
-      "guardrail": "This is not a personality test. We're not saying you are {hero}. We're saying your games on {hero} most closely resemble the way you usually play Dota."
+      "guardrail": "This is not a personality test. You are not {hero}; your games on {hero} simply rhyme most with the way you usually play."
     }
   },
   "story_templates": {
     "element": {
       "observation": "Across these matches, {label} landed in the {zone} zone.",
-      "distinctive": "It was selected as one of the clearest signals in this report.",
-      "evidence": "The receipt below shows the summary fields supporting this signal.",
-      "notice": "Notice the zone and the sample together; neither is a verdict.",
+      "distinctive": "This is one of the clearest pieces of your game.",
+      "evidence": "The pattern has a shape you can recognize in your games.",
+      "notice": "The zone is a clue, not a verdict.",
       "guardrail": "This describes an observed pattern, not why it happened."
     },
     "pattern": {
       "observation": "{label} reads {zone}.",
-      "worth_noticing": "The relationship is visible in the Element zones below.",
-      "player_read": "This relationship describes how the signals moved together; it does not claim a cause.",
+      "worth_noticing": "The surrounding Elements give this pattern its shape.",
+      "player_read": "This is how the signals moved together; it is not a claim about a cause.",
       "takeaway": "Keep an eye on whether the same relationship appears in another window.",
-      "guardrail": "The result is bounded by the summary fields and the required Element evidence."
+      "guardrail": "This is a useful pattern, not a verdict about you."
     },
     "pattern_action": {
       "same_playbook_kicker": "A useful next step",
       "same_playbook_heading": "Where do you want to take this?",
-      "same_playbook_intro": "Both directions are valid: keep solving the same kind of Dota problem, or add range without abandoning your anchors.",
+      "same_playbook_intro": "Both directions are valid: keep your familiar answer, or add range without abandoning your anchors.",
       "same_playbook_deepen_label": "Go deeper",
       "same_playbook_deepen_description": "More heroes that keep your current game familiar.",
       "same_playbook_stretch_label": "Stretch comfortably",
@@ -243,11 +243,11 @@
       "same_playbook_recurring_core_label": "Your recurring core:",
       "same_playbook_familiar_label": "What stays familiar.",
       "same_playbook_changes_label": "What changes.",
-      "same_playbook_empty_direction": "The direction is useful, but we do not have a hero recommendation we trust enough yet.",
+      "same_playbook_empty_direction": "The direction is useful, but the next hero is still keeping a low profile.",
       "comfort_edge_kicker": "Build the pool with a reason",
       "comfort_edge_heading": "Your strongest heroes are the safest part of this pool today.",
-      "comfort_edge_intro": "Here is why the other established heroes can still be worth learning. This is a player-relative reliability read, not a meta ranking.",
-      "comfort_edge_reliability_label": "Established hero reliability",
+      "comfort_edge_intro": "The other established heroes can still be worth learning. This is your ladder, not the meta's.",
+      "comfort_edge_reliability_label": "Your hero ladder",
       "comfort_edge_why_learn_label": "Why learn",
       "comfort_edge_useful_when_label": "Useful when.",
       "comfort_edge_enemy_examples_label": "Enemy examples.",
@@ -256,18 +256,18 @@
       "partial_transfer_kicker": "Where the transfer bends",
       "partial_transfer_heading": "One learning demand may explain the gap",
       "partial_transfer_direct_label": "What changed",
-      "partial_transfer_hypothesis_label": "Capability lead",
-      "partial_transfer_unresolved_heading": "The gap is real; the cause is not proven",
-      "partial_transfer_deep_label": "Worth a deeper evidence pass",
+      "partial_transfer_hypothesis_label": "A useful lead",
+      "partial_transfer_unresolved_heading": "The gap is real; the reason is still hiding",
+      "partial_transfer_deep_label": "Worth a closer look",
       "versatile_core_kicker": "Your compact toolkit",
       "versatile_core_heading": "Small pool. Different answers.",
       "versatile_core_jobs_label": "Ways of helping in the core",
-      "versatile_core_coverage_label": "Coverage map",
+      "versatile_core_coverage_label": "Ways your core helps",
       "versatile_core_next_tool_label": "One useful next tool",
       "versatile_core_alternatives_label": "Other viable additions",
       "versatile_core_no_gap_heading": "No obvious hole needs filling",
-      "proven_flexibility_kicker": "Proof of range",
-      "proven_flexibility_heading": "Your flexibility shows up in the calendar",
+      "proven_flexibility_kicker": "Range in motion",
+      "proven_flexibility_heading": "Your flexibility shows up over time",
       "proven_flexibility_roster_label": "Heroes in the window",
       "proven_flexibility_proof_label": "What repeats",
       "proven_flexibility_distributed_heading": "Your flexibility is distributed",
@@ -277,8 +277,8 @@
       "controlled_presence_finishing_label": "Finishing flavor",
       "presence_tax_kicker": "Where does the tax come from?",
       "presence_tax_heading": "The death cost has a shape",
-      "presence_tax_deep_label": "Deeper evidence needed",
-      "presence_tax_unresolved_body": "The summary history shows the cost, but not a stable context for it yet.",
+      "presence_tax_deep_label": "Worth a closer look",
+      "presence_tax_unresolved_body": "The cost has a shape, but the context is still slippery.",
       "bounceback_kicker": "Your best rebound tool",
       "bounceback_heading": "Where your post-loss performance recovers most",
       "performance_slide_kicker": "Your roughest post-loss tool",
@@ -303,134 +303,134 @@
           "P01_BROAD_HERO_NARROW_JOB": {
             "headline": "Broad by hero. Narrow by job.",
             "subheadline": "Your hero names change more than the ways you tend to help underneath.",
-            "interpretation": {"title": "What this actually means", "body": "Your pool offers variety on the surface, but several heroes keep asking you to solve a similar kind of Dota problem."},
-            "fallback": {"title": "The pattern is clear; the next hero is not", "body": "The repeated job is supported, but no additional hero met the evidence needed for a recommendation."}
+            "interpretation": {"title": "The shape of it", "body": "Your pool offers variety on the surface, but several heroes keep asking you to solve a similar kind of Dota problem."},
+            "fallback": {"title": "The pattern is clear; the next hero is not", "body": "The repeated job is clear. The next hero can wait until a useful bridge appears."}
           }
         },
         "recommendations": {
           "P01_ADD_MISSING_FUNCTION": {"eyebrow": "DO THIS NEXT", "title": "Add one missing answer", "body": "Try {hero_name} when you want to keep a familiar anchor while adding a genuinely different way to help."}
         },
-        "deep_dives": {"P01_DRAFT_SPECIFIC_EXPANSION": {"title": "Deep Dive: expand the answer", "body": "Replay and draft evidence could show which matchups make a new answer valuable."}}
+        "deep_dives": {"P01_DRAFT_SPECIFIC_EXPANSION": {"title": "Deep Dive: expand the answer", "body": "Replay and draft detail could show which matchups make a new answer valuable."}}
       },
       "comfort_edge": {
         "outcomes": {
           "P02_RELIABILITY_LADDER": {
             "headline": "Your pool has a reliability ladder.",
             "subheadline": "Some established heroes are anchors; others are still becoming dependable.",
-            "interpretation": {"title": "What this actually means", "body": "The development side is not a verdict. It is the clearest practice order inside the heroes you already return to."},
-            "fallback": {"title": "The ladder needs more evidence", "body": "The pool is broad enough to compare, but not every rung is dependable enough to place confidently."}
+            "interpretation": {"title": "The shape of it", "body": "The development side is not a verdict. It is the clearest practice order inside the heroes you already return to."},
+            "fallback": {"title": "The ladder is still forming", "body": "Your pool is broad, but the rungs are not far enough apart to call out a neat order yet."}
           }
         },
         "recommendations": {"P02_FOCUS_DEVELOPMENT_ORDER": {"eyebrow": "DO THIS NEXT", "title": "Practice #3–5 with a reason", "body": "Work down the development side one hero at a time, and name the new demand each hero introduces."}},
-        "deep_dives": {"P02_HERO_DEMAND_COMPARISON": {"title": "Deep Dive: hero demand", "body": "Match-level evidence could separate hero familiarity from the specific demands that change your results."}}
+        "deep_dives": {"P02_HERO_DEMAND_COMPARISON": {"title": "Deep Dive: hero demand", "body": "Match-level detail could separate hero familiarity from the specific demands that change your results."}}
       },
       "partial_transfer": {
         "outcomes": {
           "P03_PRESENCE_HOLDS_RESULT_BENDS": {
             "headline": "Your presence travels farther than your results.",
             "subheadline": "You still show up in fights on off-pool heroes. The results stop travelling with you.",
-            "interpretation": {"title": "What this actually means", "body": "The match history supports a result difference and one possible learning demand. It does not prove the demand caused the gap."},
-            "fallback": {"title": "The transfer split is visible", "body": "The familiar and off-pool groups separate, but the available evidence cannot yet name the demand behind it."}
+            "interpretation": {"title": "The shape of it", "body": "The match history shows a result difference and one useful learning lead. It does not say the lead caused the gap."},
+            "fallback": {"title": "The transfer split is visible", "body": "Your familiar and off-pool games separate, but the reason is still hiding."}
           }
         },
         "recommendations": {"P03_PRACTICE_TRANSFER_DEMAND": {"eyebrow": "DO THIS NEXT", "title": "Practice the demand, not the label", "body": "Use the strongest supported demand as a practice question, while treating the result difference as an observation rather than a cause."}},
-        "deep_dives": {"P03_ENTRY_HOLD_REENTRY": {"title": "Deep Dive: where transfer bends", "body": "Replay evidence could separate entry, hold, and re-entry so the summary-level lead becomes testable."}}
+        "deep_dives": {"P03_ENTRY_HOLD_REENTRY": {"title": "Deep Dive: where transfer bends", "body": "Replay detail could separate entry, hold, and re-entry so the lead becomes easier to test."}}
       },
       "versatile_core": {
         "outcomes": {
           "P04_COMPACT_POOL_BROAD_JOBS": {
             "headline": "Small pool. Different answers.",
-            "subheadline": "Your core stays compact while its coverage reaches across several ways to contribute.",
-            "interpretation": {"title": "What this actually means", "body": "The family map shows where the core overlaps and where only one or two heroes carry a job. It is a coverage read, not a claim about execution."},
-            "fallback": {"title": "No versatile-core headline yet", "body": "The family map is visible for context, but the compact pool did not meet the evidence needed for a clear versatility read."}
+            "subheadline": "Your core stays compact while its ways to help reach across several jobs.",
+            "interpretation": {"title": "The shape of it", "body": "The family map shows where the core overlaps and where only one or two heroes carry a job. It is a read on your options, not a claim about execution."},
+            "fallback": {"title": "No versatile-core headline yet", "body": "Your compact pool has different answers, but none stands out enough to lead the chapter yet."}
           }
         },
         "recommendations": {"P04_ADD_MISSING_FUNCTION": {"eyebrow": "DO THIS NEXT", "title": "Add a genuinely new tool", "body": "Try {hero_name} only if it adds a missing way to help while keeping one familiar anchor."}},
-        "deep_dives": {"P04_DRAFT_SPECIFIC_EXPANSION": {"title": "Deep Dive: draft-specific coverage", "body": "Draft and matchup evidence could test whether a missing function is useful in the situations you actually face."}}
+        "deep_dives": {"P04_DRAFT_SPECIFIC_EXPANSION": {"title": "Deep Dive: draft-specific options", "body": "Draft and matchup detail could test whether a missing function is useful in the situations you actually face."}}
       },
       "proven_flexibility": {
         "outcomes": {
           "P05_PROVEN_FLEX_WINDOW": {
             "headline": "Your flexibility shows up in the window.",
-            "subheadline": "The roster changed, and the range of ways to help repeated often enough to count as evidence.",
-            "interpretation": {"title": "What this actually means", "body": "This is more than a list of one-off picks: multiple heroes and jobs recur inside a supported period."},
+            "subheadline": "The roster changed, and the range of ways to help kept returning together.",
+            "interpretation": {"title": "The shape of it", "body": "This is more than a list of one-off picks: multiple heroes and jobs kept recurring in the same stretch."},
             "fallback": {"title": "Range is present, but distributed", "body": "The history shows a wide pool without one clean flex window that holds together across every comparison."}
           }
         },
         "recommendations": {"P05_PROTECT_RELIABLE_ANCHORS": {"eyebrow": "DO THIS NEXT", "title": "Keep the anchors warm", "body": "Protect the heroes that make this flexibility repeatable instead of trying to keep the whole roster equally ready."}},
-        "deep_dives": {"P05_CONTEXT_TRANSFER": {"title": "Deep Dive: context transfer", "body": "Match-level evidence could show which team, draft, and timing contexts support the flexible window."}}
+        "deep_dives": {"P05_CONTEXT_TRANSFER": {"title": "Deep Dive: context transfer", "body": "Match-level detail could show which team, draft, and timing contexts support the flexible window."}}
       },
       "bounceback": {
         "outcomes": {
           "P06_POST_LOSS_STRONGER": {
             "headline": "LOSS → NEXT GAME: STRONGER",
             "subheadline": "A familiar hero or job context is the strongest supported rebound setting.",
-            "interpretation": {"title": "What this actually means", "body": "Your next game in the same session tends to improve after a loss. The pattern says nothing about your mood or motive."},
+            "interpretation": {"title": "The shape of it", "body": "Your next game tends to improve after a loss. The pattern says nothing about your mood or motive."},
             "fallback": {"title": "The next game is stronger overall", "body": "The rebound is supported at a broad level, but no narrower hero or job context is stable enough to call out."}
           }
         },
         "recommendations": {"P06_REPEAT_POST_LOSS_ANCHOR": {"eyebrow": "DO THIS NEXT", "title": "Simplify the first decision", "body": "Use the most repeatable familiar job as a post-loss anchor when you want one controllable next step."}},
-        "deep_dives": {"P06_POST_LOSS_MECHANISM": {"title": "Deep Dive: the rebound transition", "body": "Match-level evidence could show what changes between the loss and the stronger next game."}}
+        "deep_dives": {"P06_POST_LOSS_MECHANISM": {"title": "Deep Dive: the rebound transition", "body": "Match-level detail could show what changes between the loss and the stronger next game."}}
       },
       "performance_slide": {
         "outcomes": {
           "P07_POST_LOSS_WEAKER": {
             "headline": "LOSS → NEXT GAME: WEAKER",
             "subheadline": "A familiar hero or job context is the strongest supported drop setting.",
-            "interpretation": {"title": "What this actually means", "body": "Your next game in the same session tends to lose ground after a loss. The data does not establish tilt, panic, or hero causality."},
+            "interpretation": {"title": "The shape of it", "body": "Your next game tends to lose ground after a loss. The pattern does not establish tilt, panic, or hero causality."},
             "fallback": {"title": "The next game is weaker overall", "body": "The slide is supported at a broad level, but no narrower context is stable enough to call out."}
           }
         },
         "recommendations": {"P07_CHANGE_ONE_TRANSITION": {"eyebrow": "DO THIS NEXT", "title": "Change one transition", "body": "Pause the queue, return to a stable hero or job, or simplify the first game plan—choose one controllable change."}},
-        "deep_dives": {"P07_POST_LOSS_MECHANISM": {"title": "Deep Dive: the slide transition", "body": "Match-level evidence could show where the next-game result diverges from the comparable baseline."}}
+        "deep_dives": {"P07_POST_LOSS_MECHANISM": {"title": "Deep Dive: the slide transition", "body": "Match-level detail could show where the next-game result diverges from the usual shape."}}
       },
       "controlled_presence": {
         "outcomes": {
           "P08_HIGH_PRESENCE_LOW_COST": {
             "headline": "You can be involved without paying the full cost.",
             "subheadline": "The cleanest context combines high presence with lower death exposure.",
-            "interpretation": {"title": "What this actually means", "body": "The summary history identifies a context where involvement and survival move together. It does not prove positioning skill or the value of every death."},
+            "interpretation": {"title": "The shape of it", "body": "Your games identify a context where involvement and survival move together. It does not prove positioning skill or the value of every death."},
             "fallback": {"title": "The broad relationship is clear", "body": "High presence and lower exposure coexist overall, but no narrower context is stable enough to call out."}
           }
         },
         "recommendations": {"P08_PRESERVE_LOW_COST_PRESENCE": {"eyebrow": "DO THIS NEXT", "title": "Preserve the useful shape", "body": "Keep the behavior or hero demand that produces high involvement without the same death exposure."}},
-        "deep_dives": {"P08_FIGHT_CONTEXTS": {"title": "Deep Dive: fight contexts", "body": "Replay evidence could identify which fight situations preserve involvement without the same death cost."}}
+        "deep_dives": {"P08_FIGHT_CONTEXTS": {"title": "Deep Dive: fight contexts", "body": "Replay detail could identify which fight situations preserve involvement without the same death cost."}}
       },
       "presence_tax": {
         "outcomes": {
           "P09_HIGH_PRESENCE_HIGH_COST": {
             "headline": "Your presence comes with a visible tax.",
             "subheadline": "High involvement and high death exposure appear together in the supported history.",
-            "interpretation": {"title": "What this actually means", "body": "The cost may be job-shaped, hero-specific, or spread across contexts. Summary history cannot say whether those deaths bought useful value."},
-            "fallback": {"title": "The cost is visible; its source is not", "body": "The global relationship qualifies, but the available subgroups cannot localize it reliably."}
+            "interpretation": {"title": "The shape of it", "body": "The cost may be job-shaped, hero-specific, or spread across contexts. Your games cannot say whether those deaths bought useful value."},
+            "fallback": {"title": "The cost is visible; its shape is not", "body": "The broad relationship is there, but no smaller context owns it clearly yet."}
           }
         },
         "recommendations": {"P09_INVESTIGATE_PRESENCE_COST": {"eyebrow": "DO THIS NEXT", "title": "Separate necessary cost from exposure", "body": "Treat the strongest context as a question for replay review, not as proof that involvement itself is the problem."}},
-        "deep_dives": {"P09_DEATH_VALUE_CONTEXT": {"title": "Deep Dive: what deaths buy", "body": "Replay evidence could separate initiation, space, saves, objectives, and deaths that buy nothing visible."}}
+        "deep_dives": {"P09_DEATH_VALUE_CONTEXT": {"title": "Deep Dive: what deaths buy", "body": "Replay detail could separate initiation, space, saves, objectives, and deaths that buy nothing visible."}}
       },
       "session_fade": {
         "outcomes": {
           "P10_SESSION_FADE": {
             "headline": "Your session has a fade point.",
             "subheadline": "Your results usually start slipping later in longer sessions.",
-            "interpretation": {"title": "What this actually means", "body": "The first supported fade point is a checkpoint for a different decision, not a magical curfew or a claim about why the change happens."},
+            "interpretation": {"title": "The shape of it", "body": "The first clear fade point is a checkpoint for a different decision, not a magical curfew or a claim about why the change happens."},
             "fallback": {"title": "The curve fades gradually", "body": "Later-session movement is visible, but no single breakpoint is stable enough to call out."}
           }
         },
         "recommendations": {"P10_CHECKPOINT_AT_BREAKPOINT": {"eyebrow": "DO THIS NEXT", "title": "Use the breakpoint as a checkpoint", "body": "At the first supported fade point, check whether a pause, stable hero, or simpler plan is the useful next experiment."}},
-        "deep_dives": {"P10_SESSION_BREAKPOINT": {"title": "Deep Dive: around the breakpoint", "body": "Match-level evidence could show what changes around the first supported session breakpoint."}}
+        "deep_dives": {"P10_SESSION_BREAKPOINT": {"title": "Deep Dive: around the breakpoint", "body": "Match-level detail could show what changes around the first clear session breakpoint."}}
       },
       "session_rise": {
         "outcomes": {
           "P11_SESSION_RISE": {
             "headline": "You tend to warm into the session.",
             "subheadline": "Your results usually improve later in longer sessions.",
-            "interpretation": {"title": "What this actually means", "body": "The history supports a repeatable lift point. It is a planning clue, not a claim about focus, emotion, or a required number of games."},
+            "interpretation": {"title": "The shape of it", "body": "Your history shows a repeatable lift point. It is a planning clue, not a claim about focus, emotion, or a required number of games."},
             "fallback": {"title": "The curve rises gradually", "body": "Later-session movement is visible, but no single lift point is stable enough to call out."}
           }
         },
         "recommendations": {"P11_FRONTLOAD_FAMILIARITY": {"eyebrow": "DO THIS NEXT", "title": "Front-load familiarity", "body": "Use a reliable anchor early and defer experimentation if your history usually warms up over a session."}},
-        "deep_dives": {"P11_SESSION_BREAKPOINT": {"title": "Deep Dive: around the lift", "body": "Match-level evidence could show what changes before and after the first supported session lift point."}}
+        "deep_dives": {"P11_SESSION_BREAKPOINT": {"title": "Deep Dive: around the lift", "body": "Match-level detail could show what changes before and after the first clear session lift point."}}
       }
     }
   },

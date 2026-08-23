@@ -1,0 +1,231 @@
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("../fonts/PlusJakartaSans-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--color-void);
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  color: var(--color-text);
+  background: var(--color-void);
+  font-family: var(--font-body);
+  font-size: var(--text-body-size);
+  font-weight: var(--weight-regular);
+  line-height: var(--text-body-leading);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::selection {
+  color: var(--color-ink);
+  background: var(--color-saffron);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  min-height: var(--control-height);
+  border: 1px solid transparent;
+  border-radius: var(--radius-default);
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: wait;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-muted-text);
+  opacity: 1;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+svg {
+  display: block;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  overflow-wrap: anywhere;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: var(--weight-display);
+  letter-spacing: -0.045em;
+}
+
+p {
+  margin-top: 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app-body {
+  min-height: 100svh;
+}
+
+.shell {
+  width: min(1200px, calc(100% - (var(--mobile-gutter) * 2)));
+  margin: 0 auto;
+}
+
+.state-shell {
+  display: grid;
+  min-height: 100svh;
+  align-content: center;
+  width: min(760px, calc(100% - (var(--mobile-gutter) * 2)));
+  margin: 0 auto;
+  padding: var(--space-8) 0;
+}
+
+.state-shell h1 {
+  max-width: 700px;
+  margin-top: var(--space-3);
+  color: var(--color-text);
+  font-size: clamp(40px, 8vw, 72px);
+  line-height: var(--text-display-leading);
+  letter-spacing: var(--text-display-tracking);
+}
+
+.state-shell .lede {
+  max-width: 590px;
+  margin: var(--space-5) 0 0;
+  color: var(--color-muted-text);
+  font-size: var(--text-lead-size);
+  line-height: var(--text-lead-leading);
+}
+
+.state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.back-link {
+  display: inline-flex;
+  min-height: var(--control-height);
+  align-items: center;
+  color: var(--color-muted-text);
+  font-size: var(--text-meta-size);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+
+.state-primary-action {
+  display: inline-flex;
+  min-height: var(--control-height);
+  align-items: center;
+  padding: 0 var(--space-5);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  font-weight: var(--weight-bold);
+  text-decoration: none;
+}
+
+.state-primary-action:hover {
+  background: var(--color-saffron);
+}
+
+.state-progress-track {
+  position: relative;
+  width: min(560px, 100%);
+  height: 4px;
+  overflow: hidden;
+  margin-top: var(--space-7);
+  background: var(--color-line);
+}
+
+.state-progress-track span {
+  display: block;
+  width: 32%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-coral), var(--color-saffron), var(--color-lilac));
+  animation: state-progress-sweep 1.4s ease-in-out infinite;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--color-saffron);
+  font-size: var(--text-label-size);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.14em;
+  line-height: var(--text-label-leading);
+  text-transform: uppercase;
+}
+
+.lede {
+  font-size: var(--text-lead-size);
+  line-height: var(--text-lead-leading);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .state-progress-track span {
+    width: 100%;
+    animation: none;
+  }
+}
+
+@keyframes state-progress-sweep {
+  from { transform: translateX(-125%); }
+  to { transform: translateX(340%); }
+}

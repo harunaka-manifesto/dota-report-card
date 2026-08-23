@@ -169,7 +169,7 @@ adapter for historical callers and features that have not migrated yet.
 
 Semantic recommendations are deterministic and versioned separately from hero
 knowledge as `hero-recommendations-semantic-1.1.0`; active branch copy is
-`free-dna-semantic-copy-5.2.0` and is reviewed in
+`free-dna-semantic-copy-5.3.0` and is reviewed in
 `docs/generated/free-dna-v5.2-copy-review.md`. `double_down` maximizes familiar jobs and low learning distance;
 `adjacent_move` keeps an anchor while adding a new job; `fill_gap` requires an
 added job in the exact displayed coverage family; `change_angle` keeps an

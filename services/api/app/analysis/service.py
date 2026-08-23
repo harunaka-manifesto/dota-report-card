@@ -15,6 +15,7 @@ from app.analysis.deep_scan import (
     acquire_selected_matches,
     evaluate_deep_hypotheses,
     plan_deep_scan,
+    plan_diagnostic_deep_scan,
 )
 from app.analysis.source import AnalysisSource
 from app.api.report_schemas import validate_free_dna_report
@@ -47,6 +48,7 @@ from app.opendota.cache import payload_hash
 from app.patterns.detector import detect_patterns
 from app.reports.assembly import assemble_player_dna_report, assemble_report
 from app.reports.dna_assembly import assemble_free_dna_report_v4
+from app.reports.dna_assembly_v6 import assemble_free_dna_report_v6
 from app.storage.repository import AnalysisJob, InMemoryRepository
 
 logger = logging.getLogger(__name__)
@@ -126,6 +128,17 @@ class AnalysisService:
 
     def _compatibility_model_version(self, analysis_mode: str) -> str:
         if analysis_mode == "free":
+            if self.settings.free_dna_v6_enabled:
+                from app.player_analysis_v6.models import default_versions
+
+                versions = {
+                    **default_versions(),
+                    "eligibility": "summary-eligibility-1.0.0",
+                    "model": self.settings.model_version,
+                    "template": self.settings.template_version,
+                }
+                digest = hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest()
+                return f"free-analysis-v6-{digest[:45]}"
             from app.behavior.context_baseline import CONTEXT_BASELINE_VERSION
             from app.behavior.elements.registry import ELEMENT_REGISTRY_VERSION
             from app.behavior.outcomes import SEMANTIC_OUTCOME_VERSION
@@ -232,6 +245,26 @@ class AnalysisService:
         task = asyncio.create_task(self._run_bounded(job, identifier))
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
+
+    def enqueue_existing_job(self, job: AnalysisJob) -> None:
+        """Dispatch a repository-created continuation job through the normal worker seam."""
+
+        self._enqueue(job, PlayerIdentifier(job.account_id, job.canonical_player))
+
+    def enqueue_deep_continuation(
+        self,
+        job: AnalysisJob,
+        *,
+        parent_report_id: str,
+        diagnostic_question_id: str,
+        interaction_session_id: str | None = None,
+    ) -> None:
+        """Dispatch a v6 diagnostic while retaining its audited parent choice."""
+
+        del interaction_session_id  # State access was authorized by the route.
+        job.parent_report_id = parent_report_id
+        job.diagnostic_question_id = diagnostic_question_id
+        self.enqueue_existing_job(job)
 
     async def _run_bounded(self, job: AnalysisJob, identifier: PlayerIdentifier) -> None:
         if self._semaphore is None:
@@ -401,19 +434,45 @@ class AnalysisService:
             summary_feature_set,
             identifier.account_id,
         )
-        hypotheses, selection_plan = plan_deep_scan(
-            patterns,
-            summary_feature_set,
-            max_primary_hypotheses=self.settings.effective_max_primary_hypotheses,
-            max_deep_matches=self.settings.effective_max_deep_matches,
-            max_parse_requests=self.settings.effective_max_parse_requests,
-            max_data_cost=max(
-                0.0,
-                self.settings.effective_max_data_cost_per_report - cost_policy.units_for("history"),
-            ),
-            min_marginal_information_gain=self.settings.effective_min_marginal_information_gain,
-            available_families_by_match=available_families,
-        )
+        diagnostic_question = _job_diagnostic_question(job, self.repository)
+        if diagnostic_question is not None:
+            hypotheses, selection_plan = plan_diagnostic_deep_scan(
+                diagnostic_question,
+                summary_feature_set,
+                max_deep_matches=self.settings.effective_max_deep_matches,
+                max_parse_requests=self.settings.effective_max_parse_requests,
+                max_data_cost=max(
+                    0.0,
+                    self.settings.effective_max_data_cost_per_report
+                    - cost_policy.units_for("history"),
+                ),
+                min_marginal_information_gain=(
+                    self.settings.effective_min_marginal_information_gain
+                ),
+                parse_min_marginal_information_gain=(
+                    self.settings.effective_min_parse_information_gain
+                ),
+                available_families_by_match=available_families,
+            )
+            job.selection_plan = selection_plan.as_dict()
+            job.stopping_reason = selection_plan.stopping_reason
+        else:
+            hypotheses, selection_plan = plan_deep_scan(
+                patterns,
+                summary_feature_set,
+                max_primary_hypotheses=self.settings.effective_max_primary_hypotheses,
+                max_deep_matches=self.settings.effective_max_deep_matches,
+                max_parse_requests=self.settings.effective_max_parse_requests,
+                max_data_cost=max(
+                    0.0,
+                    self.settings.effective_max_data_cost_per_report
+                    - cost_policy.units_for("history"),
+                ),
+                min_marginal_information_gain=(
+                    self.settings.effective_min_marginal_information_gain
+                ),
+                available_families_by_match=available_families,
+            )
 
         deep_history_limit = history_limit if history_limit is not None else len(history)
         await self._run_deep_scan(
@@ -488,9 +547,18 @@ class AnalysisService:
         self.repository.update_job(
             job,
             stage="rendering_report",
-            message="Building your Elements, Patterns, and Hero Portfolio report",
+            message=(
+                "Building your v6 identity, findings, and story report"
+                if self.settings.free_dna_v6_enabled
+                else "Building your Elements, Patterns, and Hero Portfolio report"
+            ),
         )
-        report = assemble_free_dna_report_v4(
+        assembler = (
+            assemble_free_dna_report_v6
+            if self.settings.free_dna_v6_enabled
+            else assemble_free_dna_report_v4
+        )
+        report = assembler(
             account_id=identifier.account_id,
             profile=_profile_for_report(profile, identifier.account_id),
             analysis=dna_analysis,
@@ -772,6 +840,27 @@ def _analysis_mode(value: str) -> str:
     if normalized not in {"free", "deep_scan"}:
         raise ValueError("Analysis mode must be 'free' or 'deep_scan'")
     return normalized
+
+
+def _job_diagnostic_question(job: AnalysisJob, repository: Any) -> dict[str, Any] | None:
+    """Resolve the server-offered question for a v6 continuation job."""
+
+    if not job.parent_report_id or not job.diagnostic_question_id:
+        return None
+    report = repository.get_report(job.parent_report_id)
+    if not isinstance(report, dict):
+        return None
+    for question in report.get("diagnostic_questions") or []:
+        if not isinstance(question, dict):
+            continue
+        identifier = (
+            question.get("diagnostic_question_id")
+            or question.get("question_id")
+            or question.get("id")
+        )
+        if identifier == job.diagnostic_question_id:
+            return question
+    return None
 
 
 def _available_families(
