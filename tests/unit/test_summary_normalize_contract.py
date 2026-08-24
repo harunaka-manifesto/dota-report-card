@@ -14,6 +14,7 @@ def _row(match_id: int, **updates: object) -> dict[str, object]:
         "kills": 8,
         "deaths": 4,
         "assists": 10,
+        "leaver_status": 0,
     }
     value.update(updates)
     return value

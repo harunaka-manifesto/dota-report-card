@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class CreateAnalysisRequest(BaseModel):
     player: str = Field(min_length=1, max_length=300)
     refresh: bool = False
-    mode: Literal["free", "deep_scan"] = "free"
+    mode: Literal["free"] = "free"
 
 
 class CreateAnalysisResponse(BaseModel):
@@ -49,6 +49,8 @@ class HealthResponse(BaseModel):
     postgres: str
     redis: str
     worker: str
+    artifacts: str
+    auth: str
     source: str
 
 

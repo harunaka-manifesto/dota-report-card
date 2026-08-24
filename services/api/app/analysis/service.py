@@ -24,6 +24,7 @@ from app.cohorts.selector import CohortSelection, select_narrowest_cohort
 from app.core.config import FREE_HISTORY_WINDOW_DAYS, RECENCY_HALF_LIFE_DAYS, Settings, get_settings
 from app.core.errors import (
     AppError,
+    DeepEntitlementRequired,
     InsufficientMatchHistory,
     ProfileUnavailable,
     SteamIdentityUnavailable,
@@ -45,6 +46,7 @@ from app.ingestion.summary_history_contract import (
     SUMMARY_HISTORY_PROVIDER_LIMIT,
     SUMMARY_HISTORY_WINDOW_DAYS,
     CanonicalSummaryHistory,
+    canonical_summary_history_cache_key,
     normalize_canonical_summary_history,
     request_manifest,
 )
@@ -152,6 +154,8 @@ class AnalysisService:
         # this explicit suffix prevents an incomplete production bundle from
         # silently falling back to fixture constants.
         if (
+            self.settings.app_env != "production"
+            and
             artifact_dir is None
             and baseline_path is not None
             and threshold_path is not None
@@ -185,9 +189,18 @@ class AnalysisService:
             self.settings.free_dna_v61_release_authorization_path
             or artifact_dir / "production-beta-authorization-6.1.0.json"
         )
+        expected_revision = self.settings.release_commit_sha
+        expected_dirty = self.settings.release_worktree_dirty
+        if self.settings.app_env == "production":
+            if not expected_revision or expected_dirty is not False:
+                raise ArtifactValidationError(
+                    "production V6.1 requires RELEASE_COMMIT_SHA and RELEASE_WORKTREE_DIRTY=false"
+                )
         release_authorization = load_v61_production_beta_authorization(
             release_authorization_path,
             artifact_checksums=bundle_checksums,
+            expected_source_revision=expected_revision,
+            expected_dirty_worktree=expected_dirty,
         )
         return (
             bundle.baseline.resolver(),
@@ -211,8 +224,10 @@ class AnalysisService:
         enqueue: bool = True,
         mode: str | None = None,
     ) -> tuple[AnalysisJob, bool]:
+        if mode not in (None, "free"):
+            raise ValueError("The generic analysis path only creates Free reports")
         identifier = await self._resolve_identifier(player)
-        analysis_mode = _analysis_mode(mode or self.settings.default_analysis_mode)
+        analysis_mode = "free"
         compatibility_version = self._compatibility_model_version(analysis_mode)
         if not refresh:
             raw_history_hash = None
@@ -224,7 +239,9 @@ class AnalysisService:
                 if isinstance(cached_profile, dict):
                     identity_fingerprint = _identity_fingerprint(cached_profile)
                 cached = self.repository.get_cached_raw_payload(
-                    f"/players/{identifier.account_id}/matches",
+                    canonical_summary_history_cache_key(identifier.account_id)
+                    if self.settings.free_dna_v61_enabled
+                    else f"/players/{identifier.account_id}/matches",
                     str(identifier.account_id),
                     max_age_seconds=self.settings.effective_summary_history_cache_ttl_seconds,
                 )
@@ -432,6 +449,8 @@ class AnalysisService:
     async def run_job(self, job: AnalysisJob, identifier: PlayerIdentifier | None = None) -> None:
         identifier = identifier or PlayerIdentifier(job.account_id, job.canonical_player)
         try:
+            if job.analysis_mode == "deep_scan":
+                self._validate_deep_authorization(job)
             await self._run(job, identifier)
             record_metric(
                 "analysis.completed",
@@ -456,6 +475,37 @@ class AnalysisService:
             record_metric(
                 "analysis.failed", tags={"code": "ANALYSIS_FAILED", "mode": job.analysis_mode}
             )
+
+    def _validate_deep_authorization(self, job: AnalysisJob) -> None:
+        decision = job.entitlement_decision
+        if not isinstance(decision, dict) or decision.get("allowed") is not True:
+            raise DeepEntitlementRequired("Deep Analysis capability is missing or denied")
+        if not str(decision.get("grant_id") or "").strip():
+            raise DeepEntitlementRequired("Deep Analysis capability is malformed")
+        if decision.get("report_id") != job.parent_report_id:
+            raise DeepEntitlementRequired("Deep Analysis capability is bound to another report")
+        if decision.get("diagnostic_question_id") != job.diagnostic_question_id:
+            raise DeepEntitlementRequired("Deep Analysis capability is bound to another question")
+        account_value = decision.get("account_id")
+        account_id = int(account_value) if isinstance(account_value, (int, str)) else -1
+        if (
+            account_id != job.account_id
+            or decision.get("revoked") is True
+            or decision.get("replay_detected") is True
+        ):
+            raise DeepEntitlementRequired("Deep Analysis capability is invalid")
+        expiry = decision.get("expires_at")
+        if isinstance(expiry, (int, float)):
+            expires_at = float(expiry)
+        elif isinstance(expiry, str):
+            try:
+                expires_at = datetime.fromisoformat(expiry.replace("Z", "+00:00")).timestamp()
+            except ValueError:
+                expires_at = 0.0
+        else:
+            expires_at = 0.0
+        if expires_at <= datetime.now(UTC).timestamp():
+            raise DeepEntitlementRequired("Deep Analysis capability has expired")
 
     async def _run(self, job: AnalysisJob, identifier: PlayerIdentifier) -> None:
         self.repository.update_job(
@@ -495,7 +545,7 @@ class AnalysisService:
         cost_ledger = DataCostLedger()
         cost_policy = CostPolicy()
         canonical_history: CanonicalSummaryHistory | None = None
-        v61_history_key = f"/players/{identifier.account_id}/matches/v61-canonical"
+        v61_history_key = canonical_summary_history_cache_key(identifier.account_id)
         history_cache_key = (
             v61_history_key
             if job.analysis_mode == "free" and self.settings.free_dna_v61_enabled
@@ -757,18 +807,18 @@ class AnalysisService:
                 protected_cohorts_out=protected_cohorts,
             )
             report = validate_free_dna_report(report)
-            report_id = self.repository.save_report(
+            persist_report = getattr(self.repository, "save_report_with_protected_cohorts", None)
+            if persist_report is None:
+                raise RuntimeError("V6.1 generation requires atomic protected Deep cohort persistence")
+            report_id = persist_report(
                 account_id=identifier.account_id,
                 data_cutoff=max((item.start_time or 0 for item in windowed_matches), default=None),
                 model_version=job.model_version,
                 template_version=self.settings.template_version,
                 report=report,
                 evidence=[],
+                protected_cohorts=protected_cohorts,
             )
-            persist_cohorts = getattr(self.repository, "persist_protected_cohorts", None)
-            if persist_cohorts is None:
-                raise RuntimeError("V6.1 generation requires protected Deep cohort persistence")
-            persist_cohorts(report_id, protected_cohorts)
             self.repository.complete_job(job, report_id)
             return
 

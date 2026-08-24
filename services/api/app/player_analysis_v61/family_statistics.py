@@ -1,8 +1,7 @@
-"""Fixture/synthetic V6.1 family omnibus inputs.
+"""V6.1 family/branch multiplicity procedures.
 
-These deterministic approximations support implementation verification only.
-Production promotion remains blocked until training artifacts freeze the final
-estimators and the sealed holdout is evaluated once.
+The fixture helpers remain offline-only. Production requires the complete
+session-cluster evidence produced by the runtime estimator path.
 """
 
 from __future__ import annotations
@@ -19,7 +18,9 @@ from .semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
 
 def _empirical_two_sided_p(samples: list[float], null: float = 0.0) -> float:
     if not samples:
-        return 1.0
+        raise ValueError("production bootstrap evidence cannot be empty")
+    if not all(math.isfinite(value) for value in samples):
+        raise ValueError("production bootstrap evidence must be finite")
     observed = abs(statistics.fmean(samples) - null)
     extreme = sum(abs(value - null) >= observed for value in samples)
     return (extreme + 1) / (len(samples) + 1)
@@ -305,10 +306,9 @@ def v61_production_family_branch_p_values(
 ) -> tuple[dict[str, float], dict[str, dict[str, float]]]:
     """Return artifact-driven omnibus/branch p-values for production mode.
 
-    Production calls pass session-cluster bootstrap samples.  A missing sample
-    is deliberately conservative and returns 1.0, allowing a report with zero
-    findings.  The fixture ``_bounded_p`` and ``_equivalence_p`` functions are
-    never consulted by this path.
+    Missing or incomplete evidence is a configuration error. Returning a
+    report with synthetic ``p=1`` values would make the production path look
+    healthy while silently disconnecting inference from the runtime data.
     """
 
     if semantic_calibration.get("branch_procedure") != "qualified-family-bh":
@@ -318,19 +318,47 @@ def v61_production_family_branch_p_values(
         for definition in SEMANTIC_OUTCOME_CATALOG
         if definition.rollout_status == "public_candidate"
     ]
-    family_samples = bootstrap_family_samples or {}
-    branch_samples = bootstrap_branch_samples or {}
+    if not isinstance(bootstrap_family_samples, Mapping):
+        raise ValueError("V6.1 production family bootstrap evidence is required")
+    if not isinstance(bootstrap_branch_samples, Mapping):
+        raise ValueError("V6.1 production branch bootstrap evidence is required")
+    family_samples = dict(bootstrap_family_samples)
+    branch_samples = dict(bootstrap_branch_samples)
+    if set(family_samples) != set(FINDING_FAMILY_KEYS):
+        raise ValueError("V6.1 production family evidence must cover exactly five family roots")
+    if set(branch_samples) != set(FINDING_FAMILY_KEYS):
+        raise ValueError("V6.1 production branch evidence must cover exactly five family roots")
+    expected_branches = {
+        family: {
+            definition.semantic_outcome_key
+            for definition in public
+            if definition.family_key == family
+        }
+        for family in FINDING_FAMILY_KEYS
+    }
+    for family in FINDING_FAMILY_KEYS:
+        samples = family_samples[family]
+        if isinstance(samples, (str, bytes)) or not isinstance(samples, Sequence) or not samples:
+            raise ValueError(f"V6.1 production family evidence is missing for {family}")
+        branches = branch_samples[family]
+        if not isinstance(branches, Mapping) or set(branches) != expected_branches[family]:
+            raise ValueError(f"V6.1 production branch registry is incomplete for {family}")
+        for branch, branch_samples_for_key in branches.items():
+            if (
+                isinstance(branch_samples_for_key, (str, bytes))
+                or not isinstance(branch_samples_for_key, Sequence)
+                or not branch_samples_for_key
+            ):
+                raise ValueError(f"V6.1 production branch evidence is missing for {branch}")
     family_values = {
-        family: _empirical_two_sided_p(list(family_samples[family]))
-        if family in family_samples
-        else 1.0
+        family: _empirical_two_sided_p([float(value) for value in family_samples[family]])
         for family in FINDING_FAMILY_KEYS
     }
     branch_values: dict[str, dict[str, float]] = {family: {} for family in FINDING_FAMILY_KEYS}
     for definition in public:
-        sample = branch_samples.get(definition.family_key, {}).get(definition.semantic_outcome_key)
-        branch_values[definition.family_key][definition.semantic_outcome_key] = (
-            _empirical_two_sided_p(list(sample)) if sample is not None else 1.0
+        sample = branch_samples[definition.family_key][definition.semantic_outcome_key]
+        branch_values[definition.family_key][definition.semantic_outcome_key] = _empirical_two_sided_p(
+            [float(value) for value in sample]
         )
     return family_values, branch_values
 

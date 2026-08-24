@@ -26,6 +26,7 @@ def _summary(index: int) -> dict[str, int | bool]:
         "radiant_win": index % 2 == 0,
         "game_mode": 1,
         "lobby_type": 0,
+        "leaver_status": 0,
         "kills": 7 + index % 5,
         "deaths": 3 + index % 4,
         "assists": 8 + index % 7,

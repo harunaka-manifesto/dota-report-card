@@ -16,6 +16,7 @@ from app.core.config import Settings, get_settings
 from app.core.errors import AppError
 from app.core.logging import configure_logging
 from app.core.metrics import record_metric
+from app.core.security import RateLimiter
 from app.features.models import MatchFeature
 from app.identity.steam import SteamWebResolver
 from app.opendota.cache import RedisCache
@@ -70,8 +71,14 @@ def create_app(
         identity_resolver=identity_resolver,
         parse_transport=parse_transport,
     )
+    def app_readiness() -> dict[str, Any]:
+        return _readiness_payload(settings, repository, service)
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> Any:
+        if settings.app_env == "production":
+            readiness = app_readiness()
+            if readiness["postgres"] != "ready" or readiness["redis"] != "ready" or readiness["artifacts"] != "ready":
+                raise RuntimeError(f"production dependencies are not ready: {readiness}")
         if hasattr(repository, "purge_expired"):
             repository.purge_expired()
         retention_task = asyncio.create_task(_retention_loop(repository)) if hasattr(repository, "purge_expired") else None
@@ -104,6 +111,10 @@ def create_app(
     )
     app.state.analysis_service = service
     app.state.settings = settings
+    app.state.readiness = app_readiness
+    app.state.rate_limiter = RateLimiter(
+        redis_url=settings.redis_url if settings.app_env == "production" else None
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(settings.cors_origins),
@@ -125,16 +136,16 @@ def create_app(
 
     @app.get("/health")
     async def root_health() -> dict[str, str]:
-        return {
-            "status": "ok",
-            "api": "ok",
-            "postgres": settings.effective_storage_backend,
-            "redis": "configured"
-            if settings.effective_analysis_execution_backend == "celery"
-            else "not_configured",
-            "worker": settings.effective_analysis_execution_backend,
-            "source": settings.opendota_source,
-        }
+        return _health_response(app_readiness())
+
+    @app.get("/health/live")
+    async def root_liveness() -> dict[str, str]:
+        return {"status": "ok", "api": "ok"}
+
+    @app.get("/health/ready")
+    async def root_readiness() -> JSONResponse:
+        payload = app_readiness()
+        return JSONResponse(_health_response(payload), status_code=200 if payload["ready"] else 503)
 
     app.include_router(router)
     return app
@@ -150,6 +161,77 @@ async def _retention_loop(repository: Any) -> None:
             record_metric("retention.purged", value=deleted)
         except Exception:
             record_metric("retention.failed")
+
+
+def _readiness_payload(settings: Settings, repository: Any, service: AnalysisService) -> dict[str, Any]:
+    postgres = "not_configured"
+    if settings.effective_storage_backend == "database":
+        try:
+            checker = getattr(repository, "check_ready", None)
+            if checker is None:
+                raise RuntimeError("database repository has no schema readiness check")
+            checker()
+            postgres = "ready"
+        except Exception:
+            postgres = "unavailable"
+    redis_status = "not_configured"
+    worker = "in_process"
+    if settings.effective_analysis_execution_backend == "celery":
+        try:
+            import redis
+
+            redis.Redis.from_url(
+                settings.redis_url,
+                socket_connect_timeout=0.5,
+                socket_timeout=0.5,
+            ).ping()
+            redis_status = "ready"
+        except Exception:
+            redis_status = "unavailable"
+        try:
+            from app.workers.tasks import celery_app
+
+            worker = "ready" if celery_app.control.inspect(timeout=0.3).ping() else "unavailable"
+        except Exception:
+            worker = "unavailable"
+    artifacts = "ready"
+    if settings.free_dna_v61_enabled and not service.v61_supporting_artifacts:
+        artifacts = "fixture" if settings.app_env != "production" else "unavailable"
+    auth = "not_required"
+    if settings.free_dna_v61_enabled:
+        auth = "ready" if service.v61_supporting_artifacts.get("production_beta_authorization") else (
+            "not_required" if settings.app_env != "production" else "unavailable"
+        )
+    ready = (
+        postgres != "unavailable"
+        and redis_status != "unavailable"
+        and worker != "unavailable"
+        and artifacts in {"ready", "fixture"}
+        and auth in {"ready", "not_required"}
+    )
+    return {
+        "ready": ready,
+        "api": "ok",
+        "postgres": postgres,
+        "redis": redis_status,
+        "worker": worker,
+        "auth": auth,
+        "source": settings.opendota_source,
+        "artifacts": artifacts,
+    }
+
+
+def _health_response(payload: dict[str, Any]) -> dict[str, str]:
+    return {
+        "status": "ok" if payload["ready"] else "not_ready",
+        "api": str(payload["api"]),
+        "postgres": str(payload["postgres"]),
+        "redis": str(payload["redis"]),
+        "worker": str(payload["worker"]),
+        "artifacts": str(payload["artifacts"]),
+        "auth": str(payload["auth"]),
+        "source": str(payload["source"]),
+    }
 
 
 app = create_app()

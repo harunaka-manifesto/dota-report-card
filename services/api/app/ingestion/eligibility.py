@@ -10,6 +10,8 @@ class ExclusionReason(StrEnum):
     NON_RANKED = "non_ranked"
     NON_STANDARD_MODE = "non_standard_mode"
     ABANDONED = "abandoned"
+    MISSING_LEAVER_STATUS = "missing_leaver_status"
+    INVALID_LEAVER_STATUS = "invalid_leaver_status"
     PRO_OR_LEAGUE = "pro_or_league"
     INVALID_DURATION = "invalid_duration"
     MISSING_OUTCOME = "missing_outcome"
@@ -34,6 +36,7 @@ class EligibilityResult:
 ALL_PICK_MODE = 1
 RANKED_ALL_PICK_MODE = 22
 SUPPORTED_ALL_PICK_MODES = frozenset({ALL_PICK_MODE, RANKED_ALL_PICK_MODE})
+VALID_LEAVER_STATUSES = frozenset(range(6))
 
 
 def assess_match(
@@ -68,9 +71,13 @@ def assess_match(
             reasons.append(ExclusionReason.PLAYER_NOT_FOUND)
 
     target = _target_player(detail, account_id)
-    if target and _as_int(target.get("leaver_status")) not in (None, 0, 1):
-        reasons.append(ExclusionReason.ABANDONED)
-    if match.get("leaver_status") not in (None, 0, 1):
+    leaver_value = target.get("leaver_status") if target and "leaver_status" in target else merged.get("leaver_status")
+    leaver_status = _as_int(leaver_value)
+    if leaver_value is None:
+        reasons.append(ExclusionReason.MISSING_LEAVER_STATUS)
+    elif leaver_status is None or leaver_status not in VALID_LEAVER_STATUSES:
+        reasons.append(ExclusionReason.INVALID_LEAVER_STATUS)
+    elif leaver_status in {2, 3, 4, 5}:
         reasons.append(ExclusionReason.ABANDONED)
 
     return EligibilityResult(match_id, not reasons, tuple(dict.fromkeys(reasons)))

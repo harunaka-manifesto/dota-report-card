@@ -27,7 +27,6 @@ const MAX_POLL_DELAY_MS = 10_000;
 
 export default function AnalysisForm() {
   const router = useRouter();
-  const [requestedMode, setRequestedMode] = useState<"free" | "deep_scan">("free");
   const [player, setPlayer] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<AnalysisStatus | null>(null);
@@ -36,7 +35,6 @@ export default function AnalysisForm() {
   const mountedRef = useRef(true);
 
   useEffect(() => {
-    setRequestedMode(new URLSearchParams(window.location.search).get("mode") === "deep_scan" ? "deep_scan" : "free");
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
@@ -62,7 +60,7 @@ export default function AnalysisForm() {
       const response = await fetch(API_BASE_URL + "/v1/analyses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ player: value, refresh: false, mode: requestedMode }),
+        body: JSON.stringify({ player: value, refresh: false, mode: "free" }),
         signal: controller.signal
       });
       const body = await readResponseBody(response);
@@ -73,8 +71,8 @@ export default function AnalysisForm() {
       }
       const jobId = typeof body.job_id === "string" ? body.job_id : null;
       if (!jobId) throw new Error("The analysis did not return a job ID.");
-      track("analysis.started.v1", { reused: body.reused === true, input_type: classifyInput(value), mode: requestedMode });
-      await streamEvents(jobId, controller.signal, (event) => {
+      track("analysis.started.v1", { reused: body.reused === true, input_type: classifyInput(value), mode: "free" });
+      const events = streamEvents(jobId, controller.signal, (event) => {
         if (!mountedRef.current || !event.stage) return;
         const stage = event.stage;
         setStatus((current) => ({
@@ -92,9 +90,24 @@ export default function AnalysisForm() {
         }));
         track("analysis.stage.v1", { stage: event.stage, status: event.status ?? "running" });
       });
-      await poll(jobId, controller.signal);
+      let pollError: unknown = null;
+      try {
+        try {
+          await poll(jobId, controller.signal);
+        } catch (caught) {
+          pollError = caught;
+          throw caught;
+        }
+      } finally {
+        controller.abort();
+        try {
+          await events;
+        } catch (caught) {
+          if (!pollError && !(caught instanceof DOMException && caught.name === "AbortError")) throw caught;
+        }
+      }
     } catch (caught) {
-      if (controller.signal.aborted || !mountedRef.current) return;
+      if (!mountedRef.current || (caught instanceof DOMException && caught.name === "AbortError")) return;
       setError(caught instanceof Error ? caught.message : "The analysis could not be queued.");
     } finally {
       if (mountedRef.current) setBusy(false);
@@ -157,7 +170,7 @@ export default function AnalysisForm() {
           required
         />
         <button className="lookup-submit" type="submit" disabled={busy}>
-          {busy ? "Reading your pattern…" : requestedMode === "deep_scan" ? "Start Deep Scan" : "Build report"}
+          {busy ? "Reading your pattern…" : "Build report"}
         </button>
       </div>
       <p className="lookup-hint" id="player-hint">

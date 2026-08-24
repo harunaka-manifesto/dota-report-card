@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 
 from celery import Celery
+from celery.signals import worker_init
 
 from app.analysis.service import AnalysisService
 from app.core.config import get_settings
@@ -23,6 +24,20 @@ _service: AnalysisService | None = None
 
 def configure_service(service: AnalysisService) -> None:
     global _service
+    _service = service
+
+
+@worker_init.connect
+def validate_worker_dependencies(**_kwargs: object) -> None:
+    """Fail worker startup before accepting a task against an un-migrated DB."""
+
+    global _service
+    from app.main import create_app
+
+    service = create_app().state.analysis_service
+    checker = getattr(service.repository, "check_ready", None)
+    if checker is not None:
+        checker()
     _service = service
 
 

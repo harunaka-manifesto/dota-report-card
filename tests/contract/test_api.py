@@ -11,7 +11,16 @@ def test_health_contract() -> None:
     response = TestClient(app).get("/v1/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert set(response.json()) == {"status", "api", "postgres", "redis", "worker", "source"}
+    assert set(response.json()) == {
+        "status",
+        "api",
+        "postgres",
+        "redis",
+        "worker",
+        "artifacts",
+        "auth",
+        "source",
+    }
 
 
 def test_malformed_identifier_is_rejected_before_source_request() -> None:

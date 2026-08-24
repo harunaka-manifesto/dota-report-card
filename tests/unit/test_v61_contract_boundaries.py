@@ -9,7 +9,10 @@ from app.features.summary_models import SummaryMatchFeature
 from app.ingestion.summary_history_contract import request_manifest
 from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
 from app.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
-from app.player_analysis_v61.family_statistics import v61_branch_p_values
+from app.player_analysis_v61.family_statistics import (
+    v61_branch_p_values,
+    v61_production_family_branch_p_values,
+)
 from app.player_analysis_v61.hierarchical import hierarchical_qualification
 from app.player_analysis_v61.identity import compose_identity_slots
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
@@ -54,6 +57,15 @@ def test_every_public_branch_gets_a_predeclared_statistic() -> None:
     assert {key for family in branches.values() for key in family} == expected
     assert len(expected) == 25
     assert all(0.0 <= value <= 1.0 for family in branches.values() for value in family.values())
+
+
+def test_production_family_statistics_fail_closed_without_complete_evidence() -> None:
+    with pytest.raises(ValueError, match="production family evidence"):
+        v61_production_family_branch_p_values(
+            semantic_calibration={"branch_procedure": "qualified-family-bh"},
+            bootstrap_family_samples={},
+            bootstrap_branch_samples={},
+        )
 
 
 def test_copy_registry_has_no_registered_forbidden_public_token() -> None:
@@ -240,3 +252,25 @@ def test_protected_deep_cohort_requires_authorized_server_resolution() -> None:
         _job_diagnostic_question(denied, repository)
     assert _job_diagnostic_question(allowed, repository) == full_question
     assert "match_ids" not in repr(repository.get_report(report_id))
+
+
+def test_protected_cohort_persistence_rolls_back_the_public_report() -> None:
+    repository = InMemoryRepository()
+
+    def fail_persist(*_args: object, **_kwargs: object) -> None:
+        raise RuntimeError("private persistence failed")
+
+    repository.persist_protected_cohorts = fail_persist  # type: ignore[method-assign]
+    with pytest.raises(RuntimeError, match="private persistence failed"):
+        repository.save_report_with_protected_cohorts(
+            account_id=42,
+            data_cutoff=100,
+            model_version="free-dna-model-6.1.0",
+            template_version="templates-6.1.0",
+            report={"schema_version": "free-dna-report-6.1.0"},
+            evidence=[],
+            protected_cohorts={"cohort:v61:test": {"question": {}}},
+        )
+
+    assert repository.reports == {}
+    assert repository._report_private == {}

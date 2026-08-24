@@ -4,7 +4,7 @@ import asyncio
 import inspect
 import json
 from collections.abc import Mapping, Sequence
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any, NoReturn
 
 from fastapi import APIRouter, Header, Request
@@ -28,6 +28,14 @@ from app.api.schemas import (
 from app.core.errors import AnalysisNotFound, AnalysisRateLimited, AppError, ReportNotFound
 from app.core.metrics import record_metric
 from app.core.security import RateLimiter, parse_player_identifier
+from app.ingestion.summary_history_contract import (
+    SUMMARY_HISTORY_PROJECTION,
+    SUMMARY_HISTORY_PROVIDER_LIMIT,
+    SUMMARY_HISTORY_WINDOW_DAYS,
+    canonical_summary_history_cache_key,
+    normalize_canonical_summary_history,
+)
+from app.ingestion.summary_normalize import derive_player_won
 from app.share.service import RENDERER_VERSION, V6_RENDERER_VERSION, build_share_svg
 from app.storage.repository import (
     InteractionRevisionConflict,
@@ -42,6 +50,10 @@ _rate_limiter = RateLimiter()
 
 def _service(request: Request) -> Any:
     return request.app.state.analysis_service
+
+
+def _limiter(request: Request) -> RateLimiter:
+    return getattr(request.app.state, "rate_limiter", _rate_limiter)
 
 
 class _InteractionApiError(AppError):
@@ -249,33 +261,59 @@ async def _resolve_entitlement(request: Request, *, report_id: str, account_id: 
     if provider is None:
         provider = getattr(service, "entitlement_provider", None) or getattr(service, "entitlement", None)
     if provider is None:
-        # Development has no billing integration.  Keeping this as an
-        # interface decision makes the eventual provider a drop-in seam.
-        return {"allowed": True, "source": "entitlement_interface", "reason": "not_configured"}
+        settings = getattr(request.app.state, "settings", None)
+        if settings is not None and settings.allow_local_deep_entitlement_bypass and settings.app_env != "production":
+            return {
+                "allowed": True,
+                "source": "explicit_local_bypass",
+                "grant_id": "local-test-grant",
+                "report_id": report_id,
+                "account_id": account_id,
+                "diagnostic_question_id": diagnostic_question_id,
+                "capability_type": "deep",
+                "mode": "deep_scan",
+                "expires_at": (datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
+            }
+        return {"allowed": False, "source": "entitlement_interface", "reason": "not_configured"}
     kwargs = {
         "report_id": report_id,
         "account_id": account_id,
         "diagnostic_question_id": diagnostic_question_id,
     }
-    if hasattr(provider, "resolve"):
-        result = provider.resolve(**kwargs)
-    elif hasattr(provider, "decide"):
-        result = provider.decide(**kwargs)
-    elif hasattr(provider, "check"):
-        result = provider.check(**kwargs)
-    elif callable(provider):
-        result = provider(**kwargs)
-    else:
-        result = {"allowed": False, "reason": "invalid_entitlement_provider"}
-    if inspect.isawaitable(result):
-        result = await result
-    if isinstance(result, bool):
-        return {"allowed": result, "source": "entitlement_interface"}
-    if isinstance(result, Mapping):
-        decision = dict(result)
-        decision["allowed"] = bool(decision.get("allowed", decision.get("entitled", False)))
-        return decision
-    return {"allowed": False, "source": "entitlement_interface", "reason": "invalid_decision"}
+    try:
+        if hasattr(provider, "resolve"):
+            result = provider.resolve(**kwargs)
+        elif hasattr(provider, "decide"):
+            result = provider.decide(**kwargs)
+        elif hasattr(provider, "check"):
+            result = provider.check(**kwargs)
+        elif callable(provider):
+            result = provider(**kwargs)
+        else:
+            return {"allowed": False, "reason": "invalid_entitlement_provider"}
+        if inspect.isawaitable(result):
+            result = await asyncio.wait_for(result, timeout=2.0)
+    except Exception:
+        return {"allowed": False, "source": "entitlement_interface", "reason": "provider_unavailable"}
+    if not isinstance(result, Mapping):
+        return {"allowed": False, "source": "entitlement_interface", "reason": "invalid_decision"}
+    decision = dict(result)
+    decision["allowed"] = decision.get("allowed") is True or decision.get("entitled") is True
+    grant_id = decision.get("grant_id") or decision.get("entitlement_id") or decision.get("capability_id")
+    bindings = {
+        "report_id": report_id,
+        "account_id": account_id,
+        "diagnostic_question_id": diagnostic_question_id,
+    }
+    expiry = _epoch(decision.get("expires_at"))
+    valid = bool(decision["allowed"]) and bool(str(grant_id).strip()) and expiry is not None and expiry > int(datetime.now(UTC).timestamp())
+    valid = valid and all(decision.get(key) == value for key, value in bindings.items())
+    valid = valid and decision.get("revoked") is not True and decision.get("replay_detected") is not True
+    if decision.get("capability_type") not in (None, "deep") or decision.get("mode") not in (None, "deep_scan"):
+        valid = False
+    decision["grant_id"] = str(grant_id) if grant_id is not None else ""
+    decision["allowed"] = valid
+    return decision
 
 
 def _epoch(value: Any) -> int | None:
@@ -293,6 +331,31 @@ def _epoch(value: Any) -> int | None:
 
 
 async def _follow_up_history(service: Any, repository: Any, account_id: int) -> list[dict[str, Any]]:
+    if getattr(getattr(service, "settings", None), "free_dna_v61_enabled", False):
+        key = canonical_summary_history_cache_key(account_id)
+        getter = getattr(repository, "get_cached_raw_payload", None)
+        cached_value = getter(key, str(account_id)) if getter is not None else None
+        if isinstance(cached_value, list):
+            rows = cached_value
+        else:
+            method = getattr(service.source, "get_summary_history_once", None)
+            if method is None:
+                raise RuntimeError("V6.1 follow-up requires the canonical summary-history source")
+            rows = await method(
+                account_id,
+                days=SUMMARY_HISTORY_WINDOW_DAYS,
+                project=SUMMARY_HISTORY_PROJECTION,
+                provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
+            )
+            if hasattr(repository, "persist_raw_payload"):
+                repository.persist_raw_payload(key, str(account_id), list(rows))
+        canonical = normalize_canonical_summary_history(
+            [row for row in rows if isinstance(row, Mapping)],
+            account_id,
+            request_count=1,
+            provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
+        )
+        return [item.as_dict() for item in canonical.normalization.eligible_matches]
     cached: list[dict[str, Any]] = []
     getter = getattr(repository, "get_cached_raw_payload", None)
     if getter is not None:
@@ -352,8 +415,11 @@ def _follow_up_metric(rows: Sequence[Mapping[str, Any]], metric: str, context: M
     if not rows:
         return None
     if metric == "win_rate":
-        win_values = [row.get("won", row.get("radiant_win", row.get("win"))) for row in rows]
-        known_win_values = [bool(value) for value in win_values if value is not None]
+        known_win_values = [
+            won_value
+            for row in rows
+            if (won_value := derive_player_won(dict(row))) is not None
+        ]
         return sum(known_win_values) / len(known_win_values) if known_win_values else None
     metric_values: list[float] = []
     context = context or {}
@@ -390,7 +456,7 @@ async def create_analysis(
 ) -> CreateAnalysisResponse:
     identifier = parse_player_identifier(payload.player)
     client_ip = request.client.host if request.client else "unknown"
-    if not _rate_limiter.allow(
+    if not _limiter(request).allow(
         client_ip, identifier.account_id, unresolved_key=identifier.vanity
     ):
         raise AnalysisRateLimited("Too many analysis requests; try again later")
@@ -719,6 +785,24 @@ async def create_deep_analysis(
     )
     if not entitlement.get("allowed"):
         _interaction_error("DEEP_ENTITLEMENT_REQUIRED", 403, "Deep Analysis is not entitled for this request")
+    grant_id = str(entitlement["grant_id"])
+    existing_getter = getattr(repository, "find_active_deep_job", None)
+    existing = existing_getter(report_id, payload.diagnostic_question_id, account_id, grant_id) if existing_getter else None
+    if existing is not None:
+        return {
+            "job_id": existing.job_id,
+            "analysis_job_id": existing.job_id,
+            "status": existing.status,
+            "analysis_mode": existing.analysis_mode,
+            "parent_report_id": report_id,
+            "diagnostic_question_id": payload.diagnostic_question_id,
+            "entitlement_decision": existing.entitlement_decision or entitlement,
+            "selection_plan": existing.selection_plan or _selection_plan_for_question(question),
+            "stopping_reason": existing.stopping_reason or "awaiting_evidence",
+            "events_url": f"/v1/analyses/{existing.job_id}/events",
+        }
+    if not _limiter(request).allow_deep(account_id, grant_id):
+        _interaction_error("DEEP_RATE_LIMITED", 429, "Deep Analysis budget exhausted; try again later")
     selection_plan = _selection_plan_for_question(question)
     canonical_player = str(account_id)
     identity = report.get("identity") or {}
@@ -871,12 +955,40 @@ async def get_share_card(
 
 @router.get("/health", response_model=HealthResponse)
 async def health(request: Request) -> HealthResponse:
-    settings = request.app.state.settings
-    return HealthResponse(
-        status="ok",
-        api="ok",
-        postgres="not_configured",
-        redis="not_configured",
-        worker="in_process",
-        source=settings.opendota_source,
+    payload = request.app.state.readiness()
+    return HealthResponse(**{
+        key: value
+        for key, value in {
+            "status": "ok" if payload["ready"] else "not_ready",
+            "api": payload["api"],
+            "postgres": payload["postgres"],
+            "redis": payload["redis"],
+            "worker": payload["worker"],
+            "artifacts": payload["artifacts"],
+            "auth": payload["auth"],
+            "source": payload["source"],
+        }.items()
+    })
+
+
+@router.get("/health/live")
+async def health_live() -> dict[str, str]:
+    return {"status": "ok", "api": "ok"}
+
+
+@router.get("/health/ready")
+async def health_ready(request: Request) -> JSONResponse:
+    payload = request.app.state.readiness()
+    return JSONResponse(
+        content={
+            "status": "ok" if payload["ready"] else "not_ready",
+            "api": payload["api"],
+            "postgres": payload["postgres"],
+            "redis": payload["redis"],
+            "worker": payload["worker"],
+            "artifacts": payload["artifacts"],
+            "auth": payload["auth"],
+            "source": payload["source"],
+        },
+        status_code=200 if payload["ready"] else 503,
     )

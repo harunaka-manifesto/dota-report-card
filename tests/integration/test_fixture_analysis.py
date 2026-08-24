@@ -20,6 +20,7 @@ def _summary(match_id: int, index: int) -> dict[str, int | bool]:
         "kills": 8 + index % 4,
         "deaths": 4,
         "assists": 10,
+        "leaver_status": 0,
         "lane_role": 2 if index % 2 else 1,
     }
 

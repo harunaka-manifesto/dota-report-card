@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from app.analysis.budget import CostPolicy, DataCostLedger
@@ -107,7 +108,22 @@ async def test_deep_scan_hydrates_only_global_selection() -> None:
         source,
         settings=Settings(max_deep_matches=5, max_data_cost_per_report=5),
     )
-    job, _ = await service.create_analysis("42", enqueue=False, mode="deep_scan")
+    job = service.repository.create_job(
+        42,
+        "https://www.opendota.com/players/42",
+        service._compatibility_model_version("deep_scan"),
+        "deep_scan",
+        parent_report_id="test-parent",
+        diagnostic_question_id="test-question",
+        entitlement_decision={
+            "allowed": True,
+            "grant_id": "test-grant",
+            "report_id": "test-parent",
+            "account_id": 42,
+            "diagnostic_question_id": "test-question",
+            "expires_at": (datetime.now(UTC) + timedelta(minutes=5)).isoformat(),
+        },
+    )
     await service.run_job(job)
 
     deep_reads = [request for request in source.requests if request[0] == "match"]

@@ -30,6 +30,7 @@ def _summary(match_id: int, index: int) -> dict[str, int | bool]:
         "radiant_win": index % 2 == 0,
         "game_mode": 1,
         "lobby_type": 0,
+        "leaver_status": 0,
         "kills": 8 + index % 4,
         "deaths": 4,
         "assists": 10,

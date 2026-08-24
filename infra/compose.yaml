@@ -1,4 +1,15 @@
 services:
+  migrate:
+    build:
+      context: ..
+      dockerfile: infra/docker/api.Dockerfile
+    command: alembic upgrade head
+    environment:
+      DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build:
       context: ..
@@ -26,6 +37,8 @@ services:
       FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
       FREE_DNA_V61_RELEASE_AUTHORIZATION: /app/runtime-artifacts/free_dna_v61/6.1.0/production-beta-authorization-6.1.0.json
       FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
+      RELEASE_COMMIT_SHA: ${RELEASE_COMMIT_SHA-}
+      RELEASE_WORKTREE_DIRTY: ${RELEASE_WORKTREE_DIRTY-false}
       REPORT_RETENTION_DAYS: 30
     volumes:
       - ${FREE_DNA_V61_ARTIFACT_HOST_DIR:-./runtime-artifacts/free_dna_v61/6.1.0}:/app/runtime-artifacts/free_dna_v61/6.1.0:ro
@@ -36,6 +49,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   worker:
     build:
@@ -62,6 +77,8 @@ services:
       FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
       FREE_DNA_V61_RELEASE_AUTHORIZATION: /app/runtime-artifacts/free_dna_v61/6.1.0/production-beta-authorization-6.1.0.json
       FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
+      RELEASE_COMMIT_SHA: ${RELEASE_COMMIT_SHA-}
+      RELEASE_WORKTREE_DIRTY: ${RELEASE_WORKTREE_DIRTY-false}
       REPORT_RETENTION_DAYS: 30
       STORAGE_BACKEND: database
       ANALYSIS_EXECUTION_BACKEND: celery
@@ -72,6 +89,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   web:
     build:

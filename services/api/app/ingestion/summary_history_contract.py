@@ -25,6 +25,7 @@ SUMMARY_HISTORY_WINDOW_DAYS = 365
 # transport ceiling, not a product match cap; reaching it is treated as
 # possible truncation and suppresses completeness-dependent claims.
 SUMMARY_HISTORY_PROVIDER_LIMIT = 10_000
+SUMMARY_HISTORY_CACHE_KEY_VERSION = "summary-history-cache-1.0.0"
 
 SUMMARY_HISTORY_PROJECTION = (
     "match_id",
@@ -121,6 +122,12 @@ def history_completeness(raw_count: int, *, provider_limit: int | None) -> Histo
     if provider_limit is None:
         return "unknown"
     return "possibly_truncated" if raw_count >= provider_limit else "complete"
+
+
+def canonical_summary_history_cache_key(account_id: int) -> str:
+    """Stable cache identity for the one-request V6.1 summary contract."""
+
+    return f"/players/{int(account_id)}/matches/v61-canonical"
 
 
 @dataclass(frozen=True, slots=True)
@@ -258,10 +265,12 @@ __all__ = [
     "SUMMARY_HISTORY_PROJECTION_VERSION",
     "SUMMARY_HISTORY_PROVIDER_LIMIT",
     "SUMMARY_HISTORY_PROVIDER_VERSION",
+    "SUMMARY_HISTORY_CACHE_KEY_VERSION",
     "SUMMARY_HISTORY_SCHEMA_VERSION",
     "SUMMARY_HISTORY_WINDOW_DAYS",
     "SummaryHistoryAudit",
     "field_coverage",
+    "canonical_summary_history_cache_key",
     "history_completeness",
     "normalize_canonical_summary_history",
     "request_manifest",

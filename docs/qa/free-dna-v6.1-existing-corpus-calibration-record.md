@@ -1,6 +1,7 @@
 # Free DNA V6.1 existing-corpus calibration record
 
-Status: **State B complete; State C pending; release unauthorized**.
+Status: **Historical State B record; superseded for release by the current
+hardening gates; release unauthorized**.
 
 This record describes the owner-directed offline calibration requested for the
 existing corpus. No collector was run and no new OpenDota request was made.
@@ -22,7 +23,9 @@ The corpus, split, holdout checkpoint, and artifact outputs remain private under
 
 The audit records legacy paginated transport and compact-to-canonical analytical
 compatibility. It does not claim that the legacy corpus was collected in one
-physical request; unsupported optional branches are suppressed.
+physical request; unsupported optional branches are suppressed. It also
+predates mandatory `leaver_status` evidence and the required runtime-parity
+artifact, so it cannot be reused for a current release decision.
 
 ## Frozen build
 

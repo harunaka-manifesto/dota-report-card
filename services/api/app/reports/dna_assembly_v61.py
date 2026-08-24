@@ -363,6 +363,47 @@ class _CachedBaselineResolver:
         return self._cache[key]
 
 
+def _semantic_bootstrap_evidence(
+    samples: Sequence[Mapping[str, float | None]],
+) -> dict[str, Any]:
+    """Project runtime estimator draws into the frozen five-family registry."""
+
+    def values(key: str) -> list[float]:
+        result = []
+        for item in samples:
+            value = item.get(key)
+            if value is not None:
+                result.append(float(value))
+        if not result:
+            raise ValueError(f"V6.1 production semantic evidence is unavailable for {key}")
+        return result
+
+    breadth = values("breadth")
+    toolkit = values("toolkit")
+    involvement = values("involvement")
+    death = values("death_exposure")
+    families = {
+        "pool_shape": [left - right for left, right in zip(breadth, toolkit, strict=False)],
+        "transfer": values("transfer"),
+        "post_loss_response": values("finishing"),
+        "combat_expression": [left - right for left, right in zip(involvement, death, strict=False)],
+        "session_drift": values("consistency"),
+    }
+    if any(not value for value in families.values()):
+        raise ValueError("V6.1 production semantic bootstrap evidence is incomplete")
+    branches: dict[str, dict[str, list[float]]] = defaultdict(dict)
+    for semantic_key, definition in SEMANTIC_OUTCOME_REGISTRY.items():
+        if definition.rollout_status != "public_candidate":
+            continue
+        branches[definition.family_key][semantic_key] = list(families[definition.family_key])
+    return {
+        "version": "v61-runtime-semantic-bootstrap-1.0.0",
+        "families": families,
+        "branches": dict(branches),
+        "source": "runtime-session-cluster-estimators",
+    }
+
+
 def _weighted_production_bootstrap(
     matches: Sequence[Any],
     *,
@@ -616,6 +657,12 @@ def _weighted_production_bootstrap(
         "elements": intervals,
         "full_recomputation": {"core": True, "distance": True, "boundary": True},
         "optimized_session_sufficient_statistics": True,
+        "semantic_statistics": _semantic_bootstrap_evidence(
+            [
+                {key: values[index] for key, values in samples.items()}
+                for index in range(BOOTSTRAP_ITERATIONS)
+            ]
+        ),
     }
 
 
@@ -729,6 +776,7 @@ def _production_bootstrap(
         "profile_digest": profile_digest,
         "elements": intervals,
         "full_recomputation": {"core": True, "distance": True, "boundary": True},
+        "semantic_statistics": _semantic_bootstrap_evidence(samples),
     }
 
 
@@ -757,7 +805,20 @@ def assemble_free_dna_report_v61(
     protected_cohorts_out: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     supporting = dict(supporting_artifacts or {})
-    production_calibration = bool(supporting)
+    required_supporting = {
+        "summary_prior",
+        "distance_calibration",
+        "session_reliability",
+        "semantic_calibration",
+        "manifest",
+    }
+    allowed_supporting = {
+        frozenset(required_supporting),
+        frozenset(required_supporting | {"production_beta_authorization"}),
+    }
+    if supporting and frozenset(supporting) not in allowed_supporting:
+        raise ValueError("V6.1 production calibration requires the complete supporting artifact bundle")
+    production_calibration = frozenset(supporting) in allowed_supporting
     prior = supporting.get("summary_prior")
     distance = supporting.get("distance_calibration")
     reliability = supporting.get("session_reliability")
@@ -886,8 +947,13 @@ def assemble_free_dna_report_v61(
                     "level": 0.95,
                 }
     if production_calibration:
+        if production_bootstrap is None or "semantic_statistics" not in production_bootstrap:
+            raise ValueError("V6.1 production semantic bootstrap evidence is required")
+        semantic_statistics = production_bootstrap["semantic_statistics"]
         family_p, production_branch_p = v61_production_family_branch_p_values(
             semantic_calibration=supporting["semantic_calibration"],
+            bootstrap_family_samples=semantic_statistics["families"],
+            bootstrap_branch_samples=semantic_statistics["branches"],
         )
     else:
         family_p = v61_family_p_values(

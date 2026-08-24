@@ -10,6 +10,7 @@ def base_match() -> dict[str, object]:
         "radiant_win": True,
         "account_id": 42,
         "player_slot": 0,
+        "leaver_status": 0,
     }
 
 
@@ -41,3 +42,10 @@ def test_league_and_abandon_are_excluded() -> None:
     value["leaver_status"] = 3
     result = assess_match(value, account_id=42)
     assert set(result.reasons) == {ExclusionReason.PRO_OR_LEAGUE, ExclusionReason.ABANDONED}
+
+
+def test_missing_leaver_status_is_excluded() -> None:
+    value = base_match()
+    value.pop("leaver_status")
+    result = assess_match(value, account_id=42)
+    assert result.reasons == (ExclusionReason.MISSING_LEAVER_STATUS,)

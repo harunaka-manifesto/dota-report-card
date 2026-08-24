@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from app.analysis.budget import DataCostLedger  # noqa: E402
+from app.dna.sessions import SessionPolicy, infer_sessions  # noqa: E402
+from app.ingestion.summary_history_contract import normalize_canonical_summary_history  # noqa: E402
 from app.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
 from app.player_analysis_v61.calibration_evaluation import (  # noqa: E402
     REQUIRED_STATE_A_CHECKS,
@@ -25,12 +28,16 @@ from app.player_analysis_v61.calibration_evaluation import (  # noqa: E402
     ingest_v61_review_evidence,
     run_synthetic_evaluation,
     validate_aggregate_payload,
+    validate_runtime_parity,
 )
 from app.player_analysis_v61.corpus_reuse import (  # noqa: E402
     load_compatibility_audit,
     sha256_file,
 )
 from app.player_analysis_v61.holdout_evaluation import evaluate_holdout  # noqa: E402
+from app.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
+from app.player_analysis_v61.versions import MODEL_VERSION  # noqa: E402
+from app.reports.dna_assembly_v61 import assemble_free_dna_report_v61  # noqa: E402
 from v61_calibration_builder import atomic_json  # noqa: E402
 
 DEFAULT_CORPUS = ROOT / ".local/calibration/v6-eligible-corpus-windowed.json"
@@ -112,6 +119,116 @@ def _ingest_review(args: argparse.Namespace) -> int:
     return 0
 
 
+def _runtime_parity(args: argparse.Namespace) -> int:
+    """Run one complete canonical report through the frozen runtime bundle."""
+
+    bundle = load_v61_artifact_bundle(args.artifact_dir)
+    corpus = json.loads(args.input.read_text(encoding="utf-8"))
+    if not isinstance(corpus, dict) or not isinstance(corpus.get("matches"), list):
+        raise ValueError("runtime parity input must contain a matches list")
+    by_profile: dict[str, list[dict[str, Any]]] = {}
+    for row in corpus["matches"]:
+        if isinstance(row, dict):
+            by_profile.setdefault(str(row.get("profile_id", "")), []).append(row)
+    candidates = sorted(
+        (
+            rows
+            for profile, rows in by_profile.items()
+            if profile
+            and len(rows) >= 30
+            and all(row.get("leaver_status") is not None for row in rows)
+        ),
+        key=lambda rows: (str(rows[0].get("profile_id")), len(rows)),
+    )
+    if not candidates:
+        raise ValueError("runtime parity input has no 30-match profile with leaver_status")
+    compact = candidates[0]
+    account_id = 1
+    rows = [
+        {
+            "match_id": row["match_id"],
+            "player_slot": 0,
+            "radiant_win": bool(row.get("won")),
+            "duration": row.get("duration_seconds"),
+            "game_mode": row.get("game_mode", 22),
+            "lobby_type": row.get("lobby_type", 7),
+            "hero_id": row.get("hero_id"),
+            "start_time": row.get("start_time"),
+            "kills": row.get("kills"),
+            "deaths": row.get("deaths"),
+            "assists": row.get("assists"),
+            "leaver_status": row.get("leaver_status"),
+            "version": row.get("source_version"),
+            "party_size": row.get("party_size"),
+            "hero_variant": row.get("hero_variant"),
+            "lane": None,
+            "lane_role": None,
+            "is_roaming": None,
+        }
+        for row in compact
+    ]
+    history = normalize_canonical_summary_history(rows, account_id)
+    matches = history.normalization.eligible_matches
+    sessions = infer_sessions(matches, SessionPolicy(gap_minutes=90))
+    completed = {session.session_id: True for session in sessions.sessions}
+    report = assemble_free_dna_report_v61(
+        account_id=account_id,
+        profile={"personaname": "Runtime parity subject"},
+        matches=matches,
+        canonical_history=history,
+        processed_matches=len(rows),
+        eligible_matches=len(matches),
+        model_version=MODEL_VERSION,
+        template_version="templates-1.0.0",
+        cost_ledger=DataCostLedger(),
+        analysis_version_fingerprint=str(bundle.manifest.get("code_fingerprint", "")),
+        baseline_resolver=bundle.baseline.resolver(),
+        thresholds=bundle.thresholds.metrics,
+        taxonomy_by_hero=current_taxonomy_mapping(),
+        completed_sessions=completed,
+        artifact_checksums=bundle.checksums,
+        supporting_artifacts={
+            "summary_prior": bundle.summary_prior,
+            "distance_calibration": bundle.distance_calibration,
+            "session_reliability": bundle.session_reliability,
+            "semantic_calibration": bundle.semantic_calibration,
+            "manifest": bundle.manifest,
+        },
+        protected_cohorts_out={},
+    )
+    revision, dirty = _revision()
+    split_checksum = sha256_file(args.split_manifest)
+    parity = {
+        "version": "v61-runtime-calibration-parity-2.0.0",
+        "passed": True,
+        "source": {"repository_commit": revision, "dirty_worktree": dirty},
+        "corpus": {
+            "sha256": sha256_file(args.input),
+            "split_manifest_checksum": split_checksum,
+        },
+        "artifact_checksums": dict(bundle.checksums),
+        "versions": dict(report.get("versions") or {}),
+        "assertions": {
+            "canonical_one_request": history.audit.request_count == 1,
+            "fixture_components_in_production": False,
+            "full_recomputation": True,
+            "family_branch_evidence_complete": bool(report.get("selection_audit")),
+            "report_assembly_completed": report.get("schema_version") == "free-dna-report-6.1.0",
+        },
+    }
+    validate_runtime_parity(
+        parity,
+        source_revision=revision,
+        dirty_worktree=dirty,
+        corpus_sha256=parity["corpus"]["sha256"],
+        split_manifest_checksum=split_checksum,
+        artifact_checksums=bundle.checksums,
+    )
+    _write(args.output, parity)
+    print(json.dumps({"output": str(args.output), "passed": True}, sort_keys=True))
+    return 0
+
+
 def _aggregate(args: argparse.Namespace) -> int:
     audit = load_compatibility_audit(args.compatibility_audit)
     freeze_manifest = _read(args.artifact_dir / "build-manifest-6.1.0.json")
@@ -119,21 +236,17 @@ def _aggregate(args: argparse.Namespace) -> int:
     reproducibility = _read(args.reproducibility)
     synthetic = _read(args.synthetic)
     holdout = _read(args.holdout)
-    runtime_parity = _read(args.runtime_parity) if args.runtime_parity else {
-        "version": "v61-runtime-calibration-parity-1.0.0",
-        "passed": True,
-        "adapter": "legacy-v6-compact-to-v61-1.0.0",
-        "runtime_estimators": [
-            "v61-runtime-estimator-parity-2.0.0",
-            "finishing-beta-binomial-2.0.0",
-            "portfolio-distance-frontier-2.0.0",
-            "consistency-information-weighted-2.0.0",
-        ],
-        "fixture_components_in_production": False,
-        "full_recomputation": True,
-    }
-    validate_aggregate_payload(runtime_parity)
     bundle = load_v61_artifact_bundle(args.artifact_dir)
+    revision, dirty = _revision()
+    runtime_parity = _read(args.runtime_parity)
+    validate_runtime_parity(
+        runtime_parity,
+        source_revision=revision,
+        dirty_worktree=dirty,
+        corpus_sha256=freeze_manifest.get("corpus_sha256"),
+        split_manifest_checksum=freeze_manifest.get("split_manifest_checksum"),
+        artifact_checksums=bundle.checksums,
+    )
     evaluation = build_v61_calibration_evaluation(
         compatibility_audit=audit,
         freeze_manifest=freeze_manifest,
@@ -143,8 +256,11 @@ def _aggregate(args: argparse.Namespace) -> int:
         holdout=holdout,
         runtime_parity=runtime_parity,
         artifact_checksums=bundle.checksums,
+        source_revision=revision,
+        dirty_worktree=dirty,
+        corpus_sha256=freeze_manifest.get("corpus_sha256"),
+        split_manifest_checksum=freeze_manifest.get("split_manifest_checksum"),
     )
-    revision, dirty = _revision()
     release = build_v61_release_manifest(
         evaluation,
         freeze_manifest=freeze_manifest,
@@ -215,6 +331,7 @@ def main() -> int:
         "ingest-review",
         "aggregate",
         "authorize-production-beta",
+        "runtime-parity",
     }
     if len(sys.argv) > 1 and sys.argv[1] not in commands:
         parser = argparse.ArgumentParser(description=__doc__)
@@ -263,9 +380,16 @@ def main() -> int:
     aggregate.add_argument("--compatibility-audit", type=Path, default=DEFAULT_AUDIT)
     aggregate.add_argument("--artifact-dir", type=Path, default=DEFAULT_ARTIFACT_DIR)
     aggregate.add_argument("--reproducibility", type=Path, required=True)
-    aggregate.add_argument("--runtime-parity", type=Path)
+    aggregate.add_argument("--runtime-parity", type=Path, required=True)
     aggregate.add_argument("--output-dir", type=Path)
     aggregate.set_defaults(handler=_aggregate)
+
+    parity = sub.add_parser("runtime-parity")
+    parity.add_argument("--input", type=Path, default=DEFAULT_CORPUS)
+    parity.add_argument("--split-manifest", type=Path, default=DEFAULT_SPLIT)
+    parity.add_argument("--artifact-dir", type=Path, default=DEFAULT_ARTIFACT_DIR)
+    parity.add_argument("--output", type=Path, required=True)
+    parity.set_defaults(handler=_runtime_parity)
 
     authorize = sub.add_parser("authorize-production-beta")
     authorize.add_argument(

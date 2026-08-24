@@ -38,6 +38,11 @@ class AnalysisRateLimited(AppError):
     status_code = 429
 
 
+class DeepEntitlementRequired(AppError):
+    code = "DEEP_ENTITLEMENT_REQUIRED"
+    status_code = 403
+
+
 class OpenDotaUnavailable(AppError):
     code = "OPENDOTA_UNAVAILABLE"
     status_code = 503

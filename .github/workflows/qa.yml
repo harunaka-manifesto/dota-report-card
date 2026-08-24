@@ -9,6 +9,29 @@ permissions:
   contents: read
 
 jobs:
+  migration:
+    name: Alembic upgrade smoke
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: dota_report_card
+          POSTGRES_USER: dota
+          POSTGRES_PASSWORD: dota
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dota -d dota_report_card"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --extra dev
+      - run: uv run alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+psycopg://dota:dota@localhost:5432/dota_report_card
+
   backend:
     name: Backend contract and regression QA
     runs-on: ubuntu-latest

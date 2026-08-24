@@ -9,6 +9,7 @@ five-family omnibus BH, and deterministic checkpoint-friendly seeds.
 from __future__ import annotations
 
 import hashlib
+import math
 import random
 from collections import defaultdict
 from collections.abc import Callable, Mapping, Sequence
@@ -138,7 +139,13 @@ def five_family_bh(
 ) -> dict[str, dict[str, Any]]:
     if len(expected_families) != FAMILY_COUNT or set(family_p_values) != set(expected_families):
         raise ValueError("V6.1 production BH requires exactly five family roots")
-    finite = {key: float(value) for key, value in family_p_values.items() if value is not None and 0 <= float(value) <= 1}
+    finite: dict[str, float] = {}
+    for key, value in family_p_values.items():
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+            raise ValueError("V6.1 production BH requires finite family p-values")
+        if not 0 <= float(value) <= 1:
+            raise ValueError("V6.1 production BH requires p-values in [0, 1]")
+        finite[key] = float(value)
     adjusted = _bh(finite)
     return {
         family: {

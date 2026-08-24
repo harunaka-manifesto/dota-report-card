@@ -38,6 +38,7 @@ SUPPORTED_LOBBY_TYPES = frozenset({0, 7})  # public unranked / ranked matchmakin
 
 SUPPORTED_ALL_PICK_MODES = frozenset({1, 22})
 _MATERIAL_ABANDON_STATUSES = frozenset({2, 3, 4, 5})
+_VALID_LEAVER_STATUSES = frozenset(range(6))
 
 
 @dataclass(frozen=True, slots=True)
@@ -271,6 +272,22 @@ def normalize_summary_rows(
     )
 
 
+def derive_player_won(row: dict[str, Any]) -> bool | None:
+    """Derive the target player's result without side-dependent inversion drift."""
+
+    explicit = _as_bool(row.get("won"))
+    if explicit is not None:
+        return explicit
+    radiant_win = _as_bool(row.get("radiant_win"))
+    if radiant_win is None:
+        return None
+    side = row.get("side")
+    if side not in {"radiant", "dire"}:
+        player_slot = _as_int(row.get("player_slot"))
+        side = "radiant" if player_slot is not None and player_slot < 128 else "dire" if player_slot is not None else None
+    return radiant_win == (side == "radiant") if side is not None else None
+
+
 def _normalize_row(
     row: dict[str, Any],
     *,
@@ -296,10 +313,7 @@ def _normalize_row(
     else:
         side = None
 
-    radiant_win = _as_bool(row.get("radiant_win"))
-    won = _as_bool(row.get("won"))
-    if won is None and radiant_win is not None and side is not None:
-        won = radiant_win == (side == "radiant")
+    won = derive_player_won(row)
     lane_role = _as_int(row.get("lane_role"))
     lane = _as_int(row.get("lane"))
     is_roaming = _as_bool(row.get("is_roaming"))
@@ -398,6 +412,10 @@ def _eligibility(
         common_reasons.append("unsupported_game_mode")
     if duration is None or duration < 300:
         common_reasons.append("invalid_duration")
+    if leaver_status is None and "invalid_leaver_status" not in common_reasons:
+        common_reasons.append("missing_leaver_status")
+    elif leaver_status is not None and leaver_status not in _VALID_LEAVER_STATUSES:
+        common_reasons.append("invalid_leaver_status")
     if leaver_status in _MATERIAL_ABANDON_STATUSES:
         common_reasons.append("abandoned")
     if lobby_type not in SUPPORTED_LOBBY_TYPES:
@@ -468,6 +486,10 @@ def _invalid_numeric_reasons(row: dict[str, Any]) -> tuple[str, ...]:
         parsed = _as_int(row.get(field))
         if parsed is None or parsed < 0:
             reasons.append(f"invalid_{field}")
+    if "leaver_status" in row and row.get("leaver_status") is not None:
+        parsed = _as_int(row.get("leaver_status"))
+        if parsed is None or parsed not in _VALID_LEAVER_STATUSES:
+            reasons.append("invalid_leaver_status")
     return tuple(dict.fromkeys(reasons))
 
 

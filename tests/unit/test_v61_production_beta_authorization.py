@@ -71,3 +71,12 @@ def test_loader_requires_matching_checksums_and_explicit_beta_authorization(
             path,
             artifact_checksums={"context-baseline-3.0.0.json": "different"},
         )
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["source"] = {}
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ArtifactValidationError, match="source binding"):
+        load_v61_production_beta_authorization(
+            path,
+            artifact_checksums={"context-baseline-3.0.0.json": "abc123"},
+        )

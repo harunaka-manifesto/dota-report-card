@@ -5,7 +5,7 @@ from app.storage.repository import InMemoryRepository
 from fastapi.testclient import TestClient
 
 
-def _client() -> tuple[TestClient, str]:
+def _client(*, local_deep_bypass: bool = True) -> tuple[TestClient, str]:
     repository = InMemoryRepository()
     report_id = repository.save_report(
         account_id=42,
@@ -25,7 +25,13 @@ def _client() -> tuple[TestClient, str]:
         matches=[],
         details={},
     )
-    return TestClient(create_app(Settings(), source=source, repository=repository)), report_id
+    return TestClient(
+        create_app(
+            Settings(allow_local_deep_entitlement_bypass=local_deep_bypass),
+            source=source,
+            repository=repository,
+        )
+    ), report_id
 
 
 def test_interaction_api_requires_bearer_and_if_match_and_deletes() -> None:
@@ -106,3 +112,17 @@ def test_deep_api_authenticates_an_attached_interaction_session() -> None:
     )
     assert accepted.status_code == 202
     assert accepted.json()["diagnostic_question_id"] == "q-transfer"
+
+
+def test_generic_analysis_is_free_only_and_missing_deep_entitlement_denies() -> None:
+    client, report_id = _client(local_deep_bypass=False)
+
+    assert client.post(
+        "/v1/analyses",
+        json={"player": "42", "mode": "deep_scan"},
+    ).status_code == 422
+    denied = client.post(
+        f"/v1/reports/{report_id}/deep-analyses",
+        json={"diagnostic_question_id": "q-transfer"},
+    )
+    assert denied.status_code == 403

@@ -51,6 +51,12 @@ def _optional_int(value: str | None, *, default: int | None) -> int | None:
     return parsed if parsed > 0 else None
 
 
+def _optional_bool(value: str | None, *, default: bool | None) -> bool | None:
+    if value is None or not value.strip():
+        return default
+    return _as_bool(value)
+
+
 @dataclass(frozen=True)
 class Settings:
     app_env: str = "development"
@@ -109,6 +115,9 @@ class Settings:
     cors_origins: tuple[str, ...] = DEFAULT_CORS_ORIGINS
     storage_backend: str = "auto"
     analysis_execution_backend: str = "auto"
+    allow_local_deep_entitlement_bypass: bool = False
+    release_commit_sha: str | None = None
+    release_worktree_dirty: bool | None = None
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -259,6 +268,13 @@ class Settings:
             cors_origins=cors_origins or DEFAULT_CORS_ORIGINS,
             storage_backend=os.getenv("STORAGE_BACKEND", "auto").lower(),
             analysis_execution_backend=os.getenv("ANALYSIS_EXECUTION_BACKEND", "auto").lower(),
+            allow_local_deep_entitlement_bypass=_as_bool(
+                os.getenv("ALLOW_LOCAL_DEEP_ENTITLEMENT_BYPASS")
+            ),
+            release_commit_sha=os.getenv("RELEASE_COMMIT_SHA") or None,
+            release_worktree_dirty=_optional_bool(
+                os.getenv("RELEASE_WORKTREE_DIRTY"), default=cls.release_worktree_dirty
+            ),
         )
 
     @property

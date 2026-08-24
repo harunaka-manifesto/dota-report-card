@@ -403,6 +403,8 @@ def load_v61_production_beta_authorization(
     path: str | Path,
     *,
     artifact_checksums: Mapping[str, str],
+    expected_source_revision: str | None = None,
+    expected_dirty_worktree: bool | None = None,
 ) -> Mapping[str, Any]:
     """Load the separate owner authorization required for production beta."""
 
@@ -431,6 +433,18 @@ def load_v61_production_beta_authorization(
         raise ArtifactValidationError("V6.1 production-beta authorization lacks artifact checksums")
     if dict(declared_checksums) != dict(artifact_checksums):
         raise ArtifactValidationError("V6.1 production-beta authorization checksum mismatch")
+    source = payload.get("source")
+    if (
+        not isinstance(source, Mapping)
+        or not isinstance(source.get("repository_commit"), str)
+        or not source.get("repository_commit")
+        or not isinstance(source.get("dirty_worktree"), bool)
+    ):
+        raise ArtifactValidationError("V6.1 production-beta authorization lacks source binding")
+    if expected_source_revision is not None and source.get("repository_commit") != expected_source_revision:
+        raise ArtifactValidationError("V6.1 production-beta source revision mismatch")
+    if expected_dirty_worktree is not None and source.get("dirty_worktree") is not expected_dirty_worktree:
+        raise ArtifactValidationError("V6.1 production-beta worktree state mismatch")
     return payload
 
 

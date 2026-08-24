@@ -17,10 +17,9 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.insights.models import EvidenceObject
 from app.opendota.cache import payload_hash
-from app.storage.database import create_database_engine
+from app.storage.database import check_database_revision, create_database_engine
 from app.storage.models import (
     AnalysisJobRecord,
-    Base,
     DerivedFeatureRecord,
     EvidenceObjectRecord,
     MatchRecord,
@@ -257,6 +256,24 @@ class InMemoryRepository:
             self.jobs[job.job_id] = job
             return job, False
 
+    def find_active_deep_job(
+        self, report_id: str, diagnostic_question_id: str, account_id: int, grant_id: str
+    ) -> AnalysisJob | None:
+        with self._lock:
+            return next(
+                (
+                    job
+                    for job in self.jobs.values()
+                    if job.analysis_mode == "deep_scan"
+                    and job.parent_report_id == report_id
+                    and job.diagnostic_question_id == diagnostic_question_id
+                    and job.account_id == account_id
+                    and (job.entitlement_decision or {}).get("grant_id") == grant_id
+                    and job.status in {"queued", "running"}
+                ),
+                None,
+            )
+
     def find_compatible_completed(
         self,
         account_id: int,
@@ -446,6 +463,35 @@ class InMemoryRepository:
             }
             self.evidence[report_id] = [item.as_dict() for item in evidence]
         return report_id
+
+    def save_report_with_protected_cohorts(
+        self,
+        *,
+        account_id: int,
+        data_cutoff: int | None,
+        model_version: str,
+        template_version: str,
+        report: dict[str, Any],
+        evidence: list[EvidenceObject],
+        protected_cohorts: dict[str, Any],
+    ) -> str:
+        with self._lock:
+            report_id = self.save_report(
+                account_id=account_id,
+                data_cutoff=data_cutoff,
+                model_version=model_version,
+                template_version=template_version,
+                report=report,
+                evidence=evidence,
+            )
+            try:
+                self.persist_protected_cohorts(report_id, protected_cohorts)
+            except Exception:
+                self.reports.pop(report_id, None)
+                self._report_private.pop(report_id, None)
+                self.evidence.pop(report_id, None)
+                raise
+            return report_id
 
     def get_report(self, report_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -698,8 +744,8 @@ class SqlAlchemyRepository:
     """Persistent repository used by production API and worker processes."""
 
     def __init__(self, settings: Any) -> None:
+        self.settings = settings
         self.engine = create_database_engine(settings)
-        Base.metadata.create_all(self.engine)
         self._session_factory = sessionmaker(bind=self.engine, expire_on_commit=False)
         self._lock = threading.RLock()
         self.report_retention = timedelta(
@@ -708,6 +754,9 @@ class SqlAlchemyRepository:
         self.interaction_retention = timedelta(
             days=max(1, int(getattr(settings, "effective_report_interaction_retention_days", 90)))
         )
+
+    def check_ready(self) -> None:
+        check_database_revision(self.engine)
 
     @staticmethod
     def _active_key(account_id: int, model_version: str, analysis_mode: str = "free") -> str:
@@ -838,6 +887,24 @@ class SqlAlchemyRepository:
             )
             session.commit()
         return job
+
+    def find_active_deep_job(
+        self, report_id: str, diagnostic_question_id: str, account_id: int, grant_id: str
+    ) -> AnalysisJob | None:
+        with self._session_factory() as session:
+            records = session.scalars(
+                select(AnalysisJobRecord).where(
+                    AnalysisJobRecord.parent_report_id == report_id,
+                    AnalysisJobRecord.diagnostic_question_id == diagnostic_question_id,
+                    AnalysisJobRecord.account_id == account_id,
+                    AnalysisJobRecord.analysis_mode == "deep_scan",
+                    AnalysisJobRecord.status.in_(("queued", "running")),
+                )
+            ).all()
+            for record in records:
+                if (record.entitlement_decision_json or {}).get("grant_id") == grant_id:
+                    return self._job_from_record(record)
+        return None
 
     def get_or_create_inflight_job(
         self,
@@ -1174,6 +1241,62 @@ class SqlAlchemyRepository:
                     source_match_ids=list(item.source_match_ids),
                 )
                 for item in evidence
+            )
+            session.commit()
+        return report_id
+
+    def save_report_with_protected_cohorts(
+        self,
+        *,
+        account_id: int,
+        data_cutoff: int | None,
+        model_version: str,
+        template_version: str,
+        report: dict[str, Any],
+        evidence: list[EvidenceObject],
+        protected_cohorts: dict[str, Any],
+    ) -> str:
+        report_id = str(uuid4())
+        created_at = datetime.now(UTC)
+        expires_at = created_at + self.report_retention
+        report_json = deepcopy(report)
+        report_json["metadata"] = {
+            **dict(report_json.get("metadata") or {}),
+            "expires_at": expires_at.isoformat(),
+        }
+        endpoint = f"internal://reports/{report_id}/protected-deep-cohorts"
+        with self._session_factory() as session:
+            session.add(
+                ReportRecord(
+                    report_id=report_id,
+                    account_id=account_id,
+                    data_cutoff=data_cutoff,
+                    model_version=model_version,
+                    template_version=template_version,
+                    report_json=report_json,
+                    created_at=created_at,
+                )
+            )
+            session.add_all(
+                EvidenceObjectRecord(
+                    report_id=report_id,
+                    insight_id=item.insight_id,
+                    concept_id=item.concept_id,
+                    publication_status=item.publication_status,
+                    evidence_json=item.as_dict(),
+                    source_match_ids=list(item.source_match_ids),
+                )
+                for item in evidence
+            )
+            session.add(
+                RawPayloadRecord(
+                    endpoint=endpoint,
+                    source_id=report_id,
+                    payload_hash=payload_hash(protected_cohorts),
+                    payload_json=deepcopy(protected_cohorts),
+                    metadata_json={"private": True, "schema_version": "protected-deep-cohort-1.0.0"},
+                    fetched_at=created_at,
+                )
             )
             session.commit()
         return report_id

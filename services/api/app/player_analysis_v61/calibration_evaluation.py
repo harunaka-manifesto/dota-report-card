@@ -323,6 +323,61 @@ def _measured_gate(*, required: Any, observed: Any, passed: bool, source: str) -
     }
 
 
+def validate_runtime_parity(
+    payload: Mapping[str, Any],
+    *,
+    source_revision: str | None = None,
+    dirty_worktree: bool | None = None,
+    corpus_sha256: str | None = None,
+    split_manifest_checksum: str | None = None,
+    artifact_checksums: Mapping[str, str] | None = None,
+) -> None:
+    """Validate the signed-in-place runtime parity evidence contract."""
+
+    source = payload.get("source")
+    corpus = payload.get("corpus")
+    versions = payload.get("versions")
+    assertions = payload.get("assertions")
+    declared_artifacts = payload.get("artifact_checksums")
+    if payload.get("passed") is not True or not isinstance(source, Mapping) or not isinstance(corpus, Mapping):
+        raise ValueError("runtime parity must be a passed, bound evidence artifact")
+    if (
+        not isinstance(source.get("repository_commit"), str)
+        or not source.get("repository_commit")
+        or not isinstance(source.get("dirty_worktree"), bool)
+        or not isinstance(corpus.get("sha256"), str)
+        or not corpus.get("sha256")
+        or not isinstance(corpus.get("split_manifest_checksum"), str)
+        or not corpus.get("split_manifest_checksum")
+    ):
+        raise ValueError("runtime parity must bind source, corpus, and split checksums")
+    if not isinstance(versions, Mapping) or not versions or not isinstance(assertions, Mapping):
+        raise ValueError("runtime parity must declare versions and assertions")
+    required_assertions = {
+        "canonical_one_request",
+        "fixture_components_in_production",
+        "full_recomputation",
+        "family_branch_evidence_complete",
+        "report_assembly_completed",
+    }
+    if set(assertions) != required_assertions or any(
+        assertions[key] is not True for key in required_assertions if key != "fixture_components_in_production"
+    ) or assertions["fixture_components_in_production"] is not False:
+        raise ValueError("runtime parity assertions are incomplete")
+    if not isinstance(declared_artifacts, Mapping) or not declared_artifacts:
+        raise ValueError("runtime parity must bind frozen artifact checksums")
+    if source_revision is not None and source.get("repository_commit") != source_revision:
+        raise ValueError("runtime parity source revision mismatch")
+    if dirty_worktree is not None and source.get("dirty_worktree") is not dirty_worktree:
+        raise ValueError("runtime parity worktree state mismatch")
+    if corpus_sha256 is not None and corpus.get("sha256") != corpus_sha256:
+        raise ValueError("runtime parity corpus mismatch")
+    if split_manifest_checksum is not None and corpus.get("split_manifest_checksum") != split_manifest_checksum:
+        raise ValueError("runtime parity split manifest mismatch")
+    if artifact_checksums is not None and dict(declared_artifacts) != dict(artifact_checksums):
+        raise ValueError("runtime parity artifact checksum mismatch")
+
+
 def build_v61_calibration_evaluation(
     *,
     compatibility_audit: Mapping[str, Any],
@@ -333,6 +388,10 @@ def build_v61_calibration_evaluation(
     holdout: Mapping[str, Any],
     runtime_parity: Mapping[str, Any],
     artifact_checksums: Mapping[str, str],
+    source_revision: str | None = None,
+    dirty_worktree: bool | None = None,
+    corpus_sha256: str | None = None,
+    split_manifest_checksum: str | None = None,
     generated_at: str = "2000-01-01T00:00:00+00:00",
 ) -> dict[str, Any]:
     """Derive State B only from measured, checksum-linked evidence."""
@@ -348,6 +407,14 @@ def build_v61_calibration_evaluation(
     )
     for payload in evidence:
         validate_aggregate_payload(payload)
+    validate_runtime_parity(
+        runtime_parity,
+        source_revision=source_revision,
+        dirty_worktree=dirty_worktree,
+        corpus_sha256=corpus_sha256,
+        split_manifest_checksum=split_manifest_checksum,
+        artifact_checksums=artifact_checksums,
+    )
     expected_artifacts = {
         "context-baseline-3.0.0.json",
         "metric-thresholds-6.1.0.json",
