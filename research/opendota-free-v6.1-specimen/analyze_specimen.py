@@ -12,13 +12,12 @@ import hashlib
 import json
 import math
 import random
-import statistics
 import sys
 from collections import Counter, defaultdict
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable, Iterable, Mapping, Sequence
-
+from typing import Any
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -26,7 +25,6 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 
 from app.heroes.taxonomy import load_default_taxonomy  # noqa: E402
 from app.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy  # noqa: E402
-
 
 RAW_PATH = HERE / "raw-history.json"
 OUTPUT_PATH = HERE / "analysis-summary.json"
@@ -581,7 +579,7 @@ def lifecycle_analysis(rows: Sequence[Mapping[str, Any]], hero_names: Mapping[in
         return len(values) >= 2 and int(values[1]["start_time"]) - int(values[0]["start_time"]) <= days * 24 * 60 * 60
     rediscoveries: list[dict[str, Any]] = []
     for hero_id, values in appearances.items():
-        for previous, current in zip(values, values[1:]):
+        for previous, current in zip(values, values[1:], strict=False):
             gap_days = (int(current["start_time"]) - int(previous["start_time"])) / 86400
             if gap_days >= 60:
                 rediscoveries.append({
@@ -673,8 +671,11 @@ def evolution_analysis(rows: Sequence[Mapping[str, Any]], jobs_by_hero: Mapping[
     for row in ordered:
         by_session[str(row["session_id"])].append(row)
     session_blocks = [by_session[key] for key in sorted(by_session, key=lambda value: int(value.split("-")[-1]))]
-    hero_key = lambda row: (int(row["hero_id"]),)
-    job_key = lambda row: tuple(jobs_by_hero.get(int(row["hero_id"]), {}).get("functional_jobs", ()))
+    def hero_key(row: Mapping[str, Any]) -> tuple[int]:
+        return (int(row["hero_id"]),)
+
+    def job_key(row: Mapping[str, Any]) -> tuple[str, ...]:
+        return tuple(jobs_by_hero.get(int(row["hero_id"]), {}).get("functional_jobs", ()))
     thirds = [ordered[index * len(ordered) // 3:(index + 1) * len(ordered) // 3] for index in range(3)]
     third_summaries = []
     for index, chunk in enumerate(thirds, start=1):

@@ -20,33 +20,62 @@ baseline must be `context-baseline-3.0.0`; thresholds must be
 `metric-thresholds-6.1.0`. Fixture files under `tests/fixtures/v6` must never be
 mounted into a production image.
 
+## Production beta authorization
+
+The frozen training bundle is deliberately not self-authorizing. For the
+owner-directed production beta, generate a separate authorization after the
+automated State B aggregate passes:
+
+```bash
+uv run python scripts/evaluate_v61_calibration.py authorize-production-beta \
+  --output .local/calibration/v61/evaluation/production-beta-authorization-6.1.0.json \
+  --operator-reference "user-task:Free DNA V6.1 production beta"
+
+uv run python scripts/package_v61_production_bundle.py \
+  --artifact-dir .local/calibration/v61 \
+  --authorization .local/calibration/v61/evaluation/production-beta-authorization-6.1.0.json \
+  --output-dir .local/release/v61/6.1.0
+```
+
+The authorization records that the owner assumed the review approvals were
+complete; it does not invent reviewer names or alter the frozen training
+manifest. Mount the packaged directory read-only into both API and worker. In
+`infra/compose.yaml`, set `FREE_DNA_V61_ARTIFACT_HOST_DIR` to that directory,
+set `FREE_DNA_V61_ENABLED=true`, and keep all shadow/experimental flags false.
+The service refuses to start if either service is missing the bundle,
+authorization, or matching checksums.
+
+This is a production beta rollout. It is reversible by setting
+`FREE_DNA_V61_ENABLED=false` on both API and worker; it does not require
+re-running the sealed holdout.
+
 ## State A: implementation verification
 
 Run the commands in the [release gates](../qa/free-dna-v6.1-release-gates.md).
 Generate the synthetic record with:
 
 ```bash
-uv run python scripts/evaluate_v61_calibration.py \
-  --output .local/calibration/v61/synthetic-evaluation.json
+uv run python scripts/evaluate_v61_calibration.py synthetic \
+  --artifact-dir .local/calibration/v61 \
+  --output .local/calibration/v61/evaluation/synthetic-6.1.0.json
 ```
 
-Confirm the record reports State A and State D true, States B/C false, and no
-missing or failed implementation checks. Synthetic rates validate the harness,
-but cannot override a missing State A check. State A permits local and shadow
-engineering QA only.
+Synthetic rates validate the harness, but cannot substitute for State B or
+authorize traffic.
 
 ## State B: calibration workflow
 
-Use only a reviewed public/consented corpus. Collection, fixtures, training,
-holdout, and runtime must call the same canonical summary-history projection
-and normalizer. Freeze a deterministic player-exclusive split before deriving
-artifacts; keep the holdout sealed. Private rows, identifiers, manifests,
-checkpoints, and reviewer packets stay under owner-only `.local/calibration/`
-paths and are never copied into an image.
+For the completed existing-corpus run, do not recollect. The exact corpus and
+frozen split are recorded in the [calibration record](../qa/free-dna-v6.1-existing-corpus-calibration-record.md).
+Training, holdout, and runtime use the compact-to-canonical analytical adapter;
+the holdout was evaluated once against the frozen bytes. Private rows,
+identifiers, manifests, checkpoints, and reviewer packets stay under owner-only
+`.local/calibration/` paths and are never copied into an image.
 
-Network recollection is not part of State A and requires separate
-authorization. When authorized, the guarded collector uses exactly the runtime
-contract:
+Network recollection is not part of this calibration and requires separate
+authorization. Do not run the collector for the existing-corpus State B record.
+If a future task explicitly authorizes a new collection, the guarded collector
+uses exactly the runtime contract:
 
 ```bash
 uv run python scripts/collect_v61_calibration_histories.py \
@@ -55,19 +84,22 @@ uv run python scripts/collect_v61_calibration_histories.py \
   --acknowledge-network-collection
 ```
 
-Derive `context-baseline-3.0.0` and `metric-thresholds-6.1.0` from training data
-only. The candidate builder also emits training-only prior, distance, and
-semantic manifests:
+The staged builder derives `context-baseline-3.0.0`,
+`metric-thresholds-6.1.0`, and the training-only prior, distance, reliability,
+and semantic artifacts from the 791-profile training set:
 
 ```bash
-uv run python scripts/build_v61_calibration_artifacts.py \
-  --input .local/calibration/v61/corpus.json \
-  --output-dir .local/calibration/v61/candidate-artifacts \
-  --seed 6100 \
-  --generated-at 2000-01-01T00:00:00+00:00
+uv run python scripts/build_v61_calibration_artifacts.py audit-reuse ...
+uv run python scripts/build_v61_calibration_artifacts.py baseline ...
+uv run python scripts/build_v61_calibration_artifacts.py calibrate-support ...
+uv run python scripts/build_v61_calibration_artifacts.py thresholds ...
+uv run python scripts/build_v61_calibration_artifacts.py freeze ...
+uv run python scripts/build_v61_calibration_artifacts.py verify-reproducibility ...
 ```
 
-Rebuild from a clean output directory and require byte-identical hashes.
+Run the sealed holdout exactly once after freeze, then run the aggregate
+evaluation. Rebuild from a fresh output directory and require byte-identical
+hashes. State B does not authorize release.
 Do not promote if a key is missing, duplicated, non-finite, rank/MMR-shaped, or
 if the artifact declares a V6.0 version.
 

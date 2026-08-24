@@ -12,6 +12,7 @@ import argparse
 import sys
 from pathlib import Path
 from string import Formatter
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 API_ROOT = ROOT / "services" / "api"
@@ -84,10 +85,10 @@ def _semantic_outcome_copy(
     pattern_key: str,
     outcome_id: str,
     *,
-    semantic_catalog: dict[str, object],
-) -> dict[str, object]:
+    semantic_catalog: dict[str, Any],
+) -> dict[str, Any]:
     contract = PATTERN_PRESENTATION_CONTRACT[pattern_key]
-    outcome = semantic_catalog["outcomes"][outcome_id]  # type: ignore[index]
+    outcome = semantic_catalog["outcomes"][outcome_id]
     params = _semantic_example_params(outcome)
     return resolve_pattern_presentation_copy(
         pattern_key,
@@ -101,10 +102,10 @@ def _semantic_recommendation_copy(
     pattern_key: str,
     recommendation_id: str,
     *,
-    semantic_catalog: dict[str, object],
-) -> dict[str, object]:
+    semantic_catalog: dict[str, Any],
+) -> dict[str, Any]:
     contract = PATTERN_PRESENTATION_CONTRACT[pattern_key]
-    recommendation = semantic_catalog["recommendations"][recommendation_id]  # type: ignore[index]
+    recommendation = semantic_catalog["recommendations"][recommendation_id]
     params = _semantic_example_params(recommendation)
     return resolve_pattern_presentation_copy(
         pattern_key,
@@ -209,7 +210,7 @@ def render_catalog() -> str:
                 outcome_id,
                 semantic_catalog=semantic_catalog,
             )
-            source = semantic_catalog["outcomes"][outcome_id]  # type: ignore[index]
+            source = semantic_catalog["outcomes"][outcome_id]
             lines.extend(
                 [
                     f"#### `{outcome_id}`",
@@ -228,7 +229,7 @@ def render_catalog() -> str:
                 recommendation_id,
                 semantic_catalog=semantic_catalog,
             )
-            source = semantic_catalog["recommendations"][recommendation_id]  # type: ignore[index]
+            source = semantic_catalog["recommendations"][recommendation_id]
             lines.extend(
                 [
                     f"#### `{recommendation_id}`",

@@ -174,6 +174,7 @@ class DistanceRecord:
 def cross_fitted_distance_records(
     matches: Sequence[Any],
     taxonomy_by_hero: Mapping[Any, Any] | None,
+    calibration: Mapping[str, Any] | None = None,
 ) -> tuple[DistanceRecord, ...]:
     indexed = list(enumerate(matches))
     fold_by_session: dict[str, int] = {}
@@ -248,8 +249,15 @@ def cross_fitted_distance_records(
             )
             training_distances.append(0.65 * familiarity + 0.35 * (1.0 - overlap))
         ordered_distances = sorted(training_distances)
-        core_cut = ordered_distances[max(0, int(len(ordered_distances) * 0.50) - 1)] if ordered_distances else 0.0
-        stretch_cut = ordered_distances[max(0, int(len(ordered_distances) * 0.80) - 1)] if ordered_distances else 0.0
+        if calibration is None:
+            core_cut = ordered_distances[max(0, int(len(ordered_distances) * 0.50) - 1)] if ordered_distances else 0.0
+            stretch_cut = ordered_distances[max(0, int(len(ordered_distances) * 0.80) - 1)] if ordered_distances else 0.0
+        else:
+            bands = calibration.get("bands")
+            if not isinstance(bands, Mapping):
+                raise ValueError("V6.1 distance calibration is missing bands")
+            core_cut = float(bands["core"]["maximum"])
+            stretch_cut = float(bands["reliable_stretch"]["maximum"])
         for _index, match, familiarity, function, combined in provisional:
             band = "core" if combined <= core_cut else "reliable_stretch" if combined <= stretch_cut else "experimental_edge"
             records.append(DistanceRecord(match, familiarity, function, combined, band, verification_fold))
@@ -259,13 +267,20 @@ def cross_fitted_distance_records(
 def build_portfolio_shape(
     matches: Sequence[Any],
     taxonomy_by_hero: Mapping[Any, Any] | None,
+    distance_calibration: Mapping[str, Any] | None = None,
+    distance_records: Sequence[DistanceRecord] | None = None,
+    include_taxonomy_sensitivity: bool = True,
 ) -> dict[str, Any]:
     hero_counts = _hero_counts(matches)
     job_mass, taxonomy_coverage = _fractional_job_mass(matches, taxonomy_by_hero)
     thirds = chronological_thirds(matches)
     third_hero_counts = [_hero_counts(part) for part in thirds]
     third_job_mass = [_fractional_job_mass(part, taxonomy_by_hero)[0] for part in thirds]
-    distances = cross_fitted_distance_records(matches, taxonomy_by_hero)
+    distances = tuple(distance_records) if distance_records is not None else cross_fitted_distance_records(
+        matches,
+        taxonomy_by_hero,
+        calibration=distance_calibration,
+    )
     band_counts = Counter(record.band for record in distances)
     core = _mass_core(hero_counts, 0.50)
     stretch = tuple(
@@ -285,7 +300,19 @@ def build_portfolio_shape(
     for hero_id in hero_counts:
         for label in _labels(hero_id, taxonomy_by_hero):
             job_hero_sets[label].add(hero_id)
-    sensitivity = _taxonomy_sensitivity(matches, taxonomy_by_hero, effective_jobs)
+    sensitivity = (
+        _taxonomy_sensitivity(matches, taxonomy_by_hero, effective_jobs)
+        if include_taxonomy_sensitivity
+        else {
+            "version": "taxonomy-leave-one-label-1.0.0",
+            "perturbations": 0,
+            "effective_count_min": effective_jobs,
+            "effective_count_max": effective_jobs,
+            "maximum_deviation": 0.0,
+            "stable": True,
+            "bootstrap_omitted": True,
+        }
+    )
     sensitivity["stable"] = bool(sensitivity["stable"] and taxonomy_coverage >= 0.80)
     return {
         "version": "portfolio-shape-1.0.0",

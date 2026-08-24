@@ -96,6 +96,13 @@ class Settings:
     free_dna_v61_experimental_loops_enabled: bool = False
     free_dna_v61_baseline_artifact_path: Path | None = None
     free_dna_v61_threshold_artifact_path: Path | None = None
+    free_dna_v61_artifact_dir: Path | None = None
+    free_dna_v61_summary_prior_artifact_path: Path | None = None
+    free_dna_v61_distance_artifact_path: Path | None = None
+    free_dna_v61_session_reliability_artifact_path: Path | None = None
+    free_dna_v61_semantic_artifact_path: Path | None = None
+    free_dna_v61_build_manifest_path: Path | None = None
+    free_dna_v61_release_authorization_path: Path | None = None
     free_dna_v61_model_version: str = "free-dna-model-6.1.0"
     replay_coverage_threshold: float = 0.60
     summary_coverage_threshold: float = 0.60
@@ -216,6 +223,29 @@ class Settings:
             ),
             free_dna_v61_threshold_artifact_path=(
                 Path(value) if (value := os.getenv("FREE_DNA_V61_THRESHOLD_ARTIFACT")) else None
+            ),
+            free_dna_v61_artifact_dir=(
+                Path(value) if (value := os.getenv("FREE_DNA_V61_ARTIFACT_DIR")) else None
+            ),
+            free_dna_v61_summary_prior_artifact_path=(
+                Path(value) if (value := os.getenv("FREE_DNA_V61_SUMMARY_PRIOR_ARTIFACT")) else None
+            ),
+            free_dna_v61_distance_artifact_path=(
+                Path(value) if (value := os.getenv("FREE_DNA_V61_DISTANCE_ARTIFACT")) else None
+            ),
+            free_dna_v61_session_reliability_artifact_path=(
+                Path(value) if (value := os.getenv("FREE_DNA_V61_SESSION_RELIABILITY_ARTIFACT")) else None
+            ),
+            free_dna_v61_semantic_artifact_path=(
+                Path(value) if (value := os.getenv("FREE_DNA_V61_SEMANTIC_ARTIFACT")) else None
+            ),
+            free_dna_v61_build_manifest_path=(
+                Path(value) if (value := os.getenv("FREE_DNA_V61_BUILD_MANIFEST")) else None
+            ),
+            free_dna_v61_release_authorization_path=(
+                Path(value)
+                if (value := os.getenv("FREE_DNA_V61_RELEASE_AUTHORIZATION"))
+                else None
             ),
             free_dna_v61_model_version=os.getenv(
                 "FREE_DNA_V61_MODEL_VERSION", cls.free_dna_v61_model_version

@@ -241,7 +241,12 @@ class MethodologyV61Schema(PublicV6Model):
     family_roots: Literal[5]
     public_elements: Literal[7]
     hierarchical_error_control: Literal[True]
-    calibration_status: Literal["fixture_synthetic_only", "automated_complete", "release_approved"]
+    calibration_status: Literal[
+        "fixture_synthetic_only",
+        "existing_corpus_training_frozen",
+        "automated_complete",
+        "release_approved",
+    ]
     rank_or_mmr_used: Literal[False]
     shadow_enabled: bool
     experimental_evolution_enabled: bool

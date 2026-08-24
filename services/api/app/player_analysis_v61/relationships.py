@@ -24,9 +24,16 @@ def _won(value: Any) -> bool | None:
 
 
 def result_response_summary(
-    matches: Sequence[Any], taxonomy_by_hero: Mapping[Any, Any] | None
+    matches: Sequence[Any],
+    taxonomy_by_hero: Mapping[Any, Any] | None,
+    distance_calibration: Mapping[str, Any] | None = None,
+    distance_records: Sequence[Any] | None = None,
 ) -> dict[str, Any]:
-    records = cross_fitted_distance_records(matches, taxonomy_by_hero)
+    records = tuple(distance_records) if distance_records is not None else cross_fitted_distance_records(
+        matches,
+        taxonomy_by_hero,
+        calibration=distance_calibration,
+    )
     distance_by_identity = {id(record.match): record.combined_distance for record in records}
     groups: dict[str, list[Any]] = defaultdict(list)
     for index, match in enumerate(matches):

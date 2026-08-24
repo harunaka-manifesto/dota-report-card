@@ -171,7 +171,11 @@ def overdispersed_death_exposure(
     }
 
 
-def stabilized_finishing(matches: Sequence[Any]) -> dict[str, Any]:
+def stabilized_finishing(
+    matches: Sequence[Any],
+    *,
+    prior: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
     kills = 0
     events = 0
     event_matches = 0
@@ -188,9 +192,22 @@ def stabilized_finishing(matches: Sequence[Any]) -> dict[str, Any]:
         events += opportunities
         event_matches += 1
         sessions.add(_session(match, index))
-    # Fixture/synthetic prior. Production promotion requires a frozen training
-    # artifact; keeping it explicit prevents thin histories from appearing exact.
-    alpha, beta = 2.0, 2.0
+    if prior is None:
+        # Fixture/test mode only.  Production report assembly must pass the
+        # frozen summary-priors artifact and fails startup when it is absent.
+        alpha, beta = 2.0, 2.0
+        prior_source = "fixture-only"
+        estimator_version = "finishing-beta-binomial-1.0.0-fixture"
+    else:
+        raw_prior = prior.get("finishing_beta_binomial") if isinstance(prior, Mapping) else None
+        if not isinstance(raw_prior, Mapping):
+            raise ValueError("V6.1 finishing estimator requires a validated prior artifact")
+        alpha = float(raw_prior["alpha"])
+        beta = float(raw_prior["beta"])
+        if not math.isfinite(alpha) or not math.isfinite(beta) or alpha <= 0 or beta <= 0:
+            raise ValueError("V6.1 finishing prior must contain positive finite alpha/beta")
+        prior_source = str(prior.get("version", "unknown"))
+        estimator_version = "finishing-beta-binomial-2.0.0"
     posterior_alpha = alpha + kills
     posterior_beta = beta + events - kills
     total = posterior_alpha + posterior_beta
@@ -212,7 +229,8 @@ def stabilized_finishing(matches: Sequence[Any]) -> dict[str, Any]:
         "sessions": len(sessions),
         "status": "available" if not limitations else "unavailable",
         "limitations": limitations,
-        "estimator_version": "finishing-beta-binomial-1.0.0",
+        "estimator_version": estimator_version,
+        "prior_source": prior_source,
     }
 
 
@@ -257,8 +275,14 @@ def continuous_transfer(
     *,
     baseline_resolver: Any,
     taxonomy_by_hero: Mapping[Any, Any] | None,
+    distance_calibration: Mapping[str, Any] | None = None,
+    distance_records: Sequence[Any] | None = None,
 ) -> dict[str, Any]:
-    records = cross_fitted_distance_records(matches, taxonomy_by_hero)
+    records = tuple(distance_records) if distance_records is not None else cross_fitted_distance_records(
+        matches,
+        taxonomy_by_hero,
+        calibration=distance_calibration,
+    )
     values: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
     values_by_session: dict[str, dict[str, dict[str, list[float]]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(list))
@@ -277,7 +301,15 @@ def continuous_transfer(
                 values_by_session[record.band][key][session_id].append(float(value))
         sessions_by_band[record.band].add(session_id)
     core = values.get("core", {})
-    margins = {"outcome": 0.08, "activity": 0.08, "survival": 0.35}
+    if distance_calibration is None:
+        margins = {"outcome": 0.08, "activity": 0.08, "survival": 0.35}
+        estimator_version = "portfolio-distance-frontier-1.0.0-fixture"
+    else:
+        raw_margins = distance_calibration.get("equivalence_ropes")
+        if not isinstance(raw_margins, Mapping):
+            raise ValueError("V6.1 transfer estimator requires distance equivalence ropes")
+        margins = {key: float(raw_margins[key]) for key in ("outcome", "activity", "survival")}
+        estimator_version = "portfolio-distance-frontier-2.0.0"
     band_results: dict[str, Any] = {}
     frontier = "core"
     subtype = "mixed"
@@ -359,7 +391,8 @@ def continuous_transfer(
         "bands": band_results,
         "cross_fitted": True,
         "status": "available" if len(records) >= 30 else "unavailable",
-        "estimator_version": "portfolio-distance-frontier-1.0.0",
+        "estimator_version": estimator_version,
+        "calibration_source": distance_calibration.get("version") if distance_calibration else "fixture-only",
     }
 
 
@@ -368,6 +401,7 @@ def information_weighted_consistency(
     *,
     baseline_resolver: Any,
     taxonomy_by_hero: Mapping[Any, Any] | None,
+    reliability_calibration: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     groups: dict[str, list[Any]] = defaultdict(list)
     for index, match in enumerate(matches):
@@ -396,7 +430,16 @@ def information_weighted_consistency(
             values = [value for match in rows if (value := function(match)) is not None]
             if not values:
                 continue
-            weight = len(values) / (len(values) + 4.0)
+            if reliability_calibration is None:
+                shrinkage = 4.0
+            else:
+                raw_shrinkage = reliability_calibration.get("shrinkage")
+                if not isinstance(raw_shrinkage, Mapping):
+                    raise ValueError("V6.1 consistency estimator requires session reliability calibration")
+                shrinkage = float(raw_shrinkage.get(key, 0.0))
+                if not math.isfinite(shrinkage) or shrinkage < 0:
+                    raise ValueError("V6.1 consistency shrinkage must be finite and non-negative")
+            weight = len(values) / (len(values) + shrinkage)
             shrunk = weight * (sum(values) / len(values)) + (1.0 - weight) * center
             weighted.append((shrunk, weight))
             precision_mass += weight
@@ -406,7 +449,15 @@ def information_weighted_consistency(
             if denominator
             else 0.0
         )
-    scales = {"outcome": 0.25, "activity": 0.04, "survival": 0.80}
+    if reliability_calibration is None:
+        scales = {"outcome": 0.25, "activity": 0.04, "survival": 0.80}
+        estimator_version = "consistency-information-weighted-1.0.0-fixture"
+    else:
+        raw_scales = reliability_calibration.get("component_scales")
+        if not isinstance(raw_scales, Mapping):
+            raise ValueError("V6.1 consistency estimator requires component scales")
+        scales = {key: max(1e-12, float(raw_scales[key])) for key in ("outcome", "activity", "survival")}
+        estimator_version = "consistency-information-weighted-2.0.0"
     normalized = [min(1.0, component_variance[key] / scales[key]) for key in component_variance]
     score = max(0.0, 1.0 - sum(normalized) / len(normalized)) if normalized else 0.0
     limitations: list[str] = []
@@ -419,7 +470,8 @@ def information_weighted_consistency(
         "information_weight": precision_mass,
         "status": "available" if not limitations else "unavailable",
         "limitations": limitations,
-        "estimator_version": "consistency-information-weighted-1.0.0",
+        "estimator_version": estimator_version,
+        "calibration_source": reliability_calibration.get("version") if reliability_calibration else "fixture-only",
     }
 
 

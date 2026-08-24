@@ -62,6 +62,8 @@ from app.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy
 from app.player_analysis_v61.artifacts import (
     load_context_baseline_artifact_v61,
     load_threshold_artifact_v61,
+    load_v61_artifact_bundle,
+    load_v61_production_beta_authorization,
 )
 from app.player_analysis_v61.versions import MODEL_VERSION as V61_MODEL_VERSION
 from app.reports.assembly import assemble_player_dna_report, assemble_report
@@ -97,6 +99,7 @@ class AnalysisService:
         self.v61_thresholds = None
         self.v61_taxonomy_by_hero = None
         self.v61_artifact_checksums: dict[str, str] = {}
+        self.v61_supporting_artifacts: dict[str, Any] = {}
         if self.settings.free_dna_v6_enabled and self.settings.free_dna_v61_enabled:
             raise ArtifactValidationError("V6.0 and V6.1 generation flags are mutually exclusive")
         if self.settings.free_dna_v61_enabled:
@@ -104,6 +107,7 @@ class AnalysisService:
                 self.v61_baseline_resolver,
                 self.v61_thresholds,
                 self.v61_artifact_checksums,
+                self.v61_supporting_artifacts,
             ) = self._load_v61_artifacts()
             self.v61_taxonomy_by_hero = load_v6_hero_taxonomy()
         if self.settings.free_dna_v6_enabled:
@@ -135,23 +139,68 @@ class AnalysisService:
             raise
         return baseline_artifact.resolver(), threshold_artifact.metrics
 
-    def _load_v61_artifacts(self) -> tuple[Any, Any, dict[str, str]]:
+    def _load_v61_artifacts(self) -> tuple[Any, Any, dict[str, str], dict[str, Any]]:
         if self.settings.free_dna_v61_model_version != V61_MODEL_VERSION:
             raise ArtifactValidationError(
                 "FREE_DNA_V61_MODEL_VERSION must match the approved V6.1 runtime model"
             )
         baseline_path = self.settings.free_dna_v61_baseline_artifact_path
         threshold_path = self.settings.free_dna_v61_threshold_artifact_path
-        if baseline_path is None or threshold_path is None:
-            raise ArtifactValidationError(
-                "FREE_DNA_V61_ENABLED requires explicit validated V6.1 artifact paths"
+        artifact_dir = self.settings.free_dna_v61_artifact_dir
+        # The checked-in fixture pair is retained for unit/integration tests
+        # only.  Real V6.1 paths must use the complete frozen directory below;
+        # this explicit suffix prevents an incomplete production bundle from
+        # silently falling back to fixture constants.
+        if (
+            artifact_dir is None
+            and baseline_path is not None
+            and threshold_path is not None
+            and baseline_path.name.endswith(".fixture.json")
+            and threshold_path.name.endswith(".fixture.json")
+        ):
+            baseline = load_context_baseline_artifact_v61(baseline_path)
+            thresholds = load_threshold_artifact_v61(threshold_path)
+            return (
+                baseline.resolver(),
+                thresholds.metrics,
+                {
+                    "context_baseline": hashlib.sha256(baseline_path.read_bytes()).hexdigest(),
+                    "thresholds": hashlib.sha256(threshold_path.read_bytes()).hexdigest(),
+                },
+                {},
             )
-        baseline = load_context_baseline_artifact_v61(baseline_path)
-        thresholds = load_threshold_artifact_v61(threshold_path)
+        if artifact_dir is None and baseline_path is not None:
+            artifact_dir = baseline_path.parent
+        if baseline_path is None or threshold_path is None or artifact_dir is None:
+            raise ArtifactValidationError(
+                "FREE_DNA_V61_ENABLED requires a complete frozen V6.1 artifact bundle"
+            )
+        if baseline_path != artifact_dir / "context-baseline-3.0.0.json" or threshold_path != artifact_dir / "metric-thresholds-6.1.0.json":
+            raise ArtifactValidationError("V6.1 baseline/threshold paths must point into the frozen artifact directory")
+        bundle = load_v61_artifact_bundle(artifact_dir)
+        bundle_checksums = dict(bundle.checksums)
+        checksums = dict(bundle_checksums)
+        checksums.update({"context_baseline": checksums["context-baseline-3.0.0.json"], "thresholds": checksums["metric-thresholds-6.1.0.json"]})
+        release_authorization_path = (
+            self.settings.free_dna_v61_release_authorization_path
+            or artifact_dir / "production-beta-authorization-6.1.0.json"
+        )
+        release_authorization = load_v61_production_beta_authorization(
+            release_authorization_path,
+            artifact_checksums=bundle_checksums,
+        )
         return (
-            baseline.resolver(),
-            thresholds.metrics,
-            {"context_baseline": baseline.checksum, "thresholds": thresholds.checksum},
+            bundle.baseline.resolver(),
+            bundle.thresholds.metrics,
+            checksums,
+            {
+                "summary_prior": bundle.summary_prior,
+                "distance_calibration": bundle.distance_calibration,
+                "session_reliability": bundle.session_reliability,
+                "semantic_calibration": bundle.semantic_calibration,
+                "manifest": bundle.manifest,
+                "production_beta_authorization": release_authorization,
+            },
         )
 
     async def create_analysis(
@@ -701,6 +750,7 @@ class AnalysisService:
                 taxonomy_by_hero=self.v61_taxonomy_by_hero,
                 completed_sessions=completed_sessions,
                 artifact_checksums=self.v61_artifact_checksums,
+                supporting_artifacts=self.v61_supporting_artifacts,
                 shadow_enabled=self.settings.free_dna_v61_shadow_enabled,
                 experimental_evolution_enabled=self.settings.free_dna_v61_experimental_evolution_enabled,
                 experimental_loops_enabled=self.settings.free_dna_v61_experimental_loops_enabled,

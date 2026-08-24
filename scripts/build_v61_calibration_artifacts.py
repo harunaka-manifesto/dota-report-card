@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
-"""Build deterministic training-only V6.1 candidate artifacts.
+"""Build and verify training-only V6.1 calibration artifacts.
 
-This command is fixture-capable for State A and real-corpus-capable for the
-future State B workflow. It never authorizes release and never derives bytes
-from holdout rows.
+Preferred interface: ``audit-reuse``, ``baseline``, ``calibrate-support``,
+``thresholds``, ``freeze``, and ``verify-reproducibility``.  The old
+``--input ... --output-dir ...`` form remains only for small State-A fixture
+tests and refuses the real V6 corpus.
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import math
-import statistics
 import sys
-from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -23,266 +20,362 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from app.player_analysis_v61.artifacts import (  # noqa: E402
-    load_context_baseline_artifact_v61,
-    load_threshold_artifact_v61,
+    V61_SUPPORT_ARTIFACTS,
+    load_v61_artifact_bundle,
 )
-from app.player_analysis_v61.semantic_outcomes import (  # noqa: E402
-    SEMANTIC_OUTCOME_CATALOG,
+from app.player_analysis_v61.corpus_reuse import (  # noqa: E402
+    CompatibilityAuditError,
+    audit_reuse,
+    require_compatible_audit,
+    sha256_file,
 )
-from app.player_analysis_v61.versions import version  # noqa: E402
-from build_v6_calibration_artifacts import (  # noqa: E402
-    _profile_id,
-    build_baseline,
-    build_thresholds,
-    split_profiles,
+from app.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
+from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG  # noqa: E402
+from v61_calibration_builder import (  # noqa: E402
+    FREEZE_RECORD_NAME,
+    assert_reproducible,
+    atomic_json,
+    build_baseline_v61,
+    build_distance_calibration,
+    build_semantic_calibration,
+    build_session_reliability,
+    build_summary_prior,
+    derive_thresholds_v61,
+    load_rows,
+    split_from_manifest,
+    write_freeze_manifest,
 )
 
-BUILDER_VERSION = "v61-calibration-builder-1.0.0"
-PRIOR_VERSION = "summary-priors-6.1.0"
-DISTANCE_VERSION = "portfolio-distance-calibration-1.0.0"
-SEMANTIC_ARTIFACT_VERSION = "semantic-outcome-calibration-1.0.0"
-SPLIT_VERSION = "v61-player-split-1.0.0"
 
-
-def _canonical_bytes(payload: Mapping[str, Any]) -> bytes:
-    return (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
-
-
-def _checksum(payload: Mapping[str, Any]) -> str:
-    return hashlib.sha256(_canonical_bytes(payload)).hexdigest()
-
-
-def _atomic_json(path: Path, payload: Mapping[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    temporary = path.with_name(f".{path.name}.tmp")
-    temporary.write_bytes(_canonical_bytes(payload))
-    temporary.chmod(0o600)
-    temporary.replace(path)
-
-
-def _load_rows(path: Path) -> list[dict[str, Any]]:
+def _json(path: Path, label: str) -> dict[str, Any]:
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"cannot read V6.1 calibration corpus: {path}") from exc
-    rows = payload.get("matches") if isinstance(payload, Mapping) else payload
-    if not isinstance(rows, list) or not rows or not all(isinstance(row, dict) for row in rows):
-        raise ValueError("V6.1 calibration corpus needs a non-empty matches array")
-    forbidden = {"rank", "rank_tier", "average_rank", "mmr", "skill_bracket", "medal"}
-
-    def inspect(value: Any) -> None:
-        if isinstance(value, Mapping):
-            leaked = forbidden.intersection(str(key).casefold() for key in value)
-            if leaked:
-                raise ValueError(f"rank/MMR dimensions are forbidden: {sorted(leaked)}")
-            for nested in value.values():
-                inspect(nested)
-        elif isinstance(value, list):
-            for nested in value:
-                inspect(nested)
-
-    inspect(rows)
-    if any(_profile_id(row) is None for row in rows):
-        raise ValueError("every V6.1 calibration row needs profile_id")
-    return [dict(row) for row in rows]
+        raise ValueError(f"cannot read {label}: {path}") from exc
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} must be an object")
+    return value
 
 
-def _profile_digest(values: Sequence[Any]) -> str:
-    encoded = "\n".join(sorted(map(str, values))).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
+def _reference(args: argparse.Namespace, audit: dict[str, Any] | None = None) -> str:
+    value = str(getattr(args, "reuse_authorization_reference", "") or "").strip()
+    if not value and audit:
+        value = str(audit.get("authorization", {}).get("reuse_reference", "") or "").strip()
+    return value
 
 
-def _numbers(rows: Sequence[Mapping[str, Any]], key: str) -> list[float]:
-    values: list[float] = []
-    for row in rows:
-        metrics = row.get("metrics")
-        value = metrics.get(key) if isinstance(metrics, Mapping) else row.get(key)
-        if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
-            values.append(float(value))
-    return values
+def _common(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--split-manifest", type=Path, required=True)
+    parser.add_argument("--compatibility-audit", type=Path, required=True)
+    parser.add_argument("--generated-at", default="2000-01-01T00:00:00+00:00")
+    parser.add_argument("--reuse-authorization-reference", default="")
 
 
-def _quantile(values: Sequence[float], fraction: float) -> float | None:
-    if not values:
-        return None
-    ordered = sorted(values)
-    position = (len(ordered) - 1) * fraction
-    lower, upper = math.floor(position), math.ceil(position)
-    if lower == upper:
-        return ordered[lower]
-    return ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
-
-
-def _v61_baseline(
-    rows: list[dict[str, Any]], train: set[Any], generated_at: str
-) -> dict[str, Any]:
-    payload = build_baseline(rows, train_profiles=train, generated_at=generated_at)
-    payload["version"] = version("context_baseline")
-    for cell in payload["cells"]:
-        cell["source_version"] = version("context_baseline")
-    payload["corpus"].update(
-        {
-            "builder_version": BUILDER_VERSION,
-            "train_profile_digest": _profile_digest(list(train)),
-            "training_only": True,
-        }
+def _audit(args: argparse.Namespace) -> int:
+    payload = audit_reuse(
+        args.input,
+        args.split_manifest,
+        authorization_reference=args.reuse_authorization_reference,
     )
-    return payload
+    atomic_json(args.output, payload)
+    print(json.dumps({
+        "output": str(args.output),
+        "audit_checksum": payload["audit_checksum"],
+        "core_passed": payload["core_passed"],
+        "reuse_authorized": payload["authorization"]["reuse_authorized"],
+    }, sort_keys=True))
+    return 0
 
 
-def _v61_thresholds(
-    rows: list[dict[str, Any]],
-    train: set[Any],
-    holdout: set[Any],
-    seed: int,
-    generated_at: str,
-) -> dict[str, Any]:
-    payload = build_thresholds(
+def _load_training_inputs(
+    args: argparse.Namespace,
+    *,
+    require_authorization: bool = False,
+) -> tuple[list[dict[str, Any]], dict[str, Any], set[str], set[str], dict[str, Any]]:
+    audit = require_compatible_audit(
+        args.compatibility_audit,
+        corpus_path=args.input,
+        split_manifest_path=args.split_manifest,
+        require_authorization=require_authorization,
+    )
+    rows = load_rows(args.input)
+    split = _json(args.split_manifest, "split manifest")
+    train, holdout = split_from_manifest(rows, split)
+    return rows, split, train, holdout, audit
+
+
+def _baseline(args: argparse.Namespace) -> int:
+    rows, _split, train, _holdout, audit = _load_training_inputs(args)
+    output = args.output or args.baseline_output
+    if output is None:
+        raise ValueError("baseline requires --output")
+    artifact = build_baseline_v61(
+        rows,
+        train_profiles=train,
+        generated_at=args.generated_at,
+        corpus_sha256=sha256_file(args.input),
+        taxonomy=current_taxonomy_mapping(),
+    )
+    atomic_json(output, artifact)
+    print(json.dumps({"output": str(output), "audit_checksum": audit["audit_checksum"], "training_profiles": len(train)}, sort_keys=True))
+    return 0
+
+
+def _support(args: argparse.Namespace) -> int:
+    rows, _split, train, _holdout, audit = _load_training_inputs(args)
+    from app.player_analysis_v61.artifacts import load_context_baseline_artifact_v61
+
+    taxonomy = current_taxonomy_mapping()
+    resolver = load_context_baseline_artifact_v61(args.baseline_input).resolver()
+    output_dir = args.output_dir
+    output_dir.mkdir(parents=True, exist_ok=True)
+    corpus_sha = sha256_file(args.input)
+    prior = build_summary_prior(rows, train, corpus_sha256=corpus_sha)
+    distance = build_distance_calibration(rows, train, resolver=resolver, taxonomy=taxonomy, corpus_sha256=corpus_sha)
+    reliability = build_session_reliability(rows, train, resolver=resolver, taxonomy=taxonomy, corpus_sha256=corpus_sha)
+    semantic = build_semantic_calibration(train, distance=distance, reliability=reliability, corpus_sha256=corpus_sha)
+    for name, payload in (
+        ("summary-priors-6.1.0.json", prior),
+        ("portfolio-distance-calibration-1.0.0.json", distance),
+        ("session-reliability-calibration-1.0.0.json", reliability),
+        ("semantic-outcome-calibration-1.0.0.json", semantic),
+    ):
+        atomic_json(output_dir / name, payload)
+    print(json.dumps({"output_dir": str(output_dir), "audit_checksum": audit["audit_checksum"], "training_profiles": len(train)}, sort_keys=True))
+    return 0
+
+
+def _thresholds(args: argparse.Namespace) -> int:
+    rows, _split, train, holdout, audit = _load_training_inputs(args)
+    output = args.output or args.threshold_output
+    if output is None:
+        raise ValueError("thresholds requires --output")
+    taxonomy = current_taxonomy_mapping()
+    checkpoint_dir = args.checkpoint_dir or output.parent / "checkpoints" / "thresholds-6.1.0"
+    thresholds, diagnostics = derive_thresholds_v61(
         rows,
         train_profiles=train,
         holdout_profiles=holdout,
-        seed=seed,
+        baseline_path=args.baseline_input,
+        generated_at=args.generated_at,
+        corpus_sha256=sha256_file(args.input),
+        taxonomy=taxonomy,
+        checkpoint_dir=checkpoint_dir,
+        workers=args.workers,
     )
-    payload["version"] = version("thresholds")
-    payload["generated_at"] = generated_at
-    payload["derivation"].update(
-        {
-            "builder_version": BUILDER_VERSION,
-            "train_profile_digest": _profile_digest(list(train)),
-            "training_only": True,
-        }
+    atomic_json(output, thresholds)
+    atomic_json(output.with_name("threshold-derivation-diagnostics-6.1.0.json"), diagnostics)
+    print(json.dumps({"output": str(output), "audit_checksum": audit["audit_checksum"], "training_profiles": len(train)}, sort_keys=True))
+    return 0
+
+
+def _freeze(args: argparse.Namespace) -> int:
+    audit = require_compatible_audit(
+        args.compatibility_audit,
+        corpus_path=args.input,
+        split_manifest_path=args.split_manifest,
+        require_authorization=True,
     )
-    for metric in payload["metrics"].values():
-        metric["version"] = version("thresholds")
-    return payload
+    reference = _reference(args, audit)
+    if not reference:
+        raise CompatibilityAuditError("freeze requires a nonempty reuse authorization reference")
+    rows = load_rows(args.input)
+    split = _json(args.split_manifest, "split manifest")
+    train, holdout = split_from_manifest(rows, split)
+    if len(train) != 791 or len(holdout) != 339:
+        raise ValueError("freeze requires the exact frozen 791/339 split")
+    artifact_dir = args.artifact_dir
+    missing = [name for name in V61_SUPPORT_ARTIFACTS[:-1] if not (artifact_dir / name).is_file()]
+    if missing:
+        raise ValueError(f"freeze is missing staged artifacts: {missing}")
+    from app.player_analysis_v61.artifacts import (
+        load_context_baseline_artifact_v61,
+        load_threshold_artifact_v61,
+    )
 
-
-def _prior_artifact(train_rows: Sequence[Mapping[str, Any]], train: set[Any]) -> dict[str, Any]:
-    shares = _numbers(train_rows, "finishing_share")
-    center = statistics.fmean(shares) if shares else 0.5
-    strength = max(2.0, min(50.0, math.sqrt(max(1, len(shares)))))
-    return {
-        "version": PRIOR_VERSION,
-        "builder_version": BUILDER_VERSION,
-        "training_only": True,
-        "train_profile_digest": _profile_digest(list(train)),
-        "finishing_beta_binomial": {
-            "alpha": round(max(0.001, center * strength), 8),
-            "beta": round(max(0.001, (1 - center) * strength), 8),
-            "training_observations": len(shares),
-        },
-    }
-
-
-def _distance_artifact(train_rows: Sequence[Mapping[str, Any]], train: set[Any]) -> dict[str, Any]:
-    values = _numbers(train_rows, "transfer_distance")
-    return {
-        "version": DISTANCE_VERSION,
-        "builder_version": BUILDER_VERSION,
-        "training_only": True,
-        "train_profile_digest": _profile_digest(list(train)),
-        "bands": {
-            "core": {"maximum": _quantile(values, 1 / 3)},
-            "reliable_stretch": {"maximum": _quantile(values, 2 / 3)},
-            "experimental_edge": {"maximum": _quantile(values, 1.0)},
-        },
-        "training_observations": len(values),
-        "calibrated": bool(values),
-    }
-
-
-def _semantic_artifact(train: set[Any]) -> dict[str, Any]:
-    return {
-        "version": SEMANTIC_ARTIFACT_VERSION,
-        "builder_version": BUILDER_VERSION,
-        "training_only": True,
-        "train_profile_digest": _profile_digest(list(train)),
-        "family_fdr_q": 0.05,
-        "branch_procedure": "qualified-family-bh",
-        "outcomes": [
-            {
-                "semantic_outcome_key": item.semantic_outcome_key,
-                "family": item.family_key,
-                "branch": item.hypothesis_branch,
-                "rollout_status": item.rollout_status,
-            }
-            for item in SEMANTIC_OUTCOME_CATALOG
-        ],
-    }
-
-
-def build_candidate_artifacts(
-    rows: list[dict[str, Any]], *, seed: int, generated_at: str
-) -> dict[str, dict[str, Any]]:
-    train, holdout = split_profiles(rows, seed=seed)
-    train_rows = [row for row in rows if _profile_id(row) in train]
-    artifacts = {
-        "context-baseline-3.0.0.json": _v61_baseline(rows, train, generated_at),
-        "metric-thresholds-6.1.0.json": _v61_thresholds(
-            rows, train, holdout, seed, generated_at
-        ),
-        "summary-priors-6.1.0.json": _prior_artifact(train_rows, train),
-        "portfolio-distance-calibration-1.0.0.json": _distance_artifact(train_rows, train),
-        "semantic-outcome-calibration-1.0.0.json": _semantic_artifact(train),
-    }
-    artifacts["build-manifest-6.1.0.json"] = {
-        "version": "v61-calibration-build-manifest-1.0.0",
-        "builder_version": BUILDER_VERSION,
-        "generated_at": generated_at,
-        "seed": seed,
-        "split": {
-            "version": SPLIT_VERSION,
-            "algorithm": "player-exclusive-stratified-70-30",
-            "train_profile_count": len(train),
-            "holdout_profile_count": len(holdout),
-            "train_profile_digest": _profile_digest(list(train)),
-            "holdout_profile_digest": _profile_digest(list(holdout)),
-            "overlap_count": len(train & holdout),
-        },
-        "artifacts": {name: _checksum(payload) for name, payload in artifacts.items()},
+    load_context_baseline_artifact_v61(artifact_dir / "context-baseline-3.0.0.json")
+    load_threshold_artifact_v61(artifact_dir / "metric-thresholds-6.1.0.json")
+    taxonomy = current_taxonomy_mapping()
+    manifest = write_freeze_manifest(
+        artifact_dir,
+        corpus_sha256=sha256_file(args.input),
+        split_manifest_path=args.split_manifest,
+        compatibility_audit_path=args.compatibility_audit,
+        split=split,
+        audit=audit,
+        generated_at=args.generated_at,
+        authorization_reference=reference,
+        taxonomy=taxonomy,
+    )
+    load_v61_artifact_bundle(
+        artifact_dir,
+        expected_corpus_sha256=sha256_file(args.input),
+        expected_split_checksum=sha256_file(args.split_manifest),
+    )
+    freeze_record = {
+        "version": "v61-freeze-record-1.0.0",
+        "artifact_checksums": dict(manifest["artifacts"]),
+        "build_manifest_checksum": sha256_file(artifact_dir / "build-manifest-6.1.0.json"),
+        "compatibility_audit_checksum": audit["audit_checksum"],
+        "corpus_sha256": sha256_file(args.input),
+        "split_manifest_checksum": sha256_file(args.split_manifest),
+        "reuse_authorization_reference": reference,
+        "holdout_output_inspected": False,
+        "freeze_written_before_v61_holdout": True,
         "release_authorized": False,
     }
-    return artifacts
+    atomic_json(artifact_dir / FREEZE_RECORD_NAME, freeze_record)
+    if args.output_dir:
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        for name in [*V61_SUPPORT_ARTIFACTS, FREEZE_RECORD_NAME]:
+            (args.output_dir / name).write_bytes((artifact_dir / name).read_bytes())
+    print(json.dumps({"artifact_dir": str(artifact_dir), "build_manifest_checksum": freeze_record["build_manifest_checksum"], "holdout_output_inspected": False}, sort_keys=True))
+    return 0
 
 
-def _validate_auxiliary(artifacts: Mapping[str, Mapping[str, Any]]) -> None:
-    manifest = artifacts["build-manifest-6.1.0.json"]
-    if manifest["split"]["overlap_count"] != 0 or manifest["release_authorized"] is not False:
-        raise ValueError("V6.1 build manifest must be leak-free and non-authorizing")
-    semantic = artifacts["semantic-outcome-calibration-1.0.0.json"]
-    expected = {item.semantic_outcome_key for item in SEMANTIC_OUTCOME_CATALOG}
-    observed = {item["semantic_outcome_key"] for item in semantic["outcomes"]}
-    if observed != expected:
-        raise ValueError("V6.1 semantic artifact registry drift")
-    for name in (
-        "summary-priors-6.1.0.json",
-        "portfolio-distance-calibration-1.0.0.json",
-        "semantic-outcome-calibration-1.0.0.json",
-    ):
-        if artifacts[name].get("training_only") is not True:
-            raise ValueError(f"{name} must be training-only")
+def _verify(args: argparse.Namespace) -> int:
+    result = assert_reproducible(args.first_dir, args.second_dir)
+    if args.output:
+        atomic_json(args.output, result)
+    else:
+        print(json.dumps(result, sort_keys=True))
+    return 0
+
+
+def _legacy_fixture(args: argparse.Namespace) -> int:
+    raw = json.loads(args.input.read_text(encoding="utf-8"))
+    if isinstance(raw, dict) and raw.get("schema_version") == "v6-calibration-corpus-1.0.0":
+        raise ValueError("the real V6 corpus must use the staged State B commands")
+    rows = load_rows(args.input)
+    def reject_forbidden(value: Any) -> None:
+        if isinstance(value, dict):
+            for key, nested in value.items():
+                folded = str(key).casefold()
+                if folded in {"rank", "rank_tier", "average_rank", "mmr", "skill_bracket", "medal"} or "mmr" in folded:
+                    raise ValueError("rank/MMR dimensions are forbidden")
+                reject_forbidden(nested)
+        elif isinstance(value, list):
+            for nested in value:
+                reject_forbidden(nested)
+
+    reject_forbidden(raw)
+    from build_v6_calibration_artifacts import build_baseline, build_thresholds, split_profiles
+
+    train, holdout = split_profiles(rows, seed=args.seed)
+    if args.output_dir is None:
+        raise ValueError("legacy fixture mode requires --output-dir")
+    baseline = build_baseline(rows, train_profiles=train, generated_at=args.generated_at)
+    baseline["version"] = "context-baseline-3.0.0"
+    baseline["training_only"] = True
+    for cell in baseline["cells"]:
+        cell["source_version"] = "context-baseline-3.0.0"
+    thresholds = build_thresholds(rows, train_profiles=train, holdout_profiles=holdout, seed=args.seed)
+    thresholds["version"] = "metric-thresholds-6.1.0"
+    thresholds["generated_at"] = args.generated_at
+    thresholds["derivation"]["split_method"] = "fixture-only-legacy-compatibility"
+    for metric in thresholds["metrics"].values():
+        metric["version"] = "metric-thresholds-6.1.0"
+    prior = {
+        "version": "summary-priors-6.1.0", "builder_version": "fixture-compatibility-only",
+        "estimator_version": "fixture-only", "training_only": True,
+        "finishing_beta_binomial": {"alpha": 2.0, "beta": 2.0, "training_observations": 1},
+    }
+    distance = {
+        "version": "portfolio-distance-calibration-1.0.0", "builder_version": "fixture-compatibility-only",
+        "estimator_version": "fixture-only", "training_only": True,
+        "bands": {"core": {"maximum": 0.5}, "reliable_stretch": {"maximum": 0.8}, "experimental_edge": {"maximum": 1.0}},
+        "practical_margins": {"outcome": 0.08, "activity": 0.08, "survival": 0.35},
+        "equivalence_ropes": {"outcome": 0.08, "activity": 0.08, "survival": 0.35},
+    }
+    reliability = {
+        "version": "session-reliability-calibration-1.0.0", "builder_version": "fixture-compatibility-only",
+        "estimator_version": "fixture-only", "training_only": True,
+        "shrinkage": {"outcome": 4.0, "activity": 4.0, "survival": 4.0},
+        "component_scales": {"outcome": 0.25, "activity": 0.04, "survival": 0.80},
+        "opportunity_minima": {"sessions": 12, "matches": 30},
+        "coverage_rules": {"minimum_context_coverage": 0.80, "minimum_session_coverage": 0.50},
+    }
+    public = [definition for definition in SEMANTIC_OUTCOME_CATALOG if definition.rollout_status == "public_candidate"]
+    semantic = {
+        "version": "semantic-outcome-calibration-1.0.0", "builder_version": "fixture-compatibility-only",
+        "estimator_version": "fixture-only", "training_only": True, "family_fdr_q": 0.05,
+        "branch_procedure": "qualified-family-bh", "omnibus_families": 5,
+        "ropes": {definition.semantic_outcome_key: 0.1 for definition in public},
+        "outcomes": [{"semantic_outcome_key": definition.semantic_outcome_key, "family": definition.family_key, "branch": definition.hypothesis_branch, "rollout_status": definition.rollout_status} for definition in public],
+    }
+    artifacts = {
+        "context-baseline-3.0.0.json": baseline, "metric-thresholds-6.1.0.json": thresholds,
+        "summary-priors-6.1.0.json": prior, "portfolio-distance-calibration-1.0.0.json": distance,
+        "session-reliability-calibration-1.0.0.json": reliability, "semantic-outcome-calibration-1.0.0.json": semantic,
+    }
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    for name, payload in artifacts.items():
+        atomic_json(args.output_dir / name, payload)
+    atomic_json(args.output_dir / "build-manifest-6.1.0.json", {
+        "version": "v61-calibration-build-manifest-1.0.0", "builder_version": "fixture-compatibility-only",
+        "generated_at": args.generated_at, "seed": args.seed,
+        "artifacts": {name: sha256_file(args.output_dir / name) for name in artifacts},
+        "split": {"train_profile_count": len(train), "holdout_profile_count": len(holdout), "overlap_count": 0},
+        "release_authorized": False, "holdout_output_inspected": False,
+    })
+    return 0
 
 
 def main() -> int:
+    commands = {"audit-reuse", "baseline", "calibrate-support", "thresholds", "freeze", "verify-reproducibility"}
+    if len(sys.argv) > 1 and sys.argv[1] not in commands:
+        parser = argparse.ArgumentParser(description=__doc__)
+        parser.add_argument("--input", type=Path, required=True)
+        parser.add_argument("--output-dir", type=Path)
+        parser.add_argument("--seed", type=int, default=6000)
+        parser.add_argument("--generated-at", default="2000-01-01T00:00:00+00:00")
+        return _legacy_fixture(parser.parse_args())
+
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", type=Path, required=True)
-    parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--seed", type=int, default=6100)
-    parser.add_argument("--generated-at", default="2000-01-01T00:00:00+00:00")
+    sub = parser.add_subparsers(dest="command", required=True)
+    audit_parser = sub.add_parser("audit-reuse")
+    audit_parser.add_argument("--input", type=Path, required=True)
+    audit_parser.add_argument("--split-manifest", type=Path, required=True)
+    audit_parser.add_argument("--output", type=Path, required=True)
+    audit_parser.add_argument("--reuse-authorization-reference", default="")
+    audit_parser.set_defaults(handler=_audit)
+
+    baseline_parser = sub.add_parser("baseline")
+    _common(baseline_parser)
+    baseline_parser.add_argument("--output", type=Path)
+    baseline_parser.add_argument("--baseline-output", type=Path)
+    baseline_parser.set_defaults(handler=_baseline)
+
+    support_parser = sub.add_parser("calibrate-support")
+    _common(support_parser)
+    support_parser.add_argument("--baseline-input", type=Path, required=True)
+    support_parser.add_argument("--output-dir", type=Path, required=True)
+    support_parser.set_defaults(handler=_support)
+
+    threshold_parser = sub.add_parser("thresholds")
+    _common(threshold_parser)
+    threshold_parser.add_argument("--baseline-input", type=Path, required=True)
+    threshold_parser.add_argument("--output", type=Path)
+    threshold_parser.add_argument("--threshold-output", type=Path)
+    threshold_parser.add_argument("--checkpoint-dir", type=Path)
+    threshold_parser.add_argument("--workers", type=int, default=1)
+    threshold_parser.set_defaults(handler=_thresholds)
+
+    freeze_parser = sub.add_parser("freeze")
+    _common(freeze_parser)
+    freeze_parser.add_argument("--artifact-dir", type=Path, required=True)
+    freeze_parser.add_argument("--output-dir", type=Path)
+    freeze_parser.set_defaults(handler=_freeze)
+
+    verify_parser = sub.add_parser("verify-reproducibility")
+    verify_parser.add_argument("--first-dir", type=Path, required=True)
+    verify_parser.add_argument("--second-dir", type=Path, required=True)
+    verify_parser.add_argument("--output", type=Path)
+    verify_parser.set_defaults(handler=_verify)
+
     args = parser.parse_args()
-    rows = _load_rows(args.input)
-    artifacts = build_candidate_artifacts(
-        rows,
-        seed=args.seed,
-        generated_at=args.generated_at,
-    )
-    _validate_auxiliary(artifacts)
-    for name, payload in artifacts.items():
-        _atomic_json(args.output_dir / name, payload)
-    load_context_baseline_artifact_v61(args.output_dir / "context-baseline-3.0.0.json")
-    load_threshold_artifact_v61(args.output_dir / "metric-thresholds-6.1.0.json")
-    print(json.dumps({"output_dir": str(args.output_dir), "files": sorted(artifacts)}))
-    return 0
+    return int(args.handler(args))
 
 
 if __name__ == "__main__":

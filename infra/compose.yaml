@@ -21,10 +21,14 @@ services:
       FREE_DNA_V61_SHADOW_ENABLED: ${FREE_DNA_V61_SHADOW_ENABLED-false}
       FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED-false}
       FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED-false}
-      FREE_DNA_V61_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
-      FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
+      FREE_DNA_V61_ARTIFACT_DIR: /app/runtime-artifacts/free_dna_v61/6.1.0
+      FREE_DNA_V61_BASELINE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
+      FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
+      FREE_DNA_V61_RELEASE_AUTHORIZATION: /app/runtime-artifacts/free_dna_v61/6.1.0/production-beta-authorization-6.1.0.json
       FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
       REPORT_RETENTION_DAYS: 30
+    volumes:
+      - ${FREE_DNA_V61_ARTIFACT_HOST_DIR:-./runtime-artifacts/free_dna_v61/6.1.0}:/app/runtime-artifacts/free_dna_v61/6.1.0:ro
     ports:
       - "8000:8000"
     depends_on:
@@ -53,12 +57,16 @@ services:
       FREE_DNA_V61_SHADOW_ENABLED: ${FREE_DNA_V61_SHADOW_ENABLED-false}
       FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED-false}
       FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED-false}
-      FREE_DNA_V61_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
-      FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
+      FREE_DNA_V61_ARTIFACT_DIR: /app/runtime-artifacts/free_dna_v61/6.1.0
+      FREE_DNA_V61_BASELINE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
+      FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
+      FREE_DNA_V61_RELEASE_AUTHORIZATION: /app/runtime-artifacts/free_dna_v61/6.1.0/production-beta-authorization-6.1.0.json
       FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
       REPORT_RETENTION_DAYS: 30
       STORAGE_BACKEND: database
       ANALYSIS_EXECUTION_BACKEND: celery
+    volumes:
+      - ${FREE_DNA_V61_ARTIFACT_HOST_DIR:-./runtime-artifacts/free_dna_v61/6.1.0}:/app/runtime-artifacts/free_dna_v61/6.1.0:ro
     depends_on:
       postgres:
         condition: service_healthy

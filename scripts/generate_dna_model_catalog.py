@@ -31,7 +31,9 @@ def _cell(value: object) -> str:
 def _list(values: object) -> str:
     if not values:
         return "—"
-    return ", ".join(f"`{_cell(item)}`" for item in values)  # type: ignore[union-attr]
+    if not isinstance(values, (list, tuple, set, frozenset)):
+        return f"`{_cell(values)}`"
+    return ", ".join(f"`{_cell(item)}`" for item in values)
 
 
 def _table(headers: tuple[str, ...], rows: list[tuple[object, ...]]) -> list[str]:

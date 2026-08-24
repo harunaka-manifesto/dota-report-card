@@ -8,10 +8,21 @@ estimators and the sealed holdout is evaluated once.
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping
+import statistics
+from collections.abc import Mapping, Sequence
 from typing import Any
 
+from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
+
 from .semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
+
+
+def _empirical_two_sided_p(samples: list[float], null: float = 0.0) -> float:
+    if not samples:
+        return 1.0
+    observed = abs(statistics.fmean(samples) - null)
+    extreme = sum(abs(value - null) >= observed for value in samples)
+    return (extreme + 1) / (len(samples) + 1)
 
 
 def _bounded_p(effect: float, opportunities: int, *, scale: float) -> float:
@@ -286,4 +297,46 @@ def v61_branch_p_values(
     return values
 
 
-__all__ = ["v61_branch_p_values", "v61_family_p_values"]
+def v61_production_family_branch_p_values(
+    *,
+    semantic_calibration: Mapping[str, Any],
+    bootstrap_family_samples: Mapping[str, Sequence[float]] | None = None,
+    bootstrap_branch_samples: Mapping[str, Mapping[str, Sequence[float]]] | None = None,
+) -> tuple[dict[str, float], dict[str, dict[str, float]]]:
+    """Return artifact-driven omnibus/branch p-values for production mode.
+
+    Production calls pass session-cluster bootstrap samples.  A missing sample
+    is deliberately conservative and returns 1.0, allowing a report with zero
+    findings.  The fixture ``_bounded_p`` and ``_equivalence_p`` functions are
+    never consulted by this path.
+    """
+
+    if semantic_calibration.get("branch_procedure") != "qualified-family-bh":
+        raise ValueError("V6.1 production semantic calibration procedure mismatch")
+    public = [
+        definition
+        for definition in SEMANTIC_OUTCOME_CATALOG
+        if definition.rollout_status == "public_candidate"
+    ]
+    family_samples = bootstrap_family_samples or {}
+    branch_samples = bootstrap_branch_samples or {}
+    family_values = {
+        family: _empirical_two_sided_p(list(family_samples[family]))
+        if family in family_samples
+        else 1.0
+        for family in FINDING_FAMILY_KEYS
+    }
+    branch_values: dict[str, dict[str, float]] = {family: {} for family in FINDING_FAMILY_KEYS}
+    for definition in public:
+        sample = branch_samples.get(definition.family_key, {}).get(definition.semantic_outcome_key)
+        branch_values[definition.family_key][definition.semantic_outcome_key] = (
+            _empirical_two_sided_p(list(sample)) if sample is not None else 1.0
+        )
+    return family_values, branch_values
+
+
+__all__ = [
+    "v61_branch_p_values",
+    "v61_family_p_values",
+    "v61_production_family_branch_p_values",
+]

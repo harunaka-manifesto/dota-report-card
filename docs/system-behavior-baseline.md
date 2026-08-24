@@ -47,7 +47,11 @@ V6.1 is implemented behind four false-by-default flags and a separate strict
 `free-dna-report-6.1.0` validator. It keeps one physical history request, seven
 Elements, five roots, no more than three published outcomes, and zero detail,
 parse, parse-status, rank, or MMR use. Startup/runtime is fail-closed without
-`context-baseline-3.0.0` and `metric-thresholds-6.1.0` artifacts. Checked-in
-fixtures and the 2,000-run synthetic evaluator establish State A wiring only;
-real-corpus calibration, sealed holdout, independent review, and operator
-authorization remain absent.
+`context-baseline-3.0.0` and `metric-thresholds-6.1.0` artifacts. The existing
+corpus State B calibration now has a compatibility audit, frozen 791/339 split,
+training-only support artifacts, a single 339-profile sealed holdout, and a
+byte-identical rebuild record. State C remains false: independent review,
+privacy/data-basis approval, container verification, and operator authorization
+are still required for formal public release. Defaults remain fail-closed; an
+owner-directed production beta uses a separate checksum-linked authorization
+file and keeps shadow and experimental flags false.
