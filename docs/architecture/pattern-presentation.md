@@ -105,3 +105,16 @@ Run `make copy-review-catalog` to regenerate
 placeholders, evidence requirements, and fallback status. `make docs-check` and
 `make copy-review-catalog-check` fail if the generated review surface is stale
 or either catalog contains an invalid branch or placeholder.
+
+## V6.1 relationship presentation
+
+V6.1 keeps its own `free-story-6.1.0`, `report-interactions-1.1.0`, and
+`free-dna-semantic-copy-6.1.0` contracts. Its finite relationship kinds are
+contradiction reveal, core boundary, two versions, after-X, variance
+decomposition, and session curve. Every visual has a keyboard-accessible table
+or disclosure equivalent and reduced-motion behavior. The server supplies the
+outcome, facts, copy, alternatives, recommendation, and verification rule; the
+client never manufactures a missing branch.
+
+Run `make copy-review-catalog` to generate
+`docs/generated/free-dna-v6.1-copy-review.md` from the frozen outcome registry.

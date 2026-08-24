@@ -22,3 +22,11 @@ outputs; they are not replaced with neutral guesses.
 
 Free enforces detail_requests = 0 and parse_requests = 0. Public output contains
 no raw match IDs, raw scorer metrics, account IDs, or private payload refs.
+
+For V6.1 the chain is canonical summary observation → private typed signal →
+seven-Element estimate → five-family omnibus → corrected semantic branch →
+identity/story. Private and research-only signals are not public results.
+Published claims must include observation, bounded interpretation, alternatives,
+limits, and—when present—a registered recommendation and two-metric
+verification rule. Public Deep handoff uses only an opaque protected-cohort
+reference.

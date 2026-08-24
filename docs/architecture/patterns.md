@@ -108,3 +108,12 @@ resolution status, sample/effective sample, coverage, confidence, independent
 group count where relevant, limitations, evidence keys, and provenance
 versions. A qualified Pattern remains qualified when its action falls back or
 is unresolved.
+
+## Additive V6 finding families
+
+This page remains authoritative for the V5.2 11-Pattern registry. V6.0 and
+V6.1 do not reinterpret those Patterns: they use five finding-family roots.
+V6.1 freezes 28 nested semantic outcomes, corrects the five roots before
+correcting branches inside a surviving family, and publishes no more than
+three. Lifecycle, era, and loop outcomes remain shadow-only. See the
+[V6.1 feature graph](free-dna-v6.1-feature-graph.md).

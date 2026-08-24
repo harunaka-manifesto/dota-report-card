@@ -40,3 +40,14 @@ review, promotion checks, and operator authorization pass.
 Deep v2 is an explicitly selected continuation from an immutable report
 question. Its actual acquisition budget is at most 25 detail reads, 25 parses,
 and 160 relative cost units; unsupported evidence yields a recorded abstention.
+
+## Additive V6.1 baseline
+
+V6.1 is implemented behind four false-by-default flags and a separate strict
+`free-dna-report-6.1.0` validator. It keeps one physical history request, seven
+Elements, five roots, no more than three published outcomes, and zero detail,
+parse, parse-status, rank, or MMR use. Startup/runtime is fail-closed without
+`context-baseline-3.0.0` and `metric-thresholds-6.1.0` artifacts. Checked-in
+fixtures and the 2,000-run synthetic evaluator establish State A wiring only;
+real-corpus calibration, sealed holdout, independent review, and operator
+authorization remain absent.

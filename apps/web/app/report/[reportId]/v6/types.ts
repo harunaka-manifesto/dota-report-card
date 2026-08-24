@@ -129,6 +129,19 @@ export type V6ClaimLayers = {
   interpretation?: string | null;
   recommendation?: string | V6Recommendation | null;
   recommendation_detail?: V6Recommendation | null;
+  alternatives?: string[];
+  verification?: {
+    eligibility_games?: number;
+    primary_metric?: string;
+    guardrail_metric?: string;
+    causal?: boolean;
+    abstention?: string;
+  } | null;
+  interaction?: string | null;
+  deep_handoff?: {
+    cohort_reference?: string;
+    unanswered_alternatives?: string[];
+  } | null;
 };
 
 export type V6Finding = {
@@ -173,6 +186,15 @@ export type V6Finding = {
   share_blockers?: string[];
   published?: boolean;
   blocking_confounders?: string[];
+  semantic_outcome_key?: string | null;
+  hypothesis_branch?: string | null;
+  branch_adjusted_q_value?: number | null;
+  estimator_version?: string | null;
+  interaction?: {
+    kind?: V61InteractionKind | null;
+    enabled?: boolean;
+    fallback?: string | null;
+  } | null;
 };
 
 export type V6IdentitySummary = {
@@ -185,7 +207,35 @@ export type V6IdentitySummary = {
   evidence_refs?: string[];
   common_thread?: string | null;
   options?: V6Choice[];
+  slots?: {
+    version?: string;
+    primary?: V61IdentitySlot | null;
+    twist?: V61IdentitySlot | null;
+    anchor?: V61IdentitySlot | null;
+    compatibility?: string;
+    compatibility_checks?: Record<string, boolean>;
+  } | null;
 };
+
+export type V61IdentitySlot = {
+  kind?: "PRIMARY" | "TWIST" | "ANCHOR";
+  scope?: string | null;
+  text?: string | null;
+  family?: string | null;
+  semantic_outcome_key?: string | null;
+  evidence_refs?: string[];
+};
+
+export type V61InteractionKind =
+  | "core_boundary"
+  | "after_x"
+  | "two_versions"
+  | "contradiction_reveal"
+  | "session_curve"
+  | "variance_decomposition"
+  | "identity_eras"
+  | "hero_lifecycle"
+  | "behavioral_loop";
 
 export type V6TimelinePoint = {
   id?: string;
@@ -362,13 +412,43 @@ export type V6Report = {
   };
 };
 
+export type V61Report = Omit<V6Report, "schema_version" | "versions" | "reproducibility" | "methodology"> & {
+  schema_version: "free-dna-report-6.1.0";
+  versions?: Record<string, string | null | undefined>;
+  reproducibility?: Record<string, unknown> & {
+    history_contract?: Record<string, unknown>;
+    request_manifest?: Record<string, unknown>;
+    artifact_checksums?: Record<string, string>;
+  };
+  supporting_evidence: {
+    portfolio_shape?: Record<string, unknown>;
+    involvement?: Record<string, unknown>;
+    finishing?: Record<string, unknown>;
+    death_exposure?: Record<string, unknown>;
+    transfer_frontier?: Record<string, unknown>;
+    consistency?: Record<string, unknown>;
+    result_response?: Record<string, unknown>;
+    session_curve?: Record<string, unknown>;
+  };
+  selection_audit: Record<string, unknown>;
+  methodology?: Record<string, unknown> & { notes?: string[] };
+};
+
+export type V6StoryReport = V6Report | V61Report;
+
 export function isFreeDnaReportV6(value: unknown): value is V6Report {
   if (!value || typeof value !== "object") return false;
   const candidate = value as { schema_version?: unknown; report_variant?: unknown };
   return candidate.schema_version === "free-dna-report-6.0.0" && candidate.report_variant === "free_dna_report";
 }
 
-export function reportBeats(report: V6Report): V6StoryBeat[] {
+export function isFreeDnaReportV61(value: unknown): value is V61Report {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as { schema_version?: unknown; report_variant?: unknown };
+  return candidate.schema_version === "free-dna-report-6.1.0" && candidate.report_variant === "free_dna_report";
+}
+
+export function reportBeats(report: V6StoryReport): V6StoryBeat[] {
   const source = (Array.isArray(report.story) ? report.story : report.story.beats ?? report.pages ?? []).map((beat, index) => ({
     ...beat,
     id: beat.id ?? beat.key ?? `beat-${index + 1}`,

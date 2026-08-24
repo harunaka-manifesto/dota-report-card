@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Free DNA v6 evidence review</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0d12;
+      --panel: #141821;
+      --panel-2: #1b202b;
+      --line: #2c3342;
+      --text: #f4f1ea;
+      --muted: #aeb6c5;
+      --accent: #ff6b4a;
+      --accent-soft: #3a211d;
+      --good: #56d6a0;
+      --bad: #ff8a8a;
+      --focus: #ffd166;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 85% 0%, rgba(255, 107, 74, .12), transparent 32rem),
+        var(--bg);
+      color: var(--text);
+      font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, textarea { font: inherit; }
+    button, label { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+    .shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0 64px; }
+    header { display: grid; gap: 18px; margin-bottom: 24px; }
+    .eyebrow { color: var(--accent); font-size: .75rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { max-width: 760px; margin: 4px 0 0; font-size: clamp(2rem, 5vw, 4rem); line-height: 1.02; letter-spacing: -.045em; }
+    .lede { max-width: 760px; margin: 0; color: var(--muted); }
+    .progress-row { display: flex; gap: 14px; align-items: center; }
+    progress { width: 100%; height: 12px; accent-color: var(--accent); }
+    .counter { min-width: max-content; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+    .tab, .button {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+    .tab[aria-selected="true"] { border-color: var(--accent); background: var(--accent-soft); }
+    .panel { border: 1px solid var(--line); border-radius: 24px; background: rgba(20, 24, 33, .94); box-shadow: 0 24px 80px rgba(0,0,0,.25); overflow: hidden; }
+    .panel-body { padding: clamp(22px, 5vw, 48px); }
+    .family { display: inline-flex; border-radius: 999px; padding: 6px 10px; background: var(--accent-soft); color: #ffb09e; font-size: .78rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    h2 { margin: 18px 0 12px; font-size: clamp(1.5rem, 3vw, 2.4rem); line-height: 1.15; letter-spacing: -.025em; }
+    h3 { margin: 0 0 8px; font-size: 1rem; }
+    .evidence { margin: 24px 0; padding: 18px; border-left: 3px solid var(--accent); background: var(--panel-2); color: #e7eaf0; }
+    .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 20px 0; }
+    .fact { min-height: 78px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: #10131a; }
+    .fact dt { color: var(--muted); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+    .fact dd { margin: 6px 0 0; font-weight: 750; overflow-wrap: anywhere; }
+    .limitations { color: var(--muted); }
+    .guide { margin: 20px 0; padding: 18px; border: 1px solid #3d465a; border-radius: 16px; background: #111722; }
+    .guide strong { color: var(--focus); }
+    .guide p { margin: 6px 0 0; color: var(--muted); }
+    .signals { display: grid; gap: 10px; margin: 20px 0; }
+    .signal { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(110px, auto) 2fr; gap: 14px; align-items: center; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: #10131a; }
+    .signal-name { font-weight: 800; }
+    .signal-value { font-variant-numeric: tabular-nums; }
+    .signal-direction { display: inline-flex; width: max-content; border-radius: 999px; padding: 4px 9px; background: var(--panel-2); color: var(--muted); font-size: .78rem; font-weight: 800; text-transform: uppercase; }
+    .signal-help { color: var(--muted); font-size: .9rem; }
+    details { margin: 18px 0; color: var(--muted); }
+    summary { cursor: pointer; color: var(--text); font-weight: 700; }
+    .questions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 26px; }
+    fieldset { margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; }
+    legend { padding: 0 6px; font-weight: 750; }
+    .choices { display: flex; gap: 10px; margin-top: 8px; }
+    .choice { flex: 1; display: flex; justify-content: center; gap: 8px; padding: 11px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+    .choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .verdicts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .verdict { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; cursor: pointer; }
+    .verdict:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+    .verdict strong, .verdict small { display: block; }
+    .verdict small { margin-top: 3px; color: var(--muted); }
+    textarea, input[type="text"] { width: 100%; border: 1px solid var(--line); border-radius: 12px; background: #0e1117; color: var(--text); padding: 12px; }
+    textarea { min-height: 100px; resize: vertical; }
+    .notes { display: grid; gap: 8px; margin-top: 16px; }
+    .actions { display: flex; justify-content: space-between; gap: 12px; padding: 18px clamp(22px, 5vw, 48px); border-top: 1px solid var(--line); background: #10131a; }
+    .actions-group { display: flex; gap: 10px; }
+    .button.primary { border-color: var(--accent); background: var(--accent); color: #160d0a; font-weight: 850; }
+    .button:disabled { opacity: .4; cursor: not-allowed; }
+    .signoffs { display: grid; gap: 14px; }
+    .signoff { display: grid; grid-template-columns: 1fr auto; gap: 14px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel-2); }
+    .signoff .reference { grid-column: 1 / -1; }
+    .signoff p { margin: 0; color: var(--muted); }
+    .footer-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .status { min-height: 24px; margin: 14px 0 0; color: var(--muted); }
+    .status.good { color: var(--good); }
+    .status.bad { color: var(--bad); }
+    .review-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+    .review-summary .fact { min-height: auto; }
+    .shortcut { color: var(--muted); font-size: .8rem; }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) {
+      .facts, .questions, .review-summary { grid-template-columns: 1fr 1fr; }
+      .signal { grid-template-columns: 1fr 1fr; }
+      .signal-help { grid-column: 1 / -1; }
+      .actions { align-items: stretch; flex-direction: column; }
+      .actions-group { display: grid; grid-template-columns: 1fr 1fr; }
+      .signoff { grid-template-columns: 1fr; }
+      .signoff .reference { grid-column: auto; }
+    }
+    @media (max-width: 480px) {
+      .shell { width: min(100% - 20px, 1080px); padding-top: 20px; }
+      .facts, .questions, .verdicts { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <div class="eyebrow">Private calibration review</div>
+        <h1>Judge whether each Dota claim is fair.</h1>
+      </div>
+      <p class="lede">You are reviewing the wording, not recalculating statistics. Read the claim, compare the signal directions, then decide whether an experienced Dota player would find it accurate and non-misleading.</p>
+      <div class="progress-row">
+        <progress id="progress" max="100" value="0" aria-label="Review completion"></progress>
+        <span id="counter" class="counter">Loading…</span>
+      </div>
+    </header>
+
+    <nav class="tabs" aria-label="Review sections">
+      <button id="itemsTab" class="tab" type="button" aria-selected="true">Claims</button>
+      <button id="signoffsTab" class="tab" type="button" aria-selected="false">Sign-offs</button>
+    </nav>
+
+    <section id="itemPanel" class="panel" aria-labelledby="claimTitle">
+      <div class="panel-body">
+        <span id="family" class="family"></span>
+        <h2 id="claimTitle"></h2>
+        <div class="guide">
+          <strong id="guideQuestion"></strong>
+          <p id="guideContext"></p>
+        </div>
+        <h3>What the report observed</h3>
+        <div id="signals" class="signals"></div>
+        <dl class="facts">
+          <div class="fact"><dt>Matches</dt><dd id="sample"></dd></div>
+          <div class="fact"><dt>Separate sessions</dt><dd id="sessions"></dd></div>
+          <div class="fact"><dt>Usable evidence</dt><dd id="coverage"></dd></div>
+          <div class="fact"><dt>Confidence</dt><dd id="confidence"></dd></div>
+        </dl>
+        <div>
+          <h3>Permitted interpretation</h3>
+          <div id="interpretation" class="limitations"></div>
+        </div>
+        <div id="limitationsWrap">
+          <h3>Limitations</h3>
+          <ul id="limitations" class="limitations"></ul>
+        </div>
+        <details>
+          <summary>Show raw evidence and statistical interval</summary>
+          <div id="evidence" class="evidence"></div>
+          <p>Combined interval: <span id="interval"></span></p>
+        </details>
+        <fieldset>
+          <legend>Your verdict</legend>
+          <div id="verdictChoices" class="verdicts"></div>
+        </fieldset>
+        <label class="notes" for="notes">
+          Notes <span class="shortcut">Required for Misleading or Unsupported · up to 2,000 characters</span>
+          <textarea id="notes" maxlength="2000"></textarea>
+        </label>
+      </div>
+      <div class="actions">
+        <span class="shortcut">←/→ navigate · 1 Accurate · 2 Misleading · 3 Unsupported · 4 Unsure</span>
+        <div class="actions-group">
+          <button id="previous" class="button" type="button">Previous</button>
+          <button id="next" class="button primary" type="button">Next</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="signoffPanel" class="panel" hidden>
+      <div class="panel-body">
+        <h2>Independent sign-offs</h2>
+        <p class="lede">Your Dota review covers the 50 claims. Statistical and data-basis approvals are separate roles and may remain unanswered for now.</p>
+        <div id="reviewSummary" class="review-summary"></div>
+        <div id="signoffs" class="signoffs"></div>
+        <div class="footer-actions">
+          <button id="save" class="button" type="button">Save draft</button>
+          <button id="finalize" class="button primary" type="button">Complete Dota review</button>
+        </div>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const familyGuides = {
+      pool_shape: {
+        label: "Hero pool shape",
+        question: "Would this wording fairly describe the relationship between hero variety and job variety?",
+        context: "Hero variety counts the effective size of the played pool. Job variety counts the different functional jobs those heroes cover. A player can use many heroes that still solve similar jobs.",
+      },
+      transfer: {
+        label: "Transfer beyond familiar heroes",
+        question: "Does the claim fairly describe what changes on stretch heroes compared with familiar heroes?",
+        context: "Outcome, activity, and survival are compared separately. Positive means stronger on stretch heroes, negative means stronger on familiar heroes, neutral means no supported difference, and mixed means the signals disagree.",
+      },
+      post_loss_response: {
+        label: "Next match after a loss",
+        question: "Is this a fair description of the player's next-match pattern after losses?",
+        context: "Post-loss matches are compared with non-post-loss matches in the closest available patch, lane context, and hero-function context. This describes an association; it does not say the loss caused the change.",
+      },
+      combat_expression: {
+        label: "Combat expression",
+        question: "Does the wording fairly combine participation and death exposure without judging death quality?",
+        context: "Participation uses kills plus assists per minute. Death exposure uses deaths per ten minutes. Both are adjusted against available context; exposure does not mean a death was good, bad, avoidable, or caused by positioning.",
+      },
+      session_drift: {
+        label: "Change across a play session",
+        question: "Does this fairly describe early-versus-late changes within completed play sessions?",
+        context: "This compares match position inside completed sessions with at least four eligible matches. It is not a comparison of early versus late game time inside one match.",
+      },
+    };
+    const signalDefinitions = {
+      breadth: ["Hero variety", "Effective number of heroes in the player's match history."],
+      toolkit: ["Job variety", "Effective number of functional jobs covered by those heroes."],
+      transfer_outcome: ["Outcome transfer", "Win-rate difference on stretch heroes minus familiar heroes."],
+      transfer_activity: ["Activity transfer", "Adjusted kills plus assists per minute on stretch heroes minus familiar heroes."],
+      transfer_survival: ["Survival transfer", "Adjusted survival on stretch heroes minus familiar heroes."],
+      transfer: ["Overall transfer", "Combined familiar-versus-stretch comparison."],
+      breadth_or_toolkit: ["Pool context", "Hero variety or job variety used as supporting context."],
+      response: ["Post-loss response", "Combined outcome, activity, and survival change after a loss versus comparable control matches."],
+      familiarity_or_tempo: ["Choice or tempo change", "Change in familiar-hero choice or activity tempo after a loss."],
+      involvement: ["Participation", "Adjusted kills plus assists per minute."],
+      death_exposure: ["Death exposure", "Adjusted deaths per ten minutes; this does not judge death quality."],
+      late_session: ["Late-session change", "Difference between later and earlier match positions in completed sessions."],
+      drift_outcome: ["Outcome drift", "Late-session outcome minus early-session outcome."],
+      drift_activity: ["Activity drift", "Late-session adjusted activity minus early-session activity."],
+      drift_survival: ["Survival drift", "Late-session adjusted survival minus early-session survival."],
+    };
+    const verdictDefinitions = [
+      ["accurate", "Accurate and useful", "The claim matches the evidence and is fair Dota language.", true, true],
+      ["misleading", "Supported, but misleading", "The pattern is real, but the wording would make a player infer too much or the wrong thing.", true, false],
+      ["unsupported", "Unsupported", "The shown signals do not justify this claim.", false, false],
+      ["unsure", "Unsure", "I cannot make a confident call yet. This must be resolved before completion.", null, null],
+    ];
+    const signoffDefinitions = [
+      ["Dota reviewer — required now", "dota_reviewer_approved", "dota_reviewer_reference", "Approve if you completed the claim review and consider the resulting precision acceptable."],
+      ["Statistical reviewer — separate role", "statistical_review_approved", "statistical_reviewer_reference", "Approves the split, margins, coverage/FDR interpretation, and holdout protocol. Leave unanswered if this is not your role."],
+      ["Data-basis approver — separate role", "data_basis_approved", "data_basis_approver_reference", "Approves corpus provenance, public/consented basis, retention, and privacy controls. Leave unanswered if this is not your role."],
+    ];
+    let packet = null;
+    let index = 0;
+
+    const byId = (id) => document.getElementById(id);
+    const text = (id, value) => { byId(id).textContent = value ?? "—"; };
+    const formatNumber = (value) => Number.isFinite(Number(value)) ? Number(value).toLocaleString(undefined, {maximumFractionDigits: 3}) : "—";
+    const formatCoverage = (value) => Number.isFinite(Number(value)) ? `${(Number(value) * 100).toFixed(1)}%` : "—";
+    const intervalText = (value) => Array.isArray(value) && value.length === 2 ? `${formatNumber(value[0])} to ${formatNumber(value[1])}` : "Unavailable";
+    const directionText = (value) => ({positive: "Positive", negative: "Negative", neutral: "No clear difference", mixed: "Signals disagree", stable: "Stable", variable: "Variable", unknown: "Unclear"}[value] || "Unclear");
+
+    function fallbackSignals(item) {
+      return String(item.literal_evidence || "").split(";").map((part) => {
+        const [key, raw] = part.trim().split("=");
+        return {key, value: Number(raw), direction: "unknown", unit: ""};
+      }).filter((signal) => signal.key);
+    }
+
+    function renderSignals(item) {
+      const root = byId("signals");
+      root.replaceChildren();
+      const signals = Array.isArray(item.evidence_signals) && item.evidence_signals.length ? item.evidence_signals : fallbackSignals(item);
+      signals.forEach((signal) => {
+        const definition = signalDefinitions[signal.key] || [signal.key.replaceAll("_", " "), "A calibrated summary-history signal used by this finding."];
+        const row = document.createElement("div");
+        row.className = "signal";
+        const name = document.createElement("div");
+        name.className = "signal-name";
+        name.textContent = definition[0];
+        const measurement = document.createElement("div");
+        measurement.className = "signal-value";
+        const value = document.createElement("div");
+        value.textContent = `${formatNumber(signal.value)}${signal.unit ? ` ${signal.unit}` : ""}`;
+        const direction = document.createElement("span");
+        direction.className = "signal-direction";
+        direction.textContent = directionText(signal.confident_direction || signal.direction);
+        measurement.append(value, direction);
+        const help = document.createElement("div");
+        help.className = "signal-help";
+        help.textContent = `${definition[1]}${signal.interval ? ` Interval: ${intervalText(signal.interval)}.` : ""}`;
+        row.append(name, measurement, help);
+        root.append(row);
+      });
+    }
+
+    function currentVerdict(item) {
+      if (item.supported === true && item.believable === true) return "accurate";
+      if (item.supported === true && item.believable === false) return "misleading";
+      if (item.supported === false) return "unsupported";
+      return "unsure";
+    }
+
+    function renderVerdicts(item) {
+      const root = byId("verdictChoices");
+      root.replaceChildren();
+      const selected = currentVerdict(item);
+      verdictDefinitions.forEach(([key, label, description, supported, believable]) => {
+        const wrapper = document.createElement("label");
+        wrapper.className = "verdict";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "verdict";
+        input.checked = selected === key;
+        input.addEventListener("change", () => {
+          item.supported = supported;
+          item.believable = believable;
+          updateProgress();
+        });
+        const copy = document.createElement("span");
+        const strong = document.createElement("strong");
+        strong.textContent = label;
+        const small = document.createElement("small");
+        small.textContent = description;
+        copy.append(strong, small);
+        wrapper.append(input, copy);
+        root.append(wrapper);
+      });
+    }
+
+    function renderItem() {
+      const item = packet.items[index];
+      const guide = familyGuides[item.family] || {label: item.family.replaceAll("_", " "), question: "Is this a fair, non-misleading Dota claim?", context: "Judge the wording against the observed evidence."};
+      text("family", guide.label);
+      text("claimTitle", item.claim);
+      text("guideQuestion", guide.question);
+      text("guideContext", guide.context);
+      text("evidence", item.literal_evidence);
+      text("interval", intervalText(item.interval));
+      text("sample", formatNumber(item.sample_size));
+      text("sessions", formatNumber(item.independent_sessions));
+      text("coverage", formatCoverage(item.coverage));
+      text("confidence", item.confidence ? `${item.confidence} · ${formatCoverage(item.confidence_score)} stability` : "Qualified");
+      text("interpretation", item.permitted_interpretation);
+      renderSignals(item);
+      const list = byId("limitations");
+      list.replaceChildren();
+      const limitations = Array.isArray(item.limitations) ? item.limitations : [];
+      limitations.forEach((value) => {
+        const row = document.createElement("li");
+        row.textContent = value;
+        list.append(row);
+      });
+      byId("limitationsWrap").hidden = limitations.length === 0;
+      renderVerdicts(item);
+      byId("notes").value = item.notes ?? "";
+      byId("previous").disabled = index === 0;
+      byId("next").textContent = index === packet.items.length - 1 ? "Review sign-offs" : "Next claim";
+      updateProgress();
+      window.scrollTo({top: 0, behavior: "smooth"});
+    }
+
+    function verdictCounts() {
+      return packet.items.reduce((counts, item) => {
+        counts[currentVerdict(item)] += 1;
+        return counts;
+      }, {accurate: 0, misleading: 0, unsupported: 0, unsure: 0});
+    }
+
+    function updateProgress() {
+      const counts = verdictCounts();
+      const answered = packet.items.length - counts.unsure;
+      byId("progress").value = answered;
+      byId("progress").max = packet.items.length;
+      text("counter", `${answered}/${packet.items.length} decided · claim ${index + 1}`);
+    }
+
+    function commitNotes() { packet.items[index].notes = byId("notes").value.trim() || null; }
+
+    function showSection(section) {
+      const items = section === "items";
+      byId("itemPanel").hidden = !items;
+      byId("signoffPanel").hidden = items;
+      byId("itemsTab").setAttribute("aria-selected", String(items));
+      byId("signoffsTab").setAttribute("aria-selected", String(!items));
+      if (!items) renderSignoffs();
+    }
+
+    function renderReviewSummary() {
+      const root = byId("reviewSummary");
+      root.replaceChildren();
+      const counts = verdictCounts();
+      [["Accurate", counts.accurate], ["Misleading", counts.misleading], ["Unsupported", counts.unsupported], ["Still unsure", counts.unsure]].forEach(([label, value]) => {
+        const card = document.createElement("dl");
+        card.className = "fact";
+        const term = document.createElement("dt");
+        term.textContent = label;
+        const count = document.createElement("dd");
+        count.textContent = value;
+        card.append(term, count);
+        root.append(card);
+      });
+    }
+
+    function renderSignoffs() {
+      renderReviewSummary();
+      const root = byId("signoffs");
+      root.replaceChildren();
+      signoffDefinitions.forEach(([title, approval, reference, description], definitionIndex) => {
+        const card = document.createElement("section");
+        card.className = "signoff";
+        const copy = document.createElement("div");
+        const heading = document.createElement("h3");
+        heading.textContent = title;
+        const body = document.createElement("p");
+        body.textContent = description;
+        copy.append(heading, body);
+        const choices = document.createElement("div");
+        choices.className = "choices";
+        const options = [[true, "Approve"], [false, "Do not approve"]];
+        if (definitionIndex > 0) options.push([null, "Not reviewed"]);
+        options.forEach(([choice, label]) => {
+          const wrapper = document.createElement("label");
+          wrapper.className = "choice";
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = approval;
+          input.checked = packet[approval] === choice;
+          input.addEventListener("change", () => { packet[approval] = choice; });
+          wrapper.append(input, document.createTextNode(label));
+          choices.append(wrapper);
+        });
+        const referenceLabel = document.createElement("label");
+        referenceLabel.className = "reference notes";
+        referenceLabel.textContent = definitionIndex === 0 ? "Your name or reviewer handle" : "Reviewer reference";
+        const referenceInput = document.createElement("input");
+        referenceInput.type = "text";
+        referenceInput.maxLength = 500;
+        referenceInput.value = packet[reference] ?? "";
+        referenceInput.placeholder = definitionIndex === 0 ? "How this review should be attributed" : "Name, ticket, or review document";
+        referenceInput.addEventListener("input", () => { packet[reference] = referenceInput.value.trim() || null; });
+        referenceLabel.append(referenceInput);
+        card.append(copy, choices, referenceLabel);
+        root.append(card);
+      });
+    }
+
+    async function persist(finalize) {
+      commitNotes();
+      const status = byId("status");
+      status.className = "status";
+      status.textContent = finalize ? "Checking that every Dota claim has a final verdict…" : "Saving progress…";
+      try {
+        const response = await fetch(finalize ? "/api/finalize" : "/api/save", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(packet),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Save failed");
+        packet.finalized = result.finalized;
+        status.className = "status good";
+        status.textContent = result.finalized ? `Dota review completed and saved to ${result.output}` : `Progress saved to ${result.output}`;
+      } catch (error) {
+        status.className = "status bad";
+        status.textContent = error.message;
+      }
+    }
+
+    byId("previous").addEventListener("click", () => { commitNotes(); if (index > 0) { index -= 1; renderItem(); } });
+    byId("next").addEventListener("click", () => {
+      commitNotes();
+      if (index < packet.items.length - 1) { index += 1; renderItem(); }
+      else showSection("signoffs");
+    });
+    byId("itemsTab").addEventListener("click", () => showSection("items"));
+    byId("signoffsTab").addEventListener("click", () => { commitNotes(); showSection("signoffs"); });
+    byId("save").addEventListener("click", () => persist(false));
+    byId("finalize").addEventListener("click", () => persist(true));
+    document.addEventListener("keydown", (event) => {
+      if (event.target.matches("textarea, input[type=text]") || byId("itemPanel").hidden) return;
+      if (event.key === "ArrowLeft") byId("previous").click();
+      if (event.key === "ArrowRight") byId("next").click();
+      if (["1", "2", "3", "4"].includes(event.key)) byId("verdictChoices").querySelectorAll("input")[Number(event.key) - 1].click();
+    });
+
+    fetch("/api/packet", {cache: "no-store"})
+      .then((response) => {
+        if (!response.ok) throw new Error("Could not load the private packet");
+        return response.json();
+      })
+      .then((value) => { packet = value; renderItem(); })
+      .catch((error) => { text("counter", error.message); });
+  </script>
+</body>
+</html>

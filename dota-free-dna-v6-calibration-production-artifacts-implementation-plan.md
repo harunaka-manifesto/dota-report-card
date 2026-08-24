@@ -555,6 +555,12 @@ Definition of done:
 
 The Sol agent prepares the process; a human performs the judgment.
 
+Status on 2026-08-23: the Dota-domain judgment is complete at 50/50 supported
+and believable (100% precision). See
+[`docs/qa/free-dna-v6-dota-review-record.md`](docs/qa/free-dna-v6-dota-review-record.md).
+Independent statistical review and data-basis approval remain open and are not
+implied by the Dota sign-off.
+
 Tasks for the agent:
 
 1. Generate a private, randomized review packet from Dota-believability fixtures and a bounded sample of holdout outputs.
@@ -963,7 +969,8 @@ The user/operator must ultimately provide:
 
 ### 15.3 Human gates
 
-- [ ] Dota reviewer supported-and-believable precision is at least 90%.
+- [x] Dota reviewer supported-and-believable precision is at least 90% (50/50,
+      100%; recorded 2026-08-23).
 - [ ] Independent statistical review is approved.
 - [ ] Public/consented data-basis statement is approved by the operator.
 

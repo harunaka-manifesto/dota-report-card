@@ -39,6 +39,7 @@ from app.content.renderer import (  # noqa: E402
 from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION  # noqa: E402
 
 OUTPUT_PATH = ROOT / "docs" / "generated" / "free-dna-v5.2-copy-review.md"
+V61_OUTPUT_PATH = ROOT / "docs" / "generated" / "free-dna-v6.1-copy-review.md"
 
 
 def _fields(value: object) -> set[str]:
@@ -258,20 +259,63 @@ def render_catalog() -> str:
     return "\n".join(lines)
 
 
+def render_v61_catalog() -> str:
+    from app.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
+    from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
+
+    lines = [
+        "# Free DNA V6.1 copy review catalog",
+        "",
+        "Generated from the frozen semantic-outcome and deterministic-copy registries.",
+        "This is a review surface; runtime copy remains registry-owned and contains no LLM call.",
+        "",
+        "- Copy version: `free-dna-semantic-copy-6.1.0`",
+        "- Claim contract: `claim-contract-2.0.0`",
+        f"- Registered outcomes: `{len(SEMANTIC_OUTCOME_REGISTRY)}`",
+        "- Public ontology: exactly seven Elements and five family roots",
+        "- Forbidden inference: aggression, intent, tilt, fatigue, positioning, skill, cause, rank, and MMR",
+        "",
+    ]
+    for key, definition in SEMANTIC_OUTCOME_REGISTRY.items():
+        copy = SEMANTIC_COPY_REGISTRY[key]
+        lines.extend(
+            [
+                f"## `{key}`",
+                "",
+                f"- Family / branch: `{definition.family_key}` / `{definition.hypothesis_branch}`",
+                f"- Rollout: `{definition.rollout_status}`",
+                f"- Denominator: `{definition.opportunity_denominator}`; minimum `{definition.minimum_opportunities}` opportunities and `{definition.minimum_sessions}` sessions",
+                f"- Claim: {copy.claim}",
+                f"- Evidence label: {copy.evidence_label}",
+                f"- Interpretation: {copy.interpretation}",
+                f"- Alternatives: {'; '.join(definition.alternatives)}",
+                f"- Interaction / fallback: `{definition.interaction_key or 'text_only'}` / `text_evidence`",
+                f"- Recommendation / verification: `{definition.recommendation_key or 'none'}` / `{', '.join(definition.verification_metric_keys) or 'none'}`",
+                "",
+            ]
+        )
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if the generated catalog is stale")
     args = parser.parse_args()
     expected = render_catalog()
+    expected_v61 = render_v61_catalog()
     if args.check:
-        if not OUTPUT_PATH.exists() or OUTPUT_PATH.read_text(encoding="utf-8") != expected:
+        stale = not OUTPUT_PATH.exists() or OUTPUT_PATH.read_text(encoding="utf-8") != expected
+        stale_v61 = not V61_OUTPUT_PATH.exists() or V61_OUTPUT_PATH.read_text(encoding="utf-8") != expected_v61
+        if stale or stale_v61:
             print(f"{OUTPUT_PATH} is stale; run: python scripts/generate_copy_review_catalog.py")
             return 1
         print("copy-review-catalog: current")
         return 0
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(expected, encoding="utf-8")
+    V61_OUTPUT_PATH.write_text(expected_v61, encoding="utf-8")
     print(f"updated {OUTPUT_PATH}")
+    print(f"updated {V61_OUTPUT_PATH}")
     return 0
 
 

@@ -413,7 +413,96 @@ v6Report.diagnostic_questions = [
   syncV6Question(v6Report.diagnostic_questions[1], v6CombatPrimary)
 ];
 
-const reports = new Map([[reportId, report], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report]]);
+const v61OutcomeKeys = {
+  pool_shape: "names_wide_jobs_narrow",
+  transfer: "clean_transfer",
+  post_loss_response: "one_loss_runback",
+  combat_expression: "localized_variance",
+  session_drift: "gradual_session_drift"
+};
+const v61InteractionKinds = {
+  pool_shape: "contradiction_reveal",
+  transfer: "core_boundary",
+  post_loss_response: "after_x",
+  combat_expression: "variance_decomposition",
+  session_drift: "session_curve"
+};
+const v61Reports = [0, 1, 2, 3].map((publishedCount) => {
+  const findings = v6Findings.map((finding, index) => {
+    const published = index < publishedCount;
+    const outcome = v61OutcomeKeys[finding.family];
+    const interaction = v61InteractionKinds[finding.family];
+    return {
+      ...finding,
+      published,
+      semantic_outcome_key: published ? outcome : null,
+      hypothesis_branch: published ? "fixture_branch" : null,
+      branch_adjusted_q_value: published ? .04 : 1,
+      claim: published ? `${finding.label} cleared the V6.1 fixture gates.` : null,
+      interpretation: published ? "This bounded fixture relationship remains descriptive." : null,
+      interaction: { kind: published ? interaction : null, enabled: published, fallback: published ? "text_evidence" : "family_not_published" },
+      claim_contract: published ? {
+        ...finding.claim_contract,
+        claim: `${finding.label} cleared the V6.1 fixture gates.`,
+        alternatives: ["Unobserved draft and match context"],
+        verification: null,
+        interaction,
+        deep_handoff: { cohort_reference: `cohort:v61:fixture-${index}`, unanswered_alternatives: ["Unobserved draft and match context"] },
+        copy_version: "free-dna-semantic-copy-6.1.0"
+      } : null
+    };
+  });
+  return {
+    ...v6Report,
+    report_id: `v61-${publishedCount}-fixture`,
+    schema_version: "free-dna-report-6.1.0",
+    versions: {
+      ...v6Report.versions,
+      elements: "free-elements-6.1.0", findings: "free-findings-6.1.0",
+      supporting_signals: "supporting-signals-1.0.0", semantic_outcomes: "semantic-outcomes-1.0.0",
+      expression: "summary-expression-multisignal-2.0.0", statistics: "stats-cluster-bootstrap-2.0.0",
+      context_baseline: "context-baseline-3.0.0", thresholds: "metric-thresholds-6.1.0",
+      claims: "claim-contract-2.0.0", story: "free-story-6.1.0", copy: "free-dna-semantic-copy-6.1.0",
+      recommendations: "free-dna-recommendations-6.1.0", deep_diagnostics: "deep-diagnostics-2.1.0",
+      share_renderer: "share-svg-6.1.0", interactions: "report-interactions-1.1.0",
+      summary_history: "summary-history-schema-3.0.0", model: "free-dna-model-6.1.0"
+    },
+    reproducibility: {
+      ...v6Report.reproducibility,
+      baseline_artifact: "context-baseline-3.0.0", threshold_artifact: "metric-thresholds-6.1.0",
+      history_contract: { request_count: 1, rank_or_mmr_used: false },
+      request_manifest: { projection_version: "summary-projection-3.0.0", physical_request_count: 1 },
+      artifact_checksums: { baseline: "fixture", thresholds: "fixture" }
+    },
+    quality: { ...v6Report.quality, published_findings: publishedCount },
+    findings,
+    identity_summary: {
+      ...v6Report.identity_summary,
+      slots: {
+        version: "identity-slots-1.0.0",
+        primary: { kind: "PRIMARY", scope: "This year", text: v6Report.identity_summary.headline, evidence_refs: v6Report.identity_summary.evidence_refs },
+        twist: publishedCount ? { kind: "TWIST", scope: "Within supported contexts", text: findings[0].claim, family: findings[0].family, semantic_outcome_key: findings[0].semantic_outcome_key, evidence_refs: findings[0].evidence_refs } : null,
+        anchor: { kind: "ANCHOR", scope: "Observed annual core", text: "catch", evidence_refs: ["supporting:portfolio_shape"] },
+        compatibility: "identity-slot-compatibility-1.0.0",
+        compatibility_checks: { primary_stability_gate: true, twist_qualified_only: true, anchor_portfolio_owned: true }
+      }
+    },
+    diagnostic_questions: [],
+    story: { ...v6Report.story, version: "free-story-6.1.0" },
+    supporting_evidence: {
+      portfolio_shape: { names: { matches: 72 }, jobs: { matches: 72 } },
+      transfer_frontier: { bands: { core: { matches: 40, sessions: 12, supported: true } } },
+      result_response: { states: { one_loss: { opportunities: 18, sessions: 9, available: true } } },
+      consistency: { component_variance: { outcome: { sessions: 18, available: true } } },
+      session_curve: { positions: { g1: { matches: 18, sessions: 18, available: true } } }
+    },
+    selection_audit: Object.fromEntries(findings.map((finding) => [finding.family, { qualified: finding.published, calibration_status: "fixture_synthetic_only" }])),
+    share_candidates: v6Report.share_candidates.filter((candidate) => candidate.kind !== "strongest_finding" || publishedCount > 0),
+    methodology: { ...v6Report.methodology, weighting: "estimator_specific", calibration_status: "fixture_synthetic_only", notes: ["V6.1 fixture evidence only."] }
+  };
+});
+
+const reports = new Map([[reportId, report], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report], ...v61Reports.map((item) => [item.report_id, item])]);
 const interactionSessions = new Map();
 const deepJobs = new Map();
 let nextSessionNumber = 1;

@@ -13,6 +13,7 @@ from app.player_analysis_v6.copy import forbidden_copy_violations
 
 RENDERER_VERSION = "share-svg-5.0.0"
 V6_RENDERER_VERSION = "share-svg-6.0.0"
+V61_RENDERER_VERSION = "share-svg-6.1.0"
 CARD_TYPES = frozenset({"final"})
 V6_CARD_TYPES = frozenset({"final", "identity", "strongest-finding", "hero-mirror"})
 
@@ -39,7 +40,8 @@ def share_cache_key(
     show_avatar: bool = True,
     aspect_ratio: str = "4:5",
 ) -> str:
-    is_v6 = report.get("schema_version") == "free-dna-report-6.0.0"
+    schema_version = report.get("schema_version")
+    is_v6 = schema_version in {"free-dna-report-6.0.0", "free-dna-report-6.1.0"}
     if is_v6:
         content = _v6_card_content(report, card_type, show_name=show_name)
     else:
@@ -51,7 +53,11 @@ def share_cache_key(
         "aspect_ratio": aspect_ratio,
         "show_name": show_name,
         "show_avatar": show_avatar,
-        "renderer": V6_RENDERER_VERSION if is_v6 else RENDERER_VERSION,
+        "renderer": (
+            V61_RENDERER_VERSION
+            if schema_version == "free-dna-report-6.1.0"
+            else V6_RENDERER_VERSION if is_v6 else RENDERER_VERSION
+        ),
         "content": content,
     }
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -64,7 +70,7 @@ def build_share_svg(
     show_name: bool = True,
     show_avatar: bool = True,
 ) -> tuple[str, str]:
-    if report.get("schema_version") == "free-dna-report-6.0.0":
+    if report.get("schema_version") in {"free-dna-report-6.0.0", "free-dna-report-6.1.0"}:
         return _build_v6_share_svg(report, card_type=card_type, show_name=show_name)
     if card_type not in CARD_TYPES:
         raise ValueError("Unsupported share card")

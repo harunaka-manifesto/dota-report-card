@@ -39,7 +39,7 @@ import {
   type V6HeroMirror,
   type V6Element,
   type V6Recommendation,
-  type V6Report,
+  type V6StoryReport,
   type V6StoryBeat,
   type V6TimelinePoint,
 } from "./types";
@@ -65,7 +65,7 @@ type ClaimLayer = "claim" | "evidence" | "interpretation" | "recommendation";
 const CLAIM_LAYERS: readonly ClaimLayer[] = ["claim", "evidence", "interpretation", "recommendation"];
 
 /** Dedicated v6 renderer. The parent route can select it by schema_version. */
-export default function ReportStoryV6({ report }: { report: V6Report }) {
+export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
   const beats = useMemo(() => reportBeats(report), [report]);
   const [journey, setJourney] = useState<V6InteractionState>(() => initialInteractionState());
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
@@ -367,7 +367,7 @@ export default function ReportStoryV6({ report }: { report: V6Report }) {
   }
 
   return (
-    <main className={styles.story} aria-label="Free DNA v6 identity report">
+    <main className={styles.story} aria-label={`Free DNA ${report.schema_version === "free-dna-report-6.1.0" ? "V6.1" : "V6"} identity report`}>
       <header className={styles.topbar}>
         <a className={styles.wordmark} href="#v6-beat-1">FREE DNA <span>06</span></a>
         <p className={styles.topline}>Summary-only identity report</p>
@@ -479,7 +479,7 @@ export default function ReportStoryV6({ report }: { report: V6Report }) {
 
           <section id="v6-beat-5" className={`${styles.beat} ${styles.beatFinding}`} aria-labelledby="v6-beat-5-title">
             <BeatHeader number={5} id="strongest-finding" beat={beats[4]} fallbackTitle="The strongest finding" fallbackBody="Compare matched evidence before deciding what it means." onSkip={() => skipBeat(4)} />
-            <FindingPanel finding={strongestFinding} comparisonLabel="Matched-evidence comparison" />
+            <FindingPanel finding={strongestFinding} comparisonLabel="Matched-evidence comparison" supportingEvidence={"supporting_evidence" in report ? report.supporting_evidence : undefined} />
             <BeatFooter index={4} onNext={() => finishBeat(4)} onSkip={() => skipBeat(4)} disabled={!strongestFinding} />
           </section>
 
@@ -558,10 +558,33 @@ function FindingReveal({ finding, revealed, onReveal }: { finding: V6Finding | n
   return <article className={styles.findingReveal}><span className={styles.eyebrow}><Glyph decorative glyph={familyGlyphKey(finding.family)} size={28} />{firstNonEmpty(finding.family, finding.label, "Observed finding")}</span>{revealed ? <><h2>{firstNonEmpty(finding.claim, text.claim, finding.title, finding.label, "Observed result unavailable")}</h2><p>{firstNonEmpty(findingEvidenceText(finding), text.evidence, finding.observation, "")}</p><MetricReceipt item={finding} /></> : <><p>Ready to compare your estimate with the observed evidence.</p><button className={styles.secondaryButton} type="button" onClick={onReveal}>Reveal observed expression</button></>}</article>;
 }
 
-function FindingPanel({ finding, comparisonLabel }: { finding: V6Finding | null; comparisonLabel: string }) {
+function FindingPanel({ finding, comparisonLabel, supportingEvidence }: { finding: V6Finding | null; comparisonLabel: string; supportingEvidence?: Record<string, Record<string, unknown> | undefined> }) {
   if (!finding) return <EmptyState message="No strongest finding was published for this report." />;
   const layers = findingLayers(finding);
-  return <article className={styles.findingPanel}><div className={styles.findingMain}><span className={styles.eyebrow}><Glyph decorative glyph={familyGlyphKey(finding.family)} size={28} />{firstNonEmpty(finding.family, "Finding")}</span><h2 id="v6-beat-5-title">{firstNonEmpty(finding.claim, layers.claim, finding.title, finding.label, "Finding claim unavailable")}</h2><p>{firstNonEmpty(finding.interpretation, layers.interpretation, "")}</p><MetricReceipt item={finding} /></div>{finding.comparison && <Comparison comparison={finding.comparison} label={comparisonLabel} />}</article>;
+  return <article className={styles.findingPanel}><div className={styles.findingMain}><span className={styles.eyebrow}><Glyph decorative glyph={familyGlyphKey(finding.family)} size={28} />{firstNonEmpty(finding.family, "Finding")}</span><h2 id="v6-beat-5-title">{firstNonEmpty(finding.claim, layers.claim, finding.title, finding.label, "Finding claim unavailable")}</h2><p>{firstNonEmpty(finding.interpretation, layers.interpretation, "")}</p><MetricReceipt item={finding} /><RelationshipEvidence finding={finding} supportingEvidence={supportingEvidence} /></div>{finding.comparison && <Comparison comparison={finding.comparison} label={comparisonLabel} />}</article>;
+}
+
+function RelationshipEvidence({ finding, supportingEvidence }: { finding: V6Finding; supportingEvidence?: Record<string, Record<string, unknown> | undefined> }) {
+  const kind = finding.interaction?.kind;
+  if (!kind || finding.interaction?.enabled !== true) return null;
+  const sourceKey = kind === "core_boundary" ? "transfer_frontier" : kind === "after_x" ? "result_response" : kind === "session_curve" ? "session_curve" : kind === "variance_decomposition" ? "consistency" : "portfolio_shape";
+  const source = asRecord(supportingEvidence?.[sourceKey]);
+  const nested = asRecord(source[kind === "core_boundary" ? "bands" : kind === "after_x" ? "states" : kind === "session_curve" ? "positions" : "component_variance"]);
+  const rows = Object.entries(nested).slice(0, 6);
+  const title = ({ core_boundary: "Supported distance frontier", after_x: "Observed result states", session_curve: "Direct session positions", two_versions: "Two supported versions", contradiction_reveal: "Surface and underlying evidence", variance_decomposition: "Localized repeatability", identity_eras: "Identity eras", hero_lifecycle: "Hero lifecycle", behavioral_loop: "Behavioral loop" } as const)[kind];
+  return <details className={styles.relationshipEvidence}><summary>{title}</summary><p>Only supported aggregate evidence is shown. Unsupported states remain unavailable; the client does not recompute the Finding.</p>{rows.length > 0 ? <div className={styles.relationshipTable} role="table" aria-label={`${title} evidence`}><div role="row" className={styles.relationshipHeader}><span role="columnheader">State</span><span role="columnheader">Evidence</span></div>{rows.map(([label, raw]) => { const row = asRecord(raw); return <div role="row" key={label}><strong role="cell">{label.replaceAll("_", " ")}</strong><span role="cell">{relationshipSummary(row)}</span></div>; })}</div> : <p className={styles.relationshipFallback}>This relationship is qualified, but its visual state is unavailable. The claim and receipt above are the truthful fallback.</p>}</details>;
+}
+
+function relationshipSummary(row: Record<string, unknown>): string {
+  const counts = [
+    typeof row.match_count === "number" ? `${row.match_count} matches` : null,
+    typeof row.matches === "number" ? `${row.matches} matches` : null,
+    typeof row.opportunities === "number" ? `${row.opportunities} opportunities` : null,
+    typeof row.sessions === "number" ? `${row.sessions} sessions` : null,
+    typeof row.supported === "boolean" ? (row.supported ? "supported" : "unsupported") : null,
+    typeof row.available === "boolean" ? (row.available ? "available" : "unavailable") : null,
+  ].filter(Boolean);
+  return counts.join(" · ") || "Aggregate comparison available in the evidence drawer";
 }
 
 function LayeredFinding({ finding, activeLayer, onLayerChange }: { finding: V6Finding | null; activeLayer: ClaimLayer; onLayerChange: (layer: ClaimLayer) => void }) {
@@ -606,7 +629,7 @@ function HeroMirrorCard({ mirror, revealed, onReveal }: { mirror: V6HeroMirror |
   return <article className={styles.mirror}><div className={styles.mirrorArt} aria-hidden="true">◐</div>{revealed ? <div className={styles.mirrorResult}><span className={styles.eyebrow}>{firstNonEmpty(mirror.title, "Hero Mirror")}</span><h2 id="v6-beat-8-title">{firstNonEmpty(mirror.headline, mirror.hero_name ? `A mirror in ${mirror.hero_name}` : "Mirror result unavailable")}</h2><p>{firstNonEmpty(mirror.body, "")}</p><div className={styles.mirrorFacts}>{Object.entries(mirror.player_behavior ?? {}).map(([key, value]) => <div key={key}><span>{key}</span><strong>{value}</strong><small>{mirror.hero_behavior?.[key] ?? ""}</small></div>)}</div><p className={styles.eligibility}>{eligible ? "Eligible for a standalone share candidate." : firstNonEmpty(...(mirror.limitations ?? []), "Not eligible for standalone sharing.")}</p></div> : <div className={styles.lockedReveal}><span className={styles.eyebrow}>Hero Mirror</span><p>Reveal the server-qualified mirror when you are ready.</p><button className={styles.primaryButton} type="button" onClick={onReveal}>Reveal Hero Mirror</button></div>}</article>;
 }
 
-function ShareComposer({ report, selected, onSelect, onCopy, copied }: { report: V6Report; selected?: string; onSelect: (id: string) => void; onCopy: (candidate: { title?: string | null; headline?: string | null; body?: string | null }) => void; copied: boolean }) {
+function ShareComposer({ report, selected, onSelect, onCopy, copied }: { report: V6StoryReport; selected?: string; onSelect: (id: string) => void; onCopy: (candidate: { title?: string | null; headline?: string | null; body?: string | null }) => void; copied: boolean }) {
   const eligible = report.share_candidates.filter((candidate) => candidate.eligible === true && candidate.status !== "suppressed" && candidate.status !== "unavailable");
   return <section className={styles.shareComposer} aria-label="Eligible share-card composer"><div><span className={styles.eyebrow}>Share candidates</span><p>Only server-eligible cards appear here. Self-estimates are never used as evidence.</p></div>{eligible.length === 0 ? <EmptyState message="No standalone share card is eligible for this report." /> : <div className={styles.shareGrid}>{eligible.map((candidate) => { const id = shareCandidateId(candidate); const isSelected = selected === id; return <label className={isSelected ? styles.shareCandidateSelected : styles.shareCandidate} key={id}><input type="radio" name="v6-share-candidate" checked={isSelected} onChange={() => onSelect(id)} /><span><strong>{firstNonEmpty(candidate.title, recordText(candidate.payload, "title"), candidate.kind, "Share card")}</strong><small>{firstNonEmpty(candidate.headline, candidate.body, candidate.reason, recordText(candidate.payload, "reason"), "")}</small></span>{isSelected && <button className={styles.smallButton} type="button" onClick={(event) => { event.preventDefault(); onCopy(candidate); }}>{copied ? "Copied" : "Copy text"}</button>}</label>; })}</div>}</section>;
 }
@@ -648,7 +671,7 @@ function isPublished(finding: V6Finding): boolean {
   return finding.published === true && finding.status !== "suppressed" && finding.status !== "unavailable";
 }
 
-function recommendationChoices(report: V6Report, ...findings: Array<V6Finding | null>): V6Choice[] {
+function recommendationChoices(report: V6StoryReport, ...findings: Array<V6Finding | null>): V6Choice[] {
   const choices: V6Choice[] = [];
   for (const finding of findings) {
     const recommendation = finding?.recommendation ?? finding?.claim_contract?.recommendation;
@@ -667,7 +690,7 @@ function uniqueChoices(choices: V6Choice[]): V6Choice[] {
   return choices.filter((choice) => { const id = choice.id ?? choice.key ?? choice.value ?? choice.label; if (seen.has(id)) return false; seen.add(id); return true; });
 }
 
-function storyPages(report: V6Report): V6StoryBeat[] {
+function storyPages(report: V6StoryReport): V6StoryBeat[] {
   return Array.isArray(report.story) ? report.story : report.story.beats ?? report.pages ?? [];
 }
 
@@ -692,11 +715,11 @@ function findingEvidenceRefs(finding: V6Finding): string[] {
   return [...new Set((finding.evidence_items ?? []).flatMap((item) => item.references ?? (item.key ? [item.key] : [])))];
 }
 
-function diagnosticQuestionId(question: V6Report["diagnostic_questions"][number]): string {
+function diagnosticQuestionId(question: V6StoryReport["diagnostic_questions"][number]): string {
   return question.id ?? question.question_id ?? "";
 }
 
-function shareCandidateId(candidate: V6Report["share_candidates"][number]): string {
+function shareCandidateId(candidate: V6StoryReport["share_candidates"][number]): string {
   return candidate.id ?? candidate.candidate_id ?? "";
 }
 
@@ -816,6 +839,6 @@ function syncLabel(status: SyncStatus): string {
 }
 
 export { BEAT_IDS };
-export { isFreeDnaReportV6 } from "./types";
-export type { V6Report } from "./types";
+export { isFreeDnaReportV6, isFreeDnaReportV61 } from "./types";
+export type { V6Report, V61Report, V6StoryReport } from "./types";
 export { ReportStoryV6 };

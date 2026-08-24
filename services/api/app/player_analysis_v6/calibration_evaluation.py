@@ -98,6 +98,10 @@ def _mapping_or_empty(value: Any) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
 
 
+def _has_reference(value: Any) -> bool:
+    return isinstance(value, str) and bool(value.strip())
+
+
 def build_evaluation_artifact(
     synthetic: Mapping[str, Any],
     holdout: Mapping[str, Any],
@@ -142,6 +146,9 @@ def build_evaluation_artifact(
     data_basis = _mapping_or_empty(review_payload.get("data_basis"))
     reviewer_precision = reviewer.get("precision")
     reviewer_total = reviewer.get("reviewed_count")
+    dota_reference = reviewer.get("reviewer_reference")
+    statistical_reference = statistical.get("reviewer_reference")
+    data_basis_reference = data_basis.get("approver_reference")
 
     gates = {
         "minimum_profiles": gate(required=">=1000", observed=profile_count, denominator=profile_count, passed=profile_count >= 1000, source="holdout.corpus"),
@@ -152,9 +159,9 @@ def build_evaluation_artifact(
         "forbidden_copy_violations": gate(required=0, observed=copy_violations, denominator=copy_safety.get("strings_scanned"), passed=copy_violations == 0, source="holdout.copy_safety"),
         "free_cost_violations": gate(required=0, observed=cost_violations, denominator=free_cost.get("reports_checked"), passed=cost_violations == 0, source="holdout.free_cost"),
         "forbidden_dimension_absence": gate(required=False, observed=mmr_used, denominator=profile_count, passed=mmr_used is False, source="holdout.corpus"),
-        "dota_reviewer_precision": gate(required=">=0.90", observed=reviewer_precision, denominator=reviewer_total if isinstance(reviewer_total, int) else None, passed=isinstance(reviewer_precision, (int, float)) and float(reviewer_precision) >= 0.90 and bool(reviewer.get("approved")), source="external_review.dota_reviewer"),
-        "statistical_review": gate(required=True, observed=statistical.get("approved"), denominator=None, passed=statistical.get("approved") is True, source="external_review.statistical_review"),
-        "data_basis_approval": gate(required=True, observed=data_basis.get("approved"), denominator=None, passed=data_basis.get("approved") is True, source="external_review.data_basis"),
+        "dota_reviewer_precision": gate(required=">=0.90", observed=reviewer_precision, denominator=reviewer_total if isinstance(reviewer_total, int) else None, passed=isinstance(reviewer_precision, (int, float)) and float(reviewer_precision) >= 0.90 and bool(reviewer.get("approved")) and _has_reference(dota_reference), source="external_review.dota_reviewer"),
+        "statistical_review": gate(required=True, observed=statistical.get("approved"), denominator=None, passed=statistical.get("approved") is True and _has_reference(statistical_reference), source="external_review.statistical_review"),
+        "data_basis_approval": gate(required=True, observed=data_basis.get("approved"), denominator=None, passed=data_basis.get("approved") is True and _has_reference(data_basis_reference), source="external_review.data_basis"),
     }
     automated_keys = tuple(key for key in gates if key not in {"dota_reviewer_precision", "statistical_review", "data_basis_approval"})
     automated_passed = all(gates[key]["passed"] for key in automated_keys)
@@ -223,6 +230,8 @@ def ingest_review_evidence(payload: Mapping[str, Any]) -> dict[str, Any]:
     version = payload.get("version")
     if version not in {REVIEW_VERSION, REVIEW_PACKET_VERSION}:
         raise CalibrationEvaluationError("unsupported review evidence version")
+    if version == REVIEW_PACKET_VERSION and payload.get("finalized") is not True:
+        raise CalibrationEvaluationError("private review packet must be finalized before ingestion")
     judgments = payload.get("items") if version == REVIEW_PACKET_VERSION else payload.get("judgments")
     if not isinstance(judgments, list) or not judgments:
         raise CalibrationEvaluationError("review evidence needs non-empty judgments")
@@ -231,23 +240,32 @@ def ingest_review_evidence(payload: Mapping[str, Any]) -> dict[str, Any]:
         if not isinstance(item, Mapping) or not isinstance(item.get("supported"), bool) or not isinstance(item.get("believable"), bool):
             raise CalibrationEvaluationError("each judgment needs boolean supported and believable values")
         supported += bool(item["supported"] and item["believable"])
+    dota_reference = payload.get("dota_reviewer_reference")
+    statistical_reference = payload.get("statistical_reviewer_reference")
+    data_basis_reference = payload.get("data_basis_approver_reference")
+    if payload.get("dota_reviewer_approved") is True and not _has_reference(dota_reference):
+        raise CalibrationEvaluationError("Dota reviewer approval needs a reviewer reference")
+    if payload.get("statistical_review_approved") is True and not _has_reference(statistical_reference):
+        raise CalibrationEvaluationError("statistical approval needs a reviewer reference")
+    if payload.get("data_basis_approved") is True and not _has_reference(data_basis_reference):
+        raise CalibrationEvaluationError("data-basis approval needs an approver reference")
     result = {
         "version": REVIEW_VERSION,
-        "generated_at": str(payload.get("generated_at") or datetime.now(UTC).isoformat()),
+        "generated_at": str(payload.get("generated_at") or payload.get("completed_at") or datetime.now(UTC).isoformat()),
         "dota_reviewer": {
             "reviewed_count": len(judgments),
             "supported_and_believable_count": supported,
             "precision": supported / len(judgments),
             "approved": supported / len(judgments) >= 0.90 and bool(payload.get("dota_reviewer_approved")),
-            "reviewer_reference": payload.get("dota_reviewer_reference"),
+            "reviewer_reference": dota_reference,
         },
         "statistical_review": {
             "approved": payload.get("statistical_review_approved") is True,
-            "reviewer_reference": payload.get("statistical_reviewer_reference"),
+            "reviewer_reference": statistical_reference,
         },
         "data_basis": {
             "approved": payload.get("data_basis_approved") is True,
-            "approver_reference": payload.get("data_basis_approver_reference"),
+            "approver_reference": data_basis_reference,
         },
     }
     validate_aggregate_payload(result)

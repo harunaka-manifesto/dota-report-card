@@ -76,3 +76,12 @@ Drift and Recovery resolve comparable personal baselines through the shared
 leave-group-out hierarchy: hero + role + primary function, hero + function,
 function, role, then overall. The resolver records its fallback level and
 excludes the target session from the reference population.
+
+## Additive V6 generations
+
+This page remains authoritative for the V5.2 18-Element registry. V6.0 and
+V6.1 are separate validator-routed generations with exactly seven public
+Elements: Breadth, Toolkit, Involvement, Finishing, Death Exposure, Transfer,
+and Consistency. V6.1 does not rename or migrate any V5.2 Element and does not
+make its 128 private supporting signals into public Elements. See the
+[V6.1 feature graph](free-dna-v6.1-feature-graph.md).

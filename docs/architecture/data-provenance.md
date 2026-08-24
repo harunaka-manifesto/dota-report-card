@@ -60,3 +60,14 @@ versions, fetch timestamps, raw hashes where applicable, and derivation rule
 versions. The API consumes the frozen snapshot through
 `HeroKnowledgeRepository`; it does not make source requests during report
 generation. Unknown fields remain unknown rather than becoming neutral values.
+
+## V6.1 canonical projection
+
+V6.1 makes the physical request contract executable in
+`ingestion/summary_history_contract.py`: one request, one exact 20-field
+projection, a previous-365-day window, provider-limit completeness state,
+required/optional coverage, and raw/normalized hashes. Runtime, calibration,
+fixtures, and documentation must use that owner. Optional context below 80%
+coverage cannot support a public conditional claim. `average_rank`,
+`rank_tier`, rank, MMR, and skill-bracket fields are forbidden analytical
+inputs.

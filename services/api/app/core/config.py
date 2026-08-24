@@ -90,6 +90,13 @@ class Settings:
     free_dna_v6_baseline_artifact_path: Path | None = None
     free_dna_v6_threshold_artifact_path: Path | None = None
     free_dna_v6_model_version: str = "free-dna-model-6.0.0"
+    free_dna_v61_enabled: bool = False
+    free_dna_v61_shadow_enabled: bool = False
+    free_dna_v61_experimental_evolution_enabled: bool = False
+    free_dna_v61_experimental_loops_enabled: bool = False
+    free_dna_v61_baseline_artifact_path: Path | None = None
+    free_dna_v61_threshold_artifact_path: Path | None = None
+    free_dna_v61_model_version: str = "free-dna-model-6.1.0"
     replay_coverage_threshold: float = 0.60
     summary_coverage_threshold: float = 0.60
     cors_origins: tuple[str, ...] = DEFAULT_CORS_ORIGINS
@@ -196,6 +203,23 @@ class Settings:
                 Path(value) if (value := os.getenv("FREE_DNA_V6_THRESHOLD_ARTIFACT")) else None
             ),
             free_dna_v6_model_version=os.getenv("FREE_DNA_V6_MODEL_VERSION", cls.free_dna_v6_model_version),
+            free_dna_v61_enabled=_as_bool(os.getenv("FREE_DNA_V61_ENABLED")),
+            free_dna_v61_shadow_enabled=_as_bool(os.getenv("FREE_DNA_V61_SHADOW_ENABLED")),
+            free_dna_v61_experimental_evolution_enabled=_as_bool(
+                os.getenv("FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED")
+            ),
+            free_dna_v61_experimental_loops_enabled=_as_bool(
+                os.getenv("FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED")
+            ),
+            free_dna_v61_baseline_artifact_path=(
+                Path(value) if (value := os.getenv("FREE_DNA_V61_BASELINE_ARTIFACT")) else None
+            ),
+            free_dna_v61_threshold_artifact_path=(
+                Path(value) if (value := os.getenv("FREE_DNA_V61_THRESHOLD_ARTIFACT")) else None
+            ),
+            free_dna_v61_model_version=os.getenv(
+                "FREE_DNA_V61_MODEL_VERSION", cls.free_dna_v61_model_version
+            ),
             replay_coverage_threshold=float(
                 os.getenv("REPLAY_COVERAGE_THRESHOLD", str(cls.replay_coverage_threshold))
             ),

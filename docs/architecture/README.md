@@ -17,6 +17,7 @@ Read in order:
 13. [v5.2 SSOT and version compatibility](dota-dna-ssot.md)
 14. [Free DNA v6 statistics](free-dna-v6-statistics.md)
 15. [Deep diagnostics v2](deep-diagnostics-v2.md)
+16. [Free DNA V6.1 feature graph](free-dna-v6.1-feature-graph.md)
 
 The catalog is generated from production registries. Change a registry first,
 then run make dna-catalog and make docs-check.

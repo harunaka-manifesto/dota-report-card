@@ -44,6 +44,30 @@ booleans, and reviewer-reference fields. `evaluate_v6_calibration.py
 ingest-review` accepts that completed private packet directly and emits only
 aggregate counts, precision, and sign-off references for the release evidence.
 
+## Local review page
+
+Run the review survey only on the machine holding the private packet. The
+server binds to `127.0.0.1`, opens the browser, and saves drafts/final output
+with owner-only permissions:
+
+```bash
+uv run python scripts/serve_v6_calibration_review.py \
+  --packet .local/calibration/review/reviewer-packet-6.0.0.json \
+  --output .local/calibration/review/reviewer-packet-6.0.0-completed.json
+```
+
+For each claim, choose `Accurate and useful`, `Supported, but misleading`,
+`Unsupported`, or `Unsure`. The page explains each signal in Dota terms and
+keeps raw intervals behind an optional details section. Misleading and
+unsupported verdicts require a note. Completing the Dota review does not
+self-approve the separate statistical or data-basis gates.
+
+After the page reports that the completed packet was finalized, stop the local
+server with `Ctrl-C` and pass the completed file to `ingest-review`. The
+2026-08-23 Dota-domain decision and the still-separate external gates are
+recorded in
+[`docs/qa/free-dna-v6-dota-review-record.md`](../qa/free-dna-v6-dota-review-record.md).
+
 ## Internal shadow and staff QA
 
 Use the frozen candidate bytes to generate internal reports without returning
@@ -81,3 +105,8 @@ versions must remain readable for audit and support. Confirm after rollback:
 - an existing v6 snapshot still validates and renders;
 - API and worker report the expected disabled flag;
 - no private calibration files were copied into the image.
+
+This runbook applies only to V6.0. The additive V6.1 artifact family, flags,
+stages, and rollback rules are maintained in the
+[V6.1 runbook](free-dna-v6.1-release.md); never mount or relabel a V6.0 artifact
+as V6.1.

@@ -233,3 +233,12 @@ capped fallback references, shrinkage, runner-up margin, no-clear state,
 taxonomy-independent eligibility, four-component unit goldens, one-component
 role treatment, missing-role coverage, deterministic winner, and realistic
 labels.
+
+## V6.1 pool-shape relationship
+
+Hero Portfolio remains a V5.2-owned independent interaction layer. V6.1 does
+not relabel its Common Thread, Exception, Evolution, or Mirror outputs. V6.1
+instead measures pool shape with effective counts, concentration, fractional
+job mass, stable-core evidence, exact chronological thirds, and cross-fitted
+distance bands. Any lifecycle or identity-era extension remains private and
+shadow-only until separately calibrated and approved.

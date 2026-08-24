@@ -1,0 +1,289 @@
+"""Fixture/synthetic V6.1 family omnibus inputs.
+
+These deterministic approximations support implementation verification only.
+Production promotion remains blocked until training artifacts freeze the final
+estimators and the sealed holdout is evaluated once.
+"""
+
+from __future__ import annotations
+
+import math
+from collections.abc import Mapping
+from typing import Any
+
+from .semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
+
+
+def _bounded_p(effect: float, opportunities: int, *, scale: float) -> float:
+    if opportunities < 12 or scale <= 0:
+        return 1.0
+    statistic = opportunities * (effect / scale) ** 2
+    return max(1e-12, min(1.0, math.exp(-0.5 * statistic)))
+
+
+def _equivalence_p(effect: float, opportunities: int, *, rope: float) -> float:
+    if opportunities < 12 or abs(effect) >= rope:
+        return 1.0
+    standard_error = rope * math.sqrt(12 / opportunities)
+    z_value = (rope - abs(effect)) / max(standard_error, 1e-9)
+    return max(1e-12, min(1.0, math.exp(-0.5 * z_value**2)))
+
+
+def v61_family_p_values(
+    *,
+    portfolio_shape: Mapping[str, Any],
+    transfer: Mapping[str, Any],
+    result_response: Mapping[str, Any],
+    session_curve: Mapping[str, Any],
+    involvement: Mapping[str, Any],
+    death_exposure: Mapping[str, Any],
+) -> dict[str, float]:
+    hero_jsd = float(portfolio_shape.get("hero_jsd_first_to_last", 0.0))
+    job_jsd = float(portfolio_shape.get("job_jsd_first_to_last", 0.0))
+    pool_effect = abs(hero_jsd - job_jsd)
+    pool_p = _bounded_p(pool_effect, int(portfolio_shape.get("match_count", 0)), scale=0.12)
+
+    reliable = transfer.get("bands", {}).get("reliable_stretch", {})
+    transfer_deltas = [
+        abs(float(value))
+        for value in reliable.get("component_deltas", {}).values()
+        if value is not None
+    ]
+    transfer_p = _bounded_p(
+        max(transfer_deltas, default=0.0),
+        int(reliable.get("match_count", 0)),
+        scale=0.10,
+    )
+
+    states = result_response.get("states", {})
+    movements = [
+        float(state["mean_distance_movement"])
+        for state in states.values()
+        if state.get("available") and state.get("mean_distance_movement") is not None
+    ]
+    response_effect = max(movements, default=0.0) - min(movements, default=0.0)
+    response_opportunities = sum(
+        int(state.get("opportunities", 0)) for state in states.values() if state.get("available")
+    )
+    response_p = _bounded_p(response_effect, response_opportunities, scale=0.12)
+
+    positions = session_curve.get("positions", {})
+    position_rates = [
+        float(position["result_rate"])
+        for position in positions.values()
+        if position.get("available") and position.get("result_rate") is not None
+    ]
+    session_effect = max(position_rates, default=0.0) - min(position_rates, default=0.0)
+    session_opportunities = sum(
+        int(position.get("sessions", 0)) for position in positions.values() if position.get("available")
+    )
+    session_p = _bounded_p(session_effect, session_opportunities, scale=0.15)
+    expression_effects = []
+    if involvement.get("estimate") is not None:
+        expression_effects.append(abs(float(involvement["estimate"])) / 0.08)
+    if death_exposure.get("estimate") is not None:
+        expression_effects.append(abs(float(death_exposure["estimate"])) / 0.35)
+    combat_opportunities = min(
+        int(involvement.get("matches", 0)),
+        int(death_exposure.get("matches", 0)),
+    )
+    combat_p = _bounded_p(
+        max(expression_effects, default=0.0),
+        combat_opportunities,
+        scale=1.0,
+    )
+    return {
+        "pool_shape": pool_p,
+        "transfer": transfer_p,
+        "post_loss_response": response_p,
+        "combat_expression": combat_p,
+        "session_drift": session_p,
+    }
+
+
+def v61_branch_p_values(
+    *,
+    portfolio_shape: Mapping[str, Any],
+    transfer: Mapping[str, Any],
+    result_response: Mapping[str, Any],
+    session_curve: Mapping[str, Any],
+    involvement: Mapping[str, Any],
+    death_exposure: Mapping[str, Any],
+) -> dict[str, dict[str, float]]:
+    """Return one predeclared fixture statistic for every public branch."""
+
+    values: dict[str, dict[str, float]] = {
+        definition.family_key: {}
+        for definition in SEMANTIC_OUTCOME_CATALOG
+        if definition.rollout_status == "public_candidate"
+    }
+    for definition in SEMANTIC_OUTCOME_CATALOG:
+        if definition.rollout_status == "public_candidate":
+            values[definition.family_key][definition.semantic_outcome_key] = 1.0
+
+    pool_n = int(portfolio_shape.get("match_count", 0))
+    top_one = float(portfolio_shape.get("top_shares", {}).get("top_1", 0.0))
+    hero_count = float(portfolio_shape.get("shannon_effective_heroes", 0.0))
+    job_count = float(portfolio_shape.get("shannon_effective_jobs", 0.0))
+    hero_jsd = float(portfolio_shape.get("hero_jsd_first_to_last", 0.0))
+    job_jsd = float(portfolio_shape.get("job_jsd_first_to_last", 0.0))
+    values["pool_shape"].update(
+        {
+            "hidden_center": _bounded_p(max(0.0, top_one - 0.25), pool_n, scale=0.10),
+            "names_wide_jobs_narrow": _bounded_p(
+                max(0.0, hero_count - job_count), pool_n, scale=1.0
+            ),
+            "names_narrow_jobs_wide": _bounded_p(
+                max(0.0, job_count - hero_count), pool_n, scale=1.0
+            ),
+            "names_changed_jobs_held": max(
+                _bounded_p(hero_jsd, pool_n, scale=0.10),
+                _equivalence_p(job_jsd, pool_n, rope=0.06),
+            ),
+        }
+    )
+    if not portfolio_shape.get("taxonomy_sensitivity", {}).get("stable"):
+        for key in (
+            "names_wide_jobs_narrow",
+            "names_narrow_jobs_wide",
+            "names_changed_jobs_held",
+        ):
+            values["pool_shape"][key] = 1.0
+
+    reliable = transfer.get("bands", {}).get("reliable_stretch", {})
+    transfer_n = int(reliable.get("match_count", 0))
+    deltas = reliable.get("component_deltas", {})
+    outcome = float(deltas.get("outcome") or 0.0)
+    activity = float(deltas.get("activity") or 0.0)
+    survival = float(deltas.get("survival") or 0.0)
+    reliable_equivalence = reliable.get("equivalent", {})
+    outcome_eq = (
+        _equivalence_p(outcome, transfer_n, rope=0.08)
+        if reliable_equivalence.get("outcome")
+        else 1.0
+    )
+    activity_eq = (
+        _equivalence_p(activity, transfer_n, rope=0.08)
+        if reliable_equivalence.get("activity")
+        else 1.0
+    )
+    survival_eq = (
+        _equivalence_p(survival, transfer_n, rope=0.35)
+        if reliable_equivalence.get("survival")
+        else 1.0
+    )
+    values["transfer"].update(
+        {
+            "clean_transfer": max(outcome_eq, activity_eq, survival_eq),
+            "results_stop_first": max(
+                _bounded_p(abs(outcome), transfer_n, scale=0.08),
+                activity_eq,
+                survival_eq,
+            ),
+            "expression_stops_first": max(
+                outcome_eq,
+                min(
+                    _bounded_p(abs(activity), transfer_n, scale=0.08),
+                    _bounded_p(abs(survival), transfer_n, scale=0.35),
+                ),
+            ),
+            "involvement_boundary": _bounded_p(abs(activity), transfer_n, scale=0.08),
+            "exposure_boundary": _bounded_p(abs(survival), transfer_n, scale=0.35),
+            "localized_function_bottleneck": 1.0,
+        }
+    )
+
+    states = result_response.get("states", {})
+    one = states.get("one_loss", {})
+    two = states.get("two_plus_losses", {})
+    wins = states.get("win", {})
+    response_n = sum(int(item.get("opportunities", 0)) for item in states.values())
+    one_move = float(one.get("mean_distance_movement") or 0.0)
+    two_move = float(two.get("mean_distance_movement") or 0.0)
+    win_move = float(wins.get("mean_distance_movement") or 0.0)
+    state_span = max(one_move, two_move, win_move) - min(one_move, two_move, win_move)
+    response_intervals = [
+        item["movement_interval"]
+        for item in (one, two, wins)
+        if item.get("available") and item.get("movement_interval") is not None
+    ]
+    equivalence_supported = bool(
+        len(response_intervals) >= 2
+        and max(float(interval[1]) for interval in response_intervals)
+        - min(float(interval[0]) for interval in response_intervals)
+        <= 0.08
+    )
+    values["post_loss_response"].update(
+        {
+            "one_loss_runback": _bounded_p(abs(one_move), int(one.get("opportunities", 0)), scale=0.10),
+            "two_loss_switch": _bounded_p(abs(two_move - one_move), response_n, scale=0.10),
+            "result_shaped_pool": _bounded_p(state_span, response_n, scale=0.10),
+            "result_invariant_response": (
+                _equivalence_p(state_span, response_n, rope=0.08)
+                if equivalence_supported
+                else 1.0
+            ),
+            "adjustment_without_recovery": 1.0,
+        }
+    )
+
+    combat_n = min(int(involvement.get("matches", 0)), int(death_exposure.get("matches", 0)))
+    involvement_effect = float(involvement.get("estimate") or 0.0)
+    exposure_effect = float(death_exposure.get("estimate") or 0.0)
+    involvement_interval = involvement.get("interval")
+    exposure_interval = death_exposure.get("interval")
+    involvement_eq = (
+        _equivalence_p(involvement_effect, combat_n, rope=0.08)
+        if involvement_interval is not None
+        and float(involvement_interval[0]) >= -0.08
+        and float(involvement_interval[1]) <= 0.08
+        else 1.0
+    )
+    exposure_eq = (
+        _equivalence_p(exposure_effect, combat_n, rope=0.35)
+        if exposure_interval is not None
+        and float(exposure_interval[0]) >= -0.35
+        and float(exposure_interval[1]) <= 0.35
+        else 1.0
+    )
+    values["combat_expression"].update(
+        {
+            "involvement_holds_exposure_moves": max(
+                involvement_eq,
+                _bounded_p(abs(exposure_effect), combat_n, scale=0.35),
+            ),
+            "exposure_holds_involvement_moves": max(
+                exposure_eq,
+                _bounded_p(abs(involvement_effect), combat_n, scale=0.08),
+            ),
+            "same_expression_different_results": 1.0,
+            "different_expression_same_results": 1.0,
+            "localized_variance": min(
+                _bounded_p(abs(involvement_effect), combat_n, scale=0.08),
+                _bounded_p(abs(exposure_effect), combat_n, scale=0.35),
+            ),
+        }
+    )
+
+    positions = session_curve.get("positions", {})
+    rates = {
+        key: float(item["result_rate"])
+        for key, item in positions.items()
+        if item.get("available") and item.get("result_rate") is not None
+    }
+    session_n = sum(int(item.get("sessions", 0)) for item in positions.values())
+    opening_effect = abs(rates.get("g1", 0.0) - rates.get("g2", rates.get("g1", 0.0)))
+    span = max(rates.values(), default=0.0) - min(rates.values(), default=0.0)
+    values["session_drift"].update(
+        {
+            "opening_game_signature": _bounded_p(opening_effect, session_n, scale=0.12),
+            "gradual_session_drift": _bounded_p(span, session_n, scale=0.15),
+            "predeclared_breakpoint": _bounded_p(span, session_n, scale=0.15),
+            "selection_only_drift": 1.0,
+            "bounded_stopping_response": 1.0,
+        }
+    )
+    return values
+
+
+__all__ = ["v61_branch_p_values", "v61_family_p_values"]

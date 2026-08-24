@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from types import SimpleNamespace
 
 import pytest
 from app.player_analysis_v6.calibration_evaluation import (
@@ -11,6 +12,8 @@ from app.player_analysis_v6.calibration_evaluation import (
     promote_release,
     validate_aggregate_payload,
 )
+
+from scripts.evaluate_v6_calibration import _review_items
 
 
 def _synthetic(*, coverage: float = 0.95, fdr: float = 0.04) -> dict:
@@ -43,9 +46,14 @@ def _holdout(*, nonblank: float = 0.85, agreement: float | None = 0.82) -> dict:
 def _review() -> dict:
     return {
         "version": "v6-review-evidence-1.0.0",
-        "dota_reviewer": {"precision": 0.95, "reviewed_count": 40, "approved": True},
-        "statistical_review": {"approved": True},
-        "data_basis": {"approved": True},
+        "dota_reviewer": {
+            "precision": 0.95,
+            "reviewed_count": 40,
+            "approved": True,
+            "reviewer_reference": "dota-review-record",
+        },
+        "statistical_review": {"approved": True, "reviewer_reference": "statistics-review-record"},
+        "data_basis": {"approved": True, "approver_reference": "data-basis-record"},
     }
 
 
@@ -89,8 +97,10 @@ def test_review_ingestion_computes_precision_and_never_self_approves() -> None:
             {"supported": True, "believable": False},
         ],
         "dota_reviewer_approved": True,
+        "dota_reviewer_reference": "dota-review-record",
         "statistical_review_approved": False,
         "data_basis_approved": True,
+        "data_basis_approver_reference": "data-basis-record",
     }
     result = ingest_review_evidence(payload)
     assert result["dota_reviewer"]["precision"] == 0.5
@@ -101,6 +111,8 @@ def test_review_ingestion_computes_precision_and_never_self_approves() -> None:
 def test_completed_private_review_packet_can_be_ingested_directly() -> None:
     payload = {
         "version": "v6-private-review-packet-1.0.0",
+        "finalized": True,
+        "completed_at": "2026-08-23T00:00:00+07:00",
         "items": [
             {"review_item_id": "review-0001", "supported": True, "believable": True},
             {"review_item_id": "review-0002", "supported": True, "believable": True},
@@ -117,6 +129,78 @@ def test_completed_private_review_packet_can_be_ingested_directly() -> None:
     assert result["dota_reviewer"]["approved"] is True
     assert result["statistical_review"]["approved"] is True
     assert result["data_basis"]["approved"] is True
+    assert result["generated_at"] == "2026-08-23T00:00:00+07:00"
+
+
+def test_private_review_packet_must_be_finalized_before_ingestion() -> None:
+    payload = {
+        "version": "v6-private-review-packet-1.0.0",
+        "items": [{"review_item_id": "review-0001", "supported": True, "believable": True}],
+        "dota_reviewer_approved": True,
+        "dota_reviewer_reference": "dota-review-record",
+    }
+
+    with pytest.raises(CalibrationEvaluationError, match="must be finalized"):
+        ingest_review_evidence(payload)
+
+
+def test_external_approval_without_reference_fails_closed() -> None:
+    review = _review()
+    review["statistical_review"]["reviewer_reference"] = None
+
+    evaluation = build_evaluation_artifact(_synthetic(), _holdout(), review)
+
+    assert evaluation["release_ready"] is False
+    assert evaluation["gates"]["statistical_review"]["passed"] is False
+
+
+def test_transfer_review_items_expose_human_reviewable_component_signals() -> None:
+    transfer = SimpleNamespace(
+        key="transfer",
+        sample_size=120,
+        independent_sessions=40,
+        coverage=0.9,
+        stability=0.95,
+        estimate=SimpleNamespace(limitations=()),
+        raw_metrics={
+            "components": {
+                "component_deltas": {"outcome": 0.1, "activity": -0.2, "survival": 0.3},
+                "component_directions": {"outcome": "positive", "activity": "negative", "survival": "positive"},
+                "confident_component_directions": {"outcome": "positive", "activity": "negative", "survival": "positive"},
+            },
+            "component_intervals": {
+                "outcome": [0.05, 0.15],
+                "activity": [-0.3, -0.1],
+                "survival": [0.2, 0.4],
+            },
+        },
+    )
+    finding = SimpleNamespace(
+        published=True,
+        family="transfer",
+        claim="Transfer differs by signal.",
+        evidence_text="transfer=-1",
+        interval=(-1.0, 1.0),
+        sample_size=120,
+        independent_sessions=40,
+        coverage=0.9,
+        limitations=(),
+        interpretation="Association only.",
+        direction="mixed",
+        confidence="high",
+        confidence_score=0.95,
+        adjusted_q_value=0.01,
+        evidence=(),
+    )
+
+    items = _review_items(SimpleNamespace(findings=(finding,), elements=(transfer,)))
+
+    assert [signal["key"] for signal in items[0]["evidence_signals"]] == [
+        "transfer_outcome",
+        "transfer_activity",
+        "transfer_survival",
+    ]
+    assert items[0]["evidence_signals"][1]["confident_direction"] == "negative"
 
 
 @pytest.mark.parametrize("field", ["profile_id", "match_ids", "mmr", "rank_tier"])

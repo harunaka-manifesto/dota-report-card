@@ -64,3 +64,18 @@ The aggregate evaluation derives every gate value and remains fail-closed when
 evidence or external approval is missing. Evaluation and release manifests are
 audit evidence; only the baseline and threshold artifacts are runtime analysis
 inputs.
+
+## V6.1 statistical branch
+
+V6.1 does not modify these V6.0 rules or artifacts. It advances expression and
+statistics to `summary-expression-multisignal-2.0.0` and
+`stats-cluster-bootstrap-2.0.0`, uses `context-baseline-3.0.0` and
+`metric-thresholds-6.1.0`, adds event-weighted beta-binomial Finishing,
+cross-fitted component Transfer, information-weighted Consistency, direct
+opportunity-denominator session curves, and two-stage family/branch BH.
+
+The checked-in V6.1 family-statistics and 2,000-run evaluation are fixture and
+synthetic implementation checks only. No measured corpus/holdout calibration
+or release inference is claimed. See the
+[V6.1 feature graph](free-dna-v6.1-feature-graph.md) and
+[V6.1 release gates](../qa/free-dna-v6.1-release-gates.md).

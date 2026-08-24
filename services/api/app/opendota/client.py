@@ -78,6 +78,7 @@ class OpenDotaClient:
         cache_key: str | None = None,
         cache_ttl: int | None = None,
         immutable: bool = False,
+        retry_limit: int | None = None,
     ) -> Any:
         if cache_key:
             cached = self.cache.get(cache_key)
@@ -96,6 +97,7 @@ class OpenDotaClient:
                     cache_key=cache_key,
                     cache_ttl=cache_ttl,
                     immutable=immutable,
+                    retry_limit=retry_limit,
                 )
             )
             self._inflight[cache_key] = inflight
@@ -111,6 +113,7 @@ class OpenDotaClient:
             cache_key=cache_key,
             cache_ttl=cache_ttl,
             immutable=immutable,
+            retry_limit=retry_limit,
         )
 
     async def _request_json_uncached(
@@ -121,12 +124,16 @@ class OpenDotaClient:
         cache_key: str | None = None,
         cache_ttl: int | None = None,
         immutable: bool = False,
+        retry_limit: int | None = None,
     ) -> Any:
         if self._http is None:
             self._http = httpx.AsyncClient(timeout=self.settings.opendota_timeout_seconds)
 
         url = f"{self.settings.opendota_base_url.rstrip('/')}/{endpoint.lstrip('/')}"
-        retries = max(0, self.settings.opendota_max_retries)
+        retries = max(
+            0,
+            self.settings.opendota_max_retries if retry_limit is None else retry_limit,
+        )
         for attempt in range(retries + 1):
             record_metric("opendota.request.attempt", tags={"endpoint": safe_endpoint(endpoint)})
             try:
@@ -259,6 +266,34 @@ class OpenDotaClient:
         else:
             raise OpenDotaUnavailable("OpenDota match history exceeded the pagination safety limit")
         return rows if effective_limit is None else rows[:effective_limit]
+
+    async def get_summary_history_once(
+        self,
+        account_id: int,
+        *,
+        days: int,
+        project: Sequence[str],
+        provider_limit: int,
+    ) -> list[dict[str, Any]]:
+        """Perform the V6.1 annual summary read as one physical HTTP request."""
+
+        projects = tuple(value for value in project if value)
+        params: list[tuple[str, Any]] = [
+            ("date", max(1, int(days))),
+            ("limit", max(1, int(provider_limit))),
+        ]
+        params.extend(("project", value) for value in projects)
+        value = await self._request_json(
+            f"/players/{account_id}/matches",
+            params=params,
+            cache_key=(
+                f"summary-history-once:{account_id}:{days}:{provider_limit}:"
+                f"{','.join(projects)}"
+            ),
+            cache_ttl=120,
+            retry_limit=0,
+        )
+        return [row for row in list(value or []) if isinstance(row, dict)]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:
         return await self._request_json(

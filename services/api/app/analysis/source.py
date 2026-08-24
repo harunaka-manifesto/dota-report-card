@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -17,7 +18,16 @@ class AnalysisSource(Protocol):
         *,
         limit: int | None = FREE_HISTORY_LIMIT,
         days: int = FREE_HISTORY_WINDOW_DAYS,
-        project: str | None = None,
+        project: str | Sequence[str] | None = None,
+    ) -> list[dict[str, Any]]: ...
+
+    async def get_summary_history_once(
+        self,
+        account_id: int,
+        *,
+        days: int,
+        project: Sequence[str],
+        provider_limit: int,
     ) -> list[dict[str, Any]]: ...
 
     async def get_match(self, match_id: int) -> dict[str, Any]: ...
@@ -44,7 +54,7 @@ class FixtureOpenDotaSource:
         *,
         limit: int | None = FREE_HISTORY_LIMIT,
         days: int = FREE_HISTORY_WINDOW_DAYS,
-        project: str | None = None,
+        project: str | Sequence[str] | None = None,
     ) -> list[dict[str, Any]]:
         self.requests.append(("matches", account_id))
         value = self._read_first(
@@ -52,6 +62,20 @@ class FixtureOpenDotaSource:
         )
         rows = list(value or [])
         return rows if limit is None else rows[:limit]
+
+    async def get_summary_history_once(
+        self,
+        account_id: int,
+        *,
+        days: int,
+        project: Sequence[str],
+        provider_limit: int,
+    ) -> list[dict[str, Any]]:
+        del days
+        rows = await self.get_matches(account_id, limit=None, project=project)
+        return [{key: row.get(key) for key in project if key in row} for row in rows][
+            :provider_limit
+        ]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:
         self.requests.append(("match", match_id))
@@ -95,10 +119,25 @@ class MappingSource:
         *,
         limit: int | None = FREE_HISTORY_LIMIT,
         days: int = FREE_HISTORY_WINDOW_DAYS,
-        project: str | None = None,
+        project: str | Sequence[str] | None = None,
     ) -> list[dict[str, Any]]:
         self.requests.append(("matches", account_id))
         return list(self.matches) if limit is None else self.matches[:limit]
+
+    async def get_summary_history_once(
+        self,
+        account_id: int,
+        *,
+        days: int,
+        project: Sequence[str],
+        provider_limit: int,
+    ) -> list[dict[str, Any]]:
+        del days
+        self.requests.append(("summary_history_once", account_id))
+        return [
+            {key: row.get(key) for key in project if key in row}
+            for row in self.matches[:provider_limit]
+        ]
 
     async def get_match(self, match_id: int) -> dict[str, Any]:
         self.requests.append(("match", match_id))

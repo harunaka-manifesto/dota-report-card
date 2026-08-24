@@ -527,6 +527,24 @@ class InMemoryRepository:
                         continue
             return None
 
+    def persist_protected_cohorts(
+        self, report_id: str, cohorts: dict[str, Any]
+    ) -> None:
+        with self._lock:
+            private = self._report_private.get(report_id)
+            if private is None:
+                raise InteractionSessionNotFound("Report was not found")
+            private["protected_cohorts"] = deepcopy(cohorts)
+
+    def resolve_protected_cohort(
+        self, report_id: str, cohort_reference: str
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            private = self._report_private.get(report_id) or {}
+            cohorts = private.get("protected_cohorts") or {}
+            value = cohorts.get(cohort_reference)
+            return deepcopy(value) if isinstance(value, dict) else None
+
     def create_interaction_session(
         self,
         report_id: str,
@@ -1232,6 +1250,29 @@ class SqlAlchemyRepository:
                     except (TypeError, ValueError):
                         continue
             return None
+
+    def persist_protected_cohorts(
+        self, report_id: str, cohorts: dict[str, Any]
+    ) -> None:
+        if self.get_report(report_id) is None:
+            raise InteractionSessionNotFound("Report was not found")
+        self.persist_raw_payload(
+            f"internal://reports/{report_id}/protected-deep-cohorts",
+            report_id,
+            deepcopy(cohorts),
+            metadata={"private": True, "schema_version": "protected-deep-cohort-1.0.0"},
+        )
+
+    def resolve_protected_cohort(
+        self, report_id: str, cohort_reference: str
+    ) -> dict[str, Any] | None:
+        cohorts = self.get_cached_raw_payload(
+            f"internal://reports/{report_id}/protected-deep-cohorts", report_id
+        )
+        if not isinstance(cohorts, dict):
+            return None
+        value = cohorts.get(cohort_reference)
+        return deepcopy(value) if isinstance(value, dict) else None
 
     @staticmethod
     def _interaction_from_record(

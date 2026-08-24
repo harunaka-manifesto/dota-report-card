@@ -35,3 +35,12 @@ Resolved output separates observation, positive evidence, negative evidence,
 control evidence, bounded interpretation, unresolved alternatives, a
 context-specific deterministic recommendation, and a verification rule. It
 does not claim causality or update stable identity.
+
+## V6.1 protected cohort handoff
+
+`deep-diagnostics-2.1.0` may receive an opaque qualifying-cohort reference from
+a published V6.1 semantic outcome. The public report contains the reference,
+question ID, and bounded claim contract—not cohort members, match IDs, or raw
+predicates. Deep resolves the protected cohort server-side and remains subject
+to the same acquisition budgets and abstention rules. Shadow-only lifecycle,
+era, and loop outcomes have no public Deep entitlement.

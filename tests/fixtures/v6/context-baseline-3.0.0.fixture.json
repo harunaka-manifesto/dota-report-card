@@ -1,0 +1,32 @@
+{
+  "version": "context-baseline-3.0.0",
+  "generated_at": "2026-08-23T00:00:00Z",
+  "corpus": {
+    "profile_count": 100,
+    "match_count": 2000,
+    "regions": ["fixture"],
+    "lobby_mix": {"ranked": 1.0},
+    "mmr_used": false
+  },
+  "cells": [
+    {
+      "level": "overall",
+      "patch": null,
+      "hero_id": null,
+      "hero_function": null,
+      "lane_context": null,
+      "metrics": {
+        "outcome": 0.5,
+        "involvement_adjusted": 0.35,
+        "finishing_adjusted": 0.5,
+        "death_exposure_adjusted": 1.5,
+        "involvement_per_minute": 0.35,
+        "finishing_share": 0.5,
+        "death_exposure_per_ten": 1.5
+      },
+      "match_count": 2000,
+      "distinct_players": 100,
+      "source_version": "context-baseline-3.0.0-fixture"
+    }
+  ]
+}

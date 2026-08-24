@@ -7,6 +7,7 @@ from typing import Annotated, Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.api.report_schemas_v6 import FreeDnaReportV6Schema, validate_free_dna_report_v6
+from app.api.report_schemas_v61 import FreeDnaReportV61Schema, validate_free_dna_report_v61
 from app.behavior.presentation import PATTERN_PRESENTATION_CONTRACT, PATTERN_PRESENTATION_VERSION
 
 
@@ -1021,6 +1022,8 @@ def validate_free_dna_report(report: dict[str, Any]) -> dict[str, Any]:
 
     if report.get("schema_version") == "free-dna-report-6.0.0":
         return validate_free_dna_report_v6(report)
+    if report.get("schema_version") == "free-dna-report-6.1.0":
+        return validate_free_dna_report_v61(report)
     return FreeDnaReportV4Schema.model_validate(report).model_dump(mode="json", by_alias=True)
 
 
@@ -1028,6 +1031,7 @@ __all__ = [
     "FreeDnaReportV4Schema",
     "FreeDnaReportV5Schema",
     "FreeDnaReportV6Schema",
+    "FreeDnaReportV61Schema",
     "PatternPresentationSchema",
     "validate_free_dna_report",
 ]

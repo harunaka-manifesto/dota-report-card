@@ -2,8 +2,9 @@
 
 The implementation, private training calibration, synthetic evaluation, and
 sealed-holdout evaluation are complete. Every automated numerical gate passes.
-Public release remains blocked on independent human review, data-basis
-approval, and operator authorization. Keep `FREE_DNA_V6_ENABLED=false`.
+The Dota expert review is complete. Public release remains blocked on
+independent statistical review, data-basis approval, container verification,
+and operator authorization. Keep `FREE_DNA_V6_ENABLED=false`.
 
 ## Required calibration evidence
 
@@ -53,7 +54,13 @@ Private paths and checksums are reported without profile or match identifiers.
 | Synthetic coverage/FDR | `evaluate_v6_calibration.py synthetic` | 226/240 interval coverage (94.17%); 9/200 global-null family discoveries (4.5% FDR); 2,000 iterations | pass | 2026-08-23 | working tree |
 | Sealed holdout | `evaluate_v6_calibration.py holdout` | 339/339 profiles; 339 nonblank identities (100%); 220/226 split-half agreements (97.35%); zero copy/cost violations | pass | 2026-08-23 | working tree |
 | Reproducibility | fresh baseline and 791-profile threshold rebuild | Byte-identical SHA-256: baseline `8b06e0aa…c674`, thresholds `8debcc54…3e41` | pass | 2026-08-23 | working tree |
-| Human review and data basis | `review-packet`, independent review, then `ingest-review` | Human evidence must be supplied; the agent cannot self-approve | blocked externally | 2026-08-23 | not applicable |
+| Dota expert review | `review-packet`, external expert review, then `ingest-review` | 50/50 claims supported and believable; 100% precision; see [Dota review record](free-dna-v6-dota-review-record.md) | pass | 2026-08-23 | project-owner attestation |
+| Statistical review | Independent review of split, margins, coverage/FDR interpretation, and sealed holdout | Qualified reviewer approval and reference not yet supplied | blocked externally | 2026-08-23 | not applicable |
+| Data-basis approval | Independent provenance, public/consented basis, retention, and privacy review | Qualified approver and reference not yet supplied | blocked externally | 2026-08-23 | not applicable |
 
 Operational steps, monitoring boundaries, staged rollout, and rollback are in
 [`docs/operations/free-dna-v6-release.md`](../operations/free-dna-v6-release.md).
+
+This record applies only to `free-dna-report-6.0.0`. V6.1 has independent
+[release gates](free-dna-v6.1-release-gates.md); V6 evidence and approvals do
+not promote V6.1 artifacts.

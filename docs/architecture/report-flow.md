@@ -162,3 +162,16 @@ immutable serialized question specification, persists it in job metadata, and
 the worker executes the two-stage detail/parse acquisition path under 25-detail,
 25-parse, and 160-relative-unit ceilings. Missing parse transport produces an
 explicit abstention rather than a successful-looking parse result.
+
+## V6.1 opt-in flow
+
+`free-dna-report-6.1.0` uses the same nine-beat structural limit as V6.0 but a
+separate typed snapshot. It adds semantic outcome IDs, PRIMARY/TWIST/ANCHOR
+identity slots, claim layers, unresolved alternatives, two-metric five-game
+verification, finite interaction payloads, selected supporting evidence, and
+an opaque protected Deep cohort reference. The V6.1 validator requires exactly
+7 Elements and 5 family records, no more than 3 published outcomes, one history
+request, and zero detail/parse/parse-status/rank/MMR use.
+
+The client routes V6.0 and V6.1 explicitly. Existing V6.0 pages remain readable
+and are not upgraded in place.

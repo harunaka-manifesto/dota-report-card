@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 from collections.abc import Iterable
+from copy import deepcopy
 from dataclasses import asdict
 from datetime import UTC, datetime
 from typing import Any
@@ -39,6 +40,14 @@ from app.identity.steam import SteamVanityResolver
 from app.ingestion.coverage import coverage_for_match
 from app.ingestion.eligibility import assess_match
 from app.ingestion.normalize import NormalizedMatch
+from app.ingestion.summary_history_contract import (
+    SUMMARY_HISTORY_PROJECTION,
+    SUMMARY_HISTORY_PROVIDER_LIMIT,
+    SUMMARY_HISTORY_WINDOW_DAYS,
+    CanonicalSummaryHistory,
+    normalize_canonical_summary_history,
+    request_manifest,
+)
 from app.ingestion.summary_normalize import (
     filter_history_window,
     normalize_summary_rows,
@@ -50,9 +59,15 @@ from app.patterns.detector import detect_patterns
 from app.player_analysis_v6.artifacts import ArtifactValidationError, load_context_baseline_artifact
 from app.player_analysis_v6.calibration import load_threshold_artifact
 from app.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy
+from app.player_analysis_v61.artifacts import (
+    load_context_baseline_artifact_v61,
+    load_threshold_artifact_v61,
+)
+from app.player_analysis_v61.versions import MODEL_VERSION as V61_MODEL_VERSION
 from app.reports.assembly import assemble_player_dna_report, assemble_report
 from app.reports.dna_assembly import assemble_free_dna_report_v4
 from app.reports.dna_assembly_v6 import assemble_free_dna_report_v6
+from app.reports.dna_assembly_v61 import assemble_free_dna_report_v61
 from app.storage.repository import AnalysisJob, InMemoryRepository
 
 logger = logging.getLogger(__name__)
@@ -78,6 +93,19 @@ class AnalysisService:
         self.v6_baseline_resolver = None
         self.v6_thresholds = None
         self.v6_taxonomy_by_hero = None
+        self.v61_baseline_resolver = None
+        self.v61_thresholds = None
+        self.v61_taxonomy_by_hero = None
+        self.v61_artifact_checksums: dict[str, str] = {}
+        if self.settings.free_dna_v6_enabled and self.settings.free_dna_v61_enabled:
+            raise ArtifactValidationError("V6.0 and V6.1 generation flags are mutually exclusive")
+        if self.settings.free_dna_v61_enabled:
+            (
+                self.v61_baseline_resolver,
+                self.v61_thresholds,
+                self.v61_artifact_checksums,
+            ) = self._load_v61_artifacts()
+            self.v61_taxonomy_by_hero = load_v6_hero_taxonomy()
         if self.settings.free_dna_v6_enabled:
             self.v6_baseline_resolver, self.v6_thresholds = self._load_v6_artifacts()
             self.v6_taxonomy_by_hero = load_v6_hero_taxonomy()
@@ -106,6 +134,25 @@ class AnalysisService:
             # when the caller explicitly enabled v6.
             raise
         return baseline_artifact.resolver(), threshold_artifact.metrics
+
+    def _load_v61_artifacts(self) -> tuple[Any, Any, dict[str, str]]:
+        if self.settings.free_dna_v61_model_version != V61_MODEL_VERSION:
+            raise ArtifactValidationError(
+                "FREE_DNA_V61_MODEL_VERSION must match the approved V6.1 runtime model"
+            )
+        baseline_path = self.settings.free_dna_v61_baseline_artifact_path
+        threshold_path = self.settings.free_dna_v61_threshold_artifact_path
+        if baseline_path is None or threshold_path is None:
+            raise ArtifactValidationError(
+                "FREE_DNA_V61_ENABLED requires explicit validated V6.1 artifact paths"
+            )
+        baseline = load_context_baseline_artifact_v61(baseline_path)
+        thresholds = load_threshold_artifact_v61(threshold_path)
+        return (
+            baseline.resolver(),
+            thresholds.metrics,
+            {"context_baseline": baseline.checksum, "thresholds": thresholds.checksum},
+        )
 
     async def create_analysis(
         self,
@@ -162,6 +209,18 @@ class AnalysisService:
 
     def _compatibility_model_version(self, analysis_mode: str) -> str:
         if analysis_mode == "free":
+            if self.settings.free_dna_v61_enabled:
+                from app.player_analysis_v61.versions import default_versions_v61
+
+                versions = {
+                    **default_versions_v61(),
+                    "eligibility": "summary-eligibility-1.0.0",
+                    "model": self.settings.free_dna_v61_model_version,
+                    "template": self.settings.template_version,
+                    "artifacts": self.v61_artifact_checksums,
+                }
+                digest = hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest()
+                return f"free-analysis-v61-{digest[:44]}"
             if self.settings.free_dna_v6_enabled:
                 from app.player_analysis_v6.models import default_versions
 
@@ -386,9 +445,16 @@ class AnalysisService:
         history_limit = self.settings.effective_free_history_limit
         cost_ledger = DataCostLedger()
         cost_policy = CostPolicy()
+        canonical_history: CanonicalSummaryHistory | None = None
+        v61_history_key = f"/players/{identifier.account_id}/matches/v61-canonical"
+        history_cache_key = (
+            v61_history_key
+            if job.analysis_mode == "free" and self.settings.free_dna_v61_enabled
+            else f"/players/{identifier.account_id}/matches"
+        )
         cached_history = (
             self.repository.get_cached_raw_payload(
-                f"/players/{identifier.account_id}/matches",
+                history_cache_key,
                 str(identifier.account_id),
                 max_age_seconds=self.settings.effective_summary_history_cache_ttl_seconds,
             )
@@ -398,23 +464,55 @@ class AnalysisService:
         if isinstance(cached_history, list):
             history = list(cached_history)
             cost_ledger.record("history", policy=cost_policy, cache_hit=True, units=0.0)
+            if job.analysis_mode == "free" and self.settings.free_dna_v61_enabled:
+                canonical_history = normalize_canonical_summary_history(
+                    history,
+                    identifier.account_id,
+                    request_count=1,
+                    provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
+                )
         else:
-            history = await self._get_summary_history(
-                identifier.account_id,
-                limit=history_limit,
-            )
+            if job.analysis_mode == "free" and self.settings.free_dna_v61_enabled:
+                history = await self._get_v61_summary_history(identifier.account_id)
+                canonical_history = normalize_canonical_summary_history(
+                    history,
+                    identifier.account_id,
+                    request_count=1,
+                    provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
+                )
+            else:
+                history = await self._get_summary_history(
+                    identifier.account_id,
+                    limit=history_limit,
+                )
             history = list(history)
             cost_ledger.record("history", policy=cost_policy)
         self.repository.persist_raw_payload(
-            f"/players/{identifier.account_id}/matches",
+            history_cache_key,
             str(identifier.account_id),
             history,
             {
                 "requested_limit": history_limit,
                 "window_days": FREE_HISTORY_WINDOW_DAYS,
                 "actual_count": len(history),
-                "projection": None,
-                "adapter_version": "opendota-summary-1.0.0",
+                "projection": (
+                    list(SUMMARY_HISTORY_PROJECTION)
+                    if canonical_history is not None
+                    else None
+                ),
+                "adapter_version": (
+                    "opendota-summary-2.0.0"
+                    if canonical_history is not None
+                    else "opendota-summary-1.0.0"
+                ),
+                **(
+                    {
+                        "request_manifest": request_manifest(),
+                        "history_audit": canonical_history.audit.as_dict(),
+                    }
+                    if canonical_history is not None
+                    else {}
+                ),
             },
         )
         if not history:
@@ -429,6 +527,7 @@ class AnalysisService:
                 history=history,
                 history_limit=history_limit,
                 cost_ledger=cost_ledger,
+                canonical_history=canonical_history,
             )
             return
 
@@ -532,13 +631,18 @@ class AnalysisService:
         history: list[dict[str, Any]],
         history_limit: int | None,
         cost_ledger: DataCostLedger,
+        canonical_history: CanonicalSummaryHistory | None = None,
     ) -> None:
         self.repository.update_job(
             job,
             stage="normalizing_history",
             message="Sorting the matches we can read",
         )
-        normalized = normalize_summary_rows(history, identifier.account_id)
+        normalized = (
+            canonical_history.normalization
+            if canonical_history is not None
+            else normalize_summary_rows(history, identifier.account_id)
+        )
         self.repository.record_event(
             job,
             f"Normalized {len(normalized.matches)} unique summary rows",
@@ -559,6 +663,64 @@ class AnalysisService:
                 "At least 30 common eligible matches are required to build Free Dota DNA"
             )
         history_tier = "limited" if job.eligible_matches < 60 else "normal"
+
+        if self.settings.free_dna_v61_enabled:
+            if canonical_history is None:
+                raise RuntimeError("V6.1 generation requires canonical history audit metadata")
+            if self.v61_thresholds is None or self.v61_baseline_resolver is None:
+                raise RuntimeError("V6.1 generation requires loaded analytical artifacts")
+            session_result = infer_sessions(
+                windowed_matches,
+                SessionPolicy(gap_minutes=self.settings.effective_session_gap_minutes),
+                window_start=window_start,
+                window_end=window_end,
+            )
+            completed_sessions = {
+                session.session_id: session in session_result.completed_sessions
+                for session in session_result.sessions
+            }
+            self.repository.update_job(
+                job,
+                stage="rendering_report",
+                message="Building your V6.1 identity, findings, and story report",
+            )
+            protected_cohorts: dict[str, Any] = {}
+            report = assemble_free_dna_report_v61(
+                account_id=identifier.account_id,
+                profile=_profile_for_report(profile, identifier.account_id),
+                matches=tuple(session_result.matches),
+                canonical_history=canonical_history,
+                processed_matches=job.processed_matches,
+                eligible_matches=job.eligible_matches,
+                model_version=self.settings.free_dna_v61_model_version,
+                template_version=self.settings.template_version,
+                cost_ledger=cost_ledger,
+                analysis_version_fingerprint=job.model_version,
+                baseline_resolver=self.v61_baseline_resolver,
+                thresholds=self.v61_thresholds,
+                taxonomy_by_hero=self.v61_taxonomy_by_hero,
+                completed_sessions=completed_sessions,
+                artifact_checksums=self.v61_artifact_checksums,
+                shadow_enabled=self.settings.free_dna_v61_shadow_enabled,
+                experimental_evolution_enabled=self.settings.free_dna_v61_experimental_evolution_enabled,
+                experimental_loops_enabled=self.settings.free_dna_v61_experimental_loops_enabled,
+                protected_cohorts_out=protected_cohorts,
+            )
+            report = validate_free_dna_report(report)
+            report_id = self.repository.save_report(
+                account_id=identifier.account_id,
+                data_cutoff=max((item.start_time or 0 for item in windowed_matches), default=None),
+                model_version=job.model_version,
+                template_version=self.settings.template_version,
+                report=report,
+                evidence=[],
+            )
+            persist_cohorts = getattr(self.repository, "persist_protected_cohorts", None)
+            if persist_cohorts is None:
+                raise RuntimeError("V6.1 generation requires protected Deep cohort persistence")
+            persist_cohorts(report_id, protected_cohorts)
+            self.repository.complete_job(job, report_id)
+            return
 
         if self.settings.free_dna_v6_enabled:
             # v6 consumes the normalized summary window directly.  The v5
@@ -687,6 +849,23 @@ class AnalysisService:
             if "days" not in str(exc):
                 raise
             return list(await self.source.get_matches(account_id, limit=limit))
+
+    async def _get_v61_summary_history(self, account_id: int) -> list[dict[str, Any]]:
+        """Read the V6.1 canonical payload without entering pagination."""
+
+        method = getattr(self.source, "get_summary_history_once", None)
+        if method is None:
+            raise TypeError(
+                "FREE_DNA_V61_ENABLED requires a source with get_summary_history_once"
+            )
+        return list(
+            await method(
+                account_id,
+                days=SUMMARY_HISTORY_WINDOW_DAYS,
+                project=SUMMARY_HISTORY_PROJECTION,
+                provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
+            )
+        )
 
     async def _run_deep_scan(
         self,
@@ -981,6 +1160,17 @@ def _job_diagnostic_question(job: AnalysisJob, repository: Any) -> dict[str, Any
             or question.get("id")
         )
         if identifier == job.diagnostic_question_id:
+            reference = question.get("protected_cohort_reference")
+            if reference is not None:
+                if not isinstance(job.entitlement_decision, dict) or job.entitlement_decision.get("allowed") is not True:
+                    raise RuntimeError("protected V6.1 cohort resolution requires authorization")
+                resolver = getattr(repository, "resolve_protected_cohort", None)
+                if resolver is None:
+                    raise RuntimeError("protected V6.1 cohort resolver is unavailable")
+                protected = resolver(job.parent_report_id, str(reference))
+                if not isinstance(protected, dict) or not isinstance(protected.get("question"), dict):
+                    raise RuntimeError("protected V6.1 cohort reference could not be resolved")
+                return deepcopy(protected["question"])
             return question
     return None
 

@@ -263,9 +263,48 @@ def _profile_seed(seed: int, profile_id: str) -> int:
 
 def _review_items(report: Any) -> list[dict[str, Any]]:
     result = []
+    elements = {element.key: element for element in report.elements}
     for finding in report.findings:
         if not finding.published:
             continue
+        evidence_signals = [
+            {
+                "key": evidence.key,
+                "value": evidence.value,
+                "unit": evidence.unit,
+                "interval": list(evidence.interval) if evidence.interval else None,
+                "direction": evidence.signal,
+                "sample_size": evidence.sample_size,
+                "independent_sessions": evidence.independent_sessions,
+                "coverage": evidence.coverage,
+                "stability": evidence.stability,
+                "limitations": list(evidence.limitations),
+            }
+            for evidence in finding.evidence
+        ]
+        if finding.family == "transfer" and (transfer := elements.get("transfer")) is not None:
+            raw = transfer.raw_metrics
+            components = raw.get("components", {}) if isinstance(raw, Mapping) else {}
+            deltas = components.get("component_deltas", {}) if isinstance(components, Mapping) else {}
+            directions = components.get("component_directions", {}) if isinstance(components, Mapping) else {}
+            confident = components.get("confident_component_directions", {}) if isinstance(components, Mapping) else {}
+            intervals = raw.get("component_intervals", {}) if isinstance(raw, Mapping) else {}
+            evidence_signals = [
+                {
+                    "key": f"transfer_{component}",
+                    "value": deltas.get(component),
+                    "unit": "stretch minus familiar",
+                    "interval": intervals.get(component) if isinstance(intervals, Mapping) else None,
+                    "direction": directions.get(component, "unknown"),
+                    "confident_direction": confident.get(component, "unknown"),
+                    "sample_size": transfer.sample_size,
+                    "independent_sessions": transfer.independent_sessions,
+                    "coverage": transfer.coverage,
+                    "stability": transfer.stability,
+                    "limitations": list(transfer.estimate.limitations),
+                }
+                for component in ("outcome", "activity", "survival")
+            ]
         result.append({
             "family": finding.family,
             "claim": finding.claim,
@@ -276,6 +315,11 @@ def _review_items(report: Any) -> list[dict[str, Any]]:
             "coverage": finding.coverage,
             "limitations": list(finding.limitations),
             "permitted_interpretation": finding.interpretation,
+            "finding_direction": finding.direction,
+            "confidence": finding.confidence,
+            "confidence_score": finding.confidence_score,
+            "adjusted_q_value": finding.adjusted_q_value,
+            "evidence_signals": evidence_signals,
         })
     return result
 

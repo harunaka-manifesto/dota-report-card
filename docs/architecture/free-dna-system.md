@@ -54,3 +54,13 @@ The comparable-baseline resolver has its own version and is included in the
 report versions and analysis fingerprint. Historical v5.0 snapshots remain
 readable with their original versions and payload fields. Historical v4, v5.0,
 and v5.1 snapshots are compatibility artifacts, not active baselines.
+
+## V6.1 generation boundary
+
+V6.1 is selected only for new generation when `FREE_DNA_V61_ENABLED=true` and
+validated V6.1 artifacts are present. The V6 and V6.1 generation flags are
+mutually exclusive. V6.1 reuses the summary-only product boundary but owns a
+separate canonical one-request cache key, projection audit, version matrix,
+schema validator, compatibility fingerprint, and share renderer. See the
+[V6.1 feature graph](free-dna-v6.1-feature-graph.md) for its complete 7/5
+ontology, private graph, semantic outcomes, and release states.

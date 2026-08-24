@@ -463,3 +463,19 @@ rejects inferred position labels, rank/MMR-shaped artifacts, client-owned
 observations, and limited-history finding recommendations. See
 `dota-player-analysis-revision-implementation-plan.md` and the v6 statistics
 and Deep architecture notes for the complete additive contract.
+
+## 15. Additive V6.1 implementation path
+
+V6.1 is a separate `free-dna-report-6.1.0` generation. It preserves V6.0
+snapshot meanings and its exact seven Element/five family roots while adding a
+canonical one-physical-request projection, 128 typed private supporting
+signals, 28 frozen semantic outcomes, hierarchical family/branch correction,
+typed identity slots, bounded claims, accessible relationship interactions,
+and protected Deep cohort references. It is disabled by default and currently
+has State A fixture/synthetic evidence only.
+
+The authoritative V6.1 contract is the
+[V6.1 feature graph](free-dna-v6.1-feature-graph.md); the compatibility decision
+is recorded in
+[ADR 0001](../decisions/0001-free-dna-v6.1-additive-generation.md). Neither
+document changes the V5.2 SSOT above or authorizes V6.1 release.

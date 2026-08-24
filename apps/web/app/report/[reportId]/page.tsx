@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import type { FreeDnaReportV4 } from "../../../../../packages/api-client/src";
 import ReportStoryV4 from "./dna/report-story-v4";
 import ReportStoryV6 from "./v6/report-story-v6";
-import type { V6Report } from "./v6/types";
+import type { V6Report, V61Report } from "./v6/types";
 
 export const revalidate = 60;
 
@@ -52,7 +52,7 @@ type DeepScanReport = {
   };
 };
 
-type Report = FreeDnaReportV4 | V6Report | DeepScanReport;
+type Report = FreeDnaReportV4 | V6Report | V61Report | DeepScanReport;
 
 export async function generateMetadata(): Promise<Metadata> {
   return { robots: { index: false, follow: false } };
@@ -77,7 +77,7 @@ async function getReport(reportId: string): Promise<Report> {
 export default async function ReportPage({ params }: { params: { reportId: string } }) {
   const report = await getReport(params.reportId);
   if (report.report_variant === "free_dna_report") {
-    if (report.schema_version === "free-dna-report-6.0.0") {
+    if (report.schema_version === "free-dna-report-6.0.0" || report.schema_version === "free-dna-report-6.1.0") {
       return <ReportStoryV6 report={report} />;
     }
     if (report.schema_version !== "free-dna-report-4.0.0" && report.schema_version !== "free-dna-report-5.0.0" && report.schema_version !== "free-dna-report-5.1.0" && report.schema_version !== "free-dna-report-5.2.0") notFound();

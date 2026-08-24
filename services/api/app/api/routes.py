@@ -214,8 +214,11 @@ def _selection_plan_for_question(question: Mapping[str, Any]) -> dict[str, Any]:
     # least half of its evidence reusable from the primary hypothesis.
     if reuse < 0.5:
         secondary_id = None
+    diagnostics_version = str(question.get("version") or "deep-diagnostics-2.0.0")
+    if diagnostics_version not in {"deep-diagnostics-2.0.0", "deep-diagnostics-2.1.0"}:
+        diagnostics_version = "deep-diagnostics-2.0.0"
     return {
-        "version": "deep-diagnostics-2.0.0",
+        "version": diagnostics_version,
         "question_spec": json.loads(json.dumps(dict(question_spec), ensure_ascii=False, sort_keys=True)),
         "primary_hypothesis_id": str(primary_id) if primary_id else None,
         "secondary_hypothesis_id": str(secondary_id) if secondary_id else None,
@@ -724,7 +727,7 @@ async def create_deep_analysis(
     job = repository.create_job(
         account_id,
         canonical_player,
-        "deep-diagnostics-2.0.0",
+        str(selection_plan["version"]),
         "deep_scan",
         parent_report_id=report_id,
         diagnostic_question_id=payload.diagnostic_question_id,
@@ -846,7 +849,13 @@ async def get_share_card(
     except ValueError as exc:
         record_metric("share.render.failed", tags={"card_type": card_type})
         return Response(str(exc), status_code=422, media_type="text/plain")
-    renderer_version = V6_RENDERER_VERSION if report.get("schema_version") == "free-dna-report-6.0.0" else RENDERER_VERSION
+    renderer_version = (
+        "share-svg-6.1.0"
+        if report.get("schema_version") == "free-dna-report-6.1.0"
+        else V6_RENDERER_VERSION
+        if report.get("schema_version") == "free-dna-report-6.0.0"
+        else RENDERER_VERSION
+    )
     record_metric("share.render.completed", tags={"card_type": card_type, "renderer": renderer_version})
     return Response(
         svg,

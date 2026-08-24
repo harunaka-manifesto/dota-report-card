@@ -17,6 +17,13 @@ services:
       FREE_DNA_V6_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/context-baseline-2.0.0.json
       FREE_DNA_V6_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/metric-thresholds-6.0.0.json
       FREE_DNA_V6_MODEL_VERSION: free-dna-model-6.0.0
+      FREE_DNA_V61_ENABLED: ${FREE_DNA_V61_ENABLED-false}
+      FREE_DNA_V61_SHADOW_ENABLED: ${FREE_DNA_V61_SHADOW_ENABLED-false}
+      FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED-false}
+      FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED-false}
+      FREE_DNA_V61_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
+      FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
+      FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
       REPORT_RETENTION_DAYS: 30
     ports:
       - "8000:8000"
@@ -42,6 +49,13 @@ services:
       FREE_DNA_V6_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/context-baseline-2.0.0.json
       FREE_DNA_V6_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/metric-thresholds-6.0.0.json
       FREE_DNA_V6_MODEL_VERSION: free-dna-model-6.0.0
+      FREE_DNA_V61_ENABLED: ${FREE_DNA_V61_ENABLED-false}
+      FREE_DNA_V61_SHADOW_ENABLED: ${FREE_DNA_V61_SHADOW_ENABLED-false}
+      FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED-false}
+      FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED-false}
+      FREE_DNA_V61_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
+      FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
+      FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
       REPORT_RETENTION_DAYS: 30
       STORAGE_BACKEND: database
       ANALYSIS_EXECUTION_BACKEND: celery
