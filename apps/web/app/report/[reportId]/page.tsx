@@ -8,7 +8,12 @@ import type { V6Report, V61Report } from "./v6/types";
 
 export const revalidate = 60;
 
-const API_BASE_URL = process.env.API_BASE_URL ?? "http://localhost:8000";
+const API_BASE_URL = process.env.API_BASE_URL?.trim() || (
+  process.env.NODE_ENV === "development" ? "http://localhost:8000" : ""
+);
+if (!API_BASE_URL) {
+  throw new Error("API_BASE_URL must be set for production web builds");
+}
 
 type Card = {
   insight_id: string;

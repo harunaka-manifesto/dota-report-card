@@ -989,6 +989,14 @@ async def health_ready(request: Request) -> JSONResponse:
             "artifacts": payload["artifacts"],
             "auth": payload["auth"],
             "source": payload["source"],
+            "release": payload["release"],
+            "worker_release": payload["worker_release"],
+            "release_parity": payload["release_parity"],
         },
         status_code=200 if payload["ready"] else 503,
     )
+
+
+@router.get("/health/release")
+async def health_release(request: Request) -> dict[str, Any]:
+    return request.app.state.release_identity()

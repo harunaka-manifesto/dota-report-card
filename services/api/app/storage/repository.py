@@ -17,7 +17,11 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.insights.models import EvidenceObject
 from app.opendota.cache import payload_hash
-from app.storage.database import check_database_revision, create_database_engine
+from app.storage.database import (
+    check_database_revision,
+    create_database_engine,
+    current_database_revision,
+)
 from app.storage.models import (
     AnalysisJobRecord,
     DerivedFeatureRecord,
@@ -757,6 +761,9 @@ class SqlAlchemyRepository:
 
     def check_ready(self) -> None:
         check_database_revision(self.engine)
+
+    def current_revision(self) -> str | None:
+        return current_database_revision(self.engine)
 
     @staticmethod
     def _active_key(account_id: int, model_version: str, analysis_mode: str = "free") -> str:

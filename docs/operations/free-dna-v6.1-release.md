@@ -28,6 +28,15 @@ mounted into a production image.
 Production also requires `APP_ENV=production`, database-backed storage,
 Celery/Redis execution, `RELEASE_COMMIT_SHA=<release commit>`, and
 `RELEASE_WORKTREE_DIRTY=false`. The API and worker must receive the same values.
+`OPENDOTA_SOURCE=fixture` is rejected in production; production must use the
+live OpenDota adapter.
+
+The secret-free release identity is available at `/health/release` and is also
+included in `/health/ready`. It reports the generation, model/schema versions,
+artifact bundle digest and manifest version, database revision, execution
+backend, storage backend, and release SHA. Readiness compares that identity
+with the worker's `dota_report_card.release_identity` response and blocks
+traffic on a mismatch.
 
 ## Migration and readiness
 

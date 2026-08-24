@@ -12,10 +12,11 @@ from fastapi.responses import JSONResponse
 from app.analysis.service import AnalysisService
 from app.analysis.source import AnalysisSource, FixtureOpenDotaSource
 from app.api.routes import router
-from app.core.config import Settings, get_settings
+from app.core.config import Settings, get_settings, validate_runtime_configuration
 from app.core.errors import AppError
 from app.core.logging import configure_logging
 from app.core.metrics import record_metric
+from app.core.release import build_release_identity
 from app.core.security import RateLimiter
 from app.features.models import MatchFeature
 from app.identity.steam import SteamWebResolver
@@ -33,6 +34,7 @@ def create_app(
     cohort_population: Iterable[MatchFeature] = (),
 ) -> FastAPI:
     settings = settings or get_settings()
+    validate_runtime_configuration(settings)
     configure_logging(settings.log_level, (settings.opendota_api_key, settings.steam_api_key))
     if source is None:
         source = (
@@ -40,6 +42,8 @@ def create_app(
             if settings.opendota_source == "fixture"
             else OpenDotaClient(settings)
         )
+    if settings.app_env == "production" and isinstance(source, FixtureOpenDotaSource):
+        raise ValueError("fixture OpenDota source is not allowed in production")
     if repository is None:
         repository = (
             SqlAlchemyRepository(settings)
@@ -73,6 +77,8 @@ def create_app(
     )
     def app_readiness() -> dict[str, Any]:
         return _readiness_payload(settings, repository, service)
+    def app_release() -> dict[str, Any]:
+        return _release_payload(settings, repository, service)
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> Any:
         if settings.app_env == "production":
@@ -112,6 +118,7 @@ def create_app(
     app.state.analysis_service = service
     app.state.settings = settings
     app.state.readiness = app_readiness
+    app.state.release_identity = app_release
     app.state.rate_limiter = RateLimiter(
         redis_url=settings.redis_url if settings.app_env == "production" else None
     )
@@ -142,6 +149,10 @@ def create_app(
     async def root_liveness() -> dict[str, str]:
         return {"status": "ok", "api": "ok"}
 
+    @app.get("/health/release")
+    async def root_release() -> dict[str, Any]:
+        return app_release()
+
     @app.get("/health/ready")
     async def root_readiness() -> JSONResponse:
         payload = app_readiness()
@@ -163,6 +174,44 @@ async def _retention_loop(repository: Any) -> None:
             record_metric("retention.failed")
 
 
+def _release_payload(settings: Settings, repository: Any, service: AnalysisService) -> dict[str, Any]:
+    return {
+        "release": build_release_identity(
+            settings,
+            artifact_checksums=service.v61_artifact_checksums,
+            artifact_manifest=service.v61_supporting_artifacts.get("manifest"),
+            authorization_checksum=service.v61_authorization_checksum,
+            db_revision=_current_database_revision(repository),
+        )
+    }
+
+
+def _current_database_revision(repository: Any) -> str | None:
+    checker = getattr(repository, "current_revision", None)
+    if checker is None:
+        return None
+    try:
+        value = checker()
+    except Exception:
+        return None
+    return str(value) if value is not None else None
+
+
+def _worker_release_identity() -> tuple[str, dict[str, Any] | None]:
+    try:
+        from app.workers.tasks import celery_app
+
+        if not celery_app.control.inspect(timeout=0.3).ping():
+            return "unavailable", None
+        result = celery_app.send_task("dota_report_card.release_identity")
+        value = result.get(timeout=0.5)
+        if not isinstance(value, dict):
+            return "unavailable", None
+        return "ready", value
+    except Exception:
+        return "unavailable", None
+
+
 def _readiness_payload(settings: Settings, repository: Any, service: AnalysisService) -> dict[str, Any]:
     postgres = "not_configured"
     if settings.effective_storage_backend == "database":
@@ -176,6 +225,8 @@ def _readiness_payload(settings: Settings, repository: Any, service: AnalysisSer
             postgres = "unavailable"
     redis_status = "not_configured"
     worker = "in_process"
+    worker_release: dict[str, Any] | None = None
+    release_parity = "not_required"
     if settings.effective_analysis_execution_backend == "celery":
         try:
             import redis
@@ -188,12 +239,12 @@ def _readiness_payload(settings: Settings, repository: Any, service: AnalysisSer
             redis_status = "ready"
         except Exception:
             redis_status = "unavailable"
-        try:
-            from app.workers.tasks import celery_app
-
-            worker = "ready" if celery_app.control.inspect(timeout=0.3).ping() else "unavailable"
-        except Exception:
-            worker = "unavailable"
+        worker, worker_release = _worker_release_identity()
+        if worker == "ready":
+            api_release = _release_payload(settings, repository, service)["release"]
+            release_parity = "match" if worker_release == api_release else "mismatch"
+        else:
+            release_parity = "unavailable"
     artifacts = "ready"
     if settings.free_dna_v61_enabled and not service.v61_supporting_artifacts:
         artifacts = "fixture" if settings.app_env != "production" else "unavailable"
@@ -202,12 +253,15 @@ def _readiness_payload(settings: Settings, repository: Any, service: AnalysisSer
         auth = "ready" if service.v61_supporting_artifacts.get("production_beta_authorization") else (
             "not_required" if settings.app_env != "production" else "unavailable"
         )
+    release = _release_payload(settings, repository, service)["release"]
     ready = (
         postgres != "unavailable"
         and redis_status != "unavailable"
         and worker != "unavailable"
-        and artifacts in {"ready", "fixture"}
+        and artifacts in ({"ready"} if settings.app_env == "production" else {"ready", "fixture"})
         and auth in {"ready", "not_required"}
+        and release_parity in {"not_required", "match"}
+        and (settings.app_env != "production" or settings.opendota_source == "live")
     )
     return {
         "ready": ready,
@@ -218,11 +272,14 @@ def _readiness_payload(settings: Settings, repository: Any, service: AnalysisSer
         "auth": auth,
         "source": settings.opendota_source,
         "artifacts": artifacts,
+        "release": release,
+        "worker_release": worker_release,
+        "release_parity": release_parity,
     }
 
 
-def _health_response(payload: dict[str, Any]) -> dict[str, str]:
-    return {
+def _health_response(payload: dict[str, Any]) -> dict[str, Any]:
+    response: dict[str, Any] = {
         "status": "ok" if payload["ready"] else "not_ready",
         "api": str(payload["api"]),
         "postgres": str(payload["postgres"]),
@@ -232,6 +289,11 @@ def _health_response(payload: dict[str, Any]) -> dict[str, str]:
         "auth": str(payload["auth"]),
         "source": str(payload["source"]),
     }
+    if "release" in payload:
+        response["release"] = payload["release"]
+        response["worker_release"] = payload.get("worker_release")
+        response["release_parity"] = str(payload.get("release_parity", "not_required"))
+    return response
 
 
 app = create_app()

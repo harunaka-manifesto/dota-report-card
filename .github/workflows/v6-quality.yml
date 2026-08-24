@@ -36,6 +36,8 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
+    env:
+      API_BASE_URL: https://api.example.invalid
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

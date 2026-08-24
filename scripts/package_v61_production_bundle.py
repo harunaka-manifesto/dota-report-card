@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import shutil
 import sys
 from pathlib import Path
@@ -11,6 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
+from app.core.release import artifact_bundle_digest  # noqa: E402
 from app.player_analysis_v61.artifacts import (  # noqa: E402
     V61_SUPPORT_ARTIFACTS,
     load_v61_artifact_bundle,
@@ -42,10 +44,18 @@ def package_bundle(
         output_dir / "production-beta-authorization-6.1.0.json",
         artifact_checksums=packaged_bundle.checksums,
     )
+    packaged_checksums = dict(packaged_bundle.checksums)
+    packaged_checksums["production-beta-authorization-6.1.0.json"] = hashlib.sha256(
+        (output_dir / "production-beta-authorization-6.1.0.json").read_bytes()
+    ).hexdigest()
     print(
-        f"Packaged {len(V61_SUPPORT_ARTIFACTS)} frozen artifacts and "
-        f"production-beta authorization for {authorization['operator_authorization_reference']} "
-        f"into {output_dir}"
+        {
+            "output_dir": str(output_dir),
+            "artifact_count": len(V61_SUPPORT_ARTIFACTS),
+            "operator_authorization_reference": authorization["operator_authorization_reference"],
+            "bundle_sha256": artifact_bundle_digest(packaged_checksums),
+            "authorized_release_sha": authorization["source"]["repository_commit"],
+        }
     )
 
 

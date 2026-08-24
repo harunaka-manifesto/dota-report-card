@@ -53,9 +53,9 @@ def _rows(count: int = 90) -> list[dict[str, object]]:
     ]
 
 
-def _generate() -> tuple[dict[str, object], MappingSource]:
+def _generate(account_id: int = 42) -> tuple[dict[str, object], MappingSource]:
     source = MappingSource(
-        player={"profile": {"account_id": 42, "personaname": "V6.1 fixture"}},
+        player={"profile": {"account_id": account_id, "personaname": "V6.1 fixture"}},
         matches=_rows(),
         details={},
     )
@@ -69,7 +69,7 @@ def _generate() -> tuple[dict[str, object], MappingSource]:
             free_dna_v61_threshold_artifact_path=_FIXTURES / "metric-thresholds-6.1.0.fixture.json",
         ),
     )
-    job, _ = asyncio.run(service.create_analysis("42", enqueue=False))
+    job, _ = asyncio.run(service.create_analysis(str(account_id), enqueue=False))
     asyncio.run(service.run_job(job))
     assert job.status == "completed", job.failure_detail
     report = repository.get_report(job.report_id or "")
@@ -90,6 +90,15 @@ def test_v61_generates_new_immutable_contract_with_old_ontology() -> None:
     assert report["methodology"]["rank_or_mmr_used"] is False
     assert source.requests.count(("summary_history_once", 42)) == 1
     assert not any(request[0] == "match" for request in source.requests)
+    validate_free_dna_report(report)
+
+
+def test_known_production_regression_player_completes_v61_assembly_and_persistence() -> None:
+    report, source = _generate(193875165)
+
+    assert report["schema_version"] == "free-dna-report-6.1.0"
+    assert report["reproducibility"]["history_contract"]["request_count"] == 1
+    assert source.requests == [("player", 193875165), ("summary_history_once", 193875165)]
     validate_free_dna_report(report)
 
 

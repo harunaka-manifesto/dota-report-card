@@ -25,7 +25,17 @@ function apiBaseUrl(): URL | null {
   }
   if (!configured) return null;
   try {
-    return new URL(configured.endsWith("/") ? configured : configured + "/");
+    const parsed = new URL(configured.endsWith("/") ? configured : configured + "/");
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return null;
+    }
+    if (
+      process.env.NODE_ENV === "production" &&
+      ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname)
+    ) {
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }

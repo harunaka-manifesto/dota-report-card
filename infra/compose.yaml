@@ -17,6 +17,7 @@ services:
     environment:
       APP_ENV: production
       OPENDOTA_SOURCE: live
+      OPENDOTA_BASE_URL: ${OPENDOTA_BASE_URL-https://api.opendota.com/api}
       OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
       STEAM_API_KEY: ${STEAM_API_KEY-}
       DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
@@ -36,6 +37,11 @@ services:
       FREE_DNA_V61_BASELINE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
       FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
       FREE_DNA_V61_RELEASE_AUTHORIZATION: /app/runtime-artifacts/free_dna_v61/6.1.0/production-beta-authorization-6.1.0.json
+      FREE_DNA_V61_SUMMARY_PRIOR_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/summary-priors-6.1.0.json
+      FREE_DNA_V61_DISTANCE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/portfolio-distance-calibration-1.0.0.json
+      FREE_DNA_V61_SESSION_RELIABILITY_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/session-reliability-calibration-1.0.0.json
+      FREE_DNA_V61_SEMANTIC_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/semantic-outcome-calibration-1.0.0.json
+      FREE_DNA_V61_BUILD_MANIFEST: /app/runtime-artifacts/free_dna_v61/6.1.0/build-manifest-6.1.0.json
       FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
       RELEASE_COMMIT_SHA: ${RELEASE_COMMIT_SHA-}
       RELEASE_WORKTREE_DIRTY: ${RELEASE_WORKTREE_DIRTY-false}
@@ -60,6 +66,7 @@ services:
     environment:
       APP_ENV: production
       OPENDOTA_SOURCE: live
+      OPENDOTA_BASE_URL: ${OPENDOTA_BASE_URL-https://api.opendota.com/api}
       OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
       STEAM_API_KEY: ${STEAM_API_KEY-}
       DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
@@ -76,6 +83,11 @@ services:
       FREE_DNA_V61_BASELINE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
       FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
       FREE_DNA_V61_RELEASE_AUTHORIZATION: /app/runtime-artifacts/free_dna_v61/6.1.0/production-beta-authorization-6.1.0.json
+      FREE_DNA_V61_SUMMARY_PRIOR_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/summary-priors-6.1.0.json
+      FREE_DNA_V61_DISTANCE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/portfolio-distance-calibration-1.0.0.json
+      FREE_DNA_V61_SESSION_RELIABILITY_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/session-reliability-calibration-1.0.0.json
+      FREE_DNA_V61_SEMANTIC_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/semantic-outcome-calibration-1.0.0.json
+      FREE_DNA_V61_BUILD_MANIFEST: /app/runtime-artifacts/free_dna_v61/6.1.0/build-manifest-6.1.0.json
       FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
       RELEASE_COMMIT_SHA: ${RELEASE_COMMIT_SHA-}
       RELEASE_WORKTREE_DIRTY: ${RELEASE_WORKTREE_DIRTY-false}
@@ -96,6 +108,8 @@ services:
     build:
       context: ..
       dockerfile: infra/docker/web.Dockerfile
+      args:
+        API_BASE_URL: ${API_BASE_URL-http://api:8000}
     environment:
       API_BASE_URL: http://api:8000
     ports:

@@ -20,7 +20,14 @@ def create_session_factory(settings: Settings | None = None) -> sessionmaker:
 def check_database_revision(engine: Engine, *, expected: str = EXPECTED_SCHEMA_REVISION) -> None:
     """Fail readiness when migrations have not reached the application head."""
 
-    with engine.connect() as connection:
-        revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
+    revision = current_database_revision(engine)
     if revision != expected:
         raise RuntimeError(f"database schema revision is {revision!r}; expected {expected!r}")
+
+
+def current_database_revision(engine: Engine) -> str | None:
+    """Return the current Alembic revision without hiding a database failure."""
+
+    with engine.connect() as connection:
+        value = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
+    return str(value) if value is not None else None

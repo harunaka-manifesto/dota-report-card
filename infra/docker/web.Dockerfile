@@ -7,6 +7,8 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY apps/web ./
+ARG API_BASE_URL=http://api:8000
+ENV API_BASE_URL=$API_BASE_URL
 RUN corepack enable && pnpm build
 
 FROM node:20-alpine
@@ -17,4 +19,3 @@ COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 EXPOSE 3000
 CMD ["node", "server.js"]
-

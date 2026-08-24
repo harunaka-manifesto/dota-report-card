@@ -58,6 +58,8 @@ jobs:
   web:
     name: Web build and browser QA
     runs-on: ubuntu-latest
+    env:
+      API_BASE_URL: https://api.example.invalid
     defaults:
       run:
         working-directory: apps/web

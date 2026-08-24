@@ -32,6 +32,8 @@ DEFAULT_CORS_ORIGINS = (
     "http://127.0.0.1:3000",
 )
 
+SUPPORTED_OPENDOTA_SOURCES = frozenset({"fixture", "live"})
+
 
 def _as_bool(value: str | None, default: bool = False) -> bool:
     if value is None:
@@ -55,6 +57,23 @@ def _optional_bool(value: str | None, *, default: bool | None) -> bool | None:
     if value is None or not value.strip():
         return default
     return _as_bool(value)
+
+
+def validate_runtime_configuration(settings: Settings) -> None:
+    if settings.opendota_source not in SUPPORTED_OPENDOTA_SOURCES:
+        raise ValueError(f"OPENDOTA_SOURCE must be one of {sorted(SUPPORTED_OPENDOTA_SOURCES)}")
+    if settings.app_env != "production":
+        return
+    if settings.opendota_source != "live":
+        raise ValueError("APP_ENV=production requires OPENDOTA_SOURCE=live")
+    if settings.effective_storage_backend != "database":
+        raise ValueError("APP_ENV=production requires STORAGE_BACKEND=database")
+    if settings.effective_analysis_execution_backend != "celery":
+        raise ValueError("APP_ENV=production requires ANALYSIS_EXECUTION_BACKEND=celery")
+    if not settings.release_commit_sha:
+        raise ValueError("production requires RELEASE_COMMIT_SHA")
+    if settings.release_worktree_dirty is not False:
+        raise ValueError("production requires RELEASE_WORKTREE_DIRTY=false")
 
 
 @dataclass(frozen=True)

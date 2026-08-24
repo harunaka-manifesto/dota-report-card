@@ -8,7 +8,8 @@ from fastapi.testclient import TestClient
 
 def test_health_contract() -> None:
     app = create_app(Settings(), source=FixtureOpenDotaSource("tests/fixtures/opendota"))
-    response = TestClient(app).get("/v1/health")
+    client = TestClient(app)
+    response = client.get("/v1/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
     assert set(response.json()) == {
@@ -21,6 +22,12 @@ def test_health_contract() -> None:
         "auth",
         "source",
     }
+
+    ready = client.get("/v1/health/ready")
+    assert ready.status_code == 200
+    assert ready.json()["release"]["free_dna_generation"] == "v5.2"
+    assert ready.json()["release_parity"] == "not_required"
+    assert client.get("/v1/health/release").json()["release"]["git_sha"] == "unknown"
 
 
 def test_malformed_identifier_is_rejected_before_source_request() -> None:

@@ -24,10 +24,14 @@ from app.cohorts.selector import CohortSelection, select_narrowest_cohort
 from app.core.config import FREE_HISTORY_WINDOW_DAYS, RECENCY_HALF_LIFE_DAYS, Settings, get_settings
 from app.core.errors import (
     AppError,
+    CanonicalHistoryInvalid,
     DeepEntitlementRequired,
     InsufficientMatchHistory,
     ProfileUnavailable,
+    ReportPersistenceFailed,
+    ReportValidationFailed,
     SteamIdentityUnavailable,
+    V61RuntimeEvidenceIncomplete,
 )
 from app.core.metrics import record_metric
 from app.core.security import PlayerIdentifier, parse_player_identifier
@@ -102,6 +106,7 @@ class AnalysisService:
         self.v61_taxonomy_by_hero = None
         self.v61_artifact_checksums: dict[str, str] = {}
         self.v61_supporting_artifacts: dict[str, Any] = {}
+        self.v61_authorization_checksum: str | None = None
         if self.settings.free_dna_v6_enabled and self.settings.free_dna_v61_enabled:
             raise ArtifactValidationError("V6.0 and V6.1 generation flags are mutually exclusive")
         if self.settings.free_dna_v61_enabled:
@@ -202,6 +207,9 @@ class AnalysisService:
             expected_source_revision=expected_revision,
             expected_dirty_worktree=expected_dirty,
         )
+        self.v61_authorization_checksum = hashlib.sha256(
+            release_authorization_path.read_bytes()
+        ).hexdigest()
         return (
             bundle.baseline.resolver(),
             bundle.thresholds.metrics,
@@ -564,21 +572,31 @@ class AnalysisService:
             history = list(cached_history)
             cost_ledger.record("history", policy=cost_policy, cache_hit=True, units=0.0)
             if job.analysis_mode == "free" and self.settings.free_dna_v61_enabled:
-                canonical_history = normalize_canonical_summary_history(
-                    history,
-                    identifier.account_id,
-                    request_count=1,
-                    provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
-                )
+                try:
+                    canonical_history = normalize_canonical_summary_history(
+                        history,
+                        identifier.account_id,
+                        request_count=1,
+                        provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
+                    )
+                except (TypeError, ValueError) as exc:
+                    raise CanonicalHistoryInvalid(
+                        "OpenDota returned an invalid canonical summary history"
+                    ) from exc
         else:
             if job.analysis_mode == "free" and self.settings.free_dna_v61_enabled:
                 history = await self._get_v61_summary_history(identifier.account_id)
-                canonical_history = normalize_canonical_summary_history(
-                    history,
-                    identifier.account_id,
-                    request_count=1,
-                    provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
-                )
+                try:
+                    canonical_history = normalize_canonical_summary_history(
+                        history,
+                        identifier.account_id,
+                        request_count=1,
+                        provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
+                    )
+                except (TypeError, ValueError) as exc:
+                    raise CanonicalHistoryInvalid(
+                        "OpenDota returned an invalid canonical summary history"
+                    ) from exc
             else:
                 history = await self._get_summary_history(
                     identifier.account_id,
@@ -765,9 +783,13 @@ class AnalysisService:
 
         if self.settings.free_dna_v61_enabled:
             if canonical_history is None:
-                raise RuntimeError("V6.1 generation requires canonical history audit metadata")
+                raise V61RuntimeEvidenceIncomplete(
+                    "V6.1 generation requires canonical history audit metadata"
+                )
             if self.v61_thresholds is None or self.v61_baseline_resolver is None:
-                raise RuntimeError("V6.1 generation requires loaded analytical artifacts")
+                raise V61RuntimeEvidenceIncomplete(
+                    "V6.1 generation requires loaded analytical artifacts"
+                )
             session_result = infer_sessions(
                 windowed_matches,
                 SessionPolicy(gap_minutes=self.settings.effective_session_gap_minutes),
@@ -784,41 +806,54 @@ class AnalysisService:
                 message="Building your V6.1 identity, findings, and story report",
             )
             protected_cohorts: dict[str, Any] = {}
-            report = assemble_free_dna_report_v61(
-                account_id=identifier.account_id,
-                profile=_profile_for_report(profile, identifier.account_id),
-                matches=tuple(session_result.matches),
-                canonical_history=canonical_history,
-                processed_matches=job.processed_matches,
-                eligible_matches=job.eligible_matches,
-                model_version=self.settings.free_dna_v61_model_version,
-                template_version=self.settings.template_version,
-                cost_ledger=cost_ledger,
-                analysis_version_fingerprint=job.model_version,
-                baseline_resolver=self.v61_baseline_resolver,
-                thresholds=self.v61_thresholds,
-                taxonomy_by_hero=self.v61_taxonomy_by_hero,
-                completed_sessions=completed_sessions,
-                artifact_checksums=self.v61_artifact_checksums,
-                supporting_artifacts=self.v61_supporting_artifacts,
-                shadow_enabled=self.settings.free_dna_v61_shadow_enabled,
-                experimental_evolution_enabled=self.settings.free_dna_v61_experimental_evolution_enabled,
-                experimental_loops_enabled=self.settings.free_dna_v61_experimental_loops_enabled,
-                protected_cohorts_out=protected_cohorts,
-            )
-            report = validate_free_dna_report(report)
+            try:
+                report = assemble_free_dna_report_v61(
+                    account_id=identifier.account_id,
+                    profile=_profile_for_report(profile, identifier.account_id),
+                    matches=tuple(session_result.matches),
+                    canonical_history=canonical_history,
+                    processed_matches=job.processed_matches,
+                    eligible_matches=job.eligible_matches,
+                    model_version=self.settings.free_dna_v61_model_version,
+                    template_version=self.settings.template_version,
+                    cost_ledger=cost_ledger,
+                    analysis_version_fingerprint=job.model_version,
+                    baseline_resolver=self.v61_baseline_resolver,
+                    thresholds=self.v61_thresholds,
+                    taxonomy_by_hero=self.v61_taxonomy_by_hero,
+                    completed_sessions=completed_sessions,
+                    artifact_checksums=self.v61_artifact_checksums,
+                    supporting_artifacts=self.v61_supporting_artifacts,
+                    shadow_enabled=self.settings.free_dna_v61_shadow_enabled,
+                    experimental_evolution_enabled=self.settings.free_dna_v61_experimental_evolution_enabled,
+                    experimental_loops_enabled=self.settings.free_dna_v61_experimental_loops_enabled,
+                    protected_cohorts_out=protected_cohorts,
+                )
+            except ValueError as exc:
+                raise V61RuntimeEvidenceIncomplete(
+                    "V6.1 runtime evidence is incomplete"
+                ) from exc
+            try:
+                report = validate_free_dna_report(report)
+            except (TypeError, ValueError) as exc:
+                raise ReportValidationFailed("The generated V6.1 report failed schema validation") from exc
             persist_report = getattr(self.repository, "save_report_with_protected_cohorts", None)
             if persist_report is None:
-                raise RuntimeError("V6.1 generation requires atomic protected Deep cohort persistence")
-            report_id = persist_report(
-                account_id=identifier.account_id,
-                data_cutoff=max((item.start_time or 0 for item in windowed_matches), default=None),
-                model_version=job.model_version,
-                template_version=self.settings.template_version,
-                report=report,
-                evidence=[],
-                protected_cohorts=protected_cohorts,
-            )
+                raise ReportPersistenceFailed(
+                    "V6.1 generation requires atomic protected Deep cohort persistence"
+                )
+            try:
+                report_id = persist_report(
+                    account_id=identifier.account_id,
+                    data_cutoff=max((item.start_time or 0 for item in windowed_matches), default=None),
+                    model_version=job.model_version,
+                    template_version=self.settings.template_version,
+                    report=report,
+                    evidence=[],
+                    protected_cohorts=protected_cohorts,
+                )
+            except Exception as exc:
+                raise ReportPersistenceFailed("The V6.1 report could not be persisted") from exc
             self.repository.complete_job(job, report_id)
             return
 
