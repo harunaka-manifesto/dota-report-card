@@ -190,8 +190,8 @@ def _distribution_shift(left: Mapping[Any, float], right: Mapping[Any, float]) -
     right_total = sum(float(value) for value in right.values())
     if not keys or not left_total or not right_total:
         return 0.0
-    p = {key: float(left[key]) / left_total for key in keys}
-    q = {key: float(right[key]) / right_total for key in keys}
+    p = {key: float(left.get(key, 0.0)) / left_total for key in keys}
+    q = {key: float(right.get(key, 0.0)) / right_total for key in keys}
     midpoint = {key: (p[key] + q[key]) / 2.0 for key in keys}
     jsd = 0.5 * sum(p[key] * math.log(p[key] / midpoint[key]) for key in keys if p[key] > 0) + 0.5 * sum(q[key] * math.log(q[key] / midpoint[key]) for key in keys if q[key] > 0)
     return max(0.0, min(1.0, math.sqrt(jsd / math.log(2))))

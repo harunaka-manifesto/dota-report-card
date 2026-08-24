@@ -16,7 +16,7 @@ from app.hero_portfolio.behavior import (
 )
 from app.hero_portfolio.common_thread import compute_common_thread
 from app.hero_portfolio.eligibility import build_hero_eligibility
-from app.hero_portfolio.evolution import compute_pool_evolution
+from app.hero_portfolio.evolution import _distribution_shift, compute_pool_evolution
 from app.hero_portfolio.exception import compute_hero_exception
 from app.hero_portfolio.mirror import _behavior_labels, _shrink, _similarity, compute_hero_mirror
 from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
@@ -609,6 +609,10 @@ def test_evolution_uses_equal_sized_windows_and_semantic_coverage_check() -> Non
 
     too_short = compute_pool_evolution(_summary_rows(23), _taxonomy())
     assert too_short.status == "unavailable"
+
+
+def test_evolution_treats_missing_toolkit_bins_as_zero() -> None:
+    assert _distribution_shift({"global_presence": 1.0}, {"push": 1.0}) == pytest.approx(1.0)
 
 
 @pytest.mark.parametrize(
