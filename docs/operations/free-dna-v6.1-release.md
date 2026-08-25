@@ -49,7 +49,7 @@ no profile receives more than 365 days, and no top-level start/end envelope is
 used as an analytical window. The 2.1.0 `window_policy` is
 `per_profile_365_day`, and session/completed-session inference uses each
 profile's declared window. The offline materializer is frozen at selector
-release `58feb477745aaaaee1bedaa4c7bd047e984bdf16`; it performs no network
+release `23a2a779a5fca2bef26fb00b82580d23eeeb0f38`; it performs no network
 request and does not authorize calibration or evaluation.
 
 ## Consumed holdout and replacement protocol
@@ -114,7 +114,7 @@ export CURRENT_SPLIT="$CAL/manifests/split-6000-canonical.json"
 export RAW_SPLIT="$CAL/manifests/replacement-split-2026-08-25.json"
 export SPLIT="$CAL/manifests/replacement-split-canonical-2026-08-25.json"
 export SELECTION_EVIDENCE="$CAL/replacement-selection-evidence.json"
-export SELECTION_RELEASE_SHA=58feb477745aaaaee1bedaa4c7bd047e984bdf16
+export SELECTION_RELEASE_SHA=23a2a779a5fca2bef26fb00b82580d23eeeb0f38
 export AUDIT="$CAL/corpus-compatibility-2.0.0.json"
 export ARTIFACTS="$CAL/staged"
 export EVAL="$CAL/evaluation"
