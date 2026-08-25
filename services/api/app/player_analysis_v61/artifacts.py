@@ -20,6 +20,7 @@ from app.player_analysis_v6.baselines import BASELINE_HIERARCHY, BaselineCell, B
 from app.player_analysis_v6.calibration import REQUIRED_THRESHOLD_KEYS
 from app.player_analysis_v6.thresholds import MetricThreshold
 
+from .calibration_corpus import CANONICAL_SCHEMA_VERSION
 from .versions import version
 
 BASELINE_VERSION = version("context_baseline")
@@ -371,6 +372,8 @@ def load_v61_artifact_bundle(
     manifest = _read(directory / V61_SUPPORT_ARTIFACTS[6], "V6.1 build manifest")
     if manifest.get("version") != "v61-calibration-build-manifest-1.0.0":
         raise ArtifactValidationError("unsupported V6.1 build manifest version")
+    if manifest.get("corpus_schema") != CANONICAL_SCHEMA_VERSION:
+        raise ArtifactValidationError("V6.1 artifacts must be bound to the canonical corpus schema")
     if manifest.get("release_authorized") is not False:
         raise ArtifactValidationError("V6.1 build manifest cannot authorize release")
     if manifest.get("holdout_output_inspected") is not False:
@@ -382,6 +385,20 @@ def load_v61_artifact_bundle(
     checksums = {name: _file_checksum(directory / name) for name in V61_SUPPORT_ARTIFACTS}
     if dict(manifest_artifacts) != {name: checksums[name] for name in data_artifacts}:
         raise ArtifactValidationError("V6.1 artifact checksum mismatch")
+    baseline_payload = _read(directory / V61_SUPPORT_ARTIFACTS[0], "V6.1 context baseline")
+    threshold_payload = _read(directory / V61_SUPPORT_ARTIFACTS[1], "V6.1 threshold")
+    artifact_corpus_shas = {
+        str(payload.get("corpus_sha256"))
+        for payload in (prior, distance, reliability, semantic)
+    }
+    artifact_corpus_shas.update(
+        {
+            str((baseline_payload.get("corpus") or {}).get("corpus_sha256")),
+            str((threshold_payload.get("derivation") or {}).get("corpus_sha256")),
+        }
+    )
+    if len(artifact_corpus_shas) != 1 or next(iter(artifact_corpus_shas)) != str(manifest.get("corpus_sha256")):
+        raise ArtifactValidationError("V6.1 artifacts do not share one canonical corpus checksum")
     if expected_corpus_sha256 is not None and manifest.get("corpus_sha256") != expected_corpus_sha256:
         raise ArtifactValidationError("V6.1 artifact corpus checksum mismatch")
     if expected_split_checksum is not None and manifest.get("split_manifest_checksum") != expected_split_checksum:

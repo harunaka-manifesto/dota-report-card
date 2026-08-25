@@ -47,4 +47,5 @@ def test_v61_collector_uses_canonical_one_request_contract_without_identifiers()
     assert payload["raw_identifiers_present"] is False
     assert "account_id" not in payload["profiles"][0]
     assert "account_id" not in payload["profiles"][0]["matches"][0]
-    assert "match_id" not in payload["profiles"][0]["matches"][0]
+    assert payload["profiles"][0]["matches"][0]["match_id"] == 4200
+    assert payload["profiles"][0]["matches"][0]["leaver_status"] == 0

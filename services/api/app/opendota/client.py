@@ -12,6 +12,7 @@ from app.core.config import FREE_HISTORY_LIMIT, FREE_HISTORY_WINDOW_DAYS, Settin
 from app.core.errors import OpenDotaRateLimited, OpenDotaUnavailable, ProfileUnavailable
 from app.core.metrics import record_metric
 from app.core.security import safe_endpoint
+from app.ingestion.summary_history_contract import SUMMARY_HISTORY_RETRY_LIMIT
 from app.opendota.cache import CacheBackend, MemoryCache, RedisCache
 
 logger = logging.getLogger(__name__)
@@ -291,7 +292,7 @@ class OpenDotaClient:
                 f"{','.join(projects)}"
             ),
             cache_ttl=120,
-            retry_limit=0,
+            retry_limit=SUMMARY_HISTORY_RETRY_LIMIT,
         )
         return [row for row in list(value or []) if isinstance(row, dict)]
 

@@ -15,9 +15,14 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from app.analysis.budget import DataCostLedger  # noqa: E402
-from app.dna.sessions import SessionPolicy, infer_sessions  # noqa: E402
-from app.ingestion.summary_history_contract import normalize_canonical_summary_history  # noqa: E402
+from app.dna.sessions import infer_sessions  # noqa: E402
 from app.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
+from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
+    CANONICAL_SCHEMA_VERSION,
+    CANONICAL_SESSION_POLICY,
+    canonical_history,
+    load_canonical_corpus,
+)
 from app.player_analysis_v61.calibration_evaluation import (  # noqa: E402
     REQUIRED_STATE_A_CHECKS,
     build_release_evaluation,
@@ -38,12 +43,12 @@ from app.player_analysis_v61.holdout_evaluation import evaluate_holdout  # noqa:
 from app.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
 from app.player_analysis_v61.versions import MODEL_VERSION  # noqa: E402
 from app.reports.dna_assembly_v61 import assemble_free_dna_report_v61  # noqa: E402
-from v61_calibration_builder import atomic_json  # noqa: E402
+from v61_calibration_builder import atomic_json, split_from_manifest  # noqa: E402
 
-DEFAULT_CORPUS = ROOT / ".local/calibration/v6-eligible-corpus-windowed.json"
-DEFAULT_SPLIT = ROOT / ".local/calibration/manifests/split-6000.json"
+DEFAULT_CORPUS = ROOT / ".local/calibration/v61/canonical-corpus.json"
+DEFAULT_SPLIT = ROOT / ".local/calibration/v61/manifests/split-6000-canonical.json"
 DEFAULT_ARTIFACT_DIR = ROOT / ".local/calibration/v61"
-DEFAULT_AUDIT = DEFAULT_ARTIFACT_DIR / "corpus-compatibility-1.0.0.json"
+DEFAULT_AUDIT = DEFAULT_ARTIFACT_DIR / "corpus-compatibility-2.0.0.json"
 DEFAULT_EVALUATION_DIR = DEFAULT_ARTIFACT_DIR / "evaluation"
 
 
@@ -122,14 +127,26 @@ def _ingest_review(args: argparse.Namespace) -> int:
 def _runtime_parity(args: argparse.Namespace) -> int:
     """Run one complete canonical report through the frozen runtime bundle."""
 
-    bundle = load_v61_artifact_bundle(args.artifact_dir)
-    corpus = json.loads(args.input.read_text(encoding="utf-8"))
-    if not isinstance(corpus, dict) or not isinstance(corpus.get("matches"), list):
-        raise ValueError("runtime parity input must contain a matches list")
+    corpus = load_canonical_corpus(args.input)
+    corpus_sha256 = sha256_file(args.input)
+    split_checksum = sha256_file(args.split_manifest)
+    split_payload = json.loads(args.split_manifest.read_text(encoding="utf-8"))
+    if not isinstance(split_payload, dict):
+        raise ValueError("split manifest must be an object")
+    split_from_manifest(
+        corpus.matches,
+        split_payload,
+        corpus_sha256=corpus_sha256,
+        require_frozen_counts=False,
+    )
+    bundle = load_v61_artifact_bundle(
+        args.artifact_dir,
+        expected_corpus_sha256=corpus_sha256,
+        expected_split_checksum=split_checksum,
+    )
     by_profile: dict[str, list[dict[str, Any]]] = {}
-    for row in corpus["matches"]:
-        if isinstance(row, dict):
-            by_profile.setdefault(str(row.get("profile_id", "")), []).append(row)
+    for row in corpus.matches:
+        by_profile.setdefault(str(row.get("profile_id", "")), []).append(dict(row))
     candidates = sorted(
         (
             rows
@@ -142,35 +159,27 @@ def _runtime_parity(args: argparse.Namespace) -> int:
     )
     if not candidates:
         raise ValueError("runtime parity input has no 30-match profile with leaver_status")
-    compact = candidates[0]
     account_id = 1
-    rows = [
-        {
-            "match_id": row["match_id"],
-            "player_slot": 0,
-            "radiant_win": bool(row.get("won")),
-            "duration": row.get("duration_seconds"),
-            "game_mode": row.get("game_mode", 22),
-            "lobby_type": row.get("lobby_type", 7),
-            "hero_id": row.get("hero_id"),
-            "start_time": row.get("start_time"),
-            "kills": row.get("kills"),
-            "deaths": row.get("deaths"),
-            "assists": row.get("assists"),
-            "leaver_status": row.get("leaver_status"),
-            "version": row.get("source_version"),
-            "party_size": row.get("party_size"),
-            "hero_variant": row.get("hero_variant"),
-            "lane": None,
-            "lane_role": None,
-            "is_roaming": None,
-        }
-        for row in compact
-    ]
-    history = normalize_canonical_summary_history(rows, account_id)
+    rows = candidates[0]
+    window = corpus.payload["window"]
+    history = canonical_history(
+        rows,
+        account_id,
+        window_start=int(window["start_time"]),
+        window_end=int(window["end_time"]),
+    )
     matches = history.normalization.eligible_matches
-    sessions = infer_sessions(matches, SessionPolicy(gap_minutes=90))
-    completed = {session.session_id: True for session in sessions.sessions}
+    sessions = infer_sessions(
+        matches,
+        CANONICAL_SESSION_POLICY,
+        window_start=int(window["start_time"]),
+        window_end=int(window["end_time"]),
+    )
+    completed_ids = {session.session_id for session in sessions.completed_sessions}
+    completed = {
+        session.session_id: session.session_id in completed_ids
+        for session in sessions.sessions
+    }
     report = assemble_free_dna_report_v61(
         account_id=account_id,
         profile={"personaname": "Runtime parity subject"},
@@ -197,17 +206,21 @@ def _runtime_parity(args: argparse.Namespace) -> int:
         protected_cohorts_out={},
     )
     revision, dirty = _revision()
-    split_checksum = sha256_file(args.split_manifest)
     parity = {
         "version": "v61-runtime-calibration-parity-2.0.0",
         "passed": True,
         "source": {"repository_commit": revision, "dirty_worktree": dirty},
         "corpus": {
-            "sha256": sha256_file(args.input),
+            "schema_version": CANONICAL_SCHEMA_VERSION,
+            "sha256": corpus_sha256,
             "split_manifest_checksum": split_checksum,
         },
         "artifact_checksums": dict(bundle.checksums),
-        "versions": dict(report.get("versions") or {}),
+        "versions": {
+            **dict(report.get("versions") or {}),
+            "model_version": str((report.get("versions") or {}).get("model", "")),
+            "report_schema_version": str(report.get("schema_version", "")),
+        },
         "assertions": {
             "canonical_one_request": history.audit.request_count == 1,
             "fixture_components_in_production": False,

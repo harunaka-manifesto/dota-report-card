@@ -23,6 +23,10 @@ from app.player_analysis_v61.artifacts import (  # noqa: E402
     V61_SUPPORT_ARTIFACTS,
     load_v61_artifact_bundle,
 )
+from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
+    CANONICAL_SCHEMA_VERSION,
+    load_canonical_corpus,
+)
 from app.player_analysis_v61.corpus_reuse import (  # noqa: E402
     CompatibilityAuditError,
     audit_reuse,
@@ -88,6 +92,53 @@ def _audit(args: argparse.Namespace) -> int:
     return 0
 
 
+def _validate_corpus(args: argparse.Namespace) -> int:
+    corpus = load_canonical_corpus(args.input)
+    diagnostics = corpus.aggregate_diagnostics()
+    diagnostics["checksum"] = sha256_file(args.input)
+    if args.output:
+        atomic_json(args.output, diagnostics)
+    else:
+        print(json.dumps(diagnostics, sort_keys=True))
+    return 0
+
+
+def _bind_split(args: argparse.Namespace) -> int:
+    corpus = load_canonical_corpus(args.input)
+    split = _json(args.split_manifest, "split manifest")
+    train = set(map(str, split.get("train_profile_ids", [])))
+    holdout = set(map(str, split.get("holdout_profile_ids", [])))
+    if (
+        split.get("seed") != 6000
+        or len(train) != 791
+        or len(holdout) != 339
+        or train & holdout
+        or train | holdout != set(corpus.profile_ids)
+        or set(corpus.profile_ids) != set(corpus.usable_profile_ids)
+    ):
+        raise ValueError(
+            "the existing 791/339 split cannot be reused: population or usable-profile counts failed; "
+            "a new approved split/population is required"
+        )
+    bound = dict(split)
+    bound["corpus_schema"] = CANONICAL_SCHEMA_VERSION
+    bound["corpus_sha256"] = sha256_file(args.input)
+    atomic_json(args.output, bound)
+    print(
+        json.dumps(
+            {
+                "output": str(args.output),
+                "corpus_sha256": bound["corpus_sha256"],
+                "train_profile_count": len(train),
+                "holdout_profile_count": len(holdout),
+                "overlap_count": 0,
+            },
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
 def _load_training_inputs(
     args: argparse.Namespace,
     *,
@@ -98,10 +149,11 @@ def _load_training_inputs(
         corpus_path=args.input,
         split_manifest_path=args.split_manifest,
         require_authorization=require_authorization,
+        canonical_only=True,
     )
     rows = load_rows(args.input)
     split = _json(args.split_manifest, "split manifest")
-    train, holdout = split_from_manifest(rows, split)
+    train, holdout = split_from_manifest(rows, split, corpus_sha256=sha256_file(args.input))
     return rows, split, train, holdout, audit
 
 
@@ -176,13 +228,14 @@ def _freeze(args: argparse.Namespace) -> int:
         corpus_path=args.input,
         split_manifest_path=args.split_manifest,
         require_authorization=True,
+        canonical_only=True,
     )
     reference = _reference(args, audit)
     if not reference:
         raise CompatibilityAuditError("freeze requires a nonempty reuse authorization reference")
     rows = load_rows(args.input)
     split = _json(args.split_manifest, "split manifest")
-    train, holdout = split_from_manifest(rows, split)
+    train, holdout = split_from_manifest(rows, split, corpus_sha256=sha256_file(args.input))
     if len(train) != 791 or len(holdout) != 339:
         raise ValueError("freeze requires the exact frozen 791/339 split")
     artifact_dir = args.artifact_dir
@@ -247,7 +300,9 @@ def _legacy_fixture(args: argparse.Namespace) -> int:
     raw = json.loads(args.input.read_text(encoding="utf-8"))
     if isinstance(raw, dict) and raw.get("schema_version") == "v6-calibration-corpus-1.0.0":
         raise ValueError("the real V6 corpus must use the staged State B commands")
-    rows = load_rows(args.input)
+    rows = raw.get("matches") if isinstance(raw, dict) else raw
+    if not isinstance(rows, list) or not rows or not all(isinstance(row, dict) for row in rows):
+        raise ValueError("fixture corpus needs a non-empty matches array")
     def reject_forbidden(value: Any) -> None:
         if isinstance(value, dict):
             for key, nested in value.items():
@@ -323,7 +378,16 @@ def _legacy_fixture(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
-    commands = {"audit-reuse", "baseline", "calibrate-support", "thresholds", "freeze", "verify-reproducibility"}
+    commands = {
+        "validate-corpus",
+        "bind-split",
+        "audit-reuse",
+        "baseline",
+        "calibrate-support",
+        "thresholds",
+        "freeze",
+        "verify-reproducibility",
+    }
     if len(sys.argv) > 1 and sys.argv[1] not in commands:
         parser = argparse.ArgumentParser(description=__doc__)
         parser.add_argument("--input", type=Path, required=True)
@@ -334,6 +398,17 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
+    validate_parser = sub.add_parser("validate-corpus")
+    validate_parser.add_argument("--input", type=Path, required=True)
+    validate_parser.add_argument("--output", type=Path)
+    validate_parser.set_defaults(handler=_validate_corpus)
+
+    bind_parser = sub.add_parser("bind-split")
+    bind_parser.add_argument("--input", type=Path, required=True)
+    bind_parser.add_argument("--split-manifest", type=Path, required=True)
+    bind_parser.add_argument("--output", type=Path, required=True)
+    bind_parser.set_defaults(handler=_bind_split)
+
     audit_parser = sub.add_parser("audit-reuse")
     audit_parser.add_argument("--input", type=Path, required=True)
     audit_parser.add_argument("--split-manifest", type=Path, required=True)

@@ -27,8 +27,15 @@ from app.player_analysis_v6.calibration_corpus import (
     CalibrationCorpusError,
     validate_calibration_corpus,
 )
+from app.player_analysis_v61.calibration_corpus import (
+    CANONICAL_SCHEMA_VERSION,
+    MINIMUM_USABLE_MATCHES,
+    CanonicalCorpusError,
+    load_canonical_corpus,
+)
 
 AUDIT_VERSION = "v61-corpus-compatibility-1.0.0"
+CANONICAL_AUDIT_VERSION = "v61-canonical-corpus-audit-1.0.0"
 EXPECTED_CORPUS_SHA256 = "1cbce329f903ccad922aeddb93046b6aa2e505004937ebaaec1b854d853e41bd"
 EXPECTED_SPLIT_SEED = 6000
 EXPECTED_TRAIN_COUNT = 791
@@ -117,6 +124,191 @@ def _load_json(path: str | Path, label: str) -> Mapping[str, Any]:
     return value
 
 
+def _canonical_coverage(
+    profiles: Sequence[Mapping[str, Any]],
+    field: str,
+    *,
+    section: str = "required_field_coverage",
+) -> float:
+    numerator = denominator = 0.0
+    for profile in profiles:
+        audit = profile.get("history_audit")
+        if not isinstance(audit, Mapping):
+            continue
+        raw_count = audit.get("raw_count")
+        coverage = audit.get(section)
+        if isinstance(raw_count, int) and raw_count > 0 and isinstance(coverage, Mapping):
+            denominator += raw_count
+            value = coverage.get(field)
+            if isinstance(value, (int, float)) and math.isfinite(float(value)):
+                numerator += raw_count * float(value)
+    return numerator / denominator if denominator else 0.0
+
+
+def audit_canonical(
+    corpus_path: str | Path,
+    split_manifest_path: str | Path,
+    *,
+    authorization_reference: str | None = None,
+) -> dict[str, Any]:
+    """Audit the newly collected canonical bytes without an expected SHA."""
+
+    try:
+        corpus = load_canonical_corpus(corpus_path)
+    except CanonicalCorpusError as exc:
+        raise CompatibilityAuditError(str(exc)) from exc
+    split = _load_json(split_manifest_path, "split manifest")
+    corpus_sha256 = sha256_file(corpus_path)
+    profile_ids = set(corpus.profile_ids)
+    train_raw, holdout_raw = split.get("train_profile_ids"), split.get("holdout_profile_ids")
+    if not isinstance(train_raw, list) or not isinstance(holdout_raw, list):
+        raise CompatibilityAuditError("split manifest must contain train and holdout profile lists")
+    train, holdout = set(map(str, train_raw)), set(map(str, holdout_raw))
+    split_integrity = {
+        "seed": split.get("seed"),
+        "algorithm": split.get("algorithm"),
+        "train_profile_count": len(train),
+        "holdout_profile_count": len(holdout),
+        "overlap_count": len(train & holdout),
+        "population_match": train | holdout == profile_ids,
+        "usable_population_match": train | holdout == set(corpus.usable_profile_ids),
+        "train_digest": profile_digest(tuple(train)),
+        "holdout_digest": profile_digest(tuple(holdout)),
+        "manifest_train_digest_match": split.get("train_digest") == profile_digest(tuple(train)),
+        "manifest_holdout_digest_match": split.get("holdout_digest") == profile_digest(tuple(holdout)),
+        "corpus_checksum_match": split.get("corpus_sha256") == corpus_sha256,
+        "split_checksum": sha256_file(split_manifest_path),
+    }
+    split_integrity["passed"] = bool(
+        split_integrity["seed"] == EXPECTED_SPLIT_SEED
+        and split_integrity["train_profile_count"] == EXPECTED_TRAIN_COUNT
+        and split_integrity["holdout_profile_count"] == EXPECTED_HOLDOUT_COUNT
+        and split_integrity["overlap_count"] == 0
+        and split_integrity["population_match"]
+        and split_integrity["usable_population_match"]
+        and split_integrity["manifest_train_digest_match"]
+        and split_integrity["manifest_holdout_digest_match"]
+        and split_integrity["corpus_checksum_match"]
+    )
+    profiles = tuple(corpus.profile_summaries.values())
+    exclusion_reasons = Counter(
+        str(reason)
+        for profile in profiles
+        for reason, count in (profile.get("eligibility_audit", {}).get("exclusion_reasons", {}) or {}).items()
+        for _ in range(int(count) if isinstance(count, int) and count > 0 else 0)
+    )
+    profile_rules = {
+        "pseudonymous_profile_ids": all(PROFILE_HASH.fullmatch(profile_id) for profile_id in profile_ids),
+        "duplicate_profile_ids": len(profile_ids) == len(profiles),
+        "minimum_usable_match_count": all(
+            int(profile.get("eligible_match_count", 0) or 0) >= MINIMUM_USABLE_MATCHES
+            for profile in profiles
+        ),
+        "profile_row_counts_match": all(
+            sum(str(row["profile_id"]) == str(profile["profile_id"]) for row in corpus.matches)
+            == int(profile.get("eligible_match_count", 0) or 0)
+            for profile in profiles
+        ),
+    }
+    source = corpus.payload["source"]
+    manifest = corpus.payload["request_manifest"]
+    window = corpus.payload["window"]
+    source_projection = {
+        "exact": manifest.get("projection") == list(SUMMARY_HISTORY_PROJECTION),
+        "canonical_projection_version": SUMMARY_HISTORY_PROJECTION_VERSION,
+        "canonical_schema_version": CANONICAL_SCHEMA_VERSION,
+        "provider_limit": manifest.get("provider_limit"),
+        "retry_limit": manifest.get("retry_limit"),
+    }
+    window_audit = {
+        "days": window.get("days"),
+        "ordered": int(window.get("start_time", 0)) < int(window.get("end_time", 0)),
+        "exact_365_days": window.get("days") == EXPECTED_WINDOW_DAYS,
+    }
+    leaver_audit = {
+        "raw_coverage": _canonical_coverage(profiles, "leaver_status"),
+        "included_count": len(corpus.matches),
+        "included_valid_count": sum(row.get("leaver_status") in {0, 1} for row in corpus.matches),
+        "excluded_missing_count": exclusion_reasons.get("missing_leaver_status", 0),
+        "excluded_invalid_count": exclusion_reasons.get("invalid_leaver_status", 0),
+        "excluded_abandoned_count": exclusion_reasons.get("abandoned", 0),
+        "excluded_rows_audited": True,
+    }
+    failure_reasons: list[str] = []
+    if len(profile_ids) != EXPECTED_PROFILE_COUNT:
+        failure_reasons.append("canonical_profile_population_count_failed")
+    if len(corpus.usable_profile_ids) != EXPECTED_PROFILE_COUNT:
+        failure_reasons.append("canonical_usable_profile_count_failed")
+    if not split_integrity["population_match"] or not split_integrity["usable_population_match"]:
+        failure_reasons.append("new_approved_split_or_population_required")
+    if not split_integrity["corpus_checksum_match"]:
+        failure_reasons.append("split_must_be_rebound_to_actual_corpus_checksum")
+    core_passed = bool(
+        len(profile_ids) == EXPECTED_PROFILE_COUNT
+        and len(corpus.usable_profile_ids) == EXPECTED_PROFILE_COUNT
+        and split_integrity["passed"]
+        and all(profile_rules.values())
+        and source_projection["exact"]
+        and source.get("request_count_per_profile") == 1
+        and source.get("detail_requests") == 0
+        and source.get("parse_requests") == 0
+        and source.get("rank_or_mmr_used") is False
+        and window_audit["ordered"]
+        and window_audit["exact_365_days"]
+        and leaver_audit["included_count"] == leaver_audit["included_valid_count"]
+        and leaver_audit["excluded_rows_audited"]
+    )
+    audit: dict[str, Any] = {
+        "version": CANONICAL_AUDIT_VERSION,
+        "corpus_schema": CANONICAL_SCHEMA_VERSION,
+        "corpus_sha256": corpus_sha256,
+        "corpus_population": {
+            "profile_count": len(profile_ids),
+            "usable_profile_count": len(corpus.usable_profile_ids),
+            "match_count": len(corpus.matches),
+            "profile_population_digest": profile_digest(tuple(profile_ids)),
+        },
+        "split": split_integrity,
+        "window": window_audit,
+        "profile_rules": profile_rules,
+        "canonical_required_field_coverage": {
+            field: _canonical_coverage(profiles, field)
+            for field in sorted(REQUIRED_FIELDS)
+        },
+        "optional_field_coverage": {
+            field: _canonical_coverage(profiles, field, section="optional_field_coverage")
+            for field in sorted(OPTIONAL_FIELDS)
+        },
+        "leaver_status": leaver_audit,
+        "exclusion_reasons": dict(sorted(exclusion_reasons.items())),
+        "source_projection": source_projection,
+        "provenance": {
+            "collection_transport": "canonical_one_request_summary_history",
+            "analytical_compatibility": "canonical_v61_materialized",
+            "one_physical_request_proven": True,
+            "raw_payload_hash_available": True,
+            "detail_requests": 0,
+            "parse_requests": 0,
+            "rank_or_mmr_used": False,
+        },
+        "v6_0_comparison_context": {"present": False, "previously_evaluated": False},
+        "v61_holdout_evaluated": False,
+        "core_passed": core_passed,
+        "failure_reasons": sorted(set(failure_reasons)),
+        "authorization": {
+            "reuse_reference": str(authorization_reference).strip() if authorization_reference else "",
+            "reuse_authorized": bool(str(authorization_reference).strip()),
+            "statistical_approval": False,
+            "dota_language_approval": False,
+            "data_basis_approval": False,
+        },
+        "aggregate_identifier_free": True,
+    }
+    _assert_aggregate_privacy(audit, private_values=profile_ids)
+    audit["audit_checksum"] = audit_checksum(audit)
+    return audit
+
+
 def _source_projection_audit(source: Mapping[str, Any]) -> dict[str, Any]:
     observed = source.get("projections")
     exact = observed == list(SUMMARY_HISTORY_PROJECTION)
@@ -195,6 +387,19 @@ def audit_reuse(
     corpus_path = Path(corpus_path)
     split_path = Path(split_manifest_path)
     raw = corpus_path.read_bytes()
+    try:
+        canonical_payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise CompatibilityAuditError("corpus is not valid JSON") from exc
+    if (
+        isinstance(canonical_payload, Mapping)
+        and canonical_payload.get("schema_version") == CANONICAL_SCHEMA_VERSION
+    ):
+        return audit_canonical(
+            corpus_path,
+            split_path,
+            authorization_reference=authorization_reference,
+        )
     corpus_sha256 = hashlib.sha256(raw).hexdigest()
     if corpus_sha256 != expected_corpus_sha256:
         raise CompatibilityAuditError(
@@ -392,10 +597,13 @@ def require_compatible_audit(
     corpus_path: str | Path,
     split_manifest_path: str | Path,
     require_authorization: bool = False,
+    canonical_only: bool = False,
 ) -> dict[str, Any]:
     audit = load_compatibility_audit(audit_path)
     if audit.get("corpus_sha256") != sha256_file(corpus_path):
         raise CompatibilityAuditError("compatibility audit does not match corpus bytes")
+    if canonical_only and audit.get("corpus_schema") != CANONICAL_SCHEMA_VERSION:
+        raise CompatibilityAuditError("canonical V6.1 corpus audit is required; legacy compact evidence cannot authorize release")
     if audit.get("split", {}).get("split_checksum") != sha256_file(split_manifest_path):
         raise CompatibilityAuditError("compatibility audit does not match split bytes")
     if audit.get("core_passed") is not True:
@@ -407,6 +615,7 @@ def require_compatible_audit(
 
 __all__ = [
     "AUDIT_VERSION",
+    "CANONICAL_AUDIT_VERSION",
     "CompatibilityAuditError",
     "EXPECTED_CORPUS_SHA256",
     "EXPECTED_HOLDOUT_COUNT",
@@ -416,6 +625,7 @@ __all__ = [
     "PROVENANCE",
     "audit_checksum",
     "audit_reuse",
+    "audit_canonical",
     "load_compatibility_audit",
     "profile_digest",
     "require_compatible_audit",

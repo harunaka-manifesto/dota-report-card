@@ -193,7 +193,11 @@ def adapt_legacy_row(
     neutral category.
     """
 
-    required = {key for key in CORE_ANALYTICAL_FIELDS if key not in {"profile_id", "match_id"}}
+    required = {
+        key
+        for key in CORE_ANALYTICAL_FIELDS
+        if key not in {"profile_id", "match_id", "patch"}
+    }
     missing = sorted(key for key in required if row.get(key) is None)
     if missing:
         raise ValueError(f"legacy row is missing core analytical fields: {missing}")
@@ -260,6 +264,52 @@ def adapt_legacy_rows(
             )
         )
     adapted.sort(key=lambda item: (str(item.get("profile_id", "")), int(item["start_time"]), int(item["match_id"])))
+    return adapted, dict(sorted(disagreement.items()))
+
+
+def adapt_canonical_row(
+    row: Mapping[str, Any],
+    *,
+    taxonomy_by_hero: Mapping[Any, Any] | None = None,
+    keep_private_identifiers: bool = True,
+) -> dict[str, Any]:
+    """Project one validated canonical row for the existing estimators."""
+
+    result = adapt_legacy_row(
+        row,
+        taxonomy_by_hero=taxonomy_by_hero,
+        keep_private_identifiers=keep_private_identifiers,
+    )
+    result["adapter"] = "canonical-v61-calibration-projection-1.0.0"
+    return result
+
+
+def adapt_canonical_rows(
+    rows: Sequence[Mapping[str, Any]],
+    *,
+    taxonomy_by_hero: Mapping[Any, Any] | None = None,
+    keep_private_identifiers: bool = True,
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    adapted: list[dict[str, Any]] = []
+    disagreement: Counter[str] = Counter()
+    for row in rows:
+        current, _jobs = rederive_hero_function(row.get("hero_id"), taxonomy_by_hero)
+        if current is None:
+            disagreement["taxonomy_unavailable"] += 1
+        adapted.append(
+            adapt_canonical_row(
+                row,
+                taxonomy_by_hero=taxonomy_by_hero,
+                keep_private_identifiers=keep_private_identifiers,
+            )
+        )
+    adapted.sort(
+        key=lambda item: (
+            str(item.get("profile_id", "")),
+            int(item["start_time"]),
+            int(item["match_id"]),
+        )
+    )
     return adapted, dict(sorted(disagreement.items()))
 
 
@@ -420,6 +470,8 @@ __all__ = [
     "OPTIONAL_ANALYTICAL_FIELDS",
     "adapt_legacy_row",
     "adapt_legacy_rows",
+    "adapt_canonical_row",
+    "adapt_canonical_rows",
     "current_taxonomy_mapping",
     "legacy_canonical_history",
     "redacted_runtime_record",

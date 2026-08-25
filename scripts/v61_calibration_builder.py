@@ -37,6 +37,12 @@ from app.player_analysis_v61.artifacts import (
     V61_SUPPORT_ARTIFACTS,
     load_context_baseline_artifact_v61,
 )
+from app.player_analysis_v61.calibration_corpus import (
+    CANONICAL_SCHEMA_VERSION,
+    MINIMUM_USABLE_MATCHES,
+    canonical_rows,
+    load_canonical_corpus,
+)
 from app.player_analysis_v61.corpus_reuse import (
     EXPECTED_HOLDOUT_COUNT,
     EXPECTED_SPLIT_SEED,
@@ -45,7 +51,7 @@ from app.player_analysis_v61.corpus_reuse import (
     sha256_file,
 )
 from app.player_analysis_v61.legacy_adapter import (
-    adapt_legacy_rows,
+    adapt_canonical_rows,
 )
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
 from app.player_analysis_v61.versions import VERSION_MATRIX
@@ -98,18 +104,22 @@ def quantile(values: Sequence[float], fraction: float) -> float | None:
 
 
 def load_rows(path: Path) -> list[dict[str, Any]]:
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"cannot read V6.1 calibration corpus: {path}") from exc
-    rows = value.get("matches") if isinstance(value, Mapping) else value
-    if not isinstance(rows, list) or not rows or not all(isinstance(row, dict) for row in rows):
-        raise ValueError("V6.1 calibration corpus needs a non-empty matches array")
-    return [dict(row) for row in rows]
+    corpus = load_canonical_corpus(path)
+    if len(corpus.usable_profile_ids) != len(corpus.profile_ids):
+        raise ValueError(
+            "canonical corpus has profiles below the 30-match minimum; "
+            "a new approved split/population is required"
+        )
+    return canonical_rows(corpus)
 
 
 def split_from_manifest(
-    rows: Sequence[Mapping[str, Any]], manifest: Mapping[str, Any], *, expected_seed: int = EXPECTED_SPLIT_SEED
+    rows: Sequence[Mapping[str, Any]],
+    manifest: Mapping[str, Any],
+    *,
+    expected_seed: int = EXPECTED_SPLIT_SEED,
+    corpus_sha256: str | None = None,
+    require_frozen_counts: bool = True,
 ) -> tuple[set[str], set[str]]:
     train_raw, holdout_raw = manifest.get("train_profile_ids"), manifest.get("holdout_profile_ids")
     if not isinstance(train_raw, list) or not isinstance(holdout_raw, list):
@@ -118,9 +128,13 @@ def split_from_manifest(
     population = {str(row.get("profile_id")) for row in rows}
     if manifest.get("seed") != expected_seed:
         raise ValueError(f"V6.1 requires the frozen seed-{expected_seed} split")
+    if corpus_sha256 is not None and manifest.get("corpus_sha256") != corpus_sha256:
+        raise ValueError("split manifest is not bound to the actual canonical corpus checksum")
     if train & holdout or train | holdout != population:
         raise ValueError("frozen split is not player-exclusive or does not cover the corpus")
-    if len(train) != EXPECTED_TRAIN_COUNT or len(holdout) != EXPECTED_HOLDOUT_COUNT:
+    if require_frozen_counts and (
+        len(train) != EXPECTED_TRAIN_COUNT or len(holdout) != EXPECTED_HOLDOUT_COUNT
+    ):
         raise ValueError("V6.1 requires the frozen 791/339 split")
     if manifest.get("train_digest") != profile_digest(tuple(train)) or manifest.get("holdout_digest") != profile_digest(tuple(holdout)):
         raise ValueError("frozen split profile digest mismatch")
@@ -128,7 +142,7 @@ def split_from_manifest(
 
 
 def _adapted_rows(rows: Sequence[Mapping[str, Any]], taxonomy: Mapping[Any, Any]) -> list[dict[str, Any]]:
-    adapted, _ = adapt_legacy_rows(rows, taxonomy_by_hero=taxonomy, keep_private_identifiers=True)
+    adapted, _ = adapt_canonical_rows(rows, taxonomy_by_hero=taxonomy, keep_private_identifiers=True)
     return adapted
 
 
@@ -157,7 +171,7 @@ def build_baseline_v61(
     payload["version"] = BASELINE_VERSION
     payload["estimator_version"] = ESTIMATOR_VERSION
     payload["training_only"] = True
-    payload["corpus"]["source_version"] = "legacy-v6-compact-normalized"
+    payload["corpus"]["source_version"] = CANONICAL_SCHEMA_VERSION
     payload["corpus"]["corpus_sha256"] = corpus_sha256
     payload["corpus"]["train_profile_digest"] = profile_digest(tuple(train_profiles))
     payload["corpus"]["builder_version"] = BUILDER_VERSION
@@ -636,6 +650,8 @@ def build_manifest(
         "builder_version": BUILDER_VERSION,
         "generated_at": generated_at,
         "seed": EXPECTED_SPLIT_SEED,
+        "corpus_schema": CANONICAL_SCHEMA_VERSION,
+        "minimum_usable_matches": MINIMUM_USABLE_MATCHES,
         "corpus_sha256": corpus_sha256,
         "split_manifest_checksum": sha256_file(split_manifest_path),
         "compatibility_audit_checksum": audit.get("audit_checksum"),

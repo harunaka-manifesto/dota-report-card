@@ -1,112 +1,98 @@
 # Free DNA V6.1 release gates
 
-Current state: **production NOT READY**. Local hardening checks pass, but the
-previous State B artifacts and beta authorization predate the mandatory
-`leaver_status` and runtime-parity gates. Keep `FREE_DNA_V61_ENABLED=false` and
-all V6.1 shadow/experimental flags false until evidence is regenerated from a
-clean release commit.
+Current status: **blocked pending a future canonical recollection and evidence
+run**. This document describes acceptance conditions and commands; it does not
+claim that the private corpus exists or that any State B/C gate passes.
 
-For the owner-directed production beta, the automated State B result can be
-paired with a separate `production-beta-authorization-6.1.0.json` file. That
-file records the owner’s assumption that review approvals are complete and
-authorizes beta traffic without changing the frozen training manifest. It does
-not claim that independent reviews were performed.
+Keep `FREE_DNA_V61_ENABLED=false` and all V6.1 shadow/experimental flags false
+until every required gate and the separate operator authorization succeeds.
 
-The repository contains the additive route, strict schema, canonical ingestion
-contract, typed registries, estimator wiring, deterministic copy, accessible
-relationship rendering, fixture artifacts, and synthetic checks. Those checks
-exercise implementation behavior; they do not substitute for calibration on a
-real public/consented corpus, a sealed holdout, or runtime parity from the
-production assembly path.
+## Evidence chain
+
+Every stage must consume the same canonical corpus bytes and bind the next
+artifact to their actual checksum:
+
+| Stage | Required input/output | Fail-closed condition |
+|---|---|---|
+| Collection | one summary request per profile; canonical projection; no detail/parse/rank dependency | missing/invalid `leaver_status`, wrong request boundary, or raw identifiers |
+| Corpus validation | nested profiles with deterministic match/session fields | old compact schema, fewer than 30 usable matches, unsupported fields, or inconsistent sessions |
+| Split binding | seed 6000, 791 train, 339 holdout, zero overlap | population or usable-profile mismatch; split not bound to actual corpus SHA |
+| Audit | aggregate-only leaver/request/privacy/provenance evidence | audit checksum, corpus checksum, split checksum, or canonical schema mismatch |
+| Builders/freeze | training-only artifacts and frozen manifest | holdout rows used for training, missing corpus/split binding, or release authorization in the training manifest |
+| Holdout | sealed one-time evaluation over the 339 holdout profiles | holdout membership, corpus, split, artifact, or access-record mismatch |
+| Runtime parity | true report assembly path | source SHA/dirty state, corpus, split, artifact, model, report schema, or assertion mismatch |
+| Aggregate | identifier-free release evidence | any unbound evidence, failed measured gate, private identifier, path, rank/MMR field, or non-finite value |
+
+## Canonical data contract
+
+The private corpus schema is `v61-calibration-corpus-2.0.0`. It retains
+`profile_id` as a salted hash, `match_id`, time/duration/outcome/hero/KDA,
+`leaver_status`, game mode/lobby type, nullable public context, and runtime-
+derived session fields. It never materializes `account_id`. A profile is usable
+only with at least 30 included matches. Missing or invalid `leaver_status` is
+excluded and audited; it is never defaulted to zero. Session IDs, indexes, and
+corruption flags are recomputed with the runtime 90-minute policy.
+
+The source boundary is `/players/{account_id}/matches`, one physical request,
+365 days, limit 10,000, the shared canonical projection, and `retry_limit=0`.
+Detail-match and parse endpoints are forbidden. A response at the 10,000-row
+ceiling remains auditable as `possibly_truncated`; completeness-dependent
+claims must stay suppressed.
 
 ## State model
 
-| State | Required evidence | Current status |
+| State | Required evidence | Status before the future run |
 |---|---|---|
-| A: implementation | all planned runtime/model/API/web/calibration/test/docs/migration/rollback work; V5/V6 compatibility; fixture artifacts; unit, contract, type, lint, and synthetic checks | complete locally |
-| B: calibration-ready | approved corpus; canonical runtime/calibration parity; player-exclusive 70/30 split; frozen training artifacts and sealed holdout | invalidated; regenerate after hardening |
-| C: release-ready | measured interval coverage/FDR; identity stability; copy and Dota review; privacy/data-basis/statistical approval; container/checksum verification; operator authorization | blocked |
-| D: Figma Markdown handoff | implemented-contract brief, exact documentation tasks, unresolved inputs, future-agent DoD | ready; Figma execution still needs target access/input |
+| A: implementation | code contract, fail-closed validation, synthetic tests, lint/type/docs checks | not asserted here |
+| B: calibration-ready | approved canonical corpus, exact split, frozen training artifacts, byte reproducibility, sealed holdout, runtime parity, aggregate gates | blocked |
+| C: release-ready | independent statistical/Dota/data-basis/privacy/accessibility reviews, container/checksum verification, operator decision | blocked |
 
-## Required measured gates
+State B does not authorize production. Authorization is a separate owner
+decision that must be bound to the aggregate result and release source SHA.
 
-- At least 1,000 public/consented profiles using the canonical one-request
-  projection and normalization contract.
-- Deterministic player-exclusive 70/30 train/holdout split, stratified without
-  rank or MMR.
-- A passed runtime-parity artifact bound to the exact release commit, clean
-  worktree, corpus, split, artifact checksums, report versions, and required
-  assertions.
-- One canonical summary request with complete required fields; missing or
-  invalid `leaver_status` is excluded, not defaulted.
-- History below the provider ceiling can be complete; a response at the
-  10,000-row ceiling is `possibly_truncated` and cannot support
-  completeness-dependent claims.
-- Empirical 95% interval coverage from 93% through 97%.
-- Empirical family false-discovery rate at or below 5%, including the nested
-  family/branch procedure.
-- Nonblank identity for at least 80% of eligible holdout players and at least
-  80% split-half agreement for high-confidence identity slots.
-- Zero forbidden causal, motive, psychology, positioning, death-quality,
-  rank, or MMR claims.
-- Dota reviewer precision at least 90% on supported-and-believable examples.
-- Independent statistical and data-basis approvals with references.
-- Byte-identical artifact rebuilds, checksum-linked image verification, and an
-  explicit operator decision for every traffic stage.
+## Measured gates
 
-## State B existing-corpus evidence
+- At least 1,000 approved profiles and the exact 791/339 player-exclusive split.
+- Every usable profile has at least 30 included matches under the canonical
+  `leaver_status` boundary.
+- Zero detail and parse requests in collection and Free runtime paths.
+- Runtime parity assertions are all true except
+  `fixture_components_in_production`, which must be false:
+  `canonical_one_request`, `full_recomputation`,
+  `family_branch_evidence_complete`, and `report_assembly_completed`.
+- Runtime parity binds repository commit, dirty-worktree state, canonical
+  corpus SHA, split SHA, artifact checksums, model version, and report schema.
+- Synthetic interval coverage is 0.93–0.97 and family/branch null discovery is
+  at most 0.05.
+- Holdout interval/FDR, identity stability, supported-and-believable precision,
+  privacy, and all review gates meet their recorded thresholds.
+- Aggregate output contains no profile/account/match/session identifiers,
+  private filesystem paths, rank/MMR dimensions, or non-finite values.
+- The frozen training manifest and authorization both remain explicit about
+  whether traffic is authorized; fixture artifacts never authorize production.
 
-The owner-directed offline run reused the exact existing corpus; it did not run
-the collector or make a new OpenDota request. That run is historical and is
-not a current release input because its compact rows do not carry the now
-mandatory `leaver_status` evidence. The corpus is
-`.local/calibration/v6-eligible-corpus-windowed.json`, SHA-256
-`1cbce329f903ccad922aeddb93046b6aa2e505004937ebaaec1b854d853e41bd`. The
-frozen seed-6000 split is `.local/calibration/manifests/split-6000.json`,
-SHA-256 `a1433de109368ba06e54ea65ae595a83e8b8376c5832b2dc91cf2b1f37ac85e9`,
-with 791 training and 339 holdout profiles and zero overlap.
+## Future verification commands
 
-The staged artifact build, sealed holdout, and byte-reproducibility record are
-documented in [the existing-corpus calibration record](free-dna-v6.1-existing-corpus-calibration-record.md).
-The historical aggregate result cannot be promoted to State B after this
-hardening; rerun the canonical collection, runtime parity, sealed holdout, and
-aggregate from the same clean release commit. State C remains false because
-independent statistical, Dota-believability, privacy/data-basis, accessibility,
-product-comprehension, container, and operator approvals are still absent.
-The separate production-beta path is the explicit owner authorization for the
-requested beta rollout; it is not a replacement for the formal independent
-review record.
-
-## State A evidence
-
-`scripts/evaluate_v61_calibration.py` runs 2,000 seeded fixture/synthetic
-replicates. The current fixture result is approximately 96.65% interval
-coverage and 4.8% global-null family discovery. These values prove that the
-test harness and fail-closed state evaluator work; they are not empirical
-production claims. The evaluator uses a fixed required-check manifest and
-reports State A true only when every named implementation item and the
-synthetic harness pass. It must report States B and C false when real-corpus,
-holdout, review, privacy, container, or authorization evidence is absent.
-
-## Verification commands
+The complete recollection/build/evaluation command sequence is in the
+[V6.1 release runbook](../operations/free-dna-v6.1-release.md). After the
+implementation is committed, run the required repository checks from a clean
+release worktree:
 
 ```bash
-uv run pytest -q tests/unit/test_free_dna_v61_contract.py \
-  tests/unit/test_v61_estimators.py tests/unit/test_opendota_client.py
+uv run pytest -q tests/unit/test_v61_canonical_corpus.py \
+  tests/unit/test_collect_v61_calibration_histories.py \
+  tests/unit/test_opendota_client.py \
+  tests/unit/test_build_v61_calibration_artifacts.py \
+  tests/unit/test_v61_existing_corpus_calibration.py
 uv run pytest -q tests/calibration/test_v61_calibration_evaluation.py
-uv run pytest -q tests/unit/test_build_v61_calibration_artifacts.py
-uv run ruff check services/api/app/player_analysis_v61 \
-  services/api/app/ingestion/summary_history_contract.py \
-  services/api/app/reports/dna_assembly_v61.py
-uv run mypy
-uv run python -m compileall -q services/api/app scripts
-pnpm --dir apps/web run typecheck
+make lint
+make typecheck
+make test
+make dna-catalog-check
 make docs-check
 ```
 
-CI additionally runs `alembic upgrade head` against PostgreSQL before backend
-tests. Do not mark a release ready when this migration smoke or
-`/health/ready` fails.
-
-See the [V6.1 release runbook](../operations/free-dna-v6.1-release.md) for
-promotion and rollback rules.
+Do not run live collection as part of repository verification. Do not inspect,
+copy, or commit `.local/calibration` contents. Before any future recollection,
+confirm that the operator has the historical candidate input and salt and that
+the existing population can be mapped without exposing profile IDs.

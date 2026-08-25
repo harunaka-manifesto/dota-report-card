@@ -24,8 +24,8 @@ from app.analysis.budget import DataCostLedger
 from app.api.report_schemas_v61 import validate_free_dna_report_v61
 from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
 from app.player_analysis_v61.artifacts import V61ArtifactBundle, load_v61_artifact_bundle
+from app.player_analysis_v61.calibration_corpus import canonical_history, load_canonical_corpus
 from app.player_analysis_v61.corpus_reuse import (
-    EXPECTED_CORPUS_SHA256,
     EXPECTED_HOLDOUT_COUNT,
     EXPECTED_TRAIN_COUNT,
     require_compatible_audit,
@@ -33,7 +33,6 @@ from app.player_analysis_v61.corpus_reuse import (
 )
 from app.player_analysis_v61.legacy_adapter import (
     current_taxonomy_mapping,
-    legacy_canonical_history,
 )
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
 from app.player_analysis_v61.versions import MODEL_VERSION
@@ -205,10 +204,9 @@ def _evaluate_profile(
     started = time.perf_counter()
     digest = _profile_digest(profile_id)
     try:
-        history = legacy_canonical_history(
+        history = canonical_history(
             rows,
             account_id=_stable_account_id(profile_id),
-            completeness="complete",
         )
         matches = history.normalization.eligible_matches
         completed = _complete_sessions(rows, completion)
@@ -378,11 +376,15 @@ def evaluate_holdout(
         corpus_path=corpus_path,
         split_manifest_path=split_manifest_path,
         require_authorization=True,
+        canonical_only=True,
     )
+    corpus = load_canonical_corpus(corpus_path)
+    corpus_sha256 = sha256_file(corpus_path)
+    split_checksum = sha256_file(split_manifest_path)
     bundle = load_v61_artifact_bundle(
         artifact_dir,
-        expected_corpus_sha256=EXPECTED_CORPUS_SHA256,
-        expected_split_checksum=sha256_file(split_manifest_path),
+        expected_corpus_sha256=corpus_sha256,
+        expected_split_checksum=split_checksum,
     )
     if bundle.manifest.get("holdout_output_inspected") is not False:
         raise HoldoutEvaluationError("frozen artifact manifest was already opened for holdout output")
@@ -390,10 +392,17 @@ def evaluate_holdout(
     if not freeze.is_file():
         raise HoldoutEvaluationError("V6.1 freeze record is required before holdout evaluation")
     freeze_payload = json.loads(freeze.read_text(encoding="utf-8"))
+    manifest_checksum = sha256_file(artifact_dir / "build-manifest-6.1.0.json")
+    if (
+        not isinstance(freeze_payload, Mapping)
+        or freeze_payload.get("corpus_sha256") != corpus_sha256
+        or freeze_payload.get("split_manifest_checksum") != split_checksum
+        or freeze_payload.get("compatibility_audit_checksum") != audit["audit_checksum"]
+        or freeze_payload.get("build_manifest_checksum") != manifest_checksum
+    ):
+        raise HoldoutEvaluationError("V6.1 freeze record is not bound to the canonical evidence bytes")
     if freeze_payload.get("holdout_output_inspected") is not False:
         raise HoldoutEvaluationError("holdout output was already inspected before this run")
-    manifest_checksum = sha256_file(artifact_dir / "build-manifest-6.1.0.json")
-    split_checksum = sha256_file(split_manifest_path)
     output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     output_dir.chmod(0o700)
     access_path = output_dir / ACCESS_RECORD_NAME
@@ -423,37 +432,11 @@ def evaluate_holdout(
     if workers < 1:
         raise HoldoutEvaluationError("workers must be positive")
 
-    # The compatibility audit has already validated the private corpus bytes
-    # and chronology.  Re-running the legacy validator here performs an
-    # expensive all-profiles cross-product scan; load the validated compact
-    # rows directly for the sealed, holdout-only projection instead.
-    corpus_payload = json.loads(corpus_path.read_text(encoding="utf-8"))
-    if not isinstance(corpus_payload, Mapping) or not isinstance(corpus_payload.get("matches"), list):
-        raise HoldoutEvaluationError("validated corpus matches are unavailable")
-    corpus_rows = [row for row in corpus_payload["matches"] if isinstance(row, Mapping)]
-    profile_summaries = {
-        str(profile.get("profile_id")): profile
-        for profile in corpus_payload.get("profiles", [])
-        if isinstance(profile, Mapping)
+    corpus_rows = list(corpus.matches)
+    completion_by_profile = {
+        profile_id: dict(corpus.completion_for_profile(profile_id))
+        for profile_id in corpus.profile_ids
     }
-    session_rows: dict[tuple[str, str], list[Mapping[str, Any]]] = defaultdict(list)
-    for row in corpus_rows:
-        session_rows[(str(row["profile_id"]), str(row["session_id"]))].append(row)
-    completion_by_profile: dict[str, dict[str, bool]] = defaultdict(dict)
-    for profile_id, summary in profile_summaries.items():
-        owned = [
-            (sid, min(int(item["start_time"]) for item in session), all(bool(item.get("session_corrupt")) for item in session))
-            for (owner, sid), session in session_rows.items()
-            if owner == profile_id
-        ]
-        ordered_sessions = sorted(owned, key=lambda item: (item[1], item[0]))
-        completed_count = int(summary.get("completed_session_count", 0) or 0)
-        noncorrupt_ids = [sid for sid, _start, corrupt in ordered_sessions if not corrupt]
-        completed = set(noncorrupt_ids[:completed_count])
-        completion_by_profile[profile_id] = {
-            sid: sid in completed and not corrupt
-            for sid, _start, corrupt in ordered_sessions
-        }
     split = json.loads(split_manifest_path.read_text(encoding="utf-8"))
     holdout_ids = {str(value) for value in split["holdout_profile_ids"]}
     if len(holdout_ids) != EXPECTED_HOLDOUT_COUNT:
@@ -573,7 +556,7 @@ def evaluate_holdout(
         "version": HOLDOUT_EVALUATION_VERSION,
         "generated_at": "2000-01-01T00:00:00+00:00",
         "corpus": {
-            "checksum": EXPECTED_CORPUS_SHA256,
+            "checksum": corpus_sha256,
             "profile_count": EXPECTED_HOLDOUT_COUNT,
             "train_profile_count": EXPECTED_TRAIN_COUNT,
             "holdout_profile_count": EXPECTED_HOLDOUT_COUNT,

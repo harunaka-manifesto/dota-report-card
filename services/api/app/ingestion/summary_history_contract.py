@@ -26,6 +26,7 @@ SUMMARY_HISTORY_WINDOW_DAYS = 365
 # possible truncation and suppresses completeness-dependent claims.
 SUMMARY_HISTORY_PROVIDER_LIMIT = 10_000
 SUMMARY_HISTORY_CACHE_KEY_VERSION = "summary-history-cache-1.0.0"
+SUMMARY_HISTORY_RETRY_LIMIT = 0
 
 SUMMARY_HISTORY_PROJECTION = (
     "match_id",
@@ -237,6 +238,7 @@ def request_manifest() -> dict[str, Any]:
         "projection_version": SUMMARY_HISTORY_PROJECTION_VERSION,
         "window_days": SUMMARY_HISTORY_WINDOW_DAYS,
         "provider_limit": SUMMARY_HISTORY_PROVIDER_LIMIT,
+        "retry_limit": SUMMARY_HISTORY_RETRY_LIMIT,
         "projection": list(SUMMARY_HISTORY_PROJECTION),
         "required_fields": sorted(REQUIRED_FIELDS),
         "optional_fields": sorted(OPTIONAL_FIELDS),
@@ -265,6 +267,7 @@ __all__ = [
     "SUMMARY_HISTORY_PROJECTION_VERSION",
     "SUMMARY_HISTORY_PROVIDER_LIMIT",
     "SUMMARY_HISTORY_PROVIDER_VERSION",
+    "SUMMARY_HISTORY_RETRY_LIMIT",
     "SUMMARY_HISTORY_CACHE_KEY_VERSION",
     "SUMMARY_HISTORY_SCHEMA_VERSION",
     "SUMMARY_HISTORY_WINDOW_DAYS",

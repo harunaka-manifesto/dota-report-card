@@ -7,10 +7,11 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import Any
 
+from .calibration_corpus import CANONICAL_SCHEMA_VERSION
 from .copy import SEMANTIC_COPY_REGISTRY
 from .hierarchical import hierarchical_qualification
 from .semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
-from .versions import default_versions_v61
+from .versions import MODEL_VERSION, REPORT_VERSION, default_versions_v61
 
 SYNTHETIC_EVALUATION_VERSION = "v61-synthetic-evaluation-1.0.0"
 RELEASE_EVALUATION_VERSION = "v61-release-evaluation-1.0.0"
@@ -349,10 +350,17 @@ def validate_runtime_parity(
         or not corpus.get("sha256")
         or not isinstance(corpus.get("split_manifest_checksum"), str)
         or not corpus.get("split_manifest_checksum")
+        or corpus.get("schema_version") != CANONICAL_SCHEMA_VERSION
     ):
         raise ValueError("runtime parity must bind source, corpus, and split checksums")
     if not isinstance(versions, Mapping) or not versions or not isinstance(assertions, Mapping):
         raise ValueError("runtime parity must declare versions and assertions")
+    if (
+        versions.get("model_version") != versions.get("model")
+        or versions.get("model") != MODEL_VERSION
+        or versions.get("report_schema_version") != REPORT_VERSION
+    ):
+        raise ValueError("runtime parity model/report schema binding is incomplete")
     required_assertions = {
         "canonical_one_request",
         "fixture_components_in_production",
@@ -440,20 +448,33 @@ def build_v61_calibration_evaluation(
         value is True for value in holdout_gates.values()
     )
     artifact_match = dict(artifact_checksums) == dict(holdout.get("artifact_checksums") or {})
+    expected_corpus = freeze_manifest.get("corpus_sha256")
+    expected_split = freeze_manifest.get("split_manifest_checksum")
+    evidence_bindings_match = bool(
+        compatibility_audit.get("corpus_schema") == CANONICAL_SCHEMA_VERSION
+        and compatibility_audit.get("corpus_sha256") == expected_corpus
+        and compatibility_audit.get("split", {}).get("split_checksum") == expected_split
+        and freeze_record.get("corpus_sha256") == expected_corpus
+        and freeze_record.get("split_manifest_checksum") == expected_split
+        and holdout.get("corpus", {}).get("checksum") == expected_corpus
+        and holdout.get("corpus", {}).get("split_checksum") == expected_split
+        and holdout.get("artifact_manifest_checksum") == freeze_record.get("build_manifest_checksum")
+        and runtime_parity.get("corpus", {}).get("sha256") == expected_corpus
+        and runtime_parity.get("corpus", {}).get("split_manifest_checksum") == expected_split
+    )
     gates = {
         "corpus_compatibility": _measured_gate(
             required=True,
             observed=compatibility_audit.get("core_passed"),
-            passed=compatibility_audit.get("core_passed") is True
-            and compatibility_audit.get("corpus_sha256") == freeze_manifest.get("corpus_sha256"),
-            source="corpus-compatibility-1.0.0.json",
+            passed=compatibility_audit.get("core_passed") is True and evidence_bindings_match,
+            source="corpus-compatibility-2.0.0.json",
         ),
         "reuse_authorization": _measured_gate(
             required="nonempty owner authorization reference",
             observed=compatibility_audit.get("authorization", {}).get("reuse_authorized"),
             passed=compatibility_audit.get("authorization", {}).get("reuse_authorized") is True
             and bool(str(freeze_manifest.get("reuse_authorization_reference", "")).strip()),
-            source="corpus-compatibility-1.0.0.json.authorization",
+            source="corpus-compatibility-2.0.0.json.authorization",
         ),
         "split_integrity": _measured_gate(
             required="seed 6000 / 791 train / 339 holdout / zero overlap",
@@ -498,7 +519,7 @@ def build_v61_calibration_evaluation(
         "runtime_calibration_estimator_parity": _measured_gate(
             required=True,
             observed=runtime_parity,
-            passed=runtime_parity.get("passed") is True,
+            passed=runtime_parity.get("passed") is True and evidence_bindings_match,
             source="runtime-calibration-parity",
         ),
         "identifier_privacy": _measured_gate(
@@ -515,8 +536,12 @@ def build_v61_calibration_evaluation(
         ),
         "artifact_checksum_linkage": _measured_gate(
             required=sorted(expected_artifacts),
-            observed={"artifact_count": len(artifact_checksums), "holdout_match": artifact_match},
-            passed=set(artifact_checksums) >= expected_artifacts and artifact_match,
+            observed={
+                "artifact_count": len(artifact_checksums),
+                "holdout_match": artifact_match,
+                "evidence_bindings_match": evidence_bindings_match,
+            },
+            passed=set(artifact_checksums) >= expected_artifacts and artifact_match and evidence_bindings_match,
             source="frozen artifact manifest and holdout aggregate",
         ),
     }
@@ -530,6 +555,19 @@ def build_v61_calibration_evaluation(
         "artifact_checksums": dict(artifact_checksums),
         "compatibility_audit_checksum": compatibility_audit.get("audit_checksum"),
         "split_manifest_checksum": freeze_manifest.get("split_manifest_checksum"),
+        "corpus_sha256": freeze_manifest.get("corpus_sha256"),
+        "source": {
+            "repository_commit": source_revision,
+            "dirty_worktree": bool(dirty_worktree),
+        },
+        "evidence_bindings": {
+            "canonical_corpus": compatibility_audit.get("corpus_schema") == CANONICAL_SCHEMA_VERSION,
+            "corpus_sha256": freeze_manifest.get("corpus_sha256"),
+            "split_manifest_checksum": freeze_manifest.get("split_manifest_checksum"),
+            "artifact_checksums": dict(artifact_checksums),
+            "runtime_parity_source_revision": runtime_parity.get("source", {}).get("repository_commit"),
+            "runtime_parity_dirty_worktree": runtime_parity.get("source", {}).get("dirty_worktree"),
+        },
         "synthetic": {
             "version": synthetic.get("version"),
             "interval_empirical_coverage": synthetic.get("interval_empirical_coverage"),
