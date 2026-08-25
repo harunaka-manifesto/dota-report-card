@@ -55,6 +55,25 @@ The manifest contains private account IDs, remains mode 0600 under `.local/`,
 and must never be committed to Git. “Precommitted” means frozen before network
 access, not tracked in the repository.
 
+## Replacement scan resumability gate
+
+The future replacement scan may start only from a clean worktree and a
+precommit manifest bound to the exact collection release SHA. Its private scan
+manifest must preserve the precommit SHA, candidate-order SHA, salted
+pseudonym order, candidate count of 1,224, one frozen 365-day window, provider
+limit 10,000, retry limit 0, one summary request per candidate, zero
+detail/parse requests, and mandatory raw archiving.
+
+Per-profile state is owner-only and mode 0600 inside mode-0700 directories.
+The runner durably records `attempt_started` before a request, writes raw
+archives once, atomically writes normalized results, and continues after
+terminal failures. Success, failure, and indeterminate are all terminal for
+resume purposes; an indeterminate request is never retried automatically and
+keeps the release fail-closed. Existing archives are checksum-validated and
+renormalized locally without a network request. The aggregate scan artifact
+must retain failure/indeterminate counts, `rank_or_mmr_used=false`, and zero
+detail/parse accounting. It is not the final 1,130-profile corpus.
+
 ## Evidence chain
 
 Every stage must consume the same canonical corpus bytes and bind the next
@@ -131,6 +150,7 @@ release worktree:
 
 ```bash
 uv run pytest -q tests/unit/test_v61_canonical_corpus.py \
+  tests/unit/test_scan_v61_replacement_holdout.py \
   tests/unit/test_collect_v61_calibration_histories.py \
   tests/unit/test_opendota_client.py \
   tests/unit/test_build_v61_calibration_artifacts.py \

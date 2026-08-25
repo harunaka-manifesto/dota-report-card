@@ -65,14 +65,15 @@ revealed 339 remain validation diagnostics only.
 
 ## Private raw response archive
 
-For a future scan, pass `--raw-archive-dir` to the collector. It writes one
-owner-only, mode-600 JSON object per pseudonymous profile and refuses to replace
-an existing object. The archive stores the requested summary projection,
-endpoint template, request parameters, capture timestamp, provider/projection/
-normalization versions, raw count, provider-limit completeness state, and a
-SHA-256 of the stored response. It removes identifier fields before writing and
-does not store an account-ID lookup; the candidate input and salt stay
-owner-only for collection. Rank/MMR and detail/parse requests remain forbidden.
+For a future scan, pass `--raw-archive-dir` to the dedicated replacement
+scanner. It writes one owner-only, mode-600 JSON object per pseudonymous
+profile and refuses to replace an existing object. The archive stores the
+requested summary projection, endpoint template, request parameters, capture
+timestamp, provider/projection/normalization versions, raw count,
+provider-limit completeness state, and a SHA-256 of the stored response. It
+removes identifier fields before writing and does not store an account-ID
+lookup; the candidate input and salt stay owner-only for collection. Rank/MMR
+and detail/parse requests remain forbidden.
 
 The stored response can be hash-checked and re-normalized with
 `normalize_archived_summary_history`; the same canonical normalization and
@@ -92,6 +93,8 @@ set -euo pipefail
 
 export CAL=.local/calibration/v61
 export CANDIDATES="$CAL/replacement-candidates-precommitted-2026-08-25.json"
+export SCAN_STATE="$CAL/replacement-scan-state"
+export RAW_ARCHIVE="$CAL/raw-summary-archive"
 export RAW_SCAN="$CAL/replacement-summary-scan.json"
 export CORPUS="$CAL/replacement-canonical-corpus.json"
 export AUDIT="$CAL/corpus-compatibility-2.0.0.json"
@@ -133,27 +136,36 @@ before any replacement history request; it does not mean the manifest is
 committed to Git. The manifest records 1,224 planned summary requests, zero
 detail/parse requests, retry limit 0, and mandatory raw archiving.
 
-## Canonical recollection and validation
+## Resumable scan, deterministic selection, and validation
 
-Run the canonical collection only after the owner has authorized network
-collection:
+The following is a future, owner-authorized command. It is not a claim that
+the replacement scan has run. The scanner freezes the 365-day boundary in its
+private immutable manifest, fsyncs an `attempt_started` marker before each
+request, records failures without retrying, and resumes from per-profile state.
+Completed archives are hash-checked and normalized locally. A marker without an
+archive becomes indeterminate and is never retried automatically; any such
+result remains fail-closed.
 
 ```bash
-uv run python scripts/collect_v61_calibration_histories.py \
-  --candidates "$CANDIDATES" \
+test -z "$(git status --porcelain)"
+uv run python scripts/scan_v61_replacement_holdout.py \
+  --precommit-manifest "$CANDIDATES" \
   --salt .local/calibration/v6-corpus-salt.bin \
-  --raw-archive-dir "$CAL/raw-summary-archive" \
+  --raw-archive-dir "$RAW_ARCHIVE" \
+  --state-dir "$SCAN_STATE" \
   --output "$RAW_SCAN" \
+  --release-sha "$(git rev-parse HEAD)" \
   --acknowledge-network-collection
 ```
 
 The raw 1,224-profile scan is not itself the release corpus. A later owner-only
-selection step must rejoin canonical eligibility to the frozen manifest order,
-take the first 339 eligible profiles, merge them with the unaffected 791
-training profiles, and write the concrete replacement corpus and split. That
-derivation is intentionally not implemented in this batch. Only after it has
-written `$CORPUS` and the precommitted split may the validation/build commands
-below run; do not use the revealed old holdout to fill any shortfall.
+selection step must take the first 339 eligible profiles in the frozen
+precommitted order, merge them with the unaffected 791 training profiles, and
+write the concrete replacement corpus and split. That deterministic selection
+and the resulting 791/339 corpus are future steps and are intentionally not
+implemented here. Only after they have written `$CORPUS` and the
+precommitted split may the validation/build commands below run; do not use the
+revealed old holdout to fill any shortfall.
 
 After that future selection step, set the concrete split paths and validate the
 actual replacement corpus. The split is not known before collection:
