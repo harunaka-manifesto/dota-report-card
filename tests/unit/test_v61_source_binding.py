@@ -320,3 +320,60 @@ def test_freeze_writes_exact_source_binding(
     assert freeze_record["source"] == source
     assert loader_kwargs["expected_source_revision"] == source["repository_commit"]
     assert loader_kwargs["expected_dirty_worktree"] is False
+
+
+@pytest.mark.parametrize(
+    ("records", "expected"),
+    [
+        pytest.param(
+            [
+                {"finding_count": 1, "family_counts": {"transfer": 1}},
+                {"finding_count": 1, "family_counts": {"transfer": 1}},
+            ],
+            True,
+            id="cross-profile-duplicate-total-is-valid",
+        ),
+        pytest.param(
+            [{"finding_count": 2, "family_counts": {"transfer": 2}}],
+            False,
+            id="intra-profile-duplicate-family-fails",
+        ),
+        pytest.param(
+            [
+                {"finding_count": 2, "family_counts": {"pool_shape": 1, "transfer": 1}},
+                {"finding_count": 1, "family_counts": {"transfer": 1}},
+            ],
+            True,
+            id="multiple-registered-families-and-cross-profile-total-is-valid",
+        ),
+        pytest.param(
+            [{"finding_count": 2, "family_counts": {"transfer": 1}}],
+            False,
+            id="family-count-sum-must-match-finding-count",
+        ),
+        pytest.param(
+            [{"finding_count": 1, "family_counts": {"consistency": 1}}],
+            False,
+            id="unregistered-family-fails",
+        ),
+        pytest.param(
+            [{"finding_count": 1, "family_counts": {"transfer": -1}}],
+            False,
+            id="negative-family-count-fails",
+        ),
+        pytest.param(
+            [{"finding_count": 1, "family_counts": {"transfer": 1.0}}],
+            False,
+            id="non-integer-family-count-fails",
+        ),
+        pytest.param(
+            [{"finding_count": 1, "family_counts": {"transfer": True}}],
+            False,
+            id="boolean-family-count-fails",
+        ),
+    ],
+)
+def test_one_finding_per_family_is_profile_scoped(
+    records: list[dict[str, object]], expected: bool
+) -> None:
+    assert holdout_evaluation._one_finding_per_family(records) is expected

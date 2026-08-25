@@ -373,6 +373,24 @@ def _paired_v60(path: Path, *, expected_count: int) -> dict[str, Any]:
     }
 
 
+def _one_finding_per_family(evaluated: Sequence[Mapping[str, Any]]) -> bool:
+    return bool(evaluated) and all(
+        isinstance(counts, Mapping)
+        and set(counts) <= set(FINDING_FAMILY_KEYS)
+        and all(
+            isinstance(value, int)
+            and not isinstance(value, bool)
+            and 0 <= value <= 1
+            for value in counts.values()
+        )
+        and isinstance(record.get("finding_count"), int)
+        and not isinstance(record.get("finding_count"), bool)
+        and sum(counts.values()) == record["finding_count"]
+        for record in evaluated
+        for counts in [record.get("family_counts") or {}]
+    )
+
+
 def evaluate_holdout(
     *,
     corpus_path: Path,
@@ -571,7 +589,7 @@ def evaluate_holdout(
         for family in record.get("family_roots", [])
     }
     five_family_roots = observed_family_roots == set(FINDING_FAMILY_KEYS)
-    one_per_family = all(value <= 1 for value in family_counts.values()) if evaluated else False
+    one_per_family = _one_finding_per_family(evaluated)
     at_most_three = all(int(record.get("finding_count", 99)) <= 3 for record in evaluated) if evaluated else False
     family_fdr = 0.0 if family_counts else 0.0
     branch_fdr = 0.0 if semantic_counts else 0.0
