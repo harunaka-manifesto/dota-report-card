@@ -89,7 +89,7 @@ artifact to their actual checksum:
 | Stage | Required input/output | Fail-closed condition |
 |---|---|---|
 | Collection | one summary request per profile; canonical projection; no detail/parse/rank dependency | missing/invalid `leaver_status`, wrong request boundary, or raw identifiers |
-| Corpus validation | nested profiles with deterministic match/session fields | old compact schema, fewer than 30 usable matches, unsupported fields, or inconsistent sessions |
+| Corpus validation | nested profiles with deterministic match/session fields and schema-aware windows | old compact schema, fewer than 30 usable matches, unsupported fields, inconsistent sessions, or a match outside its own profile window |
 | Split binding | seed 6000, 791 train, 339 holdout, zero overlap | population or usable-profile mismatch; split not bound to actual corpus SHA |
 | Audit | aggregate-only leaver/request/privacy/provenance evidence | audit checksum, corpus checksum, split checksum, or canonical schema mismatch |
 | Builders/freeze | training-only artifacts and frozen manifest | holdout rows used for training, missing corpus/split binding, or release authorization in the training manifest |
@@ -99,13 +99,22 @@ artifact to their actual checksum:
 
 ## Canonical data contract
 
-The private corpus schema is `v61-calibration-corpus-2.0.0`. It retains
+Historical canonical evidence remains readable as
+`v61-calibration-corpus-2.0.0`; the latest release schema is
+`v61-calibration-corpus-2.1.0`. The historical 791 training profiles are
+intentionally preserved while the 339 replacement profiles are collected
+later, so the eventual release corpus is mixed-window by design. It retains
 `profile_id` as a salted hash, `match_id`, time/duration/outcome/hero/KDA,
 `leaver_status`, game mode/lobby type, nullable public context, and runtime-
 derived session fields. It never materializes `account_id`. A profile is usable
 only with at least 30 included matches. Missing or invalid `leaver_status` is
 excluded and audited; it is never defaulted to zero. Session IDs, indexes, and
-corruption flags are recomputed with the runtime 90-minute policy.
+corruption flags are recomputed with the runtime 90-minute policy. In 2.1.0,
+each profile must declare one ordered `collection_window` of exactly 365 days
+under `window_policy.mode=per_profile_365_day`; every match and session
+inference uses that profile window. A global start/end envelope is not an
+analytical window, and no profile receives more than 365 days. The replacement
+corpus has not been built yet.
 
 The source boundary is `/players/{account_id}/matches`, one physical request,
 365 days, limit 10,000, the shared canonical projection, and `retry_limit=0`.

@@ -18,7 +18,6 @@ from app.analysis.budget import DataCostLedger  # noqa: E402
 from app.dna.sessions import infer_sessions  # noqa: E402
 from app.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
 from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
-    CANONICAL_SCHEMA_VERSION,
     CANONICAL_SESSION_POLICY,
     canonical_history,
     load_canonical_corpus,
@@ -161,7 +160,7 @@ def _runtime_parity(args: argparse.Namespace) -> int:
         raise ValueError("runtime parity input has no 30-match profile with leaver_status")
     account_id = 1
     rows = candidates[0]
-    window = corpus.payload["window"]
+    window = corpus.collection_window_for_profile(str(rows[0]["profile_id"]))
     history = canonical_history(
         rows,
         account_id,
@@ -211,7 +210,7 @@ def _runtime_parity(args: argparse.Namespace) -> int:
         "passed": True,
         "source": {"repository_commit": revision, "dirty_worktree": dirty},
         "corpus": {
-            "schema_version": CANONICAL_SCHEMA_VERSION,
+            "schema_version": corpus.payload["schema_version"],
             "sha256": corpus_sha256,
             "split_manifest_checksum": split_checksum,
         },
@@ -233,7 +232,7 @@ def _runtime_parity(args: argparse.Namespace) -> int:
         parity,
         source_revision=revision,
         dirty_worktree=dirty,
-        corpus_sha256=parity["corpus"]["sha256"],
+        corpus_sha256=corpus_sha256,
         split_manifest_checksum=split_checksum,
         artifact_checksums=bundle.checksums,
     )

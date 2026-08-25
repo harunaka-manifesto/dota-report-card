@@ -4,11 +4,17 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
+import pytest
 from app.player_analysis_v6.calibration import REQUIRED_THRESHOLD_KEYS
 from app.player_analysis_v61.artifacts import (
     load_context_baseline_artifact_v61,
     load_threshold_artifact_v61,
+)
+from app.player_analysis_v61.calibration_corpus import (
+    CANONICAL_SCHEMA_VERSION,
+    LEGACY_CANONICAL_SCHEMA_VERSION,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -97,3 +103,42 @@ def test_v61_builder_rejects_rank_dimensions(tmp_path: Path) -> None:
 
     assert result.returncode != 0
     assert "rank/MMR dimensions are forbidden" in result.stderr
+
+
+@pytest.mark.parametrize("schema", [LEGACY_CANONICAL_SCHEMA_VERSION, CANONICAL_SCHEMA_VERSION])
+def test_bind_split_records_the_corpus_schema_from_payload(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, schema: str
+) -> None:
+    from scripts import build_v61_calibration_artifacts as builder
+
+    profile_ids = tuple(f"{index:064x}" for index in range(1_130))
+    corpus = SimpleNamespace(
+        payload={"schema_version": schema},
+        profile_ids=profile_ids,
+        usable_profile_ids=profile_ids,
+    )
+    corpus_path = tmp_path / "corpus.json"
+    corpus_path.write_text("{}", encoding="utf-8")
+    split_path = tmp_path / "split.json"
+    split_path.write_text(
+        json.dumps(
+            {
+                "seed": 6000,
+                "train_profile_ids": list(profile_ids[:791]),
+                "holdout_profile_ids": list(profile_ids[791:]),
+            }
+        ),
+        encoding="utf-8",
+    )
+    output_path = tmp_path / "bound.json"
+    monkeypatch.setattr(builder, "load_canonical_corpus", lambda _path: corpus)
+
+    assert builder._bind_split(
+        SimpleNamespace(
+            input=corpus_path,
+            split_manifest=split_path,
+            output=output_path,
+        )
+    ) == 0
+
+    assert json.loads(output_path.read_text(encoding="utf-8"))["corpus_schema"] == schema

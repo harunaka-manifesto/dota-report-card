@@ -42,6 +42,7 @@ from app.ingestion.summary_normalize import (  # noqa: E402
 from app.opendota.client import OpenDotaClient  # noqa: E402
 from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
     CANONICAL_SESSION_POLICY,
+    LEGACY_CANONICAL_SCHEMA_VERSION,
     MINIMUM_USABLE_MATCHES,
 )
 
@@ -306,7 +307,7 @@ async def collect_profiles(
         )
     eligible_profiles = [profile for profile in profiles if profile["status"] == "eligible"]
     return {
-        "schema_version": "v61-calibration-corpus-2.0.0",
+        "schema_version": LEGACY_CANONICAL_SCHEMA_VERSION,
         "generated_at": datetime.now(UTC).isoformat(),
         "request_manifest": request_manifest(),
         "source": {

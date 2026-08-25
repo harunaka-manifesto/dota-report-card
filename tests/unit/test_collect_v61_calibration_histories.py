@@ -51,6 +51,7 @@ def test_v61_collector_uses_canonical_one_request_contract_without_identifiers()
     payload = asyncio.run(collect_profiles(source, [42], salt=b"x" * 32))
 
     assert source.calls == [(42, 365, SUMMARY_HISTORY_PROJECTION, 10_000)]
+    assert payload["schema_version"] == "v61-calibration-corpus-2.0.0"
     assert payload["request_manifest"]["physical_request_count"] == 1
     assert payload["raw_identifiers_present"] is False
     assert "account_id" not in payload["profiles"][0]

@@ -24,7 +24,6 @@ from app.player_analysis_v61.artifacts import (  # noqa: E402
     load_v61_artifact_bundle,
 )
 from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
-    CANONICAL_SCHEMA_VERSION,
     load_canonical_corpus,
 )
 from app.player_analysis_v61.corpus_reuse import (  # noqa: E402
@@ -121,7 +120,7 @@ def _bind_split(args: argparse.Namespace) -> int:
             "a new approved split/population is required"
         )
     bound = dict(split)
-    bound["corpus_schema"] = CANONICAL_SCHEMA_VERSION
+    bound["corpus_schema"] = corpus.payload["schema_version"]
     bound["corpus_sha256"] = sha256_file(args.input)
     atomic_json(args.output, bound)
     print(

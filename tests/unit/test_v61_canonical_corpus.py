@@ -5,20 +5,28 @@ import hashlib
 import json
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
+from app.dna.sessions import infer_sessions
 from app.ingestion.summary_history_contract import (
     normalize_canonical_summary_history,
     request_manifest,
 )
 from app.player_analysis_v61.calibration_corpus import (
     CANONICAL_SCHEMA_VERSION,
+    CANONICAL_SESSION_POLICY,
+    LEGACY_CANONICAL_SCHEMA_VERSION,
     CanonicalCorpusError,
     canonical_history,
     validate_canonical_corpus,
 )
 from app.player_analysis_v61.calibration_evaluation import validate_runtime_parity
-from app.player_analysis_v61.corpus_reuse import audit_reuse
+from app.player_analysis_v61.corpus_reuse import (
+    CANONICAL_AUDIT_VERSION,
+    audit_reuse,
+    require_compatible_audit,
+)
 from app.player_analysis_v61.versions import MODEL_VERSION, REPORT_VERSION
 
 from scripts.collect_v61_calibration_histories import collect_profile
@@ -32,9 +40,15 @@ from scripts.v61_calibration_builder import (
 WINDOW_START = 1_700_000_000
 WINDOW_END = WINDOW_START + 365 * 24 * 60 * 60
 PROFILE_ID = "a" * 64
+SECOND_PROFILE_ID = "b" * 64
 
 
-def _source_row(index: int, *, leaver_status: int | None = 0) -> dict[str, object]:
+def _source_row(
+    index: int,
+    *,
+    window_start: int = WINDOW_START,
+    leaver_status: int | None = 0,
+) -> dict[str, object]:
     row: dict[str, object] = {
         "match_id": 10_000 + index,
         "player_slot": 0,
@@ -43,7 +57,7 @@ def _source_row(index: int, *, leaver_status: int | None = 0) -> dict[str, objec
         "game_mode": 1,
         "lobby_type": 0,
         "hero_id": 1 + index % 4,
-        "start_time": WINDOW_START + index * 1_800,
+        "start_time": window_start + index * 1_800,
         "version": "7.39",
         "kills": index % 8,
         "deaths": 1 + index % 4,
@@ -56,8 +70,9 @@ def _source_row(index: int, *, leaver_status: int | None = 0) -> dict[str, objec
     return row
 
 
-def _canonical_payload() -> dict[str, object]:
-    raw = [_source_row(index) for index in range(30)]
+def _canonical_profile(profile_id: str, window_start: int) -> dict[str, object]:
+    window_end = window_start + 365 * 24 * 60 * 60
+    raw = [_source_row(index, window_start=window_start) for index in range(30)]
     audit = normalize_canonical_summary_history(raw, account_id=1).audit.as_dict()
     analytical = [
         {
@@ -82,8 +97,8 @@ def _canonical_payload() -> dict[str, object]:
     history = canonical_history(
         analytical,
         account_id=1,
-        window_start=WINDOW_START,
-        window_end=WINDOW_END,
+        window_start=window_start,
+        window_end=window_end,
     )
     for row, match in zip(analytical, history.normalization.matches, strict=True):
         row.update(
@@ -94,7 +109,40 @@ def _canonical_payload() -> dict[str, object]:
             }
         )
     return {
-        "schema_version": CANONICAL_SCHEMA_VERSION,
+        "profile_id": profile_id,
+        "status": "eligible",
+        "eligible_match_count": 30,
+        "session_count": 1,
+        "completed_session_count": 1,
+        "history_audit": audit,
+        "eligibility_audit": {
+            "excluded_match_count": 0,
+            "exclusion_reasons": {},
+            "duplicate_conflict_count": 0,
+            "minimum_usable_matches": 30,
+        },
+        "matches": analytical,
+    }
+
+
+def _canonical_payload(
+    *,
+    schema_version: str = LEGACY_CANONICAL_SCHEMA_VERSION,
+    profile_specs: tuple[tuple[str, int], ...] = ((PROFILE_ID, WINDOW_START),),
+) -> dict[str, object]:
+    profiles = [
+        _canonical_profile(profile_id, window_start)
+        for profile_id, window_start in profile_specs
+    ]
+    for profile, (_profile_id, window_start) in zip(profiles, profile_specs, strict=True):
+        if schema_version == CANONICAL_SCHEMA_VERSION:
+            profile["collection_window"] = {
+                "days": 365,
+                "start_time": window_start,
+                "end_time": window_start + 365 * 24 * 60 * 60,
+            }
+    payload: dict[str, object] = {
+        "schema_version": schema_version,
         "generated_at": "2000-01-01T00:00:00+00:00",
         "request_manifest": request_manifest(),
         "source": {
@@ -105,28 +153,24 @@ def _canonical_payload() -> dict[str, object]:
             "rank_or_mmr_used": False,
             "retry_limit": 0,
         },
-        "window": {"days": 365, "start_time": WINDOW_START, "end_time": WINDOW_END},
-        "profile_count": 1,
-        "summary": {"profile_count": 1, "eligible_profile_count": 1, "eligible_match_count": 30},
+        "profile_count": len(profiles),
+        "summary": {
+            "profile_count": len(profiles),
+            "eligible_profile_count": len(profiles),
+            "eligible_match_count": 30 * len(profiles),
+        },
         "raw_identifiers_present": False,
-        "profiles": [
-            {
-                "profile_id": PROFILE_ID,
-                "status": "eligible",
-                "eligible_match_count": 30,
-                "session_count": 1,
-                "completed_session_count": 1,
-                "history_audit": audit,
-                "eligibility_audit": {
-                    "excluded_match_count": 0,
-                    "exclusion_reasons": {},
-                    "duplicate_conflict_count": 0,
-                    "minimum_usable_matches": 30,
-                },
-                "matches": analytical,
-            }
-        ],
+        "profiles": profiles,
     }
+    if schema_version == LEGACY_CANONICAL_SCHEMA_VERSION:
+        payload["window"] = {"days": 365, "start_time": WINDOW_START, "end_time": WINDOW_END}
+    else:
+        payload["window_policy"] = {
+            "mode": "per_profile_365_day",
+            "days": 365,
+            "profile_window_field": "collection_window",
+        }
+    return payload
 
 
 def test_canonical_validator_accepts_valid_synthetic_corpus() -> None:
@@ -134,7 +178,178 @@ def test_canonical_validator_accepts_valid_synthetic_corpus() -> None:
 
     assert corpus.profile_ids == (PROFILE_ID,)
     assert corpus.matches[0]["match_id"] == 10_000
+    assert corpus.window_mode == "single_365_day"
     assert corpus.aggregate_diagnostics()["raw_identifiers_present"] is False
+
+
+def test_v21_validator_accepts_mixed_profile_windows() -> None:
+    payload = _canonical_payload(
+        schema_version=CANONICAL_SCHEMA_VERSION,
+        profile_specs=(
+            (PROFILE_ID, WINDOW_START),
+            (SECOND_PROFILE_ID, WINDOW_START + 1_000_000),
+        ),
+    )
+
+    corpus = validate_canonical_corpus(payload, checksum="synthetic")
+    diagnostics = corpus.aggregate_diagnostics()
+
+    assert corpus.window_mode == "per_profile_365_day"
+    assert corpus.collection_window_for_profile(SECOND_PROFILE_ID)["start_time"] == WINDOW_START + 1_000_000
+    assert diagnostics["schema_version"] == CANONICAL_SCHEMA_VERSION
+    assert diagnostics["profile_window_count"] == 2
+    assert diagnostics["distinct_window_count"] == 2
+    assert diagnostics["all_profile_windows_exact_365_days"] is True
+    encoded = json.dumps(diagnostics)
+    assert PROFILE_ID not in encoded
+    assert SECOND_PROFILE_ID not in encoded
+    assert str(WINDOW_START) not in encoded
+
+
+def test_v20_remains_strictly_single_window() -> None:
+    payload = _canonical_payload(
+        profile_specs=(
+            (PROFILE_ID, WINDOW_START),
+            (SECOND_PROFILE_ID, WINDOW_START + 40_000_000),
+        ),
+    )
+
+    with pytest.raises(CanonicalCorpusError, match="outside the declared"):
+        validate_canonical_corpus(payload)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda payload: payload.pop("window_policy"), "window_policy"),
+        (lambda payload: payload["profiles"][0].pop("collection_window"), "collection_window"),
+        (lambda payload: payload["profiles"][0]["collection_window"].update(days=364), "days"),
+        (
+            lambda payload: payload["profiles"][0]["collection_window"].update(
+                end_time=WINDOW_START - 1
+            ),
+            "not ordered",
+        ),
+        (
+            lambda payload: payload["profiles"][0]["collection_window"].update(
+                end_time=WINDOW_START + 31_536_001
+            ),
+            "exactly 365 days",
+        ),
+    ],
+)
+def test_v21_window_policy_and_profile_windows_are_strict(
+    mutation: Any, message: str
+) -> None:
+    payload = _canonical_payload(schema_version=CANONICAL_SCHEMA_VERSION)
+    mutation(payload)
+
+    with pytest.raises(CanonicalCorpusError, match=message):
+        validate_canonical_corpus(payload)
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda payload: payload.update(account_id=42), "private account identifier"),
+        (
+            lambda payload: payload["profiles"][0]["matches"][0].update(rank_tier=80),
+            "forbidden rank/MMR",
+        ),
+        (
+            lambda payload: payload["profiles"][0]["matches"][0].update(leaver_status=99),
+            "invalid or abandoning",
+        ),
+        (
+            lambda payload: payload["profiles"][0]["matches"][0].update(game_mode=2),
+            "unsupported game_mode",
+        ),
+        (
+            lambda payload: payload["profiles"][0]["matches"][0].update(lobby_type=1),
+            "unsupported lobby_type",
+        ),
+        (
+            lambda payload: payload["request_manifest"].update(physical_request_count=2),
+            "one-request",
+        ),
+    ],
+)
+def test_v21_preserves_privacy_data_quality_and_request_boundaries(
+    mutation: Any, message: str
+) -> None:
+    payload = _canonical_payload(schema_version=CANONICAL_SCHEMA_VERSION)
+    mutation(payload)
+
+    with pytest.raises(CanonicalCorpusError, match=message):
+        validate_canonical_corpus(payload)
+
+
+def test_v21_rejects_a_top_level_analytical_window() -> None:
+    payload = _canonical_payload(schema_version=CANONICAL_SCHEMA_VERSION)
+    payload["window"] = {"days": 365, "start_time": WINDOW_START, "end_time": WINDOW_END}
+
+    with pytest.raises(CanonicalCorpusError, match="top-level window"):
+        validate_canonical_corpus(payload)
+
+
+@pytest.mark.parametrize("offset", [-1, 31_536_001])
+def test_v21_match_must_be_inside_its_own_profile_window(offset: int) -> None:
+    payload = _canonical_payload(schema_version=CANONICAL_SCHEMA_VERSION)
+    payload["profiles"][0]["matches"][0]["start_time"] = WINDOW_START + offset
+
+    with pytest.raises(CanonicalCorpusError, match="outside the declared"):
+        validate_canonical_corpus(payload)
+
+
+def test_v21_match_outside_own_window_fails_even_if_inside_another_window() -> None:
+    second_start = WINDOW_START + 1_000_000
+    payload = _canonical_payload(
+        schema_version=CANONICAL_SCHEMA_VERSION,
+        profile_specs=((PROFILE_ID, WINDOW_START), (SECOND_PROFILE_ID, second_start)),
+    )
+    payload["profiles"][1]["matches"][0]["start_time"] = WINDOW_START + 1
+
+    with pytest.raises(CanonicalCorpusError, match="outside the declared"):
+        validate_canonical_corpus(payload)
+
+
+def test_v21_sessions_and_completed_counts_use_each_profile_window() -> None:
+    second_start = WINDOW_START + 1_000_000
+    payload = _canonical_payload(
+        schema_version=CANONICAL_SCHEMA_VERSION,
+        profile_specs=((PROFILE_ID, WINDOW_START), (SECOND_PROFILE_ID, second_start)),
+    )
+    second = payload["profiles"][1]
+    second_end = second_start + 31_536_000
+    base = WINDOW_END - 1_000 - 29 * 1_800
+    for index, row in enumerate(second["matches"]):
+        row["start_time"] = base + index * 1_800
+    history = canonical_history(
+        second["matches"],
+        account_id=1,
+        window_start=second_start,
+        window_end=second_end,
+    )
+    for row, match in zip(second["matches"], history.normalization.matches, strict=True):
+        row.update(
+            {
+                "session_id": match.session_id,
+                "session_index": match.session_index,
+                "session_corrupt": match.session_corrupt,
+            }
+        )
+    second["completed_session_count"] = len(
+        infer_sessions(
+            history.normalization.eligible_matches,
+            CANONICAL_SESSION_POLICY,
+            window_start=second_start,
+            window_end=second_end,
+        ).completed_sessions
+    )
+
+    corpus = validate_canonical_corpus(payload, checksum="synthetic")
+
+    assert corpus.completion_for_profile(SECOND_PROFILE_ID) == {"session-1": True}
 
 
 @pytest.mark.parametrize("leaver_status", [None, 99])
@@ -236,9 +451,99 @@ def test_canonical_audit_uses_actual_checksum_and_reports_leaver_counts(tmp_path
 
     assert audit["corpus_sha256"] == corpus_sha
     assert "expected_corpus_sha256" not in audit
+    assert audit["corpus_schema"] == LEGACY_CANONICAL_SCHEMA_VERSION
+    assert audit["window"] == {"days": 365, "ordered": True, "exact_365_days": True}
     assert audit["leaver_status"]["included_valid_count"] == 30
     assert audit["aggregate_identifier_free"] is True
     assert audit["core_passed"] is False
+
+
+def test_canonical_audit_supports_v21_windows_without_leaking_timestamps(tmp_path: Path) -> None:
+    corpus_path = tmp_path / "canonical.json"
+    corpus_path.write_text(
+        json.dumps(_canonical_payload(schema_version=CANONICAL_SCHEMA_VERSION)),
+        encoding="utf-8",
+    )
+    corpus_sha = hashlib.sha256(corpus_path.read_bytes()).hexdigest()
+    split_path = tmp_path / "split.json"
+    split_path.write_text(
+        json.dumps(
+            {
+                "seed": 6000,
+                "corpus_sha256": corpus_sha,
+                "train_profile_ids": [PROFILE_ID],
+                "holdout_profile_ids": [],
+                "train_digest": profile_digest([PROFILE_ID]),
+                "holdout_digest": profile_digest([]),
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    audit = audit_reuse(corpus_path, split_path, authorization_reference="synthetic")
+
+    assert audit["version"] == CANONICAL_AUDIT_VERSION
+    assert audit["corpus_schema"] == CANONICAL_SCHEMA_VERSION
+    assert audit["window"] == {
+        "mode": "per_profile_365_day",
+        "days": 365,
+        "profile_window_count": 1,
+        "distinct_window_count": 1,
+        "all_ordered": True,
+        "all_exact_365_days": True,
+        "all_matches_within_declared_profile_window": True,
+    }
+    encoded = json.dumps(audit)
+    assert PROFILE_ID not in encoded
+    assert str(WINDOW_START) not in encoded
+
+
+def test_canonical_only_requires_latest_v21_schema(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import app.player_analysis_v61.corpus_reuse as reuse
+
+    audit_path = tmp_path / "audit.json"
+    corpus_path = tmp_path / "corpus.json"
+    split_path = tmp_path / "split.json"
+    corpus_path.write_text("{}", encoding="utf-8")
+    split_path.write_text("{}", encoding="utf-8")
+
+    def fake_audit(schema: str) -> dict[str, object]:
+        audit = {
+            "corpus_schema": schema,
+            "corpus_sha256": "corpus",
+            "split": {"split_checksum": "split"},
+            "core_passed": True,
+            "authorization": {"reuse_authorized": True},
+            "aggregate_identifier_free": True,
+        }
+        from app.player_analysis_v61.corpus_reuse import audit_checksum
+
+        audit["audit_checksum"] = audit_checksum(audit)
+        return audit
+
+    monkeypatch.setattr(reuse, "sha256_file", lambda path: "split" if path == split_path else "corpus")
+    for schema, should_fail in (
+        (LEGACY_CANONICAL_SCHEMA_VERSION, True),
+        (CANONICAL_SCHEMA_VERSION, False),
+    ):
+        audit_path.write_text(json.dumps(fake_audit(schema)), encoding="utf-8")
+        if should_fail:
+            with pytest.raises(ValueError, match="latest canonical"):
+                require_compatible_audit(
+                    audit_path,
+                    corpus_path=corpus_path,
+                    split_manifest_path=split_path,
+                    canonical_only=True,
+                )
+        else:
+            require_compatible_audit(
+                audit_path,
+                corpus_path=corpus_path,
+                split_manifest_path=split_path,
+                canonical_only=True,
+            )
 
 
 def test_builders_filter_holdout_rows_before_fitting_prior() -> None:
@@ -297,7 +602,10 @@ def test_runtime_parity_fails_closed_on_binding_mismatch(
 
 def test_runtime_parity_consumes_canonical_corpus_directly(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     corpus_path = tmp_path / "canonical.json"
-    corpus_path.write_text(json.dumps(_canonical_payload()), encoding="utf-8")
+    corpus_path.write_text(
+        json.dumps(_canonical_payload(schema_version=CANONICAL_SCHEMA_VERSION)),
+        encoding="utf-8",
+    )
     corpus_sha = hashlib.sha256(corpus_path.read_bytes()).hexdigest()
     split_path = tmp_path / "split.json"
     split_path.write_text(

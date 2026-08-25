@@ -29,13 +29,18 @@ from app.player_analysis_v6.calibration_corpus import (
 )
 from app.player_analysis_v61.calibration_corpus import (
     CANONICAL_SCHEMA_VERSION,
+    CANONICAL_WINDOW_DAYS,
+    CANONICAL_WINDOW_SECONDS,
+    LEGACY_CANONICAL_SCHEMA_VERSION,
     MINIMUM_USABLE_MATCHES,
+    PER_PROFILE_WINDOW_MODE,
+    SUPPORTED_CANONICAL_SCHEMA_VERSIONS,
     CanonicalCorpusError,
     load_canonical_corpus,
 )
 
 AUDIT_VERSION = "v61-corpus-compatibility-1.0.0"
-CANONICAL_AUDIT_VERSION = "v61-canonical-corpus-audit-1.0.0"
+CANONICAL_AUDIT_VERSION = "v61-canonical-corpus-audit-1.1.0"
 EXPECTED_CORPUS_SHA256 = "1cbce329f903ccad922aeddb93046b6aa2e505004937ebaaec1b854d853e41bd"
 EXPECTED_SPLIT_SEED = 6000
 EXPECTED_TRAIN_COUNT = 791
@@ -145,6 +150,52 @@ def _canonical_coverage(
     return numerator / denominator if denominator else 0.0
 
 
+def _canonical_window_audit(corpus: Any) -> dict[str, Any]:
+    if corpus.payload["schema_version"] == LEGACY_CANONICAL_SCHEMA_VERSION:
+        window = corpus.payload["window"]
+        return {
+            "days": window.get("days"),
+            "ordered": int(window["start_time"]) < int(window["end_time"]),
+            "exact_365_days": window.get("days") == EXPECTED_WINDOW_DAYS,
+        }
+
+    windows = [
+        corpus.collection_window_for_profile(profile_id)
+        for profile_id in corpus.profile_ids
+    ]
+    distinct_windows = {
+        (
+            int(window["days"]),
+            int(window["start_time"]),
+            int(window["end_time"]),
+        )
+        for window in windows
+    }
+    all_ordered = all(
+        int(window["start_time"]) < int(window["end_time"])
+        for window in windows
+    )
+    all_exact = all(
+        window.get("days") == CANONICAL_WINDOW_DAYS
+        and int(window["end_time"]) - int(window["start_time"]) == CANONICAL_WINDOW_SECONDS
+        for window in windows
+    )
+    all_matches_within_window = all(
+        int(window["start_time"]) <= int(row["start_time"]) <= int(window["end_time"])
+        for row in corpus.matches
+        for window in [corpus.collection_window_for_profile(str(row["profile_id"]))]
+    )
+    return {
+        "mode": PER_PROFILE_WINDOW_MODE,
+        "days": CANONICAL_WINDOW_DAYS,
+        "profile_window_count": len(windows),
+        "distinct_window_count": len(distinct_windows),
+        "all_ordered": all_ordered,
+        "all_exact_365_days": all_exact,
+        "all_matches_within_declared_profile_window": all_matches_within_window,
+    }
+
+
 def audit_canonical(
     corpus_path: str | Path,
     split_manifest_path: str | Path,
@@ -212,19 +263,15 @@ def audit_canonical(
     }
     source = corpus.payload["source"]
     manifest = corpus.payload["request_manifest"]
-    window = corpus.payload["window"]
+    schema_version = corpus.payload["schema_version"]
     source_projection = {
         "exact": manifest.get("projection") == list(SUMMARY_HISTORY_PROJECTION),
         "canonical_projection_version": SUMMARY_HISTORY_PROJECTION_VERSION,
-        "canonical_schema_version": CANONICAL_SCHEMA_VERSION,
+        "canonical_schema_version": schema_version,
         "provider_limit": manifest.get("provider_limit"),
         "retry_limit": manifest.get("retry_limit"),
     }
-    window_audit = {
-        "days": window.get("days"),
-        "ordered": int(window.get("start_time", 0)) < int(window.get("end_time", 0)),
-        "exact_365_days": window.get("days") == EXPECTED_WINDOW_DAYS,
-    }
+    window_audit = _canonical_window_audit(corpus)
     leaver_audit = {
         "raw_coverage": _canonical_coverage(profiles, "leaver_status"),
         "included_count": len(corpus.matches),
@@ -253,14 +300,24 @@ def audit_canonical(
         and source.get("detail_requests") == 0
         and source.get("parse_requests") == 0
         and source.get("rank_or_mmr_used") is False
-        and window_audit["ordered"]
-        and window_audit["exact_365_days"]
+        and (
+            (
+                window_audit["ordered"]
+                and window_audit["exact_365_days"]
+            )
+            if schema_version == LEGACY_CANONICAL_SCHEMA_VERSION
+            else (
+                window_audit["all_ordered"]
+                and window_audit["all_exact_365_days"]
+                and window_audit["all_matches_within_declared_profile_window"]
+            )
+        )
         and leaver_audit["included_count"] == leaver_audit["included_valid_count"]
         and leaver_audit["excluded_rows_audited"]
     )
     audit: dict[str, Any] = {
         "version": CANONICAL_AUDIT_VERSION,
-        "corpus_schema": CANONICAL_SCHEMA_VERSION,
+        "corpus_schema": schema_version,
         "corpus_sha256": corpus_sha256,
         "corpus_population": {
             "profile_count": len(profile_ids),
@@ -393,7 +450,7 @@ def audit_reuse(
         raise CompatibilityAuditError("corpus is not valid JSON") from exc
     if (
         isinstance(canonical_payload, Mapping)
-        and canonical_payload.get("schema_version") == CANONICAL_SCHEMA_VERSION
+        and canonical_payload.get("schema_version") in SUPPORTED_CANONICAL_SCHEMA_VERSIONS
     ):
         return audit_canonical(
             corpus_path,
@@ -603,7 +660,10 @@ def require_compatible_audit(
     if audit.get("corpus_sha256") != sha256_file(corpus_path):
         raise CompatibilityAuditError("compatibility audit does not match corpus bytes")
     if canonical_only and audit.get("corpus_schema") != CANONICAL_SCHEMA_VERSION:
-        raise CompatibilityAuditError("canonical V6.1 corpus audit is required; legacy compact evidence cannot authorize release")
+        raise CompatibilityAuditError(
+            "latest canonical V6.1 corpus audit is required; "
+            "legacy or superseded schema evidence cannot authorize release"
+        )
     if audit.get("split", {}).get("split_checksum") != sha256_file(split_manifest_path):
         raise CompatibilityAuditError("compatibility audit does not match split bytes")
     if audit.get("core_passed") is not True:

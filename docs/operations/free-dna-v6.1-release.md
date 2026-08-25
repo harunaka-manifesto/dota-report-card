@@ -39,6 +39,17 @@ must have `leaver_status` 0 or 1. Session fields are derived with the runtime
 profile hashes, match IDs, source fields, and session fields, but never
 `account_id`. Aggregate evidence must remain identifier-free.
 
+The historical 791 training profiles remain readable as
+`v61-calibration-corpus-2.0.0`. The latest canonical schema is
+`v61-calibration-corpus-2.1.0`, which is required for the eventual replacement
+release corpus. That mixed-window corpus is expected because the historical
+training profiles and the 339 replacement holdout profiles are collected at
+different times. Each profile carries its own `collection_window` with exactly
+365 days; no profile receives more than 365 days, and no top-level start/end
+envelope is used as an analytical window. The 2.1.0 `window_policy` is
+`per_profile_365_day`, and session/completed-session inference uses each
+profile's declared window. The replacement corpus has not been built here.
+
 ## Consumed holdout and replacement protocol
 
 The prior 339-profile holdout was consumed by the failed release and is not

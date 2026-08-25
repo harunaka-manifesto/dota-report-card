@@ -39,7 +39,14 @@ from app.ingestion.summary_normalize import (
     NormalizedSummaryMatch,
 )
 
-CANONICAL_SCHEMA_VERSION = "v61-calibration-corpus-2.0.0"
+LEGACY_CANONICAL_SCHEMA_VERSION = "v61-calibration-corpus-2.0.0"
+CANONICAL_SCHEMA_VERSION = "v61-calibration-corpus-2.1.0"
+SUPPORTED_CANONICAL_SCHEMA_VERSIONS = frozenset(
+    {LEGACY_CANONICAL_SCHEMA_VERSION, CANONICAL_SCHEMA_VERSION}
+)
+CANONICAL_WINDOW_DAYS = 365
+CANONICAL_WINDOW_SECONDS = 31_536_000
+PER_PROFILE_WINDOW_MODE = "per_profile_365_day"
 MINIMUM_USABLE_MATCHES = 30
 CANONICAL_SESSION_POLICY = SessionPolicy(gap_minutes=90)
 PROFILE_HASH = re.compile(r"^[0-9a-f]{64}$")
@@ -123,6 +130,18 @@ class CanonicalCalibrationCorpus:
             )
         )
 
+    @property
+    def window_mode(self) -> str:
+        if self.payload.get("schema_version") == CANONICAL_SCHEMA_VERSION:
+            return PER_PROFILE_WINDOW_MODE
+        return "single_365_day"
+
+    def collection_window_for_profile(self, profile_id: str) -> Mapping[str, Any]:
+        profile = self.profile_summaries[profile_id]
+        if self.window_mode == PER_PROFILE_WINDOW_MODE:
+            return profile["collection_window"]
+        return self.payload["window"]
+
     def completion_for_profile(self, profile_id: str) -> Mapping[str, bool]:
         return self.completed_sessions_by_profile.get(profile_id, {})
 
@@ -133,8 +152,26 @@ class CanonicalCalibrationCorpus:
             for reason, count in (profile.get("eligibility_audit", {}).get("exclusion_reasons", {}) or {}).items()
             for _ in range(int(count) if isinstance(count, int) and count > 0 else 0)
         )
+        windows = [self.collection_window_for_profile(profile_id) for profile_id in self.profile_ids]
+        distinct_windows = {
+            (
+                int(window["days"]),
+                int(window["start_time"]),
+                int(window["end_time"]),
+            )
+            for window in windows
+        }
+        exact_windows = all(
+            window.get("days") == CANONICAL_WINDOW_DAYS
+            and int(window["end_time"]) - int(window["start_time"]) == CANONICAL_WINDOW_SECONDS
+            for window in windows
+        )
         return {
-            "schema_version": CANONICAL_SCHEMA_VERSION,
+            "schema_version": self.payload["schema_version"],
+            "window_mode": self.window_mode,
+            "profile_window_count": len(windows),
+            "distinct_window_count": len(distinct_windows),
+            "all_profile_windows_exact_365_days": exact_windows,
             "profile_count": len(self.profile_summaries),
             "usable_profile_count": len(self.usable_profile_ids),
             "below_minimum_profile_count": len(self.profile_summaries) - len(self.usable_profile_ids),
@@ -176,6 +213,25 @@ def _integer(value: Any, label: str, *, minimum: int | None = None) -> int:
     if minimum is not None and value < minimum:
         raise CanonicalCorpusError(f"{label} must be >= {minimum}")
     return value
+
+
+def _validate_window(
+    window: Any,
+    label: str,
+    *,
+    exact_duration: bool,
+) -> Mapping[str, Any]:
+    if not isinstance(window, Mapping):
+        raise CanonicalCorpusError(f"{label} must be an object")
+    if window.get("days") != CANONICAL_WINDOW_DAYS:
+        raise CanonicalCorpusError(f"{label}.days must be 365")
+    start = _integer(window.get("start_time"), f"{label}.start_time")
+    end = _integer(window.get("end_time"), f"{label}.end_time")
+    if start >= end:
+        raise CanonicalCorpusError(f"{label} is not ordered")
+    if exact_duration and end - start != CANONICAL_WINDOW_SECONDS:
+        raise CanonicalCorpusError(f"{label} must span exactly 365 days")
+    return window
 
 
 def _profile_rows(profile: Mapping[str, Any], profile_id: str) -> list[dict[str, Any]]:
@@ -458,8 +514,12 @@ def validate_canonical_corpus(
     *,
     checksum: str = "",
 ) -> CanonicalCalibrationCorpus:
-    if payload.get("schema_version") != CANONICAL_SCHEMA_VERSION:
-        raise CanonicalCorpusError(f"canonical corpus schema must be {CANONICAL_SCHEMA_VERSION}")
+    schema_version = payload.get("schema_version")
+    if schema_version not in SUPPORTED_CANONICAL_SCHEMA_VERSIONS:
+        raise CanonicalCorpusError(
+            "canonical corpus schema must be one of "
+            f"{sorted(SUPPORTED_CANONICAL_SCHEMA_VERSIONS)}"
+        )
     _walk(payload)
     if payload.get("raw_identifiers_present") is not False:
         raise CanonicalCorpusError("canonical corpus must declare raw_identifiers_present=false")
@@ -481,13 +541,21 @@ def validate_canonical_corpus(
         raise CanonicalCorpusError("canonical corpus source request counts are invalid")
     if source.get("rank_or_mmr_used") is not False:
         raise CanonicalCorpusError("canonical corpus source must declare rank_or_mmr_used=false")
-    window = payload.get("window")
-    if not isinstance(window, Mapping) or window.get("days") != 365:
-        raise CanonicalCorpusError("canonical corpus must declare a 365-day window")
-    _integer(window.get("start_time"), "window.start_time")
-    _integer(window.get("end_time"), "window.end_time")
-    if int(window["start_time"]) >= int(window["end_time"]):
-        raise CanonicalCorpusError("canonical corpus window is not ordered")
+    if schema_version == LEGACY_CANONICAL_SCHEMA_VERSION:
+        corpus_window = _validate_window(payload.get("window"), "window", exact_duration=False)
+    else:
+        if "window" in payload:
+            raise CanonicalCorpusError("V2.1 canonical corpus cannot declare a top-level window")
+        policy = payload.get("window_policy")
+        if not isinstance(policy, Mapping):
+            raise CanonicalCorpusError("V2.1 canonical corpus window_policy is required")
+        if (
+            policy.get("mode") != PER_PROFILE_WINDOW_MODE
+            or policy.get("days") != CANONICAL_WINDOW_DAYS
+            or policy.get("profile_window_field") != "collection_window"
+        ):
+            raise CanonicalCorpusError("V2.1 canonical corpus window_policy is invalid")
+        corpus_window = None
     profiles = payload.get("profiles")
     if not isinstance(profiles, list) or not profiles:
         raise CanonicalCorpusError("canonical corpus profiles must be a non-empty array")
@@ -507,6 +575,16 @@ def validate_canonical_corpus(
         if status not in {"eligible", "ineligible"}:
             raise CanonicalCorpusError("canonical profile status is invalid")
         rows = _profile_rows(profile, profile_id)
+        if schema_version == LEGACY_CANONICAL_SCHEMA_VERSION:
+            if corpus_window is None:
+                raise CanonicalCorpusError("canonical corpus window is required")
+            profile_window = corpus_window
+        else:
+            profile_window = _validate_window(
+                profile.get("collection_window"),
+                f"profile {profile_id} collection_window",
+                exact_duration=True,
+            )
         if profile.get("eligible_match_count") != len(rows):
             raise CanonicalCorpusError("canonical profile eligible match count mismatch")
         raw_count = _validate_history_audit(profile, len(rows))
@@ -538,7 +616,7 @@ def validate_canonical_corpus(
             raise CanonicalCorpusError("canonical profile is marked ineligible despite usable match support")
         session_rows: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for row in rows:
-            _validate_match(row, profile_id, window)
+            _validate_match(row, profile_id, profile_window)
             session_rows[str(row["session_id"])].append(row)
             flat_rows.append(row)
         if profile.get("session_count") != len(session_rows):
@@ -550,8 +628,8 @@ def validate_canonical_corpus(
             canonical_history(
                 rows,
                 account_id=1,
-                window_start=int(window["start_time"]),
-                window_end=int(window["end_time"]),
+                window_start=int(profile_window["start_time"]),
+                window_end=int(profile_window["end_time"]),
             )
             if rows
             else None
@@ -574,8 +652,8 @@ def validate_canonical_corpus(
                 infer_sessions(
                     observed.normalization.eligible_matches,
                     CANONICAL_SESSION_POLICY,
-                    window_start=int(window["start_time"]),
-                    window_end=int(window["end_time"]),
+                    window_start=int(profile_window["start_time"]),
+                    window_end=int(profile_window["end_time"]),
                 ).completed_sessions
             )
             if observed is not None
@@ -641,9 +719,14 @@ __all__ = [
     "CANONICAL_OPTIONAL_MATCH_FIELDS",
     "CANONICAL_SCHEMA_VERSION",
     "CANONICAL_SESSION_POLICY",
+    "CANONICAL_WINDOW_DAYS",
+    "CANONICAL_WINDOW_SECONDS",
     "CanonicalCalibrationCorpus",
     "CanonicalCorpusError",
+    "LEGACY_CANONICAL_SCHEMA_VERSION",
     "MINIMUM_USABLE_MATCHES",
+    "PER_PROFILE_WINDOW_MODE",
+    "SUPPORTED_CANONICAL_SCHEMA_VERSIONS",
     "canonical_history",
     "canonical_rows",
     "load_canonical_corpus",
