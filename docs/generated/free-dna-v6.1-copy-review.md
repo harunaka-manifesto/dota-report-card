@@ -14,9 +14,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `pool_shape` / `shape`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Your annual pool is broad around a smaller, repeatedly observed center.
-- Evidence label: annual hero mass and stable core
-- Interpretation: Breadth and concentration describe different parts of the same observed portfolio.
+- Claim: Your pool is wider than it first looks—but it has a center.
+- Evidence label: Annual hero mass and stable core.
+- Interpretation: Taxonomy and coverage uncertainty remain alternatives.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `contradiction_reveal` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -26,9 +26,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `pool_shape` / `name_job`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Your hero names cover more ground than the mapped jobs behind them.
-- Evidence label: hero diversity versus fractional job mass
-- Interpretation: Different heroes repeatedly supply a more concentrated functional mix.
+- Claim: Your hero names cover more ground than the jobs behind them.
+- Evidence label: Hero diversity versus fractional job mass.
+- Interpretation: Functional jobs depend on taxonomy coverage.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `contradiction_reveal` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -38,9 +38,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `pool_shape` / `name_job`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: A more compact hero set covers a wider mapped job mixture.
-- Evidence label: hero diversity versus fractional job mass
-- Interpretation: The observed pool gets functional coverage without requiring the same amount of name diversity.
+- Claim: A compact hero set covers a wider mix of jobs.
+- Evidence label: Hero diversity versus fractional job mass.
+- Interpretation: Taxonomy is descriptive, not actual role truth.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `contradiction_reveal` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -50,9 +50,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `pool_shape` / `migration`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Your hero distribution changed across the year while the mapped job mixture stayed closer.
-- Evidence label: chronological hero and job distribution distance
-- Interpretation: The names moved more than the taxonomy-described functions; patch and draft context remain unresolved.
+- Claim: Your hero names moved more across the year than the jobs they covered.
+- Evidence label: Chronological hero and job distribution distance.
+- Interpretation: Taxonomy and unobserved context remain unresolved.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `contradiction_reveal` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -62,9 +62,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `transfer` / `frontier`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Outcome and summary expression remain compatible through the supported distance frontier.
-- Evidence label: cross-fitted distance-band components
-- Interpretation: The result is bounded to covered distance bands and does not identify why transfer held.
+- Claim: More of your observed expression travels when the hero changes.
+- Evidence label: Outcome/activity/survival components across distance bands.
+- Interpretation: Covered distance bands only; no why.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `core_boundary` / `text_evidence`
 - Recommendation / verification: `verify_transfer` / `primary, guardrail`
@@ -74,9 +74,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `transfer` / `component_frontier`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Observed results stop matching core sooner than summary expression does.
-- Evidence label: outcome versus expression frontiers
-- Interpretation: Similar activity and exposure can coexist with a different result distribution.
+- Claim: The result changes before your expression does.
+- Evidence label: Outcome versus expression frontiers.
+- Interpretation: Similar activity/exposure can coexist with a different result distribution.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `two_versions` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -86,9 +86,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `transfer` / `component_frontier`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Summary expression changes before the observed result distribution does.
-- Evidence label: outcome versus expression frontiers
-- Interpretation: Compatible results do not mean the underlying summary rates were the same.
+- Claim: Your expression changes before the result does.
+- Evidence label: Outcome versus expression frontiers.
+- Interpretation: Compatible results do not mean equal rates.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `two_versions` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -98,9 +98,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `transfer` / `component_frontier`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Adjusted involvement marks the nearest supported transfer boundary.
-- Evidence label: cross-fitted involvement frontier
-- Interpretation: The boundary is limited to covered scoreboard-event activity.
+- Claim: Involvement holds farther into the hero change.
+- Evidence label: Cross-fitted involvement frontier.
+- Interpretation: Covered scoreboard-event activity only.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `core_boundary` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -110,9 +110,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `transfer` / `component_frontier`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Adjusted death exposure marks the nearest supported transfer boundary.
-- Evidence label: cross-fitted exposure frontier
-- Interpretation: The boundary does not identify what happened inside individual games.
+- Claim: Death exposure holds farther into the hero change.
+- Evidence label: Cross-fitted exposure frontier.
+- Interpretation: Does not identify what happened inside a game.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `core_boundary` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -122,9 +122,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `transfer` / `function`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: The supported transfer gap is localized to one mapped function context.
-- Evidence label: function-localized distance frontier
-- Interpretation: The taxonomy localization is descriptive and remains sensitive to mapping coverage.
+- Claim: The supported gap sits in one mapped job context.
+- Evidence label: Function-localized distance frontier.
+- Interpretation: Localization depends on taxonomy coverage.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `core_boundary` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -134,9 +134,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `post_loss_response` / `result_state`
 - Rollout: `public_candidate`
 - Denominator: `transitions`; minimum `30` opportunities and `12` sessions
-- Claim: After exactly one loss, your next observed selection tends to stay closer to the prior choice or core.
-- Evidence label: exactly-one-loss transitions
-- Interpretation: This is a same-session transition pattern, not evidence of motive or recovery.
+- Claim: After one loss, your next choice stays closer to your prior path.
+- Evidence label: Exactly-one-loss transitions.
+- Interpretation: Same-session transition association only.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `after_x` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -146,9 +146,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `post_loss_response` / `streak_state`
 - Rollout: `public_candidate`
 - Denominator: `transitions`; minimum `30` opportunities and `12` sessions
-- Claim: Your observed selection response after two or more losses differs from the one-loss state.
-- Evidence label: one-loss versus two-plus-loss transitions
-- Interpretation: The streak threshold describes choices in supported same-session opportunities, without explaining why they changed.
+- Claim: After two or more losses, your next choice changes differently.
+- Evidence label: One-loss versus two-plus-loss transitions.
+- Interpretation: Streak threshold describes opportunities, not motive.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `after_x` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -158,9 +158,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `post_loss_response` / `bidirectional`
 - Rollout: `public_candidate`
 - Denominator: `transitions`; minimum `30` opportunities and `12` sessions
-- Claim: Wins and losses precede different supported movements through your observed pool.
-- Evidence label: bidirectional result-state transitions
-- Interpretation: Result state is associated with the next selection, without establishing why.
+- Claim: Your next choice moves differently after wins and losses.
+- Evidence label: Bidirectional result-state transitions.
+- Interpretation: Next selection is observed; reason remains unknown.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `after_x` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -170,9 +170,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `post_loss_response` / `equivalence`
 - Rollout: `public_candidate`
 - Denominator: `transitions`; minimum `30` opportunities and `12` sessions
-- Claim: Your next-selection movement is practically compatible across the supported result states.
-- Evidence label: result-state equivalence
-- Interpretation: The complete interval, not a nonsignificant p-value, supports the bounded equivalence claim.
+- Claim: Your next-choice movement stays about the same after wins and losses.
+- Evidence label: Result-state equivalence.
+- Interpretation: Complete interval supports bounded equivalence.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `after_x` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -182,9 +182,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `post_loss_response` / `chain`
 - Rollout: `public_candidate`
 - Denominator: `transitions`; minimum `30` opportunities and `12` sessions
-- Claim: Selection or summary expression changes after the result state while the next-result evidence stays compatible.
-- Evidence label: selection, expression, and next-result chain
-- Interpretation: The adjustment is observable; whether it helped is unresolved.
+- Claim: Your next choice changes after the result, while the next result stays unresolved.
+- Evidence label: Selection, expression, and next-result chain.
+- Interpretation: “Whether it helped is unresolved” remains Depth 2 copy.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `after_x` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -194,9 +194,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `combat_expression` / `conditional_expression`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Adjusted involvement stays compatible while death exposure moves in the qualified comparison.
-- Evidence label: conditional involvement and exposure
-- Interpretation: One expression component is stable and the other is context-dependent.
+- Claim: Involvement holds while death exposure moves.
+- Evidence label: Conditional involvement and exposure.
+- Interpretation: Covered summary rates only.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `two_versions` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -206,9 +206,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `combat_expression` / `conditional_expression`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Adjusted death exposure stays compatible while involvement moves in the qualified comparison.
-- Evidence label: conditional involvement and exposure
-- Interpretation: The contrast is limited to covered summary rates.
+- Claim: Death exposure holds while involvement moves.
+- Evidence label: Conditional involvement and exposure.
+- Interpretation: Context-adjusted summary rates only.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `two_versions` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -218,9 +218,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `combat_expression` / `result_expression`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: Supported summary-expression components are compatible across contexts with different result distributions.
-- Evidence label: expression equivalence and result difference
-- Interpretation: Unobserved draft, objective, and inside-game context remain plausible alternatives.
+- Claim: Similar summary expression can arrive with different results.
+- Evidence label: Expression equivalence and result difference.
+- Interpretation: Draft, objective, and inside-game context remain alternatives.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `two_versions` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -230,9 +230,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `combat_expression` / `result_expression`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: The observed result distribution stays compatible while summary expression differs.
-- Evidence label: result equivalence and expression difference
-- Interpretation: Similar results can arrive with different covered scoreboard-rate profiles.
+- Claim: Similar results can arrive with different summary expression.
+- Evidence label: Result equivalence and expression difference.
+- Interpretation: Similar result distribution does not mean same game.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `two_versions` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -242,9 +242,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `combat_expression` / `variance`
 - Rollout: `public_candidate`
 - Denominator: `matches`; minimum `30` opportunities and `12` sessions
-- Claim: A supported hero, function, or distance context contains more of the observed expression variance.
-- Evidence label: conditional variance decomposition
-- Interpretation: Localization is not blame and does not establish a cause.
+- Claim: More of the expression variance sits in one supported context.
+- Evidence label: Conditional variance decomposition.
+- Interpretation: Localization is descriptive.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `variance_decomposition` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -254,9 +254,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `session_drift` / `position_curve`
 - Rollout: `public_candidate`
 - Denominator: `sessions`; minimum `30` opportunities and `12` sessions
-- Claim: Game 1 has a supported summary signature relative to later direct positions.
-- Evidence label: G1 versus later session positions
-- Interpretation: The comparison uses completed sessions and direct position opportunities.
+- Claim: Game 1 has a different supported shape from later games.
+- Evidence label: G1 versus later session positions.
+- Interpretation: Direct positions and completed sessions only.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `session_curve` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -266,9 +266,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `session_drift` / `position_curve`
 - Rollout: `public_candidate`
 - Denominator: `sessions`; minimum `30` opportunities and `12` sessions
-- Claim: A covered summary component moves gradually across supported session positions.
-- Evidence label: G1 through G5-plus position curve
-- Interpretation: Selection into longer sessions remains an unresolved alternative.
+- Claim: A covered part of your expression moves as the session continues.
+- Evidence label: G1 through G5-plus position curve.
+- Interpretation: Selection into longer sessions remains unresolved.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `session_curve` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -278,9 +278,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `session_drift` / `breakpoint`
 - Rollout: `public_candidate`
 - Denominator: `sessions`; minimum `30` opportunities and `12` sessions
-- Claim: A predeclared session position is the first supported break in the observed curve.
-- Evidence label: frozen G2, G3, or G4 comparison
-- Interpretation: The breakpoint was frozen before evaluation and does not explain the change.
+- Claim: The first clear break appears at the registered session position.
+- Evidence label: Frozen G2, G3, or G4 comparison.
+- Interpretation: Breakpoint was frozen before evaluation.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `session_curve` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -290,9 +290,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `session_drift` / `selection`
 - Rollout: `public_candidate`
 - Denominator: `sessions`; minimum `30` opportunities and `12` sessions
-- Claim: Pool selection moves across supported session positions while summary expression stays compatible.
-- Evidence label: selection curve and expression equivalence
-- Interpretation: The observed choice movement remains descriptive and does not explain why it occurred.
+- Claim: Your pool changes across a session while summary expression stays compatible.
+- Evidence label: Selection curve and expression equivalence.
+- Interpretation: Choice movement is descriptive.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `session_curve` / `text_evidence`
 - Recommendation / verification: `none` / `none`
@@ -302,9 +302,9 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Family / branch: `session_drift` / `stopping`
 - Rollout: `public_candidate`
 - Denominator: `sessions`; minimum `30` opportunities and `12` sessions
-- Claim: Completed, boundary-safe session endings differ after the registered result state.
-- Evidence label: censor-aware session endings
-- Interpretation: The 365-day boundary and session-gap sensitivity limit the claim; intended stopping is unknown.
+- Claim: Completed session endings differ after the registered result state.
+- Evidence label: Censor-aware session endings.
+- Interpretation: 365-day boundary and session-gap sensitivity limit the claim.
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `session_curve` / `text_evidence`
 - Recommendation / verification: `none` / `none`
