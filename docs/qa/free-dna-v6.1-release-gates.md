@@ -36,6 +36,25 @@ the same-history value is retained only as a diagnostic named
 `interval_self_containment`, never as a release gate. Synthetic known-truth
 coverage remains the supported calibration gate.
 
+## Replacement holdout precommit gate
+
+Before any replacement-history network request, the private git-ignored
+precommit manifest must pass all of these aggregate checks:
+
+- 1,224 candidates remain after excluding the original 1,130 and all 10
+  previously screened reserve candidates.
+- Original/screened exclusions have zero overlap, and untouched candidates have
+  zero pseudonymous overlap with the current 791/339 population.
+- The target is 339 profiles, with canonical eligibility at least 30 usable
+  matches.
+- The frozen order uses the namespaced account-ID SHA-256 rule and records
+  exactly 1,224 summary requests, zero detail requests, zero parse requests,
+  retry limit 0, and mandatory raw archiving.
+
+The manifest contains private account IDs, remains mode 0600 under `.local/`,
+and must never be committed to Git. “Precommitted” means frozen before network
+access, not tracked in the repository.
+
 ## Evidence chain
 
 Every stage must consume the same canonical corpus bytes and bind the next

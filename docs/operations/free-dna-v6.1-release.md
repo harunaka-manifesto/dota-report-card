@@ -68,7 +68,7 @@ revealed 339 remain validation diagnostics only.
 For a future scan, pass `--raw-archive-dir` to the collector. It writes one
 owner-only, mode-600 JSON object per pseudonymous profile and refuses to replace
 an existing object. The archive stores the requested summary projection,
-endpoint placeholder, request parameters, capture timestamp, provider/projection/
+endpoint template, request parameters, capture timestamp, provider/projection/
 normalization versions, raw count, provider-limit completeness state, and a
 SHA-256 of the stored response. It removes identifier fields before writing and
 does not store an account-ID lookup; the candidate input and salt stay
@@ -92,8 +92,7 @@ set -euo pipefail
 
 export CAL=.local/calibration/v61
 export CANDIDATES="$CAL/replacement-candidates-precommitted-2026-08-25.json"
-export RAW_SPLIT="$CAL/manifests/replacement-split-2026-08-25.json"
-export SPLIT="$CAL/manifests/replacement-split-canonical-2026-08-25.json"
+export RAW_SCAN="$CAL/replacement-summary-scan.json"
 export CORPUS="$CAL/replacement-canonical-corpus.json"
 export AUDIT="$CAL/corpus-compatibility-2.0.0.json"
 export ARTIFACTS="$CAL/staged"
@@ -101,22 +100,38 @@ export EVAL="$CAL/evaluation"
 export STAMP=2000-01-01T00:00:00+00:00
 
 mkdir -p "$CAL/manifests" "$ARTIFACTS" "$EVAL"
-test -s "$CANDIDATES"
-test -s "$RAW_SPLIT"
+test -s .local/calibration/v6-public-match-candidates.json
+test -s "$CAL/candidates.json"
+test -s "$CAL/replacement-candidates-batch-01.json"
+test -s .local/calibration/v61/manifests/split-6000-canonical.json
 test -s .local/calibration/v6-corpus-salt.bin
 ```
 
-If the replacement manifest or salt cannot be recovered, stop. Do not recreate
-the original 1,130-profile candidate artifact. An explicitly authorized owner
-may prepare the replacement manifest from the untouched reserve using the
-predeclared hash order; that preparation performs no network request:
+If any source file or the salt is missing, stop. Do not recreate the original
+1,130-profile candidate artifact. After this implementation is committed and
+the worktree is clean, prepare the private manifest before any OpenDota request:
 
 ```bash
-# Owner-only, precommitted manifest preparation; no OpenDota call.
-# Exclude the original 1,130 and all ten previously screened reserve candidates.
-# Order the remaining 1,224 IDs by the hash rule above and record the exact
-# 1,224-call scan plan plus the first-339-eligible selection rule.
+test -z "$(git status --porcelain)"
+uv run python scripts/prepare_v61_replacement_holdout.py \
+  --historical-candidates .local/calibration/v6-public-match-candidates.json \
+  --original-population .local/calibration/v61/candidates.json \
+  --screened-reserve .local/calibration/v61/replacement-candidates-batch-01.json \
+  --salt .local/calibration/v6-corpus-salt.bin \
+  --current-split .local/calibration/v61/manifests/split-6000-canonical.json \
+  --expected-current-split-sha256 174caebdaf13b45f70423002216007abac00510aeecc1a1df686152c52aec1c5 \
+  --release-sha "$(git rev-parse HEAD)" \
+  --output "$CANDIDATES"
+
+# Re-run the exact command above to verify the same private bytes without rewriting;
+# its aggregate status must be "verified-existing".
+test -s "$CANDIDATES"
 ```
+
+“Precommitted” means this private, git-ignored account-ID manifest is frozen
+before any replacement history request; it does not mean the manifest is
+committed to Git. The manifest records 1,224 planned summary requests, zero
+detail/parse requests, retry limit 0, and mandatory raw archiving.
 
 ## Canonical recollection and validation
 
@@ -128,24 +143,42 @@ uv run python scripts/collect_v61_calibration_histories.py \
   --candidates "$CANDIDATES" \
   --salt .local/calibration/v6-corpus-salt.bin \
   --raw-archive-dir "$CAL/raw-summary-archive" \
-  --output "$CORPUS" \
+  --output "$RAW_SCAN" \
   --acknowledge-network-collection
+```
+
+The raw 1,224-profile scan is not itself the release corpus. A later owner-only
+selection step must rejoin canonical eligibility to the frozen manifest order,
+take the first 339 eligible profiles, merge them with the unaffected 791
+training profiles, and write the concrete replacement corpus and split. That
+derivation is intentionally not implemented in this batch. Only after it has
+written `$CORPUS` and the precommitted split may the validation/build commands
+below run; do not use the revealed old holdout to fill any shortfall.
+
+After that future selection step, set the concrete split paths and validate the
+actual replacement corpus. The split is not known before collection:
+
+```bash
+export RAW_SPLIT="$CAL/manifests/replacement-split-2026-08-25.json"
+export SPLIT="$CAL/manifests/replacement-split-canonical-2026-08-25.json"
+
+test -s "$CORPUS"
+test -s "$RAW_SPLIT"
 
 uv run python scripts/build_v61_calibration_artifacts.py validate-corpus \
   --input "$CORPUS" \
   --output "$CAL/corpus-diagnostics.json"
-```
 
-Bind the precommitted replacement split to the actual newly collected bytes.
-This command fails if the population is not exactly 1,130 usable profiles or if
-the 791/339 split no longer covers it; it does not print profile IDs:
-
-```bash
 uv run python scripts/build_v61_calibration_artifacts.py bind-split \
   --input "$CORPUS" \
   --split-manifest "$RAW_SPLIT" \
   --output "$SPLIT"
+```
 
+The split binding fails if the population is not exactly 1,130 usable profiles
+or if the 791/339 split no longer covers it; it does not print profile IDs:
+
+```bash
 uv run python scripts/build_v61_calibration_artifacts.py audit-reuse \
   --input "$CORPUS" \
   --split-manifest "$SPLIT" \
