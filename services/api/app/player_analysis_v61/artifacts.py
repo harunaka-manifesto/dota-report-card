@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -35,6 +36,7 @@ V61_SUPPORT_ARTIFACTS = (
     "semantic-outcome-calibration-1.0.0.json",
     "build-manifest-6.1.0.json",
 )
+V61_BUILD_MANIFEST_VERSION = "v61-calibration-build-manifest-2.0.0"
 PRODUCTION_BETA_AUTHORIZATION_VERSION = "v61-production-beta-authorization-1.0.0"
 
 
@@ -88,6 +90,18 @@ def _finite_number(value: Any, label: str, *, minimum: float | None = None) -> f
 
 def _file_checksum(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _validate_clean_source_binding(source: Any) -> Mapping[str, Any]:
+    if (
+        not isinstance(source, Mapping)
+        or set(source) != {"repository_commit", "dirty_worktree"}
+        or not isinstance(source.get("repository_commit"), str)
+        or re.fullmatch(r"[0-9a-f]{40}", source["repository_commit"]) is None
+        or source.get("dirty_worktree") is not False
+    ):
+        raise ArtifactValidationError("V6.1 build manifest lacks a valid clean source binding")
+    return source
 
 
 @dataclass(frozen=True, slots=True)
@@ -316,6 +330,8 @@ def load_v61_artifact_bundle(
     *,
     expected_corpus_sha256: str | None = None,
     expected_split_checksum: str | None = None,
+    expected_source_revision: str | None = None,
+    expected_dirty_worktree: bool | None = None,
 ) -> V61ArtifactBundle:
     """Load every required V6.1 artifact and verify manifest byte linkage."""
 
@@ -323,6 +339,20 @@ def load_v61_artifact_bundle(
     missing = [name for name in V61_SUPPORT_ARTIFACTS if not (directory / name).is_file()]
     if missing:
         raise ArtifactValidationError(f"V6.1 artifact bundle is missing: {missing}")
+    manifest = _read(directory / V61_SUPPORT_ARTIFACTS[6], "V6.1 build manifest")
+    if manifest.get("version") != V61_BUILD_MANIFEST_VERSION:
+        raise ArtifactValidationError("unsupported V6.1 build manifest version")
+    if manifest.get("corpus_schema") != CANONICAL_SCHEMA_VERSION:
+        raise ArtifactValidationError("V6.1 artifacts must be bound to the canonical corpus schema")
+    if manifest.get("release_authorized") is not False:
+        raise ArtifactValidationError("V6.1 build manifest cannot authorize release")
+    if manifest.get("holdout_output_inspected") is not False:
+        raise ArtifactValidationError("V6.1 build manifest must freeze before holdout inspection")
+    source = _validate_clean_source_binding(manifest.get("source"))
+    if expected_source_revision is not None and source["repository_commit"] != expected_source_revision:
+        raise ArtifactValidationError("V6.1 artifact source revision mismatch")
+    if expected_dirty_worktree is not None and source["dirty_worktree"] is not expected_dirty_worktree:
+        raise ArtifactValidationError("V6.1 artifact worktree state mismatch")
     baseline = load_context_baseline_artifact_v61(directory / V61_SUPPORT_ARTIFACTS[0])
     thresholds = load_threshold_artifact_v61(directory / V61_SUPPORT_ARTIFACTS[1])
     prior = _load_training_support(
@@ -369,15 +399,6 @@ def load_v61_artifact_bundle(
     _validate_distance(distance)
     _validate_reliability(reliability)
     _validate_semantic(semantic)
-    manifest = _read(directory / V61_SUPPORT_ARTIFACTS[6], "V6.1 build manifest")
-    if manifest.get("version") != "v61-calibration-build-manifest-1.0.0":
-        raise ArtifactValidationError("unsupported V6.1 build manifest version")
-    if manifest.get("corpus_schema") != CANONICAL_SCHEMA_VERSION:
-        raise ArtifactValidationError("V6.1 artifacts must be bound to the canonical corpus schema")
-    if manifest.get("release_authorized") is not False:
-        raise ArtifactValidationError("V6.1 build manifest cannot authorize release")
-    if manifest.get("holdout_output_inspected") is not False:
-        raise ArtifactValidationError("V6.1 build manifest must freeze before holdout inspection")
     manifest_artifacts = manifest.get("artifacts")
     data_artifacts = set(V61_SUPPORT_ARTIFACTS[:-1])
     if not isinstance(manifest_artifacts, Mapping) or set(manifest_artifacts) != data_artifacts:
@@ -469,6 +490,7 @@ __all__ = [
     "BASELINE_VERSION",
     "ContextBaselineArtifactV61",
     "THRESHOLDS_VERSION",
+    "V61_BUILD_MANIFEST_VERSION",
     "ThresholdArtifactV61",
     "V61ArtifactBundle",
     "V61_SUPPORT_ARTIFACTS",

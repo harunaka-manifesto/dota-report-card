@@ -34,6 +34,7 @@ from app.player_analysis_v6.metrics import (
 from app.player_analysis_v61.artifacts import (
     BASELINE_VERSION,
     THRESHOLDS_VERSION,
+    V61_BUILD_MANIFEST_VERSION,
     V61_SUPPORT_ARTIFACTS,
     load_context_baseline_artifact_v61,
 )
@@ -61,10 +62,11 @@ PRIOR_VERSION = "summary-priors-6.1.0"
 DISTANCE_VERSION = "portfolio-distance-calibration-1.0.0"
 RELIABILITY_VERSION = "session-reliability-calibration-1.0.0"
 SEMANTIC_ARTIFACT_VERSION = "semantic-outcome-calibration-1.0.0"
-MANIFEST_VERSION = "v61-calibration-build-manifest-1.0.0"
+MANIFEST_VERSION = V61_BUILD_MANIFEST_VERSION
 ESTIMATOR_VERSION = "v61-runtime-estimator-parity-2.0.0"
 CHECKPOINT_VERSION = "v61-training-checkpoint-1.0.0"
 FREEZE_RECORD_NAME = "freeze-record-6.1.0.json"
+FREEZE_RECORD_VERSION = "v61-freeze-record-2.0.0"
 EPSILON = 1e-9
 
 
@@ -643,12 +645,14 @@ def build_manifest(
     generated_at: str,
     authorization_reference: str,
     taxonomy: Mapping[Any, Any],
+    source: Mapping[str, Any],
 ) -> dict[str, Any]:
     data_artifacts = V61_SUPPORT_ARTIFACTS[:-1]
     return {
         "version": MANIFEST_VERSION,
         "builder_version": BUILDER_VERSION,
         "generated_at": generated_at,
+        "source": dict(source),
         "seed": EXPECTED_SPLIT_SEED,
         "corpus_schema": CANONICAL_SCHEMA_VERSION,
         "minimum_usable_matches": MINIMUM_USABLE_MATCHES,
@@ -686,6 +690,7 @@ def write_freeze_manifest(
     generated_at: str,
     authorization_reference: str,
     taxonomy: Mapping[Any, Any],
+    source: Mapping[str, Any],
 ) -> dict[str, Any]:
     manifest = build_manifest(
         artifact_dir,
@@ -697,6 +702,7 @@ def write_freeze_manifest(
         generated_at=generated_at,
         authorization_reference=authorization_reference,
         taxonomy=taxonomy,
+        source=source,
     )
     atomic_json(artifact_dir / "build-manifest-6.1.0.json", manifest)
     return manifest
@@ -735,6 +741,7 @@ __all__ = [
     "DISTANCE_VERSION",
     "ESTIMATOR_VERSION",
     "FREEZE_RECORD_NAME",
+    "FREEZE_RECORD_VERSION",
     "MANIFEST_VERSION",
     "PRIOR_VERSION",
     "RELIABILITY_VERSION",

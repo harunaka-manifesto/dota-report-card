@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -36,6 +38,7 @@ from app.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # n
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG  # noqa: E402
 from v61_calibration_builder import (  # noqa: E402
     FREEZE_RECORD_NAME,
+    FREEZE_RECORD_VERSION,
     assert_reproducible,
     atomic_json,
     build_baseline_v61,
@@ -65,6 +68,31 @@ def _reference(args: argparse.Namespace, audit: dict[str, Any] | None = None) ->
     if not value and audit:
         value = str(audit.get("authorization", {}).get("reuse_reference", "") or "").strip()
     return value
+
+
+def _source_binding() -> dict[str, Any]:
+    try:
+        revision = subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD^{commit}"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ValueError("freeze cannot determine repository source binding") from exc
+    if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise ValueError("freeze requires a valid 40-character repository commit")
+    if status.strip():
+        raise ValueError("freeze requires a clean worktree")
+    return {"repository_commit": revision, "dirty_worktree": False}
 
 
 def _common(parser: argparse.ArgumentParser) -> None:
@@ -222,6 +250,7 @@ def _thresholds(args: argparse.Namespace) -> int:
 
 
 def _freeze(args: argparse.Namespace) -> int:
+    source = _source_binding()
     audit = require_compatible_audit(
         args.compatibility_audit,
         corpus_path=args.input,
@@ -259,14 +288,18 @@ def _freeze(args: argparse.Namespace) -> int:
         generated_at=args.generated_at,
         authorization_reference=reference,
         taxonomy=taxonomy,
+        source=source,
     )
     load_v61_artifact_bundle(
         artifact_dir,
         expected_corpus_sha256=sha256_file(args.input),
         expected_split_checksum=sha256_file(args.split_manifest),
+        expected_source_revision=source["repository_commit"],
+        expected_dirty_worktree=source["dirty_worktree"],
     )
     freeze_record = {
-        "version": "v61-freeze-record-1.0.0",
+        "version": FREEZE_RECORD_VERSION,
+        "source": dict(source),
         "artifact_checksums": dict(manifest["artifacts"]),
         "build_manifest_checksum": sha256_file(artifact_dir / "build-manifest-6.1.0.json"),
         "compatibility_audit_checksum": audit["audit_checksum"],
