@@ -388,14 +388,6 @@ def evaluate_holdout(
 ) -> dict[str, Any]:
     """Run the 339-profile holdout exactly once against frozen bytes."""
 
-    audit = require_compatible_audit(
-        compatibility_audit_path,
-        corpus_path=corpus_path,
-        split_manifest_path=split_manifest_path,
-        require_authorization=True,
-        canonical_only=True,
-    )
-    corpus = load_canonical_corpus(corpus_path)
     corpus_sha256 = sha256_file(corpus_path)
     split_checksum = sha256_file(split_manifest_path)
     bundle = load_v61_artifact_bundle(
@@ -405,6 +397,7 @@ def evaluate_holdout(
         expected_source_revision=expected_source_revision,
         expected_dirty_worktree=expected_dirty_worktree,
     )
+    manifest_checksum = sha256_file(artifact_dir / "build-manifest-6.1.0.json")
     if bundle.manifest.get("holdout_output_inspected") is not False:
         raise HoldoutEvaluationError("frozen artifact manifest was already opened for holdout output")
     freeze = artifact_dir / "freeze-record-6.1.0.json"
@@ -419,7 +412,14 @@ def evaluate_holdout(
         )
     except ArtifactValidationError as exc:
         raise HoldoutEvaluationError(str(exc)) from exc
-    manifest_checksum = sha256_file(artifact_dir / "build-manifest-6.1.0.json")
+    audit = require_compatible_audit(
+        compatibility_audit_path,
+        corpus_path=corpus_path,
+        split_manifest_path=split_manifest_path,
+        require_authorization=True,
+        canonical_only=True,
+    )
+    corpus = load_canonical_corpus(corpus_path)
     if (
         not isinstance(freeze_payload, Mapping)
         or freeze_payload.get("corpus_sha256") != corpus_sha256

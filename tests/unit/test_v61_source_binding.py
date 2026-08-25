@@ -6,6 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 from app.player_analysis_v61 import artifacts as artifact_module
+from app.player_analysis_v61 import holdout_evaluation
 from app.player_analysis_v61.artifacts import (
     FREEZE_RECORD_VERSION,
     V61_BUILD_MANIFEST_VERSION,
@@ -17,6 +18,7 @@ from app.player_analysis_v61.calibration_corpus import CANONICAL_SCHEMA_VERSION
 from app.player_analysis_v61.calibration_evaluation import build_v61_calibration_evaluation
 
 from scripts import build_v61_calibration_artifacts as builder
+from scripts import package_v61_production_bundle as packager
 
 
 def _manifest_bundle(
@@ -115,13 +117,142 @@ def test_aggregate_rejects_cross_source_mismatch() -> None:
 def test_freeze_source_binding_fails_closed(
     monkeypatch: pytest.MonkeyPatch, revision: str, status: str, message: str
 ) -> None:
-    def fake_run(command: list[str], **_kwargs: object) -> SimpleNamespace:
-        return SimpleNamespace(stdout=revision if command[1] == "rev-parse" else status)
+    def fake_source(_root: Path) -> dict[str, object]:
+        if revision == "not-a-commit":
+            raise ValueError("valid 40-character repository commit")
+        return {"repository_commit": revision, "dirty_worktree": bool(status)}
 
-    monkeypatch.setattr(builder.subprocess, "run", fake_run)
+    monkeypatch.setattr(builder, "current_source_binding", fake_source)
 
     with pytest.raises(ValueError, match=message):
         builder._source_binding()
+
+
+def test_packaging_rejects_stale_release_sha(monkeypatch: pytest.MonkeyPatch) -> None:
+    source = {"repository_commit": "a" * 40, "dirty_worktree": False}
+    monkeypatch.setattr(packager, "current_source_binding", lambda _root: source)
+    monkeypatch.setattr(
+        packager.Settings,
+        "from_env",
+        lambda: SimpleNamespace(release_commit_sha="b" * 40, release_worktree_dirty=None),
+    )
+
+    with pytest.raises(ValueError, match="RELEASE_COMMIT_SHA"):
+        packager._source_binding()
+
+
+def test_packaging_rejects_dirty_checkout(monkeypatch: pytest.MonkeyPatch) -> None:
+    source = {"repository_commit": "a" * 40, "dirty_worktree": True}
+    monkeypatch.setattr(packager, "current_source_binding", lambda _root: source)
+    monkeypatch.setattr(
+        packager.Settings,
+        "from_env",
+        lambda: SimpleNamespace(release_commit_sha=None, release_worktree_dirty=None),
+    )
+
+    with pytest.raises(ValueError, match="clean worktree"):
+        packager._source_binding()
+
+
+def test_packaging_uses_actual_source_when_release_env_is_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = {"repository_commit": "a" * 40, "dirty_worktree": False}
+    monkeypatch.setattr(packager, "current_source_binding", lambda _root: source)
+    monkeypatch.setattr(
+        packager.Settings,
+        "from_env",
+        lambda: SimpleNamespace(release_commit_sha=None, release_worktree_dirty=None),
+    )
+
+    assert packager._source_binding() == source
+
+
+def test_holdout_rejects_invalid_bundle_source_before_corpus_loader(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    corpus_loaded = False
+
+    monkeypatch.setattr(holdout_evaluation, "sha256_file", lambda _path: "sha")
+
+    def reject_bundle(*_args: object, **_kwargs: object) -> object:
+        raise ArtifactValidationError("source mismatch")
+
+    def reject_corpus(_path: Path) -> object:
+        nonlocal corpus_loaded
+        corpus_loaded = True
+        pytest.fail("holdout corpus loaded before source validation")
+
+    monkeypatch.setattr(holdout_evaluation, "load_v61_artifact_bundle", reject_bundle)
+    monkeypatch.setattr(holdout_evaluation, "load_canonical_corpus", reject_corpus)
+    monkeypatch.setattr(
+        holdout_evaluation,
+        "require_compatible_audit",
+        lambda *_args, **_kwargs: pytest.fail("compatibility audit loaded before source validation"),
+    )
+
+    with pytest.raises(ArtifactValidationError, match="source mismatch"):
+        holdout_evaluation.evaluate_holdout(
+            corpus_path=tmp_path / "corpus.json",
+            split_manifest_path=tmp_path / "split.json",
+            compatibility_audit_path=tmp_path / "audit.json",
+            artifact_dir=tmp_path / "artifacts",
+            output_dir=tmp_path / "output",
+            expected_source_revision="a" * 40,
+            expected_dirty_worktree=False,
+        )
+    assert corpus_loaded is False
+
+
+def test_holdout_rejects_freeze_source_before_corpus_loader(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    expected_source = {"repository_commit": "a" * 40, "dirty_worktree": False}
+    artifact_dir = tmp_path / "artifacts"
+    artifact_dir.mkdir()
+    (artifact_dir / "freeze-record-6.1.0.json").write_text(
+        json.dumps(
+            {
+                "version": FREEZE_RECORD_VERSION,
+                "source": {"repository_commit": "b" * 40, "dirty_worktree": False},
+            }
+        ),
+        encoding="utf-8",
+    )
+    corpus_loaded = False
+
+    monkeypatch.setattr(holdout_evaluation, "sha256_file", lambda _path: "sha")
+    monkeypatch.setattr(
+        holdout_evaluation,
+        "load_v61_artifact_bundle",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            manifest={"holdout_output_inspected": False, "source": expected_source}
+        ),
+    )
+
+    def reject_corpus(_path: Path) -> object:
+        nonlocal corpus_loaded
+        corpus_loaded = True
+        pytest.fail("holdout corpus loaded before freeze validation")
+
+    monkeypatch.setattr(holdout_evaluation, "load_canonical_corpus", reject_corpus)
+    monkeypatch.setattr(
+        holdout_evaluation,
+        "require_compatible_audit",
+        lambda *_args, **_kwargs: pytest.fail("compatibility audit loaded before freeze validation"),
+    )
+
+    with pytest.raises(holdout_evaluation.HoldoutEvaluationError, match="source revision mismatch"):
+        holdout_evaluation.evaluate_holdout(
+            corpus_path=tmp_path / "corpus.json",
+            split_manifest_path=tmp_path / "split.json",
+            compatibility_audit_path=tmp_path / "audit.json",
+            artifact_dir=artifact_dir,
+            output_dir=tmp_path / "output",
+            expected_source_revision=expected_source["repository_commit"],
+            expected_dirty_worktree=False,
+        )
+    assert corpus_loaded is False
 
 
 def test_freeze_writes_exact_source_binding(

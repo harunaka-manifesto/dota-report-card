@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
 from app.core.config import Settings  # noqa: E402
-from app.core.release import artifact_bundle_digest  # noqa: E402
+from app.core.release import artifact_bundle_digest, current_source_binding  # noqa: E402
 from app.player_analysis_v61.artifacts import (  # noqa: E402
     V61_SUPPORT_ARTIFACTS,
     load_v61_artifact_bundle,
@@ -21,14 +21,33 @@ from app.player_analysis_v61.artifacts import (  # noqa: E402
 )
 
 
+def _source_binding() -> dict[str, object]:
+    source = current_source_binding(ROOT)
+    settings = Settings.from_env()
+    if (
+        settings.release_commit_sha is not None
+        and settings.release_commit_sha != source["repository_commit"]
+    ):
+        raise ValueError("RELEASE_COMMIT_SHA does not match the current repository commit")
+    if (
+        settings.release_worktree_dirty is not None
+        and settings.release_worktree_dirty is not source["dirty_worktree"]
+    ):
+        raise ValueError("RELEASE_WORKTREE_DIRTY does not match the current worktree state")
+    if source["dirty_worktree"]:
+        raise ValueError("packaging requires a clean worktree")
+    return source
+
+
 def package_bundle(
     *,
     artifact_dir: Path,
     authorization_path: Path,
     output_dir: Path,
-    expected_source_revision: str,
-    expected_dirty_worktree: bool,
 ) -> None:
+    source = _source_binding()
+    expected_source_revision = str(source["repository_commit"])
+    expected_dirty_worktree = bool(source["dirty_worktree"])
     bundle = load_v61_artifact_bundle(
         artifact_dir,
         expected_source_revision=expected_source_revision,
@@ -80,17 +99,10 @@ def main() -> int:
     parser.add_argument("--authorization", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
-    settings = Settings.from_env()
-    if not settings.release_commit_sha or settings.release_worktree_dirty is not False:
-        raise ValueError(
-            "packaging requires RELEASE_COMMIT_SHA and RELEASE_WORKTREE_DIRTY=false"
-        )
     package_bundle(
         artifact_dir=args.artifact_dir,
         authorization_path=args.authorization,
         output_dir=args.output_dir,
-        expected_source_revision=settings.release_commit_sha,
-        expected_dirty_worktree=settings.release_worktree_dirty,
     )
     return 0
 

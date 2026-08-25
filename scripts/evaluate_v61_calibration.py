@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -15,6 +14,7 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from app.analysis.budget import DataCostLedger  # noqa: E402
+from app.core.release import current_source_binding  # noqa: E402
 from app.dna.sessions import infer_sessions  # noqa: E402
 from app.player_analysis_v61.artifacts import (  # noqa: E402
     load_v61_artifact_bundle,
@@ -67,9 +67,8 @@ def _write(path: Path, payload: dict[str, Any]) -> None:
 
 
 def _revision() -> tuple[str, bool]:
-    revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
-    dirty = bool(subprocess.check_output(["git", "status", "--short"], cwd=ROOT, text=True).strip())
-    return revision, dirty
+    source = current_source_binding(ROOT)
+    return str(source["repository_commit"]), bool(source["dirty_worktree"])
 
 
 def _synthetic(args: argparse.Namespace) -> int:

@@ -2,10 +2,36 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import subprocess
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 from app.core.config import Settings
+
+
+def current_source_binding(repo_root: str | Path) -> dict[str, Any]:
+    try:
+        revision = subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD^{commit}"],
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+            cwd=repo_root,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ValueError("cannot determine repository source binding") from exc
+    if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise ValueError("repository source must be a valid 40-character commit")
+    return {"repository_commit": revision, "dirty_worktree": bool(status.strip())}
 
 
 def artifact_bundle_digest(checksums: Mapping[str, str]) -> str | None:
@@ -64,4 +90,4 @@ def build_release_identity(
     }
 
 
-__all__ = ["artifact_bundle_digest", "build_release_identity"]
+__all__ = ["artifact_bundle_digest", "build_release_identity", "current_source_binding"]

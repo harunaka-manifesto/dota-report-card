@@ -11,8 +11,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -21,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from app.core.release import current_source_binding  # noqa: E402
 from app.player_analysis_v61.artifacts import (  # noqa: E402
     V61_SUPPORT_ARTIFACTS,
     load_v61_artifact_bundle,
@@ -71,28 +70,10 @@ def _reference(args: argparse.Namespace, audit: dict[str, Any] | None = None) ->
 
 
 def _source_binding() -> dict[str, Any]:
-    try:
-        revision = subprocess.run(
-            ["git", "rev-parse", "--verify", "HEAD^{commit}"],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-        status = subprocess.run(
-            ["git", "status", "--porcelain=v1", "--untracked-files=all"],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout
-    except (OSError, subprocess.SubprocessError) as exc:
-        raise ValueError("freeze cannot determine repository source binding") from exc
-    if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
-        raise ValueError("freeze requires a valid 40-character repository commit")
-    if status.strip():
+    source = current_source_binding(ROOT)
+    if source["dirty_worktree"]:
         raise ValueError("freeze requires a clean worktree")
-    return {"repository_commit": revision, "dirty_worktree": False}
+    return source
 
 
 def _common(parser: argparse.ArgumentParser) -> None:
