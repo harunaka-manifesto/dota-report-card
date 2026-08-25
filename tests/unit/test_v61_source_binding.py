@@ -7,16 +7,21 @@ from types import SimpleNamespace
 import pytest
 from app.player_analysis_v61 import artifacts as artifact_module
 from app.player_analysis_v61.artifacts import (
+    FREEZE_RECORD_VERSION,
     V61_BUILD_MANIFEST_VERSION,
     V61_SUPPORT_ARTIFACTS,
     ArtifactValidationError,
+    validate_v61_freeze_record,
 )
 from app.player_analysis_v61.calibration_corpus import CANONICAL_SCHEMA_VERSION
+from app.player_analysis_v61.calibration_evaluation import build_v61_calibration_evaluation
 
 from scripts import build_v61_calibration_artifacts as builder
 
 
-def _manifest_bundle(directory: Path, *, version: str) -> None:
+def _manifest_bundle(
+    directory: Path, *, version: str, source: dict[str, object] | None = None
+) -> None:
     directory.mkdir()
     for name in V61_SUPPORT_ARTIFACTS:
         (directory / name).write_text("{}", encoding="utf-8")
@@ -27,6 +32,7 @@ def _manifest_bundle(directory: Path, *, version: str) -> None:
                 "corpus_schema": CANONICAL_SCHEMA_VERSION,
                 "release_authorized": False,
                 "holdout_output_inspected": False,
+                **({"source": source} if source is not None else {}),
             }
         ),
         encoding="utf-8",
@@ -48,6 +54,55 @@ def test_loader_rejects_unbound_manifests(
 
     with pytest.raises(ArtifactValidationError, match=message):
         artifact_module.load_v61_artifact_bundle(artifact_dir)
+
+
+def test_loader_rejects_mismatched_expected_source(tmp_path: Path) -> None:
+    source = {"repository_commit": "a" * 40, "dirty_worktree": False}
+    artifact_dir = tmp_path / "artifacts"
+    _manifest_bundle(artifact_dir, version=V61_BUILD_MANIFEST_VERSION, source=source)
+
+    with pytest.raises(ArtifactValidationError, match="source revision mismatch"):
+        artifact_module.load_v61_artifact_bundle(
+            artifact_dir,
+            expected_source_revision="b" * 40,
+            expected_dirty_worktree=False,
+        )
+
+
+@pytest.mark.parametrize(
+    ("payload", "message"),
+    [
+        (
+            {"version": "v61-freeze-record-1.0.0", "source": {"repository_commit": "a" * 40, "dirty_worktree": False}},
+            "unsupported",
+        ),
+        ({"version": FREEZE_RECORD_VERSION}, "source binding"),
+    ],
+)
+def test_freeze_record_rejects_old_or_unbound_payload(
+    payload: dict[str, object], message: str
+) -> None:
+    with pytest.raises(ArtifactValidationError, match=message):
+        validate_v61_freeze_record(payload)
+
+
+def test_aggregate_rejects_cross_source_mismatch() -> None:
+    manifest_source = {"repository_commit": "a" * 40, "dirty_worktree": False}
+    runtime_source = {"repository_commit": "b" * 40, "dirty_worktree": False}
+
+    with pytest.raises(ValueError, match="source"):
+        build_v61_calibration_evaluation(
+            compatibility_audit={},
+            freeze_manifest={"source": manifest_source},
+            freeze_record={"version": FREEZE_RECORD_VERSION, "source": manifest_source},
+            reproducibility={},
+            synthetic={},
+            holdout={},
+            runtime_parity={"source": runtime_source},
+            artifact_checksums={},
+            source_revision=manifest_source["repository_commit"],
+            dirty_worktree=False,
+        )
 
 
 @pytest.mark.parametrize(
@@ -130,6 +185,7 @@ def test_freeze_writes_exact_source_binding(
         (artifact_dir / "freeze-record-6.1.0.json").read_text(encoding="utf-8")
     )
     assert manifest["source"] == source
+    assert freeze_record["version"] == FREEZE_RECORD_VERSION
     assert freeze_record["source"] == source
     assert loader_kwargs["expected_source_revision"] == source["repository_commit"]
     assert loader_kwargs["expected_dirty_worktree"] is False

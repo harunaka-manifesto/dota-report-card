@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import Any
 
+from .artifacts import validate_source_binding, validate_v61_freeze_record
 from .calibration_corpus import CANONICAL_SCHEMA_VERSION
 from .copy import SEMANTIC_COPY_REGISTRY
 from .hierarchical import hierarchical_qualification
@@ -340,13 +341,11 @@ def validate_runtime_parity(
     versions = payload.get("versions")
     assertions = payload.get("assertions")
     declared_artifacts = payload.get("artifact_checksums")
-    if payload.get("passed") is not True or not isinstance(source, Mapping) or not isinstance(corpus, Mapping):
+    if payload.get("passed") is not True or not isinstance(corpus, Mapping):
         raise ValueError("runtime parity must be a passed, bound evidence artifact")
+    source = validate_source_binding(source)
     if (
-        not isinstance(source.get("repository_commit"), str)
-        or not source.get("repository_commit")
-        or not isinstance(source.get("dirty_worktree"), bool)
-        or not isinstance(corpus.get("sha256"), str)
+        not isinstance(corpus.get("sha256"), str)
         or not corpus.get("sha256")
         or not isinstance(corpus.get("split_manifest_checksum"), str)
         or not corpus.get("split_manifest_checksum")
@@ -403,6 +402,22 @@ def build_v61_calibration_evaluation(
     generated_at: str = "2000-01-01T00:00:00+00:00",
 ) -> dict[str, Any]:
     """Derive State B only from measured, checksum-linked evidence."""
+
+    if source_revision is None or dirty_worktree is None:
+        raise ValueError("V6.1 aggregate requires the current source binding")
+    current_source = validate_source_binding(
+        {"repository_commit": source_revision, "dirty_worktree": dirty_worktree}
+    )
+    manifest_source = validate_source_binding(freeze_manifest.get("source"))
+    validate_v61_freeze_record(
+        freeze_record,
+        expected_source_revision=source_revision,
+        expected_dirty_worktree=dirty_worktree,
+        expected_source=manifest_source,
+    )
+    runtime_source = validate_source_binding(runtime_parity.get("source"))
+    if dict(manifest_source) != dict(current_source) or dict(runtime_source) != dict(current_source):
+        raise ValueError("V6.1 aggregate source bindings do not match current source")
 
     evidence = (
         compatibility_audit,

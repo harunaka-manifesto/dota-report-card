@@ -22,8 +22,13 @@ from typing import Any
 
 from app.analysis.budget import DataCostLedger
 from app.api.report_schemas_v61 import validate_free_dna_report_v61
+from app.player_analysis_v6.artifacts import ArtifactValidationError
 from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
-from app.player_analysis_v61.artifacts import V61ArtifactBundle, load_v61_artifact_bundle
+from app.player_analysis_v61.artifacts import (
+    V61ArtifactBundle,
+    load_v61_artifact_bundle,
+    validate_v61_freeze_record,
+)
 from app.player_analysis_v61.calibration_corpus import canonical_history, load_canonical_corpus
 from app.player_analysis_v61.corpus_reuse import (
     EXPECTED_HOLDOUT_COUNT,
@@ -378,6 +383,8 @@ def evaluate_holdout(
     workers: int = 1,
     resume: bool = False,
     v60_checkpoint_path: Path | None = None,
+    expected_source_revision: str,
+    expected_dirty_worktree: bool,
 ) -> dict[str, Any]:
     """Run the 339-profile holdout exactly once against frozen bytes."""
 
@@ -395,13 +402,23 @@ def evaluate_holdout(
         artifact_dir,
         expected_corpus_sha256=corpus_sha256,
         expected_split_checksum=split_checksum,
+        expected_source_revision=expected_source_revision,
+        expected_dirty_worktree=expected_dirty_worktree,
     )
     if bundle.manifest.get("holdout_output_inspected") is not False:
         raise HoldoutEvaluationError("frozen artifact manifest was already opened for holdout output")
     freeze = artifact_dir / "freeze-record-6.1.0.json"
     if not freeze.is_file():
         raise HoldoutEvaluationError("V6.1 freeze record is required before holdout evaluation")
-    freeze_payload = json.loads(freeze.read_text(encoding="utf-8"))
+    try:
+        freeze_payload = validate_v61_freeze_record(
+            json.loads(freeze.read_text(encoding="utf-8")),
+            expected_source_revision=expected_source_revision,
+            expected_dirty_worktree=expected_dirty_worktree,
+            expected_source=bundle.manifest.get("source"),
+        )
+    except ArtifactValidationError as exc:
+        raise HoldoutEvaluationError(str(exc)) from exc
     manifest_checksum = sha256_file(artifact_dir / "build-manifest-6.1.0.json")
     if (
         not isinstance(freeze_payload, Mapping)

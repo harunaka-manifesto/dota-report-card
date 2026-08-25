@@ -561,7 +561,7 @@ def test_builders_filter_holdout_rows_before_fitting_prior() -> None:
 def _valid_runtime_parity() -> dict[str, object]:
     return {
         "passed": True,
-        "source": {"repository_commit": "release", "dirty_worktree": False},
+        "source": {"repository_commit": "a" * 40, "dirty_worktree": False},
         "corpus": {
             "schema_version": CANONICAL_SCHEMA_VERSION,
             "sha256": "corpus",
@@ -632,9 +632,18 @@ def test_runtime_parity_consumes_canonical_corpus_directly(tmp_path: Path, monke
         semantic_calibration={},
     )
 
-    def load_bundle(_path: Path, *, expected_corpus_sha256: str, expected_split_checksum: str) -> object:
+    def load_bundle(
+        _path: Path,
+        *,
+        expected_corpus_sha256: str,
+        expected_split_checksum: str,
+        expected_source_revision: str,
+        expected_dirty_worktree: bool,
+    ) -> object:
         assert expected_corpus_sha256 == corpus_sha
         assert expected_split_checksum
+        assert expected_source_revision
+        assert expected_dirty_worktree is False
         return bundle
 
     monkeypatch.setattr("scripts.evaluate_v61_calibration.load_v61_artifact_bundle", load_bundle)
@@ -646,7 +655,7 @@ def test_runtime_parity_consumes_canonical_corpus_directly(tmp_path: Path, monke
             "selection_audit": {"complete": True},
         },
     )
-    monkeypatch.setattr("scripts.evaluate_v61_calibration._revision", lambda: ("release", False))
+    monkeypatch.setattr("scripts.evaluate_v61_calibration._revision", lambda: ("a" * 40, False))
     output = tmp_path / "runtime-parity.json"
 
     _runtime_parity(

@@ -16,7 +16,10 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from app.analysis.budget import DataCostLedger  # noqa: E402
 from app.dna.sessions import infer_sessions  # noqa: E402
-from app.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
+from app.player_analysis_v61.artifacts import (  # noqa: E402
+    load_v61_artifact_bundle,
+    validate_v61_freeze_record,
+)
 from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
     CANONICAL_SESSION_POLICY,
     canonical_history,
@@ -72,7 +75,12 @@ def _revision() -> tuple[str, bool]:
 def _synthetic(args: argparse.Namespace) -> int:
     result = run_synthetic_evaluation(seed=args.seed, replicates=args.replicates)
     if args.artifact_dir:
-        bundle = load_v61_artifact_bundle(args.artifact_dir)
+        revision, dirty = _revision()
+        bundle = load_v61_artifact_bundle(
+            args.artifact_dir,
+            expected_source_revision=revision,
+            expected_dirty_worktree=dirty,
+        )
         result["artifact_checksums"] = dict(bundle.checksums)
         result["artifact_manifest_checksum"] = sha256_file(args.artifact_dir / "build-manifest-6.1.0.json")
     if args.output:
@@ -83,6 +91,7 @@ def _synthetic(args: argparse.Namespace) -> int:
 
 
 def _holdout(args: argparse.Namespace) -> int:
+    revision, dirty = _revision()
     result = evaluate_holdout(
         corpus_path=args.input,
         split_manifest_path=args.split_manifest,
@@ -92,6 +101,8 @@ def _holdout(args: argparse.Namespace) -> int:
         workers=args.workers,
         resume=args.resume,
         v60_checkpoint_path=args.v60_checkpoint,
+        expected_source_revision=revision,
+        expected_dirty_worktree=dirty,
     )
     output = args.output or args.output_dir / "holdout-evaluation-6.1.0.json"
     _write(output, result)
@@ -106,7 +117,12 @@ def _holdout(args: argparse.Namespace) -> int:
 
 def _review_packet(args: argparse.Namespace) -> int:
     holdout = _read(args.holdout)
-    bundle = load_v61_artifact_bundle(args.artifact_dir)
+    revision, dirty = _revision()
+    bundle = load_v61_artifact_bundle(
+        args.artifact_dir,
+        expected_source_revision=revision,
+        expected_dirty_worktree=dirty,
+    )
     packet = build_review_packet(holdout=holdout, artifact_checksums=bundle.checksums)
     _write(args.output, packet)
     print(json.dumps({"output": str(args.output), "finalized": False}, sort_keys=True))
@@ -138,10 +154,13 @@ def _runtime_parity(args: argparse.Namespace) -> int:
         corpus_sha256=corpus_sha256,
         require_frozen_counts=False,
     )
+    revision, dirty = _revision()
     bundle = load_v61_artifact_bundle(
         args.artifact_dir,
         expected_corpus_sha256=corpus_sha256,
         expected_split_checksum=split_checksum,
+        expected_source_revision=revision,
+        expected_dirty_worktree=dirty,
     )
     by_profile: dict[str, list[dict[str, Any]]] = {}
     for row in corpus.matches:
@@ -204,7 +223,6 @@ def _runtime_parity(args: argparse.Namespace) -> int:
         },
         protected_cohorts_out={},
     )
-    revision, dirty = _revision()
     parity = {
         "version": "v61-runtime-calibration-parity-2.0.0",
         "passed": True,
@@ -248,9 +266,19 @@ def _aggregate(args: argparse.Namespace) -> int:
     reproducibility = _read(args.reproducibility)
     synthetic = _read(args.synthetic)
     holdout = _read(args.holdout)
-    bundle = load_v61_artifact_bundle(args.artifact_dir)
     revision, dirty = _revision()
+    bundle = load_v61_artifact_bundle(
+        args.artifact_dir,
+        expected_source_revision=revision,
+        expected_dirty_worktree=dirty,
+    )
     runtime_parity = _read(args.runtime_parity)
+    validate_v61_freeze_record(
+        freeze_record,
+        expected_source_revision=revision,
+        expected_dirty_worktree=dirty,
+        expected_source=bundle.manifest.get("source"),
+    )
     validate_runtime_parity(
         runtime_parity,
         source_revision=revision,

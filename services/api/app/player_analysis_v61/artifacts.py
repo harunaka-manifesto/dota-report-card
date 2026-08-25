@@ -37,6 +37,7 @@ V61_SUPPORT_ARTIFACTS = (
     "build-manifest-6.1.0.json",
 )
 V61_BUILD_MANIFEST_VERSION = "v61-calibration-build-manifest-2.0.0"
+FREEZE_RECORD_VERSION = "v61-freeze-record-2.0.0"
 PRODUCTION_BETA_AUTHORIZATION_VERSION = "v61-production-beta-authorization-1.0.0"
 
 
@@ -92,7 +93,7 @@ def _file_checksum(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _validate_clean_source_binding(source: Any) -> Mapping[str, Any]:
+def validate_source_binding(source: Any) -> Mapping[str, Any]:
     if (
         not isinstance(source, Mapping)
         or set(source) != {"repository_commit", "dirty_worktree"}
@@ -100,8 +101,29 @@ def _validate_clean_source_binding(source: Any) -> Mapping[str, Any]:
         or re.fullmatch(r"[0-9a-f]{40}", source["repository_commit"]) is None
         or source.get("dirty_worktree") is not False
     ):
-        raise ArtifactValidationError("V6.1 build manifest lacks a valid clean source binding")
+        raise ArtifactValidationError("V6.1 source binding must be an exact clean commit binding")
     return source
+
+
+def validate_v61_freeze_record(
+    payload: Any,
+    *,
+    expected_source_revision: str | None = None,
+    expected_dirty_worktree: bool | None = None,
+    expected_source: Mapping[str, Any] | None = None,
+) -> Mapping[str, Any]:
+    if not isinstance(payload, Mapping):
+        raise ArtifactValidationError("V6.1 freeze record must be an object")
+    if payload.get("version") != FREEZE_RECORD_VERSION:
+        raise ArtifactValidationError("unsupported V6.1 freeze record version")
+    source = validate_source_binding(payload.get("source"))
+    if expected_source_revision is not None and source["repository_commit"] != expected_source_revision:
+        raise ArtifactValidationError("V6.1 freeze record source revision mismatch")
+    if expected_dirty_worktree is not None and source["dirty_worktree"] is not expected_dirty_worktree:
+        raise ArtifactValidationError("V6.1 freeze record worktree state mismatch")
+    if expected_source is not None and dict(source) != dict(expected_source):
+        raise ArtifactValidationError("V6.1 freeze record source binding mismatch")
+    return payload
 
 
 @dataclass(frozen=True, slots=True)
@@ -348,7 +370,7 @@ def load_v61_artifact_bundle(
         raise ArtifactValidationError("V6.1 build manifest cannot authorize release")
     if manifest.get("holdout_output_inspected") is not False:
         raise ArtifactValidationError("V6.1 build manifest must freeze before holdout inspection")
-    source = _validate_clean_source_binding(manifest.get("source"))
+    source = validate_source_binding(manifest.get("source"))
     if expected_source_revision is not None and source["repository_commit"] != expected_source_revision:
         raise ArtifactValidationError("V6.1 artifact source revision mismatch")
     if expected_dirty_worktree is not None and source["dirty_worktree"] is not expected_dirty_worktree:
@@ -489,6 +511,7 @@ def load_v61_production_beta_authorization(
 __all__ = [
     "BASELINE_VERSION",
     "ContextBaselineArtifactV61",
+    "FREEZE_RECORD_VERSION",
     "THRESHOLDS_VERSION",
     "V61_BUILD_MANIFEST_VERSION",
     "ThresholdArtifactV61",
@@ -499,4 +522,6 @@ __all__ = [
     "load_threshold_artifact_v61",
     "load_v61_artifact_bundle",
     "load_v61_production_beta_authorization",
+    "validate_source_binding",
+    "validate_v61_freeze_record",
 ]

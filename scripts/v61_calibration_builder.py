@@ -33,6 +33,7 @@ from app.player_analysis_v6.metrics import (
 )
 from app.player_analysis_v61.artifacts import (
     BASELINE_VERSION,
+    FREEZE_RECORD_VERSION,
     THRESHOLDS_VERSION,
     V61_BUILD_MANIFEST_VERSION,
     V61_SUPPORT_ARTIFACTS,
@@ -66,7 +67,6 @@ MANIFEST_VERSION = V61_BUILD_MANIFEST_VERSION
 ESTIMATOR_VERSION = "v61-runtime-estimator-parity-2.0.0"
 CHECKPOINT_VERSION = "v61-training-checkpoint-1.0.0"
 FREEZE_RECORD_NAME = "freeze-record-6.1.0.json"
-FREEZE_RECORD_VERSION = "v61-freeze-record-2.0.0"
 EPSILON = 1e-9
 
 

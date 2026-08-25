@@ -186,7 +186,17 @@ class AnalysisService:
             )
         if baseline_path != artifact_dir / "context-baseline-3.0.0.json" or threshold_path != artifact_dir / "metric-thresholds-6.1.0.json":
             raise ArtifactValidationError("V6.1 baseline/threshold paths must point into the frozen artifact directory")
-        bundle = load_v61_artifact_bundle(artifact_dir)
+        expected_revision = self.settings.release_commit_sha
+        expected_dirty = self.settings.release_worktree_dirty
+        if not expected_revision or expected_dirty is not False:
+            raise ArtifactValidationError(
+                "V6.1 complete bundle requires RELEASE_COMMIT_SHA and RELEASE_WORKTREE_DIRTY=false"
+            )
+        bundle = load_v61_artifact_bundle(
+            artifact_dir,
+            expected_source_revision=expected_revision,
+            expected_dirty_worktree=expected_dirty,
+        )
         bundle_checksums = dict(bundle.checksums)
         checksums = dict(bundle_checksums)
         checksums.update({"context_baseline": checksums["context-baseline-3.0.0.json"], "thresholds": checksums["metric-thresholds-6.1.0.json"]})
@@ -194,13 +204,6 @@ class AnalysisService:
             self.settings.free_dna_v61_release_authorization_path
             or artifact_dir / "production-beta-authorization-6.1.0.json"
         )
-        expected_revision = self.settings.release_commit_sha
-        expected_dirty = self.settings.release_worktree_dirty
-        if self.settings.app_env == "production":
-            if not expected_revision or expected_dirty is not False:
-                raise ArtifactValidationError(
-                    "production V6.1 requires RELEASE_COMMIT_SHA and RELEASE_WORKTREE_DIRTY=false"
-                )
         release_authorization = load_v61_production_beta_authorization(
             release_authorization_path,
             artifact_checksums=bundle_checksums,
