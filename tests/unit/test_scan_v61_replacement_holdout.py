@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 import json
 import stat
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
+from app.core.errors import OpenDotaRateLimited
 
 from scripts import prepare_v61_replacement_holdout as precommit
 from scripts import scan_v61_replacement_holdout as scanner
@@ -46,10 +48,32 @@ def _write_inputs(tmp_path: Path, account_ids: list[int]) -> dict[str, Path]:
     return {"precommit": precommit_path, "salt": salt_path}
 
 
+class _FakeClock:
+    def __init__(self) -> None:
+        self.now = 0.0
+        self.sleep_calls: list[float] = []
+
+    def monotonic(self) -> float:
+        return self.now
+
+    async def sleep(self, delay: float) -> None:
+        self.sleep_calls.append(delay)
+        self.now += delay
+
+
 class _Source:
-    def __init__(self, *, failures: set[int] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        failures: set[int] | None = None,
+        clock: _FakeClock | None = None,
+        request_durations: Sequence[float] = (),
+    ) -> None:
         self.failures = failures or set()
+        self.clock = clock
+        self.request_durations = list(request_durations)
         self.calls: list[int] = []
+        self.network_starts: list[float] = []
 
     async def get_summary_history_once(
         self,
@@ -63,6 +87,14 @@ class _Source:
         assert days == 365
         assert project == tuple(scanner.request_manifest()["projection"])
         assert provider_limit == 10_000
+        request_index = len(self.network_starts)
+        if self.clock is not None:
+            self.network_starts.append(self.clock.now)
+            self.clock.now += (
+                self.request_durations[request_index]
+                if request_index < len(self.request_durations)
+                else 0.0
+            )
         if account_id in self.failures:
             raise RuntimeError(f"account {account_id} failed")
         return [
@@ -81,6 +113,24 @@ class _Source:
                 "leaver_status": 0,
             }
         ]
+
+
+class _RateLimitedSource(_Source):
+    async def get_summary_history_once(
+        self,
+        account_id: int,
+        *,
+        days: int,
+        project: tuple[str, ...],
+        provider_limit: int,
+    ) -> list[dict[str, object]]:
+        await super().get_summary_history_once(
+            account_id,
+            days=days,
+            project=project,
+            provider_limit=provider_limit,
+        )
+        raise OpenDotaRateLimited("429")
 
 
 class _CrashSource(_Source):
@@ -105,7 +155,9 @@ def _run(
     release_sha: str = RELEASE_SHA,
     now: int = 1_800_000_000,
     progress: bool = False,
+    clock: _FakeClock | None = None,
 ) -> dict[str, object]:
+    clock = clock or _FakeClock()
     return asyncio.run(
         scanner.run_scan(
             precommit_manifest=paths["precommit"],
@@ -119,6 +171,8 @@ def _run(
             expected_candidate_count=len(account_ids),
             now=now,
             progress=progress,
+            monotonic=clock.monotonic,
+            sleep=clock.sleep,
         )
     )
 
@@ -149,17 +203,57 @@ def test_clean_run_freezes_one_window_and_resume_reuses_it(tmp_path: Path) -> No
     assert second_source.calls == []
 
 
+def test_first_network_request_starts_without_delay(tmp_path: Path) -> None:
+    account_ids = [42]
+    paths = _write_inputs(tmp_path, account_ids)
+    clock = _FakeClock()
+    source = _Source(clock=clock)
+
+    _run(paths, tmp_path, source, account_ids=account_ids, clock=clock)
+
+    assert source.network_starts == [0.0]
+    assert clock.sleep_calls == []
+
+
+def test_consecutive_network_attempts_are_spaced_by_quarter_second(
+    tmp_path: Path,
+) -> None:
+    account_ids = [42, 2, 17]
+    paths = _write_inputs(tmp_path, account_ids)
+    clock = _FakeClock()
+    source = _Source(clock=clock)
+
+    _run(paths, tmp_path, source, account_ids=account_ids, clock=clock)
+
+    assert source.network_starts == [0.0, 0.25, 0.5]
+    assert clock.sleep_calls == [0.25, 0.25]
+
+
+def test_slow_request_needs_no_additional_sleep(tmp_path: Path) -> None:
+    account_ids = [42, 2]
+    paths = _write_inputs(tmp_path, account_ids)
+    clock = _FakeClock()
+    source = _Source(clock=clock, request_durations=[0.3, 0.0])
+
+    _run(paths, tmp_path, source, account_ids=account_ids, clock=clock)
+
+    assert source.network_starts == [0.0, 0.3]
+    assert clock.sleep_calls == []
+
+
 def test_success_is_never_requested_twice(tmp_path: Path) -> None:
     account_ids = [3, 1]
     paths = _write_inputs(tmp_path, account_ids)
-    source = _Source()
-    _run(paths, tmp_path, source, account_ids=account_ids)
-    again = _Source(failures=set(account_ids))
+    source = _Source(clock=_FakeClock())
+    _run(paths, tmp_path, source, account_ids=account_ids, clock=source.clock)
+    resume_clock = _FakeClock()
+    again = _Source(failures=set(account_ids), clock=resume_clock)
 
-    _run(paths, tmp_path, again, account_ids=account_ids)
+    _run(paths, tmp_path, again, account_ids=account_ids, clock=resume_clock)
 
     assert source.calls == account_ids
     assert again.calls == []
+    assert resume_clock.sleep_calls == []
 
 
 def test_failed_candidate_is_terminal_and_does_not_retry(tmp_path: Path) -> None:
@@ -185,16 +279,24 @@ def test_failed_candidate_is_terminal_and_does_not_retry(tmp_path: Path) -> None
 def test_archive_existing_result_missing_recovers_without_network(tmp_path: Path) -> None:
     account_ids = [12, 5]
     paths = _write_inputs(tmp_path, account_ids)
-    source = _Source()
+    source = _Source(clock=_FakeClock())
     _run(paths, tmp_path, source, account_ids=account_ids)
     result_path = tmp_path / "state" / "results" / f"{precommit._pseudonym(12, SALT)}.json"
     result_path.unlink()
 
-    no_network = _Source(failures=set(account_ids))
-    payload = _run(paths, tmp_path, no_network, account_ids=account_ids)
+    resume_clock = _FakeClock()
+    no_network = _Source(failures=set(account_ids), clock=resume_clock)
+    payload = _run(
+        paths,
+        tmp_path,
+        no_network,
+        account_ids=account_ids,
+        clock=resume_clock,
+    )
 
     assert payload["success_count"] == 2
     assert no_network.calls == []
+    assert resume_clock.sleep_calls == []
     assert result_path.exists()
 
 
@@ -223,6 +325,34 @@ def test_one_failure_does_not_abort_later_candidates(tmp_path: Path) -> None:
     assert source.calls == account_ids
     assert payload["failure_count"] == 1
     assert payload["success_count"] == 2
+
+
+def test_429_failure_is_terminal_and_never_retried(tmp_path: Path) -> None:
+    account_ids = [11, 13]
+    paths = _write_inputs(tmp_path, account_ids)
+    clock = _FakeClock()
+    source = _RateLimitedSource(clock=clock)
+
+    payload = _run(paths, tmp_path, source, account_ids=account_ids, clock=clock)
+
+    assert payload["failure_count"] == 2
+    assert source.calls == account_ids
+    assert all(
+        item["exception_type"] == "OpenDotaRateLimited"
+        for item in (
+            json.loads(path.read_text(encoding="utf-8"))
+            for path in (tmp_path / "state" / "candidates").glob("*.json")
+        )
+    )
+    resume_source = _RateLimitedSource(clock=_FakeClock())
+    _run(
+        paths,
+        tmp_path,
+        resume_source,
+        account_ids=account_ids,
+        clock=resume_source.clock,
+    )
+    assert resume_source.calls == []
 
 
 def test_candidate_order_is_precommit_order_not_numeric_order(tmp_path: Path) -> None:

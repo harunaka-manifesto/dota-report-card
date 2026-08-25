@@ -74,6 +74,13 @@ renormalized locally without a network request. The aggregate scan artifact
 must retain failure/indeterminate counts, `rank_or_mmr_used=false`, and zero
 detail/parse accounting. It is not the final 1,130-profile corpus.
 
+The scanner ceiling is 240 new network attempts per minute, or one request
+start every 0.25 seconds. The current upstream API_KEY_PER_MIN_LIMIT is
+expected to be 300 per minute; the margin is intentional. Pacing uses a
+monotonic clock, applies only to new sequential network attempts, and resets
+on process restart. Archive/local recovery and terminal resume candidates do
+not sleep. retry_limit remains 0, and a 429 is terminal rather than retried.
+
 ## Evidence chain
 
 Every stage must consume the same canonical corpus bytes and bind the next

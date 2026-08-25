@@ -12,7 +12,8 @@ import re
 import stat
 import subprocess
 import sys
-from collections.abc import Mapping, Sequence
+import time
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -46,6 +47,8 @@ from scripts.prepare_v61_replacement_holdout import (  # noqa: E402
 
 SCAN_SCHEMA_VERSION = "v61-replacement-holdout-scan-1.0.0"
 RAW_ARCHIVE_SCHEMA_VERSION = "v61-raw-summary-archive-1.0.0"
+MAX_NETWORK_REQUESTS_PER_MINUTE = 240
+MIN_NETWORK_REQUEST_INTERVAL_SECONDS = 60 / MAX_NETWORK_REQUESTS_PER_MINUTE
 EXPECTED_CANDIDATE_COUNT = EXPECTED_UNTOUCHED_RESERVE
 EXPECTED_CANDIDATE_ORDER_SHA256 = (
     "7957c80bdd059013eac188e8244441289c2fe5165f161ceba0fd4b8e889d79fe"
@@ -60,6 +63,30 @@ PRIVATE_IDENTIFIER_KEYS = frozenset(
 FORBIDDEN_ANALYTICAL_KEYS = frozenset(
     {"average_rank", "mmr", "rank", "rank_tier", "skill", "skill_bracket"}
 )
+
+
+class NetworkRequestPacer:
+    """Space sequential network-request start times with a monotonic clock."""
+
+    def __init__(
+        self,
+        *,
+        monotonic: Callable[[], float] = time.monotonic,
+        sleep: Callable[[float], Awaitable[Any]] = asyncio.sleep,
+    ) -> None:
+        self._monotonic = monotonic
+        self._sleep = sleep
+        self._next_allowed_start: float | None = None
+
+    async def before_network_attempt(self) -> None:
+        if self._next_allowed_start is not None:
+            now = self._monotonic()
+            if now < self._next_allowed_start:
+                await self._sleep(self._next_allowed_start - now)
+        actual_start = self._monotonic()
+        self._next_allowed_start = (
+            actual_start + MIN_NETWORK_REQUEST_INTERVAL_SECONDS
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -711,6 +738,7 @@ async def _scan_candidate(
     candidate: Candidate,
     *,
     client: Any | None,
+    pacer: NetworkRequestPacer,
 ) -> tuple[str, dict[str, Any] | None]:
     state_path = _state_path(context, candidate)
     result_path = _result_path(context, candidate)
@@ -800,6 +828,7 @@ async def _scan_candidate(
             request_accounting="network_attempt",
         ),
     )
+    await pacer.before_network_attempt()
     try:
         from scripts.collect_v61_calibration_histories import collect_profile
 
@@ -964,6 +993,8 @@ async def run_scan(
     now: int | None = None,
     progress: bool = False,
     require_private_root: bool = False,
+    monotonic: Callable[[], float] = time.monotonic,
+    sleep: Callable[[float], Awaitable[Any]] = asyncio.sleep,
 ) -> dict[str, Any]:
     if not acknowledge_network_collection:
         raise RuntimeError("network collection acknowledgement is required")
@@ -979,9 +1010,12 @@ async def run_scan(
         require_private_root=require_private_root,
         now=now,
     )
+    pacer = NetworkRequestPacer(monotonic=monotonic, sleep=sleep)
     records: list[tuple[str, dict[str, Any] | None]] = []
     for index, candidate in enumerate(context.candidates):
-        records.append(await _scan_candidate(context, candidate, client=client))
+        records.append(
+            await _scan_candidate(context, candidate, client=client, pacer=pacer)
+        )
         if progress and ((index + 1) % 200 == 0 or index + 1 == len(context.candidates)):
             processed, success, failed, indeterminate = _progress_counts(records)
             print(

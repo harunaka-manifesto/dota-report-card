@@ -146,6 +146,13 @@ Completed archives are hash-checked and normalized locally. A marker without an
 archive becomes indeterminate and is never retried automatically; any such
 result remains fail-closed.
 
+The scanner-owned ceiling is 240 network attempts per minute, with a minimum
+request-start interval of 0.25 seconds. The current upstream
+API_KEY_PER_MIN_LIMIT is expected to be 300 per minute, so this safety margin
+is intentional. Pacing applies only to new network attempts; archive reuse,
+local normalization, and terminal resume states do not sleep. The collection
+retry limit remains 0, including for a 429 response.
+
 ```bash
 test -z "$(git status --porcelain)"
 uv run python scripts/scan_v61_replacement_holdout.py \
