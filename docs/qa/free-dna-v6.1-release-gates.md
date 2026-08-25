@@ -7,6 +7,35 @@ claim that the private corpus exists or that any State B/C gate passes.
 Keep `FREE_DNA_V61_ENABLED=false` and all V6.1 shadow/experimental flags false
 until every required gate and the separate operator authorization succeeds.
 
+## Failed release disposition
+
+Release SHA `63b857ce50683cc0a62a1e4c237a964ae4b11e14` is failed and must not
+be deployed or reused. Its one-time 339-profile holdout is now revealed and
+is diagnostic evidence only: 298 reports evaluated, 41 errors, and
+`all_profiles_evaluated=false`. The errors were 33 transfer, 4 involvement,
+and 1 consistency insufficient-evidence `ValueError`, plus 3 diagnostic
+question `mappingproxy` `TypeError`s. The old checkpoint and its hashes remain
+unchanged; no old result is a sealed-release claim or a tuning input.
+
+## Interval methodology
+
+The intended estimand is the metric-specific expected value for a predeclared
+population and observation window of comparable future sessions. The failed
+holdout did not observe that quantity independently: it compared each report's
+point estimate with the bootstrap interval computed from the same history, then
+averaged those booleans. Its `0.7838` value is therefore interval
+self-containment, not empirical coverage and not evidence that 78.38% of true
+population parameters are covered.
+
+Real-data coverage requires a predeclared estimand and independent replicate or
+future-session truth: fit on an earlier/disjoint history, form the interval,
+and count inclusion of the disjoint target aggregate. Known-truth simulation
+is valid for method calibration. The current observational holdout has no
+independent truth and cannot support a population-parameter coverage claim;
+the same-history value is retained only as a diagnostic named
+`interval_self_containment`, never as a release gate. Synthetic known-truth
+coverage remains the supported calibration gate.
+
 ## Evidence chain
 
 Every stage must consume the same canonical corpus bytes and bind the next
@@ -62,10 +91,13 @@ decision that must be bound to the aggregate result and release source SHA.
   `family_branch_evidence_complete`, and `report_assembly_completed`.
 - Runtime parity binds repository commit, dirty-worktree state, canonical
   corpus SHA, split SHA, artifact checksums, model version, and report schema.
-- Synthetic interval coverage is 0.93–0.97 and family/branch null discovery is
+- Synthetic known-truth interval coverage is 0.93–0.97 and family/branch null discovery is
   at most 0.05.
-- Holdout interval/FDR, identity stability, supported-and-believable precision,
-  privacy, and all review gates meet their recorded thresholds.
+- A future holdout may report predictive interval coverage only under a
+  precommitted independent time split with enough future sessions; the current
+  self-containment diagnostic is not a coverage gate. FDR, identity stability,
+  supported-and-believable precision, privacy, and all review gates must meet
+  their recorded thresholds.
 - Aggregate output contains no profile/account/match/session identifiers,
   private filesystem paths, rank/MMR dimensions, or non-finite values.
 - The frozen training manifest and authorization both remain explicit about

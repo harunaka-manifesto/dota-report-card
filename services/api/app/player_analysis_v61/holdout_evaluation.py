@@ -38,9 +38,9 @@ from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
 from app.player_analysis_v61.versions import MODEL_VERSION
 from app.reports.dna_assembly_v61 import assemble_free_dna_report_v61
 
-HOLDOUT_EVALUATION_VERSION = "v61-holdout-evaluation-1.0.0"
+HOLDOUT_EVALUATION_VERSION = "v61-holdout-evaluation-1.1.0"
 HOLDOUT_ACCESS_VERSION = "v61-holdout-access-1.0.0"
-CHECKPOINT_VERSION = "v61-holdout-checkpoint-1.0.0"
+CHECKPOINT_VERSION = "v61-holdout-checkpoint-1.1.0"
 BOOTSTRAP_ITERATIONS = 2_000
 ACCESS_RECORD_NAME = "holdout-access-6.1.0.json"
 CHECKPOINT_NAME = "holdout-evaluation-6.1.0.jsonl"
@@ -135,6 +135,29 @@ def _width(value: Any) -> float | None:
     if not isinstance(lower, (int, float)) or not isinstance(upper, (int, float)):
         return None
     return max(0.0, float(upper) - float(lower))
+
+
+def _interval_diagnostics(elements: Sequence[Mapping[str, Any]]) -> tuple[dict[str, dict[str, Any]], float]:
+    """Measure same-history point-in-own-interval self-containment only."""
+
+    intervals = {
+        str(item.get("key")): {
+            "width": _width(item.get("interval")),
+            "contains_point_estimate": (
+                isinstance(item.get("interval"), Mapping)
+                and item["interval"].get("lower") is not None
+                and item["interval"].get("upper") is not None
+                and item.get("estimate") is not None
+                and float(item["interval"]["lower"]) <= float(item["estimate"]) <= float(item["interval"]["upper"])
+            ),
+        }
+        for item in elements
+        if isinstance(item, Mapping)
+    }
+    self_containment = sum(
+        bool(item["contains_point_estimate"]) for item in intervals.values()
+    ) / max(1, len(intervals))
+    return intervals, self_containment
 
 
 def _copy_scan(report: Mapping[str, Any]) -> tuple[int, int]:
@@ -247,20 +270,7 @@ def _evaluate_profile(
         element_status = Counter(str(item.get("status", "unavailable")) for item in elements if isinstance(item, Mapping))
         published = [item for item in findings if isinstance(item, Mapping) and item.get("published") is True]
         family_counts = Counter(str(item.get("family")) for item in published)
-        intervals = {
-            str(item.get("key")): {
-                "width": _width(item.get("interval")),
-                "inside_point": (
-                    isinstance(item.get("interval"), Mapping)
-                    and item["interval"].get("lower") is not None
-                    and item["interval"].get("upper") is not None
-                    and item.get("estimate") is not None
-                    and float(item["interval"]["lower"]) <= float(item["estimate"]) <= float(item["interval"]["upper"])
-                ),
-            }
-            for item in elements
-            if isinstance(item, Mapping)
-        }
+        intervals, interval_self_containment = _interval_diagnostics(elements)
         copy_violations, strings_scanned = _copy_scan(report)
         result = {
             "checkpoint_version": CHECKPOINT_VERSION,
@@ -287,7 +297,7 @@ def _evaluate_profile(
                 if item.get("semantic_outcome_key")
             ),
             "intervals": intervals,
-            "interval_coverage": sum(bool(item["inside_point"]) for item in intervals.values()) / max(1, len(intervals)),
+            "interval_self_containment": interval_self_containment,
             "copy_violations": copy_violations,
             "copy_strings_scanned": strings_scanned,
             "free_cost_violations": 0,
@@ -517,14 +527,14 @@ def evaluate_holdout(
     semantic_counts: Counter[str] = Counter()
     suppression_reasons: Counter[str] = Counter()
     interval_widths: defaultdict[str, list[float]] = defaultdict(list)
-    interval_coverage: list[float] = []
+    interval_self_containment: list[float] = []
     for record in evaluated:
         element_status.update(record.get("element_status", {}))
         finding_distribution[str(record.get("finding_count", 0))] += 1
         family_counts.update(record.get("family_counts", {}))
         semantic_counts.update(record.get("semantic_outcomes", []))
         suppression_reasons.update(record.get("suppression_reasons", []))
-        interval_coverage.append(float(record.get("interval_coverage", 0.0)))
+        interval_self_containment.append(float(record.get("interval_self_containment", 0.0)))
         for key, interval in record.get("intervals", {}).items():
             if isinstance(interval, Mapping) and isinstance(interval.get("width"), (int, float)):
                 interval_widths[key].append(float(interval["width"]))
@@ -576,7 +586,8 @@ def evaluate_holdout(
         "element_availability": dict(sorted(element_status.items())),
         "abstention": {"unavailable_or_suppressed": sum(int(record.get("unresolved_count", 0)) for record in evaluated)},
         "interval_width": {key: median(values) for key, values in sorted(interval_widths.items()) if values},
-        "interval_coverage": sum(interval_coverage) / max(1, len(interval_coverage)),
+        "interval_self_containment": sum(interval_self_containment) / max(1, len(interval_self_containment)),
+        "interval_methodology": "same-history point estimate compared with its same-history bootstrap interval; not empirical coverage",
         "identity_stability": {
             "nonblank_identity": {"observed": nonblank, "eligible_profiles": len(evaluated)},
             "high_confidence_split_half_agreement": {"observed": high_confidence_agreement, "eligible_profiles": sum(bool(record.get("high_confidence")) for record in evaluated)},

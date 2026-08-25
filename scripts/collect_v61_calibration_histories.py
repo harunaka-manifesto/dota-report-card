@@ -21,12 +21,19 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 from app.core.config import Settings  # noqa: E402
 from app.dna.sessions import infer_sessions  # noqa: E402
 from app.ingestion.summary_history_contract import (  # noqa: E402
+    IGNORED_FIELDS,
+    SUMMARY_HISTORY_NORMALIZATION_VERSION,
     SUMMARY_HISTORY_PROJECTION,
+    SUMMARY_HISTORY_PROJECTION_VERSION,
     SUMMARY_HISTORY_PROVIDER_LIMIT,
+    SUMMARY_HISTORY_PROVIDER_VERSION,
     SUMMARY_HISTORY_RETRY_LIMIT,
     SUMMARY_HISTORY_WINDOW_DAYS,
+    CanonicalSummaryHistory,
+    history_completeness,
     normalize_canonical_summary_history,
     request_manifest,
+    sha256_payload,
 )
 from app.ingestion.summary_normalize import (  # noqa: E402
     filter_history_window,
@@ -56,6 +63,108 @@ def _private_write(path: Path, payload: Mapping[str, Any]) -> None:
     finally:
         os.close(descriptor)
     temporary.replace(path)
+
+
+def _private_write_once(path: Path, payload: Mapping[str, Any]) -> None:
+    """Write a new private archive object without replacing an old response."""
+
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    path.parent.chmod(0o700)
+    descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    try:
+        os.write(
+            descriptor,
+            (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8"),
+        )
+        os.fsync(descriptor)
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
+    finally:
+        os.close(descriptor)
+    path.chmod(0o600)
+
+
+def _project_raw_rows(rows: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {field: row.get(field) for field in SUMMARY_HISTORY_PROJECTION if field in row}
+        for row in rows
+        if isinstance(row, Mapping)
+    ]
+
+
+def _write_raw_summary_archive(
+    raw_archive_dir: Path,
+    *,
+    account_id: int,
+    salt: bytes,
+    rows: Sequence[Mapping[str, Any]],
+    captured_at: str,
+    window_start: int | None,
+    window_end: int | None,
+) -> Path:
+    """Persist the complete requested summary projection without identifiers."""
+
+    manifest = request_manifest()
+    raw_response = _project_raw_rows(rows)
+    profile_id = _pseudonym(account_id, salt)
+    payload = {
+        "schema_version": "v61-raw-summary-archive-1.0.0",
+        "profile_id": profile_id,
+        "source": {
+            "provider": "OpenDota",
+            "endpoint": "/players/{account_id}/matches",
+            "request_parameters": manifest["request_parameters"],
+            "captured_at": captured_at,
+            "provider_version": SUMMARY_HISTORY_PROVIDER_VERSION,
+            "projection_version": SUMMARY_HISTORY_PROJECTION_VERSION,
+            "normalization_version": SUMMARY_HISTORY_NORMALIZATION_VERSION,
+        },
+        "window": {
+            "days": SUMMARY_HISTORY_WINDOW_DAYS,
+            "start_time": window_start,
+            "end_time": window_end,
+        },
+        "raw_count": len(raw_response),
+        "provider_limit": SUMMARY_HISTORY_PROVIDER_LIMIT,
+        "completeness": history_completeness(
+            len(raw_response), provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT
+        ),
+        "raw_response_sha256": sha256_payload(raw_response),
+        "raw_identifiers_present": False,
+        "ignored_fields": sorted(IGNORED_FIELDS),
+        "rank_or_mmr_used": False,
+        "raw_response": raw_response,
+    }
+    path = raw_archive_dir / f"{profile_id}.json"
+    _private_write_once(path, payload)
+    return path
+
+
+def normalize_archived_summary_history(
+    path: Path,
+    *,
+    account_id: int = 0,
+) -> CanonicalSummaryHistory:
+    """Re-normalize one archived response deterministically after hash checking."""
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("schema_version") != "v61-raw-summary-archive-1.0.0":
+        raise ValueError("unsupported V6.1 raw summary archive schema")
+    raw_response = payload.get("raw_response")
+    if not isinstance(raw_response, list):
+        raise ValueError("V6.1 raw summary archive response is invalid")
+    if payload.get("raw_response_sha256") != sha256_payload(raw_response):
+        raise ValueError("V6.1 raw summary archive checksum mismatch")
+    provider_limit = payload.get("provider_limit")
+    if not isinstance(provider_limit, int) or provider_limit <= 0:
+        raise ValueError("V6.1 raw summary archive provider limit is invalid")
+    return normalize_canonical_summary_history(
+        raw_response,
+        account_id,
+        request_count=1,
+        provider_limit=provider_limit,
+    )
 
 
 def _publicly_safe_normalized_row(
@@ -93,6 +202,7 @@ async def collect_profile(
     salt: bytes,
     window_start: int | None = None,
     window_end: int | None = None,
+    raw_archive_dir: Path | None = None,
 ) -> dict[str, Any]:
     rows = await client.get_summary_history_once(
         account_id,
@@ -100,6 +210,16 @@ async def collect_profile(
         project=SUMMARY_HISTORY_PROJECTION,
         provider_limit=SUMMARY_HISTORY_PROVIDER_LIMIT,
     )
+    if raw_archive_dir is not None:
+        _write_raw_summary_archive(
+            raw_archive_dir,
+            account_id=account_id,
+            salt=salt,
+            rows=rows,
+            captured_at=datetime.now(UTC).isoformat(),
+            window_start=window_start,
+            window_end=window_end,
+        )
     canonical = normalize_canonical_summary_history(
         rows,
         account_id,
@@ -165,6 +285,7 @@ async def collect_profiles(
     account_ids: Sequence[int],
     *,
     salt: bytes,
+    raw_archive_dir: Path | None = None,
 ) -> dict[str, Any]:
     window_end = int(datetime.now(UTC).timestamp())
     window_start, window_end = previous_year_window(
@@ -180,6 +301,7 @@ async def collect_profiles(
                 salt=salt,
                 window_start=window_start,
                 window_end=window_end,
+                raw_archive_dir=raw_archive_dir,
             )
         )
     eligible_profiles = [profile for profile in profiles if profile["status"] == "eligible"]
@@ -233,6 +355,7 @@ async def _run(args: argparse.Namespace) -> dict[str, Any]:
             client,
             _candidate_ids(args.candidates),
             salt=salt,
+            raw_archive_dir=args.raw_archive_dir,
         )
 
 
@@ -242,6 +365,7 @@ def main() -> int:
     parser.add_argument("--candidates", type=Path, required=True)
     parser.add_argument("--salt", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=local / "canonical-corpus.json")
+    parser.add_argument("--raw-archive-dir", type=Path)
     parser.add_argument("--acknowledge-network-collection", action="store_true")
     args = parser.parse_args()
     payload = asyncio.run(_run(args))

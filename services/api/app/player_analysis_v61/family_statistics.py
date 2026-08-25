@@ -26,6 +26,20 @@ def _empirical_two_sided_p(samples: list[float], null: float = 0.0) -> float:
     return (extreme + 1) / (len(samples) + 1)
 
 
+def _production_p(samples: Sequence[float]) -> float:
+    """Return a fail-closed p-value for unsupported runtime evidence."""
+
+    if isinstance(samples, (str, bytes)) or not isinstance(samples, Sequence) or not samples:
+        return 1.0
+    try:
+        values = [float(value) for value in samples]
+    except (TypeError, ValueError):
+        return 1.0
+    if not all(math.isfinite(value) for value in values):
+        return 1.0
+    return _empirical_two_sided_p(values)
+
+
 def _bounded_p(effect: float, opportunities: int, *, scale: float) -> float:
     if opportunities < 12 or scale <= 0:
         return 1.0
@@ -306,9 +320,9 @@ def v61_production_family_branch_p_values(
 ) -> tuple[dict[str, float], dict[str, dict[str, float]]]:
     """Return artifact-driven omnibus/branch p-values for production mode.
 
-    Missing or incomplete evidence is a configuration error. Returning a
-    report with synthetic ``p=1`` values would make the production path look
-    healthy while silently disconnecting inference from the runtime data.
+    Missing registry shape is a configuration error. Empty or invalid runtime
+    evidence is unsupported data and returns ``p=1`` so the hierarchy
+    suppresses the affected family and branches.
     """
 
     if semantic_calibration.get("branch_procedure") != "qualified-family-bh":
@@ -338,7 +352,7 @@ def v61_production_family_branch_p_values(
     }
     for family in FINDING_FAMILY_KEYS:
         samples = family_samples[family]
-        if isinstance(samples, (str, bytes)) or not isinstance(samples, Sequence) or not samples:
+        if isinstance(samples, (str, bytes)) or not isinstance(samples, Sequence):
             raise ValueError(f"V6.1 production family evidence is missing for {family}")
         branches = branch_samples[family]
         if not isinstance(branches, Mapping) or set(branches) != expected_branches[family]:
@@ -347,19 +361,16 @@ def v61_production_family_branch_p_values(
             if (
                 isinstance(branch_samples_for_key, (str, bytes))
                 or not isinstance(branch_samples_for_key, Sequence)
-                or not branch_samples_for_key
             ):
                 raise ValueError(f"V6.1 production branch evidence is missing for {branch}")
     family_values = {
-        family: _empirical_two_sided_p([float(value) for value in family_samples[family]])
+        family: _production_p(family_samples[family])
         for family in FINDING_FAMILY_KEYS
     }
     branch_values: dict[str, dict[str, float]] = {family: {} for family in FINDING_FAMILY_KEYS}
     for definition in public:
         sample = branch_samples[definition.family_key][definition.semantic_outcome_key]
-        branch_values[definition.family_key][definition.semantic_outcome_key] = _empirical_two_sided_p(
-            [float(value) for value in sample]
-        )
+        branch_values[definition.family_key][definition.semantic_outcome_key] = _production_p(sample)
     return family_values, branch_values
 
 

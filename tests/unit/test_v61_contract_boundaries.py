@@ -8,6 +8,7 @@ from app.core.config import Settings
 from app.features.summary_models import SummaryMatchFeature
 from app.ingestion.summary_history_contract import request_manifest
 from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
+from app.player_analysis_v6.models import _freeze
 from app.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
 from app.player_analysis_v61.family_statistics import (
     v61_branch_p_values,
@@ -16,7 +17,8 @@ from app.player_analysis_v61.family_statistics import (
 from app.player_analysis_v61.hierarchical import hierarchical_qualification
 from app.player_analysis_v61.identity import compose_identity_slots
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
-from app.reports.dna_assembly_v61 import _protect_deep_handoffs
+from app.reports.dna_assembly_v6 import _plain_json
+from app.reports.dna_assembly_v61 import _protect_deep_handoffs, _semantic_bootstrap_evidence
 from app.storage.repository import InMemoryRepository
 
 
@@ -66,6 +68,36 @@ def test_production_family_statistics_fail_closed_without_complete_evidence() ->
             bootstrap_family_samples={},
             bootstrap_branch_samples={},
         )
+
+
+def test_empty_production_semantic_evidence_abstains_without_crashing() -> None:
+    branches = {
+        family: {
+            definition.semantic_outcome_key: []
+            for definition in SEMANTIC_OUTCOME_CATALOG
+            if definition.rollout_status == "public_candidate" and definition.family_key == family
+        }
+        for family in FINDING_FAMILY_KEYS
+    }
+    family, branch = v61_production_family_branch_p_values(
+        semantic_calibration={"branch_procedure": "qualified-family-bh"},
+        bootstrap_family_samples={family: [] for family in FINDING_FAMILY_KEYS},
+        bootstrap_branch_samples=branches,
+    )
+
+    assert family == {key: 1.0 for key in FINDING_FAMILY_KEYS}
+    assert all(value == 1.0 for values in branch.values() for value in values.values())
+    evidence = _semantic_bootstrap_evidence([{}])
+    assert all(not item["available"] for item in evidence["availability"].values())
+
+
+def test_public_question_projection_deeply_converts_frozen_mappings() -> None:
+    frozen = _freeze({"primary": {"params": {"hero_ids": [1, 2]}}})
+    plain = _plain_json(frozen)
+
+    assert type(plain["primary"]).__name__ == "dict"
+    assert type(plain["primary"]["params"]).__name__ == "dict"
+    assert plain["primary"]["params"]["hero_ids"] == [1, 2]
 
 
 def test_copy_registry_has_no_registered_forbidden_public_token() -> None:

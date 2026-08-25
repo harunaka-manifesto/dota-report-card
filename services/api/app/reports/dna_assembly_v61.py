@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import random
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
@@ -373,9 +374,13 @@ def _semantic_bootstrap_evidence(
         for item in samples:
             value = item.get(key)
             if value is not None:
-                result.append(float(value))
-        if not result:
-            raise ValueError(f"V6.1 production semantic evidence is unavailable for {key}")
+                try:
+                    parsed = float(value)
+                except (TypeError, ValueError):
+                    return []
+                if not math.isfinite(parsed):
+                    return []
+                result.append(parsed)
         return result
 
     breadth = values("breadth")
@@ -389,8 +394,6 @@ def _semantic_bootstrap_evidence(
         "combat_expression": [left - right for left, right in zip(involvement, death, strict=False)],
         "session_drift": values("consistency"),
     }
-    if any(not value for value in families.values()):
-        raise ValueError("V6.1 production semantic bootstrap evidence is incomplete")
     branches: dict[str, dict[str, list[float]]] = defaultdict(dict)
     for semantic_key, definition in SEMANTIC_OUTCOME_REGISTRY.items():
         if definition.rollout_status != "public_candidate":
@@ -400,6 +403,14 @@ def _semantic_bootstrap_evidence(
         "version": "v61-runtime-semantic-bootstrap-1.0.0",
         "families": families,
         "branches": dict(branches),
+        "availability": {
+            family: {
+                "available": bool(values),
+                "requested_iterations": len(samples),
+                "usable_iterations": len(values),
+            }
+            for family, values in families.items()
+        },
         "source": "runtime-session-cluster-estimators",
     }
 
