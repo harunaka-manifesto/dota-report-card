@@ -1,8 +1,8 @@
 # Free DNA V6.1 release gates
 
-Current status: **blocked pending a future canonical recollection and evidence
-run**. This document describes acceptance conditions and commands; it does not
-claim that the private corpus exists or that any State B/C gate passes.
+Current status: **blocked pending calibration, evaluation, and release
+authorization**. The replacement corpus is materialized by the offline
+selector, but this document does not claim that any State B/C gate passes.
 
 Keep `FREE_DNA_V61_ENABLED=false` and all V6.1 shadow/experimental flags false
 until every required gate and the separate operator authorization succeeds.
@@ -89,6 +89,7 @@ artifact to their actual checksum:
 | Stage | Required input/output | Fail-closed condition |
 |---|---|---|
 | Collection | one summary request per profile; canonical projection; no detail/parse/rank dependency | missing/invalid `leaver_status`, wrong request boundary, or raw identifiers |
+| Offline selection | fixed precommit/scan/corpus/split SHAs; first 339 eligible in precommitted order; V2.1 corpus and raw split | any input SHA mismatch, failed scan, shortfall, overlap, wrong window, or nonzero network request |
 | Corpus validation | nested profiles with deterministic match/session fields and schema-aware windows | old compact schema, fewer than 30 usable matches, unsupported fields, inconsistent sessions, or a match outside its own profile window |
 | Split binding | seed 6000, 791 train, 339 holdout, zero overlap | population or usable-profile mismatch; split not bound to actual corpus SHA |
 | Audit | aggregate-only leaver/request/privacy/provenance evidence | audit checksum, corpus checksum, split checksum, or canonical schema mismatch |
@@ -102,8 +103,8 @@ artifact to their actual checksum:
 Historical canonical evidence remains readable as
 `v61-calibration-corpus-2.0.0`; the latest release schema is
 `v61-calibration-corpus-2.1.0`. The historical 791 training profiles are
-intentionally preserved while the 339 replacement profiles are collected
-later, so the eventual release corpus is mixed-window by design. It retains
+intentionally preserved while the 339 replacement profiles come from the
+frozen scan, so the release corpus is mixed-window by design. It retains
 `profile_id` as a salted hash, `match_id`, time/duration/outcome/hero/KDA,
 `leaver_status`, game mode/lobby type, nullable public context, and runtime-
 derived session fields. It never materializes `account_id`. A profile is usable
@@ -114,7 +115,8 @@ each profile must declare one ordered `collection_window` of exactly 365 days
 under `window_policy.mode=per_profile_365_day`; every match and session
 inference uses that profile window. A global start/end envelope is not an
 analytical window, and no profile receives more than 365 days. The replacement
-corpus has not been built yet.
+corpus is materialized only by the selector command below; this gate does not
+authorize calibration or evaluation.
 
 The source boundary is `/players/{account_id}/matches`, one physical request,
 365 days, limit 10,000, the shared canonical projection, and `retry_limit=0`.
@@ -156,6 +158,36 @@ decision that must be bound to the aggregate result and release source SHA.
   private filesystem paths, rank/MMR dimensions, or non-finite values.
 - The frozen training manifest and authorization both remain explicit about
   whether traffic is authorized; fixture artifacts never authorize production.
+
+## Replacement materialization command
+
+The collection release is `48de08d851df083b6ab3282cd6231618a90fbbb1`, schema
+support is `7908f21c7f812ee72065c378abd97bfaa1270a97`, and the frozen selector
+release is `b5ae9257fd82f04f1759e55ef854cdbaf273629f`. From a clean worktree,
+run the selector against the immutable private evidence:
+
+```bash
+uv run python scripts/select_v61_replacement_holdout.py \
+  --precommit-manifest .local/calibration/v61/replacement-candidates-precommitted-2026-08-25.json \
+  --replacement-scan .local/calibration/v61/replacement-summary-scan.json \
+  --current-corpus .local/calibration/v61/canonical-corpus-final.json \
+  --current-split .local/calibration/v61/manifests/split-6000-canonical.json \
+  --expected-current-corpus-sha256 273ef68f46746567530a4cb6c6520a5b9b257c8ac35007adb87bedc7ab6ece3e \
+  --expected-current-split-sha256 174caebdaf13b45f70423002216007abac00510aeecc1a1df686152c52aec1c5 \
+  --collection-release-sha 48de08d851df083b6ab3282cd6231618a90fbbb1 \
+  --schema-release-sha 7908f21c7f812ee72065c378abd97bfaa1270a97 \
+  --selection-release-sha b5ae9257fd82f04f1759e55ef854cdbaf273629f \
+  --output-corpus .local/calibration/v61/replacement-canonical-corpus.json \
+  --output-split .local/calibration/v61/manifests/replacement-split-2026-08-25.json \
+  --output-selection-evidence .local/calibration/v61/replacement-selection-evidence.json
+```
+
+The selector performs zero network requests. It must report 1,224 scanned,
+379 eligible, 339 selected, 40 unused eligible reserve, and boundary index
+1070 (zero-based). Only after that command succeeds may the existing
+`validate-corpus` and `bind-split` commands be run. Calibration builders,
+synthetic evaluation, sealed holdout evaluation, and deployment remain outside
+this materialization gate.
 
 ## Future verification commands
 

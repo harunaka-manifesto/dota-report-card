@@ -41,14 +41,16 @@ profile hashes, match IDs, source fields, and session fields, but never
 
 The historical 791 training profiles remain readable as
 `v61-calibration-corpus-2.0.0`. The latest canonical schema is
-`v61-calibration-corpus-2.1.0`, which is required for the eventual replacement
-release corpus. That mixed-window corpus is expected because the historical
-training profiles and the 339 replacement holdout profiles are collected at
-different times. Each profile carries its own `collection_window` with exactly
-365 days; no profile receives more than 365 days, and no top-level start/end
-envelope is used as an analytical window. The 2.1.0 `window_policy` is
+`v61-calibration-corpus-2.1.0`, which is required for the replacement release
+corpus. That mixed-window corpus is expected because the historical training
+profiles and the 339 replacement holdout profiles were collected at different
+times. Each profile carries its own `collection_window` with exactly 365 days;
+no profile receives more than 365 days, and no top-level start/end envelope is
+used as an analytical window. The 2.1.0 `window_policy` is
 `per_profile_365_day`, and session/completed-session inference uses each
-profile's declared window. The replacement corpus has not been built here.
+profile's declared window. The offline materializer is frozen at selector
+release `b5ae9257fd82f04f1759e55ef854cdbaf273629f`; it performs no network
+request and does not authorize calibration or evaluation.
 
 ## Consumed holdout and replacement protocol
 
@@ -69,10 +71,9 @@ replacement availability is deterministic: the exact new OpenDota call count is
 **1,224 summary calls**. Do not begin a sealed evaluation unless at least 339
 eligible candidates remain; never fill the shortfall from the revealed holdout.
 
-Build a fresh 791/339 corpus, split, audit, and training artifact directory
-from the unaffected training population plus the first 339 eligible reserve
-profiles. Bind every artifact to the new corpus and split checksums. The
-revealed 339 remain validation diagnostics only.
+Build a fresh 791/339 corpus and split from the unaffected training population
+plus the first 339 eligible reserve profiles. Bind later artifacts to the new
+corpus and split checksums. The revealed 339 remain validation diagnostics only.
 
 ## Private raw response archive
 
@@ -108,6 +109,12 @@ export SCAN_STATE="$CAL/replacement-scan-state"
 export RAW_ARCHIVE="$CAL/raw-summary-archive"
 export RAW_SCAN="$CAL/replacement-summary-scan.json"
 export CORPUS="$CAL/replacement-canonical-corpus.json"
+export CURRENT_CORPUS="$CAL/canonical-corpus-final.json"
+export CURRENT_SPLIT="$CAL/manifests/split-6000-canonical.json"
+export RAW_SPLIT="$CAL/manifests/replacement-split-2026-08-25.json"
+export SPLIT="$CAL/manifests/replacement-split-canonical-2026-08-25.json"
+export SELECTION_EVIDENCE="$CAL/replacement-selection-evidence.json"
+export SELECTION_RELEASE_SHA=b5ae9257fd82f04f1759e55ef854cdbaf273629f
 export AUDIT="$CAL/corpus-compatibility-2.0.0.json"
 export ARTIFACTS="$CAL/staged"
 export EVAL="$CAL/evaluation"
@@ -176,24 +183,30 @@ uv run python scripts/scan_v61_replacement_holdout.py \
   --acknowledge-network-collection
 ```
 
-The raw 1,224-profile scan is not itself the release corpus. A later owner-only
-selection step must take the first 339 eligible profiles in the frozen
-precommitted order, merge them with the unaffected 791 training profiles, and
-write the concrete replacement corpus and split. That deterministic selection
-and the resulting 791/339 corpus are future steps and are intentionally not
-implemented here. Only after they have written `$CORPUS` and the
-precommitted split may the validation/build commands below run; do not use the
-revealed old holdout to fill any shortfall.
-
-After that future selection step, set the concrete split paths and validate the
-actual replacement corpus. The split is not known before collection:
+The raw 1,224-profile scan is not itself the release corpus. Run the frozen
+offline selector after the scan is complete; it takes the first 339 eligible
+profiles in precommitted order, merges them with the unaffected 791 training
+profiles, and writes the V2.1 corpus, raw split, and aggregate selection
+evidence. It performs zero network requests and never uses the revealed old
+holdout.
 
 ```bash
-export RAW_SPLIT="$CAL/manifests/replacement-split-2026-08-25.json"
-export SPLIT="$CAL/manifests/replacement-split-canonical-2026-08-25.json"
+test -z "$(git status --porcelain)"
+uv run python scripts/select_v61_replacement_holdout.py \
+  --precommit-manifest "$CANDIDATES" \
+  --replacement-scan "$RAW_SCAN" \
+  --current-corpus "$CURRENT_CORPUS" \
+  --current-split "$CURRENT_SPLIT" \
+  --expected-current-corpus-sha256 273ef68f46746567530a4cb6c6520a5b9b257c8ac35007adb87bedc7ab6ece3e \
+  --expected-current-split-sha256 174caebdaf13b45f70423002216007abac00510aeecc1a1df686152c52aec1c5 \
+  --collection-release-sha 48de08d851df083b6ab3282cd6231618a90fbbb1 \
+  --schema-release-sha 7908f21c7f812ee72065c378abd97bfaa1270a97 \
+  --selection-release-sha "$SELECTION_RELEASE_SHA" \
+  --output-corpus "$CORPUS" \
+  --output-split "$RAW_SPLIT" \
+  --output-selection-evidence "$SELECTION_EVIDENCE"
 
-test -s "$CORPUS"
-test -s "$RAW_SPLIT"
+test -s "$CORPUS" && test -s "$RAW_SPLIT" && test -s "$SELECTION_EVIDENCE"
 
 uv run python scripts/build_v61_calibration_artifacts.py validate-corpus \
   --input "$CORPUS" \
