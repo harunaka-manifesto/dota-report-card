@@ -163,7 +163,7 @@ decision that must be bound to the aggregate result and release source SHA.
 
 The collection release is `48de08d851df083b6ab3282cd6231618a90fbbb1`, schema
 support is `7908f21c7f812ee72065c378abd97bfaa1270a97`, and the frozen selector
-release is `b5ae9257fd82f04f1759e55ef854cdbaf273629f`. From a clean worktree,
+release is `58feb477745aaaaee1bedaa4c7bd047e984bdf16`. From a clean worktree,
 run the selector against the immutable private evidence:
 
 ```bash
@@ -176,7 +176,7 @@ uv run python scripts/select_v61_replacement_holdout.py \
   --expected-current-split-sha256 174caebdaf13b45f70423002216007abac00510aeecc1a1df686152c52aec1c5 \
   --collection-release-sha 48de08d851df083b6ab3282cd6231618a90fbbb1 \
   --schema-release-sha 7908f21c7f812ee72065c378abd97bfaa1270a97 \
-  --selection-release-sha b5ae9257fd82f04f1759e55ef854cdbaf273629f \
+  --selection-release-sha 58feb477745aaaaee1bedaa4c7bd047e984bdf16 \
   --output-corpus .local/calibration/v61/replacement-canonical-corpus.json \
   --output-split .local/calibration/v61/manifests/replacement-split-2026-08-25.json \
   --output-selection-evidence .local/calibration/v61/replacement-selection-evidence.json
