@@ -13,44 +13,235 @@ class SemanticCopy:
     claim: str
     interpretation: str
     evidence_label: str
+    neutral_variant: str | None = None
+    insufficient_variant: str | None = None
+    mixed_variant: str | None = None
+
+
+_POOL_VARIANTS = (
+    "No single pool shape separated cleanly.",
+    "Not enough stable pool history to call the shape.",
+    "Your pool has two valid layers: the names move, while the jobs hold.",
+)
+_TRANSFER_VARIANTS = (
+    "The supported comparison does not separate familiar and stretch contexts.",
+    "Not enough comparable familiar and stretch matches to call transfer.",
+    "Your answer changes by signal.",
+)
+_POST_LOSS_VARIANTS = (
+    "No single result state separated your next-choice movement.",
+    "Not enough same-session transitions to call a post-loss pattern.",
+    "The one-loss and two-plus-loss states do not tell the same story.",
+)
+_COMBAT_VARIANTS = (
+    "The covered match signals stay within the supported range.",
+    "Not enough context-resolved matches to call this one.",
+    "One signal holds while another moves.",
+)
+_SESSION_VARIANTS = (
+    "Your covered expression stays compatible across completed session positions.",
+    "Not enough completed sessions to call a session pattern.",
+    "The session story changes by what you measure.",
+)
+
+
+def _matrix_copy(
+    claim: str,
+    evidence_label: str,
+    limitation: str,
+    variants: tuple[str, str, str],
+) -> SemanticCopy:
+    return SemanticCopy(claim, limitation, evidence_label, *variants)
 
 
 _COPY = {
-    "hidden_center": SemanticCopy("Your annual pool is broad around a smaller, repeatedly observed center.", "Breadth and concentration describe different parts of the same observed portfolio.", "annual hero mass and stable core"),
-    "names_wide_jobs_narrow": SemanticCopy("Your hero names cover more ground than the mapped jobs behind them.", "Different heroes repeatedly supply a more concentrated functional mix.", "hero diversity versus fractional job mass"),
-    "names_narrow_jobs_wide": SemanticCopy("A more compact hero set covers a wider mapped job mixture.", "The observed pool gets functional coverage without requiring the same amount of name diversity.", "hero diversity versus fractional job mass"),
-    "names_changed_jobs_held": SemanticCopy("Your hero distribution changed across the year while the mapped job mixture stayed closer.", "The names moved more than the taxonomy-described functions; patch and draft context remain unresolved.", "chronological hero and job distribution distance"),
-    "clean_transfer": SemanticCopy("Outcome and summary expression remain compatible through the supported distance frontier.", "The result is bounded to covered distance bands and does not identify why transfer held.", "cross-fitted distance-band components"),
-    "results_stop_first": SemanticCopy("Observed results stop matching core sooner than summary expression does.", "Similar activity and exposure can coexist with a different result distribution.", "outcome versus expression frontiers"),
-    "expression_stops_first": SemanticCopy("Summary expression changes before the observed result distribution does.", "Compatible results do not mean the underlying summary rates were the same.", "outcome versus expression frontiers"),
-    "involvement_boundary": SemanticCopy("Adjusted involvement marks the nearest supported transfer boundary.", "The boundary is limited to covered scoreboard-event activity.", "cross-fitted involvement frontier"),
-    "exposure_boundary": SemanticCopy("Adjusted death exposure marks the nearest supported transfer boundary.", "The boundary does not identify what happened inside individual games.", "cross-fitted exposure frontier"),
-    "localized_function_bottleneck": SemanticCopy("The supported transfer gap is localized to one mapped function context.", "The taxonomy localization is descriptive and remains sensitive to mapping coverage.", "function-localized distance frontier"),
-    "one_loss_runback": SemanticCopy("After exactly one loss, your next observed selection tends to stay closer to the prior choice or core.", "This is a same-session transition pattern, not evidence of motive or recovery.", "exactly-one-loss transitions"),
-    "two_loss_switch": SemanticCopy("Your observed selection response after two or more losses differs from the one-loss state.", "The streak threshold describes choices in supported same-session opportunities, without explaining why they changed.", "one-loss versus two-plus-loss transitions"),
-    "result_shaped_pool": SemanticCopy("Wins and losses precede different supported movements through your observed pool.", "Result state is associated with the next selection, without establishing why.", "bidirectional result-state transitions"),
-    "result_invariant_response": SemanticCopy("Your next-selection movement is practically compatible across the supported result states.", "The complete interval, not a nonsignificant p-value, supports the bounded equivalence claim.", "result-state equivalence"),
-    "adjustment_without_recovery": SemanticCopy("Selection or summary expression changes after the result state while the next-result evidence stays compatible.", "The adjustment is observable; whether it helped is unresolved.", "selection, expression, and next-result chain"),
-    "involvement_holds_exposure_moves": SemanticCopy("Adjusted involvement stays compatible while death exposure moves in the qualified comparison.", "One expression component is stable and the other is context-dependent.", "conditional involvement and exposure"),
-    "exposure_holds_involvement_moves": SemanticCopy("Adjusted death exposure stays compatible while involvement moves in the qualified comparison.", "The contrast is limited to covered summary rates.", "conditional involvement and exposure"),
-    "same_expression_different_results": SemanticCopy("Supported summary-expression components are compatible across contexts with different result distributions.", "Unobserved draft, objective, and inside-game context remain plausible alternatives.", "expression equivalence and result difference"),
-    "different_expression_same_results": SemanticCopy("The observed result distribution stays compatible while summary expression differs.", "Similar results can arrive with different covered scoreboard-rate profiles.", "result equivalence and expression difference"),
-    "localized_variance": SemanticCopy("A supported hero, function, or distance context contains more of the observed expression variance.", "Localization is not blame and does not establish a cause.", "conditional variance decomposition"),
-    "opening_game_signature": SemanticCopy("Game 1 has a supported summary signature relative to later direct positions.", "The comparison uses completed sessions and direct position opportunities.", "G1 versus later session positions"),
-    "gradual_session_drift": SemanticCopy("A covered summary component moves gradually across supported session positions.", "Selection into longer sessions remains an unresolved alternative.", "G1 through G5-plus position curve"),
-    "predeclared_breakpoint": SemanticCopy("A predeclared session position is the first supported break in the observed curve.", "The breakpoint was frozen before evaluation and does not explain the change.", "frozen G2, G3, or G4 comparison"),
-    "selection_only_drift": SemanticCopy("Pool selection moves across supported session positions while summary expression stays compatible.", "The observed choice movement remains descriptive and does not explain why it occurred.", "selection curve and expression equivalence"),
-    "bounded_stopping_response": SemanticCopy("Completed, boundary-safe session endings differ after the registered result state.", "The 365-day boundary and session-gap sensitivity limit the claim; intended stopping is unknown.", "censor-aware session endings"),
-    "hero_lifecycle": SemanticCopy("A hero lifecycle candidate is available only for protected shadow evaluation.", "First observed in the window is not the same as discovered.", "left-truncation-aware lifecycle"),
-    "identity_eras": SemanticCopy("An identity-era candidate is available only for protected shadow evaluation.", "A stable year with no qualifying chapter is a valid result.", "session-block era candidate"),
-    "behavioral_loop": SemanticCopy("A sequence candidate is available only for protected shadow evaluation.", "No loop is public without discovery and independent verification support.", "non-overlapping motif occurrences"),
+    "hidden_center": _matrix_copy(
+        "Your pool is wider than it first looks—but it has a center.",
+        "Annual hero mass and stable core.",
+        "Taxonomy and coverage uncertainty remain alternatives.",
+        _POOL_VARIANTS,
+    ),
+    "names_wide_jobs_narrow": _matrix_copy(
+        "Your hero names cover more ground than the jobs behind them.",
+        "Hero diversity versus fractional job mass.",
+        "Functional jobs depend on taxonomy coverage.",
+        _POOL_VARIANTS,
+    ),
+    "names_narrow_jobs_wide": _matrix_copy(
+        "A compact hero set covers a wider mix of jobs.",
+        "Hero diversity versus fractional job mass.",
+        "Taxonomy is descriptive, not actual role truth.",
+        _POOL_VARIANTS,
+    ),
+    "names_changed_jobs_held": _matrix_copy(
+        "Your hero names moved more across the year than the jobs they covered.",
+        "Chronological hero and job distribution distance.",
+        "Taxonomy and unobserved context remain unresolved.",
+        _POOL_VARIANTS,
+    ),
+    "clean_transfer": _matrix_copy(
+        "More of your observed expression travels when the hero changes.",
+        "Outcome/activity/survival components across distance bands.",
+        "Covered distance bands only; no why.",
+        _TRANSFER_VARIANTS,
+    ),
+    "results_stop_first": _matrix_copy(
+        "The result changes before your expression does.",
+        "Outcome versus expression frontiers.",
+        "Similar activity/exposure can coexist with a different result distribution.",
+        _TRANSFER_VARIANTS,
+    ),
+    "expression_stops_first": _matrix_copy(
+        "Your expression changes before the result does.",
+        "Outcome versus expression frontiers.",
+        "Compatible results do not mean equal rates.",
+        _TRANSFER_VARIANTS,
+    ),
+    "involvement_boundary": _matrix_copy(
+        "Involvement holds farther into the hero change.",
+        "Cross-fitted involvement frontier.",
+        "Covered scoreboard-event activity only.",
+        _TRANSFER_VARIANTS,
+    ),
+    "exposure_boundary": _matrix_copy(
+        "Death exposure holds farther into the hero change.",
+        "Cross-fitted exposure frontier.",
+        "Does not identify what happened inside a game.",
+        _TRANSFER_VARIANTS,
+    ),
+    "localized_function_bottleneck": _matrix_copy(
+        "The supported gap sits in one mapped job context.",
+        "Function-localized distance frontier.",
+        "Localization depends on taxonomy coverage.",
+        _TRANSFER_VARIANTS,
+    ),
+    "one_loss_runback": _matrix_copy(
+        "After one loss, your next choice stays closer to your prior path.",
+        "Exactly-one-loss transitions.",
+        "Same-session transition association only.",
+        _POST_LOSS_VARIANTS,
+    ),
+    "two_loss_switch": _matrix_copy(
+        "After two or more losses, your next choice changes differently.",
+        "One-loss versus two-plus-loss transitions.",
+        "Streak threshold describes opportunities, not motive.",
+        _POST_LOSS_VARIANTS,
+    ),
+    "result_shaped_pool": _matrix_copy(
+        "Your next choice moves differently after wins and losses.",
+        "Bidirectional result-state transitions.",
+        "Next selection is observed; reason remains unknown.",
+        _POST_LOSS_VARIANTS,
+    ),
+    "result_invariant_response": _matrix_copy(
+        "Your next-choice movement stays about the same after wins and losses.",
+        "Result-state equivalence.",
+        "Complete interval supports bounded equivalence.",
+        _POST_LOSS_VARIANTS,
+    ),
+    "adjustment_without_recovery": _matrix_copy(
+        "Your next choice changes after the result, while the next result stays unresolved.",
+        "Selection, expression, and next-result chain.",
+        "“Whether it helped is unresolved” remains Depth 2 copy.",
+        _POST_LOSS_VARIANTS,
+    ),
+    "involvement_holds_exposure_moves": _matrix_copy(
+        "Involvement holds while death exposure moves.",
+        "Conditional involvement and exposure.",
+        "Covered summary rates only.",
+        _COMBAT_VARIANTS,
+    ),
+    "exposure_holds_involvement_moves": _matrix_copy(
+        "Death exposure holds while involvement moves.",
+        "Conditional involvement and exposure.",
+        "Context-adjusted summary rates only.",
+        _COMBAT_VARIANTS,
+    ),
+    "same_expression_different_results": _matrix_copy(
+        "Similar summary expression can arrive with different results.",
+        "Expression equivalence and result difference.",
+        "Draft, objective, and inside-game context remain alternatives.",
+        _COMBAT_VARIANTS,
+    ),
+    "different_expression_same_results": _matrix_copy(
+        "Similar results can arrive with different summary expression.",
+        "Result equivalence and expression difference.",
+        "Similar result distribution does not mean same game.",
+        _COMBAT_VARIANTS,
+    ),
+    "localized_variance": _matrix_copy(
+        "More of the expression variance sits in one supported context.",
+        "Conditional variance decomposition.",
+        "Localization is descriptive.",
+        _COMBAT_VARIANTS,
+    ),
+    "opening_game_signature": _matrix_copy(
+        "Game 1 has a different supported shape from later games.",
+        "G1 versus later session positions.",
+        "Direct positions and completed sessions only.",
+        _SESSION_VARIANTS,
+    ),
+    "gradual_session_drift": _matrix_copy(
+        "A covered part of your expression moves as the session continues.",
+        "G1 through G5-plus position curve.",
+        "Selection into longer sessions remains unresolved.",
+        _SESSION_VARIANTS,
+    ),
+    "predeclared_breakpoint": _matrix_copy(
+        "The first clear break appears at the registered session position.",
+        "Frozen G2, G3, or G4 comparison.",
+        "Breakpoint was frozen before evaluation.",
+        _SESSION_VARIANTS,
+    ),
+    "selection_only_drift": _matrix_copy(
+        "Your pool changes across a session while summary expression stays compatible.",
+        "Selection curve and expression equivalence.",
+        "Choice movement is descriptive.",
+        _SESSION_VARIANTS,
+    ),
+    "bounded_stopping_response": _matrix_copy(
+        "Completed session endings differ after the registered result state.",
+        "Censor-aware session endings.",
+        "365-day boundary and session-gap sensitivity limit the claim.",
+        _SESSION_VARIANTS,
+    ),
+    "hero_lifecycle": SemanticCopy(
+        "A hero lifecycle candidate is available only for protected shadow evaluation.",
+        "First observed in the window is not the same as discovered.",
+        "left-truncation-aware lifecycle",
+    ),
+    "identity_eras": SemanticCopy(
+        "An identity-era candidate is available only for protected shadow evaluation.",
+        "A stable year with no qualifying chapter is a valid result.",
+        "session-block era candidate",
+    ),
+    "behavioral_loop": SemanticCopy(
+        "A sequence candidate is available only for protected shadow evaluation.",
+        "No loop is public without discovery and independent verification support.",
+        "non-overlapping motif occurrences",
+    ),
 }
 
 SEMANTIC_COPY_REGISTRY = MappingProxyType(_COPY)
 
-if set(SEMANTIC_COPY_REGISTRY) != set(SEMANTIC_OUTCOME_REGISTRY):
+if len(SEMANTIC_COPY_REGISTRY) != len(SEMANTIC_OUTCOME_REGISTRY) or set(
+    SEMANTIC_COPY_REGISTRY
+) != set(SEMANTIC_OUTCOME_REGISTRY):
     missing = sorted(set(SEMANTIC_OUTCOME_REGISTRY) - set(SEMANTIC_COPY_REGISTRY))
     extra = sorted(set(SEMANTIC_COPY_REGISTRY) - set(SEMANTIC_OUTCOME_REGISTRY))
-    raise ValueError(f"V6.1 semantic copy registry drift; missing={missing}, extra={extra}")
+    raise ValueError(
+        "V6.1 semantic copy registry drift; "
+        f"copy_count={len(SEMANTIC_COPY_REGISTRY)}, "
+        f"outcome_count={len(SEMANTIC_OUTCOME_REGISTRY)}, "
+        f"missing={missing}, extra={extra}"
+    )
+
+for key, definition in SEMANTIC_OUTCOME_REGISTRY.items():
+    copy = SEMANTIC_COPY_REGISTRY[key]
+    if definition.rollout_status == "public_candidate" and any(
+        variant is None
+        for variant in (copy.neutral_variant, copy.insufficient_variant, copy.mixed_variant)
+    ):
+        raise ValueError(f"V6.1 public copy state variants missing for {key}")
 
 __all__ = ["SEMANTIC_COPY_REGISTRY", "SemanticCopy"]

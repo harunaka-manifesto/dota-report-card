@@ -16,7 +16,10 @@ from app.player_analysis_v61.family_statistics import (
 )
 from app.player_analysis_v61.hierarchical import hierarchical_qualification
 from app.player_analysis_v61.identity import compose_identity_slots
-from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
+from app.player_analysis_v61.semantic_outcomes import (
+    SEMANTIC_OUTCOME_CATALOG,
+    SEMANTIC_OUTCOME_REGISTRY,
+)
 from app.reports.dna_assembly_v6 import _plain_json
 from app.reports.dna_assembly_v61 import _protect_deep_handoffs, _semantic_bootstrap_evidence
 from app.storage.repository import InMemoryRepository
@@ -100,10 +103,74 @@ def test_public_question_projection_deeply_converts_frozen_mappings() -> None:
     assert plain["primary"]["params"]["hero_ids"] == [1, 2]
 
 
+def test_copy_registry_matches_all_registered_outcomes() -> None:
+    public_claims = {
+        "hidden_center": "Your pool is wider than it first looks—but it has a center.",
+        "names_wide_jobs_narrow": "Your hero names cover more ground than the jobs behind them.",
+        "names_narrow_jobs_wide": "A compact hero set covers a wider mix of jobs.",
+        "names_changed_jobs_held": "Your hero names moved more across the year than the jobs they covered.",
+        "clean_transfer": "More of your observed expression travels when the hero changes.",
+        "results_stop_first": "The result changes before your expression does.",
+        "expression_stops_first": "Your expression changes before the result does.",
+        "involvement_boundary": "Involvement holds farther into the hero change.",
+        "exposure_boundary": "Death exposure holds farther into the hero change.",
+        "localized_function_bottleneck": "The supported gap sits in one mapped job context.",
+        "one_loss_runback": "After one loss, your next choice stays closer to your prior path.",
+        "two_loss_switch": "After two or more losses, your next choice changes differently.",
+        "result_shaped_pool": "Your next choice moves differently after wins and losses.",
+        "result_invariant_response": "Your next-choice movement stays about the same after wins and losses.",
+        "adjustment_without_recovery": "Your next choice changes after the result, while the next result stays unresolved.",
+        "involvement_holds_exposure_moves": "Involvement holds while death exposure moves.",
+        "exposure_holds_involvement_moves": "Death exposure holds while involvement moves.",
+        "same_expression_different_results": "Similar summary expression can arrive with different results.",
+        "different_expression_same_results": "Similar results can arrive with different summary expression.",
+        "localized_variance": "More of the expression variance sits in one supported context.",
+        "opening_game_signature": "Game 1 has a different supported shape from later games.",
+        "gradual_session_drift": "A covered part of your expression moves as the session continues.",
+        "predeclared_breakpoint": "The first clear break appears at the registered session position.",
+        "selection_only_drift": "Your pool changes across a session while summary expression stays compatible.",
+        "bounded_stopping_response": "Completed session endings differ after the registered result state.",
+    }
+    public_keys = {
+        definition.semantic_outcome_key
+        for definition in SEMANTIC_OUTCOME_CATALOG
+        if definition.rollout_status == "public_candidate"
+    }
+    shadow_keys = {
+        definition.semantic_outcome_key
+        for definition in SEMANTIC_OUTCOME_CATALOG
+        if definition.rollout_status == "shadow_only"
+    }
+
+    assert len(SEMANTIC_COPY_REGISTRY) == len(SEMANTIC_OUTCOME_REGISTRY) == 28
+    assert set(SEMANTIC_COPY_REGISTRY) == set(SEMANTIC_OUTCOME_REGISTRY)
+    assert set(public_claims) == public_keys
+    assert {key: SEMANTIC_COPY_REGISTRY[key].claim for key in public_keys} == public_claims
+    assert shadow_keys == {"hero_lifecycle", "identity_eras", "behavioral_loop"}
+    assert all(SEMANTIC_OUTCOME_REGISTRY[key].share_key is None for key in shadow_keys)
+    assert all(
+        SEMANTIC_COPY_REGISTRY[key].neutral_variant is None
+        and SEMANTIC_COPY_REGISTRY[key].insufficient_variant is None
+        and SEMANTIC_COPY_REGISTRY[key].mixed_variant is None
+        for key in shadow_keys
+    )
+
+
 def test_copy_registry_has_no_registered_forbidden_public_token() -> None:
     for definition in SEMANTIC_OUTCOME_CATALOG:
         copy = SEMANTIC_COPY_REGISTRY[definition.semantic_outcome_key]
-        public_text = f"{copy.claim} {copy.interpretation} {copy.evidence_label}".casefold()
+        public_text = " ".join(
+            value
+            for value in (
+                copy.claim,
+                copy.interpretation,
+                copy.evidence_label,
+                copy.neutral_variant,
+                copy.insufficient_variant,
+                copy.mixed_variant,
+            )
+            if value is not None
+        ).casefold()
         for token in definition.forbidden_tokens:
             assert re.search(rf"\b{re.escape(token.casefold())}\b", public_text) is None
 
