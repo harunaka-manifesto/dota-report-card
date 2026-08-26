@@ -664,13 +664,14 @@ const api = http.createServer(async (request, response) => {
       const baseline = Number(session.recommendation_baseline.value ?? 0.5);
       const followUp = 0.6;
       return sendJson(response, 200, {
-        session_id: session.session_id,
         revision: session.revision,
         status: "ready",
         eligible_new_matches: 5,
         context_matching_matches: 5,
         progress: { completed: 5, required: 5, remaining: 0 },
-        comparison: { label: "what_changed_in_these_five_games", metric: session.recommendation_baseline.metric, baseline, follow_up: followUp, delta: followUp - baseline, match_ids: [7001, 7002, 7003, 7004, 7005], causal: false, identity_updated: false },
+        comparison: { label: "what_changed_in_these_five_games", metric: session.recommendation_baseline.metric, baseline, follow_up: followUp, delta: followUp - baseline, causal: false, identity_updated: false },
+        message: "The five-game comparison is ready.",
+        guardrail: "This compares the next five matching games. It does not claim causality or change your Signature.",
         stop_reason: "five_context_matches_ready"
       });
     }

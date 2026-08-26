@@ -49,7 +49,10 @@ test.describe("Free DNA v6 renderer", () => {
 
     const followUp = await request.post(`/v1/report-interactions/${session.session_id}/follow-up`, { headers: authorization });
     expect(followUp.status()).toBe(200);
-    expect((await followUp.json()).comparison).toMatchObject({ label: "what_changed_in_these_five_games", causal: false, identity_updated: false });
+    const followUpBody = await followUp.json();
+    expect(followUpBody.comparison).toMatchObject({ label: "what_changed_in_these_five_games", causal: false, identity_updated: false });
+    expect(followUpBody).not.toHaveProperty("session_id");
+    expect(followUpBody.comparison).not.toHaveProperty("match_ids");
 
     const deep = await request.post(`/v1/reports/${reportId}/deep-analyses`, {
       headers: authorization,
@@ -135,7 +138,10 @@ test.describe("Free DNA V6.1 renderer", () => {
     expect(committed.status()).toBe(200);
     const followUp = await request.post(`/v1/report-interactions/${followUpSession.session_id}/follow-up`, { headers: followUpAuthorization });
     expect(followUp.status()).toBe(200);
-    expect((await followUp.json()).comparison).toMatchObject({ causal: false, identity_updated: false });
+    const followUpBody = await followUp.json();
+    expect(followUpBody.comparison).toMatchObject({ causal: false, identity_updated: false });
+    expect(followUpBody).not.toHaveProperty("session_id");
+    expect(followUpBody.comparison).not.toHaveProperty("match_ids");
     const requestedUrls: string[] = [];
     page.on("request", (outgoing) => requestedUrls.push(outgoing.url()));
     await page.addInitScript(() => {
