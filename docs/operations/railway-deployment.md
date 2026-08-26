@@ -142,6 +142,15 @@ Apply the API pre-deploy migration, confirm the worker is running the same
 release identity, and only then allow the API healthcheck to pass. Keep all
 V6/V6.1 flags off. Do not attach a volume to either application service.
 
+The migration chain preserves all historical revision IDs. The new
+`0001_version_table_width` step widens `alembic_version.version_num` from the
+Alembic default `VARCHAR(32)` to `VARCHAR(64)` before
+`0002_persist_analysis_job_details`, so a clean bootstrap and a retry from a
+partially completed `0001_initial` state both proceed automatically. The
+current Alembic environment wraps the run in one PostgreSQL transaction, so a
+failed pre-deploy normally rolls back the whole bootstrap; the bridge also
+handles a database where `0001_initial` was already committed.
+
 `ANALYSIS_MAX_CONCURRENCY=4` bounds in-process analysis work. It is separate
 from Celery's process concurrency; the worker start command explicitly pins
 Celery concurrency to 4.
