@@ -3,7 +3,7 @@
 Review date: 2026-08-26
 Decision scope: product narrative/content/comprehension readiness only
 Analytical/runtime changes in this batch: none
-Production authorization in this batch: none
+Production authorization in this batch: local owner-authorized beta artifact refreshed; public enablement remains off
 
 ## Executive decision
 
@@ -39,7 +39,7 @@ change, semantic qualification change, or backend analytical change.
 | **COPY OVERCLAIM** | **PASS** | Qualified, neutral, insufficient, and mixed copy stays within registered claim contracts; shadow-only outcomes remain private. | No psychology, cause, rank/MMR, or unsupported gameplay claim. |
 | **PRODUCT COMPREHENSION** | **PASS** | Nine adaptive beats now run Recognition→Share with Story/Evidence/Methodology depth, final Signature, and optional aftercare/Deep. | 2–3-second visual review passed at desktop and 375px. |
 | **ACCESSIBILITY** | **PASS** | Native controls, headings, labels, progress, disclosures, relationship tables, focus treatment, reduced motion, 200% zoom, and 375px no-overflow are verified across the browser matrix. | Maintain the existing semantic and visual regression coverage. |
-| **PACKAGE/CONTAINER INTEGRITY** | **BLOCKED** | The adjudicated bundle is `a6c1d0c08ceef553150c401b0711b24eb89aa4d316105b8977373f3cc79c4865`, but the local assembled package is stale and dirty-bound. The source-binding fix must be packaged from the clean candidate with separate deploy and analytical source metadata. | Create a fresh owner-authorized package from the immutable adjudicated bundle after the source-binding fix is committed. |
+| **PACKAGE/CONTAINER INTEGRITY** | **PASS LOCALLY** | Fresh owner-authorized package generated from the adjudicated bundle: authorization SHA `9ddde890c25a47fcabf7a5e51f22ba3a3007f79dd5e5f9c52845a2bfe4e69b2a`, package bundle SHA `8e9e22a9fa36aa351abced843023b910488fea17c34c57b8d9b221c0c9b3aae0`, deploy source `1a83210f1f9db3b019db376a80e8bf2201420bd2`, analytical source `7df38e6d234ae9c4ee425490bc40b8cc92685f85`, `dirty_worktree=false`. | Verify production API/worker/DB/Redis metadata before any owner enablement. |
 
 ## Internal statistical review versus user copy
 
@@ -81,7 +81,7 @@ correct depth.
 | Shareability | Only eligible identity/finding/mirror cards are visible and the image/native share path works. | PASS locally across preview, native share, download, link, and text fallbacks. | Production endpoint verification remains blocked by access. |
 | Accessibility | Every new visual has keyboard/table/disclosure/reduced-motion/narrow/200% equivalent. | PASS across 45 browser scenarios and rendered review. | None. |
 | Privacy | No public or analytics identifier leakage; follow-up stays aggregate-only. | PASS with dedicated unit/API/browser regressions. | None. |
-| Source binding | Product direction, copy version, presentation payload, and release provenance agree. | PASS locally: commit `d988d11ade0951e6d1ea7a838c6d185fdbbe7a43` separates deploy and analytical source identities; package validation remains blocked by stale authorization. | Supply a valid owner-authorized package and verify deployment metadata. |
+| Source binding | Product direction, copy version, presentation payload, and release provenance agree. | PASS locally: candidate `1a83210f1f9db3b019db376a80e8bf2201420bd2` separates deploy and analytical source identities; fresh authorization and package validation pass. | Verify deployment metadata. |
 
 ## Pre-implementation package facts (historical audit input)
 
@@ -222,14 +222,9 @@ required or permitted.
 
 ## Blockers
 
-1. The only assembled local V6.1 package is stale
-   (`173089781cf85d6c360c5ad0a2739697b7de1e62`, dirty=true) and cannot be
-   deployed.
-2. The existing local beta authorization is bound to the stale package and
-   fails checksum validation against the authoritative
-   `a6c1d0c08ceef553150c401b0711b24eb89aa4d316105b8977373f3cc79c4865` bundle;
-   it must not be rewritten as evidence.
-3. Production deployment credentials, URLs, running database revision, and
+1. The historical local beta authorization remains stale and rejected; it is
+   preserved unchanged and is not used for packaging.
+2. Production deployment credentials, URLs, running database revision, and
    API/worker identities are unavailable in this workspace.
 
 ## Next safe action
@@ -238,7 +233,7 @@ The source-binding fix at
 `d988d11ade0951e6d1ea7a838c6d185fdbbe7a43` adds mandatory production
 `FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=7df38e6d234ae9c4ee425490bc40b8cc92685f85`
 for V6.1 bundle and authorization validation while `RELEASE_COMMIT_SHA`
-continues to identify the truthful product/API/worker deploy. This is source
-bookkeeping only and does not alter analytical behavior. The final clean
-candidate SHA is recorded in the release packet after commit; it is not the
-holdout execution or verifier SHA.
+continues to identify the truthful product/API/worker deploy. The refreshed
+authorization and package pass locally; the remaining safe action is
+production metadata and health verification. This is source bookkeeping only
+and does not alter analytical behavior.
