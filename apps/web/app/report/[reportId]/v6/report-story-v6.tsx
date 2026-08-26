@@ -265,7 +265,7 @@ function ScopeReceipt({ page, reducedMotion, onComplete, headingRef }: { page: S
     ["7 signals", "did the measuring"],
     [`${heroCount} most-played heroes`, "give us somewhere familiar to start"],
   ];
-  const visibleStage = heroCount ? stage : Math.min(stage, 2);
+  const visibleStage = heroCount ? Math.min(stage, facts.length - 1) : Math.min(stage, 2);
   return <div className={styles.receipt} key={visibleStage}>
     <h1 ref={headingRef} tabIndex={-1}>{facts[visibleStage][0]}</h1>
     <p>{facts[visibleStage][1]}</p>

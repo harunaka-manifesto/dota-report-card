@@ -562,15 +562,131 @@ const v61Signature = v61Alias("v61-signature-fixture", v61Reports[1], (item) => 
 const v61375 = v61Alias("v61-375-fixture", v61Narrow);
 const v61NoHeroes = v61Alias("v61-no-heroes-fixture", v61Reports[2], (item) => { item.hero_portfolio.heroes = []; });
 const v61NoBands = v61Alias("v61-no-bands-fixture", v61Reports[2], (item) => { item.hero_portfolio.heroes = item.hero_portfolio.heroes.map(({ story_band, ...hero }) => hero); });
+const historicalHero = (name, match_count, share, mapped_jobs) => ({
+  name,
+  display_name: name,
+  portrait_url: null,
+  match_count,
+  share,
+  mapped_jobs,
+  facts: [
+    { label: "Matches", value: String(match_count) },
+    { label: "Share of your year", value: `${Math.round(share * 100)}%` },
+    { label: "Mapped jobs", value: mapped_jobs.join(" · ") },
+  ],
+});
+const v61HistoricalProduction = v61Alias("v61-historical-production-fixture", v61Reports[0], (item) => {
+  item.metadata = { ...item.metadata, processed_matches: 150, eligible_matches: 138, raw_history_hash: "fixture-historical-history" };
+  item.identity.display_name = "Historical fixture player";
+  item.hero_portfolio = {
+    ...item.hero_portfolio,
+    status: "available",
+    headline: "Your established heroes provide a visible portfolio thread.",
+    common_thread: "Fight control",
+    prediction: null,
+    prediction_refs: [],
+    heroes: [
+      historicalHero("Hero Alpha", 44, .318841, ["Fight control", "Catch"]),
+      historicalHero("Hero Beta", 20, .144928, ["Fight start", "Wave clear"]),
+      historicalHero("Hero Gamma", 18, .130435, ["Catch", "Mobility"]),
+      historicalHero("Hero Delta", 12, .086957, ["Fight control", "Repositioning"]),
+      historicalHero("Hero Epsilon", 7, .050725, ["Save", "Sustain"]),
+      historicalHero("Hero Zeta", 5, .036232, ["Mobility", "Catch"]),
+    ],
+    evolution: {
+      title: "Pool Evolution",
+      body: "The pool moved across the year.",
+      evidence_refs: ["supporting:portfolio_shape"],
+      points: [
+        { id: "early", label: "Earlier", position: 0, summary: "Three repeated heroes" },
+        { id: "middle", label: "Middle", position: 1, summary: "One exploratory branch" },
+        { id: "recent", label: "Recent", position: 2, summary: "Six names, recurring jobs" },
+      ],
+    },
+    timeline: [
+      { id: "early", label: "Earlier", position: 0, summary: "Three repeated heroes" },
+      { id: "middle", label: "Middle", position: 1, summary: "One exploratory branch" },
+      { id: "recent", label: "Recent", position: 2, summary: "Six names, recurring jobs" },
+    ],
+    hero_mirror: { status: "available", hero_name: "Hero Alpha", headline: "Hero Alpha carries the clearest observed thread.", evidence_refs: ["supporting:portfolio_shape"] },
+  };
+  item.identity_summary = {
+    ...item.identity_summary,
+    headline: "A compact, measured shape.",
+    supporting_lines: ["The repeated heroes provide the strongest supported evidence."],
+    confidence: "high",
+    evidence_refs: ["fixture:breadth", "fixture:toolkit"],
+    slots: {
+      version: "identity-slot-compatibility-1.0.0",
+      primary: { kind: "PRIMARY", scope: "This year", text: "A compact, measured shape.", evidence_refs: ["fixture:breadth"] },
+      twist: null,
+      anchor: { kind: "ANCHOR", scope: "Observed annual core", text: "Hero Alpha", evidence_refs: ["supporting:portfolio_shape"] },
+      compatibility: "identity-slot-compatibility-1.0.0",
+      compatibility_checks: { primary_stability_gate: true, twist_qualified_only: true, anchor_portfolio_owned: true },
+    },
+  };
+  item.supporting_evidence = {
+    portfolio_shape: {
+      version: "portfolio-shape-1.0.0",
+      match_count: 138,
+      shannon_effective_heroes: 11.2,
+      shannon_effective_jobs: 10.0,
+      taxonomy_coverage: 1,
+      core_hero_ids: [],
+      reliable_stretch_hero_ids: [],
+      experimental_tail_hero_ids: [],
+      top_shares: { top_1: .318841 },
+    },
+    involvement: {},
+    finishing: {},
+    death_exposure: {},
+    transfer_frontier: {},
+    consistency: {},
+    result_response: {},
+    session_curve: {},
+    production_bootstrap: { version: "fixture-production-bootstrap-1.0.0", elements: {} },
+  };
+  item.share_candidates = item.share_candidates.map((candidate) => candidate.kind === "hero_mirror"
+    ? { ...candidate, payload: { title: "Hero Mirror", body: "Hero Alpha" } }
+    : candidate);
+  // Historical V6.1 projection: authoritative story bands were not persisted.
+});
 const v61NoChronology = v61Alias("v61-no-chronology-fixture", v61Reports[2], (item) => { item.hero_portfolio.evolution = { ...item.hero_portfolio.evolution, points: [] }; });
 const v61NoIdentity = v61Alias("v61-no-identity-fixture", v61Reports[2], (item) => {
   item.identity_summary = { ...item.identity_summary, headline: null, evidence_refs: ["unreferenced"], slots: null };
+});
+const v61OneHero = v61Alias("v61-one-hero-fixture", v61Reports[1], (item) => {
+  item.hero_portfolio.heroes = v61HeroRows.slice(0, 1);
+});
+const v61OneBand = v61Alias("v61-one-band-fixture", v61Reports[2], (item) => {
+  item.hero_portfolio.heroes = item.hero_portfolio.heroes.map((hero) => ({ ...hero, story_band: "regular" }));
+});
+const v61OnePoint = v61Alias("v61-one-point-fixture", v61Reports[2], (item) => {
+  item.hero_portfolio.evolution = { ...item.hero_portfolio.evolution, points: [item.hero_portfolio.evolution.points[0]] };
+});
+const v61LowConfidence = v61Alias("v61-low-confidence-identity-fixture", v61Reports[1], (item) => {
+  item.identity_summary.confidence = "low";
+});
+const v61MissingComparison = v61Alias("v61-missing-comparison-fixture", v61Reports[1], (item) => {
+  delete item.findings[0].comparison;
+});
+const v61EmptyComparison = v61Alias("v61-empty-comparison-fixture", v61Reports[1], (item) => {
+  item.findings[0].comparison = { rows: [] };
+});
+const v61MissingEvidence = v61Alias("v61-missing-evidence-fields-fixture", v61Reports[1], (item) => {
+  delete item.elements[0].limitations;
+  delete item.findings[0].alternatives;
+  delete item.findings[0].evidence_text;
+  delete item.findings[0].claim_contract.alternatives;
+});
+const v61MissingSupportingEvidence = v61Alias("v61-missing-supporting-evidence-fixture", v61Reports[0], (item) => {
+  delete item.supporting_evidence.portfolio_shape;
 });
 const v61Movement = v61Alias("v61-movement-fixture", v61Reports[1], (item) => { item.findings[0].semantic_outcome_key = "names_changed_jobs_held"; });
 const v61Session = v61Alias("v61-session-fixture", v61Reports[0], (item) => {
   item.findings[4] = structuredClone(v61Reports[4].findings[4]);
 });
-const v61Aliases = [v61Qualified, v61Neutral, v61Insufficient, v61Mixed, v61Narrow, v61Broad, v61Signature, v61375, v61NoHeroes, v61NoBands, v61NoChronology, v61NoIdentity, v61Movement, v61Session];
+const v61Aliases = [v61Qualified, v61Neutral, v61Insufficient, v61Mixed, v61Narrow, v61Broad, v61Signature, v61375, v61NoHeroes, v61NoBands, v61HistoricalProduction, v61NoChronology, v61NoIdentity, v61OneHero, v61OneBand, v61OnePoint, v61LowConfidence, v61MissingComparison, v61EmptyComparison, v61MissingEvidence, v61MissingSupportingEvidence, v61Movement, v61Session];
 const legacyV4 = { ...report, report_id: "legacy-v4-fixture", schema_version: "free-dna-report-4.0.0" };
 const legacyV5 = { ...report, report_id: "legacy-v5-fixture", schema_version: "free-dna-report-5.2.0" };
 const reports = new Map([[reportId, report], [legacyV4.report_id, legacyV4], [legacyV5.report_id, legacyV5], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report], ...v61Reports.map((item) => [item.report_id, item]), ...v61Aliases.map((item) => [item.report_id, item])]);

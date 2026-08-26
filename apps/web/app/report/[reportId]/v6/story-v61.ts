@@ -7,6 +7,7 @@ import type {
   V61IdentitySlot,
   V61Report,
 } from "./types";
+import { normalizeV61StoryReport } from "./normalize-v61-report";
 
 export const SIGNAL_LABELS = [
   "Breadth",
@@ -88,7 +89,8 @@ const FAMILY_COPY = {
   },
 } as const;
 
-export function buildStoryPages(report: V61Report): StoryPage[] {
+export function buildStoryPages(rawReport: V61Report): StoryPage[] {
+  const report = normalizeV61StoryReport(rawReport);
   const pages: StoryPage[] = [];
   const heroes = safeHeroes(report.hero_portfolio.heroes ?? []);
   const findings = report.findings.filter(isPublishedFinding);
@@ -186,7 +188,7 @@ export function buildStoryPages(report: V61Report): StoryPage[] {
         : poolEvidence(report, "The structure inside your pool."),
       evidenceRefs: ownsPoolFinding
         ? poolFinding.evidence_refs ?? []
-        : ["supporting:portfolio_shape"],
+        : report.supporting_evidence.portfolio_shape ? ["supporting:portfolio_shape"] : [],
     });
   }
 
@@ -210,7 +212,9 @@ export function buildStoryPages(report: V61Report): StoryPage[] {
         : poolEvidence(report, "How the pool moved across the year."),
       evidenceRefs: ownsPoolFinding
         ? poolFinding.evidence_refs ?? []
-        : report.hero_portfolio.evolution?.evidence_refs ?? ["supporting:portfolio_shape"],
+        : report.hero_portfolio.evolution?.evidence_refs?.length
+          ? report.hero_portfolio.evolution.evidence_refs
+          : report.supporting_evidence.portfolio_shape ? ["supporting:portfolio_shape"] : [],
     });
   }
 
@@ -328,7 +332,10 @@ function safeHeroes(rows: V6HeroRow[]): V6HeroRow[] {
 
 function safeTimeline(report: V61Report): V6TimelinePoint[] {
   const evolution = report.hero_portfolio.evolution;
-  return (evolution?.points ?? evolution?.timeline ?? report.hero_portfolio.timeline ?? []).filter(
+  const source = [evolution?.points, evolution?.timeline, report.hero_portfolio.timeline].find(
+    (points) => Array.isArray(points) && points.length > 0,
+  ) ?? [];
+  return source.filter(
     (point) => Boolean(point?.label && (point.summary || point.evidence || point.period)),
   );
 }
@@ -387,18 +394,19 @@ function findingEvidence(finding: V6Finding): EvidenceModel {
   };
 }
 
-function poolEvidence(report: V61Report, headline: string): EvidenceModel {
-  const shape = report.supporting_evidence.portfolio_shape ?? {};
+function poolEvidence(report: V61Report, headline: string): EvidenceModel | undefined {
+  const shape = report.supporting_evidence.portfolio_shape;
+  if (!shape) return undefined;
   const rows: string[] = [];
   addNumber(rows, shape.match_count, "eligible hero selections", 0);
   addNumber(rows, shape.shannon_effective_heroes, "effective heroes", 1);
   addNumber(rows, shape.shannon_effective_jobs, "mapped jobs", 1);
   if (typeof shape.taxonomy_coverage === "number") rows.push(`${Math.round(shape.taxonomy_coverage * 100)}% taxonomy coverage`);
-  return { headline, rows, alternatives: [], limitations: [] };
+  return rows.length > 0 ? { headline, rows, alternatives: [], limitations: [] } : undefined;
 }
 
 function comparisonRows(comparison: V6Finding["comparison"]): string[] {
-  if (!comparison) return [];
+  if (!comparison || typeof comparison !== "object") return [];
   const rows = [
     ...(comparison.contexts ?? []),
     ...(comparison.rows ?? []),
@@ -409,10 +417,13 @@ function comparisonRows(comparison: V6Finding["comparison"]): string[] {
   return rows.map(formatComparisonRow).filter(Boolean);
 }
 
-function formatComparisonRow(row: V6ComparisonRow): string {
+function formatComparisonRow(row: V6ComparisonRow | null | undefined): string {
+  if (!row || typeof row !== "object") return "";
+  const label = typeof row.label === "string" ? row.label : "";
+  if (!label) return "";
   const value = row.value ?? row.estimate;
-  if (value == null) return row.label;
-  return `${row.label}: ${typeof value === "number" ? Number(value.toFixed(2)) : value}${row.unit ? ` ${row.unit}` : ""}`;
+  if (value == null) return label;
+  return `${label}: ${typeof value === "number" ? Number(value.toFixed(2)) : value}${row.unit ? ` ${row.unit}` : ""}`;
 }
 
 function breadthHeadline(zone?: string | null): string {

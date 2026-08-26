@@ -6,9 +6,10 @@ async function currentPageId(page: Page): Promise<string> {
 
 async function goTo(page: Page, target: string): Promise<void> {
   for (let index = 0; index < 20; index += 1) {
-    if (await currentPageId(page) === target) return;
+    const current = await currentPageId(page);
+    if (current === target) return;
     await page.getByRole("button", { name: "Next", exact: true }).click();
-    await expect.poll(() => currentPageId(page)).not.toBe("");
+    await expect.poll(() => currentPageId(page)).not.toBe(current);
   }
   throw new Error(`Page ${target} was not reached`);
 }
@@ -94,6 +95,116 @@ test.describe("Free Dota DNA v6.1 story", () => {
     await page.getByRole("button", { name: "Read again" }).click();
     await expect.poll(() => currentPageId(page)).toBe("arrival");
     await expect(page.getByRole("heading", { name: /a year of Dota left receipts/ })).toBeFocused();
+  });
+
+  test("historical persisted v6.1 reports render in the new story UI", async ({ page }) => {
+    const pageErrors: Error[] = [];
+    const consoleErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error));
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
+
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/report/v61-historical-production-fixture");
+    await expect(page.locator("main")).toBeVisible();
+    await expect(page.locator("[data-page-id]")).toHaveAttribute("data-page-id", "arrival");
+
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(page.locator("[data-page-id='scope-receipt']")).toContainText("365 days");
+    await page.waitForTimeout(4_500);
+    expect(pageErrors.map((error) => error.message), consoleErrors.join("\n")).toEqual([]);
+    await expect(page.getByRole("heading", { name: /This report couldn’t load\./ })).toHaveCount(0);
+    await page.getByRole("button", { name: "Back", exact: true }).click();
+    await expect(page.locator("[data-page-id]")).toHaveAttribute("data-page-id", "arrival");
+
+    const ids = await pageIds(page);
+    expect(ids).toContain("share");
+    expect(ids).toContain("end");
+    expect(ids).not.toContain("pool-layers");
+
+    await page.goto("/report/v61-historical-production-fixture");
+    await goTo(page, "pool-width");
+    const evidence = page.getByRole("button", { name: "Why this?" });
+    if (await evidence.count()) {
+      await evidence.click();
+      await expect(page.getByRole("dialog")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toBeHidden();
+    }
+
+    await goTo(page, "end");
+    await page.getByRole("button", { name: "Back", exact: true }).click();
+    await expect(page.locator("[data-page-id]")).not.toHaveAttribute("data-page-id", "end");
+    await page.locator("[data-page-id] h1").focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect(page.locator("[data-page-id]")).not.toHaveAttribute("data-page-id", "share");
+    await goTo(page, "end");
+
+    const methodology = page.getByRole("button", { name: "How this was measured" });
+    await methodology.click();
+    await expect(page.getByRole("dialog")).toContainText("365-day summary history");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toBeHidden();
+
+    await page.getByRole("button", { name: "Read again" }).click();
+    await expect(page.locator("[data-page-id]")).toHaveAttribute("data-page-id", "arrival");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/report/v61-historical-production-fixture");
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await expect(page.locator("[data-page-id='scope-receipt']")).toContainText("Death Exposure");
+    expect(pageErrors.map((error) => error.message), consoleErrors.join("\n")).toEqual([]);
+  });
+
+  test("optional persisted v6.1 fields never white-screen", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const pageErrors: string[] = [];
+    const consoleErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error") consoleErrors.push(message.text());
+    });
+    const cases: Array<[string, string[]]> = [
+      ["v61-5-fixture", []],
+      ["v61-no-heroes-fixture", ["lead-hero", "hero-front-row", "pool-layers"]],
+      ["v61-one-hero-fixture", ["hero-front-row", "pool-layers"]],
+      ["v61-no-bands-fixture", ["pool-layers"]],
+      ["v61-one-band-fixture", ["pool-layers"]],
+      ["v61-qualified-fixture", []],
+      ["v61-no-chronology-fixture", ["pool-movement"]],
+      ["v61-one-point-fixture", ["pool-movement"]],
+      ["v61-no-identity-fixture", ["coherence", "signature-setup", "signature-reveal"]],
+      ["v61-neutral-fixture", ["signature-setup", "signature-reveal"]],
+      ["v61-low-confidence-identity-fixture", ["signature-setup", "signature-reveal"]],
+      ["v61-missing-comparison-fixture", []],
+      ["v61-empty-comparison-fixture", []],
+      ["v61-missing-evidence-fields-fixture", []],
+      ["v61-missing-supporting-evidence-fixture", []],
+    ];
+
+    for (const [fixture, omitted] of cases) {
+      pageErrors.length = 0;
+      consoleErrors.length = 0;
+      await page.goto(`/report/${fixture}`);
+      await expect(page.locator("main")).toBeVisible();
+      const ids = await pageIds(page);
+      expect(ids).toContain("share");
+      expect(ids).toContain("end");
+      for (const id of omitted) expect(ids).not.toContain(id);
+      expect(page.getByRole("heading", { name: /This report couldn’t load\./ })).toHaveCount(0);
+      expect(pageErrors, consoleErrors.join("\n")).toEqual([]);
+    }
+
+    await page.goto("/report/v61-missing-supporting-evidence-fixture");
+    await goTo(page, "pool-layers");
+    const evidence = page.getByRole("button", { name: "Why this?" });
+    expect(await evidence.count()).toBe(0);
   });
 
   test("Evidence, Methodology, and Exit dialogs close and restore focus", async ({ page }) => {
