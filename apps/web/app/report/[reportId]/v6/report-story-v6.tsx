@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import {
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MutableRefObject,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type RefObject,
   useCallback,
   useEffect,
   useMemo,
@@ -21,6 +26,12 @@ import styles from "./report-story-v6.module.css";
 
 type Direction = "forward" | "backward";
 type DialogName = "evidence" | "methodology" | "exit" | null;
+type PointerStart = { x: number; y: number; target: EventTarget | null; selectionActive: boolean };
+
+const TRANSITION_DURATION = 280;
+const EDGE_WIDTH = 56;
+const DRAG_THRESHOLD = 12;
+const INTERACTIVE_SELECTOR = "button, a, input, textarea, select, dialog, [contenteditable='true']";
 
 export default function ReportStoryV6({ report }: { report: V61Report }) {
   const pages = useMemo(() => buildStoryPages(report), [report]);
@@ -32,6 +43,7 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const [fallbackUrl, setFallbackUrl] = useState("");
   const transitionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pointerStart = useRef<PointerStart | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const overlayStarted = useRef(0);
   const overlayOrigin = useRef<HTMLElement | null>(null);
@@ -59,14 +71,33 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
         track("report.story_transition_completed.v1", {
           page_id: pages[nextIndex].id,
           direction: nextDirection,
-          transition_duration_ms: reducedMotion ? 0 : 160,
+          transition_duration_ms: reducedMotion ? 0 : TRANSITION_DURATION,
           reduced_motion: reducedMotion,
         });
       });
     };
     if (reducedMotion) finish();
-    else transitionTimer.current = setTimeout(finish, 160);
+    else transitionTimer.current = setTimeout(finish, TRANSITION_DURATION);
   }, [pageIndex, pages, reducedMotion]);
+
+  const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    const selection = window.getSelection();
+    pointerStart.current = { x: event.clientX, y: event.clientY, target: event.target, selectionActive: Boolean(selection && !selection.isCollapsed) };
+  }, []);
+
+  const handlePointerUp = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    const start = pointerStart.current;
+    pointerStart.current = null;
+    if (!start || openDialog) return;
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > DRAG_THRESHOLD) return;
+    const startTarget = start.target instanceof Element ? start.target : null;
+    const endTarget = event.target instanceof Element ? event.target : null;
+    if (startTarget?.closest(INTERACTIVE_SELECTOR) || endTarget?.closest(INTERACTIVE_SELECTOR)) return;
+    const selection = window.getSelection();
+    if (start.selectionActive || (selection && !selection.isCollapsed)) return;
+    if (event.clientX <= EDGE_WIDTH) navigate(pageIndex - 1, "backward");
+    else if (event.clientX >= window.innerWidth - EDGE_WIDTH) navigate(pageIndex + 1, "forward");
+  }, [navigate, openDialog, pageIndex]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -148,13 +179,18 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
         <button className={styles.textControl} type="button" onClick={(event) => openOverlay("exit", "report.exit_prompted.v1", event.currentTarget)}>Exit</button>
       </header>
 
-      <section className={styles.viewport}>
+      <section
+        className={styles.viewport}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={() => { pointerStart.current = null; }}
+      >
         <div className={`${styles.page} ${styles[phase]} ${styles[page.layout]}`} data-page-id={page.id} key={page.id}>
           <PageContent
             page={page}
-            report={report}
             headingRef={headingRef}
             reducedMotion={reducedMotion}
+            exitOpen={openDialog === "exit"}
             copyStatus={copyStatus}
             fallbackUrl={fallbackUrl}
             onCopy={copyLink}
@@ -167,13 +203,13 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
         </div>
       </section>
 
-      <nav className={styles.controls} aria-label="Story navigation">
-        <button className={styles.textControl} type="button" disabled={pageIndex === 0} onClick={() => navigate(pageIndex - 1, "backward")}>Back</button>
-        {pageIndex < pages.length - 1 && <button className={styles.textControl} type="button" onClick={() => navigate(pageIndex + 1, "forward")}>Next</button>}
+      <nav className={styles.edgeControls} aria-label="Story navigation">
+        <button className={`${styles.edgeControl} ${styles.edgeBack}`} type="button" disabled={pageIndex === 0} onClick={() => navigate(pageIndex - 1, "backward")}>Back</button>
+        <button className={`${styles.edgeControl} ${styles.edgeNext}`} type="button" disabled={pageIndex === pages.length - 1} onClick={() => navigate(pageIndex + 1, "forward")}>Next</button>
       </nav>
 
       <NativeDialog open={openDialog === "evidence"} title={page.evidence?.headline ?? "Why this?"} onClose={() => closeOverlay("evidence", "report.evidence_closed.v1")}>
-        {page.evidence && <Evidence evidence={page.evidence} />}
+        {openDialog === "evidence" && page.evidence && <Evidence evidence={page.evidence} />}
       </NativeDialog>
       <NativeDialog open={openDialog === "methodology"} title="How this was measured" onClose={() => closeOverlay("methodology", "report.methodology_closed.v1")}>
         <Methodology report={report} />
@@ -189,11 +225,11 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
   );
 }
 
-function PageContent({ page, report, headingRef, reducedMotion, copyStatus, fallbackUrl, onCopy, onEvidence, onMethodology, onExit, onReadAgain, onScopeComplete }: {
+function PageContent({ page, headingRef, reducedMotion, exitOpen, copyStatus, fallbackUrl, onCopy, onEvidence, onMethodology, onExit, onReadAgain, onScopeComplete }: {
   page: StoryPage;
-  report: V61Report;
-  headingRef: React.RefObject<HTMLHeadingElement>;
+  headingRef: RefObject<HTMLHeadingElement>;
   reducedMotion: boolean;
+  exitOpen: boolean;
   copyStatus: "idle" | "copied" | "failed";
   fallbackUrl: string;
   onCopy: () => void;
@@ -203,17 +239,22 @@ function PageContent({ page, report, headingRef, reducedMotion, copyStatus, fall
   onReadAgain: () => void;
   onScopeComplete: () => void;
 }) {
-  if (page.kind === "scope" && page.scope) return <ScopeReceipt page={page} reducedMotion={reducedMotion} onComplete={onScopeComplete} headingRef={headingRef} />;
+  if (page.kind === "scope" && page.scope) return <ScopeReceipt page={page} reducedMotion={reducedMotion} exitOpen={exitOpen} onComplete={onScopeComplete} headingRef={headingRef} />;
+  const leadHero = page.id === "lead-hero" ? page.heroRows?.[0] : undefined;
   return (
     <>
       {page.bridge && <p className={styles.bridge}>{page.bridge}</p>}
       <div className={styles.lead}>
         {page.eyebrow && <p className={styles.eyebrow}>{page.eyebrow}</p>}
         <h1 className={styles.headline} ref={headingRef} tabIndex={-1}>{page.headline}</h1>
-        {page.subtitle && page.id !== "lead-hero" && <p className={styles.subtitle}>{page.subtitle}</p>}
+        {page.subtitle && page.id !== "lead-hero" && <WordCascade text={page.subtitle} bridge={Boolean(page.bridge)} />}
       </div>
       <div className={styles.detail}>
-        {page.id === "lead-hero" && page.subtitle && <p className={styles.heroMetric}>{page.subtitle}</p>}
+        {leadHero && <p className={styles.heroMetric}>
+          <OdometerNumber value={leadHero.match_count ?? 0} suffix=" matches" />
+          <span aria-hidden="true"> · </span>
+          <OdometerNumber value={Math.round((leadHero.share ?? 0) * 100)} suffix="% of the year" />
+        </p>}
         {page.description?.map((line) => <p key={line}>{line}</p>)}
         {page.heroRows && page.id !== "lead-hero" && <HeroRows rows={page.heroRows} />}
         {page.bands && <PoolBands bands={page.bands} />}
@@ -231,62 +272,222 @@ function PageContent({ page, report, headingRef, reducedMotion, copyStatus, fall
   );
 }
 
-function ScopeReceipt({ page, reducedMotion, onComplete, headingRef }: { page: StoryPage; reducedMotion: boolean; onComplete: () => void; headingRef: React.RefObject<HTMLHeadingElement> }) {
-  const [stage, setStage] = useState(reducedMotion ? 4 : 0);
+function ScopeReceipt({ page, reducedMotion, exitOpen, onComplete, headingRef }: { page: StoryPage; reducedMotion: boolean; exitOpen: boolean; onComplete: () => void; headingRef: RefObject<HTMLHeadingElement> }) {
+  const [stage, setStage] = useState(0);
+  const [paused, setPaused] = useState(false);
   const completed = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  const pauseReasons = useRef(new Set<string>());
+  const scheduler = useRef({ pause: () => {}, resume: () => {} });
+  const pressedPointer = useRef<number | null>(null);
   const heroCount = page.scope?.heroCount ?? 0;
+  onCompleteRef.current = onComplete;
+
+  const setPauseReason = useCallback((reason: string, active: boolean) => {
+    const wasPaused = pauseReasons.current.size > 0;
+    if (active) pauseReasons.current.add(reason);
+    else pauseReasons.current.delete(reason);
+    const isPaused = pauseReasons.current.size > 0;
+    if (!wasPaused && isPaused) scheduler.current.pause();
+    if (wasPaused && !isPaused) scheduler.current.resume();
+    setPaused(isPaused);
+  }, []);
+
   useEffect(() => {
     if (reducedMotion) {
-      if (!completed.current) onComplete();
+      if (!completed.current) onCompleteRef.current();
       completed.current = true;
       return;
     }
-    const times = heroCount ? [920, 1840, 2760, 3920] : [920, 1840, 2980];
-    const timers = times.map((time, index) => setTimeout(() => {
-      const next = index + 1;
-      setStage(heroCount ? next : next === 3 ? 2 : next);
-      if (index === times.length - 1 && !completed.current) {
-        completed.current = true;
-        onComplete();
-      }
-    }, time));
-    return () => timers.forEach(clearTimeout);
-  }, [heroCount, onComplete, reducedMotion]);
-  if (reducedMotion) return <div className={styles.receiptStatic}>
+    const steps = heroCount
+      ? [{ after: 2_200, stage: 1 }, { after: 1_850, stage: 2 }, { after: 2_800, stage: 3 }, { after: 1_800, stage: null }]
+      : [{ after: 2_200, stage: 1 }, { after: 1_850, stage: 2 }, { after: 2_800, stage: null }];
+    let index = 0;
+    let remaining = steps[0].after;
+    let startedAt = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const run = () => {
+      if (pauseReasons.current.size || index >= steps.length) return;
+      startedAt = performance.now();
+      timer = setTimeout(() => {
+        timer = null;
+        const step = steps[index];
+        if (step.stage === null) {
+          if (!completed.current) onCompleteRef.current();
+          completed.current = true;
+        } else setStage(step.stage);
+        index += 1;
+        if (index < steps.length) {
+          remaining = steps[index].after;
+          run();
+        }
+      }, remaining);
+    };
+    scheduler.current = {
+      pause: () => {
+        if (!timer) return;
+        remaining = Math.max(0, remaining - (performance.now() - startedAt));
+        clearTimeout(timer);
+        timer = null;
+      },
+      resume: run,
+    };
+    run();
+    return () => { if (timer) clearTimeout(timer); };
+  }, [heroCount, reducedMotion]);
+
+  useEffect(() => {
+    const onVisibility = () => setPauseReason("hidden", document.hidden);
+    onVisibility();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, [setPauseReason]);
+
+  useEffect(() => setPauseReason("exit", exitOpen), [exitOpen, setPauseReason]);
+
+  const releasePointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (pressedPointer.current !== event.pointerId) return;
+    pressedPointer.current = null;
+    setPauseReason("pointer", false);
+  };
+
+  const pressPointer = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.clientX <= EDGE_WIDTH || event.clientX >= window.innerWidth - EDGE_WIDTH) return;
+    pressedPointer.current = event.pointerId;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setPauseReason("pointer", true);
+  };
+
+  const holdWithSpace = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.code !== "Space" || event.repeat) return;
+    event.preventDefault();
+    setPauseReason("keyboard", true);
+  };
+
+  const releaseSpace = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.code !== "Space") return;
+    event.preventDefault();
+    setPauseReason("keyboard", false);
+  };
+
+  if (reducedMotion) return <div
+    className={styles.receiptStatic}
+    tabIndex={0}
+    role="group"
+    aria-describedby="receipt-instructions"
+    data-paused={paused ? "true" : "false"}
+    onPointerDown={pressPointer}
+    onPointerUp={releasePointer}
+    onPointerCancel={releasePointer}
+    onLostPointerCapture={releasePointer}
+    onKeyDown={holdWithSpace}
+    onKeyUp={releaseSpace}
+    onBlur={() => setPauseReason("keyboard", false)}
+  >
+    <span id="receipt-instructions" className={styles.srOnly}>Press and hold the center, or hold Space, to pause this receipt.</span>
+    <span className={styles.srOnly} aria-live="polite">Receipt {paused ? "paused" : "playing"}.</span>
     <h1 ref={headingRef} tabIndex={-1}>365 days <small>of Dota</small></h1>
     <p><strong>{page.scope?.matches ?? 0} matches</strong><span>made the cut</span></p>
     <p><strong>7 signals</strong><span>did the measuring</span></p>
     <ul>{SIGNAL_LABELS.map((label) => <li key={label}>{label}</li>)}</ul>
     {heroCount > 0 && <p><strong>{heroCount} most-played heroes</strong><span>give us somewhere familiar to start</span></p>}
   </div>;
-  const facts = [
-    ["365 days", "of Dota"],
-    [`${page.scope?.matches ?? 0} matches`, "made the cut"],
-    ["7 signals", "did the measuring"],
-    [`${heroCount} most-played heroes`, "give us somewhere familiar to start"],
+  const facts: Array<{ value: number; suffix: string; subtitle: string; direction: Direction }> = [
+    { value: 365, suffix: " days", subtitle: "of Dota", direction: "forward" },
+    { value: page.scope?.matches ?? 0, suffix: " matches", subtitle: "made the cut", direction: "backward" },
+    { value: 7, suffix: " signals", subtitle: "did the measuring", direction: "forward" },
+    { value: heroCount, suffix: " most-played heroes", subtitle: "give us somewhere familiar to start", direction: "backward" },
   ];
-  const visibleStage = heroCount ? Math.min(stage, facts.length - 1) : Math.min(stage, 2);
-  return <div className={styles.receipt} key={visibleStage}>
-    <h1 ref={headingRef} tabIndex={-1}>{facts[visibleStage][0]}</h1>
-    <p>{facts[visibleStage][1]}</p>
-    {visibleStage === 2 && <ul>{SIGNAL_LABELS.map((label, index) => <li key={label} style={{ animationDelay: `${index * 80}ms` }}>{label}</li>)}</ul>}
+  const visibleStage = heroCount ? Math.min(stage, 3) : Math.min(stage, 2);
+  const fact = facts[visibleStage];
+  return <div
+    className={`${styles.receipt} ${paused ? styles.receiptPaused : ""}`}
+    data-receipt-stage={visibleStage}
+    data-paused={paused ? "true" : "false"}
+    tabIndex={0}
+    role="group"
+    aria-describedby="receipt-instructions"
+    onPointerDown={pressPointer}
+    onPointerUp={releasePointer}
+    onPointerCancel={releasePointer}
+    onLostPointerCapture={releasePointer}
+    onKeyDown={holdWithSpace}
+    onKeyUp={releaseSpace}
+    onBlur={() => setPauseReason("keyboard", false)}
+  >
+    <span id="receipt-instructions" className={styles.srOnly}>Press and hold the center, or hold Space, to pause this receipt.</span>
+    <span className={styles.srOnly} aria-live="polite">Receipt {paused ? "paused" : "playing"}.</span>
+    <h1 ref={headingRef} tabIndex={-1}>
+      <OdometerNumber value={fact.value} suffix={fact.suffix} direction={fact.direction} delay={visibleStage === 0 ? 350 : 0} />
+    </h1>
+    <p key={`subtitle-${visibleStage}`} style={{ "--receipt-subtitle-delay": `${visibleStage === 0 ? 800 : 450}ms` } as CSSProperties}>{fact.subtitle}</p>
+    {visibleStage === 2 && <ul>{SIGNAL_LABELS.map((label, index) => <li key={label} style={{ "--signal-index": index } as CSSProperties}>{label}</li>)}</ul>}
   </div>;
 }
 
 function HeroRows({ rows }: { rows: NonNullable<StoryPage["heroRows"]> }) {
-  return <ul className={styles.rows}>{rows.map((row, index) => <li key={`${row.display_name ?? row.hero_name ?? row.name}-${index}`}><strong>{row.display_name ?? row.hero_name ?? row.name}</strong><span>{row.match_count} matches · {Math.round((row.share ?? 0) * 100)}%</span></li>)}</ul>;
+  return <ul className={styles.rows}>{rows.map((row, index) => <li className={styles.stagedRow} style={{ "--row-index": index } as CSSProperties} key={`${row.display_name ?? row.hero_name ?? row.name}-${index}`}><strong>{row.display_name ?? row.hero_name ?? row.name}</strong><span><OdometerNumber value={row.match_count ?? 0} suffix=" matches" /> <span aria-hidden="true">·</span> <OdometerNumber value={Math.round((row.share ?? 0) * 100)} suffix="%" /></span></li>)}</ul>;
 }
 
 function PoolBands({ bands }: { bands: NonNullable<StoryPage["bands"]> }) {
-  return <div className={styles.bands}>{bands.filter((band) => band.rows.length).map((band) => <section key={band.label}><h2>{band.label}</h2><p>{band.rows.map((row) => row.display_name ?? row.hero_name ?? row.name).join(", ")}</p></section>)}</div>;
+  return <div className={styles.bands}>{bands.filter((band) => band.rows.length).map((band, index) => <section className={styles.stagedRow} style={{ "--row-index": index } as CSSProperties} key={band.label}><h2>{band.label}</h2><p>{band.rows.map((row) => row.display_name ?? row.hero_name ?? row.name).join(", ")}</p></section>)}</div>;
 }
 
 function Timeline({ rows }: { rows: NonNullable<StoryPage["timeline"]> }) {
-  return <ol className={styles.rows}>{rows.map((row, index) => <li key={row.id ?? `${row.label}-${index}`}><strong>{row.label}</strong><span>{row.summary ?? row.evidence ?? row.period}</span></li>)}</ol>;
+  return <ol className={styles.rows}>{rows.map((row, index) => <li className={styles.stagedRow} style={{ "--row-index": index } as CSSProperties} key={row.id ?? `${row.label}-${index}`}><strong>{row.label}</strong><span>{row.summary ?? row.evidence ?? row.period}</span></li>)}</ol>;
 }
 
 function SignatureSlots({ slots }: { slots: NonNullable<StoryPage["slots"]> }) {
-  return <div className={styles.slots}>{slots.map((slot) => <section key={slot.kind}><h2>{titleCase(slot.kind ?? "Signal")}</h2><p>{slot.text}</p>{slot.scope && <small>{slot.scope}</small>}</section>)}</div>;
+  return <div className={styles.slots}>{slots.map((slot, index) => <section className={styles.signatureRow} style={{ "--row-index": index } as CSSProperties} key={slot.kind}><h2>{titleCase(slot.kind ?? "Signal")}</h2><p>{slot.text}</p>{slot.scope && <small>{slot.scope}</small>}</section>)}</div>;
+}
+
+function WordCascade({ text, bridge }: { text: string; bridge: boolean }) {
+  const words = text.split(/\s+/);
+  const stagger = Math.min(55, 300 / Math.max(1, words.length - 1));
+  const start = bridge ? 1_600 : 700;
+  return <p className={styles.subtitle} aria-label={text}>
+    {words.map((word, index) => <span
+      aria-hidden="true"
+      className={styles.subtitleWord}
+      key={`${word}-${index}`}
+      style={{ animationDelay: `${start + stagger * index}ms` }}
+    >{word}{index < words.length - 1 ? "\u00a0" : ""}</span>)}
+  </p>;
+}
+
+function OdometerNumber({ value, suffix = "", direction = "forward", delay = 0 }: { value: number; suffix?: string; direction?: Direction; delay?: number }) {
+  const target = String(Math.max(0, Math.round(value)));
+  const previousValue = useRef(0);
+  const previous = String(Math.max(0, Math.round(previousValue.current))).padStart(target.length, "0");
+  useEffect(() => { previousValue.current = value; }, [value]);
+  return <span className={styles.odometer} aria-label={`${target}${suffix}`} data-odometer-value={target}>
+    <span className={styles.odometerDigits} aria-hidden="true" style={{ "--digit-count": target.length } as CSSProperties}>
+      {target.split("").map((digit, index) => {
+        const from = Number(previous[previous.length - target.length + index] ?? "0");
+        const to = Number(digit);
+        const sequence = digitSequence(from, to, direction);
+        const displaySequence = direction === "backward" ? [...sequence].reverse() : sequence;
+        return <span className={styles.odometerColumn} key={`${index}-${from}-${to}-${direction}`}>
+          <span
+            className={`${styles.odometerTrack} ${direction === "backward" ? styles.odometerDown : styles.odometerUp}`}
+            style={{ "--digit-delay": `${delay + index * 65}ms`, "--digit-travel": sequence.length - 1 } as CSSProperties}
+          >{displaySequence.map((item, itemIndex) => <span key={`${item}-${itemIndex}`}>{item}</span>)}</span>
+        </span>;
+      })}
+    </span>
+    {suffix && <span className={styles.odometerSuffix} aria-hidden="true" key={suffix} style={{ "--suffix-delay": `${delay}ms` } as CSSProperties}>{suffix}</span>}
+  </span>;
+}
+
+function digitSequence(from: number, to: number, direction: Direction): number[] {
+  if (from === to) return [to];
+  const sequence = [from];
+  let digit = from;
+  while (digit !== to) {
+    digit = direction === "backward" ? (digit + 9) % 10 : (digit + 1) % 10;
+    sequence.push(digit);
+  }
+  return sequence;
 }
 
 function ShareSummary({ summary, copyStatus, fallbackUrl, onCopy }: { summary: NonNullable<StoryPage["share"]>; copyStatus: "idle" | "copied" | "failed"; fallbackUrl: string; onCopy: () => void }) {
@@ -299,7 +500,7 @@ function ShareSummary({ summary, copyStatus, fallbackUrl, onCopy }: { summary: N
     {summary.heroes.length > 0 && <p>{summary.heroes.join(" · ")}</p>}
     <ul>{summary.findings.map((finding) => <li key={finding}>{finding}</li>)}</ul>
     <button className={styles.primaryControl} type="button" onClick={onCopy}>Copy report link</button>
-    <p className={styles.copyStatus} role="status" aria-live="polite">{copyStatus === "copied" && "Report link copied."}{copyStatus === "failed" && "Couldn’t copy the link. Select it below."}</p>
+    <p className={styles.copyStatus} key={copyStatus} role="status" aria-live="polite">{copyStatus === "copied" && "Report link copied."}{copyStatus === "failed" && "Couldn’t copy the link. Select it below."}</p>
     {copyStatus === "failed" && <input ref={inputRef} className={styles.urlFallback} value={fallbackUrl} readOnly aria-label="Report URL" />}
   </div>;
 }
@@ -307,8 +508,8 @@ function ShareSummary({ summary, copyStatus, fallbackUrl, onCopy }: { summary: N
 function Evidence({ evidence }: { evidence: EvidenceModel }) {
   return <div className={styles.dialogBody}>
     {evidence.statement && <p>{evidence.statement}</p>}
-    {typeof evidence.sampleSize === "number" && <p>{evidence.sampleSize} comparable matches</p>}
-    {typeof evidence.sessions === "number" && <p>{evidence.sessions} sessions</p>}
+    {typeof evidence.sampleSize === "number" && <p><OdometerNumber value={evidence.sampleSize} suffix=" comparable matches" /></p>}
+    {typeof evidence.sessions === "number" && <p><OdometerNumber value={evidence.sessions} suffix=" sessions" /></p>}
     {evidence.rows.length > 0 && <ul>{evidence.rows.map((row) => <li key={row}>{row}</li>)}</ul>}
     {evidence.alternatives.length > 0 && <section><h3>What else could explain it?</h3><ul>{evidence.alternatives.map((item) => <li key={item}>{item}</li>)}</ul></section>}
     {evidence.limitations.length > 0 && <section><h3>Limitations</h3><ul>{evidence.limitations.map((item) => <li key={item}>{item}</li>)}</ul></section>}
@@ -361,7 +562,7 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-function usePageAnalytics(page: StoryPage, index: number, total: number, reducedMotion: boolean, leaveDirection: React.MutableRefObject<string>) {
+function usePageAnalytics(page: StoryPage, index: number, total: number, reducedMotion: boolean, leaveDirection: MutableRefObject<string>) {
   useEffect(() => {
     const started = performance.now();
     let hiddenAt = document.hidden ? started : 0;

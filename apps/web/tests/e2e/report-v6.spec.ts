@@ -4,11 +4,15 @@ async function currentPageId(page: Page): Promise<string> {
   return (await page.locator("[data-page-id]").getAttribute("data-page-id")) ?? "";
 }
 
+async function useStoryControl(page: Page, name: "Back" | "Next"): Promise<void> {
+  await page.getByRole("button", { name, exact: true }).evaluate((button: HTMLButtonElement) => button.click());
+}
+
 async function goTo(page: Page, target: string): Promise<void> {
   for (let index = 0; index < 20; index += 1) {
     const current = await currentPageId(page);
     if (current === target) return;
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await useStoryControl(page, "Next");
     await expect.poll(() => currentPageId(page)).not.toBe(current);
   }
   throw new Error(`Page ${target} was not reached`);
@@ -22,7 +26,7 @@ async function pageIds(page: Page): Promise<string[]> {
     const current = await currentPageId(page);
     ids.push(current);
     if (index < total - 1) {
-      await page.getByRole("button", { name: "Next", exact: true }).click();
+      await useStoryControl(page, "Next");
       await expect.poll(() => currentPageId(page)).not.toBe(current);
     }
   }
@@ -82,12 +86,20 @@ test.describe("Free Dota DNA v6.1 story", () => {
   test("scope receipt, Back/Next, arrows, reduced motion, and Read again work", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/report/v61-2-fixture");
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await useStoryControl(page, "Next");
     await expect(page.locator("[data-page-id='scope-receipt']")).toContainText("365 days");
     await expect(page.locator("[data-page-id='scope-receipt']")).toContainText("Death Exposure");
+    const staticReceipt = page.getByRole("group");
+    await staticReceipt.focus();
+    await page.keyboard.down("Space");
+    await expect(staticReceipt).toHaveAttribute("data-paused", "true");
+    await page.keyboard.up("Space");
+    await expect(staticReceipt).toHaveAttribute("data-paused", "false");
     await page.locator("[data-page-id] h1").focus();
     await page.keyboard.press("ArrowRight");
     await expect.poll(() => currentPageId(page)).toBe("lead-hero");
+    await expect(page.getByLabel("24 matches")).toHaveAttribute("data-odometer-value", "24");
+    await expect(page.getByLabel("33% of the year")).toHaveAttribute("data-odometer-value", "33");
     await page.locator("[data-page-id] h1").focus();
     await page.keyboard.press("ArrowLeft");
     await expect.poll(() => currentPageId(page)).toBe("scope-receipt");
@@ -95,6 +107,107 @@ test.describe("Free Dota DNA v6.1 story", () => {
     await page.getByRole("button", { name: "Read again" }).click();
     await expect.poll(() => currentPageId(page)).toBe("arrival");
     await expect(page.getByRole("heading", { name: /a year of Dota left receipts/ })).toBeFocused();
+  });
+
+  test("receipt follows the paced sequence, settles once, and restarts on return", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Timing boundaries are covered once in Chromium.");
+    test.setTimeout(30_000);
+    await page.addInitScript(() => {
+      (window as typeof window & { events?: Array<{ event?: string }> }).events = [];
+      window.addEventListener("dota-report-analytics", (event) => (window as typeof window & { events?: Array<{ event?: string }> }).events?.push((event as CustomEvent).detail));
+    });
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("/report/v61-2-fixture");
+    await useStoryControl(page, "Next");
+    const receipt = page.locator("[data-receipt-stage]");
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "0");
+    await expect(receipt.getByLabel("365 days")).toHaveAttribute("data-odometer-value", "365");
+    await page.waitForTimeout(1_650);
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "0");
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "1", { timeout: 1_000 });
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "2", { timeout: 2_200 });
+    await expect(receipt).toContainText("Death Exposure");
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "3", { timeout: 3_200 });
+    await expect(receipt.getByLabel(/most-played heroes/)).toHaveAttribute("data-odometer-value", "5");
+    await page.waitForTimeout(2_100);
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "3");
+    const completed = await page.evaluate(() => ((window as typeof window & { events?: Array<{ event?: string }> }).events ?? []).filter((item) => item.event === "report.scope_sequence_completed.v1").length);
+    expect(completed).toBe(1);
+
+    await page.mouse.click(8, 400);
+    await expect.poll(() => currentPageId(page)).toBe("arrival");
+    await page.mouse.click(1272, 400);
+    await expect.poll(() => currentPageId(page)).toBe("scope-receipt");
+    await expect(page.locator("[data-receipt-stage]")).toHaveAttribute("data-receipt-stage", "0");
+
+    await page.goto("/report/v61-no-heroes-fixture");
+    await useStoryControl(page, "Next");
+    const signalEnding = page.locator("[data-receipt-stage]");
+    await expect(signalEnding).toHaveAttribute("data-receipt-stage", "2", { timeout: 6_000 });
+    await page.waitForTimeout(3_000);
+    await expect(signalEnding).toHaveAttribute("data-receipt-stage", "2");
+  });
+
+  test("holding the receipt pauses pointer and keyboard timelines exactly where they are", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Hold timing is covered once in Chromium.");
+    test.setTimeout(20_000);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("/report/v61-2-fixture");
+    await useStoryControl(page, "Next");
+    const receipt = page.locator("[data-receipt-stage]");
+    const box = await receipt.boundingBox();
+    if (!box) throw new Error("Receipt did not render");
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await expect(receipt).toHaveAttribute("data-paused", "true");
+    await page.waitForTimeout(2_500);
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "0");
+    await page.mouse.up();
+    await expect(receipt).toHaveAttribute("data-paused", "false");
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "1", { timeout: 2_600 });
+
+    await page.mouse.click(8, 400);
+    await expect.poll(() => currentPageId(page)).toBe("arrival");
+    await page.mouse.click(1272, 400);
+    await expect.poll(() => currentPageId(page)).toBe("scope-receipt");
+    const restarted = page.locator("[data-receipt-stage]");
+    await restarted.focus();
+    await page.keyboard.down("Space");
+    await page.waitForTimeout(2_500);
+    await expect(restarted).toHaveAttribute("data-receipt-stage", "0");
+    await page.keyboard.up("Space");
+    await expect(restarted).toHaveAttribute("data-receipt-stage", "1", { timeout: 2_600 });
+  });
+
+  test("narrow edge taps navigate while drags, selections, and semantic controls remain safe", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/report/v61-2-fixture");
+    const next = page.getByRole("button", { name: "Next", exact: true });
+    await next.focus();
+    await expect(next).toHaveCSS("opacity", "1");
+    await page.keyboard.press("Enter");
+    await expect.poll(() => currentPageId(page)).toBe("scope-receipt");
+
+    await page.mouse.click(8, 400);
+    await expect.poll(() => currentPageId(page)).toBe("arrival");
+    await page.mouse.move(367, 400);
+    await page.mouse.down();
+    await page.mouse.move(340, 400);
+    await page.mouse.up();
+    expect(await currentPageId(page)).toBe("arrival");
+
+    await page.locator("[data-page-id] h1").evaluate((heading) => {
+      const range = document.createRange();
+      range.selectNodeContents(heading);
+      window.getSelection()?.removeAllRanges();
+      window.getSelection()?.addRange(range);
+    });
+    await page.mouse.click(367, 400);
+    expect(await currentPageId(page)).toBe("arrival");
+    await page.evaluate(() => window.getSelection()?.removeAllRanges());
+    await page.mouse.click(367, 400);
+    await expect.poll(() => currentPageId(page)).toBe("scope-receipt");
   });
 
   test("historical persisted v6.1 reports render in the new story UI", async ({ page }) => {
@@ -111,12 +224,12 @@ test.describe("Free Dota DNA v6.1 story", () => {
     await expect(page.locator("main")).toBeVisible();
     await expect(page.locator("[data-page-id]")).toHaveAttribute("data-page-id", "arrival");
 
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await useStoryControl(page, "Next");
     await expect(page.locator("[data-page-id='scope-receipt']")).toContainText("365 days");
     await page.waitForTimeout(4_500);
     expect(pageErrors.map((error) => error.message), consoleErrors.join("\n")).toEqual([]);
     await expect(page.getByRole("heading", { name: /This report couldn’t load\./ })).toHaveCount(0);
-    await page.getByRole("button", { name: "Back", exact: true }).click();
+    await useStoryControl(page, "Back");
     await expect(page.locator("[data-page-id]")).toHaveAttribute("data-page-id", "arrival");
 
     const ids = await pageIds(page);
@@ -135,7 +248,7 @@ test.describe("Free Dota DNA v6.1 story", () => {
     }
 
     await goTo(page, "end");
-    await page.getByRole("button", { name: "Back", exact: true }).click();
+    await useStoryControl(page, "Back");
     await expect(page.locator("[data-page-id]")).not.toHaveAttribute("data-page-id", "end");
     await page.locator("[data-page-id] h1").focus();
     await page.keyboard.press("ArrowLeft");
@@ -157,12 +270,13 @@ test.describe("Free Dota DNA v6.1 story", () => {
 
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/report/v61-historical-production-fixture");
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await useStoryControl(page, "Next");
     await expect(page.locator("[data-page-id='scope-receipt']")).toContainText("Death Exposure");
     expect(pageErrors.map((error) => error.message), consoleErrors.join("\n")).toEqual([]);
   });
 
   test("optional persisted v6.1 fields never white-screen", async ({ page }) => {
+    test.setTimeout(60_000);
     await page.emulateMedia({ reducedMotion: "reduce" });
     const pageErrors: string[] = [];
     const consoleErrors: string[] = [];
@@ -214,6 +328,8 @@ test.describe("Free Dota DNA v6.1 story", () => {
     const evidence = page.getByRole("button", { name: "Why this?" });
     await evidence.click();
     await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByLabel("72 comparable matches")).toHaveAttribute("data-odometer-value", "72");
+    await expect(page.getByLabel("18 sessions")).toHaveAttribute("data-odometer-value", "18");
     const before = await currentPageId(page);
     await page.keyboard.press("ArrowRight");
     expect(await currentPageId(page)).toBe(before);
@@ -261,7 +377,7 @@ test.describe("Free Dota DNA v6.1 story", () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/report/v61-3-fixture#access_token=private");
-    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await useStoryControl(page, "Next");
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
