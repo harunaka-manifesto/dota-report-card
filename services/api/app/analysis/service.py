@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import re
 from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import asdict
@@ -186,12 +187,20 @@ class AnalysisService:
             )
         if baseline_path != artifact_dir / "context-baseline-3.0.0.json" or threshold_path != artifact_dir / "metric-thresholds-6.1.0.json":
             raise ArtifactValidationError("V6.1 baseline/threshold paths must point into the frozen artifact directory")
-        expected_revision = self.settings.release_commit_sha
-        expected_dirty = self.settings.release_worktree_dirty
-        if not expected_revision or expected_dirty is not False:
-            raise ArtifactValidationError(
-                "V6.1 complete bundle requires RELEASE_COMMIT_SHA and RELEASE_WORKTREE_DIRTY=false"
+        expected_revision = self.settings.free_dna_v61_analytical_source_sha
+        if (
+            not expected_revision
+            or re.fullmatch(r"[0-9a-f]{40}", expected_revision) is None
+            or (
+                self.settings.app_env == "production"
+                and self.settings.release_worktree_dirty is not False
             )
+        ):
+            raise ArtifactValidationError(
+                "V6.1 complete bundle requires a valid "
+                "FREE_DNA_V61_ANALYTICAL_SOURCE_SHA and clean production metadata"
+            )
+        expected_dirty = False
         bundle = load_v61_artifact_bundle(
             artifact_dir,
             expected_source_revision=expected_revision,

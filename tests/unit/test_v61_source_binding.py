@@ -5,6 +5,10 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from app.analysis import service as analysis_service_module
+from app.analysis.service import AnalysisService
+from app.analysis.source import MappingSource
+from app.core.config import Settings
 from app.player_analysis_v61 import artifacts as artifact_module
 from app.player_analysis_v61 import holdout_evaluation
 from app.player_analysis_v61.artifacts import (
@@ -19,6 +23,25 @@ from app.player_analysis_v61.calibration_evaluation import build_v61_calibration
 
 from scripts import build_v61_calibration_artifacts as builder
 from scripts import package_v61_production_bundle as packager
+
+ANALYTICAL_SOURCE_SHA = "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
+
+
+def _fake_v61_bundle() -> SimpleNamespace:
+    return SimpleNamespace(
+        baseline=SimpleNamespace(resolver=lambda: object()),
+        thresholds=SimpleNamespace(metrics={}),
+        checksums={
+            "build-manifest-6.1.0.json": "manifest-sha",
+            "context-baseline-3.0.0.json": "baseline-sha",
+            "metric-thresholds-6.1.0.json": "threshold-sha",
+        },
+        summary_prior={},
+        distance_calibration={},
+        session_reliability={},
+        semantic_calibration={},
+        manifest={"version": V61_BUILD_MANIFEST_VERSION},
+    )
 
 
 def _manifest_bundle(
@@ -69,6 +92,62 @@ def test_loader_rejects_mismatched_expected_source(tmp_path: Path) -> None:
             expected_source_revision="b" * 40,
             expected_dirty_worktree=False,
         )
+
+
+def test_runtime_uses_analytical_sha_when_deploy_sha_differs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    artifact_dir = tmp_path / "artifacts"
+    authorization_path = tmp_path / "authorization.json"
+    authorization_path.write_text("{}", encoding="utf-8")
+    baseline_path = artifact_dir / "context-baseline-3.0.0.json"
+    threshold_path = artifact_dir / "metric-thresholds-6.1.0.json"
+    observed: dict[str, object] = {}
+    authorization_observed: dict[str, object] = {}
+
+    def load_bundle(_directory: Path, **kwargs: object) -> SimpleNamespace:
+        observed.update(kwargs)
+        return _fake_v61_bundle()
+
+    monkeypatch.setattr(analysis_service_module, "load_v61_artifact_bundle", load_bundle)
+
+    def load_authorization(*_args: object, **kwargs: object) -> dict[str, object]:
+        authorization_observed.update(kwargs)
+        return {}
+
+    monkeypatch.setattr(
+        analysis_service_module,
+        "load_v61_production_beta_authorization",
+        load_authorization,
+    )
+    monkeypatch.setattr(analysis_service_module, "load_v6_hero_taxonomy", lambda: {})
+
+    AnalysisService(
+        MappingSource(player={}, matches=[], details={}),
+        settings=Settings(
+            free_dna_v61_enabled=True,
+            free_dna_v61_baseline_artifact_path=baseline_path,
+            free_dna_v61_threshold_artifact_path=threshold_path,
+            free_dna_v61_artifact_dir=artifact_dir,
+            free_dna_v61_release_authorization_path=authorization_path,
+            free_dna_v61_analytical_source_sha=ANALYTICAL_SOURCE_SHA,
+            release_commit_sha="a" * 40,
+        ),
+    )
+
+    assert observed == {
+        "expected_source_revision": ANALYTICAL_SOURCE_SHA,
+        "expected_dirty_worktree": False,
+    }
+    assert authorization_observed == {
+        "artifact_checksums": {
+            "build-manifest-6.1.0.json": "manifest-sha",
+            "context-baseline-3.0.0.json": "baseline-sha",
+            "metric-thresholds-6.1.0.json": "threshold-sha",
+        },
+        "expected_source_revision": ANALYTICAL_SOURCE_SHA,
+        "expected_dirty_worktree": False,
+    }
 
 
 @pytest.mark.parametrize(
@@ -166,6 +245,17 @@ def test_packaging_uses_actual_source_when_release_env_is_absent(
     )
 
     assert packager._source_binding() == source
+
+
+def test_packaging_requires_analytical_source_sha(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        packager.Settings,
+        "from_env",
+        lambda: SimpleNamespace(free_dna_v61_analytical_source_sha=None),
+    )
+
+    with pytest.raises(ValueError, match="FREE_DNA_V61_ANALYTICAL_SOURCE_SHA"):
+        packager._analytical_source_sha()
 
 
 def test_holdout_rejects_invalid_bundle_source_before_corpus_loader(

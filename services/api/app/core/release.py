@@ -73,8 +73,15 @@ def build_release_identity(
     if authorization_checksum is not None:
         bundle_checksums["production-beta-authorization-6.1.0.json"] = authorization_checksum
 
+    deployed_source_sha = settings.release_commit_sha or "unknown"
     return {
-        "git_sha": settings.release_commit_sha or "unknown",
+        "git_sha": deployed_source_sha,
+        "deployed_source_sha": deployed_source_sha,
+        "analytical_source_sha": (
+            settings.free_dna_v61_analytical_source_sha
+            if settings.free_dna_v61_enabled
+            else None
+        ),
         "model_version": model_version,
         "free_dna_generation": generation,
         "report_schema_version": report_schema_version,

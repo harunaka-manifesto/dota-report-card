@@ -27,7 +27,10 @@ def test_health_contract() -> None:
     assert ready.status_code == 200
     assert ready.json()["release"]["free_dna_generation"] == "v5.2"
     assert ready.json()["release_parity"] == "not_required"
-    assert client.get("/v1/health/release").json()["release"]["git_sha"] == "unknown"
+    release = client.get("/v1/health/release").json()["release"]
+    assert release["git_sha"] == "unknown"
+    assert release["deployed_source_sha"] == "unknown"
+    assert release["analytical_source_sha"] is None
 
 
 def test_malformed_identifier_is_rejected_before_source_request() -> None:

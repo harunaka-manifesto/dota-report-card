@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -39,6 +40,15 @@ def _source_binding() -> dict[str, object]:
     return source
 
 
+def _analytical_source_sha(settings: Settings | None = None) -> str:
+    value = (settings or Settings.from_env()).free_dna_v61_analytical_source_sha
+    if value is None or re.fullmatch(r"[0-9a-f]{40}", value) is None:
+        raise ValueError(
+            "FREE_DNA_V61_ANALYTICAL_SOURCE_SHA must be a valid 40-character commit"
+        )
+    return value
+
+
 def package_bundle(
     *,
     artifact_dir: Path,
@@ -46,7 +56,8 @@ def package_bundle(
     output_dir: Path,
 ) -> None:
     source = _source_binding()
-    expected_source_revision = str(source["repository_commit"])
+    analytical_source_sha = _analytical_source_sha()
+    expected_source_revision = analytical_source_sha
     expected_dirty_worktree = bool(source["dirty_worktree"])
     bundle = load_v61_artifact_bundle(
         artifact_dir,
@@ -88,7 +99,12 @@ def package_bundle(
             "artifact_count": len(V61_SUPPORT_ARTIFACTS),
             "operator_authorization_reference": authorization["operator_authorization_reference"],
             "bundle_sha256": artifact_bundle_digest(packaged_checksums),
-            "authorized_release_sha": authorization["source"]["repository_commit"],
+            "deployed_source_sha": source["repository_commit"],
+            "analytical_source_sha": analytical_source_sha,
+            "dirty_worktree": expected_dirty_worktree,
+            "artifact_bundle_sha256": packaged_bundle.checksums["build-manifest-6.1.0.json"],
+            "model_version": "free-dna-model-6.1.0",
+            "report_schema_version": "free-dna-report-6.1.0",
         }
     )
 

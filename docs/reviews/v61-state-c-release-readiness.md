@@ -39,7 +39,7 @@ change, semantic qualification change, or backend analytical change.
 | **COPY OVERCLAIM** | **PASS** | Qualified, neutral, insufficient, and mixed copy stays within registered claim contracts; shadow-only outcomes remain private. | No psychology, cause, rank/MMR, or unsupported gameplay claim. |
 | **PRODUCT COMPREHENSION** | **PASS** | Nine adaptive beats now run Recognition→Share with Story/Evidence/Methodology depth, final Signature, and optional aftercare/Deep. | 2–3-second visual review passed at desktop and 375px. |
 | **ACCESSIBILITY** | **PASS** | Native controls, headings, labels, progress, disclosures, relationship tables, focus treatment, reduced motion, 200% zoom, and 375px no-overflow are verified across the browser matrix. | Maintain the existing semantic and visual regression coverage. |
-| **PACKAGE/CONTAINER INTEGRITY** | **BLOCKED** | The adjudicated bundle is `a6c1d0c08ceef553150c401b0711b24eb89aa4d316105b8977373f3cc79c4865`, but the local assembled package is stale and dirty-bound. The runtime loader also requires `RELEASE_COMMIT_SHA` to equal the analytical artifact source SHA. | Resolve `BLOCKED_SOURCE_BINDING_ARCHITECTURE`, then create a fresh owner-authorized package from the immutable adjudicated bundle. |
+| **PACKAGE/CONTAINER INTEGRITY** | **BLOCKED** | The adjudicated bundle is `a6c1d0c08ceef553150c401b0711b24eb89aa4d316105b8977373f3cc79c4865`, but the local assembled package is stale and dirty-bound. The source-binding fix must be packaged from the clean candidate with separate deploy and analytical source metadata. | Create a fresh owner-authorized package from the immutable adjudicated bundle after the source-binding fix is committed. |
 
 ## Internal statistical review versus user copy
 
@@ -222,11 +222,9 @@ required or permitted.
 
 ## Blockers
 
-1. `AnalysisService._load_v61_artifacts()` uses `RELEASE_COMMIT_SHA` as the
-   expected source for both deployment identity and the immutable analytical
-   bundle/authorization. Presentation-only backend changes require a newer
-   truthful API/worker SHA, so current source binding cannot represent the
-   release honestly.
+1. The source-binding release fix must keep `RELEASE_COMMIT_SHA` as the
+   truthful deployment identity while validating the immutable bundle and
+   authorization against `FREE_DNA_V61_ANALYTICAL_SOURCE_SHA`.
 2. The only assembled local V6.1 package is stale
    (`173089781cf85d6c360c5ad0a2739697b7de1e62`, dirty=true) and cannot be
    deployed.
@@ -235,7 +233,10 @@ required or permitted.
 
 ## Next safe action
 
-Add a separate mandatory `FREE_DNA_V61_ANALYTICAL_SOURCE_SHA` (or equivalent)
-that validates the immutable artifact bundle and beta authorization while
-`RELEASE_COMMIT_SHA` continues to identify the truthful product/API/worker
-deploy. This is source bookkeeping only and must not alter analytical behavior.
+The source-binding fix adds mandatory production
+`FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=7df38e6d234ae9c4ee425490bc40b8cc92685f85`
+for V6.1 bundle and authorization validation while `RELEASE_COMMIT_SHA`
+continues to identify the truthful product/API/worker deploy. This is source
+bookkeeping only and does not alter analytical behavior. The final clean
+candidate SHA is recorded in the release packet after commit; it is not the
+holdout execution or verifier SHA.

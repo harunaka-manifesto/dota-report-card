@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -70,10 +71,31 @@ def validate_runtime_configuration(settings: Settings) -> None:
         raise ValueError("APP_ENV=production requires STORAGE_BACKEND=database")
     if settings.effective_analysis_execution_backend != "celery":
         raise ValueError("APP_ENV=production requires ANALYSIS_EXECUTION_BACKEND=celery")
-    if not settings.release_commit_sha:
-        raise ValueError("production requires RELEASE_COMMIT_SHA")
+    if (
+        settings.release_commit_sha is None
+        or re.fullmatch(r"[0-9a-f]{40}", settings.release_commit_sha) is None
+    ):
+        raise ValueError("production requires a valid RELEASE_COMMIT_SHA")
     if settings.release_worktree_dirty is not False:
         raise ValueError("production requires RELEASE_WORKTREE_DIRTY=false")
+    if settings.free_dna_v61_enabled:
+        analytical_source_sha = settings.free_dna_v61_analytical_source_sha
+        if analytical_source_sha is None:
+            raise ValueError(
+                "production V6.1 requires FREE_DNA_V61_ANALYTICAL_SOURCE_SHA"
+            )
+        if re.fullmatch(r"[0-9a-f]{40}", analytical_source_sha) is None:
+            raise ValueError(
+                "FREE_DNA_V61_ANALYTICAL_SOURCE_SHA must be a valid 40-character commit"
+            )
+    elif (
+        settings.free_dna_v61_analytical_source_sha is not None
+        and re.fullmatch(r"[0-9a-f]{40}", settings.free_dna_v61_analytical_source_sha)
+        is None
+    ):
+        raise ValueError(
+            "FREE_DNA_V61_ANALYTICAL_SOURCE_SHA must be a valid 40-character commit"
+        )
 
 
 @dataclass(frozen=True)
@@ -136,6 +158,7 @@ class Settings:
     analysis_execution_backend: str = "auto"
     allow_local_deep_entitlement_bypass: bool = False
     release_commit_sha: str | None = None
+    free_dna_v61_analytical_source_sha: str | None = None
     release_worktree_dirty: bool | None = None
 
     @classmethod
@@ -291,6 +314,9 @@ class Settings:
                 os.getenv("ALLOW_LOCAL_DEEP_ENTITLEMENT_BYPASS")
             ),
             release_commit_sha=os.getenv("RELEASE_COMMIT_SHA") or None,
+            free_dna_v61_analytical_source_sha=(
+                os.getenv("FREE_DNA_V61_ANALYTICAL_SOURCE_SHA") or None
+            ),
             release_worktree_dirty=_optional_bool(
                 os.getenv("RELEASE_WORKTREE_DIRTY"), default=cls.release_worktree_dirty
             ),

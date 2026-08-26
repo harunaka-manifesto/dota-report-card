@@ -16,6 +16,24 @@ this runbook does not authorize production and does not request a rerun.
 - Corpus SHA-256: `5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216`.
 - Split SHA-256: `2aa3b4292c0a24d9ca209c5f885ebd1590e3032323362f111befae678d816231`.
 
+The source identities are intentionally split. `RELEASE_COMMIT_SHA` identifies
+the truthful software revision deployed by the API and worker. The mandatory
+production variable `FREE_DNA_V61_ANALYTICAL_SOURCE_SHA` remains
+`7df38e6d234ae9c4ee425490bc40b8cc92685f85`, the clean source recorded in the
+frozen analytical manifest. The verifier source is historical adjudication
+provenance only; it did not execute the original holdout.
+
+Release provenance:
+
+- Analytical/holdout execution source: `7df38e6d234ae9c4ee425490bc40b8cc92685f85`.
+- Verifier/adjudication source: `020118260abde18350be4c0605c1473d1756435e`.
+- Product implementation source: `648d7c244172895cd9f5c0287f49a46be28d601f`.
+- Source-binding fix/final candidate source: the clean commit recorded in the
+  final release packet; it is not either historical analytical source.
+- Original sealed holdout: executed once, 339/339, zero errors, original
+  `BLOCKED_HOLDOUT_GATE`; post-hoc adjudication is `HOLDOUT_ADJUDICATION_PASS`
+  with no player-analysis rerun.
+
 The original holdout is consumed and remains a blocked release gate.
 
 Keep these values on the API and worker until the complete workflow has passed:
@@ -29,9 +47,10 @@ FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED=false
 
 The public enable flag is mutually exclusive with `FREE_DNA_V6_ENABLED`.
 Production also requires `APP_ENV=production`, database-backed storage,
-Celery/Redis execution, `RELEASE_COMMIT_SHA=<release commit>`, and
-`RELEASE_WORKTREE_DIRTY=false`. The API and worker must receive the same
-values. `OPENDOTA_SOURCE=fixture` is rejected in production.
+Celery/Redis execution, `RELEASE_COMMIT_SHA=<release commit>`,
+`FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=7df38e6d234ae9c4ee425490bc40b8cc92685f85`,
+and `RELEASE_WORKTREE_DIRTY=false` when V6.1 is loaded. The API and worker must
+receive the same values. `OPENDOTA_SOURCE=fixture` is rejected in production.
 
 ## Canonical contract
 

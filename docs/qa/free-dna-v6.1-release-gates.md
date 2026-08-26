@@ -17,6 +17,12 @@ not authorize production.
 - Corpus SHA-256: `5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216`.
 - Split SHA-256: `2aa3b4292c0a24d9ca209c5f885ebd1590e3032323362f111befae678d816231`.
 
+For production source binding, keep the deploy identity in
+`RELEASE_COMMIT_SHA` and set
+`FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=7df38e6d234ae9c4ee425490bc40b8cc92685f85`.
+The API and worker must report both values; the verifier source remains
+post-hoc adjudication provenance and is not the holdout execution source.
+
 The original holdout is consumed; there was no rerun;
 `HOLDOUT_ADJUDICATION_PASS` is recorded; release authorization remains false.
 

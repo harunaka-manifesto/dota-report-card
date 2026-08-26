@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from app.player_analysis_v61.supporting_signals import SUPPORTING_SIGNAL_CATALOG
 from app.storage.repository import InMemoryRepository
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "v6"
+_ANALYTICAL_SOURCE_SHA = "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
 
 
 def _rows(count: int = 90) -> list[dict[str, object]]:
@@ -53,17 +55,23 @@ def _rows(count: int = 90) -> list[dict[str, object]]:
     ]
 
 
-def _generate(account_id: int = 42) -> tuple[dict[str, object], MappingSource]:
+def _generate(
+    account_id: int = 42,
+    *,
+    settings: Settings | None = None,
+    rows: list[dict[str, object]] | None = None,
+) -> tuple[dict[str, object], MappingSource]:
     source = MappingSource(
         player={"profile": {"account_id": account_id, "personaname": "V6.1 fixture"}},
-        matches=_rows(),
+        matches=rows if rows is not None else _rows(),
         details={},
     )
     repository = InMemoryRepository()
     service = AnalysisService(
         source,
         repository=repository,
-        settings=Settings(
+        settings=settings
+        or Settings(
             free_dna_v61_enabled=True,
             free_dna_v61_baseline_artifact_path=_FIXTURES / "context-baseline-3.0.0.fixture.json",
             free_dna_v61_threshold_artifact_path=_FIXTURES / "metric-thresholds-6.1.0.fixture.json",
@@ -75,6 +83,34 @@ def _generate(account_id: int = 42) -> tuple[dict[str, object], MappingSource]:
     report = repository.get_report(job.report_id or "")
     assert report is not None
     return report, source
+
+
+def test_source_binding_metadata_does_not_change_v61_output() -> None:
+    fixture_settings = Settings(
+        free_dna_v61_enabled=True,
+        free_dna_v61_baseline_artifact_path=_FIXTURES / "context-baseline-3.0.0.fixture.json",
+        free_dna_v61_threshold_artifact_path=_FIXTURES / "metric-thresholds-6.1.0.fixture.json",
+    )
+    deployed_settings = replace(
+        fixture_settings,
+        release_commit_sha="a" * 40,
+        free_dna_v61_analytical_source_sha=_ANALYTICAL_SOURCE_SHA,
+    )
+    rows = _rows()
+    before, _ = _generate(settings=fixture_settings, rows=rows)
+    after, _ = _generate(settings=deployed_settings, rows=rows)
+
+    for key in ("elements", "findings", "methodology"):
+        assert before[key] == after[key]
+    assert {
+        key: value
+        for key, value in before["reproducibility"].items()
+        if key != "generated_at"
+    } == {
+        key: value
+        for key, value in after["reproducibility"].items()
+        if key != "generated_at"
+    }
 
 
 def test_v61_generates_new_immutable_contract_with_old_ontology() -> None:

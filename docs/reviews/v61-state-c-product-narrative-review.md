@@ -519,9 +519,8 @@ evidence change is authorized or required.
 
 The product narrative, Dota language, data basis, privacy, copy-overclaim,
 comprehension, and accessibility reviews pass. Production enablement remains
-blocked because `AnalysisService._load_v61_artifacts()` currently uses the
-deployment `RELEASE_COMMIT_SHA` as the required source for the immutable
-analytical bundle and authorization. A newer presentation-only API/worker SHA
-therefore cannot be represented truthfully without a separate validated
-analytical-source binding. This architecture blocker does not change the
-analytical result and does not justify recalibration or a holdout rerun.
+blocked until the source-binding fix is packaged and deployed.
+`RELEASE_COMMIT_SHA` identifies the deployed API/worker source;
+`FREE_DNA_V61_ANALYTICAL_SOURCE_SHA` validates the immutable analytical bundle
+and authorization. This bookkeeping split does not change the analytical result
+and does not justify recalibration or a holdout rerun.
