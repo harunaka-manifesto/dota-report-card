@@ -45,6 +45,13 @@ versions when read.
 Hero Portfolio contains Common Thread, Exception, Pool Evolution, and Hero
 Mirror. Deep Scan remains an explicit separate mode with its own budgets.
 
+## AI / Coding Agents
+
+Before modifying this repository, read [AGENTS.md](AGENTS.md).
+
+It contains mandatory production, compatibility, testing, and release rules.
+Detailed references live in [docs/agent/](docs/agent/).
+
 ## Architecture
 
 - [Architecture](ARCHITECTURE.md)
