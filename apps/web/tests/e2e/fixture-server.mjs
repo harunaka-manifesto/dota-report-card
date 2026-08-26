@@ -435,13 +435,13 @@ const v61Claims = {
   session_drift: "A covered part of your expression moves as the session continues."
 };
 const v61HeroRows = [
-  { display_name: "Anti-Mage", match_count: 24, share: .33, functional_jobs: ["Mobility", "Split pressure"], band: "core" },
-  { display_name: "Axe", match_count: 18, share: .25, functional_jobs: ["Initiation", "Frontline"], band: "core" },
-  { display_name: "Queen of Pain", match_count: 12, share: .17, functional_jobs: ["Mobility", "Burst"], band: "stretch" },
-  { display_name: "Puck", match_count: 10, share: .14, functional_jobs: ["Control", "Mobility"], band: "stretch" },
-  { display_name: "Drow Ranger", match_count: 8, share: .11, functional_jobs: ["Ranged damage"], band: "tail" }
+  { display_name: "Anti-Mage", match_count: 24, share: .33, functional_jobs: ["Mobility", "Split pressure"], story_band: "regular" },
+  { display_name: "Axe", match_count: 18, share: .25, functional_jobs: ["Initiation", "Frontline"], story_band: "regular" },
+  { display_name: "Queen of Pain", match_count: 12, share: .17, functional_jobs: ["Mobility", "Burst"], story_band: "rotating" },
+  { display_name: "Puck", match_count: 10, share: .14, functional_jobs: ["Control", "Mobility"], story_band: "rotating" },
+  { display_name: "Drow Ranger", match_count: 8, share: .11, functional_jobs: ["Ranged damage"], story_band: "occasional" }
 ];
-const v61Reports = [0, 1, 2, 3].map((publishedCount) => {
+const v61Reports = [0, 1, 2, 3, 5].map((publishedCount) => {
   const findings = v6Findings.map((finding, index) => {
     const published = index < publishedCount;
     const outcome = v61OutcomeKeys[finding.family];
@@ -560,8 +560,20 @@ const v61Signature = v61Alias("v61-signature-fixture", v61Reports[1], (item) => 
   item.share_candidates = item.share_candidates.filter((candidate) => candidate.kind === "identity");
 });
 const v61375 = v61Alias("v61-375-fixture", v61Narrow);
-const v61Aliases = [v61Qualified, v61Neutral, v61Insufficient, v61Mixed, v61Narrow, v61Broad, v61Signature, v61375];
-const reports = new Map([[reportId, report], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report], ...v61Reports.map((item) => [item.report_id, item]), ...v61Aliases.map((item) => [item.report_id, item])]);
+const v61NoHeroes = v61Alias("v61-no-heroes-fixture", v61Reports[2], (item) => { item.hero_portfolio.heroes = []; });
+const v61NoBands = v61Alias("v61-no-bands-fixture", v61Reports[2], (item) => { item.hero_portfolio.heroes = item.hero_portfolio.heroes.map(({ story_band, ...hero }) => hero); });
+const v61NoChronology = v61Alias("v61-no-chronology-fixture", v61Reports[2], (item) => { item.hero_portfolio.evolution = { ...item.hero_portfolio.evolution, points: [] }; });
+const v61NoIdentity = v61Alias("v61-no-identity-fixture", v61Reports[2], (item) => {
+  item.identity_summary = { ...item.identity_summary, headline: null, evidence_refs: ["unreferenced"], slots: null };
+});
+const v61Movement = v61Alias("v61-movement-fixture", v61Reports[1], (item) => { item.findings[0].semantic_outcome_key = "names_changed_jobs_held"; });
+const v61Session = v61Alias("v61-session-fixture", v61Reports[0], (item) => {
+  item.findings[4] = structuredClone(v61Reports[4].findings[4]);
+});
+const v61Aliases = [v61Qualified, v61Neutral, v61Insufficient, v61Mixed, v61Narrow, v61Broad, v61Signature, v61375, v61NoHeroes, v61NoBands, v61NoChronology, v61NoIdentity, v61Movement, v61Session];
+const legacyV4 = { ...report, report_id: "legacy-v4-fixture", schema_version: "free-dna-report-4.0.0" };
+const legacyV5 = { ...report, report_id: "legacy-v5-fixture", schema_version: "free-dna-report-5.2.0" };
+const reports = new Map([[reportId, report], [legacyV4.report_id, legacyV4], [legacyV5.report_id, legacyV5], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report], ...v61Reports.map((item) => [item.report_id, item]), ...v61Aliases.map((item) => [item.report_id, item])]);
 const interactionSessions = new Map();
 const deepJobs = new Map();
 let nextSessionNumber = 1;

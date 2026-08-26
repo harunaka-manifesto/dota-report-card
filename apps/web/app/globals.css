@@ -1,6 +1,6 @@
 @import "./styles/tokens.css";
 @import "./styles/base.css";
 @import "./styles/landing.css";
-/* Luna B owns the report chapter layer. Keep this seam explicit. */
+/* Deep Scan compatibility overrides. The v6.1 story owns its CSS module. */
 @import "./styles/report.css";
 @import "./styles/responsive.css";

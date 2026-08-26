@@ -199,6 +199,30 @@ p {
   animation: state-progress-sweep 1.4s ease-in-out infinite;
 }
 
+.report-loading-state,
+.report-error-state,
+.report-not-found-state {
+  width: 100%;
+  max-width: none;
+  padding-right: max(var(--mobile-gutter), env(safe-area-inset-right));
+  padding-left: max(var(--mobile-gutter), env(safe-area-inset-left));
+  color: #fff;
+  background: #000;
+}
+
+.report-loading-state h1,
+.report-error-state h1,
+.report-not-found-state h1 { color: #fff; }
+
+.report-error-state .state-primary-action,
+.report-not-found-state .state-primary-action { color: #000; background: #fff; }
+.report-error-state .back-link { color: rgb(255 255 255 / .68); }
+.report-error-state .state-primary-action:hover,
+.report-not-found-state .state-primary-action:hover { color: #fff; background: #000; outline: 1px solid #fff; }
+.report-error-state button:focus-visible,
+.report-error-state a:focus-visible,
+.report-not-found-state a:focus-visible { box-shadow: 0 0 0 2px #fff; }
+
 .eyebrow {
   margin: 0;
   color: var(--color-saffron);

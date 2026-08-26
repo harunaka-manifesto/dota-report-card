@@ -16,17 +16,12 @@ export default function ReportError({
 
   return (
     <main className="state-shell report-error-state">
-      <p className="eyebrow">Free DNA / Report error</p>
-      <h1>We couldn&apos;t open that report.</h1>
-      <p className="lede">
-        Something interrupted the handoff. Try once more, or start a new report if the problem
-        keeps happening.
-      </p>
+      <h1>This report couldn’t load.</h1>
       <div className="state-actions">
         <button className="state-primary-action" type="button" onClick={() => reset()}>
           Try again
         </button>
-        <Link className="back-link" href="/">Start a new report</Link>
+        <Link className="back-link" href="/">Generate new report</Link>
       </div>
     </main>
   );

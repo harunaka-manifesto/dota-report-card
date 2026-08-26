@@ -235,7 +235,20 @@ def _public_job_label(value: Any) -> str:
     return job_display_label(str(value).strip())
 
 
-def _safe_hero_rows(portfolio: Mapping[str, Any]) -> list[dict[str, Any]]:
+def _safe_hero_rows(
+    portfolio: Mapping[str, Any],
+    portfolio_shape: Mapping[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    shape = portfolio_shape or {}
+    story_bands: dict[int, str] = {}
+    for source, band in (
+        (shape.get("experimental_tail_hero_ids", ()), "occasional"),
+        (shape.get("reliable_stretch_hero_ids", ()), "rotating"),
+        (shape.get("core_hero_ids", ()), "regular"),
+    ):
+        for hero_id in source if isinstance(source, Sequence) else ():
+            if isinstance(hero_id, int) and not isinstance(hero_id, bool):
+                story_bands[hero_id] = band
     rows: list[dict[str, Any]] = []
     for item in portfolio.get("heroes", ()):
         if not isinstance(item, Mapping):
@@ -250,6 +263,8 @@ def _safe_hero_rows(portfolio: Mapping[str, Any]) -> list[dict[str, Any]]:
         ]
         match_count = int(item.get("match_count") or 0)
         share = float(item.get("share") or 0.0)
+        hero_id = item.get("hero_id")
+        story_band = story_bands.get(int(hero_id)) if isinstance(hero_id, int) else None
         rows.append(
             {
                 "name": display_name,
@@ -257,6 +272,7 @@ def _safe_hero_rows(portfolio: Mapping[str, Any]) -> list[dict[str, Any]]:
                 "portrait_url": item.get("portrait_url"),
                 "match_count": match_count,
                 "share": share,
+                **({"story_band": story_band} if story_band else {}),
                 "mapped_jobs": jobs,
                 "facts": [
                     {"label": "Matches", "value": str(match_count)},
@@ -350,11 +366,14 @@ def _presentation_refs(refs: Sequence[Any]) -> list[str]:
     return result
 
 
-def _apply_v61_presentation(report: dict[str, Any]) -> None:
+def _apply_v61_presentation(
+    report: dict[str, Any],
+    portfolio_shape: Mapping[str, Any] | None = None,
+) -> None:
     """Project reviewed V6.1 presentation without touching qualification outputs."""
 
     portfolio = dict(report.get("hero_portfolio") or {})
-    hero_rows = _safe_hero_rows(portfolio)
+    hero_rows = _safe_hero_rows(portfolio, portfolio_shape)
     hero_row = hero_rows[0] if hero_rows else None
     common_thread = _public_job_label(portfolio.get("common_thread")) if portfolio.get("common_thread") else None
     hero_label = str((hero_row or {}).get("display_name") or common_thread or "").strip() or None
@@ -448,7 +467,10 @@ def _apply_v61_presentation(report: dict[str, Any]) -> None:
         page["content"] = content
 
 
-def _refresh_public_surfaces(report: dict[str, Any]) -> None:
+def _refresh_public_surfaces(
+    report: dict[str, Any],
+    portfolio_shape: Mapping[str, Any],
+) -> None:
     """Remove inherited V6 branches that did not pass the V6.1 hierarchy."""
 
     published = [finding for finding in report["findings"] if finding.get("published")]
@@ -505,7 +527,7 @@ def _refresh_public_surfaces(report: dict[str, Any]) -> None:
             deep_page,
             {"diagnostic_questions": report["diagnostic_questions"]},
         )
-    _apply_v61_presentation(report)
+    _apply_v61_presentation(report, portfolio_shape)
 
 
 def _patch_element(
@@ -1310,7 +1332,7 @@ def assemble_free_dna_report_v61(
     report["identity_summary"]["slots"] = compose_identity_slots(
         report["identity_summary"], report["findings"], report["hero_portfolio"], portfolio_shape
     )
-    _refresh_public_surfaces(report)
+    _refresh_public_surfaces(report, portfolio_shape)
     _protect_deep_handoffs(
         report,
         matches,

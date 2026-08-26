@@ -279,6 +279,7 @@ export type V6HeroRow = {
   jobs?: string[];
   band?: string | null;
   layer?: string | null;
+  story_band?: "regular" | "rotating" | "occasional" | null;
 };
 
 export type V6HeroPortfolio = {

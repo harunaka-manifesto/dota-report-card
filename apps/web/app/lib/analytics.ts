@@ -1,7 +1,19 @@
 export type AnalyticsPayload = Record<string, string | number | boolean | null | undefined>;
 export type AnalyticsEvent = AnalyticsPayload & { event: string; schema_version: "1" };
 
-const forbiddenKeys = new Set(["account_id", "report_id", "player", "name", "personaname", "raw_id"]);
+const forbiddenKeys = new Set([
+  "account_id",
+  "report_id",
+  "player",
+  "name",
+  "personaname",
+  "raw_id",
+  "url",
+  "access_token",
+  "hero_id",
+  "match_id",
+  "protected_cohort_reference",
+]);
 let collector: ((event: AnalyticsEvent) => void) | null = null;
 
 export function setAnalyticsCollector(next: ((event: AnalyticsEvent) => void) | null): void {

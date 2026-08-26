@@ -143,6 +143,32 @@ def test_v61_projection_preserves_analytical_fields_and_removes_public_ids() -> 
     assert candidates["hero-mirror"]["payload"]["body"].startswith("Axe")
 
 
+def test_v61_projection_adds_safe_story_bands_with_documented_precedence() -> None:
+    report = _report()
+    portfolio = report["hero_portfolio"]  # type: ignore[index]
+    portfolio["heroes"].append(  # type: ignore[union-attr]
+        {
+            "hero_id": 8,
+            "display_name": "Juggernaut",
+            "match_count": 10,
+            "share": 10 / 37,
+        }
+    )
+
+    _apply_v61_presentation(  # type: ignore[arg-type]
+        report,
+        {
+            "core_hero_ids": [7],
+            "reliable_stretch_hero_ids": [7, 8],
+            "experimental_tail_hero_ids": [7, 8],
+        },
+    )
+
+    heroes = report["hero_portfolio"]["heroes"]  # type: ignore[index]
+    assert [hero["story_band"] for hero in heroes] == ["regular", "rotating"]
+    assert "hero_id" not in repr(heroes)
+
+
 def test_v61_share_svg_is_schema_versioned_and_eligibility_bound() -> None:
     report = _report()
     _apply_v61_presentation(report)  # type: ignore[arg-type]
