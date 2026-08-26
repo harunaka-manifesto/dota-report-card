@@ -66,10 +66,7 @@ const BEAT_IDS = [
 
 type BeatId = (typeof BEAT_IDS)[number];
 type SyncStatus = "idle" | "loading" | "saving" | "saved" | "resumed" | "deleted" | "conflict" | "error";
-type ClaimLayer = "claim" | "evidence" | "interpretation" | "recommendation";
 type FamilyState = "qualified" | "neutral" | "insufficient" | "mixed" | "unavailable";
-
-const CLAIM_LAYERS: readonly ClaimLayer[] = ["claim", "evidence", "interpretation", "recommendation"];
 
 /** Dedicated v6 renderer. The parent route can select it by schema_version. */
 export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
@@ -252,10 +249,6 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
     track("report.v6.timeline_scrubbed.v1", { beat: "pool-evolution" });
   }
 
-  function setClaimLayer(layer: ClaimLayer): void {
-    updateJourney((state) => ({ ...state, ui_state: { ...state.ui_state, claim_layer: layer } }));
-  }
-
   async function saveJourney(): Promise<void> {
     dirtyRef.current = true;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -403,7 +396,7 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
 
       <div className={styles.layout}>
         <aside className={styles.rail} aria-label="Report chapters">
-          <div className={styles.railIntro}><span>V6</span><small>YOUR<br />SHAPE</small></div>
+          <div className={styles.railIntro}><span>{isV61 ? "6.1" : "V6"}</span><small>YOUR<br />SHAPE</small></div>
           <nav>
             {BEAT_IDS.map((id, index) => (
               <button key={id} className={currentBeat === index ? styles.railButtonActive : styles.railButton} type="button" aria-current={currentBeat === index ? "step" : undefined} onClick={() => moveToBeat(index)}>
@@ -659,18 +652,6 @@ function ElementLedger({ elements }: { elements: V6Element[] }) {
   return <section className={styles.elementLedger} aria-label="Seven public identity Elements"><div className={styles.elementLedgerHeader}><span className={styles.eyebrow}>Seven public Elements</span><p>Observed summary signals stay distinct from your self-reported answers.</p></div><div className={styles.elementGrid}>{elements.map((element) => { const metric = metricFor(element); const value = metricValue(metric); const refs = element.evidence_refs?.length ?? element.evidence?.length ?? 0; return <article className={styles.elementCard} key={element.key}><div className={styles.elementHeader}><Glyph decorative glyph={elementGlyphKey(element.key)} size={32} /><strong>{element.label}</strong><span>{displayElementState(element.status)} · {displayConfidence(element.confidence ?? metric.confidence)}</span></div><p>{formatMetric(value, metric.unit ?? element.unit)}</p><small>{element.zone ?? metric.zone ?? "No zone"} · {element.sample_size ?? metric.sample_size ?? "—"} matches · {refs} evidence source{refs === 1 ? "" : "s"}</small>{element.limitations?.[0] && <p className={styles.limitation}>{element.limitations[0]}</p>}</article>; })}</div></section>;
 }
 
-function FindingReveal({ finding, revealed, onReveal }: { finding: V6Finding | null; revealed: boolean; onReveal: () => void }) {
-  if (!finding) return <EmptyState message="Combat Expression is unavailable in this report." />;
-  const text = findingLayers(finding);
-  return <article className={styles.findingReveal}><span className={styles.eyebrow}><Glyph decorative glyph={familyGlyphKey(finding.family)} size={28} />{firstNonEmpty(finding.family, finding.label, "Observed finding")}</span>{revealed ? <><h2>{firstNonEmpty(finding.claim, text.claim, finding.title, finding.label, "Observed result unavailable")}</h2><p>{firstNonEmpty(findingEvidenceText(finding), text.evidence, finding.observation, "")}</p><MetricReceipt item={finding} /></> : <><p>Ready to compare your estimate with the observed evidence.</p><button className={styles.secondaryButton} type="button" onClick={onReveal}>Reveal observed expression</button></>}</article>;
-}
-
-function FindingPanel({ finding, comparisonLabel, supportingEvidence }: { finding: V6Finding | null; comparisonLabel: string; supportingEvidence?: Record<string, Record<string, unknown> | undefined> }) {
-  if (!finding) return <EmptyState message="No strongest finding was published for this report." />;
-  const layers = findingLayers(finding);
-  return <article className={styles.findingPanel}><div className={styles.findingMain}><span className={styles.eyebrow}><Glyph decorative glyph={familyGlyphKey(finding.family)} size={28} />{firstNonEmpty(finding.family, "Finding")}</span><h2 id="v6-beat-5-title">{firstNonEmpty(finding.claim, layers.claim, finding.title, finding.label, "Finding claim unavailable")}</h2><p>{firstNonEmpty(finding.interpretation, layers.interpretation, "")}</p><MetricReceipt item={finding} /><RelationshipEvidence finding={finding} supportingEvidence={supportingEvidence} /></div>{finding.comparison && <Comparison comparison={finding.comparison} label={comparisonLabel} />}</article>;
-}
-
 function RelationshipEvidence({ finding, supportingEvidence }: { finding: V6Finding; supportingEvidence?: Record<string, Record<string, unknown> | undefined> }) {
   const kind = finding.interaction?.kind;
   if (!kind || finding.interaction?.enabled !== true) return null;
@@ -692,18 +673,6 @@ function relationshipSummary(row: Record<string, unknown>): string {
     typeof row.available === "boolean" ? (row.available ? "available" : "unavailable") : null,
   ].filter(Boolean);
   return counts.join(" · ") || "Aggregate comparison available in the evidence drawer";
-}
-
-function LayeredFinding({ finding, activeLayer, onLayerChange }: { finding: V6Finding | null; activeLayer: ClaimLayer; onLayerChange: (layer: ClaimLayer) => void }) {
-  if (!finding) return <EmptyState message="No secondary or conditional finding was published for this report." />;
-  const layers = findingLayers(finding);
-  const values: Record<ClaimLayer, string> = {
-    claim: firstNonEmpty(layers.claim, finding.claim, finding.title, finding.label, "Claim unavailable"),
-    evidence: firstNonEmpty(layers.evidence, findingEvidenceText(finding), finding.observation, "Evidence unavailable"),
-    interpretation: firstNonEmpty(layers.interpretation, finding.interpretation, "Interpretation unavailable"),
-    recommendation: firstNonEmpty(recommendationBody(layers.recommendation), recommendationBody(finding.recommendation), "Recommendation unavailable"),
-  };
-  return <article className={styles.layeredFinding}><div className={styles.layerTabs} role="tablist" aria-label="Finding detail layers">{CLAIM_LAYERS.map((layer) => <button key={layer} className={activeLayer === layer ? styles.layerTabActive : styles.layerTab} type="button" role="tab" aria-selected={activeLayer === layer} aria-controls={`v6-layer-${layer}`} onClick={() => onLayerChange(layer)}>{layer}</button>)}</div><div className={styles.layerPanel} id={`v6-layer-${activeLayer}`} role="tabpanel" tabIndex={0}><span className={styles.eyebrow}>{activeLayer}</span><p>{values[activeLayer]}</p>{activeLayer === "evidence" && <MetricReceipt item={finding} />}</div><EvidenceRefs refs={findingEvidenceRefs(finding)} /></article>;
 }
 
 function Comparison({ comparison, label }: { comparison: V6Comparison; label: string }) {
@@ -755,11 +724,6 @@ function MetricReceipt({ item }: { item: V6Finding }) {
   const interval = metricInterval(metric);
   const value = metricValue(metric);
   return <dl className={styles.receipt}><div><dt>Estimate</dt><dd>{formatMetric(value, metric.unit)}</dd></div><div><dt>95% interval</dt><dd>{formatInterval(interval, metric.unit)}</dd></div><div><dt>Sample</dt><dd>{item.sample_size ?? metric.sample_size ?? "—"}</dd></div><div><dt>Sessions</dt><dd>{item.independent_sessions ?? metric.independent_sessions ?? "—"}</dd></div><div><dt>Confidence</dt><dd>{displayConfidence(item.confidence ?? metric.confidence)}</dd></div></dl>;
-}
-
-function EvidenceRefs({ refs }: { refs?: string[] }) {
-  if (!refs || refs.length === 0) return null;
-  return <p className={styles.evidenceRefs}>Evidence references: {refs.join(", ")}</p>;
 }
 
 function EmptyState({ message }: { message: string }) {
@@ -898,11 +862,6 @@ function findingEvidenceText(finding: V6Finding): string {
   return firstNonEmpty(finding.evidence_text, ...(finding.evidence ?? []).map((item) => item.observation ?? item.label ?? item.key));
 }
 
-function findingEvidenceRefs(finding: V6Finding): string[] {
-  if (finding.evidence_refs?.length) return finding.evidence_refs;
-  return [...new Set((finding.evidence_items ?? []).flatMap((item) => item.references ?? (item.key ? [item.key] : [])))];
-}
-
 function diagnosticQuestionId(question: V6StoryReport["diagnostic_questions"][number]): string {
   return question.id ?? question.question_id ?? "";
 }
@@ -978,14 +937,6 @@ function elementGlyphKey(key: string): string {
   return "breadth";
 }
 
-function familyGlyphKey(family: string): string {
-  if (family.includes("transfer")) return "transfer_finding";
-  if (family.includes("post_loss")) return "post_loss_response";
-  if (family.includes("combat")) return "combat_expression";
-  if (family.includes("session")) return "session_drift";
-  return "pool_shape";
-}
-
 function progressCount(state: V6InteractionState): number {
   return Math.min(9, new Set([...(state.completed_beats ?? []), ...(state.skipped_beats ?? [])]).size);
 }
@@ -1018,8 +969,7 @@ function recordNumber(value: unknown, key: string): number | null {
 function followUpState(value: unknown): V6InteractionState["ui_state"]["follow_up"] {
   const record = asRecord(value);
   const eligible = recordNumber(record, "eligible_games") ?? recordNumber(record, "context_matching_games");
-  const target = recordNumber(record, "target_games");
-  return { eligible_games: eligible ?? 0, target_games: target === 5 ? 5 : 5, status: recordText(record, "status") || undefined };
+  return { eligible_games: eligible ?? 0, target_games: 5, status: recordText(record, "status") || undefined };
 }
 
 function syncLabel(status: SyncStatus): string {
