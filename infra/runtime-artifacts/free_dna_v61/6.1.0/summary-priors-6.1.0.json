@@ -1,0 +1,16 @@
+{
+  "builder_version": "v61-calibration-builder-2.0.0",
+  "corpus_sha256": "5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216",
+  "estimator_version": "finishing-beta-binomial-2.0.0",
+  "finishing_beta_binomial": {
+    "alpha": 10.1286591999,
+    "beta": 19.8406114189,
+    "fit": "profile-share-moment-matched-empirical-bayes",
+    "profile_share_observations": 791,
+    "training_observations": 6976691,
+    "training_successes": 2439822
+  },
+  "train_profile_digest": "2d961edcde679a529751c78b9129cf6d8cf0e56d32d17a226a12dd24a0c09461",
+  "training_only": true,
+  "version": "summary-priors-6.1.0"
+}

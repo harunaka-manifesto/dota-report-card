@@ -1,0 +1,31 @@
+{
+  "builder_version": "v61-calibration-builder-2.0.0",
+  "component_scales": {
+    "activity": 0.19644992986418844,
+    "outcome": 0.5,
+    "survival": 0.8647735608975679
+  },
+  "corpus_sha256": "5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216",
+  "coverage_rules": {
+    "minimum_context_coverage": 0.8,
+    "minimum_session_coverage": 0.5
+  },
+  "estimator_version": "consistency-information-weighted-2.0.0",
+  "opportunity_minima": {
+    "matches": 30,
+    "sessions": 12
+  },
+  "shrinkage": {
+    "activity": 2.0,
+    "outcome": 2.0,
+    "survival": 2.0
+  },
+  "train_profile_digest": "2d961edcde679a529751c78b9129cf6d8cf0e56d32d17a226a12dd24a0c09461",
+  "training_observations": {
+    "activity": 111981,
+    "outcome": 111981,
+    "survival": 111981
+  },
+  "training_only": true,
+  "version": "session-reliability-calibration-1.0.0"
+}

@@ -1,0 +1,39 @@
+{
+  "bands": {
+    "core": {
+      "maximum": 0.5499664131315274,
+      "quantile": 0.5
+    },
+    "experimental_edge": {
+      "maximum": 1.0,
+      "quantile": 1.0
+    },
+    "reliable_stretch": {
+      "maximum": 0.6954749947845777,
+      "quantile": 0.8
+    }
+  },
+  "builder_version": "v61-calibration-builder-2.0.0",
+  "corpus_sha256": "5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216",
+  "cross_fitted": true,
+  "equivalence_ropes": {
+    "activity": 0.05815105200559039,
+    "outcome": 0.09223679546260193,
+    "survival": 0.2346401477174622
+  },
+  "estimator_version": "portfolio-distance-frontier-2.0.0",
+  "margin_observations": {
+    "activity": 786,
+    "outcome": 786,
+    "survival": 786
+  },
+  "practical_margins": {
+    "activity": 0.05815105200559039,
+    "outcome": 0.09223679546260193,
+    "survival": 0.2346401477174622
+  },
+  "train_profile_digest": "2d961edcde679a529751c78b9129cf6d8cf0e56d32d17a226a12dd24a0c09461",
+  "training_observations": 303362,
+  "training_only": true,
+  "version": "portfolio-distance-calibration-1.0.0"
+}

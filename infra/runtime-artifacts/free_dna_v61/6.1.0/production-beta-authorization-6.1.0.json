@@ -1,0 +1,43 @@
+{
+  "approval_basis": "owner-assumed-review-complete-per-explicit-task-instruction",
+  "artifact_checksums": {
+    "build-manifest-6.1.0.json": "a6c1d0c08ceef553150c401b0711b24eb89aa4d316105b8977373f3cc79c4865",
+    "context-baseline-3.0.0.json": "966026df08ebf1ca35594d6b5aa77b5207c8fe235cbee82a6430dc0ba8111800",
+    "metric-thresholds-6.1.0.json": "bcbf57901690f0e91dc4a275b3978b4b5f3e70117b6efecdbcdbba5850f876fd",
+    "portfolio-distance-calibration-1.0.0.json": "af37cd06f3bfd88f195586c433e0688496bbb4a27aef447da399bdf2aa2b5dcf",
+    "semantic-outcome-calibration-1.0.0.json": "47624ba5d7d8c1c851850aab4790886e7b136ecfdb194cad6dd4f2b8bbe2b02e",
+    "session-reliability-calibration-1.0.0.json": "ba58c77a6de37d549146d8543b9289954cc6d6266ce96764f94bd7971cd53cfd",
+    "summary-priors-6.1.0.json": "fac0d9d44dacc1950014fc22bcd670afc815d6e10a1a571e42e29443710e3292"
+  },
+  "automated_gates": {
+    "artifact_checksum_linkage": true,
+    "corpus_compatibility": true,
+    "exact_reproducibility": true,
+    "frozen_training_artifacts": true,
+    "identifier_privacy": true,
+    "reuse_authorization": true,
+    "runtime_calibration_estimator_parity": true,
+    "sealed_holdout_gates": true,
+    "split_integrity": true,
+    "synthetic_gates": true
+  },
+  "generated_at": "2000-01-01T00:00:00+00:00",
+  "operator_authorization_reference": "owner-v61-production-beta-authorization-refresh-2026-08-26",
+  "production_beta_authorized": true,
+  "public_flags_must_remain_off": false,
+  "release_authorized": true,
+  "release_mode": "production-beta",
+  "release_ready": false,
+  "rollback": {
+    "primary_flag": "FREE_DNA_V61_ENABLED",
+    "required_experimental_flags": "FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED=false; FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED=false",
+    "required_shadow_flag": "FREE_DNA_V61_SHADOW_ENABLED=false"
+  },
+  "source": {
+    "dirty_worktree": false,
+    "repository_commit": "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
+  },
+  "state_b": true,
+  "state_c": false,
+  "version": "v61-production-beta-authorization-1.0.0"
+}

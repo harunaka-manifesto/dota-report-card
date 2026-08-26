@@ -1,0 +1,39 @@
+{
+  "artifacts": {
+    "context-baseline-3.0.0.json": "966026df08ebf1ca35594d6b5aa77b5207c8fe235cbee82a6430dc0ba8111800",
+    "metric-thresholds-6.1.0.json": "bcbf57901690f0e91dc4a275b3978b4b5f3e70117b6efecdbcdbba5850f876fd",
+    "portfolio-distance-calibration-1.0.0.json": "af37cd06f3bfd88f195586c433e0688496bbb4a27aef447da399bdf2aa2b5dcf",
+    "semantic-outcome-calibration-1.0.0.json": "47624ba5d7d8c1c851850aab4790886e7b136ecfdb194cad6dd4f2b8bbe2b02e",
+    "session-reliability-calibration-1.0.0.json": "ba58c77a6de37d549146d8543b9289954cc6d6266ce96764f94bd7971cd53cfd",
+    "summary-priors-6.1.0.json": "fac0d9d44dacc1950014fc22bcd670afc815d6e10a1a571e42e29443710e3292"
+  },
+  "builder_version": "v61-calibration-builder-2.0.0",
+  "code_fingerprint": "6e5f01455cfd7ad3c433aebf91399685551e19cfad464317d48417823aa91f6c",
+  "compatibility_audit_checksum": "f06802f245c961fcbafa703b3473a42e802c4b052a3b76b345435cddf2ab9cbb",
+  "compatibility_audit_path_digest": "14cf5ed686664e58a773c5f4c0ff5f7ed23c6b9ba59dab355a9cc30679678434",
+  "corpus_schema": "v61-calibration-corpus-2.1.0",
+  "corpus_sha256": "5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216",
+  "estimator_fingerprint": "v61-runtime-estimator-parity-2.0.0",
+  "generated_at": "2026-08-25T08:37:07Z",
+  "holdout_output_inspected": false,
+  "minimum_usable_matches": 30,
+  "release_authorized": false,
+  "reuse_authorization_reference": "approved-v61-replacement:owner-2026-08-25-training-reuse",
+  "seed": 6000,
+  "source": {
+    "dirty_worktree": false,
+    "repository_commit": "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
+  },
+  "split": {
+    "holdout_profile_count": 339,
+    "holdout_profile_digest": "23895cb4cc26d9f6ab097151e15f1b65ebe330b8a64a8cb08220aad779843526",
+    "overlap_count": 0,
+    "train_profile_count": 791,
+    "train_profile_digest": "2d961edcde679a529751c78b9129cf6d8cf0e56d32d17a226a12dd24a0c09461"
+  },
+  "split_manifest_checksum": "2aa3b4292c0a24d9ca209c5f885ebd1590e3032323362f111befae678d816231",
+  "state_c": false,
+  "taxonomy_fingerprint": "1b241b253a3db2f67f1cedd46792711bcdf1cf09453907d55f38a8f4c88e0638",
+  "v6_0_holdout_previously_evaluated": false,
+  "version": "v61-calibration-build-manifest-2.0.0"
+}

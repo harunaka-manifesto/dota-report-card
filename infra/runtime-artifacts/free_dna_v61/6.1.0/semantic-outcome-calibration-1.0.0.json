@@ -1,0 +1,272 @@
+{
+  "branch_procedure": "qualified-family-bh",
+  "builder_version": "v61-calibration-builder-2.0.0",
+  "corpus_sha256": "5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216",
+  "estimator_version": "cluster-bootstrap-omnibus-bh-2.0.0",
+  "family_fdr_q": 0.05,
+  "family_rope": {
+    "combat_expression": 0.05815105200559039,
+    "pool_shape": 0.09223679546260193,
+    "post_loss_response": 0.5,
+    "session_drift": 0.8647735608975679,
+    "transfer": 0.09223679546260193
+  },
+  "omnibus_families": 5,
+  "outcomes": [
+    {
+      "branch": "shape",
+      "family": "pool_shape",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "hidden_center"
+    },
+    {
+      "branch": "name_job",
+      "family": "pool_shape",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "names_wide_jobs_narrow"
+    },
+    {
+      "branch": "name_job",
+      "family": "pool_shape",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "names_narrow_jobs_wide"
+    },
+    {
+      "branch": "migration",
+      "family": "pool_shape",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "names_changed_jobs_held"
+    },
+    {
+      "branch": "frontier",
+      "family": "transfer",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "clean_transfer"
+    },
+    {
+      "branch": "component_frontier",
+      "family": "transfer",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "results_stop_first"
+    },
+    {
+      "branch": "component_frontier",
+      "family": "transfer",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "expression_stops_first"
+    },
+    {
+      "branch": "component_frontier",
+      "family": "transfer",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "involvement_boundary"
+    },
+    {
+      "branch": "component_frontier",
+      "family": "transfer",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "exposure_boundary"
+    },
+    {
+      "branch": "function",
+      "family": "transfer",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "localized_function_bottleneck"
+    },
+    {
+      "branch": "result_state",
+      "family": "post_loss_response",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "transitions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "one_loss_runback"
+    },
+    {
+      "branch": "streak_state",
+      "family": "post_loss_response",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "transitions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "two_loss_switch"
+    },
+    {
+      "branch": "bidirectional",
+      "family": "post_loss_response",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "transitions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "result_shaped_pool"
+    },
+    {
+      "branch": "equivalence",
+      "family": "post_loss_response",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "transitions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "result_invariant_response"
+    },
+    {
+      "branch": "chain",
+      "family": "post_loss_response",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "transitions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "adjustment_without_recovery"
+    },
+    {
+      "branch": "conditional_expression",
+      "family": "combat_expression",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "involvement_holds_exposure_moves"
+    },
+    {
+      "branch": "conditional_expression",
+      "family": "combat_expression",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "exposure_holds_involvement_moves"
+    },
+    {
+      "branch": "result_expression",
+      "family": "combat_expression",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "same_expression_different_results"
+    },
+    {
+      "branch": "result_expression",
+      "family": "combat_expression",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "different_expression_same_results"
+    },
+    {
+      "branch": "variance",
+      "family": "combat_expression",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "localized_variance"
+    },
+    {
+      "branch": "position_curve",
+      "family": "session_drift",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "sessions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "opening_game_signature"
+    },
+    {
+      "branch": "position_curve",
+      "family": "session_drift",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "sessions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "gradual_session_drift"
+    },
+    {
+      "branch": "breakpoint",
+      "family": "session_drift",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "sessions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "predeclared_breakpoint"
+    },
+    {
+      "branch": "selection",
+      "family": "session_drift",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "sessions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "selection_only_drift"
+    },
+    {
+      "branch": "stopping",
+      "family": "session_drift",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "sessions",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "bounded_stopping_response"
+    }
+  ],
+  "ropes": {
+    "adjustment_without_recovery": 0.5,
+    "bounded_stopping_response": 0.8647735608975679,
+    "clean_transfer": 0.09223679546260193,
+    "different_expression_same_results": 0.05815105200559039,
+    "exposure_boundary": 0.09223679546260193,
+    "exposure_holds_involvement_moves": 0.05815105200559039,
+    "expression_stops_first": 0.09223679546260193,
+    "gradual_session_drift": 0.8647735608975679,
+    "hidden_center": 0.09223679546260193,
+    "involvement_boundary": 0.09223679546260193,
+    "involvement_holds_exposure_moves": 0.05815105200559039,
+    "localized_function_bottleneck": 0.09223679546260193,
+    "localized_variance": 0.05815105200559039,
+    "names_changed_jobs_held": 0.09223679546260193,
+    "names_narrow_jobs_wide": 0.09223679546260193,
+    "names_wide_jobs_narrow": 0.09223679546260193,
+    "one_loss_runback": 0.5,
+    "opening_game_signature": 0.8647735608975679,
+    "predeclared_breakpoint": 0.8647735608975679,
+    "result_invariant_response": 0.5,
+    "result_shaped_pool": 0.5,
+    "results_stop_first": 0.09223679546260193,
+    "same_expression_different_results": 0.05815105200559039,
+    "selection_only_drift": 0.8647735608975679,
+    "two_loss_switch": 0.5
+  },
+  "train_profile_digest": "2d961edcde679a529751c78b9129cf6d8cf0e56d32d17a226a12dd24a0c09461",
+  "training_only": true,
+  "version": "semantic-outcome-calibration-1.0.0"
+}

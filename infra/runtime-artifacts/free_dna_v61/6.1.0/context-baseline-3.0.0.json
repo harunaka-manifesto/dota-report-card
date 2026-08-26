@@ -1,0 +1,42 @@
+{
+  "cells": [
+    {
+      "distinct_players": 791,
+      "estimator_version": "v61-runtime-estimator-parity-2.0.0",
+      "hero_function": null,
+      "hero_id": null,
+      "lane_context": null,
+      "level": "overall",
+      "match_count": 303362,
+      "metrics": {
+        "death_exposure_adjusted": 1.9707850492644063,
+        "death_exposure_per_ten": 1.9707850492644063,
+        "finishing_adjusted": 0.3516153109284062,
+        "finishing_share": 0.3516153109284062,
+        "involvement_adjusted": 0.5624259701236585,
+        "involvement_per_minute": 0.5624259701236585,
+        "outcome": 0.5008273943341618
+      },
+      "patch": null,
+      "source_version": "context-baseline-3.0.0"
+    }
+  ],
+  "corpus": {
+    "builder_version": "v61-calibration-builder-2.0.0",
+    "corpus_sha256": "5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216",
+    "lobby_mix": {
+      "0": 0.1308634568601209,
+      "7": 0.8691365431398791
+    },
+    "match_count": 303362,
+    "mmr_used": false,
+    "profile_count": 791,
+    "regions": [],
+    "source_version": "v61-calibration-corpus-2.1.0",
+    "train_profile_digest": "2d961edcde679a529751c78b9129cf6d8cf0e56d32d17a226a12dd24a0c09461"
+  },
+  "estimator_version": "v61-runtime-estimator-parity-2.0.0",
+  "generated_at": "2026-08-25T08:37:07Z",
+  "training_only": true,
+  "version": "context-baseline-3.0.0"
+}
