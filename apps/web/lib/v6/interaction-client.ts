@@ -59,6 +59,26 @@ export type V6InteractionSession = {
   history_cutoff?: number | null;
 };
 
+export type V6FollowUpResponse = {
+  revision: number;
+  status: "progress" | "ready" | "abstained";
+  eligible_new_matches: number;
+  context_matching_matches: number;
+  progress: { completed: number; required: 5; remaining: number };
+  comparison: {
+    label: "what_changed_in_these_five_games";
+    metric: string;
+    baseline: number;
+    follow_up: number;
+    delta: number;
+    causal: false;
+    identity_updated: false;
+  } | null;
+  message: string;
+  guardrail: "This compares the next five matching games. It does not claim causality or change your Signature.";
+  stop_reason: string;
+};
+
 type SessionEnvelope = Partial<V6InteractionSession> & {
   access_token?: string;
   token?: string;
@@ -224,8 +244,8 @@ export async function deleteInteractionSession(sessionId: string, token: string)
   await request(`/v1/report-interactions/${encodeURIComponent(sessionId)}`, { method: "DELETE", headers: authorization(token) });
 }
 
-export async function followUpInteractionSession(sessionId: string, token: string): Promise<unknown> {
-  return request(`/v1/report-interactions/${encodeURIComponent(sessionId)}/follow-up`, { method: "POST", headers: authorization(token) });
+export async function followUpInteractionSession(sessionId: string, token: string): Promise<V6FollowUpResponse> {
+  return request(`/v1/report-interactions/${encodeURIComponent(sessionId)}/follow-up`, { method: "POST", headers: authorization(token) }) as Promise<V6FollowUpResponse>;
 }
 
 export async function startDeepAnalysis(reportId: string, diagnosticQuestionId: string, sessionId?: string, token?: string | null): Promise<unknown> {

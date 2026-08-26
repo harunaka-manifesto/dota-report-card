@@ -150,6 +150,11 @@ def _build_v6_share_svg(
 ) -> tuple[str, str]:
     content = _v6_card_content(report, card_type, show_name=show_name)
     cache_key = share_cache_key(report, card_type=card_type, show_name=show_name, show_avatar=False)
+    renderer_version = (
+        V61_RENDERER_VERSION
+        if report.get("schema_version") == "free-dna-report-6.1.0"
+        else V6_RENDERER_VERSION
+    )
     title = html.escape(str(content["title"]))
     subtitle = html.escape(str(content["subtitle"]))
     sections = _section_markup(content["sections"])
@@ -167,7 +172,7 @@ def _build_v6_share_svg(
   {sections}
   <line x1="72" y1="1260" x2="1008" y2="1260" stroke="{_LINE}" stroke-width="2"/>
   <text x="72" y="1294" class="footer">PRIVATE BY DEFAULT · NO PLAYER ID · NO RAW MATCH DATA</text>
-  <text x="1008" y="1294" text-anchor="end" class="footer">FREE DNA / {V6_RENDERER_VERSION.upper()}</text>
+  <text x="1008" y="1294" text-anchor="end" class="footer">FREE DNA / {renderer_version.upper()}</text>
   <style>
     .eyebrow{{font:700 20px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:4px;fill:{_SAFFRON}}}
     .title{{font:800 64px 'Plus Jakarta Sans',Arial,sans-serif;letter-spacing:-2px;fill:{_TEXT}}}
@@ -210,8 +215,21 @@ def _v6_card_content(report: dict[str, Any], card_type: str, *, show_name: bool)
         payload_value = candidate.get("payload")
         payload: dict[str, Any] = dict(payload_value) if isinstance(payload_value, dict) else {}
         heading = str(payload.get("title") or candidate.get("title") or candidate.get("kind") or "Observed signal")
-        line = str(payload.get("reason") or candidate.get("reason") or "Eligible server-authored evidence")
-        sections.append({"heading": heading.upper()[:24], "lines": [line]})
+        lines = [
+            str(value)
+            for value in (
+                payload.get("body") or payload.get("reason") or candidate.get("reason"),
+                payload.get("evidence_label"),
+                payload.get("limitation_label"),
+            )
+            if value
+        ]
+        sections.append(
+            {
+                "heading": heading.upper()[:48],
+                "lines": list(dict.fromkeys(lines)) or ["Eligible server-authored evidence"],
+            }
+        )
     identity_value = report.get("identity")
     identity: dict[str, Any] = dict(identity_value) if isinstance(identity_value, dict) else {}
     title = str(identity.get("display_name") or "Your Dota DNA") if show_name else "Your Dota DNA"
@@ -376,4 +394,11 @@ def _safe_avatar_url(value: Any) -> str | None:
     return value
 
 
-__all__ = ["CARD_TYPES", "RENDERER_VERSION", "build_share_svg", "share_cache_key"]
+__all__ = [
+    "CARD_TYPES",
+    "RENDERER_VERSION",
+    "V6_RENDERER_VERSION",
+    "V61_RENDERER_VERSION",
+    "build_share_svg",
+    "share_cache_key",
+]

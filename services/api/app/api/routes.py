@@ -36,7 +36,12 @@ from app.ingestion.summary_history_contract import (
     normalize_canonical_summary_history,
 )
 from app.ingestion.summary_normalize import derive_player_won
-from app.share.service import RENDERER_VERSION, V6_RENDERER_VERSION, build_share_svg
+from app.share.service import (
+    RENDERER_VERSION,
+    V6_RENDERER_VERSION,
+    V61_RENDERER_VERSION,
+    build_share_svg,
+)
 from app.storage.repository import (
     InteractionRevisionConflict,
     InteractionSessionExpired,
@@ -682,7 +687,6 @@ async def interaction_follow_up(
             "baseline": float(baseline_value),
             "follow_up": round(observed_value, 6),
             "delta": round(observed_value - float(baseline_value), 6),
-            "match_ids": [row.get("match_id") for row in selected],
             "causal": False,
             "identity_updated": False,
         }
@@ -709,7 +713,6 @@ async def interaction_follow_up(
     except InteractionSessionExpired:
         _interaction_error("INTERACTION_SESSION_EXPIRED", 410, "Interaction session has expired")
     return {
-        "session_id": session_id,
         "revision": updated.revision,
         "status": follow_up["status"],
         "eligible_new_matches": len(eligible),
@@ -720,6 +723,12 @@ async def interaction_follow_up(
             "remaining": max(0, 5 - completed),
         },
         "comparison": comparison,
+        "message": (
+            "The five-game comparison is ready."
+            if follow_up["status"] == "ready"
+            else "The check-in is not ready yet."
+        ),
+        "guardrail": "This compares the next five matching games. It does not claim causality or change your Signature.",
         "stop_reason": stop_reason,
     }
 
@@ -934,7 +943,7 @@ async def get_share_card(
         record_metric("share.render.failed", tags={"card_type": card_type})
         return Response(str(exc), status_code=422, media_type="text/plain")
     renderer_version = (
-        "share-svg-6.1.0"
+        V61_RENDERER_VERSION
         if report.get("schema_version") == "free-dna-report-6.1.0"
         else V6_RENDERER_VERSION
         if report.get("schema_version") == "free-dna-report-6.0.0"

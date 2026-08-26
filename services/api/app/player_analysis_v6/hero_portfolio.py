@@ -29,10 +29,13 @@ def load_v6_hero_taxonomy() -> dict[int, dict[str, Any]]:
         entry = provider.get(hero_id)
         if entry is None or entry.review_status not in {"approved", "reviewed"}:
             continue
+        taxonomy_entry = taxonomy.get(hero_id)
         jobs = tuple(dict.fromkeys((*entry.primary_functions, *entry.secondary_functions)))
         if not jobs:
             continue
         result[hero_id] = {
+            "display_name": entry.display_name,
+            "portrait_url": taxonomy_entry.portrait_url if taxonomy_entry is not None else None,
             "hero_function": jobs[0],
             "functional_jobs": jobs,
             "source_version": provider.version,
@@ -68,6 +71,8 @@ def build_v6_hero_portfolio(
         jobs = taxonomy_labels(taxonomy)
         hero_rows.append({
             "hero_id": hero,
+            "display_name": _get(taxonomy, "display_name"),
+            "portrait_url": _get(taxonomy, "portrait_url"),
             "match_count": count,
             "share": round(count / total, 6),
             "functional_jobs": list(dict.fromkeys(jobs)),

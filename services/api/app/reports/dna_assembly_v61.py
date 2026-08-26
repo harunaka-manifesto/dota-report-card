@@ -12,6 +12,7 @@ from copy import deepcopy
 from typing import Any, cast
 
 from app.analysis.budget import DataCostLedger
+from app.behavior.display_bands import job_display_label
 from app.hypotheses.models import MatchPredicate
 from app.ingestion.summary_history_contract import CanonicalSummaryHistory, request_manifest
 from app.player_analysis_v6.baselines import BaselineResolver
@@ -22,6 +23,7 @@ from app.player_analysis_v6.metrics import (
     shannon_effective_count,
     taxonomy_labels,
 )
+from app.player_analysis_v6.story import build_v61_presentation_metadata
 from app.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
 from app.player_analysis_v61.estimators import (
     continuous_transfer,
@@ -229,6 +231,223 @@ def _set_page_observed(page: dict[str, Any], observed: Mapping[str, Any]) -> Non
     page["content"]["observed"] = _plain(observed)
 
 
+def _public_job_label(value: Any) -> str:
+    return job_display_label(str(value).strip())
+
+
+def _safe_hero_rows(portfolio: Mapping[str, Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in portfolio.get("heroes", ()):
+        if not isinstance(item, Mapping):
+            continue
+        display_name = str(item.get("display_name") or "").strip()
+        if not display_name or display_name.isdecimal():
+            continue
+        jobs = [
+            _public_job_label(job)
+            for job in (item.get("functional_jobs") or item.get("mapped_jobs") or ())
+            if str(job).strip()
+        ]
+        match_count = int(item.get("match_count") or 0)
+        share = float(item.get("share") or 0.0)
+        rows.append(
+            {
+                "name": display_name,
+                "display_name": display_name,
+                "portrait_url": item.get("portrait_url"),
+                "match_count": match_count,
+                "share": share,
+                "mapped_jobs": jobs,
+                "facts": [
+                    {"label": "Matches", "value": str(match_count)},
+                    {"label": "Share of your year", "value": f"{share:.0%}"},
+                    {"label": "Mapped jobs", "value": " · ".join(jobs) or "Not mapped"},
+                ],
+            }
+        )
+    return rows
+
+
+def _share_payload(
+    candidate: Mapping[str, Any],
+    *,
+    report: Mapping[str, Any],
+    hero_label: str | None,
+    hero_row: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    current = dict(candidate.get("payload") or {})
+    if candidate.get("eligible") is not True:
+        return current
+    kind = str(candidate.get("kind") or "")
+    body = ""
+    if kind == "dynamic_identity":
+        title = "Your Dota Signature"
+        identity_summary = report.get("identity_summary")
+        identity_summary = identity_summary if isinstance(identity_summary, Mapping) else {}
+        slots = identity_summary.get("slots")
+        slots = slots if isinstance(slots, Mapping) else {}
+        lines = [
+            str(slot.get("text"))
+            for slot in (slots.get("primary"), slots.get("twist"), slots.get("anchor"))
+            if isinstance(slot, Mapping) and slot.get("text")
+        ]
+        body = " ".join(lines)
+    elif kind == "strongest_finding":
+        candidate_id = candidate.get("id") or candidate.get("candidate_id")
+        family = str(candidate_id or "").partition(":")[2]
+        finding = next(
+            (
+                item
+                for item in report.get("findings", ())
+                if isinstance(item, Mapping)
+                and item.get("published") is True
+                and (not family or item.get("family") == family)
+            ),
+            None,
+        )
+        title = str((finding or {}).get("claim") or current.get("title") or "")
+        body = str((finding or {}).get("interpretation") or (finding or {}).get("evidence_text") or "")
+    else:
+        title = "Hero Mirror"
+        facts = list((hero_row or {}).get("facts", ()))
+        fact_text = " · ".join(
+            f"{item['label']}: {item['value']}"
+            for item in facts
+            if isinstance(item, Mapping) and item.get("label") and item.get("value")
+        )
+        body = " · ".join(part for part in (hero_label, fact_text) if part)
+    return {
+        "title": title,
+        "body": body,
+        "reason": body,
+        "evidence_label": "Observed in your summary history.",
+        "limitation_label": "Summary history only. No detail or replay reads.",
+    }
+
+
+def _presentation_state(page: Mapping[str, Any]) -> str:
+    if page.get("available") is not True:
+        return "insufficient"
+    observed = page.get("observed")
+    finding = observed.get("finding") if isinstance(observed, Mapping) else None
+    if isinstance(finding, Mapping):
+        if finding.get("direction") == "mixed":
+            return "mixed"
+        return "qualified" if finding.get("published") is True else "neutral"
+    return "neutral" if page.get("id") == "self-estimate" else "qualified"
+
+
+def _presentation_refs(refs: Sequence[Any]) -> list[str]:
+    result: list[str] = []
+    for value in refs:
+        ref = str(value)
+        if ref.startswith("hero:"):
+            ref = "supporting:portfolio_shape"
+        if ref.startswith(("match:", "session:", "cohort:", "protected:")):
+            continue
+        if ref not in result:
+            result.append(ref)
+    return result
+
+
+def _apply_v61_presentation(report: dict[str, Any]) -> None:
+    """Project reviewed V6.1 presentation without touching qualification outputs."""
+
+    portfolio = dict(report.get("hero_portfolio") or {})
+    hero_rows = _safe_hero_rows(portfolio)
+    hero_row = hero_rows[0] if hero_rows else None
+    common_thread = _public_job_label(portfolio.get("common_thread")) if portfolio.get("common_thread") else None
+    hero_label = str((hero_row or {}).get("display_name") or common_thread or "").strip() or None
+    hero_candidate = next(
+        (
+            item
+            for item in report.get("share_candidates", ())
+            if isinstance(item, Mapping) and item.get("kind") == "hero_mirror"
+        ),
+        None,
+    )
+
+    slots = report.get("identity_summary", {}).get("slots", {})
+    anchor = slots.get("anchor") if isinstance(slots, Mapping) else None
+    if isinstance(anchor, dict) and hero_label:
+        anchor["text"] = hero_label
+    elif isinstance(slots, dict):
+        slots["anchor"] = None
+
+    identity_summary = report.get("identity_summary")
+    if isinstance(identity_summary, dict) and isinstance(identity_summary.get("supporting_lines"), list):
+        supporting_lines: list[Any] = []
+        for line in identity_summary["supporting_lines"]:
+            if "portfolio thread" in str(line).casefold():
+                if hero_label:
+                    supporting_lines.append(f"A recurring portfolio thread: {hero_label}.")
+                continue
+            supporting_lines.append(line)
+        identity_summary["supporting_lines"] = supporting_lines
+
+    portfolio["anchor"] = hero_label
+    portfolio["common_thread"] = common_thread
+    portfolio["heroes"] = hero_rows
+    portfolio["evidence_refs"] = _presentation_refs(portfolio.get("evidence_refs") or ())
+    portfolio["copy"] = {
+        "intro": "Before the patterns, there are the heroes.",
+        "anchor_prompt": "If we had to start with one hero…",
+        "breadth": "One hero doesn’t describe your Dota.",
+        "signature_title": "Your Dota Signature.",
+        "explanation_title": "Why this describes your Dota.",
+    }
+    portfolio["hero_mirror"] = {
+        "title": "Hero Mirror",
+        "status": portfolio.get("status", "unavailable"),
+        "hero_name": hero_label,
+        "portrait_url": (hero_row or {}).get("portrait_url"),
+        "headline": hero_label,
+        "body": "One hero does not describe your Dota; this one carries the clearest observed thread.",
+        "player_behavior": {
+            str(item["label"]): str(item["value"])
+            for item in (hero_row or {}).get("facts", ())
+            if isinstance(item, Mapping) and item.get("label") and item.get("value")
+        },
+        "hero_behavior": {},
+        "evidence_refs": ["supporting:portfolio_shape"] if hero_label else [],
+        "limitations": [] if (hero_candidate or {}).get("eligible") is True else list((hero_candidate or {}).get("blocking_confounders", ())),
+        "share_eligible": (hero_candidate or {}).get("eligible") is True,
+    }
+    portfolio.pop("hero_mirror_refs", None)
+    report["hero_portfolio"] = portfolio
+
+    for candidate in report.get("share_candidates", ()):
+        if isinstance(candidate, dict):
+            candidate["payload"] = _share_payload(
+                candidate,
+                report=report,
+                hero_label=hero_label,
+                hero_row=hero_row,
+            )
+
+    pages = {str(page.get("id")): page for page in report.get("pages", ())}
+    mirror_page = pages.get("hero-mirror")
+    if mirror_page is not None:
+        _set_page_observed(mirror_page, {"hero_mirror": portfolio["hero_mirror"]})
+    metadata = report.get("metadata")
+    metadata = metadata if isinstance(metadata, Mapping) else {}
+    eligible_matches = int(
+        metadata.get("eligible_match_count", metadata.get("eligible_matches", 0)) or 0
+    )
+    for page in report.get("pages", ()):
+        page_id = str(page.get("id") or "")
+        safe_refs = _presentation_refs(page.get("evidence_refs") or ())
+        page["evidence_refs"] = safe_refs
+        content = dict(page.get("content") or {})
+        content["presentation"] = build_v61_presentation_metadata(
+            page_id,
+            eligible_match_count=eligible_matches,
+            state=_presentation_state(page),
+            evidence_refs=safe_refs,
+        )
+        page["content"] = content
+
+
 def _refresh_public_surfaces(report: dict[str, Any]) -> None:
     """Remove inherited V6 branches that did not pass the V6.1 hierarchy."""
 
@@ -286,6 +505,7 @@ def _refresh_public_surfaces(report: dict[str, Any]) -> None:
             deep_page,
             {"diagnostic_questions": report["diagnostic_questions"]},
         )
+    _apply_v61_presentation(report)
 
 
 def _patch_element(

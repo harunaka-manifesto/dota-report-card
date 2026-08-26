@@ -30,6 +30,43 @@ _BEAT_CONTENT: Mapping[str, tuple[str, str, str]] = {
     "deep_fork": ("Go deeper", "Choose one diagnostic question for Deep Analysis.", "diagnostic_routing"),
 }
 
+_V61_PRESENTATION: Mapping[str, Mapping[str, Any]] = {
+    "self-estimate": {"chapter_label": "Start", "reference_screens": ("01",), "mode": "discovery", "story_position": "opening"},
+    "identity-reveal": {"chapter_label": "Shape", "reference_screens": ("02", "03", "04"), "mode": "discovery", "story_position": "opening"},
+    "pool-evolution": {"chapter_label": "Pool", "reference_screens": ("05", "06", "07", "08", "09", "10", "11", "12"), "mode": "discovery", "story_position": "middle"},
+    "combat-expression": {"chapter_label": "Change", "reference_screens": ("13", "14", "15"), "mode": "evidence", "story_position": "middle"},
+    "strongest-finding": {"chapter_label": "After loss", "reference_screens": ("16", "17", "18", "19"), "mode": "evidence", "story_position": "middle"},
+    "secondary-finding": {"chapter_label": "Match", "reference_screens": ("20", "21", "22", "23"), "mode": "evidence", "story_position": "middle"},
+    "recommendation": {"chapter_label": "Session", "reference_screens": ("24", "25", "26", "27"), "mode": "evidence", "story_position": "close"},
+    "hero-mirror": {"chapter_label": "Signature", "reference_screens": ("28", "29", "30", "31"), "mode": "synthesis", "story_position": "close"},
+    "deep-diagnostic": {"chapter_label": "Share", "reference_screens": ("32", "33", "Deep"), "mode": "synthesis", "story_position": "close"},
+}
+
+
+def build_v61_presentation_metadata(
+    page_id: str,
+    *,
+    eligible_match_count: int,
+    state: str,
+    evidence_refs: Sequence[str] = (),
+) -> dict[str, Any]:
+    """Return V6.1-only story metadata without changing analytical content."""
+
+    spec = _V61_PRESENTATION[page_id]
+    return {
+        **dict(spec),
+        "reference_screens": list(spec["reference_screens"]),
+        "sample_copy": f"{max(0, int(eligible_match_count))} matches. One recurring signal.",
+        "supporting_copy": "Here’s what we found in the way you play.",
+        "state": state,
+        "evidence_refs": list(dict.fromkeys(str(ref) for ref in evidence_refs)),
+        "depth_controls": {
+            "story": "Here’s what we found in the way you play.",
+            "evidence": "Why this?",
+            "methodology": "How we measured this.",
+        },
+    }
+
 _SELF_ESTIMATE_OPTIONS = (
     {"id": "focused_repeat", "label": "I mostly repeat a small hero set."},
     {"id": "same_jobs_many_heroes", "label": "I rotate heroes, but I usually solve similar jobs."},
@@ -410,6 +447,7 @@ __all__ = [
     "build_story",
     "assemble_nine_beat_story",
     "build_diagnostic_questions",
+    "build_v61_presentation_metadata",
     "diagnostic_questions",
     "build_share_candidates",
     "share_eligibility",
