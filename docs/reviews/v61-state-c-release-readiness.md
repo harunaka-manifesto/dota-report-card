@@ -81,7 +81,7 @@ correct depth.
 | Shareability | Only eligible identity/finding/mirror cards are visible and the image/native share path works. | PASS locally across preview, native share, download, link, and text fallbacks. | Production endpoint verification remains blocked by access. |
 | Accessibility | Every new visual has keyboard/table/disclosure/reduced-motion/narrow/200% equivalent. | PASS across 45 browser scenarios and rendered review. | None. |
 | Privacy | No public or analytics identifier leakage; follow-up stays aggregate-only. | PASS with dedicated unit/API/browser regressions. | None. |
-| Source binding | Product direction, copy version, presentation payload, and release provenance agree. | BLOCKED: one runtime setting currently binds both deployed source and immutable analytical source. | Add a separate validated analytical-source binding before packaging/deploy. |
+| Source binding | Product direction, copy version, presentation payload, and release provenance agree. | PASS locally: commit `d988d11ade0951e6d1ea7a838c6d185fdbbe7a43` separates deploy and analytical source identities; package validation remains blocked by stale authorization. | Supply a valid owner-authorized package and verify deployment metadata. |
 
 ## Pre-implementation package facts (historical audit input)
 
@@ -222,18 +222,20 @@ required or permitted.
 
 ## Blockers
 
-1. The source-binding release fix must keep `RELEASE_COMMIT_SHA` as the
-   truthful deployment identity while validating the immutable bundle and
-   authorization against `FREE_DNA_V61_ANALYTICAL_SOURCE_SHA`.
-2. The only assembled local V6.1 package is stale
+1. The only assembled local V6.1 package is stale
    (`173089781cf85d6c360c5ad0a2739697b7de1e62`, dirty=true) and cannot be
    deployed.
+2. The existing local beta authorization is bound to the stale package and
+   fails checksum validation against the authoritative
+   `a6c1d0c08ceef553150c401b0711b24eb89aa4d316105b8977373f3cc79c4865` bundle;
+   it must not be rewritten as evidence.
 3. Production deployment credentials, URLs, running database revision, and
    API/worker identities are unavailable in this workspace.
 
 ## Next safe action
 
-The source-binding fix adds mandatory production
+The source-binding fix at
+`d988d11ade0951e6d1ea7a838c6d185fdbbe7a43` adds mandatory production
 `FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=7df38e6d234ae9c4ee425490bc40b8cc92685f85`
 for V6.1 bundle and authorization validation while `RELEASE_COMMIT_SHA`
 continues to identify the truthful product/API/worker deploy. This is source
