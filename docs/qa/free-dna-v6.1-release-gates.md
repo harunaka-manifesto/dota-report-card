@@ -1,13 +1,32 @@
 # Free DNA V6.1 release gates
 
-Current status: **blocked pending calibration, evaluation, and release
-authorization**. The replacement corpus is materialized by the offline
-selector, but this document does not claim that any State B/C gate passes.
+Current status: **blocked pending remaining calibration/evaluation evidence and
+separate release authorization**. The original one-time holdout has a corrected
+adjudication pass recorded below; V6.1 remains disabled and this document does
+not authorize production.
+
+## Current adjudicated holdout provenance
+
+- Holdout execution source: `7df38e6d234ae9c4ee425490bc40b8cc92685f85`.
+- Independent verifier/adjudication source: `020118260abde18350be4c0605c1473d1756435e`.
+- Original holdout consumed; no rerun.
+- 339/339 unique profiles, zero errors, one execution, zero OpenDota calls.
+- Adjudication: `HOLDOUT_ADJUDICATION_PASS`.
+- Adjudication artifact SHA-256: `7ddbc5ddd22ca77a3200852f82b5f5af3c2293e6816b183b107c73d62bacde57`.
+- Artifact bundle SHA-256: `a6c1d0c08ceef553150c401b0711b24eb89aa4d316105b8977373f3cc79c4865`.
+- Corpus SHA-256: `5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216`.
+- Split SHA-256: `2aa3b4292c0a24d9ca209c5f885ebd1590e3032323362f111befae678d816231`.
+
+The original holdout is consumed; there was no rerun;
+`HOLDOUT_ADJUDICATION_PASS` is recorded; release authorization remains false.
 
 Keep `FREE_DNA_V61_ENABLED=false` and all V6.1 shadow/experimental flags false
 until every required gate and the separate operator authorization succeeds.
 
-## Failed release disposition
+## Historical failed release diagnostic (immutable)
+
+The SHA and 298/339 with 41 errors below describe an earlier failed release
+diagnostic; do not overwrite or treat them as the current adjudicated execution.
 
 Release SHA `63b857ce50683cc0a62a1e4c237a964ae4b11e14` is failed and must not
 be deployed or reused. Its one-time 339-profile holdout is now revealed and
@@ -35,6 +54,10 @@ independent truth and cannot support a population-parameter coverage claim;
 the same-history value is retained only as a diagnostic named
 `interval_self_containment`, never as a release gate. Synthetic known-truth
 coverage remains the supported calibration gate.
+
+The replacement holdout precommit and scan sections below describe a future
+replacement workflow; they are not evidence that the current consumed holdout
+was recollected.
 
 ## Replacement holdout precommit gate
 

@@ -1,8 +1,22 @@
 # Free DNA V6.1 release and rollback runbook
 
-V6.1 remains disabled. This runbook documents the future operator workflow; it
-does not assert that a private canonical corpus, split, artifact bundle,
-holdout, or release gate currently exists or passes.
+V6.1 remains disabled. This runbook documents the future replacement, build,
+evaluation, authorization, and rollback workflow. The current adjudicated
+result is the consumed original holdout recorded in the release-gates document;
+this runbook does not authorize production and does not request a rerun.
+
+## Current adjudicated holdout reference
+
+- Holdout execution source: `7df38e6d234ae9c4ee425490bc40b8cc92685f85`.
+- Independent verifier/adjudication source: `020118260abde18350be4c0605c1473d1756435e`.
+- 339/339 unique profiles, zero errors, one execution, zero OpenDota calls.
+- Adjudication: `HOLDOUT_ADJUDICATION_PASS`.
+- Adjudication artifact SHA-256: `7ddbc5ddd22ca77a3200852f82b5f5af3c2293e6816b183b107c73d62bacde57`.
+- Artifact bundle SHA-256: `a6c1d0c08ceef553150c401b0711b24eb89aa4d316105b8977373f3cc79c4865`.
+- Corpus SHA-256: `5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216`.
+- Split SHA-256: `2aa3b4292c0a24d9ca209c5f885ebd1590e3032323362f111befae678d816231`.
+
+The original holdout is consumed and remains a blocked release gate.
 
 Keep these values on the API and worker until the complete workflow has passed:
 
@@ -53,6 +67,9 @@ release `23a2a779a5fca2bef26fb00b82580d23eeeb0f38`; it performs no network
 request and does not authorize calibration or evaluation.
 
 ## Consumed holdout and replacement protocol
+
+This section describes future replacement steps. Do not substitute the current
+adjudication digests into the materialization commands below.
 
 The prior 339-profile holdout was consumed by the failed release and is not
 re-run, recollected, or reused as sealed evidence. The local candidate inventory
