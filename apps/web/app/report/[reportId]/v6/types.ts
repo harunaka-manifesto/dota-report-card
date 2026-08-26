@@ -198,6 +198,8 @@ export type V6Finding = {
 };
 
 export type V6IdentitySummary = {
+  status?: V6Availability;
+  state?: V6Availability;
   headline?: string | null;
   title?: string | null;
   supporting_lines?: string[];
@@ -265,6 +267,20 @@ export type V6HeroMirror = {
   share_eligible?: boolean;
 };
 
+export type V6HeroRow = {
+  id?: number | null;
+  hero_id?: number | null;
+  name?: string | null;
+  hero_name?: string | null;
+  display_name?: string | null;
+  match_count?: number | null;
+  share?: number | null;
+  functional_jobs?: string[];
+  jobs?: string[];
+  band?: string | null;
+  layer?: string | null;
+};
+
 export type V6HeroPortfolio = {
   prediction?: {
     prompt?: string | null;
@@ -285,7 +301,7 @@ export type V6HeroPortfolio = {
   timeline?: V6TimelinePoint[];
   mirror?: V6HeroMirror | null;
   hero_mirror?: V6HeroMirror | null;
-  heroes?: Array<{ id?: number; name: string }>;
+  heroes?: V6HeroRow[];
   share_candidates?: V6ShareCandidate[];
 };
 
@@ -355,6 +371,9 @@ export type V6DiagnosticQuestion = {
   options?: V6Choice[];
   observed?: Record<string, unknown> | null;
   available?: boolean;
+  offered?: boolean;
+  confidence?: V6ConfidenceTier;
+  blocking_confounders?: string[];
   skippable?: boolean;
   question_spec?: Record<string, unknown> | null;
 };

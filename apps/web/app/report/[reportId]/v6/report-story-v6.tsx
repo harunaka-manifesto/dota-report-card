@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- avatars and share previews are dynamic server-owned URLs. */
+
 import {
   useCallback,
   useEffect,
@@ -37,8 +39,12 @@ import {
   type V6Comparison,
   type V6Finding,
   type V6HeroMirror,
+  type V6HeroPortfolio,
+  type V6HeroRow,
+  type V6IdentitySummary,
   type V6Element,
   type V6Recommendation,
+  type V6ShareCandidate,
   type V6StoryReport,
   type V6StoryBeat,
   type V6TimelinePoint,
@@ -61,6 +67,7 @@ const BEAT_IDS = [
 type BeatId = (typeof BEAT_IDS)[number];
 type SyncStatus = "idle" | "loading" | "saving" | "saved" | "resumed" | "deleted" | "conflict" | "error";
 type ClaimLayer = "claim" | "evidence" | "interpretation" | "recommendation";
+type FamilyState = "qualified" | "neutral" | "insufficient" | "mixed" | "unavailable";
 
 const CLAIM_LAYERS: readonly ClaimLayer[] = ["claim", "evidence", "interpretation", "recommendation"];
 
@@ -84,16 +91,21 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
 
   const currentBeat = clampBeat(journey.current_beat);
   const currentBeatId = BEAT_IDS[currentBeat];
-  const strongestFinding = useMemo(() => chooseStrongestFinding(report.findings), [report.findings]);
-  const secondaryFinding = useMemo(() => chooseSecondaryFinding(report.findings, strongestFinding), [report.findings, strongestFinding]);
+  const isV61 = report.schema_version === "free-dna-report-6.1.0";
+  const publishedFindings = useMemo(() => report.findings.filter(isPublished), [report.findings]);
+  const poolFinding = useMemo(() => findFamily(report.findings, "pool_shape"), [report.findings]);
+  const transferFinding = useMemo(() => findFamily(report.findings, "transfer"), [report.findings]);
+  const lossFinding = useMemo(() => findFamily(report.findings, "post_loss"), [report.findings]);
   const combatFinding = useMemo(() => findFamily(report.findings, "combat"), [report.findings]);
+  const sessionFinding = useMemo(() => findFamily(report.findings, "session"), [report.findings]);
   const timeline = useMemo(() => {
     const evolution = report.hero_portfolio.evolution;
     return evolution?.points ?? evolution?.timeline ?? report.hero_portfolio.timeline ?? [];
   }, [report.hero_portfolio]);
   const mirror = report.hero_portfolio.mirror ?? report.hero_portfolio.hero_mirror ?? null;
-  const recommendations = useMemo(() => recommendationChoices(report, strongestFinding, secondaryFinding), [report, strongestFinding, secondaryFinding]);
+  const recommendations = useMemo(() => recommendationChoices(report, ...publishedFindings), [report, publishedFindings]);
   const selectedTimelineIndex = clampTimelineIndex(journey.ui_state.pool_evolution_position, timeline.length);
+  const supportingEvidence = "supporting_evidence" in report ? report.supporting_evidence : undefined;
 
   const schedulePersist = useCallback((state: V6InteractionState) => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
@@ -358,7 +370,7 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
     }));
   }
 
-  async function copyShareCandidate(candidate: { title?: string | null; headline?: string | null; body?: string | null }): Promise<void> {
+  async function copyShareCandidate(candidate: V6ShareCandidate): Promise<void> {
     const text = [candidate.title, candidate.headline, candidate.body].filter(Boolean).join("\n\n");
     if (!text || typeof navigator === "undefined" || !navigator.clipboard) return;
     await navigator.clipboard.writeText(text);
@@ -369,8 +381,8 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
   return (
     <main className={styles.story} aria-label={`Free DNA ${report.schema_version === "free-dna-report-6.1.0" ? "V6.1" : "V6"} identity report`}>
       <header className={styles.topbar}>
-        <a className={styles.wordmark} href="#v6-beat-1">FREE DNA <span>06</span></a>
-        <p className={styles.topline}>Summary-only identity report</p>
+        <a className={styles.wordmark} href="#v6-beat-1">FREE DNA <span>{isV61 ? "6.1" : "06"}</span></a>
+        <p className={styles.topline}>{isV61 ? "Your Dota, seen as a shape." : "Summary-only identity report"}</p>
         <div className={styles.sessionActions}>
           <span className={styles.syncStatus} role="status" aria-live="polite">{syncMessage || syncLabel(syncStatus)}</span>
           <button className={styles.textButton} type="button" onClick={() => void saveJourney()}>{sessionRef.current ? "Save now" : "Save journey"}</button>
@@ -390,7 +402,7 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
       )}
 
       <div className={styles.layout}>
-        <aside className={styles.rail} aria-label="Report beats">
+        <aside className={styles.rail} aria-label="Report chapters">
           <div className={styles.railIntro}><span>V6</span><small>YOUR<br />SHAPE</small></div>
           <nav>
             {BEAT_IDS.map((id, index) => (
@@ -400,7 +412,7 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
               </button>
             ))}
           </nav>
-          <p className={styles.railNote}>All beats are optional.<br />Your answers stay<br />under user_reported.</p>
+          <p className={styles.railNote}>All chapters are optional.<br />Your reflections never<br />change the evidence.</p>
         </aside>
 
         <div className={styles.content}>
@@ -411,36 +423,39 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
           </div>
 
           <section id="v6-beat-1" className={`${styles.beat} ${styles.beatEstimate}`} aria-labelledby="v6-beat-1-title">
-            <BeatHeader number={1} id="self-estimate" beat={beats[0]} fallbackTitle="Start with your read" fallbackBody="Before the report speaks, make a quick estimate." onSkip={() => skipBeat(0)} />
+            <BeatHeader number={1} id="self-estimate" beat={undefined} fallbackTitle="We sequenced your Dota." fallbackBody="Here’s what we found in the way you play." preferFallback={isV61} onSkip={() => skipBeat(0)} />
             <ChoiceQuestion
-              legend={firstNonEmpty(storyCopy(beats[0], "prompt"), "Your estimate")}
+              legend="Before you look closer, which description feels most familiar?"
               choices={beats[0]?.options ?? report.identity_summary.options ?? []}
               selected={journey.user_reported.identity_estimate}
               onSelect={(choice) => chooseUserAnswer("identity_estimate", choice)}
-              emptyMessage="This self-estimate is not available in the report payload."
+              emptyMessage="This optional recognition prompt was not offered. Continue to the observed report."
             />
+            <p className={styles.choiceBoundary}>Your answer is saved as your own reflection. It never changes the observed report.</p>
             <div className={styles.beatActions}>
-              <button className={styles.primaryButton} type="button" disabled={!journey.user_reported.identity_estimate} onClick={() => finishBeat(0)}>Reveal my report <span aria-hidden="true">→</span></button>
+              <button className={styles.primaryButton} type="button" onClick={() => finishBeat(0)}>Reveal your shape <span aria-hidden="true">→</span></button>
               <button className={styles.linkButton} type="button" onClick={() => skipBeat(0)}>Skip this beat</button>
             </div>
           </section>
 
           <section id="v6-beat-2" className={`${styles.beat} ${styles.beatIdentity}`} aria-labelledby="v6-beat-2-title">
-            <BeatHeader number={2} id="identity-reveal" beat={beats[1]} fallbackTitle="The observed shape" fallbackBody="The headline below comes from the report’s observed evidence, not from your estimate." onSkip={() => skipBeat(1)} />
+            <BeatHeader number={2} id="identity-reveal" beat={undefined} fallbackTitle="Yep. This is you." fallbackBody="Your year is ready to recognize." preferFallback={isV61} onSkip={() => skipBeat(1)} />
             <div className={styles.identityReveal}>
-              <p className={styles.revealLabel}>Observed identity summary</p>
               {journey.ui_state.identity_revealed ? (
                 <>
-                  <h2 id="v6-beat-2-title" className={styles.revealHeadline}>{firstNonEmpty(report.identity_summary.headline, report.identity_summary.title, "") || "Identity summary unavailable"}</h2>
+                  <ProfileSpecimen identity={report.identity} />
+                  <p className={styles.revealLabel}>Observed identity summary</p>
+                  <h2 id="v6-identity-headline" className={styles.revealHeadline}>{identityStoryHeadline(report.identity_summary)}</h2>
+                  {identityStoryState(report.identity_summary) === "qualified" && report.identity_summary.headline && <p className={styles.storyCue}>{report.identity_summary.headline}</p>}
                   <ul className={styles.supportList}>{(report.identity_summary.supporting_lines ?? report.identity_summary.support ?? []).map((line) => <li key={line}>{line}</li>)}</ul>
-                  <EvidenceRefs refs={report.identity_summary.evidence_refs} />
-                  <ElementLedger elements={report.elements} />
+                  <ElementTeaser elements={report.elements} />
+                  <details className={styles.disclosure}><summary>Evidence · all seven Elements</summary><div className={styles.disclosureBody}><ElementLedger elements={report.elements} /></div></details>
                 </>
               ) : (
                 <div className={styles.lockedReveal}>
                   <span aria-hidden="true">◇</span>
-                  <p>Ready when you are. Your self-estimate remains separate from the observed result.</p>
-                  <button className={styles.primaryButton} type="button" onClick={() => revealObserved("identity_revealed", 2)}>Reveal observed identity</button>
+                  <p>Your reflection stays separate from this server-authored result.</p>
+                  <button className={styles.primaryButton} type="button" onClick={() => revealObserved("identity_revealed", 2)}>Reveal observed shape</button>
                 </div>
               )}
             </div>
@@ -448,75 +463,63 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
           </section>
 
           <section id="v6-beat-3" className={`${styles.beat} ${styles.beatPool}`} aria-labelledby="v6-beat-3-title">
-            <BeatHeader number={3} id="pool-evolution" beat={beats[2]} fallbackTitle="Predict the pool" fallbackBody="Make a call, then scrub through the observed Pool Evolution." onSkip={() => skipBeat(2)} />
-            <ChoiceQuestion
-              legend={firstNonEmpty(storyCopy(beats[2], "prompt"), report.hero_portfolio.prediction?.prompt, "Your pool prediction")}
-              choices={beats[2]?.options ?? report.hero_portfolio.prediction?.options ?? []}
-              selected={journey.user_reported.hero_pool_prediction}
-              onSelect={(choice) => chooseUserAnswer("hero_pool_prediction", choice)}
-              emptyMessage="The report did not offer prediction choices."
-            />
-            <div className={styles.revealStrip}>
-              <div><span className={styles.eyebrow}>Observed answer</span><strong>{firstNonEmpty(report.hero_portfolio.prediction?.answer, report.hero_portfolio.prediction?.observed, "Not available")}</strong></div>
-              <p>{firstNonEmpty(report.hero_portfolio.prediction?.reveal, storyCopy(beats[2], "reveal"), "")}</p>
-            </div>
-            <TimelineScrubber points={timeline} selectedIndex={selectedTimelineIndex} onSelect={setTimeline} />
-            <BeatFooter index={2} onNext={() => finishBeat(2)} onSkip={() => skipBeat(2)} disabled={!journey.user_reported.hero_pool_prediction && timeline.length === 0} />
+            <BeatHeader number={3} id="pool-evolution" beat={undefined} fallbackTitle="Before the patterns, there are the heroes." fallbackBody="If we had to start with one hero…" preferFallback={isV61} onSkip={() => skipBeat(2)} />
+            <HeroPool portfolio={report.hero_portfolio} timeline={timeline} selectedIndex={selectedTimelineIndex} onSelect={setTimeline} supportingEvidence={supportingEvidence} />
+            <FamilyStory family="Pool Shape" question="Do your heroes solve the same job—or different ones?" finding={poolFinding} supportingEvidence={supportingEvidence} />
+            <BeatFooter index={2} onNext={() => finishBeat(2)} onSkip={() => skipBeat(2)} />
           </section>
 
           <section id="v6-beat-4" className={`${styles.beat} ${styles.beatCombat}`} aria-labelledby="v6-beat-4-title">
-            <BeatHeader number={4} id="combat-expression" beat={beats[3]} fallbackTitle="How do you show up in fights?" fallbackBody="Make a second self-estimate. The report keeps it separate from your observed Combat Expression." onSkip={() => skipBeat(3)} />
-            <ChoiceQuestion
-              legend={firstNonEmpty(storyCopy(beats[3], "prompt"), "Your combat-expression estimate")}
-              choices={beats[3]?.options ?? []}
-              selected={journey.user_reported.combat_expression_estimate}
-              onSelect={(choice) => chooseUserAnswer("combat_expression_estimate", choice)}
-              emptyMessage="The report did not offer a combat self-estimate."
-            />
-            <FindingReveal finding={combatFinding} revealed={Boolean(journey.ui_state.combat_expression_revealed)} onReveal={() => revealObserved("combat_expression_revealed", 4)} />
-            <BeatFooter index={3} onNext={() => finishBeat(3)} onSkip={() => skipBeat(3)} disabled={!journey.ui_state.combat_expression_revealed && !combatFinding} />
+            <BeatHeader number={4} id="combat-expression" beat={undefined} fallbackTitle="What survives when the hero changes?" fallbackBody="The comparison stays inside the supported hero boundary." preferFallback={isV61} onSkip={() => skipBeat(3)} />
+            <FamilyStory family="Transfer" question="What survives when the hero changes?" finding={transferFinding} supportingEvidence={supportingEvidence} />
+            <BeatFooter index={3} onNext={() => finishBeat(3)} onSkip={() => skipBeat(3)} />
           </section>
 
           <section id="v6-beat-5" className={`${styles.beat} ${styles.beatFinding}`} aria-labelledby="v6-beat-5-title">
-            <BeatHeader number={5} id="strongest-finding" beat={beats[4]} fallbackTitle="The strongest finding" fallbackBody="Compare matched evidence before deciding what it means." onSkip={() => skipBeat(4)} />
-            <FindingPanel finding={strongestFinding} comparisonLabel="Matched-evidence comparison" supportingEvidence={"supporting_evidence" in report ? report.supporting_evidence : undefined} />
-            <BeatFooter index={4} onNext={() => finishBeat(4)} onSkip={() => skipBeat(4)} disabled={!strongestFinding} />
+            <BeatHeader number={5} id="strongest-finding" beat={undefined} fallbackTitle="What does your Dota look like after a loss?" fallbackBody="The next choice is shown only inside the supported same-session comparison." preferFallback={isV61} onSkip={() => skipBeat(4)} />
+            <FamilyStory family="Post-loss Response" question="What does your Dota look like after a loss?" finding={lossFinding} supportingEvidence={supportingEvidence} />
+            <BeatFooter index={4} onNext={() => finishBeat(4)} onSkip={() => skipBeat(4)} />
           </section>
 
           <section id="v6-beat-6" className={`${styles.beat} ${styles.beatLayers}`} aria-labelledby="v6-beat-6-title">
-            <BeatHeader number={6} id="secondary-finding" beat={beats[5]} fallbackTitle="Look underneath" fallbackBody="Open the claim in layers. Every layer stays bounded by its evidence." onSkip={() => skipBeat(5)} />
-            <LayeredFinding finding={secondaryFinding} activeLayer={journey.ui_state.claim_layer ?? "claim"} onLayerChange={setClaimLayer} />
-            <BeatFooter index={5} onNext={() => finishBeat(5)} onSkip={() => skipBeat(5)} disabled={!secondaryFinding} />
+            <BeatHeader number={6} id="secondary-finding" beat={undefined} fallbackTitle="Once the horn sounds, what keeps showing up?" fallbackBody="Involvement and exposure stay as separate observed signals." preferFallback={isV61} onSkip={() => skipBeat(5)} />
+            <FamilyStory family="Combat Expression" question="Once the horn sounds, what keeps showing up?" finding={combatFinding} supportingEvidence={supportingEvidence} />
+            <BeatFooter index={5} onNext={() => finishBeat(5)} onSkip={() => skipBeat(5)} />
           </section>
 
           <section id="v6-beat-7" className={`${styles.beat} ${styles.beatAction}`} aria-labelledby="v6-beat-7-title">
-            <BeatHeader number={7} id="recommendation" beat={beats[6]} fallbackTitle="Choose a next experiment" fallbackBody="Pick one server-authored recommendation, then predeclare a five-game check-in." onSkip={() => skipBeat(6)} />
-            <RecommendationChooser recommendations={recommendations} selected={journey.user_reported.recommendation_id} onSelect={selectRecommendation} committed={Boolean(journey.user_reported.commitment)} onCommit={() => void commitRecommendation()} />
-            {journey.user_reported.commitment && <FollowUpCard result={followUpResult} uiState={journey.ui_state.follow_up} onCheck={() => void checkFollowUp()} />}
-            <BeatFooter index={6} onNext={() => finishBeat(6)} onSkip={() => skipBeat(6)} disabled={!journey.user_reported.recommendation_id} />
+            <BeatHeader number={7} id="recommendation" beat={undefined} fallbackTitle="One match shows expression. A session shows whether it holds." fallbackBody="Completed session positions keep the time boundary visible." preferFallback={isV61} onSkip={() => skipBeat(6)} />
+            <FamilyStory family="Session Drift" question="One match shows expression. A session shows whether it holds." finding={sessionFinding} supportingEvidence={supportingEvidence} />
+            <BeatFooter index={6} onNext={() => finishBeat(6)} onSkip={() => skipBeat(6)} />
           </section>
 
           <section id="v6-beat-8" className={`${styles.beat} ${styles.beatMirror}`} aria-labelledby="v6-beat-8-title">
-            <BeatHeader number={8} id="hero-mirror" beat={beats[7]} fallbackTitle="Meet your Hero Mirror" fallbackBody="A mirror is eligible only when the server says its evidence can stand alone." onSkip={() => skipBeat(7)} />
+            <BeatHeader number={8} id="hero-mirror" beat={undefined} fallbackTitle="None of these patterns lives alone." fallbackBody="They keep resolving into the same underlying shape." preferFallback={isV61} onSkip={() => skipBeat(7)} />
+            <SignatureCard report={report} />
             <HeroMirrorCard mirror={mirror} revealed={Boolean(journey.ui_state.hero_mirror_revealed)} onReveal={() => updateJourney((state) => ({ ...state, ui_state: { ...state.ui_state, hero_mirror_revealed: true } }))} />
-            <ShareComposer report={report} selected={journey.ui_state.selected_share_candidate} onSelect={(id) => updateJourney((state) => ({ ...state, ui_state: { ...state.ui_state, selected_share_candidate: id } }))} onCopy={(candidate) => void copyShareCandidate(candidate)} copied={shareCopied} />
-            <BeatFooter index={7} onNext={() => finishBeat(7)} onSkip={() => skipBeat(7)} disabled={!mirror && report.share_candidates.length === 0} />
+            <BeatFooter index={7} onNext={() => finishBeat(7)} onSkip={() => skipBeat(7)} />
           </section>
 
           <section id="v6-beat-9" className={`${styles.beat} ${styles.beatDeep}`} aria-labelledby="v6-beat-9-title">
-            <BeatHeader number={9} id="deep-diagnostic" beat={beats[8]} fallbackTitle="Choose your Deep question" fallbackBody="Route the next analysis from a question this report can actually support." onSkip={() => skipBeat(8)} />
+            <BeatHeader number={9} id="deep-diagnostic" beat={undefined} fallbackTitle="Your Dota DNA, in pieces." fallbackBody="Choose the part that feels most like you." preferFallback={isV61} onSkip={() => skipBeat(8)} />
+            <ShareComposer report={report} selected={journey.ui_state.selected_share_candidate} onSelect={(id) => updateJourney((state) => ({ ...state, ui_state: { ...state.ui_state, selected_share_candidate: id } }))} onCopy={(candidate) => void copyShareCandidate(candidate)} copied={shareCopied} />
+            {recommendations.length > 0 && <section className={styles.aftercare} aria-label="Next experiment">
+              <span className={styles.eyebrow}>Try this next</span>
+              <RecommendationChooser recommendations={recommendations} selected={journey.user_reported.recommendation_id} onSelect={selectRecommendation} committed={Boolean(journey.user_reported.commitment)} onCommit={() => void commitRecommendation()} />
+              {journey.user_reported.commitment && <FollowUpCard result={followUpResult} uiState={journey.ui_state.follow_up} onCheck={() => void checkFollowUp()} />}
+            </section>}
             <form className={styles.deepForm} onSubmit={(event) => void chooseDiagnostic(event)}>
               <fieldset>
                 <legend className={styles.questionLegend}>Which thread should Deep test?</legend>
                 <div className={styles.questionList}>
-                  {report.diagnostic_questions.map((question) => {
+                  {report.diagnostic_questions.filter(questionIsOffered).map((question) => {
                     const id = diagnosticQuestionId(question);
                     const selected = journey.ui_state.diagnostic_question_id === id;
                     return <label className={selected ? styles.questionOptionSelected : styles.questionOption} key={id}><input type="radio" name="v6-diagnostic" checked={selected} onChange={() => chooseDiagnosticQuestion(id)} /><span><strong>{firstNonEmpty(question.label, question.family, question.finding_family, "Deep question")}</strong><small>{firstNonEmpty(question.question, question.prompt, question.body, question.context, "")}</small></span></label>;
                   })}
                 </div>
               </fieldset>
-              {report.diagnostic_questions.length === 0 && <EmptyState message="No evidence-qualified Deep question was offered for this report." />}
+              {report.diagnostic_questions.filter(questionIsOffered).length === 0 && <EmptyState message="No evidence-qualified Deep question was offered for this report." />}
               <div className={styles.beatActions}>
                 <button className={styles.primaryButton} type="submit" disabled={!journey.ui_state.diagnostic_question_id || deepLoading}>{deepLoading ? "Starting…" : "Send to Deep →"}</button>
                 <button className={styles.linkButton} type="button" onClick={() => skipBeat(8)}>Skip Deep</button>
@@ -535,8 +538,10 @@ export default function ReportStoryV6({ report }: { report: V6StoryReport }) {
   );
 }
 
-function BeatHeader({ number, id, beat, fallbackTitle, fallbackBody, onSkip }: { number: number; id: BeatId; beat?: V6StoryBeat; fallbackTitle: string; fallbackBody: string; onSkip: () => void }) {
-  return <header className={styles.beatHeader}><div className={styles.beatKicker}><span>{String(number).padStart(2, "0")}</span><span>{firstNonEmpty(beat?.eyebrow, storyCopy(beat, "eyebrow"), beatLabel(id))}</span><button className={styles.skipButton} type="button" onClick={onSkip}>Skip beat</button></div><h1 id={`v6-beat-${number}-title`}>{firstNonEmpty(storyCopy(beat, "title"), fallbackTitle)}</h1><p>{firstNonEmpty(storyCopy(beat, "body"), storyCopy(beat, "prompt"), fallbackBody)}</p></header>;
+function BeatHeader({ number, id, beat, fallbackTitle, fallbackBody, preferFallback = false, onSkip }: { number: number; id: BeatId; beat?: V6StoryBeat; fallbackTitle: string; fallbackBody: string; preferFallback?: boolean; onSkip: () => void }) {
+  const title = preferFallback ? fallbackTitle : firstNonEmpty(storyCopy(beat, "title"), fallbackTitle);
+  const body = preferFallback ? fallbackBody : firstNonEmpty(storyCopy(beat, "body"), storyCopy(beat, "prompt"), fallbackBody);
+  return <header className={styles.beatHeader}><div className={styles.beatKicker}><span>{String(number).padStart(2, "0")}</span><span>{firstNonEmpty(beat?.eyebrow, storyCopy(beat, "eyebrow"), beatLabel(id))}</span><button className={styles.skipButton} type="button" onClick={onSkip}>Skip beat</button></div><h1 id={`v6-beat-${number}-title`}>{title}</h1><p>{body}</p></header>;
 }
 
 function BeatFooter({ index, onNext, onSkip, disabled }: { index: number; onNext: () => void; onSkip: () => void; disabled?: boolean }) {
@@ -547,9 +552,111 @@ function ChoiceQuestion({ legend, choices, selected, onSelect, emptyMessage }: {
   return <fieldset className={styles.choiceFieldset}><legend>{legend}</legend>{choices.length === 0 ? <EmptyState message={emptyMessage} /> : <div className={styles.choiceList}>{choices.map((choice) => { const value = choice.id ?? choice.key ?? choice.value ?? choice.label; const checked = selected === value; return <label key={value} className={checked ? styles.choiceSelected : styles.choice}><input type="radio" name={`choice-${legend}`} value={value} checked={checked} onChange={() => onSelect(choice)} /><span><strong>{choice.label}</strong>{choice.description && <small>{choice.description}</small>}</span></label>; })}</div>}</fieldset>;
 }
 
+function ProfileSpecimen({ identity }: { identity: V6StoryReport["identity"] }) {
+  if (!identity.display_name && !identity.avatar_url) return null;
+  return <div className={styles.profileSpecimen} aria-label={identity.display_name ? `Report for ${identity.display_name}` : "Report profile"}>{identity.avatar_url && <img className={styles.profileAvatar} src={identity.avatar_url} alt={identity.display_name ? `Portrait of ${identity.display_name}` : ""} />}{identity.display_name && <strong className={styles.profileName}>{identity.display_name}</strong>}</div>;
+}
+
+function identityStoryState(summary: V6IdentitySummary): FamilyState {
+  const state = `${summary.status ?? ""} ${summary.state ?? ""}`.toLowerCase();
+  if (state.includes("insufficient") || state.includes("limited")) return "insufficient";
+  if (state.includes("mixed")) return "mixed";
+  if (state.includes("neutral")) return "neutral";
+  if (state.includes("unavailable") || state.includes("suppressed")) return "unavailable";
+  return summary.slots?.primary?.text || summary.headline ? "qualified" : "neutral";
+}
+
+function identityStoryHeadline(summary: V6IdentitySummary): string {
+  switch (identityStoryState(summary)) {
+    case "neutral": return "No single finding owns the headline yet. Your Elements are the shape we can describe.";
+    case "insufficient": return "Your identity is still forming from this sample.";
+    case "mixed": return "Your shape has more than one side. The slots below keep them separate.";
+    case "unavailable": return "Not available";
+    default: return "Yep. This is you.";
+  }
+}
+
+function displayElementState(status?: string | null): string {
+  return humanize(status || "available");
+}
+
+function humanHeroLabel(value: string): string {
+  const label = value.trim();
+  return /^(?:stable core:\s*)?\d+(?:\s*,\s*\d+)*$/i.test(label) ? "" : label;
+}
+
+function signatureState(report: V6StoryReport, slotCount: number): FamilyState {
+  const state = `${report.identity_summary.status ?? ""} ${report.identity_summary.state ?? ""}`.toLowerCase();
+  if (state.includes("insufficient") || state.includes("limited")) return "insufficient";
+  if (state.includes("mixed")) return "mixed";
+  if (state.includes("unavailable")) return "unavailable";
+  if (slotCount > 0) return "qualified";
+  return report.elements.some((element) => !["suppressed", "unavailable"].includes(element.status ?? "available")) ? "neutral" : "insufficient";
+}
+
+function signatureStateCopy(state: FamilyState): string {
+  if (state === "neutral") return "Your Dota Signature is still taking shape.";
+  if (state === "insufficient") return "There is not enough stable evidence to name a Signature yet.";
+  if (state === "mixed") return "Your Signature has a clear core and a context-dependent twist.";
+  return "Not available";
+}
+
+function ElementTeaser({ elements }: { elements: V6Element[] }) {
+  const available = elements.filter((element) => !["suppressed", "unavailable"].includes(element.status ?? "available"));
+  if (available.length === 0) return <StateCard state="unavailable" title="Elements unavailable" body="No identity Element was available for this report." />;
+  return <section className={styles.elementTeaser} aria-labelledby="v6-element-teaser-title"><p id="v6-element-teaser-title" className={styles.eyebrow}>Seven signals kept showing up.</p><p className={styles.storyCue}>Start with the strongest 2–3 available signals.</p><ul>{available.slice(0, 3).map((element) => <li key={element.key}><Glyph decorative glyph={elementGlyphKey(element.key)} size={25} /><span>{element.label}</span><small>{displayElementState(element.status)}</small></li>)}</ul></section>;
+}
+
+function HeroPool({ portfolio, timeline, selectedIndex, onSelect, supportingEvidence }: { portfolio: V6HeroPortfolio; timeline: V6TimelinePoint[]; selectedIndex: number; onSelect: (index: number) => void; supportingEvidence?: Record<string, Record<string, unknown> | undefined> }) {
+  const heroes = (portfolio.heroes ?? []).filter((hero) => heroName(hero));
+  const shape = asRecord(supportingEvidence?.portfolio_shape);
+  const width = firstNonEmpty(recordText(shape, "pool_width"), recordText(shape, "width"));
+  return <section className={styles.poolField} aria-label="Observed hero pool">
+    <p className={styles.storyCue}>One hero doesn’t describe your Dota.<br />There’s a difference between a hero you’ve played…<br />…and a hero that actually belongs to your Dota.</p>
+    <h2 className={styles.poolHeading}>Here’s who lives where.</h2>
+    {width === "narrow" && <p className={styles.poolBoundary}>Narrow pool: fewer heroes, larger samples keep the field readable.</p>}
+    {width === "broad" && <p className={styles.poolBoundary}>Broad pool: aggregation keeps the field readable.</p>}
+    {heroes.length > 0 && <table className={styles.heroTable}><caption>Observed hero pool</caption><thead><tr><th scope="col">Hero</th><th scope="col">Matches</th><th scope="col">Pool share</th><th scope="col">Mapped jobs</th></tr></thead><tbody>{heroes.map((hero, index) => <HeroRowCard hero={hero} key={`${heroName(hero)}-${index}`} />)}</tbody></table>}
+    {timeline.length > 0 && <TimelineScrubber points={timeline} selectedIndex={selectedIndex} onSelect={onSelect} />}
+    {heroes.length === 0 && timeline.length === 0 && <StateCard state="insufficient" title="Not enough usable hero history to map the pool." body="The report did not include a human-labeled hero row or a chronological field." />}
+  </section>;
+}
+
+function HeroRowCard({ hero }: { hero: V6HeroRow }) {
+  const jobs = hero.functional_jobs ?? hero.jobs ?? [];
+  return <tr><th scope="row">{heroName(hero)}{hero.band && <small>{humanize(hero.band)}</small>}</th><td>{typeof hero.match_count === "number" ? hero.match_count : "Not available"}</td><td>{typeof hero.share === "number" ? formatMetric(hero.share, "share") : "Not available"}</td><td>{jobs.length > 0 ? jobs.join(" · ") : "Not available"}</td></tr>;
+}
+
+function FamilyStory({ family, question, finding, supportingEvidence }: { family: string; question: string; finding: V6Finding | null; supportingEvidence?: Record<string, Record<string, unknown> | undefined> }) {
+  const state = findingState(finding);
+  if (!finding || state !== "qualified") return <article className={styles.stateCard} data-state={state} aria-label={`${family} ${stateLabel(state)}`}><span className={styles.familyState}>{stateLabel(state)}</span><h2>{question}</h2><p>{familyStateCopy(family, state, finding)}</p>{state === "mixed" && <details className={styles.disclosure}><summary>Show the comparison</summary><div className={styles.disclosureBody}><RelationshipEvidence finding={finding as V6Finding} supportingEvidence={supportingEvidence} />{finding?.comparison && <Comparison comparison={finding.comparison} label="Supported comparison" />}</div></details>}{finding && <><details className={styles.disclosure}><summary>Why this?</summary><div className={styles.disclosureBody}><p>{firstNonEmpty(findingEvidenceText(finding), "The supported range remains available in the evidence layer.")}</p></div></details><details className={styles.disclosure}><summary>How we measured this</summary><div className={styles.disclosureBody}><MetricReceipt item={finding} />{(finding.limitations ?? []).slice(0, 1).map((item) => <p className={styles.limitation} key={item}>{item}</p>)}</div></details></>}</article>;
+  const layers = findingLayers(finding);
+  return <article className={styles.familyCard} data-state={state}>
+    <span className={styles.familyState}>Qualified finding</span>
+    <h2>{firstNonEmpty(finding.claim, layers.claim, finding.title, finding.label, `${family} finding`)}</h2>
+    <p>{firstNonEmpty(finding.interpretation, layers.interpretation, finding.observation, "This relationship is descriptive and bounded by the available evidence.")}</p>
+    <details className={styles.disclosure}><summary>Why this?</summary><div className={styles.disclosureBody}><p>{firstNonEmpty(findingEvidenceText(finding), layers.evidence, "The supporting aggregates are available below.")}</p></div></details>
+    <details className={styles.disclosure}><summary>See what changed</summary><div className={styles.disclosureBody}><RelationshipEvidence finding={finding} supportingEvidence={supportingEvidence} /></div></details>
+    <details className={styles.disclosure}><summary>Show the comparison</summary><div className={styles.disclosureBody}>{finding.comparison ? <Comparison comparison={finding.comparison} label="Supported comparison" /> : <p>The supported components remain in the evidence contract above.</p>}</div></details>
+    <details className={styles.disclosure}><summary>How we measured this</summary><div className={styles.disclosureBody}><MetricReceipt item={finding} />{(finding.limitations ?? []).map((item) => <p className={styles.limitation} key={item}>{item}</p>)}</div></details>
+  </article>;
+}
+
+function StateCard({ state, title, body }: { state: FamilyState; title: string; body: string }) {
+  return <article className={styles.stateCard} data-state={state} role="status"><span className={styles.familyState}>{stateLabel(state)}</span><h2>{title}</h2><p>{body}</p></article>;
+}
+
+function SignatureCard({ report }: { report: V6StoryReport }) {
+  const summary = report.identity_summary;
+  const slots = [summary.slots?.primary, summary.slots?.twist, summary.slots?.anchor].filter((slot): slot is NonNullable<typeof slot> => Boolean(slot?.text && (slot.kind !== "ANCHOR" || humanHeroLabel(slot.text))));
+  const state = signatureState(report, slots.length);
+  if (state !== "qualified") return <article className={styles.stateCard} data-state={state} aria-label={`Signature ${stateLabel(state)}`}><span className={styles.familyState}>{stateLabel(state)}</span><h2>Your Dota Signature.</h2><p>{signatureStateCopy(state)}</p><details className={styles.disclosure}><summary>Why this describes your Dota.</summary><div className={styles.disclosureBody}><p>Only the server-supplied Signature slots and public evidence can open this layer.</p></div></details></article>;
+  return <article className={styles.signature} aria-label="Your Dota Signature"><p className={styles.signatureStrip}>YOUR DOTA SIGNATURE</p><h2>Your Dota Signature.</h2><div className={styles.signatureGrid}>{slots.map((slot) => <section className={styles.signatureSlot} key={`${slot.kind}-${slot.scope}`}><span>{slot.kind}</span>{slot.scope && <small>{slot.scope}</small>}<h3>{slot.text}</h3><p>{slot.evidence_refs?.length ?? 0} supporting source{slot.evidence_refs?.length === 1 ? "" : "s"}</p></section>)}</div><details className={styles.disclosure}><summary>Why this describes your Dota.</summary><div className={styles.disclosureBody}><ul className={styles.signatureEvidence}>{slots.map((slot) => <li key={`${slot.kind}-evidence`}><strong>{slot.kind === "PRIMARY" ? "Signals" : slot.kind === "TWIST" ? "Twist" : "Anchor"}</strong><span>{slot.scope ?? "Observed source"} · {slot.evidence_refs?.length ?? 0} evidence source{slot.evidence_refs?.length === 1 ? "" : "s"}</span></li>)}</ul></div></details><p className={styles.signatureBoundary}>Slots that were not supplied are omitted; this synthesis does not fill gaps client-side.</p></article>;
+}
+
 function ElementLedger({ elements }: { elements: V6Element[] }) {
   if (elements.length === 0) return <EmptyState message="The report did not publish its seven identity Elements." />;
-  return <section className={styles.elementLedger} aria-label="Seven public identity Elements"><div className={styles.elementLedgerHeader}><span className={styles.eyebrow}>Seven public Elements</span><p>Observed summary signals stay distinct from your self-reported answers.</p></div><div className={styles.elementGrid}>{elements.map((element) => { const metric = metricFor(element); const value = metricValue(metric); return <article className={styles.elementCard} key={element.key}><div className={styles.elementHeader}><Glyph decorative glyph={elementGlyphKey(element.key)} size={32} /><strong>{element.label}</strong><span>{displayConfidence(element.confidence ?? metric.confidence)}</span></div><p>{formatMetric(value, metric.unit ?? element.unit)}</p><small>{element.zone ?? metric.zone ?? "No zone"} · {element.sample_size ?? metric.sample_size ?? "—"} matches</small></article>; })}</div></section>;
+  return <section className={styles.elementLedger} aria-label="Seven public identity Elements"><div className={styles.elementLedgerHeader}><span className={styles.eyebrow}>Seven public Elements</span><p>Observed summary signals stay distinct from your self-reported answers.</p></div><div className={styles.elementGrid}>{elements.map((element) => { const metric = metricFor(element); const value = metricValue(metric); const refs = element.evidence_refs?.length ?? element.evidence?.length ?? 0; return <article className={styles.elementCard} key={element.key}><div className={styles.elementHeader}><Glyph decorative glyph={elementGlyphKey(element.key)} size={32} /><strong>{element.label}</strong><span>{displayElementState(element.status)} · {displayConfidence(element.confidence ?? metric.confidence)}</span></div><p>{formatMetric(value, metric.unit ?? element.unit)}</p><small>{element.zone ?? metric.zone ?? "No zone"} · {element.sample_size ?? metric.sample_size ?? "—"} matches · {refs} evidence source{refs === 1 ? "" : "s"}</small>{element.limitations?.[0] && <p className={styles.limitation}>{element.limitations[0]}</p>}</article>; })}</div></section>;
 }
 
 function FindingReveal({ finding, revealed, onReveal }: { finding: V6Finding | null; revealed: boolean; onReveal: () => void }) {
@@ -613,25 +720,34 @@ function TimelineScrubber({ points, selectedIndex, onSelect }: { points: V6Timel
 }
 
 function RecommendationChooser({ recommendations, selected, onSelect, committed, onCommit }: { recommendations: V6Choice[]; selected?: string; onSelect: (id: string) => void; committed: boolean; onCommit: () => void }) {
-  return <section className={styles.recommendations} aria-label="Recommendation chooser"><div className={styles.choiceList}>{recommendations.length === 0 ? <EmptyState message="No recommendation was published for this report." /> : recommendations.map((choice) => { const value = choice.id ?? choice.key ?? choice.value ?? choice.label; const isSelected = selected === value; return <label className={isSelected ? styles.choiceSelected : styles.choice} key={value}><input type="radio" name="v6-recommendation" checked={isSelected} onChange={() => onSelect(value)} /><span><strong>{choice.label}</strong>{choice.description && <small>{choice.description}</small>}</span></label>; })}</div><button className={styles.primaryButton} type="button" disabled={!selected || committed} onClick={onCommit}>{committed ? "Five-game check-in declared" : "Commit to five games"}</button></section>;
+  return <section className={styles.recommendations} aria-label="Recommendation chooser"><div className={styles.choiceList}>{recommendations.map((choice) => { const value = choice.id ?? choice.key ?? choice.value ?? choice.label; const isSelected = selected === value; return <label className={isSelected ? styles.choiceSelected : styles.choice} key={value}><input type="radio" name="v6-recommendation" checked={isSelected} onChange={() => onSelect(value)} /><span><strong>{choice.label}</strong>{choice.description && <small>{choice.description}</small>}</span></label>; })}</div><button className={styles.primaryButton} type="button" disabled={!selected || committed} onClick={onCommit}>{committed ? "Check-in saved" : "Set a five-game check-in"}</button></section>;
 }
 
 function FollowUpCard({ result, uiState, onCheck }: { result: unknown; uiState: V6InteractionState["ui_state"]["follow_up"]; onCheck: () => void }) {
   const count = uiState?.eligible_games ?? recordNumber(result, "eligible_games") ?? 0;
   const target = uiState?.target_games ?? 5;
   const reached = count >= target;
-  return <section className={styles.followUp} aria-live="polite"><div><span className={styles.eyebrow}>Five-game follow-up</span><strong>{Math.min(count, target)} / {target} context-matching games</strong><progress value={Math.min(count, target)} max={target} aria-label="Five-game follow-up progress" /></div><p>{reached ? firstNonEmpty(recordText(result, "summary"), recordText(result, "message"), "The predeclared comparison is ready.") : "Progress only until five context-matching games are available. This does not claim causality or a new identity."}</p><button className={styles.secondaryButton} type="button" onClick={onCheck}>Check progress</button></section>;
+  return <section className={styles.followUp} aria-live="polite"><div><span className={styles.eyebrow}>Five-game check-in</span><strong>{Math.min(count, target)} / {target} context-matching games</strong><progress value={Math.min(count, target)} max={target} aria-label="Five-game check-in progress" /></div><p>{reached ? firstNonEmpty(recordText(result, "summary"), recordText(result, "message"), "The five-game comparison is ready.") : "The check-in is not ready yet. Progress does not claim causality or a new identity."}</p><button className={styles.secondaryButton} type="button" onClick={onCheck}>Check progress</button></section>;
 }
 
 function HeroMirrorCard({ mirror, revealed, onReveal }: { mirror: V6HeroMirror | null; revealed: boolean; onReveal: () => void }) {
   if (!mirror) return <EmptyState message="Hero Mirror is unavailable for this report." />;
   const eligible = mirror.share_eligible === true && mirror.status !== "suppressed" && mirror.status !== "unavailable";
-  return <article className={styles.mirror}><div className={styles.mirrorArt} aria-hidden="true">◐</div>{revealed ? <div className={styles.mirrorResult}><span className={styles.eyebrow}>{firstNonEmpty(mirror.title, "Hero Mirror")}</span><h2 id="v6-beat-8-title">{firstNonEmpty(mirror.headline, mirror.hero_name ? `A mirror in ${mirror.hero_name}` : "Mirror result unavailable")}</h2><p>{firstNonEmpty(mirror.body, "")}</p><div className={styles.mirrorFacts}>{Object.entries(mirror.player_behavior ?? {}).map(([key, value]) => <div key={key}><span>{key}</span><strong>{value}</strong><small>{mirror.hero_behavior?.[key] ?? ""}</small></div>)}</div><p className={styles.eligibility}>{eligible ? "Eligible for a standalone share candidate." : firstNonEmpty(...(mirror.limitations ?? []), "Not eligible for standalone sharing.")}</p></div> : <div className={styles.lockedReveal}><span className={styles.eyebrow}>Hero Mirror</span><p>Reveal the server-qualified mirror when you are ready.</p><button className={styles.primaryButton} type="button" onClick={onReveal}>Reveal Hero Mirror</button></div>}</article>;
+  return <article className={styles.mirror}><div className={styles.mirrorArt} aria-hidden="true">◐</div>{revealed ? <div className={styles.mirrorResult}><span className={styles.eyebrow}>{firstNonEmpty(mirror.title, "Hero Mirror")}</span><h2 id="v6-mirror-headline">{firstNonEmpty(mirror.headline, mirror.hero_name ? `A mirror in ${mirror.hero_name}` : "Mirror result unavailable")}</h2><p>{firstNonEmpty(mirror.body, "")}</p><div className={styles.mirrorFacts}>{Object.entries(mirror.player_behavior ?? {}).map(([key, value]) => <div key={key}><span>{humanize(key)}</span><strong>{value}</strong><small>{mirror.hero_behavior?.[key] ?? ""}</small></div>)}</div><p className={styles.eligibility}>{eligible ? "Eligible for a standalone share candidate." : firstNonEmpty(...(mirror.limitations ?? []), "Not eligible for standalone sharing.")}</p></div> : <div className={styles.lockedReveal}><span className={styles.eyebrow}>Hero Mirror</span><p>Reveal the server-qualified mirror when you are ready.</p><button className={styles.primaryButton} type="button" onClick={onReveal}>Reveal Hero Mirror</button></div>}</article>;
 }
 
-function ShareComposer({ report, selected, onSelect, onCopy, copied }: { report: V6StoryReport; selected?: string; onSelect: (id: string) => void; onCopy: (candidate: { title?: string | null; headline?: string | null; body?: string | null }) => void; copied: boolean }) {
-  const eligible = report.share_candidates.filter((candidate) => candidate.eligible === true && candidate.status !== "suppressed" && candidate.status !== "unavailable");
-  return <section className={styles.shareComposer} aria-label="Eligible share-card composer"><div><span className={styles.eyebrow}>Share candidates</span><p>Only server-eligible cards appear here. Self-estimates are never used as evidence.</p></div>{eligible.length === 0 ? <EmptyState message="No standalone share card is eligible for this report." /> : <div className={styles.shareGrid}>{eligible.map((candidate) => { const id = shareCandidateId(candidate); const isSelected = selected === id; return <label className={isSelected ? styles.shareCandidateSelected : styles.shareCandidate} key={id}><input type="radio" name="v6-share-candidate" checked={isSelected} onChange={() => onSelect(id)} /><span><strong>{firstNonEmpty(candidate.title, recordText(candidate.payload, "title"), candidate.kind, "Share card")}</strong><small>{firstNonEmpty(candidate.headline, candidate.body, candidate.reason, recordText(candidate.payload, "reason"), "")}</small></span>{isSelected && <button className={styles.smallButton} type="button" onClick={(event) => { event.preventDefault(); onCopy(candidate); }}>{copied ? "Copied" : "Copy text"}</button>}</label>; })}</div>}</section>;
+function ShareComposer({ report, selected, onSelect, onCopy, copied }: { report: V6StoryReport; selected?: string; onSelect: (id: string) => void; onCopy: (candidate: V6ShareCandidate) => void; copied: boolean }) {
+  const [message, setMessage] = useState("");
+  const eligible = report.share_candidates.filter((candidate) => candidate.eligible === true && candidate.status !== "suppressed" && candidate.status !== "unavailable" && shareCardType(candidate));
+  const active = eligible.find((candidate) => shareCandidateId(candidate) === selected) ?? eligible[0];
+  const cardType = active ? shareCardType(active) : null;
+  const cardUrl = cardType && report.report_id ? `/v1/reports/${encodeURIComponent(report.report_id)}/share/${cardType}?show_name=${Boolean(report.identity.display_name)}&show_avatar=false` : "";
+  const shareState = shareStateFor(report, eligible.length);
+  const permalink = () => `${window.location.origin}/report/${encodeURIComponent(report.report_id ?? "")}`;
+  async function copyLink(): Promise<void> { if (!navigator.clipboard) { setMessage("Copy is not available in this browser."); return; } await navigator.clipboard.writeText(permalink()); setMessage("Report link copied."); }
+  async function nativeShare(): Promise<void> { try { if (navigator.share) { await navigator.share({ title: "My Dota DNA", url: permalink() }); setMessage("Share sheet opened."); } else await copyLink(); } catch (error) { if ((error as DOMException).name !== "AbortError") setMessage("Sharing is not available in this browser."); } }
+  function download(): void { if (!cardUrl || !cardType) return; const anchor = document.createElement("a"); anchor.href = cardUrl; anchor.download = `dota-dna-${cardType}.svg`; anchor.click(); setMessage("Card download started."); }
+  return <section className={styles.shareComposer} aria-label="Eligible share-card gallery"><div><span className={styles.eyebrow}>Share cards</span><h2>Your Dota DNA, in pieces.</h2><p>Choose the part that feels most like you.</p></div>{eligible.length === 0 ? <StateCard state={shareState} title={shareCopyFor(shareState)} body="Only server-eligible cards appear here. Your reflection and private identifiers are never used as evidence." /> : <><div className={styles.shareGrid}>{eligible.map((candidate) => { const id = shareCandidateId(candidate); const isSelected = active === candidate; return <label className={isSelected ? styles.shareCandidateSelected : styles.shareCandidate} key={id}><input type="radio" name="v6-share-candidate" checked={isSelected} onChange={() => onSelect(id)} /><span><strong>{firstNonEmpty(candidate.title, recordText(candidate.payload, "title"), humanize(candidate.kind), "Share card")}</strong><small>{firstNonEmpty(candidate.headline, candidate.body, candidate.reason, recordText(candidate.payload, "reason"), "")}</small></span></label>; })}</div>{active && cardUrl && <div className={styles.sharePreview}><img src={cardUrl} alt={`Preview of the selected ${cardType} share card`} onError={() => setMessage("This card could not be loaded. Copy the report link instead.")} /><div className={styles.shareActions}><button className={styles.primaryButton} type="button" onClick={() => void nativeShare()}>Share card</button><button className={styles.secondaryButton} type="button" onClick={download}>Download card</button><button className={styles.secondaryButton} type="button" onClick={() => void copyLink()}>Copy link</button><button className={styles.smallButton} type="button" onClick={() => onCopy(active)}>{copied ? "Text copied" : "Copy text"}</button></div></div>}<p className={styles.shareStatus} role="status" aria-live="polite">{shareState === "mixed" ? "Some parts are share-ready; the rest stays inside the report." : message}</p></>}</section>;
 }
 
 function MetricReceipt({ item }: { item: V6Finding }) {
@@ -652,15 +768,7 @@ function EmptyState({ message }: { message: string }) {
 
 function ResultNotice({ result }: { result: unknown }) {
   const record = asRecord(result);
-  return <div className={styles.resultNotice} role="status"><span className={styles.eyebrow}>Deep response</span><p>{firstNonEmpty(recordText(record, "message"), recordText(record, "status"), "Your diagnostic request was accepted.")}</p></div>;
-}
-
-function chooseStrongestFinding(findings: V6Finding[]): V6Finding | null {
-  return findings.find((finding) => isPublished(finding) && (finding.confidence === "high" || finding.confidence === "moderate")) ?? findings.find(isPublished) ?? null;
-}
-
-function chooseSecondaryFinding(findings: V6Finding[], strongest: V6Finding | null): V6Finding | null {
-  return findings.find((finding) => finding !== strongest && isPublished(finding)) ?? null;
+  return <div className={styles.resultNotice} role="status"><span className={styles.eyebrow}>Deep response</span><p>{firstNonEmpty(recordText(record, "message"), recordText(record, "status"), "Your deeper question is queued.")}</p></div>;
 }
 
 function findFamily(findings: V6Finding[], family: string): V6Finding | null {
@@ -671,9 +779,69 @@ function isPublished(finding: V6Finding): boolean {
   return finding.published === true && finding.status !== "suppressed" && finding.status !== "unavailable";
 }
 
+function findingState(finding: V6Finding | null): FamilyState {
+  if (!finding || finding.status === "unavailable") return "unavailable";
+  if (finding.status === "suppressed") return "neutral";
+  if (finding.status === "insufficient" || finding.status === "limited") return "insufficient";
+  if (finding.status === "mixed" || finding.direction === "mixed") return "mixed";
+  if (isPublished(finding)) return "qualified";
+  return "neutral";
+}
+
+function stateLabel(state: FamilyState): string {
+  return { qualified: "Qualified", neutral: "Neutral", insufficient: "Insufficient evidence", mixed: "Mixed", unavailable: "Unavailable" }[state];
+}
+
+function familyStateCopy(family: string, state: FamilyState, finding: V6Finding | null): string {
+  const key = family.toLowerCase();
+  const limitation = firstNonEmpty(finding?.limitations?.[0], "The supported comparison did not meet the minimum evidence requirement.");
+  if (state === "neutral") {
+    if (key.includes("pool")) return "No single pool shape separated cleanly.";
+    if (key.includes("transfer")) return "The familiar and stretch parts of your pool stay within the supported range.";
+    if (key.includes("post-loss")) return "Your next-choice movement stays about the same across the supported result states.";
+    if (key.includes("combat")) return "Involvement and death exposure stay compatible in the supported comparison.";
+    if (key.includes("session")) return "Your covered expression stays compatible across completed session positions.";
+  }
+  if (state === "insufficient") {
+    const reason = key.includes("pool") ? limitation : key.includes("transfer") ? limitation : key.includes("post-loss") ? firstNonEmpty(finding?.limitations?.[0], "Not enough same-session transitions to call a post-loss pattern.") : key.includes("combat") ? firstNonEmpty(finding?.limitations?.[0], "Not enough context-resolved matches to call combat expression.") : key.includes("session") ? firstNonEmpty(finding?.limitations?.[0], "Not enough completed sessions to call a session pattern.") : limitation;
+    return `Not enough signal to call this one. ${reason}`;
+  }
+  if (state === "mixed") {
+    if (key.includes("pool")) return firstNonEmpty(finding?.interpretation, "Your pool has two valid layers: the names move, while the jobs hold.");
+    if (key.includes("post-loss")) return firstNonEmpty(finding?.interpretation, "The one-loss and two-plus-loss states do not tell the same story.");
+    if (key.includes("transfer")) return firstNonEmpty(finding?.interpretation, "Your answer changes by signal.");
+    if (key.includes("combat")) return firstNonEmpty(finding?.interpretation, "One signal holds while another moves.");
+    if (key.includes("session")) return firstNonEmpty(finding?.interpretation, "The session story changes by what you measure.");
+  }
+  return `${family} was not available for this report.`;
+}
+
+function heroName(hero: V6HeroRow): string {
+  return firstNonEmpty(hero.display_name, hero.hero_name, hero.name);
+}
+
+function humanize(value?: string | null): string {
+  if (!value) return "";
+  return value.replaceAll("_", " ").replaceAll("-", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function shareCardType(candidate: V6StoryReport["share_candidates"][number]): "identity" | "strongest-finding" | "hero-mirror" | null {
+  const value = `${candidate.id ?? ""} ${candidate.candidate_id ?? ""} ${candidate.kind ?? ""}`.toLowerCase();
+  if (value.includes("hero-mirror") || value.includes("hero_mirror")) return "hero-mirror";
+  if (value.includes("strongest-finding") || value.includes("strongest_finding") || candidate.kind === "finding") return "strongest-finding";
+  if (value.includes("identity")) return "identity";
+  return null;
+}
+
+function questionIsOffered(question: V6StoryReport["diagnostic_questions"][number]): boolean {
+  const confidence = question.confidence?.toLowerCase();
+  return question.offered !== false && question.available !== false && question.eligibility !== "suppressed" && question.eligibility !== "unavailable" && (confidence === "high" || confidence === "moderate") && (question.evidence_refs?.length ?? 0) > 0 && (question.blocking_confounders?.length ?? 0) === 0;
+}
+
 function recommendationChoices(report: V6StoryReport, ...findings: Array<V6Finding | null>): V6Choice[] {
   const choices: V6Choice[] = [];
   for (const finding of findings) {
+    if (report.schema_version === "free-dna-report-6.1.0" && !verifiedRecommendation(finding)) continue;
     const recommendation = finding?.recommendation ?? finding?.claim_contract?.recommendation;
     if (recommendation && typeof recommendation === "object") {
       const options = recommendation.options ?? [];
@@ -683,6 +851,26 @@ function recommendationChoices(report: V6StoryReport, ...findings: Array<V6Findi
   }
   const beatOptions = storyPages(report).find((beat) => beat.kind === "recommendation" || beat.key === "recommendation")?.options ?? [];
   return uniqueChoices([...choices, ...beatOptions]);
+}
+
+function verifiedRecommendation(finding: V6Finding | null): boolean {
+  const verification = finding?.claim_contract?.verification;
+  return Boolean(verification && typeof verification.eligibility_games === "number" && verification.eligibility_games > 0 && verification.primary_metric && verification.guardrail_metric && verification.causal === false && verification.abstention);
+}
+
+function shareStateFor(report: V6StoryReport, eligibleCount: number): FamilyState {
+  const candidates = report.share_candidates;
+  if (eligibleCount > 0 && candidates.some((candidate) => candidate.eligible !== true || candidate.status === "suppressed" || candidate.status === "unavailable")) return "mixed";
+  if (eligibleCount > 0) return "qualified";
+  const quality = report.quality?.partial === true || report.identity_summary.status === "limited" || report.identity_summary.state === "limited" || report.identity_summary.status === "insufficient" || report.identity_summary.state === "insufficient";
+  return quality ? "insufficient" : "neutral";
+}
+
+function shareCopyFor(state: FamilyState): string {
+  if (state === "neutral") return "Your story is ready to keep, even when no standalone card clears the share gate.";
+  if (state === "insufficient") return "No standalone share card is eligible from this report.";
+  if (state === "mixed") return "Some parts are share-ready; the rest stays inside the report.";
+  return "Your Dota DNA, in pieces.";
 }
 
 function uniqueChoices(choices: V6Choice[]): V6Choice[] {
@@ -803,7 +991,7 @@ function progressCount(state: V6InteractionState): number {
 }
 
 function beatLabel(id: BeatId): string {
-  return { "self-estimate": "Estimate", "identity-reveal": "Identity", "pool-evolution": "Pool", "combat-expression": "Combat", "strongest-finding": "Finding", "secondary-finding": "Layers", recommendation: "Action", "hero-mirror": "Mirror", "deep-diagnostic": "Deep" }[id];
+  return { "self-estimate": "Start", "identity-reveal": "Shape", "pool-evolution": "Pool", "combat-expression": "Change", "strongest-finding": "After loss", "secondary-finding": "Match", recommendation: "Session", "hero-mirror": "Signature", "deep-diagnostic": "Share" }[id];
 }
 
 function scrollToBeat(id: BeatId): void {

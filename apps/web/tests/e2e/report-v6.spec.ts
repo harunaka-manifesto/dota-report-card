@@ -20,7 +20,7 @@ test.describe("Free DNA v6 renderer", () => {
       await page.keyboard.press("Space");
     }
     await expect(page.locator("#v6-beat-1")).toBeVisible();
-    await expect(page.locator("main")).toContainText("user_reported");
+    await expect(page.locator("main")).toContainText("Your answer is saved as your own reflection.");
     await expect(page.locator("#v6-beat-9").getByRole("button", { name: /Skip Deep/ })).toBeVisible();
   });
 
@@ -71,14 +71,37 @@ test.describe("Free DNA V6.1 renderer", () => {
       await page.goto(`/report/v61-${findingCount}-fixture`);
       await expect(page.locator("section[id^='v6-beat-']")).toHaveCount(9);
       await expect(page.getByRole("button", { name: "Skip beat" })).toHaveCount(9);
+      if (findingCount < 3) {
+        await expect(page.locator("#v6-beat-5")).toContainText("Your next-choice movement stays about the same across the supported result states.");
+      } else {
+        await expect(page.locator("#v6-beat-5")).toContainText("After one loss, your next choice stays closer to your prior path.");
+      }
       if (findingCount === 0) {
-        await expect(page.locator("#v6-beat-5")).toContainText("No strongest finding was published");
         await expect(page.locator("#v6-beat-9")).toContainText("No evidence-qualified Deep question was offered");
       } else {
-        await expect(page.locator("#v6-beat-5")).toContainText("cleared the V6.1 fixture gates");
+        await expect(page.locator("#v6-beat-3")).toContainText("Your hero names cover more ground than the jobs behind them.");
       }
     });
   }
+
+  test("covers V6.1 state, pool-width, Signature, and 375px fixtures", async ({ page }) => {
+    for (const [fixture, text] of [
+      ["v61-qualified-fixture", "Your hero names cover more ground than the jobs behind them."],
+      ["v61-neutral-fixture", "No single pool shape separated cleanly."],
+      ["v61-insufficient-fixture", "Not enough signal to call this one."],
+      ["v61-mixed-fixture", "Your pool has two valid layers: the names move, while the jobs hold."],
+      ["v61-narrow-fixture", "Narrow pool:"],
+      ["v61-broad-fixture", "Broad pool:"],
+      ["v61-signature-fixture", "Your Dota Signature."],
+    ] as const) {
+      await page.goto(`/report/${fixture}`);
+      await expect(page.locator("main")).toContainText(text);
+    }
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/report/v61-375-fixture");
+    await expect(page.locator("#v6-beat-3")).toContainText("Narrow pool:");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(2);
+  });
 
   test("keeps resume transport and analytics identity-safe across accessible controls", async ({ page, request }) => {
     const created = await request.post("/v1/reports/v61-1-fixture/interaction-sessions", {

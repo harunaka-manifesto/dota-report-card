@@ -427,6 +427,20 @@ const v61InteractionKinds = {
   combat_expression: "variance_decomposition",
   session_drift: "session_curve"
 };
+const v61Claims = {
+  pool_shape: "Your hero names cover more ground than the jobs behind them.",
+  transfer: "More of your observed expression travels when the hero changes.",
+  post_loss_response: "After one loss, your next choice stays closer to your prior path.",
+  combat_expression: "More of the expression variance sits in one supported context.",
+  session_drift: "A covered part of your expression moves as the session continues."
+};
+const v61HeroRows = [
+  { display_name: "Anti-Mage", match_count: 24, share: .33, functional_jobs: ["Mobility", "Split pressure"], band: "core" },
+  { display_name: "Axe", match_count: 18, share: .25, functional_jobs: ["Initiation", "Frontline"], band: "core" },
+  { display_name: "Queen of Pain", match_count: 12, share: .17, functional_jobs: ["Mobility", "Burst"], band: "stretch" },
+  { display_name: "Puck", match_count: 10, share: .14, functional_jobs: ["Control", "Mobility"], band: "stretch" },
+  { display_name: "Drow Ranger", match_count: 8, share: .11, functional_jobs: ["Ranged damage"], band: "tail" }
+];
 const v61Reports = [0, 1, 2, 3].map((publishedCount) => {
   const findings = v6Findings.map((finding, index) => {
     const published = index < publishedCount;
@@ -434,16 +448,17 @@ const v61Reports = [0, 1, 2, 3].map((publishedCount) => {
     const interaction = v61InteractionKinds[finding.family];
     return {
       ...finding,
+      status: published ? "available" : "suppressed",
       published,
       semantic_outcome_key: published ? outcome : null,
       hypothesis_branch: published ? "fixture_branch" : null,
       branch_adjusted_q_value: published ? .04 : 1,
-      claim: published ? `${finding.label} cleared the V6.1 fixture gates.` : null,
+      claim: published ? v61Claims[finding.family] : null,
       interpretation: published ? "This bounded fixture relationship remains descriptive." : null,
       interaction: { kind: published ? interaction : null, enabled: published, fallback: published ? "text_evidence" : "family_not_published" },
       claim_contract: published ? {
         ...finding.claim_contract,
-        claim: `${finding.label} cleared the V6.1 fixture gates.`,
+        claim: v61Claims[finding.family],
         alternatives: ["Unobserved draft and match context"],
         verification: null,
         interaction,
@@ -476,13 +491,14 @@ const v61Reports = [0, 1, 2, 3].map((publishedCount) => {
     },
     quality: { ...v6Report.quality, published_findings: publishedCount },
     findings,
+    hero_portfolio: { ...v6Report.hero_portfolio, heroes: v61HeroRows },
     identity_summary: {
       ...v6Report.identity_summary,
       slots: {
         version: "identity-slots-1.0.0",
         primary: { kind: "PRIMARY", scope: "This year", text: v6Report.identity_summary.headline, evidence_refs: v6Report.identity_summary.evidence_refs },
         twist: publishedCount ? { kind: "TWIST", scope: "Within supported contexts", text: findings[0].claim, family: findings[0].family, semantic_outcome_key: findings[0].semantic_outcome_key, evidence_refs: findings[0].evidence_refs } : null,
-        anchor: { kind: "ANCHOR", scope: "Observed annual core", text: "catch", evidence_refs: ["supporting:portfolio_shape"] },
+        anchor: { kind: "ANCHOR", scope: "Observed annual core", text: "Anti-Mage", evidence_refs: ["supporting:portfolio_shape"] },
         compatibility: "identity-slot-compatibility-1.0.0",
         compatibility_checks: { primary_stability_gate: true, twist_qualified_only: true, anchor_portfolio_owned: true }
       }
@@ -490,7 +506,7 @@ const v61Reports = [0, 1, 2, 3].map((publishedCount) => {
     diagnostic_questions: [],
     story: { ...v6Report.story, version: "free-story-6.1.0" },
     supporting_evidence: {
-      portfolio_shape: { names: { matches: 72 }, jobs: { matches: 72 } },
+      portfolio_shape: { names: { matches: 72 }, jobs: { matches: 72 }, pool_width: "broad" },
       transfer_frontier: { bands: { core: { matches: 40, sessions: 12, supported: true } } },
       result_response: { states: { one_loss: { opportunities: 18, sessions: 9, available: true } } },
       consistency: { component_variance: { outcome: { sessions: 18, available: true } } },
@@ -502,7 +518,50 @@ const v61Reports = [0, 1, 2, 3].map((publishedCount) => {
   };
 });
 
-const reports = new Map([[reportId, report], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report], ...v61Reports.map((item) => [item.report_id, item])]);
+function v61Alias(reportIdValue, source, configure) {
+  const item = structuredClone(source);
+  item.report_id = reportIdValue;
+  item.hero_portfolio = { ...item.hero_portfolio, heroes: v61HeroRows };
+  configure?.(item);
+  return item;
+}
+
+const v61Qualified = v61Alias("v61-qualified-fixture", v61Reports[1]);
+const v61Neutral = v61Alias("v61-neutral-fixture", v61Reports[0], (item) => {
+  item.identity_summary.status = "neutral";
+  item.identity_summary.state = "neutral";
+  item.identity_summary.slots = null;
+  item.share_candidates = [];
+});
+const v61Insufficient = v61Alias("v61-insufficient-fixture", v61Reports[0], (item) => {
+  item.identity_summary.status = "limited";
+  item.identity_summary.state = "limited";
+  item.identity_summary.slots = null;
+  item.quality = { ...item.quality, partial: true };
+  item.elements = item.elements.map((element) => ({ ...element, status: "limited", limitations: ["The fixture has fewer than the supported session minimum."] }));
+  item.findings = item.findings.map((finding) => ({ ...finding, published: false, status: "limited", limitations: ["The fixture has fewer than the supported session minimum."] }));
+  item.hero_portfolio.heroes = [];
+  item.share_candidates = [];
+});
+const v61Mixed = v61Alias("v61-mixed-fixture", v61Reports[2], (item) => {
+  item.identity_summary.status = "mixed";
+  item.identity_summary.state = "mixed";
+  item.findings[0] = { ...item.findings[0], status: "mixed", direction: "mixed", interpretation: "Your pool has two valid layers: the names move, while the jobs hold." };
+  item.share_candidates = item.share_candidates.map((candidate) => candidate.kind === "strongest_finding" ? { ...candidate, eligible: false, status: "limited", blockers: ["mixed result"] } : candidate);
+});
+const v61Narrow = v61Alias("v61-narrow-fixture", v61Reports[1], (item) => {
+  item.hero_portfolio.heroes = v61HeroRows.slice(0, 2);
+  item.supporting_evidence.portfolio_shape.pool_width = "narrow";
+});
+const v61Broad = v61Alias("v61-broad-fixture", v61Reports[3], (item) => {
+  item.supporting_evidence.portfolio_shape.pool_width = "broad";
+});
+const v61Signature = v61Alias("v61-signature-fixture", v61Reports[1], (item) => {
+  item.share_candidates = item.share_candidates.filter((candidate) => candidate.kind === "identity");
+});
+const v61375 = v61Alias("v61-375-fixture", v61Narrow);
+const v61Aliases = [v61Qualified, v61Neutral, v61Insufficient, v61Mixed, v61Narrow, v61Broad, v61Signature, v61375];
+const reports = new Map([[reportId, report], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report], ...v61Reports.map((item) => [item.report_id, item]), ...v61Aliases.map((item) => [item.report_id, item])]);
 const interactionSessions = new Map();
 const deepJobs = new Map();
 let nextSessionNumber = 1;
