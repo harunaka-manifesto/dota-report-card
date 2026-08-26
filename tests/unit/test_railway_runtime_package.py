@@ -23,3 +23,10 @@ def test_api_image_bakes_the_same_package_for_api_and_worker() -> None:
     assert f"FREE_DNA_V61_ANALYTICAL_SOURCE_SHA={EXPECTED_ANALYTICAL_SOURCE_SHA}" in dockerfile
     assert EXPECTED_PACKAGE_SHA256 == "8e9e22a9fa36aa351abced843023b910488fea17c34c57b8d9b221c0c9b3aae0"
     assert EXPECTED_AUTHORIZATION_SHA256 == "9ddde890c25a47fcabf7a5e51f22ba3a3007f79dd5e5f9c52845a2bfe4e69b2a"
+
+
+def test_api_image_is_non_root_and_keeps_artifacts_read_only() -> None:
+    dockerfile = (PACKAGE_DIR.parents[2] / "docker" / "api.Dockerfile").read_text(encoding="utf-8")
+    assert "RUN chmod -R a-w /app/runtime-artifacts/free_dna_v61/6.1.0" in dockerfile
+    assert "RUN addgroup --system app && adduser --system --ingroup app --no-create-home app" in dockerfile
+    assert "USER app" in dockerfile

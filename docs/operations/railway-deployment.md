@@ -70,7 +70,7 @@ and Dockerfile.
 | Dockerfile | infra/docker/api.Dockerfile |
 | Build command | Leave unset; use the Dockerfile build |
 | Pre-deploy command | Leave unset |
-| Start command | celery -A app.workers.tasks.celery_app worker --loglevel=INFO |
+| Start command | celery -A app.workers.tasks.celery_app worker --loglevel=INFO --concurrency=4 |
 | Healthcheck path | None |
 | Public networking | None; do not generate a public domain |
 | Restart policy | ALWAYS |
@@ -79,11 +79,16 @@ Use the same committed release source and Dockerfile for both services. The
 worker's embedded package path is the same
 /app/runtime-artifacts/free_dna_v61/6.1.0.
 
+The image creates a system `app` user after build-time verification and runs
+API and worker processes as that non-root user. The embedded package is made
+non-writable before the user switch; application and migration inputs remain
+readable.
+
 ## Shared API and worker variables
 
 Set these values identically on API and worker unless marked API-only. Use
 Railway sealed variables for secrets. The reference forms below assume the
-services are named PostgreSQL and Redis, as in the project description.
+services are named Postgres and Redis, as in the project description.
 
     APP_ENV=production
     LOG_LEVEL=INFO
@@ -92,10 +97,11 @@ services are named PostgreSQL and Redis, as in the project description.
     OPENDOTA_API_KEY=<sealed OpenDota credential>
     STEAM_API_KEY=<sealed Steam credential or empty>
     STEAM_RESOLVER_BASE_URL=https://api.steampowered.com
-    DATABASE_URL=${{PostgreSQL.DATABASE_URL}}
+    DATABASE_URL=${{Postgres.DATABASE_URL}}
     REDIS_URL=${{Redis.REDIS_URL}}
     STORAGE_BACKEND=database
     ANALYSIS_EXECUTION_BACKEND=celery
+    ANALYSIS_MAX_CONCURRENCY=4
     CORS_ORIGINS=https://dota-report-card.vercel.app
 
     FREE_DNA_V6_ENABLED=false
@@ -129,12 +135,16 @@ worker variables.
 
 The PostgreSQL and Redis service references are:
 
-    DATABASE_URL=${{PostgreSQL.DATABASE_URL}}
+    DATABASE_URL=${{Postgres.DATABASE_URL}}
     REDIS_URL=${{Redis.REDIS_URL}}
 
 Apply the API pre-deploy migration, confirm the worker is running the same
 release identity, and only then allow the API healthcheck to pass. Keep all
 V6/V6.1 flags off. Do not attach a volume to either application service.
+
+`ANALYSIS_MAX_CONCURRENCY=4` bounds in-process analysis work. It is separate
+from Celery's process concurrency; the worker start command explicitly pins
+Celery concurrency to 4.
 
 ## Release identity
 

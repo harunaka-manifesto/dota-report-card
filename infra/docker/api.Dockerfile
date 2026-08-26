@@ -10,6 +10,7 @@ COPY alembic.ini ./
 RUN pip install --no-cache-dir .
 RUN python scripts/verify_v61_runtime_package.py /app/runtime-artifacts/free_dna_v61/6.1.0
 RUN chmod -R a-w /app/runtime-artifacts/free_dna_v61/6.1.0
+RUN addgroup --system app && adduser --system --ingroup app --no-create-home app
 
 ENV PYTHONPATH=/app/services/api \
     FREE_DNA_V61_ARTIFACT_DIR=/app/runtime-artifacts/free_dna_v61/6.1.0 \
@@ -23,5 +24,6 @@ ENV PYTHONPATH=/app/services/api \
     FREE_DNA_V61_BUILD_MANIFEST=/app/runtime-artifacts/free_dna_v61/6.1.0/build-manifest-6.1.0.json \
     FREE_DNA_V61_MODEL_VERSION=free-dna-model-6.1.0 \
     FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=7df38e6d234ae9c4ee425490bc40b8cc92685f85
+USER app
 EXPOSE 8000
 CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

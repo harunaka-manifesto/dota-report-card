@@ -25,6 +25,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS-http://localhost:3000}
       STORAGE_BACKEND: database
       ANALYSIS_EXECUTION_BACKEND: celery
+      ANALYSIS_MAX_CONCURRENCY: ${ANALYSIS_MAX_CONCURRENCY-4}
       FREE_DNA_V6_ENABLED: ${FREE_DNA_V6_ENABLED-false}
       FREE_DNA_V6_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/context-baseline-2.0.0.json
       FREE_DNA_V6_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/metric-thresholds-6.0.0.json
@@ -61,7 +62,7 @@ services:
     build:
       context: ..
       dockerfile: infra/docker/api.Dockerfile
-    command: celery -A app.workers.tasks.celery_app worker --loglevel=INFO
+    command: celery -A app.workers.tasks.celery_app worker --loglevel=INFO --concurrency=4
     environment:
       APP_ENV: production
       OPENDOTA_SOURCE: live
@@ -94,6 +95,7 @@ services:
       REPORT_RETENTION_DAYS: 30
       STORAGE_BACKEND: database
       ANALYSIS_EXECUTION_BACKEND: celery
+      ANALYSIS_MAX_CONCURRENCY: ${ANALYSIS_MAX_CONCURRENCY-4}
     depends_on:
       postgres:
         condition: service_healthy
