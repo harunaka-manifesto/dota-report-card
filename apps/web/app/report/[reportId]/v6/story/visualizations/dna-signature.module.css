@@ -1,0 +1,127 @@
+.signature {
+  display: grid;
+  place-items: center;
+  gap: 18px;
+  width: min(100%, 335px);
+  margin: 0;
+}
+
+.field {
+  position: relative;
+  width: 250px;
+  height: 320px;
+  overflow: hidden;
+}
+
+.connections {
+  position: absolute;
+  inset: 50% 22px auto;
+  height: 1px;
+  opacity: 0;
+  background: var(--dna-line-rule, #c9d3d01f);
+  transform: rotate(-8deg) scaleX(0.42);
+  transition: opacity 400ms ease-in-out, transform 400ms ease-in-out;
+}
+
+.fragment {
+  --fragment-index: 0;
+  position: absolute;
+  inset: 50% auto auto 50%;
+  display: grid;
+  grid-template-columns: repeat(3, 2px);
+  gap: 7px;
+  width: 20px;
+  height: 70px;
+  opacity: 0.32;
+  z-index: 1;
+  transform: translate(calc(-50% + (var(--fragment-index) - 3) * 34px), -50%);
+  transition: opacity 400ms ease-in-out, transform 400ms ease-in-out;
+}
+
+.fragment[data-active="false"] {
+  opacity: 0.08;
+}
+
+.fragment i {
+  display: block;
+  width: 2px;
+  background: var(--dna-text-annotation, #566461);
+}
+
+.fragment i:first-child {
+  height: 46px;
+  margin-top: 12px;
+  background: var(--dna-breadth-color, #61d8cc);
+}
+
+.fragment i:nth-child(2) {
+  height: 62px;
+  margin-top: 4px;
+  background: var(--dna-transfer-color, #6c9eff);
+}
+
+.fragment i:last-child {
+  height: 52px;
+  margin-top: 9px;
+  background: var(--dna-consistency-color, #b8df67);
+}
+
+.signature[data-phase="0"] .fragment {
+  transform: translate(calc(-50% + (var(--fragment-index) - 3) * 46px), calc(-50% + (var(--fragment-index) % 2) * 90px - 45px)) rotate(calc((var(--fragment-index) - 3) * 7deg));
+}
+
+.signature[data-phase="1"] .fragment,
+.signature[data-phase="2"] .fragment {
+  opacity: 0.58;
+}
+
+.signature[data-phase="1"] .connections,
+.signature[data-phase="2"] .connections,
+.signature[data-phase="3"] .connections {
+  opacity: 0.8;
+  transform: rotate(-8deg) scaleX(0.78);
+}
+
+.signature[data-phase="3"] .fragment:nth-child(n + 6) { opacity: 0.28; }
+
+.signature[data-phase="4"] .fragment,
+.signature[data-phase="5"] .fragment,
+.signature[data-phase="6"] .fragment {
+  opacity: 1;
+  transform: translate(calc(-50% + (var(--fragment-index) - 3) * 22px), -50%) scaleY(calc(0.76 + var(--fragment-index) * 0.04));
+}
+
+.signature[data-phase="4"] .connections,
+.signature[data-phase="5"] .connections,
+.signature[data-phase="6"] .connections {
+  opacity: 1;
+  transform: rotate(0) scaleX(1);
+}
+
+.signature[data-phase="6"] .fragment:nth-child(2) {
+  transform: translate(calc(-50% - 72px), -50%) rotate(-9deg);
+}
+
+.caption {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  color: var(--dna-text-secondary, #8c9b98);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.elementLabel {
+  color: var(--dna-text-annotation, #566461);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fragment {
+    transition-duration: 1ms;
+  }
+
+  .connections { transition-duration: 1ms; }
+}

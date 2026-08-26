@@ -1,0 +1,13 @@
+.list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.row { display: grid; min-height: 60px; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 10px; border-bottom: 1px solid var(--dna-line-rule, #c9d3d01f); background: var(--dna-surface-analytical, #0b0f14); }
+.portrait { display: grid; width: 44px; height: 44px; place-items: center; overflow: hidden; border: 1px solid var(--dna-line-rule, #c9d3d01f); color: var(--dna-text-secondary, #8c9b98); background: var(--dna-surface-collectible, #10161c); font-size: 10px; font-weight: 700; opacity: .45; transform: scale(.9); transition: opacity 240ms ease, transform 240ms ease; }
+.portrait img { width: 100%; height: 100%; object-fit: cover; }
+.portraitVisible { opacity: 1; transform: scale(1); }
+.copy { display: grid; min-width: 0; gap: 3px; }
+.copy strong { overflow-wrap: anywhere; color: var(--dna-text-primary, #f3f7f5); font-size: 14px; line-height: 18px; }
+.copy span, .copy small, .jobs { overflow-wrap: anywhere; color: var(--dna-text-secondary, #8c9b98); font-size: 10px; line-height: 14px; }
+.jobs { max-width: 100px; text-align: right; }
+.hidden { color: transparent !important; }
+.revealed { color: inherit; }
+.empty { padding: 18px 0; color: var(--dna-text-secondary, #8c9b98); font-size: 12px; }
+@media (prefers-reduced-motion: reduce) { .portrait { transition: opacity 100ms linear; transform: none; } }

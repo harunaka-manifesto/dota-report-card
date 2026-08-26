@@ -1,0 +1,20 @@
+.progress {
+  display: flex;
+  width: 100%;
+  gap: 3px;
+}
+
+.segment {
+  min-width: 0;
+  height: 4px;
+  flex: 1 1 0;
+  border-radius: 2px;
+  background: var(--dna-line-rule, #c9d3d01f);
+  transition: background-color var(--dna-motion-duration, 400ms) var(--dna-motion-easing, ease-in-out);
+}
+
+.complete { background: var(--dna-spectral-transition-a, #61d8cc); }
+
+@media (prefers-reduced-motion: reduce) {
+  .segment { transition: none; }
+}

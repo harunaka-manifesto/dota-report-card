@@ -1,0 +1,29 @@
+.chapter { display: grid; min-width: 0; gap: 12px; width: min(100%, 375px); color: var(--dna-text-primary, #f3f7f5); background: var(--dna-surface-canvas, #07090c); }
+.state, .stateCard { display: grid; min-width: 0; gap: 14px; padding: 28px 20px; background: var(--dna-surface-analytical, #0b0f14); }
+.state { opacity: 0; transform: translateY(12px); transition: opacity 260ms ease, transform 320ms ease; }
+.state.visible { opacity: 1; transform: translateY(0); }
+.state[aria-hidden="true"] { pointer-events: none; }
+.eyebrow, .subhead { margin: 0; color: var(--dna-spectral-transition-a, #61d8cc); font-size: 11px; font-weight: 700; letter-spacing: 1.25px; line-height: 15px; text-transform: uppercase; }
+.state h1, .state h2, .state p, .stateCard h1, .stateCard p { margin: 0; overflow-wrap: anywhere; }
+.state h1, .stateCard h1 { max-width: 335px; font-size: 30px; line-height: 34px; letter-spacing: -.8px; }
+.state h2, .stateCard h2 { max-width: 335px; font-size: 22px; line-height: 28px; }
+.state p, .stateCard p { color: var(--dna-text-secondary, #8c9b98); font-size: 15px; line-height: 23px; }
+.analytical { border: 1px solid var(--dna-line-rule, #c9d3d01f); }
+.signalPair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; min-width: 0; }
+.signal { display: grid; min-width: 0; gap: 7px; padding: 14px 10px; border: 1px solid var(--dna-line-rule, #c9d3d01f); opacity: .32; transform: translateY(8px); transition: opacity 260ms ease, transform 320ms ease, border-color 260ms ease; }
+.signalVisible { opacity: 1; transform: translateY(0); border-color: var(--dna-spectral-transition-a, #61d8cc); }
+.separated .signal:first-child { transform: translateX(-4px); }
+.separated .signal:last-child { transform: translateX(4px); }
+.signalMark { display: block; width: 24px; height: 24px; border: 1px solid var(--dna-spectral-transition-a, #61d8cc); transform: rotate(45deg); }
+.signal[data-signal="exposure"] .signalMark { border-color: var(--dna-transfer-color, #6c9eff); border-radius: 50%; }
+.signalLabel { color: var(--dna-text-secondary, #8c9b98); font-size: 10px; font-weight: 600; line-height: 14px; text-transform: uppercase; }
+.signal strong, .signalDetail strong { font-size: 20px; line-height: 24px; overflow-wrap: anywhere; }
+.signalDetail { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; min-width: 0; padding: 14px; border-left: 2px solid var(--dna-spectral-transition-a, #61d8cc); }
+.signalDetail h2 { margin: 0; }
+.signalDetail .signalMark { flex: 0 0 auto; }
+.evidence { display: grid; min-width: 0; gap: 12px; }
+.evidence ul { display: grid; gap: 8px; margin: 0; padding-left: 18px; color: var(--dna-text-primary, #f3f7f5); font-size: 15px; line-height: 23px; }
+.copyGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.copyGrid .signalPair { display: contents; }
+.advance { justify-self: start; min-height: 42px; padding: 0 16px; border: 0; border-radius: 4px; color: #07090c; background: var(--dna-spectral-transition-a, #61d8cc); font-size: 11px; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .state, .state.visible, .signal, .signalVisible { transform: none; transition: opacity 100ms linear; } }

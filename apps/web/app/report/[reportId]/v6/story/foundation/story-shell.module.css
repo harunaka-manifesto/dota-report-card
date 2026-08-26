@@ -1,0 +1,111 @@
+.viewport {
+  --dna-surface-canvas: #07090c;
+  --dna-surface-analytical: #0b0f14;
+  --dna-surface-collectible: #10161c;
+  --dna-text-primary: #f3f7f5;
+  --dna-text-secondary: #8c9b98;
+  --dna-text-annotation: #566461;
+  --dna-line-rule: #c9d3d01f;
+  --dna-line-grid: #8ca3a012;
+  --dna-spectral-transition-a: #61d8cc;
+  --dna-breadth-color: #61d8cc;
+  --dna-transfer-color: #6c9eff;
+  --dna-consistency-color: #b8df67;
+  --dna-post-loss-color: #a68bff;
+  --dna-warning-color: #e7c55c;
+  --dna-loss-color: #f16482;
+  --dna-story-width: 375px;
+  --dna-story-gutter: 20px;
+  --dna-story-content-width: 335px;
+  --dna-control-height: 42px;
+  --dna-focus-color: #e7c55c;
+  --dna-motion-duration: 400ms;
+  --dna-motion-easing: ease-in-out;
+  --shell-width: min(100%, 375px);
+  position: relative;
+  display: flex;
+  width: var(--shell-width);
+  height: min(100dvh, 812px);
+  min-height: min(100dvh, 812px);
+  max-height: 812px;
+  margin: 0 auto;
+  overflow: hidden;
+  color: var(--dna-text-primary, #f3f7f5);
+  background: var(--dna-surface-canvas, #07090c);
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.viewport :global(h1),
+.viewport :global(h2),
+.viewport :global(h3),
+.viewport :global(p) { margin: 0; }
+
+.viewport:focus-visible {
+  outline: 3px solid var(--dna-focus-color, #e7c55c);
+  outline-offset: 3px;
+}
+
+.decorativeGrid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--dna-line-grid, #8ca3a012) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--dna-line-grid, #8ca3a012) 1px, transparent 1px);
+  background-position: 24px 0, 0 36px;
+  background-size: 48px 100%, 100% 72px;
+  opacity: 0.55;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.progress {
+  flex: 0 0 auto;
+  min-height: 4px;
+}
+
+.storyArea {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  width: 100%;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.action {
+  display: flex;
+  min-height: 48px;
+  flex: 0 0 auto;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content { scroll-behavior: auto; }
+  .viewport *,
+  .viewport *::before,
+  .viewport *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}

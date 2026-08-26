@@ -1,0 +1,170 @@
+.stage {
+  display: grid;
+  width: 270px;
+  height: 347px;
+  perspective: 1000px;
+  flex: 0 0 270px;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: translateY(50px) scale(0.92) rotateY(0deg);
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+  transition: opacity 400ms ease-in-out, transform 400ms ease-in-out;
+}
+
+.stage[data-phase="1"] .card {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotateY(0deg);
+}
+
+.stage[data-phase="2"] .card {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotateY(90deg);
+}
+
+.stage[data-phase="3"] .card,
+.stage[data-phase="4"] .card,
+.stage[data-phase="5"] .card,
+.stage[data-phase="6"] .card,
+.stage[data-phase="7"] .card,
+.stage[data-phase="8"] .card {
+  opacity: 1;
+  transform: translateY(0) scale(1) rotateY(180deg);
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  overflow: hidden;
+  color: var(--dna-text-primary, #f3f7f5);
+  background: var(--dna-surface-collectible, #10161c);
+  border: 1px solid var(--dna-line-rule, #c9d3d01f);
+  border-radius: 5px;
+  backface-visibility: hidden;
+  overflow-wrap: anywhere;
+}
+
+.face p,
+.face h2,
+.face small {
+  margin: 0;
+  text-align: center;
+}
+
+.face p,
+.face small {
+  color: var(--dna-text-annotation, #566461);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.face strong {
+  color: var(--dna-transfer-color, #6c9eff);
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.front {
+  transform: rotateY(180deg);
+}
+
+.front h2 {
+  max-width: 230px;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.7px;
+  line-height: 31px;
+}
+
+.front h2,
+.front small {
+  transition: opacity 400ms ease-in-out;
+}
+
+.front small {
+  color: var(--dna-text-secondary, #8c9b98);
+}
+
+.stage[data-phase="3"] .front h2,
+.stage[data-phase="3"] .front small,
+.stage[data-phase="4"] .front small {
+  opacity: 0;
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 19px;
+  width: 135px;
+  height: 135px;
+}
+
+.mark i {
+  width: 2px;
+  height: 102px;
+  background: var(--dna-transfer-color, #6c9eff);
+}
+
+.mark i:nth-child(3n + 1) {
+  width: 4px;
+  height: 120px;
+  background: var(--dna-breadth-color, #61d8cc);
+}
+
+.mark i:nth-child(3n) {
+  height: 120px;
+  background: var(--dna-consistency-color, #b8df67);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: opacity 120ms linear;
+  }
+
+  .stage[data-phase="2"] .card,
+  .stage[data-phase="3"] .card,
+  .stage[data-phase="4"] .card,
+  .stage[data-phase="5"] .card,
+  .stage[data-phase="6"] .card,
+  .stage[data-phase="7"] .card,
+  .stage[data-phase="8"] .card {
+    transform: none;
+  }
+
+  .front {
+    transform: none;
+  }
+
+  .stage[data-phase="0"] .front,
+  .stage[data-phase="1"] .front {
+    opacity: 0;
+  }
+
+  .stage[data-phase="2"] .front { opacity: 0; }
+
+  .stage[data-phase="2"] .back,
+  .stage[data-phase="3"] .back,
+  .stage[data-phase="4"] .back,
+  .stage[data-phase="5"] .back,
+  .stage[data-phase="6"] .back,
+  .stage[data-phase="7"] .back,
+  .stage[data-phase="8"] .back {
+    opacity: 0;
+  }
+
+  .front h2,
+  .front small { transition-duration: 1ms; }
+}

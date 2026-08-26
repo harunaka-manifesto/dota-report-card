@@ -24,6 +24,9 @@ export type V6UserReportedState = {
 };
 
 export type V6UiState = {
+  /** Presentation-only progress; legacy beat fields remain the persistence contract. */
+  story_step_id?: string;
+  story_step_index?: number;
   identity_revealed?: boolean;
   pool_evolution_position?: number;
   combat_expression_revealed?: boolean;
