@@ -3,27 +3,26 @@
 Status: **BLOCKED_PENDING_STATISTICAL_METHOD**.
 
 Do not implement this draft. The 2026-08-27 hardening run rejected the proposed
-scalar-centered bootstrap for all five family statistic classes. The subsequent
-family audit also found that Pool Shape combines incompatible public questions
-and Combat Expression contains multiple distinct hypotheses with no coherent
-single family estimand. The rules below are preserved as the recovery proposal,
-not an executable specification.
+scalar-centered bootstrap. The subsequent product redesign demoted Pool Shape
+to the existing Breadth and Toolkit Elements and replaced Combat Expression
+with one candidate Presence & Exposure relationship. The detailed five-family
+rules below are preserved as historical recovery material, not an executable
+specification.
 
 Before this prompt can become implementation-ready, a new statistical pass
 must:
 
-- choose one Pool Shape public question and exact estimand;
-- split, demote, or retire Combat's distinct hypotheses before defining tests;
-- replace scalar centering of Transfer, Post-Loss, and Session candidate tests
-  with a jointly null-imposed family pivot and validate each family separately;
-- replace or studentize the Pool scalar test, which reached null alpha 0.120;
+- freeze exact estimands, nulls, statistics, support rules, and invalid-draw
+  behavior for Transfer, Post-Loss, Presence & Exposure, and Session Drift;
+- validate each retained family separately with a family-appropriate null;
 - rerun Type-I and power/coverage validation before deriving margins;
 - derive tuning-only practical margins without targeting publication yield;
 - freeze executable stability and robustness gates; and
-- validate the five resulting p-values before retaining fixed BH at `q=.05`.
+- validate the retained p-value dependence before choosing multiplicity rules.
 
-See `docs/evidence/free-dna-v6.1-findings-statistical-hardening-2026-08-27.md`
-and `docs/evidence/free-dna-v6.1-family-null-models-2026-08-27.md`.
+See `docs/evidence/free-dna-v6.1-findings-statistical-hardening-2026-08-27.md`,
+`docs/evidence/free-dna-v6.1-family-null-models-2026-08-27.md`, and
+`docs/evidence/free-dna-v6.1-pool-combat-family-redesign-2026-08-27.md`.
 
 ## Scope and hard firewall
 
