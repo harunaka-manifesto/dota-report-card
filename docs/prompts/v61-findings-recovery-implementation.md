@@ -3,14 +3,18 @@
 Status: **BLOCKED_PENDING_STATISTICAL_METHOD**.
 
 Do not implement this draft. The 2026-08-27 hardening run rejected the proposed
-scalar-centered bootstrap for all five family statistic classes. The rules
-below are preserved as the recovery proposal, not an executable specification.
+scalar-centered bootstrap for all five family statistic classes. The subsequent
+family audit also found that Pool Shape combines incompatible public questions
+and Combat Expression contains multiple distinct hypotheses with no coherent
+single family estimand. The rules below are preserved as the recovery proposal,
+not an executable specification.
 
 Before this prompt can become implementation-ready, a new statistical pass
 must:
 
-- define the exact Combat component vector, standardization, and omnibus null;
-- replace scalar centering of Transfer, Post-Loss, Combat, and Session maxima
+- choose one Pool Shape public question and exact estimand;
+- split, demote, or retire Combat's distinct hypotheses before defining tests;
+- replace scalar centering of Transfer, Post-Loss, and Session candidate tests
   with a jointly null-imposed family pivot and validate each family separately;
 - replace or studentize the Pool scalar test, which reached null alpha 0.120;
 - rerun Type-I and power/coverage validation before deriving margins;
@@ -18,7 +22,8 @@ must:
 - freeze executable stability and robustness gates; and
 - validate the five resulting p-values before retaining fixed BH at `q=.05`.
 
-See `docs/evidence/free-dna-v6.1-findings-statistical-hardening-2026-08-27.md`.
+See `docs/evidence/free-dna-v6.1-findings-statistical-hardening-2026-08-27.md`
+and `docs/evidence/free-dna-v6.1-family-null-models-2026-08-27.md`.
 
 ## Scope and hard firewall
 
