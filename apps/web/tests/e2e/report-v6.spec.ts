@@ -387,6 +387,132 @@ test.describe("Free Dota DNA v6.1 story", () => {
     for (const forbidden of ["report_id", "account_id", "display_name", "access_token", "hero_id", "match_id", "cohort:v61:"]) expect(encoded).not.toContain(forbidden);
   });
 
+  test("the scope receipt never renders text outside the viewport", async ({ page }) => {
+    for (const [width, height] of [[375, 812], [768, 500], [320, 640]] as const) {
+      await page.setViewportSize({ width, height });
+      await page.goto("/report/v61-2-fixture");
+      await useStoryControl(page, "Next");
+      // Animated receipts reach the hero fact last; the reduced-motion receipt
+      // renders every fact at once. Waiting on the text covers both.
+      const receipt = page.locator("[data-page-id='scope-receipt']");
+      await expect(receipt).toContainText("most-played heroes", { timeout: 12_000 });
+      await expect(receipt).toContainText("give us somewhere familiar to start");
+      // scrollWidth cannot see this: the viewport clips overflow, so a truncated
+      // line reads as zero document overflow. Measure the text itself.
+      const clipped = await page.evaluate(() => {
+        const root = document.querySelector("[data-page-id]");
+        if (!root) return ["no page"];
+        const outside: string[] = [];
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+        let node = walker.currentNode as Element | null;
+        while (node) {
+          if (node.childElementCount === 0 && node.textContent?.trim()) {
+            const box = node.getBoundingClientRect();
+            if (box.width > 0 && (box.right > window.innerWidth + 1 || box.left < -1)) {
+              outside.push(`${node.textContent.trim().slice(0, 32)} @ ${Math.round(box.left)}..${Math.round(box.right)}`);
+            }
+          }
+          node = walker.nextNode() as Element | null;
+        }
+        return outside;
+      });
+      expect(clipped, `clipped at ${width}x${height}`).toEqual([]);
+    }
+  });
+
+  test("presses faster than the transition still advance one page each", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Press cadence is covered once in Chromium.");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/report/v61-3-fixture");
+    const progress = page.getByRole("progressbar");
+    await expect(progress).toHaveAttribute("aria-valuenow", "1");
+    for (let index = 0; index < 8; index += 1) {
+      await page.mouse.click(1435, 450);
+      await page.waitForTimeout(60);
+    }
+    await expect(progress).toHaveAttribute("aria-valuenow", "9", { timeout: 5_000 });
+    for (let index = 0; index < 4; index += 1) {
+      await page.mouse.click(8, 450);
+      await page.waitForTimeout(60);
+    }
+    await expect(progress).toHaveAttribute("aria-valuenow", "5", { timeout: 5_000 });
+  });
+
+  test("animated numbers only ever display their settled value", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Frame sampling is covered once in Chromium.");
+    test.setTimeout(40_000);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto("/report/v61-2-fixture");
+    await useStoryControl(page, "Next");
+    const wrong: string[] = [];
+    const values = new Set<string>();
+    const deadline = Date.now() + 11_000;
+    while (Date.now() < deadline) {
+      const sample = await page.evaluate(() => {
+        const odometer = document.querySelector("[data-page-id] h1 [data-odometer-value]");
+        if (!odometer) return null;
+        const settled = odometer.getAttribute("data-odometer-value") ?? "";
+        const painted = [...odometer.querySelectorAll("[class*=odometerColumn]")].map((column) => column.textContent).join("");
+        return { settled, painted };
+      });
+      if (sample) {
+        values.add(sample.settled);
+        if (sample.painted !== sample.settled) wrong.push(`${sample.painted} shown while settled value is ${sample.settled}`);
+      }
+      await page.waitForTimeout(40);
+    }
+    expect(values.size).toBeGreaterThanOrEqual(4);
+    expect(wrong).toEqual([]);
+  });
+
+  test("the Signature setup bridge never overlaps its headline", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const [width, height] of [[1440, 900], [375, 812], [1000, 700]] as const) {
+      await page.setViewportSize({ width, height });
+      await page.goto("/report/v61-3-fixture");
+      await goTo(page, "signature-setup");
+      const gap = await page.evaluate(() => {
+        const composed = document.querySelector("[data-page-id='signature-setup']");
+        const bridge = composed?.querySelector("[class*=bridge]");
+        const headline = composed?.querySelector("h1");
+        if (!bridge || !headline) return null;
+        return Math.round(headline.getBoundingClientRect().top - bridge.getBoundingClientRect().bottom);
+      });
+      expect(gap, `bridge/headline gap at ${width}x${height}`).not.toBeNull();
+      expect(gap!, `bridge/headline gap at ${width}x${height}`).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  test("the headline focus ring follows the navigation source", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/report/v61-3-fixture");
+
+    await page.mouse.click(1435, 450);
+    await expect.poll(() => currentPageId(page)).toBe("scope-receipt");
+    const afterPointer = await page.evaluate(() => ({
+      source: document.querySelector("main")?.getAttribute("data-nav-source"),
+      focused: document.activeElement?.tagName,
+      outline: document.activeElement instanceof Element ? getComputedStyle(document.activeElement).outlineStyle : null,
+    }));
+    expect(afterPointer.source).toBe("pointer");
+    expect(afterPointer.focused).toBe("H1");
+    expect(afterPointer.outline).toBe("none");
+
+    await page.locator("[data-page-id] h1").focus();
+    await page.keyboard.press("ArrowRight");
+    await expect.poll(() => currentPageId(page)).toBe("lead-hero");
+    const afterKeyboard = await page.evaluate(() => ({
+      source: document.querySelector("main")?.getAttribute("data-nav-source"),
+      focused: document.activeElement?.tagName,
+      outline: document.activeElement instanceof Element ? getComputedStyle(document.activeElement).outlineStyle : null,
+    }));
+    expect(afterKeyboard.source).toBe("keyboard");
+    expect(afterKeyboard.focused).toBe("H1");
+    expect(afterKeyboard.outline).not.toBe("none");
+  });
+
   test("never renders removed UI or private analytical fields", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto("/report/v61-5-fixture");

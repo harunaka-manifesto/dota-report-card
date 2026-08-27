@@ -25,10 +25,13 @@ import type { V61Report } from "./types";
 import styles from "./report-story-v6.module.css";
 
 type Direction = "forward" | "backward";
+type NavSource = "pointer" | "keyboard";
 type DialogName = "evidence" | "methodology" | "exit" | null;
 type PointerStart = { x: number; y: number; target: EventTarget | null; selectionActive: boolean };
 
 const TRANSITION_DURATION = 280;
+const DIGIT_REVEAL = 460;
+const DIGIT_STAGGER = 65;
 const EDGE_WIDTH = 56;
 const DRAG_THRESHOLD = 12;
 const INTERACTIVE_SELECTOR = "button, a, input, textarea, select, dialog, [contenteditable='true']";
@@ -48,6 +51,8 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
   const overlayStarted = useRef(0);
   const overlayOrigin = useRef<HTMLElement | null>(null);
   const leaveDirection = useRef<string>("exit");
+  const targetIndex = useRef(0);
+  const [navSource, setNavSource] = useState<NavSource>("pointer");
   const page = pages[pageIndex];
 
   usePageAnalytics(page, pageIndex, pages.length, reducedMotion, leaveDirection);
@@ -56,20 +61,32 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
     if (transitionTimer.current) clearTimeout(transitionTimer.current);
   }, []);
 
-  const navigate = useCallback((nextIndex: number, nextDirection: Direction) => {
-    if (nextIndex < 0 || nextIndex >= pages.length || nextIndex === pageIndex) return;
-    if (transitionTimer.current) clearTimeout(transitionTimer.current);
+  useEffect(() => { targetIndex.current = pageIndex; }, [pageIndex]);
+
+  // A press always advances the story. While a transition is in flight the target
+  // moves instead of the timer restarting, so presses faster than the transition
+  // duration coalesce into one landing rather than starving the commit.
+  const navigate = useCallback((step: number, nextDirection: Direction, source: NavSource = "pointer") => {
+    const inFlight = transitionTimer.current !== null;
+    const base = inFlight ? targetIndex.current : pageIndex;
+    const nextIndex = base + step;
+    if (nextIndex < 0 || nextIndex >= pages.length || nextIndex === base) return;
+    targetIndex.current = nextIndex;
     leaveDirection.current = nextDirection;
+    setNavSource(source);
     setDirection(nextDirection);
+    if (inFlight) return;
     setPhase(reducedMotion ? "entering" : "leaving");
     const finish = () => {
-      setPageIndex(nextIndex);
+      transitionTimer.current = null;
+      const landing = targetIndex.current;
+      setPageIndex(landing);
       setPhase("entering");
       requestAnimationFrame(() => {
         setPhase("visible");
         headingRef.current?.focus({ preventScroll: true });
         track("report.story_transition_completed.v1", {
-          page_id: pages[nextIndex].id,
+          page_id: pages[landing].id,
           direction: nextDirection,
           transition_duration_ms: reducedMotion ? 0 : TRANSITION_DURATION,
           reduced_motion: reducedMotion,
@@ -95,21 +112,21 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
     if (startTarget?.closest(INTERACTIVE_SELECTOR) || endTarget?.closest(INTERACTIVE_SELECTOR)) return;
     const selection = window.getSelection();
     if (start.selectionActive || (selection && !selection.isCollapsed)) return;
-    if (event.clientX <= EDGE_WIDTH) navigate(pageIndex - 1, "backward");
-    else if (event.clientX >= window.innerWidth - EDGE_WIDTH) navigate(pageIndex + 1, "forward");
-  }, [navigate, openDialog, pageIndex]);
+    if (event.clientX <= EDGE_WIDTH) navigate(-1, "backward", "pointer");
+    else if (event.clientX >= window.innerWidth - EDGE_WIDTH) navigate(1, "forward", "pointer");
+  }, [navigate, openDialog]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (openDialog || event.altKey || event.ctrlKey || event.metaKey) return;
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, button, a, [contenteditable='true']")) return;
-      if (event.key === "ArrowRight") navigate(pageIndex + 1, "forward");
-      if (event.key === "ArrowLeft") navigate(pageIndex - 1, "backward");
+      if (event.key === "ArrowRight") navigate(1, "forward", "keyboard");
+      if (event.key === "ArrowLeft") navigate(-1, "backward", "keyboard");
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [navigate, openDialog, pageIndex]);
+  }, [navigate, openDialog]);
 
   const openOverlay = (name: Exclude<DialogName, null>, event: string, origin?: HTMLElement) => {
     overlayStarted.current = performance.now();
@@ -146,6 +163,8 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
   const readAgain = () => {
     track("report.read_again.v1", pageEvent(page, pageIndex, pages.length));
     leaveDirection.current = "read_again";
+    if (transitionTimer.current) { clearTimeout(transitionTimer.current); transitionTimer.current = null; }
+    targetIndex.current = 0;
     setCopyStatus("idle");
     setDirection("backward");
     setPageIndex(0);
@@ -162,7 +181,7 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
   };
 
   return (
-    <main className={styles.story} data-direction={direction}>
+    <main className={styles.story} data-direction={direction} data-nav-source={navSource}>
       <header className={styles.top}>
         <div
           className={styles.progress}
@@ -204,8 +223,8 @@ export default function ReportStoryV6({ report }: { report: V61Report }) {
       </section>
 
       <nav className={styles.edgeControls} aria-label="Story navigation">
-        <button className={`${styles.edgeControl} ${styles.edgeBack}`} type="button" disabled={pageIndex === 0} onClick={() => navigate(pageIndex - 1, "backward")}>Back</button>
-        <button className={`${styles.edgeControl} ${styles.edgeNext}`} type="button" disabled={pageIndex === pages.length - 1} onClick={() => navigate(pageIndex + 1, "forward")}>Next</button>
+        <button className={`${styles.edgeControl} ${styles.edgeBack}`} type="button" disabled={pageIndex === 0} onClick={(event) => navigate(-1, "backward", activationSource(event))}>Back</button>
+        <button className={`${styles.edgeControl} ${styles.edgeNext}`} type="button" disabled={pageIndex === pages.length - 1} onClick={(event) => navigate(1, "forward", activationSource(event))}>Next</button>
       </nav>
 
       <NativeDialog open={openDialog === "evidence"} title={page.evidence?.headline ?? "Why this?"} onClose={() => closeOverlay("evidence", "report.evidence_closed.v1")}>
@@ -457,37 +476,23 @@ function WordCascade({ text, bridge }: { text: string; bridge: boolean }) {
 
 function OdometerNumber({ value, suffix = "", direction = "forward", delay = 0 }: { value: number; suffix?: string; direction?: Direction; delay?: number }) {
   const target = String(Math.max(0, Math.round(value)));
-  const previousValue = useRef(0);
-  const previous = String(Math.max(0, Math.round(previousValue.current))).padStart(target.length, "0");
-  useEffect(() => { previousValue.current = value; }, [value]);
+  // Digits are revealed behind a mask instead of cycled through a wheel, so no
+  // value other than the settled one is ever legible. The unit follows the last
+  // digit, so a number is never readable next to a unit it does not yet equal.
+  const settleDelay = delay + (target.length - 1) * DIGIT_STAGGER + DIGIT_REVEAL;
   return <span className={styles.odometer} aria-label={`${target}${suffix}`} data-odometer-value={target}>
     <span className={styles.odometerDigits} aria-hidden="true" style={{ "--digit-count": target.length } as CSSProperties}>
-      {target.split("").map((digit, index) => {
-        const from = Number(previous[previous.length - target.length + index] ?? "0");
-        const to = Number(digit);
-        const sequence = digitSequence(from, to, direction);
-        const displaySequence = direction === "backward" ? [...sequence].reverse() : sequence;
-        return <span className={styles.odometerColumn} key={`${index}-${from}-${to}-${direction}`}>
+      {target.split("").map((digit, index) => (
+        <span className={styles.odometerColumn} key={`${index}-${digit}-${direction}`}>
           <span
             className={`${styles.odometerTrack} ${direction === "backward" ? styles.odometerDown : styles.odometerUp}`}
-            style={{ "--digit-delay": `${delay + index * 65}ms`, "--digit-travel": sequence.length - 1 } as CSSProperties}
-          >{displaySequence.map((item, itemIndex) => <span key={`${item}-${itemIndex}`}>{item}</span>)}</span>
-        </span>;
-      })}
+            style={{ "--digit-delay": `${delay + index * DIGIT_STAGGER}ms` } as CSSProperties}
+          >{digit}</span>
+        </span>
+      ))}
     </span>
-    {suffix && <span className={styles.odometerSuffix} aria-hidden="true" key={suffix} style={{ "--suffix-delay": `${delay}ms` } as CSSProperties}>{suffix}</span>}
+    {suffix && <span className={styles.odometerSuffix} aria-hidden="true" key={suffix} style={{ "--suffix-delay": `${settleDelay}ms` } as CSSProperties}>{suffix}</span>}
   </span>;
-}
-
-function digitSequence(from: number, to: number, direction: Direction): number[] {
-  if (from === to) return [to];
-  const sequence = [from];
-  let digit = from;
-  while (digit !== to) {
-    digit = direction === "backward" ? (digit + 9) % 10 : (digit + 1) % 10;
-    sequence.push(digit);
-  }
-  return sequence;
 }
 
 function ShareSummary({ summary, copyStatus, fallbackUrl, onCopy }: { summary: NonNullable<StoryPage["share"]>; copyStatus: "idle" | "copied" | "failed"; fallbackUrl: string; onCopy: () => void }) {
@@ -584,6 +589,10 @@ function usePageAnalytics(page: StoryPage, index: number, total: number, reduced
 
 function pageEvent(page: StoryPage, index: number, total: number) {
   return { schema: "free-dna-report-6.1.0", page_id: page.id, chapter: page.chapter, page_index: index + 1, page_total: total };
+}
+// A click synthesised by Enter/Space reports detail 0; a real pointer click does not.
+function activationSource(event: { detail: number }): NavSource {
+  return event.detail === 0 ? "keyboard" : "pointer";
 }
 function roundedDuration(started: number): number { return Math.max(0, Math.round((performance.now() - started) / 100) * 100); }
 function titleCase(value: string): string { return value.toLowerCase().replace(/(^|_)([a-z])/g, (_match, prefix, letter) => `${prefix ? " " : ""}${letter.toUpperCase()}`); }

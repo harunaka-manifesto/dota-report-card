@@ -12,6 +12,11 @@
 .story h1, .story h2, .story h3, .story p, .story ul, .story ol, .story dl { margin: 0; }
 .story button, .story input { font: inherit; }
 .story button:focus-visible, .story a:focus-visible, .story input:focus-visible, .receipt:focus-visible, .receiptStatic:focus-visible, .dialog :focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+/* The heading is focused programmatically after every page change so the story
+   stays navigable by screen reader. Pointer users should not see the ring that
+   focus move produces; keyboard users must. */
+.headline:focus, .receipt h1:focus, .receiptStatic h1:focus { outline: none; }
+.story[data-nav-source="keyboard"] .headline:focus, .story[data-nav-source="keyboard"] .receipt h1:focus, .story[data-nav-source="keyboard"] .receiptStatic h1:focus { outline: 2px solid #fff; outline-offset: 4px; }
 
 .top {
   z-index: 2;
@@ -66,7 +71,7 @@
 .story[data-direction="backward"] .leaving { opacity: 0; transform: translateY(6px); }
 .story[data-direction="forward"] .entering { opacity: 0; transform: translateY(10px); }
 .story[data-direction="backward"] .entering { opacity: 0; transform: translateY(-10px); }
-.center { display: grid; align-content: center; justify-items: center; text-align: center; }
+.center { display: grid; align-content: center; justify-items: center; gap: clamp(20px, 3.4vh, 44px); text-align: center; }
 .split { display: grid; align-content: center; gap: 34px; }
 
 .bridge {
@@ -152,9 +157,10 @@
 .page:has(.bridge) .signatureRow { animation-delay: calc(2400ms + var(--row-index) * 140ms); }
 @keyframes rowReveal { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
-.receipt, .receiptStatic { display: grid; justify-items: center; gap: 18px; text-align: center; }
+.receipt, .receiptStatic { display: grid; justify-items: center; gap: 18px; max-width: 100%; text-align: center; }
+.receipt > *, .receiptStatic > * { max-width: 100%; min-width: 0; }
 .receipt { user-select: none; touch-action: pan-y; }
-.receipt h1, .receiptStatic h1, .receiptStatic strong { color: #fff; font-size: clamp(48px, 10vw, 96px); font-weight: 600; letter-spacing: -.045em; line-height: 1; }
+.receipt h1, .receiptStatic h1, .receiptStatic strong { max-width: 100%; color: #fff; font-size: clamp(40px, 9vw, 96px); font-weight: 600; letter-spacing: -.045em; line-height: 1.06; overflow-wrap: break-word; text-wrap: balance; }
 .receipt p, .receiptStatic span, .receiptStatic small { display: block; color: rgb(255 255 255 / .62); font-size: clamp(17px, 2vw, 24px); font-weight: 500; letter-spacing: 0; }
 .receipt p { opacity: 0; animation: receiptSubtitle 520ms cubic-bezier(.22, 1, .36, 1) var(--receipt-subtitle-delay) both; }
 .receipt ul, .receiptStatic ul { display: flex; max-width: 780px; flex-wrap: wrap; justify-content: center; gap: 8px 20px; padding: 10px 0 0; list-style: none; color: rgb(255 255 255 / .7); }
@@ -165,16 +171,15 @@
 .receiptStatic strong { font-size: clamp(30px, 6vw, 62px); }
 @keyframes receiptSubtitle { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
-.odometer { display: inline-flex; align-items: baseline; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.odometerDigits { display: inline-flex; width: calc(var(--digit-count) * .62em); align-items: baseline; overflow: hidden; transition: width 360ms cubic-bezier(.22, 1, .36, 1); }
-.odometerColumn { display: inline-block; width: .62em; height: 1em; overflow: hidden; line-height: 1; }
-.odometerTrack { display: grid; line-height: 1; }
-.odometerTrack > span { display: block; height: 1em; }
-.odometerUp { animation: odometerUp 720ms cubic-bezier(.22, 1, .36, 1) var(--digit-delay) both; }
-.odometerDown { animation: odometerDown 720ms cubic-bezier(.22, 1, .36, 1) var(--digit-delay) both; }
-.odometerSuffix { white-space: pre; animation: suffixReveal 360ms ease var(--suffix-delay) both; }
-@keyframes odometerUp { from { transform: translateY(0); } to { transform: translateY(calc(var(--digit-travel) * -1em)); } }
-@keyframes odometerDown { from { transform: translateY(calc(var(--digit-travel) * -1em)); } to { transform: translateY(0); } }
+.odometer { font-variant-numeric: tabular-nums; }
+.odometerDigits { display: inline-flex; width: calc(var(--digit-count) * .62em); align-items: baseline; vertical-align: baseline; white-space: nowrap; }
+.odometerColumn { display: inline-block; width: .62em; height: 1.06em; overflow: hidden; line-height: 1.06; }
+.odometerTrack { display: block; height: 1.06em; line-height: 1.06; }
+.odometerUp { animation: odometerUp 460ms cubic-bezier(.22, 1, .36, 1) var(--digit-delay) both; }
+.odometerDown { animation: odometerDown 460ms cubic-bezier(.22, 1, .36, 1) var(--digit-delay) both; }
+.odometerSuffix { animation: suffixReveal 360ms ease var(--suffix-delay) both; }
+@keyframes odometerUp { from { transform: translateY(1.06em); } to { transform: none; } }
+@keyframes odometerDown { from { transform: translateY(-1.06em); } to { transform: none; } }
 @keyframes suffixReveal { from { opacity: 0; } to { opacity: 1; } }
 
 .shareSummary { display: grid; gap: 16px; }
@@ -227,6 +232,5 @@
 @media (prefers-reduced-motion: reduce) {
   .page, .progressDone::after, .progressTodo::after, .bridge, .headline, .eyebrow, .detail, .evidenceButton, .subtitleWord, .stagedRow, .signatureRow, .receipt, .receipt li, .receipt p, .dialog[open], .copyStatus, .odometerDigits, .odometerTrack, .odometerSuffix { animation: none !important; transition: none !important; opacity: 1 !important; }
   .page, .bridge, .headline, .eyebrow, .detail, .evidenceButton, .subtitleWord, .stagedRow, .signatureRow, .receipt, .receipt li, .receipt p, .dialog[open], .copyStatus { transform: none !important; }
-  .odometerUp { transform: translateY(calc(var(--digit-travel) * -1em)) !important; }
-  .odometerDown { transform: none !important; }
+  .odometerUp, .odometerDown { transform: none !important; }
 }
