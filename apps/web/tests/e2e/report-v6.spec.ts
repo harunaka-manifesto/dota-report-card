@@ -109,7 +109,7 @@ test.describe("Free Dota DNA v6.1 story", () => {
     await expect(page.getByRole("heading", { name: /a year of Dota left receipts/ })).toBeFocused();
   });
 
-  test("receipt follows the paced sequence, settles once, and restarts on return", async ({ page }, testInfo) => {
+  test("the receipt accumulates, settles once, and stays settled on return", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "Timing boundaries are covered once in Chromium.");
     test.setTimeout(30_000);
     await page.addInitScript(() => {
@@ -122,30 +122,43 @@ test.describe("Free Dota DNA v6.1 story", () => {
     const receipt = page.locator("[data-receipt-stage]");
     await expect(receipt).toHaveAttribute("data-receipt-stage", "0");
     await expect(receipt.getByLabel("365 days")).toHaveAttribute("data-odometer-value", "365");
-    await page.waitForTimeout(1_650);
+    await page.waitForTimeout(1_000);
     await expect(receipt).toHaveAttribute("data-receipt-stage", "0");
-    await expect(receipt).toHaveAttribute("data-receipt-stage", "1", { timeout: 1_000 });
-    await expect(receipt).toHaveAttribute("data-receipt-stage", "2", { timeout: 2_200 });
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "1", { timeout: 1_200 });
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "2", { timeout: 1_800 });
     await expect(receipt).toContainText("Death Exposure");
-    await expect(receipt).toHaveAttribute("data-receipt-stage", "3", { timeout: 3_200 });
+    await expect(receipt).toHaveAttribute("data-receipt-stage", "3", { timeout: 2_200 });
     await expect(receipt.getByLabel(/most-played heroes/)).toHaveAttribute("data-odometer-value", "5");
-    await page.waitForTimeout(2_100);
+
+    // A receipt accumulates: every fact is still on screen when the last arrives.
+    await expect(receipt).toContainText("365");
+    await expect(receipt).toContainText("made the cut");
+    await expect(receipt).toContainText("did the measuring");
+    await expect(receipt).toContainText("give us somewhere familiar to start");
+
+    await page.waitForTimeout(1_800);
     await expect(receipt).toHaveAttribute("data-receipt-stage", "3");
     const completed = await page.evaluate(() => ((window as typeof window & { events?: Array<{ event?: string }> }).events ?? []).filter((item) => item.event === "report.scope_sequence_completed.v1").length);
     expect(completed).toBe(1);
 
+    // Returning to a settled receipt shows the finished list rather than
+    // performing the sequence again, and does not complete a second time.
     await page.mouse.click(8, 400);
     await expect.poll(() => currentPageId(page)).toBe("arrival");
     await page.mouse.click(1272, 400);
     await expect.poll(() => currentPageId(page)).toBe("scope-receipt");
-    await expect(page.locator("[data-receipt-stage]")).toHaveAttribute("data-receipt-stage", "0");
+    await expect(page.locator("[data-receipt-stage]")).toHaveAttribute("data-receipt-stage", "3");
+    const completedAgain = await page.evaluate(() => ((window as typeof window & { events?: Array<{ event?: string }> }).events ?? []).filter((item) => item.event === "report.scope_sequence_completed.v1").length);
+    expect(completedAgain).toBe(1);
 
+    // A report with no hero rows ends its receipt one fact early.
     await page.goto("/report/v61-no-heroes-fixture");
     await useStoryControl(page, "Next");
     const signalEnding = page.locator("[data-receipt-stage]");
     await expect(signalEnding).toHaveAttribute("data-receipt-stage", "2", { timeout: 6_000 });
-    await page.waitForTimeout(3_000);
+    await page.waitForTimeout(2_500);
     await expect(signalEnding).toHaveAttribute("data-receipt-stage", "2");
+    await expect(signalEnding).not.toContainText("most-played heroes");
   });
 
   test("holding the receipt pauses pointer and keyboard timelines exactly where they are", async ({ page }, testInfo) => {
@@ -242,9 +255,9 @@ test.describe("Free Dota DNA v6.1 story", () => {
     const evidence = page.getByRole("button", { name: "Why this?" });
     if (await evidence.count()) {
       await evidence.click();
-      await expect(page.getByRole("dialog")).toBeVisible();
+      await expect(page.getByRole("region", { name: "Why this?" })).toBeVisible();
       await page.keyboard.press("Escape");
-      await expect(page.getByRole("dialog")).toBeHidden();
+      await expect(page.getByRole("region", { name: "Why this?" })).toHaveCount(0);
     }
 
     await goTo(page, "end");
@@ -327,14 +340,20 @@ test.describe("Free Dota DNA v6.1 story", () => {
     await goTo(page, "pool-width");
     const evidence = page.getByRole("button", { name: "Why this?" });
     await evidence.click();
-    await expect(page.getByRole("dialog")).toBeVisible();
+    // Evidence is one layer beneath the story, not a window on top of it: the
+    // disclosure expands inside the page it belongs to and no dialog opens.
+    const panel = page.getByRole("region", { name: "Why this?" });
+    await expect(panel).toBeVisible();
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
+    await expect(evidence).toHaveAttribute("aria-expanded", "true");
+    await expect(panel).toBeFocused();
     await expect(page.getByLabel("72 comparable matches")).toHaveAttribute("data-odometer-value", "72");
     await expect(page.getByLabel("18 sessions")).toHaveAttribute("data-odometer-value", "18");
     const before = await currentPageId(page);
     await page.keyboard.press("ArrowRight");
     expect(await currentPageId(page)).toBe(before);
     await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).toBeHidden();
+    await expect(panel).toHaveCount(0);
     await expect(evidence).toBeFocused();
 
     await goTo(page, "end");
@@ -449,14 +468,11 @@ test.describe("Free Dota DNA v6.1 story", () => {
     const values = new Set<string>();
     const deadline = Date.now() + 11_000;
     while (Date.now() < deadline) {
-      const sample = await page.evaluate(() => {
-        const odometer = document.querySelector("[data-page-id] h1 [data-odometer-value]");
-        if (!odometer) return null;
-        const settled = odometer.getAttribute("data-odometer-value") ?? "";
-        const painted = [...odometer.querySelectorAll("[class*=odometerColumn]")].map((column) => column.textContent).join("");
-        return { settled, painted };
-      });
-      if (sample) {
+      const samples = await page.evaluate(() => [...document.querySelectorAll("[data-page-id] [data-odometer-value]")].map((odometer) => ({
+        settled: odometer.getAttribute("data-odometer-value") ?? "",
+        painted: [...odometer.querySelectorAll("[class*=odometerColumn]")].map((column) => column.textContent).join(""),
+      })));
+      for (const sample of samples) {
         values.add(sample.settled);
         if (sample.painted !== sample.settled) wrong.push(`${sample.painted} shown while settled value is ${sample.settled}`);
       }
@@ -511,6 +527,160 @@ test.describe("Free Dota DNA v6.1 story", () => {
     expect(afterKeyboard.source).toBe("keyboard");
     expect(afterKeyboard.focused).toBe("H1");
     expect(afterKeyboard.outline).not.toBe("none");
+  });
+
+  test("every page completes inside the reading budget and never blanks the frame", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Frame timing is covered once in Chromium.");
+    test.setTimeout(60_000);
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/report/v61-3-fixture");
+    const settled = () => page.evaluate(() => {
+      const composed = document.querySelector("[data-page-id]");
+      if (!composed) return null;
+      const band = (fragment: string) => [...composed.querySelectorAll("*")]
+        .find((node) => typeof node.className === "string" && node.className.includes(fragment));
+      const opacity = (node: Element | undefined) => (node ? Number(getComputedStyle(node).opacity) : null);
+      return {
+        id: composed.getAttribute("data-page-id"),
+        page: Number(getComputedStyle(composed).opacity),
+        parts: [opacity(band("voiceInterpretation")), opacity(band("voiceObservation")), opacity(band("evidenceControl"))].filter((value): value is number => value !== null),
+      };
+    });
+
+    const slow: string[] = [];
+    let blankFrames = 0;
+    const total = Number(await page.getByRole("progressbar").getAttribute("aria-valuemax"));
+    for (let index = 1; index < total; index += 1) {
+      await useStoryControl(page, "Next");
+      const started = Date.now();
+      let complete: number | null = null;
+      while (Date.now() - started < 3_000) {
+        const state = await settled();
+        if (state) {
+          if (state.page === 0) blankFrames += 1;
+          if (state.parts.length > 0 && state.parts.every((value) => value >= 0.98)) { complete = Date.now() - started; break; }
+        }
+        await page.waitForTimeout(20);
+      }
+      const id = await currentPageId(page);
+      // The scope receipt is the one page with a deliberate paced sequence of its
+      // own; its timing is covered by the receipt test, not by this budget.
+      if (id !== "scope-receipt" && (complete === null || complete >= 900)) slow.push(`${id} ${complete === null ? "never settled" : `${complete}ms`}`);
+      await page.waitForTimeout(120);
+    }
+    expect(slow, "pages slower than the 900ms reading budget").toEqual([]);
+    expect(blankFrames, "frames where the page was fully transparent").toBe(0);
+  });
+
+  test("backward navigation re-composes instead of replaying the reveal", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "Frame timing is covered once in Chromium.");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/report/v61-3-fixture");
+    await goTo(page, "finding-post-loss");
+    await page.waitForTimeout(900);
+    const started = Date.now();
+    await useStoryControl(page, "Back");
+    let complete: number | null = null;
+    while (Date.now() - started < 2_000) {
+      const state = await page.evaluate(() => {
+        const composed = document.querySelector("[data-page-id]");
+        if (composed?.getAttribute("data-page-id") !== "finding-transfer") return null;
+        const bands = [...composed.querySelectorAll("*")].filter((node) => typeof node.className === "string" && /voiceInterpretation|voiceObservation/.test(node.className));
+        return bands.length > 0 && bands.every((node) => Number(getComputedStyle(node).opacity) >= 0.98);
+      });
+      if (state) { complete = Date.now() - started; break; }
+      await page.waitForTimeout(15);
+    }
+    expect(complete, "backward navigation never settled").not.toBeNull();
+    expect(complete!, "backward navigation should not re-perform the entrance").toBeLessThan(400);
+    await expect(page.locator("[data-page-id]")).toHaveAttribute("data-entrance", "composed");
+  });
+
+  test("the Signature states its sentence once", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const fixture of ["v61-3-fixture", "v61-historical-production-fixture"]) {
+      await page.goto(`/report/${fixture}`);
+      const ids = await pageIds(page);
+      if (!ids.includes("signature-reveal")) continue;
+      await page.goto(`/report/${fixture}`);
+      await goTo(page, "signature-reveal");
+      const occurrences = await page.evaluate(() => {
+        const composed = document.querySelector("[data-page-id]") as HTMLElement;
+        const flatten = (value: string) => value.toLowerCase().replace(/[\s.,;:!?’'"]+/g, " ").trim();
+        const headline = flatten(composed.querySelector("h1")?.textContent ?? "");
+        const body = flatten(composed.innerText);
+        if (!headline) return 0;
+        let count = 0;
+        let cursor = body.indexOf(headline);
+        while (cursor !== -1) { count += 1; cursor = body.indexOf(headline, cursor + headline.length); }
+        return count;
+      });
+      expect(occurrences, `${fixture} repeats its Signature sentence`).toBe(1);
+    }
+  });
+
+  test("chapters compose with their own proportion and the margin never blinks", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/report/v61-3-fixture");
+    const seen: Array<{ id: string; chapter: string; voices: string; hairline: boolean; margin: boolean }> = [];
+    const total = Number(await page.getByRole("progressbar").getAttribute("aria-valuemax"));
+    for (let index = 0; index < total; index += 1) {
+      seen.push(await page.evaluate(() => {
+        const composed = document.querySelector("[data-page-id]") as HTMLElement;
+        const marginText = [...document.querySelectorAll("aside")].map((node) => node.textContent ?? "").join("");
+        return {
+          id: composed.getAttribute("data-page-id") ?? "",
+          chapter: composed.getAttribute("data-chapter") ?? "",
+          voices: composed.getAttribute("data-voices") ?? "",
+          hairline: [...composed.querySelectorAll("*")].some((node) => typeof node.className === "string" && node.className.includes("hairline")),
+          margin: marginText.trim().length > 0,
+        };
+      }));
+      if (index < total - 1) { await useStoryControl(page, "Next"); await page.waitForTimeout(80); }
+    }
+    // The frame is outside the swapping content: it is present on every page.
+    expect(seen.every((entry) => entry.margin)).toBe(true);
+    expect(seen.every((entry) => entry.chapter.length > 0)).toBe(true);
+    // Two-voice chapters carry the hairline that encodes their proportion; the
+    // chapters that speak with one voice do not.
+    for (const entry of seen) {
+      expect(entry.hairline, `${entry.id} hairline vs data-voices=${entry.voices}`).toBe(entry.voices === "two");
+    }
+    expect(seen.filter((entry) => entry.voices === "two").length).toBeGreaterThan(0);
+    expect(seen.filter((entry) => entry.voices === "one").length).toBeGreaterThan(0);
+  });
+
+  test("short viewports keep every page reachable without horizontal overflow", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const [width, height] of [[375, 600], [375, 812], [768, 500]] as const) {
+      await page.setViewportSize({ width, height });
+      await page.goto("/report/v61-3-fixture");
+      const total = Number(await page.getByRole("progressbar").getAttribute("aria-valuemax"));
+      const problems: string[] = [];
+      for (let index = 0; index < total; index += 1) {
+        problems.push(...await page.evaluate(() => {
+          const found: string[] = [];
+          const composed = document.querySelector("[data-page-id]") as HTMLElement;
+          const id = composed.getAttribute("data-page-id");
+          if (document.documentElement.scrollWidth - document.documentElement.clientWidth > 1) found.push(`${id}: horizontal overflow`);
+          const walker = document.createTreeWalker(composed, NodeFilter.SHOW_ELEMENT);
+          let node = walker.currentNode as Element | null;
+          while (node) {
+            if (node.childElementCount === 0 && node.textContent?.trim()) {
+              const box = node.getBoundingClientRect();
+              if (box.width > 0 && (box.right > window.innerWidth + 1 || box.left < -1)) found.push(`${id}: clipped "${node.textContent.trim().slice(0, 24)}"`);
+            }
+            node = walker.nextNode() as Element | null;
+          }
+          return found;
+        }));
+        if (index < total - 1) { await useStoryControl(page, "Next"); await page.waitForTimeout(70); }
+      }
+      expect(problems, `at ${width}x${height}`).toEqual([]);
+    }
   });
 
   test("never renders removed UI or private analytical fields", async ({ page }) => {
