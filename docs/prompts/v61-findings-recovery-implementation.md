@@ -1,29 +1,37 @@
 # V6.1 Findings Recovery — Implementation Specification
 
 Status: **BLOCKED_FOR_IMPLEMENTATION —
-READY_FOR_MARGIN_STABILITY_AND_MULTIPLICITY_CALIBRATION**.
+BLOCKED_PENDING_SESSION_MARGIN_AND_PRESENCE_CONFOUNDER_REVIEW**.
 
 Do not implement this draft. The 2026-08-27 hardening run rejected the proposed
 scalar-centered bootstrap. The product redesign then demoted Pool Shape to the
 existing Breadth and Toolkit Elements and replaced Combat Expression with
 Presence & Exposure. A subsequent research pass validated session
 signed-prevalence randomization for Transfer, Post-Loss, Presence & Exposure,
-and Session Drift under the predeclared synthetic Type-I gates. The detailed
-five-family rules below are preserved as historical recovery material, not an
-executable specification.
+and Session Drift under the predeclared synthetic Type-I gates. The tuning-only
+pass calibrated Transfer and Post-Loss with limitations and validated a fixed
+four-family BY candidate, but Session Drift lacked enough margin evidence and
+Presence & Exposure was overwhelmingly population-common in one direction.
+The detailed five-family rules below are preserved as historical recovery
+material, not an executable specification.
 
 Before this prompt can become implementation-ready, the next authorized
 analytical pass must:
 
-- derive tuning-only practical margins without targeting publication yield;
-- freeze executable stability and robustness gates; and
-- validate the retained p-value dependence before choosing multiplicity rules.
+- redesign, defer, or demote Presence & Exposure after an explicit
+  confounder/negative-control review;
+- retain the Session Drift contract and obtain enough authorized margin
+  evidence, or register a replacement construct; and
+- rerun Type-I and tuning validation for any changed family before candidate
+  implementation or fresh sealed holdout selection.
 
 See `docs/evidence/free-dna-v6.1-findings-statistical-hardening-2026-08-27.md`,
 `docs/evidence/free-dna-v6.1-family-null-models-2026-08-27.md`, and
 `docs/evidence/free-dna-v6.1-pool-combat-family-redesign-2026-08-27.md`. The
 controlling four-family research contracts and validation record are in
-`docs/evidence/free-dna-v6.1-four-family-inference-design-2026-08-27.md`.
+`docs/evidence/free-dna-v6.1-four-family-inference-design-2026-08-27.md`. The
+tuning result and exact stop conditions are in
+`docs/evidence/free-dna-v6.1-four-family-tuning-calibration-2026-08-28.md`.
 
 ## Scope and hard firewall
 
