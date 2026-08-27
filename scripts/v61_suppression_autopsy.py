@@ -305,6 +305,50 @@ def _support(
     }
 
 
+def _bootstrap_summary(
+    values: Any,
+    *,
+    observed: float | None = None,
+    null: float = 0.0,
+) -> dict[str, Any]:
+    """Summarize stored draws without persisting player-level bootstrap data."""
+
+    if isinstance(values, (str, bytes)) or not isinstance(values, (list, tuple)):
+        return {"iterations": 0, "usable_iterations": 0, "observed": observed}
+    finite = []
+    for value in values:
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError):
+            continue
+        if math.isfinite(parsed):
+            finite.append(parsed)
+    if not finite:
+        return {"iterations": len(values), "usable_iterations": 0, "observed": observed}
+    point = float(observed) if observed is not None and math.isfinite(float(observed)) else sum(finite) / len(finite)
+    ordered = sorted(finite)
+
+    def percentile(fraction: float) -> float:
+        position = (len(ordered) - 1) * fraction
+        lower, upper = math.floor(position), math.ceil(position)
+        if lower == upper:
+            return ordered[lower]
+        return ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
+
+    threshold = abs(point - null)
+    deviations = [abs(value - point) for value in finite]
+    return {
+        "iterations": len(values),
+        "usable_iterations": len(finite),
+        "observed": point,
+        "mean": sum(finite) / len(finite),
+        "ci95": [percentile(0.025), percentile(0.975)],
+        "current_production_p": (1 + sum(abs(value - null) >= threshold for value in finite)) / (len(finite) + 1),
+        "corrected_null_centered_p": (1 + sum(value >= threshold for value in deviations)) / (len(finite) + 1),
+        "null": null,
+    }
+
+
 def _family_trace(
     family: str,
     *,
@@ -340,9 +384,31 @@ def _family_trace(
         if isinstance(value, dict)
     }
     selected_branch = branch_audit.get(semantic_key, {}) if semantic_key else {}
-    production = evidence.get("production_bootstrap", {}).get("semantic_statistics", {})
+    production_bootstrap = evidence.get("production_bootstrap", {})
+    production = production_bootstrap.get("semantic_statistics", {})
     availability = production.get("availability", {}).get(family, {})
     branch_samples = production.get("branches", {}).get(family, {})
+    family_samples = production.get("families", {}).get(family, [])
+    element_points = {
+        str(key): value.get("point")
+        for key, value in production_bootstrap.get("elements", {}).items()
+        if isinstance(value, dict) and isinstance(value.get("point"), (int, float))
+    }
+    observed_points = {
+        "pool_shape": (
+            float(element_points["breadth"]) - float(element_points["toolkit"])
+            if "breadth" in element_points and "toolkit" in element_points
+            else None
+        ),
+        "transfer": element_points.get("transfer"),
+        "post_loss_response": element_points.get("finishing"),
+        "combat_expression": (
+            float(element_points["involvement"]) - float(element_points["death_exposure"])
+            if "involvement" in element_points and "death_exposure" in element_points
+            else None
+        ),
+        "session_drift": element_points.get("consistency"),
+    }
     semantic_evidence_complete = bool(
         availability.get("available")
         and _int(availability.get("usable_iterations")) == 2000
@@ -404,6 +470,20 @@ def _family_trace(
             "raw_p_values": branch_raw,
             "q_values": branch_q,
             "unconditional_q_values": _bh(branch_raw) if branch_raw else {},
+        },
+        "bootstrap": {
+            "source": production.get("source"),
+            "point_basis": "mean of stored family draws; current runtime does not expose a family-level point field",
+            "reported_element_points": observed_points,
+            "family": _bootstrap_summary(family_samples),
+            "branches": {
+                str(key): _bootstrap_summary(value)
+                for key, value in branch_samples.items()
+            },
+            "branch_samples_identical_to_family": {
+                str(key): list(value) == list(family_samples)
+                for key, value in branch_samples.items()
+            },
         },
         "publication": {
             "public_candidate": bool(definition and definition.rollout_status == "public_candidate"),
