@@ -1,9 +1,24 @@
 # V6.1 Findings Recovery — Implementation Specification
 
-Status: implementation plan only. This prompt is downstream of the research
-recovery task. The worker must not choose a statistical method, threshold,
-multiplicity design, branch meaning, or validation rule; all decisions are
-fixed below.
+Status: **BLOCKED_PENDING_STATISTICAL_METHOD**.
+
+Do not implement this draft. The 2026-08-27 hardening run rejected the proposed
+scalar-centered bootstrap for all five family statistic classes. The rules
+below are preserved as the recovery proposal, not an executable specification.
+
+Before this prompt can become implementation-ready, a new statistical pass
+must:
+
+- define the exact Combat component vector, standardization, and omnibus null;
+- replace scalar centering of Transfer, Post-Loss, Combat, and Session maxima
+  with a jointly null-imposed family pivot and validate each family separately;
+- replace or studentize the Pool scalar test, which reached null alpha 0.120;
+- rerun Type-I and power/coverage validation before deriving margins;
+- derive tuning-only practical margins without targeting publication yield;
+- freeze executable stability and robustness gates; and
+- validate the five resulting p-values before retaining fixed BH at `q=.05`.
+
+See `docs/evidence/free-dna-v6.1-findings-statistical-hardening-2026-08-27.md`.
 
 ## Scope and hard firewall
 
@@ -72,7 +87,10 @@ class BootstrapInference:
     state: str
 ```
 
-The p helper must accept the point estimate separately:
+### Rejected helper — do not implement
+
+The recovery proposal asked the p helper to accept the point estimate
+separately:
 
 ```python
 def null_centered_bootstrap_p(
@@ -82,8 +100,12 @@ def null_centered_bootstrap_p(
     return (extreme + 1) / (len(draws) + 1)
 ```
 
-Reject empty/non-finite draws. Do not use the current
-`_empirical_two_sided_p` implementation for the candidate.
+This is not a valid family-level test specification. For max statistics it
+centers only the selected scalar maximum and loses the joint component null;
+for the Pool scalar it was still anti-conservative in several clustered nulls.
+Reject empty/non-finite draws, but do not substitute this helper for the
+current implementation or begin candidate implementation until a replacement
+method is frozen.
 
 ## Resampling
 
