@@ -147,7 +147,7 @@ def field_rows(details: list[tuple[Path, dict[str, Any]]]) -> list[dict[str, str
     rows = [
         ("death timestamps", "indirect via opponents' players[].kills_log", "YES", "NO", "LOW", "event seconds", "14/19 captured matches have fewer kill-log entries than total deaths", "NO"),
         ("player identity/slot", "players[].player_slot and hero_id", "YES", "NO", "HIGH", "player-match", "present on 190/190 parsed player rows", "YES"),
-        ("teamfight windows/membership", "teamfights[start,end,players[].deaths]", "YES", "NO", "MEDIUM", "heuristic event window", "present in all %d captured parsed details; all player arrays length 10" % detail_count, "NEEDS QA"),
+        ("teamfight windows/membership", "teamfights[start,end,players[].deaths]", "YES", "NO", "MEDIUM", "heuristic event window", f"present in all {detail_count} captured parsed details; all player arrays length 10", "NEEDS QA"),
         ("gold-advantage timeline", "radiant_gold_adv", "YES", "NO", "MEDIUM", "one-minute team series", "present in all captured parsed details; target-panel missingness unknown", "NEEDS QA"),
         ("objective timing", "objectives[].time/type", "YES", "NO", "MEDIUM", "event seconds", "present in all captured parsed details; taxonomy is heterogeneous", "NEEDS QA"),
         ("kill chronology", "players[].kills_log", "YES", "NO", "MEDIUM", "killer-perspective event seconds", "not a direct death log and does not reconcile to total deaths in 14/19 matches", "NEEDS QA"),
@@ -158,10 +158,8 @@ def field_rows(details: list[tuple[Path, dict[str, Any]]]) -> list[dict[str, str
         ("duration", "duration", "YES", "NO", "HIGH", "seconds", "present in captured details", "YES"),
         ("patch", "patch", "YES", "NO", "HIGH", "match enum", "present in all captured parsed details", "YES"),
     ]
-    return [
-        dict(zip(("field", "source", "available_in_already_parsed_detail", "requires_replay_parsing", "semantics_confidence", "unit_resolution", "missingness_provider_caveat", "safe_to_use"), row))
-        for row in rows
-    ]
+    fields = ("field", "source", "available_in_already_parsed_detail", "requires_replay_parsing", "semantics_confidence", "unit_resolution", "missingness_provider_caveat", "safe_to_use")
+    return [{field: row[index] for index, field in enumerate(fields)} for row in rows]
 
 
 def detail_summary(details: list[tuple[Path, dict[str, Any]]]) -> dict[str, Any]:
@@ -278,7 +276,8 @@ def main() -> None:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     with (OUTPUT / "field_feasibility.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
-        writer.writeheader(); writer.writerows(rows)
+        writer.writeheader()
+        writer.writerows(rows)
     write_json("opportunity_denominators.json", {"schema_version": SCHEMA, "primary": {"unit": "death context composition across whole player-matches", "numerator": "deaths inside detected teamfight windows", "denominator": "all player deaths in the selected matches", "minimum_pilot_support": {"matches": 25, "total_deaths": 100}, "clustering": "whole match", "claim_boundary": "Estimates where deaths occur, not the risk of dying given a fight."}, "rejected": ["raw death count", "KDA", "per-death independent inference", "teamfight minutes without alive-state exposure"]})
     write_json("personalization_baseline_options.json", {"schema_version": SCHEMA, "selected": {"estimand": "observed fight-death share minus expected matched share", "primary_strata": ["lane_role", "outcome", "player-team ahead-exposure quintile", "patch"], "primary_minimum_reference_deaths": 100, "hero_sensitivity": "exact hero x outcome x patch, falling back to hero x outcome only when the first cell has fewer than 100 reference deaths", "cross_fit": "leave target profile and match out", "dependency": "whole-match cluster bootstrap", "common_direction_stop": "stop if >=90% of supported profiles share one residual sign"}, "rejected": ["unadjusted population share as final evidence", "raw player death share without context controls", "death-level IID bootstrap"]})
     write_json("family_coherence.json", {"schema_version": SCHEMA, "family": "Death Context — What kind of situations repeatedly lead to your deaths?", "decision": "ONE_ESTIMAND_ONLY", "retained": "fight_vs_nonfight", "discarded": ["ahead_state", "pre_objective", "game_phase", "isolation_proximity"], "reason": "The discarded branches need indirect timestamps, introduce retrospective/generic relationships, or lack position timelines; combining them would create heterogeneous correlated mini-findings."})
