@@ -8,7 +8,26 @@ Research one candidate only:
 
 This is a conditional death-context composition. It is not raw death rate, KDA, fight participation, aggression, positioning quality, skill, intent, or causality.
 
-Status is **PARTIAL** until the bounded Tier-2 pilot verifies teamfight semantics, longitudinal completeness, heterogeneity, control survival, stability, and latency.
+Status is **PARTIAL** until the bounded Tier-2 pilot verifies teamfight semantics, longitudinal completeness, heterogeneity, control survival, stability, and latency. The 2026-08-29 live supplement is collection-blocked and did not produce a pilot estimate.
+
+## Overnight supplement outcome — 2026-08-29
+
+The frozen 32-profile × 30-match panel reproduced with 960 globally unique
+match IDs before any detail inspection. The owner-authorized supplement then
+made 60 direct OpenDota detail GETs: 59 returned valid parsed details and one
+returned HTTP 500. Zero retries, replay parses, replacements, adaptive top-up,
+validation use, holdout use, or non-OpenDota calls occurred.
+
+The terminal state is `PILOT_COLLECTION_BLOCKED`. The full panel was not
+available, so the registered player-match outcome analysis, residuals,
+controls, common-direction guard, bootstrap intervals, and N=10/15/20/25/30
+stability were not evaluated. Shape QA on the 59 successful details remains
+available as structural evidence only; it cannot satisfy the full-panel gates.
+
+The successful responses were preserved in the canonical ignored Tier-2
+corpus. No calibration design was opened, and the production report remains
+unchanged. A future provider attempt requires separate authorization and a
+new campaign; this campaign is not silently retried.
 
 ## Registered estimand
 

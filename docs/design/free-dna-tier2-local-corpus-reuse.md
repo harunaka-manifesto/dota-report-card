@@ -17,7 +17,8 @@ The source campaign is the 2026-08-28 V6.1 Session Drift expansion:
 - source normalized digest: recorded in the local pilot manifest; and
 - source marker: exact `source_version == "22"`.
 
-The Death Context reuse layer is kept in the execution worktree at:
+The Death Context reuse layer is kept in the canonical repository-local
+ignored storage root at:
 
 ```text
 .local/corpora/opendota/free-dna-tier2/
@@ -53,10 +54,22 @@ body matches in that local detail set. Therefore the local layer is reusable
 for shape, provenance, and future offline research, but is not sufficient for
 the registered Death Context outcome analysis.
 
-The pilot leaves blocked analytical outputs in
-`.local/diagnostics/free-dna-death-context-local-reuse-pilot/` rather than
-fabricating player estimates. A future supplement must use the frozen panel,
-request only its missing detail bodies, and obtain fresh owner approval.
+The overnight live supplement on 2026-08-29 made 60 direct detail GETs before
+stopping on one HTTP 500. It retained 59 new raw responses and normalized
+them alongside the 19 earlier referenced records, for 78 total normalized
+records. The frozen 960-detail panel remains incomplete, so no player
+estimates or analytical outcome results were generated. The local live
+diagnostics record `PILOT_COLLECTION_BLOCKED`; the remaining 900-call budget
+was not used.
+
+The canonical corpus manifest records normalized digest
+`09b7322304a001e2fe08e84f742f5e66da15eb5aa97b2dcf235be73f2b6223c3` and
+manifest SHA-256
+`0aa3b41f89812dbced0d8dda138d00845e3b8db4aa25e49091755635e9c2f7b8`.
+The corpus remains reusable for offline schema QA and future research, but it
+does not authorize retrying this campaign. Any future supplement must use a
+newly named, separately approved campaign and preserve this ledger as
+historical provenance.
 
 ## Future uses
 

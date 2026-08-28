@@ -24,7 +24,7 @@ import sys
 import time
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping, Sequence
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -75,7 +75,7 @@ class PilotBlocked(RuntimeError):
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now().astimezone().isoformat()
 
 
 def canonical_bytes(value: Any) -> bytes:
@@ -761,6 +761,90 @@ def ledger_csv_rows(transport: LiveTransport) -> list[dict[str, Any]]:
     return rows
 
 
+def ledger_window_seconds(rows: Sequence[Mapping[str, Any]], starts: Mapping[str, Mapping[str, Any]]) -> float | None:
+    requested = [
+        datetime.fromisoformat(str(starts[str(row["request_id"])]["requested_at"]))
+        for row in rows
+        if str(row["request_id"]) in starts and starts[str(row["request_id"])].get("requested_at")
+    ]
+    completed = [
+        datetime.fromisoformat(str(row["completed_at"]))
+        for row in rows
+        if row.get("completed_at")
+    ]
+    if not requested or not completed:
+        return None
+    return (max(completed) - min(requested)).total_seconds()
+
+
+def batch_measurements_from_ledger(transport: LiveTransport) -> list[dict[str, Any]]:
+    starts = {
+        str(event["request_id"]): event
+        for event in transport.events
+        if event.get("event") == "request_started"
+    }
+    by_batch: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in response_entries(transport):
+        by_batch[str(row.get("batch_id"))].append(row)
+
+    def measurement(
+        name: str,
+        batch_ids: Sequence[str],
+        profile_index: int,
+        requested_matches: int,
+        concurrency: int,
+    ) -> dict[str, Any] | None:
+        rows = [row for batch_id in batch_ids for row in by_batch.get(batch_id, [])]
+        wall_seconds = ledger_window_seconds(rows, starts)
+        if not rows or wall_seconds is None:
+            return None
+        return {
+            "name": name,
+            "profile_index": profile_index,
+            "requested_matches": requested_matches,
+            "observed_responses": len(rows),
+            "failed_responses": sum(row.get("error") is not None for row in rows),
+            "concurrency": concurrency,
+            "wall_seconds": wall_seconds,
+            "observed_from_ledger": True,
+        }
+
+    definitions = (
+        ("qa_sequential", ("qa_sequential",), 0, 4, 1),
+        (
+            "profile_0_20",
+            ("qa_sequential", "profile_0_concurrency_1_first_20"),
+            0,
+            20,
+            1,
+        ),
+        (
+            "profile_0_30",
+            (
+                "qa_sequential",
+                "profile_0_concurrency_1_first_20",
+                "profile_0_concurrency_1_last_10",
+            ),
+            0,
+            30,
+            1,
+        ),
+        ("profile_1_20", ("profile_1_concurrency_5_first_20",), 1, 20, 5),
+        (
+            "profile_1_30",
+            ("profile_1_concurrency_5_first_20", "profile_1_concurrency_5_last_10"),
+            1,
+            30,
+            5,
+        ),
+    )
+    return [
+        result
+        for definition in definitions
+        if (result := measurement(*definition)) is not None
+    ]
+
+
 def cost_ledger(transport: LiveTransport, storage_bytes: int) -> dict[str, Any]:
     calls = transport.physical_count
     failures = sum(row.get("error") is not None for row in transport.responses)
@@ -798,7 +882,10 @@ def numeric_stats(values: Sequence[float]) -> dict[str, Any]:
 
 
 def latency_outputs(
-    transport: LiveTransport, batch_measurements: Sequence[Mapping[str, Any]], analysis_seconds: float | None
+    transport: LiveTransport,
+    batch_measurements: Sequence[Mapping[str, Any]],
+    analysis_seconds: float | None,
+    collection_seconds: float | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     successful = [
         float(row["latency_seconds"])
@@ -841,8 +928,8 @@ def latency_outputs(
         "batch_measurements": list(batch_measurements),
         "local_analysis_seconds": analysis_seconds,
         "total_enrichment_seconds": (
-            max((float(row["latency_seconds"]) for row in transport.responses), default=0.0)
-            if analysis_seconds is None
+            collection_seconds + analysis_seconds
+            if collection_seconds is not None and analysis_seconds is not None
             else None
         ),
         "concurrency_used": sorted({row.get("concurrency") for row in transport.responses}),
@@ -901,6 +988,7 @@ def write_tier2_corpus(
     source_manifest: Mapping[str, Any],
     panel_digest: str,
     salt_sha256: str,
+    analytical_outcome_results_generated: bool = False,
 ) -> dict[str, Any]:
     corpus_root = storage_root / ".local/corpora/opendota/free-dna-tier2"
     manifests = corpus_root / "manifests"
@@ -970,7 +1058,7 @@ def write_tier2_corpus(
         "private_salt_sha256": salt_sha256,
         "frozen_panel_digest": panel_digest,
         "validation_and_holdout_non_use": True,
-        "analytical_outcome_results_generated": bool(selected_ids),
+        "analytical_outcome_results_generated": analytical_outcome_results_generated,
         "records": records,
     }
     manifest_path = manifests / "corpus-manifest.json"
@@ -985,6 +1073,29 @@ def write_tier2_corpus(
             "selected_panel_detail_count": len(selected_ids),
         },
     )
+    private_write(
+        storage_root / ".local/diagnostics/free-dna-death-context-local-reuse-pilot/tier2_detail_index.json",
+        {
+            "schema_version": LIVE_SCHEMA,
+            "provider": PROVIDER,
+            "records": [
+                {
+                    "source_campaign": row["campaign_id"],
+                    "source_raw_path": row["source_raw_path"],
+                    "capture_requested_at": None,
+                    "capture_completed_at": None,
+                    "response_sha256": row["raw_sha256"],
+                    "response_bytes": row["raw_bytes"],
+                    "match_id": row["match_id"],
+                    "profile_pseudonymous_membership_count": len(memberships.get(row["match_id"], [])),
+                    "selected_in_frozen_panel": row["included_in_death_context_panel"],
+                    "parsed_marker": {"version": 22, "od_data.has_parsed": True},
+                }
+                for row in records
+            ],
+            "record_count": len(records),
+        },
+    )
     return {
         "canonical_path": str(corpus_root),
         "manifest_path": str(manifest_path),
@@ -996,6 +1107,7 @@ def write_tier2_corpus(
         "raw_records_referenced": raw_referenced,
         "provenance_preserved": True,
         "reusable_for_future_research": True,
+        "analytical_outcome_results_generated": analytical_outcome_results_generated,
     }
 
 
@@ -1758,7 +1870,10 @@ def write_analysis_outputs(
 
     dominant_n25 = stability["by_n"].get("25", {}).get("stability_criterion_pass")
     dominant_n30 = stability["by_n"].get("30", {}).get("stability_criterion_pass")
-    latency_placeholder, _ = latency_outputs(transport, batch_measurements, None)
+    batch_summary = read_json(live_diag / "batch_latency_summary.json")
+    collection_seconds = batch_summary.get("collection_wall_seconds")
+    if not isinstance(collection_seconds, (int, float)):
+        collection_seconds = None
     recommended_n = 25 if dominant_n25 else 30 if dominant_n30 else None
     coverage = coverage_model(profiles, recommended_n)
     gates = {
@@ -1838,7 +1953,12 @@ def write_analysis_outputs(
         verdict_reason = next(name for name in analytical_gate_names if not gates[name]["passed"])
 
     analysis_seconds = time.monotonic() - analysis_started
-    latency_summary, latency_rows = latency_outputs(transport, batch_measurements, analysis_seconds)
+    latency_summary, latency_rows = latency_outputs(
+        transport,
+        batch_measurements,
+        analysis_seconds,
+        float(collection_seconds) if collection_seconds is not None else None,
+    )
     model = free_user_model(latency_summary, batch_measurements, recommended_n)
     if model["routing"] == "unverified":
         gates["latency_not_over_60_seconds"]["passed"] = False
@@ -1946,6 +2066,7 @@ def write_analysis_outputs(
         source_manifest,
         str(frozen["selection_digest"]),
         str(frozen["private_salt_sha256"]),
+        analytical_outcome_results_generated=True,
     )
     write_json(live_diag / "tier2_corpus_manifest.json", tier2)
     summary = {
@@ -2171,6 +2292,177 @@ async def collect(
         return transport, list(collected.values()), batch_measurements
 
 
+async def materialize_blocked_artifacts(
+    *,
+    paths: Mapping[str, Path],
+    items: Sequence[Mapping[str, Any]],
+    storage_root: Path,
+    profiles: Sequence[Mapping[str, Any]],
+    frozen: Mapping[str, Any],
+    source_manifest: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Write offline receipts for a stopped ledger without issuing another GET."""
+    load_dotenv()
+    base_url = os.getenv("OPENDOTA_BASE_URL", "https://api.opendota.com/api")
+    api_key = os.getenv("OPENDOTA_API_KEY") or None
+    timeout = float(os.getenv("OPENDOTA_TIMEOUT_SECONDS", "15"))
+    batch_path = paths["diagnostics"] / "batch_latency_summary.json"
+    measurements = read_json(batch_path).get("measurements", []) if batch_path.exists() else []
+    async with LiveTransport(paths=paths, base_url=base_url, api_key=api_key, timeout=timeout) as transport:
+        if not measurements:
+            measurements = batch_measurements_from_ledger(transport)
+        starts = {
+            str(event["request_id"]): event
+            for event in transport.events
+            if event.get("event") == "request_started"
+        }
+        collection_wall_seconds = ledger_window_seconds(response_entries(transport), starts)
+        selected_by_profile: dict[str, set[int]] = defaultdict(set)
+        selected_ids: set[int] = set()
+        for item in items:
+            profile_id = str(item["profile_id"])
+            match_id = int(item["match_id"])
+            selected_by_profile[profile_id].add(match_id)
+            selected_ids.add(match_id)
+        completed = set(transport.completed_by_match)
+        successful_details = [
+            transport.cached_detail(item)
+            for item in items
+            if int(item["match_id"]) in completed
+        ]
+        successful_details = [detail for detail in successful_details if detail is not None]
+        selected_ids = {int(item["match_id"]) for item in items}
+        final_collection_artifacts(
+            transport=transport,
+            live_diag=paths["diagnostics"],
+            batch_measurements=measurements,
+            storage_root=storage_root,
+            collection_wall_seconds=collection_wall_seconds,
+        )
+        tier2 = write_tier2_corpus(
+            storage_root,
+            [*load_prior_details(storage_root), *successful_details],
+            profile_membership(profiles),
+            selected_ids,
+            source_manifest,
+            str(frozen["selection_digest"]),
+            str(frozen["private_salt_sha256"]),
+        )
+        write_json(paths["diagnostics"] / "tier2_corpus_manifest.json", tier2)
+        field_rows, field_summary = field_completeness(successful_details)
+        semantics = semantics_audit(successful_details)
+        semantics["overlap_caveat"] = (
+            f"{semantics['overlapping_window_pairs']} overlapping window pairs were observed; "
+            "the frozen numerator remains the provider's indexed teamfight-death sum, "
+            "not an independently timestamped unique-death reconstruction."
+        )
+        write_csv(
+            paths["diagnostics"] / "field_completeness.csv",
+            list(field_rows[0].keys()) if field_rows else ["field", "present", "total", "present_rate"],
+            field_rows,
+        )
+        write_json(paths["diagnostics"] / "teamfight_semantics_audit.json", {
+            **semantics,
+            "analysis_allowed": False,
+            "blocked_reason": "PILOT_COLLECTION_BLOCKED",
+            "available_successful_details": len(successful_details),
+            "required_details": MAX_CALLS,
+        })
+        blocked_analysis = {
+            "schema_version": LIVE_SCHEMA,
+            "status": "NOT_EVALUATED",
+            "reason": "PILOT_COLLECTION_BLOCKED",
+            "available_successful_details": len(successful_details),
+            "required_details": MAX_CALLS,
+        }
+        for name in (
+            "population_baseline.json",
+            "control_attenuation.json",
+            "common_direction_check.json",
+            "stability_by_n.json",
+            "pilot_gate_results.json",
+        ):
+            write_json(paths["diagnostics"] / name, blocked_analysis)
+        write_csv(
+            paths["diagnostics"] / "death_context_match_level.csv",
+            ["status", "reason"],
+            [],
+        )
+        write_csv(
+            paths["diagnostics"] / "death_context_player_level.csv",
+            ["status", "reason"],
+            [],
+        )
+        (paths["diagnostics"] / "profile_estimates.jsonl").write_text("", encoding="utf-8")
+        (paths["diagnostics"] / "profile_estimates.jsonl").chmod(0o600)
+        latency_summary, latency_rows = latency_outputs(
+            transport,
+            measurements,
+            None,
+            collection_wall_seconds,
+        )
+        coverage = coverage_model(profiles, None)
+        model = free_user_model(latency_summary, measurements, None)
+        cost = cost_ledger(
+            transport,
+            directory_size(storage_root / ".local/corpora/opendota/free-dna-tier2")
+            + directory_size(paths["diagnostics"]),
+        )
+        write_json(paths["diagnostics"] / "latency_summary.json", latency_summary)
+        write_json(paths["diagnostics"] / "coverage_model.json", coverage)
+        write_json(paths["diagnostics"] / "free_user_cost_latency_model.json", model)
+        write_json(paths["diagnostics"] / "cost_storage_summary.json", cost)
+        write_csv(
+            paths["diagnostics"] / "latency_measurements.csv",
+            list(latency_rows[0].keys()) if latency_rows else ["ordinal", "match_id", "profile_id", "latency_seconds", "error"],
+            latency_rows,
+        )
+        summary = {
+            "schema_version": LIVE_SCHEMA,
+            "status": "BLOCKED",
+            "terminal_verdict": "PILOT_COLLECTION_BLOCKED",
+            "verdict_reason": transport.error_messages[-1] if transport.error_messages else "COLLECTION_STOPPED",
+            "campaign_id": LIVE_CAMPAIGN,
+            "collection": {
+                "physical_gets": transport.physical_count,
+                "successful": transport.successful_count,
+                "failed": sum(row.get("error") is not None for row in transport.responses),
+                "replay_parse_requests": 0,
+                "retries": 0,
+            },
+            "field_completeness": field_summary,
+            "teamfight_semantics": semantics,
+            "analysis_status": "NOT_RUN",
+            "coverage": coverage,
+            "latency": latency_summary,
+            "tier2_corpus": tier2,
+            "integrity": {
+                "old_holdout_evaluated": 0,
+                "fresh_sealed_validation_analytically_evaluated": 0,
+                "replay_parse_requests": 0,
+                "stratz_calls": 0,
+                "steam_calls": 0,
+                "production_analytical_behavior_changed": False,
+                "deployment": False,
+            },
+        }
+        write_json(paths["diagnostics"] / "aggregate_summary.json", summary)
+        write_json(paths["diagnostics"] / "pilot_verdict.json", {
+            "schema_version": LIVE_SCHEMA,
+            "verdict": "PILOT_COLLECTION_BLOCKED",
+            "reason": summary["verdict_reason"],
+        })
+        return {
+            "physical_gets": transport.physical_count,
+            "successful_gets": transport.successful_count,
+            "profiles_completed": sum(
+                selected.issubset(completed) for selected in selected_by_profile.values()
+            ),
+            "matches_completed": len(completed & selected_ids),
+            "errors": transport.error_messages,
+        }
+
+
 def preflight(
     *, source_root: Path, storage_root: Path, live_diag: Path, overnight_diag: Path
 ) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], dict[str, Any], dict[str, Path]]:
@@ -2258,8 +2550,14 @@ def preflight(
 
 
 def final_collection_artifacts(
-    *, transport: LiveTransport, live_diag: Path, batch_measurements: Sequence[Mapping[str, Any]], storage_root: Path
+    *,
+    transport: LiveTransport,
+    live_diag: Path,
+    batch_measurements: Sequence[Mapping[str, Any]],
+    storage_root: Path,
+    collection_wall_seconds: float | None = None,
 ) -> None:
+    existing_batch = read_json(live_diag / "batch_latency_summary.json") if (live_diag / "batch_latency_summary.json").exists() else {}
     write_csv(
         live_diag / "request_ledger.csv",
         [
@@ -2275,13 +2573,18 @@ def final_collection_artifacts(
         "failure_count": len(failures),
     })
     private_write(live_diag / "cost_ledger.json", cost_ledger(transport, directory_size(storage_root / ".local/corpora/opendota/free-dna-tier2") + directory_size(live_diag)))
-    private_write(live_diag / "batch_latency_summary.json", {
+    batch_payload = {
         "schema_version": LIVE_SCHEMA,
         "campaign_id": LIVE_CAMPAIGN,
         "measurements": list(batch_measurements),
         "required_concurrency_modes": [1, 5, 10],
         "rate_start_ceiling_per_minute": RATE_PER_MINUTE,
-    })
+    }
+    if collection_wall_seconds is not None:
+        batch_payload["collection_wall_seconds"] = collection_wall_seconds
+    elif isinstance(existing_batch.get("collection_wall_seconds"), (int, float)):
+        batch_payload["collection_wall_seconds"] = existing_batch["collection_wall_seconds"]
+    private_write(live_diag / "batch_latency_summary.json", batch_payload)
 
 
 def main() -> int:
@@ -2295,6 +2598,11 @@ def main() -> int:
     storage_root = args.storage_root.resolve()
     live_diag = storage_root / ".local/diagnostics/free-dna-death-context-live-pilot"
     overnight_diag = storage_root / ".local/diagnostics/free-dna-death-context-overnight"
+    paths: Mapping[str, Path] | None = None
+    items: list[dict[str, Any]] = []
+    profiles: list[dict[str, Any]] = []
+    frozen: dict[str, Any] = {}
+    meta: dict[str, Any] = {}
     try:
         frozen, items, profiles, meta, paths = preflight(
             source_root=source_root,
@@ -2370,6 +2678,27 @@ def main() -> int:
         return 0
     except PilotBlocked as exc:
         message = str(exc)
+        snapshot = {
+            "physical_gets": 0,
+            "successful_gets": 0,
+            "profiles_completed": 0,
+            "matches_completed": 0,
+            "errors": [message],
+        }
+        if paths is not None and (paths["diagnostics"] / "request_ledger.jsonl").exists():
+            try:
+                snapshot = asyncio.run(
+                    materialize_blocked_artifacts(
+                        paths=paths,
+                        items=items,
+                        storage_root=storage_root,
+                        profiles=profiles,
+                        frozen=frozen,
+                        source_manifest=meta["source_manifest"],
+                    )
+                )
+            except PilotBlocked as artifact_exc:
+                snapshot["errors"] = [message, f"BLOCKED_RECEIPT:{artifact_exc}"]
         private_write(
             live_diag / "pilot_blocked.json",
             {
@@ -2377,15 +2706,19 @@ def main() -> int:
                 "campaign_id": LIVE_CAMPAIGN,
                 "status": "BLOCKED",
                 "reason": message,
+                "physical_gets": snapshot["physical_gets"],
+                "successful_gets": snapshot["successful_gets"],
+                "profiles_completed": snapshot["profiles_completed"],
+                "matches_completed": snapshot["matches_completed"],
             },
         )
         write_progress(
             overnight_diag / "progress.json",
             stage="terminal_blocked",
-            calls_used=0,
-            profiles_completed=0,
-            matches_completed=0,
-            errors=[message],
+            calls_used=snapshot["physical_gets"],
+            profiles_completed=snapshot["profiles_completed"],
+            matches_completed=snapshot["matches_completed"],
+            errors=snapshot["errors"],
             latest_gate_status="PILOT_COLLECTION_BLOCKED",
             next_action="write_blocked_evidence_and_stop",
         )
