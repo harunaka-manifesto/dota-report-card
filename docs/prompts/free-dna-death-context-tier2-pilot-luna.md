@@ -10,7 +10,7 @@ It is not production implementation, calibration, holdout validation, or permiss
 
 ```text
 REPO: harunaka-manifesto/dota-report-card
-BASE: ec878d513589f42025fc478319c030ee4da6450f
+BASE: 7f08346a5fed34fa232b9a3648bbc1241e9c2930
 BRANCH: research/free-dna-death-context-tier2-pilot
 WORKTREE: /tmp/dota-death-context-tier2-pilot
 ```
