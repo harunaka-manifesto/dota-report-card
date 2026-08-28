@@ -12,7 +12,7 @@ authorize deployment, remote updates, or deletion of user-owned work.
 | --- | --- | --- | --- |
 | Production baseline | `main` | `6d088f76e3c0ca39a3649a6c80ee2cfb1db93d95` | unchanged |
 | Local integration target | `staging` | `c4df42df12f7b14bad0cdbc2e32c7bb632ff81f5` | tracks `origin/staging`; contains current V6.1 UI work |
-| Overnight execution | `execution/free-dna-death-context-local-reuse-pilot` | `47ea93a` | clean tracked worktree; terminal verdict blocked |
+| Overnight execution | `execution/free-dna-death-context-local-reuse-pilot` | `cf0ff97` | clean tracked worktree; terminal verdict blocked |
 | Research base | `research/free-dna-death-context-feasibility` | `98e471453b2ea5b6de418ad9ca8d4e5400c913eb` | frozen Tier-2 pilot base |
 
 The execution branch is not an ancestor of `staging`; their common ancestor is
