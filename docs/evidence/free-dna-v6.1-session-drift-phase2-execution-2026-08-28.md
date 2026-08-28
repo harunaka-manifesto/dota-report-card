@@ -25,6 +25,35 @@ behavior was changed.
 - V7/STRATZ reuse readiness: READY FOR FUTURE PROTOCOL, provider-specific layers remain separate
 - important limitations: summary-only OpenDota data, sparse provider fields, no semantic equivalence with STRATZ, no validation reuse
 
+## Reusable OpenDota corpus
+
+### Provider provenance
+OpenDota is the sole provider for this campaign; request identity, retrieval timestamps, HTTP status, response bytes, retry metadata, and SHA-256 digests are retained in the local ledger.
+
+### Raw capture policy
+Raw response bodies are immutable local-only capture artifacts. They are not included in the tracked commit.
+
+### Normalized schema
+Tuning projections are deterministic gzip-JSON envelopes using `summary-normalization-2.0.0` and `v61-calibration-corpus-2.1.0`. Fresh validation has raw capture plus sealed eligibility status only.
+
+### Identity/pseudonymization
+Profile IDs use the existing salted SHA-256 mechanism; HMAC ranking uses the private campaign salt. Only the salt digest is recorded in manifests.
+
+### Split preservation
+The fixed 4,135-account frame is split into 2,848 tuning and 1,287 fresh-sealed validation assignments before history inspection. The split manifest is versioned and digest-bound.
+
+### Future V7/STRATZ reuse
+The corpus is reusable for future authorized OpenDota research and V7/STRATZ comparison, with provider layers kept separate.
+
+### Cross-provider limitations
+OpenDota summary fields are not asserted to be semantically equivalent to STRATZ fields; future joins require an explicit mapping and visible missingness.
+
+### Corpus digests
+Raw, normalized, split, request-manifest, and private-salt digests are recorded in the local reusable-corpus and diagnostics manifests.
+
+### Storage and cost
+The campaign retained 323.43 MiB including diagnostics and recorded an estimated 10,800 IDR in whole 100-call blocks under the owner-supplied rate; both remain below the approved ceilings.
+
 ## Tuning
 - existing tuning profiles: 791
 - safe local reserves used: 40
