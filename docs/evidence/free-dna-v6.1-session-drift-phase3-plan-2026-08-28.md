@@ -2,9 +2,9 @@
 
 ## Status
 
-**PASS — a fixed tuning-only second wave can reach a 110-observation target
-without adaptive stopping, validation reuse, or methodology changes. Owner
-approval is required before the planned provider calls.**
+**PARTIAL — a fixed tuning-only second wave can reach a 110-observation target
+without adaptive stopping, validation reuse, or methodology changes, but the
+owner has not yet approved the collection ceiling.**
 
 ## Integrity
 

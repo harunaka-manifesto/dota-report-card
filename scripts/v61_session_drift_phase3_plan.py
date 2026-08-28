@@ -637,7 +637,8 @@ def main() -> int:
 
     summary = {
         "schema_version": "v61-session-drift-phase3-plan-aggregate-1.0.0",
-        "status": "PASS",
+        "status": "PARTIAL",
+        "reason": "analytical policy is fixed, but owner approval of the collection ceiling remains required",
         "base_sha": BASE_SHA,
         "analytical_source_sha": SOURCE_SHA,
         "frozen_artifact_digest": ARTIFACT_DIGEST,
