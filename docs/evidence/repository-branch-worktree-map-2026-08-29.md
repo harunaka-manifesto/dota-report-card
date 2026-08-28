@@ -11,8 +11,8 @@ authorize deployment, remote updates, or deletion of user-owned work.
 | Role | Local ref | SHA | State |
 | --- | --- | --- | --- |
 | Production baseline | `main` | `6d088f76e3c0ca39a3649a6c80ee2cfb1db93d95` | unchanged |
-| Local integration target | `staging` | `c4df42df12f7b14bad0cdbc2e32c7bb632ff81f5` | tracks `origin/staging`; contains current V6.1 UI work |
-| Overnight execution | `execution/free-dna-death-context-local-reuse-pilot` | `cf0ff97` | clean tracked worktree; terminal verdict blocked |
+| Local integration target | `staging` | `8b1baa3f` | tracks `origin/staging`; includes the integrated execution tip |
+| Overnight execution | `execution/free-dna-death-context-local-reuse-pilot` | `9911c26` | fully integrated; local branch and worktree removed after preservation |
 | Research base | `research/free-dna-death-context-feasibility` | `98e471453b2ea5b6de418ad9ca8d4e5400c913eb` | frozen Tier-2 pilot base |
 
 The execution branch is not an ancestor of `staging`; their common ancestor is
@@ -25,7 +25,7 @@ files. Integration therefore belongs in local `staging`, not `main`.
 | Path | Branch / state |
 | --- | --- |
 | `/Users/nikanakamanifesto/Documents/GitHub/dota-report-card` | `staging`; owner worktree with unrelated untracked files preserved |
-| `/Users/nikanakamanifesto/Documents/GitHub/dota-report-card-death-context-local-reuse-pilot` | `execution/free-dna-death-context-local-reuse-pilot`; execution worktree |
+| `/Users/nikanakamanifesto/Documents/GitHub/dota-report-card-death-context-local-reuse-pilot` | removed after canonical artifact preservation; tip `9911c26` remains reachable from `staging` |
 | `/Users/nikanakamanifesto/Documents/GitHub/dota-report-card-v7-stratz-corpus-acquisition` | `data/v7-stratz-corpus-acquisition`; retained data worktree |
 | `/sessions/rcw-01rq9g37eta2rpt1vaxdsbkm/research-v61-findings-recovery` | `research/v61-findings-recovery`; locked initializing worktree |
 | `/sessions/rcw-01rq9g37eta2rpt1vaxdsbkm/research-v61-frozen-repro` | `research/v61-frozen-repro`; locked initializing worktree |
