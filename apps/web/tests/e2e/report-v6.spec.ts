@@ -163,6 +163,9 @@ test.describe("Free Dota DNA v6.1 story", () => {
   });
 
   test("optional persisted v6.1 fields never white-screen", async ({ page }) => {
+    // Fifteen full page loads in one test; it outruns the default budget on a
+    // loaded machine.  Pre-existing, and load-sensitive rather than flaky.
+    test.slow();
     await page.emulateMedia({ reducedMotion: "reduce" });
     const pageErrors: string[] = [];
     const consoleErrors: string[] = [];
