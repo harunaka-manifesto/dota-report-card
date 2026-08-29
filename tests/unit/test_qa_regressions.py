@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 from app.analysis.service import AnalysisService
@@ -67,6 +68,42 @@ def test_free_compatibility_fingerprint_includes_v4_versions(monkeypatch) -> Non
         with monkeypatch.context() as context:
             module_path, attribute = target.rsplit(".", 1)
             context.setattr(f"{module_path}.{attribute}", "qa-mutated-version")
+            assert service._compatibility_model_version("free") != baseline
+
+
+def test_v61_story_versions_invalidate_compatibility_fingerprint(monkeypatch) -> None:
+    """Every story extension surface participates in cache compatibility."""
+
+    from app.player_analysis_v61 import versions as versions_module
+
+    # V6.1 construction requires release artifacts, but the compatibility
+    # calculation itself only needs the settings and artifact checksum map.
+    service = AnalysisService.__new__(AnalysisService)
+    service.settings = Settings(free_dna_v61_enabled=True)
+    service.v61_artifact_checksums = {}
+
+    expected = {
+        "story_payload": versions_module.STORY_PAYLOAD_VERSION,
+        "story_rules": versions_module.STORY_RULES_VERSION,
+        "story_copy": versions_module.STORY_COPY_VERSION,
+        "game_mode_map": versions_module.STORY_MODE_MAP_VERSION,
+        "hero_taxonomy": versions_module.STORY_HERO_TAXONOMY_VERSION,
+        "hero_metadata": versions_module.STORY_HERO_METADATA_VERSION,
+        "archetype_contract": versions_module.STORY_ARCHETYPE_CONTRACT_VERSION,
+    }
+    defaults = versions_module.default_versions_v61()
+    assert {key: defaults[key] for key in expected} == expected
+
+    baseline = service._compatibility_model_version("free")
+    for key in expected:
+        with monkeypatch.context() as context:
+            surfaces = tuple(
+                replace(surface, version="qa-mutated-story-version")
+                if surface.key == key
+                else surface
+                for surface in versions_module.VERSION_SURFACES
+            )
+            context.setattr(versions_module, "VERSION_SURFACES", surfaces)
             assert service._compatibility_model_version("free") != baseline
 
 

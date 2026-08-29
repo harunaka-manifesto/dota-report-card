@@ -12,6 +12,9 @@ export default defineConfig({
     baseURL: process.env.WEB_BASE_URL ?? "http://127.0.0.1:3000"
   },
   projects: [
+    // Composition, normalization, and copy-vocabulary specs need no browser
+    // behaviour, so they run once rather than in every engine.
+    { name: "unit", testDir: "./tests/unit", use: { ...devices["Desktop Chrome"] } },
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "firefox", use: { ...devices["Desktop Firefox"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },

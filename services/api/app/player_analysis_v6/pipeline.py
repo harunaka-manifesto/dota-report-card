@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from typing import Any
 
 from .baselines import BaselineResolver
@@ -150,7 +150,7 @@ def _lane_context(matches: Sequence[Any]) -> tuple[str, ...]:
     return tuple(sorted(values))
 
 
-def _signal_inputs(matches: Sequence[Any], elements: Mapping[str, Any], *, baseline_resolver: BaselineResolver | None, taxonomy_by_hero: Mapping[Any, Any] | None, thresholds: Mapping[str, MetricThreshold] | None = None, completed_sessions: Mapping[str, bool] | None = None, seed: int = 0, bootstrap_iterations: int = DEFAULT_BOOTSTRAP_ITERATIONS) -> tuple[dict[str, Any], dict[str, int], dict[str, float], dict[str, float]]:
+def _signal_inputs(matches: Sequence[Any], elements: Mapping[str, Any], *, baseline_resolver: BaselineResolver | None, taxonomy_by_hero: Mapping[Any, Any] | None, thresholds: Mapping[str, MetricThreshold] | None = None, completed_sessions: Mapping[str, bool] | None = None, seed: int = 0, bootstrap_iterations: int = DEFAULT_BOOTSTRAP_ITERATIONS, internal_evidence_out: MutableMapping[str, Any] | None = None) -> tuple[dict[str, Any], dict[str, int], dict[str, float], dict[str, float]]:
     thresholds = thresholds or DEFAULT_THRESHOLDS
     signals: dict[str, Any] = {}
     transitions: dict[str, int] = {}
@@ -160,6 +160,10 @@ def _signal_inputs(matches: Sequence[Any], elements: Mapping[str, Any], *, basel
     raw_core_ids = transfer_raw.get("core_hero_ids", ()) if isinstance(transfer_raw, Mapping) else ()
     core_heroes = set(raw_core_ids) if isinstance(raw_core_ids, (tuple, list, set)) else None
     post_loss = compute_post_loss_response(matches, baseline_resolver=baseline_resolver, taxonomy_by_hero=taxonomy_by_hero, core_heroes=core_heroes, thresholds=thresholds, bootstrap_iterations=bootstrap_iterations, seed=seed + 100)
+    if internal_evidence_out is not None:
+        internal_evidence_out["post_loss"] = {
+            "comparable_pair_count": post_loss.comparable_pair_count,
+        }
     post_components = [float(value) for value in post_loss.component_deltas.values() if value is not None]
     post_value = sum(post_components) / len(post_components) if post_components else None
     post_direction = post_loss.direction
@@ -370,12 +374,15 @@ def analyze_free_dna_v6(
     seed: int = 0,
     bootstrap_iterations: int = DEFAULT_BOOTSTRAP_ITERATIONS,
     enforce_eligibility: bool = True,
+    internal_evidence_out: MutableMapping[str, Any] | None = None,
 ) -> FreeDnaReportV6:
     """Build the complete v6 report from normalized summary history.
 
     The function accepts the existing ``DnaAnalysisResult`` as a migration
     seam but never reads its v5 public Elements or Patterns.  It can also be
     called with a sequence of normalized matches or raw summary dictionaries.
+    ``internal_evidence_out`` is an optional non-serialized sink for additive
+    assembly projections; it does not change the report contract.
     """
 
     matches = _coerce_matches(analysis, profile=profile)
@@ -415,6 +422,7 @@ def analyze_free_dna_v6(
         completed_sessions=completed_sessions,
         seed=seed,
         bootstrap_iterations=bootstrap_iterations,
+        internal_evidence_out=internal_evidence_out,
     )
     findings = evaluate_families(
         element_map,

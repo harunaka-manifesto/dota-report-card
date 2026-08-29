@@ -7,12 +7,14 @@ import json
 import math
 import random
 from collections import Counter, defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from copy import deepcopy
 from typing import Any, cast
 
 from app.analysis.budget import DataCostLedger
 from app.behavior.display_bands import job_display_label
+from app.heroes.knowledge import HeroKnowledgeRepository
+from app.heroes.taxonomy import load_default_taxonomy
 from app.hypotheses.models import MatchPredicate
 from app.ingestion.summary_history_contract import CanonicalSummaryHistory, request_manifest
 from app.player_analysis_v6.baselines import BaselineResolver
@@ -51,7 +53,14 @@ from app.player_analysis_v61.production_statistics import (
 )
 from app.player_analysis_v61.relationships import result_response_summary, session_position_curve
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
-from app.player_analysis_v61.versions import REPORT_VERSION, default_versions_v61
+from app.player_analysis_v61.story_projection import STORY_VERSION_KEYS, build_story_payload
+from app.player_analysis_v61.story_selector import StorySelection
+from app.player_analysis_v61.versions import (
+    REPORT_VERSION,
+    STORY_HERO_METADATA_VERSION,
+    STORY_HERO_TAXONOMY_VERSION,
+    default_versions_v61,
+)
 from app.reports.dna_assembly_v6 import assemble_free_dna_report_v6
 
 REPORT_SCHEMA_VERSION_V61 = REPORT_VERSION
@@ -131,6 +140,35 @@ def _protected_cohort_reference(family: str, history_hash: str) -> str:
 
 def _value(item: Any, key: str, default: Any = None) -> Any:
     return item.get(key, default) if isinstance(item, Mapping) else getattr(item, key, default)
+
+
+def _story_hero_inputs(
+    hero_ids: Iterable[Any],
+) -> tuple[dict[int, dict[str, str]], dict[str, str]]:
+    """Expose checked-in hero names and their frozen taxonomy provenance."""
+
+    repository = HeroKnowledgeRepository()
+    if repository.version() != STORY_HERO_METADATA_VERSION:
+        raise ValueError("V6.1 story hero metadata snapshot version mismatch")
+    taxonomy = load_default_taxonomy()
+    if taxonomy.version != STORY_HERO_TAXONOMY_VERSION:
+        raise ValueError("V6.1 story hero taxonomy snapshot version mismatch")
+    taxonomy_checksums = {
+        key: str(taxonomy.manifest[key])
+        for key in ("factual_checksum", "editorial_checksum")
+    }
+    metadata: dict[int, dict[str, str]] = {}
+    for raw_hero_id in hero_ids:
+        if isinstance(raw_hero_id, bool):
+            continue
+        try:
+            hero_id = int(raw_hero_id)
+        except (TypeError, ValueError, OverflowError):
+            continue
+        record = repository.get(hero_id)
+        if record is not None and record.name.strip():
+            metadata[hero_id] = {"display_name": record.name.strip()}
+    return metadata, taxonomy_checksums
 
 
 def _cohort_groups(hypothesis: Mapping[str, Any], matches: Sequence[Any]) -> dict[str, Any]:
@@ -1055,6 +1093,9 @@ def assemble_free_dna_report_v61(
     shadow_enabled: bool = False,
     experimental_evolution_enabled: bool = False,
     experimental_loops_enabled: bool = False,
+    story_selection: StorySelection | None = None,
+    story_window_start: int | None = None,
+    story_window_end: int | None = None,
     protected_cohorts_out: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     supporting = dict(supporting_artifacts or {})
@@ -1076,6 +1117,7 @@ def assemble_free_dna_report_v61(
     distance = supporting.get("distance_calibration")
     reliability = supporting.get("session_reliability")
     runtime_resolver = _CachedBaselineResolver(baseline_resolver)
+    internal_evidence: dict[str, Any] = {}
     report = assemble_free_dna_report_v6(
         account_id=account_id,
         profile=profile,
@@ -1092,6 +1134,7 @@ def assemble_free_dna_report_v61(
         thresholds=thresholds,
         taxonomy_by_hero=taxonomy_by_hero,
         completed_sessions=completed_sessions,
+        internal_evidence_out=internal_evidence,
     )
     portfolio_shape = build_portfolio_shape(matches, taxonomy_by_hero, distance)
     involvement = duration_context_involvement(
@@ -1356,6 +1399,28 @@ def assemble_free_dna_report_v61(
     if production_bootstrap is not None:
         report["supporting_evidence"]["production_bootstrap"] = production_bootstrap
     report["selection_audit"] = selection_audit
+    if story_selection is not None and story_selection.match_count >= 30:
+        if story_window_start is None or story_window_end is None:
+            raise ValueError("active story payload requires explicit window bounds")
+        story_hero_metadata, story_taxonomy_checksums = _story_hero_inputs(
+            _value(match, "hero_id") for match in story_selection.matches
+        )
+        story_payload = build_story_payload(
+            selection=story_selection,
+            legacy_report=report,
+            profile=profile,
+            canonical_audit=canonical_history.audit,
+            window_start=story_window_start,
+            window_end=story_window_end,
+            hero_metadata=story_hero_metadata,
+            hero_taxonomy_checksums=story_taxonomy_checksums,
+            internal_evidence=internal_evidence,
+        )
+        if story_payload is not None:
+            report["story_payload"] = story_payload
+            report["versions"].update(
+                {key: versions[key] for key in STORY_VERSION_KEYS}
+            )
     report["reproducibility"].update(
         {
             "history_contract": canonical_history.audit.as_dict(),

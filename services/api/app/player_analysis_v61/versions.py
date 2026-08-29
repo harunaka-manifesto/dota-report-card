@@ -3,9 +3,29 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Final, Literal, TypeAlias
 
 VersionDisposition = Literal["changed", "compatible", "unchanged", "new"]
+
+# The story extension is versioned independently from the legacy nine-beat
+# ``story`` surface above.  Keep these values here, alongside the V6.1
+# compatibility matrix, so changing any story contract surface invalidates a
+# cached report without changing the frozen analytical identities.
+StoryPayloadVersion: TypeAlias = Literal["free-story-payload-1.0.0"]
+StoryRulesVersion: TypeAlias = Literal["free-story-rules-1.0.0"]
+StoryCopyVersion: TypeAlias = Literal["free-story-copy-1.0.0"]
+StoryModeMapVersion: TypeAlias = Literal["opendota-mode-map-e7705ee"]
+StoryHeroTaxonomyVersion: TypeAlias = Literal["hero-taxonomy-2026-08-16"]
+StoryHeroMetadataVersion: TypeAlias = Literal["hero-knowledge-semantic-freeze-full-roster-v1"]
+StoryArchetypeContractVersion: TypeAlias = Literal["free-archetype-interface-1.0.0"]
+
+STORY_PAYLOAD_VERSION: Final[StoryPayloadVersion] = "free-story-payload-1.0.0"
+STORY_RULES_VERSION: Final[StoryRulesVersion] = "free-story-rules-1.0.0"
+STORY_COPY_VERSION: Final[StoryCopyVersion] = "free-story-copy-1.0.0"
+STORY_MODE_MAP_VERSION: Final[StoryModeMapVersion] = "opendota-mode-map-e7705ee"
+STORY_HERO_TAXONOMY_VERSION: Final[StoryHeroTaxonomyVersion] = "hero-taxonomy-2026-08-16"
+STORY_HERO_METADATA_VERSION: Final[StoryHeroMetadataVersion] = "hero-knowledge-semantic-freeze-full-roster-v1"
+STORY_ARCHETYPE_CONTRACT_VERSION: Final[StoryArchetypeContractVersion] = "free-archetype-interface-1.0.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,6 +49,13 @@ VERSION_SURFACES = (
     VersionSurface("thresholds", "metric-thresholds-6.1.0", "changed", "registry-key manifest"),
     VersionSurface("claims", "claim-contract-2.0.0", "changed", "alternatives and verification added"),
     VersionSurface("story", "free-story-6.1.0", "changed", "same nine beats; interaction-aware payload"),
+    VersionSurface("story_payload", STORY_PAYLOAD_VERSION, "new", "additive descriptive module payload"),
+    VersionSurface("story_rules", STORY_RULES_VERSION, "new", "frozen story aggregation and omission rules"),
+    VersionSurface("story_copy", STORY_COPY_VERSION, "new", "deterministic story copy variants"),
+    VersionSurface("game_mode_map", STORY_MODE_MAP_VERSION, "new", "pinned AP/CM mode and lobby tuples"),
+    VersionSurface("hero_taxonomy", STORY_HERO_TAXONOMY_VERSION, "new", "frozen public hero taxonomy"),
+    VersionSurface("hero_metadata", STORY_HERO_METADATA_VERSION, "new", "frozen public hero metadata roster"),
+    VersionSurface("archetype_contract", STORY_ARCHETYPE_CONTRACT_VERSION, "new", "not-ready archetype interface"),
     VersionSurface("copy", "free-dna-semantic-copy-6.1.0", "changed", "outcome-owned deterministic copy"),
     VersionSurface("recommendations", "free-dna-recommendations-6.1.0", "changed", "five-game verification contract"),
     VersionSurface("deep_diagnostics", "deep-diagnostics-2.1.0", "changed", "protected qualifying cohort references"),
@@ -64,6 +91,20 @@ __all__ = [
     "MODEL_VERSION",
     "REPORT_VERSION",
     "SEMANTIC_OUTCOMES_VERSION",
+    "STORY_ARCHETYPE_CONTRACT_VERSION",
+    "STORY_COPY_VERSION",
+    "STORY_HERO_METADATA_VERSION",
+    "STORY_HERO_TAXONOMY_VERSION",
+    "STORY_MODE_MAP_VERSION",
+    "STORY_PAYLOAD_VERSION",
+    "STORY_RULES_VERSION",
+    "StoryArchetypeContractVersion",
+    "StoryCopyVersion",
+    "StoryHeroMetadataVersion",
+    "StoryHeroTaxonomyVersion",
+    "StoryModeMapVersion",
+    "StoryPayloadVersion",
+    "StoryRulesVersion",
     "SUPPORTING_SIGNALS_VERSION",
     "VERSION_MATRIX",
     "VERSION_SURFACES",

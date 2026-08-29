@@ -159,6 +159,39 @@ def test_post_loss_controls_use_the_narrowest_available_context() -> None:
     )
     result = compute_post_loss_response(rows, bootstrap_iterations=20)
     assert result.control_matches[0].match_id == 4
+    assert result.comparable_pair_count == 1
+    assert "comparable_pair_count" not in result.as_dict()
+
+
+def test_post_loss_pair_count_uses_an_internal_assembly_sink_only() -> None:
+    rows = tuple(
+        SimpleNamespace(
+            match_id=session * 3 + offset + 1,
+            start_time=session * 3 + offset + 1,
+            session_id=f"session-{session}",
+            won=won,
+            patch="7.41",
+            role_hint="mid",
+            hero_id=1,
+            duration_seconds=1_800,
+            kills=1 + offset,
+            assists=1 + offset,
+            deaths=1,
+        )
+        for session in range(10)
+        for offset, won in enumerate((False, True, True))
+    )
+    internal_evidence: dict[str, object] = {}
+
+    report = analyze_free_dna_v6(
+        rows,
+        taxonomy_by_hero={1: ("teamfight",)},
+        bootstrap_iterations=20,
+        internal_evidence_out=internal_evidence,
+    )
+
+    assert internal_evidence == {"post_loss": {"comparable_pair_count": 10}}
+    assert "comparable_pair_count" not in repr(report.as_dict())
 
 
 def test_post_loss_metrics_are_precomputed_before_bootstrap(monkeypatch: pytest.MonkeyPatch) -> None:

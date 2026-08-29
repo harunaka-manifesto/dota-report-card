@@ -1,4 +1,5 @@
 import http from "node:http";
+import { readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 
 const apiPort = Number(process.env.FIXTURE_API_PORT ?? 8001);
@@ -687,9 +688,93 @@ const v61Session = v61Alias("v61-session-fixture", v61Reports[0], (item) => {
   item.findings[4] = structuredClone(v61Reports[4].findings[4]);
 });
 const v61Aliases = [v61Qualified, v61Neutral, v61Insufficient, v61Mixed, v61Narrow, v61Broad, v61Signature, v61375, v61NoHeroes, v61NoBands, v61HistoricalProduction, v61NoChronology, v61NoIdentity, v61OneHero, v61OneBand, v61OnePoint, v61LowConfidence, v61MissingComparison, v61EmptyComparison, v61MissingEvidence, v61MissingSupportingEvidence, v61Movement, v61Session];
+
+const persistedFixtureDirectory = new URL("../fixtures/persisted-reports/", import.meta.url);
+function loadPersistedFixture(filename) {
+  return JSON.parse(readFileSync(new URL(filename, persistedFixtureDirectory), "utf8"));
+}
+
+const storyVersionBlock = {
+  story_payload: "free-story-payload-1.0.0",
+  story_rules: "free-story-rules-1.0.0",
+  story_copy: "free-story-copy-1.0.0",
+  game_mode_map: "opendota-mode-map-e7705ee",
+  hero_taxonomy: "hero-taxonomy-2026-08-16",
+  hero_metadata: "hero-knowledge-semantic-freeze-full-roster-v1",
+  archetype_contract: "free-archetype-interface-1.0.0"
+};
+const persistedStoryPayloadBaseReport = loadPersistedFixture("v61-historical-production.json");
+
+function storyPayloadReport(reportIdValue, payload) {
+  // Start with the complete, sanitized V6.1 report shape produced by the
+  // production report generator.  The payload fixtures are additive; this
+  // keeps the route representative of a persisted report rather than a
+  // payload-only test object.
+  const item = structuredClone(persistedStoryPayloadBaseReport);
+  item.report_id = reportIdValue;
+  item.identity = { ...item.identity, display_name: payload.identity?.display_name ?? "Story fixture player" };
+  item.metadata = {
+    ...item.metadata,
+    processed_matches: payload.universe?.match_count ?? item.metadata.processed_matches,
+    eligible_matches: payload.universe?.match_count ?? item.metadata.eligible_matches,
+    data_from: payload.universe?.window_start ?? item.metadata.data_from,
+    data_to: payload.universe?.window_end ?? item.metadata.data_to
+  };
+  item.versions = { ...item.versions, ...storyVersionBlock };
+  item.story_payload = payload;
+  const slots = payload.finding_slots ?? {};
+  item.findings = item.findings.map((finding) => {
+    const slotKey = finding.family === "post_loss_response" ? "post_loss" : finding.family === "transfer" ? "transfer" : null;
+    if (!slotKey) return finding;
+    const slot = slots[slotKey];
+    if (!slot?.available || !slot.content) {
+      return {
+        ...finding,
+        status: "suppressed",
+        published: false,
+        semantic_outcome_key: null,
+        claim: null,
+        interpretation: null,
+        evidence_refs: [],
+        claim_contract: null,
+        interaction: { kind: null, enabled: false, fallback: "family_not_published" }
+      };
+    }
+    return {
+      ...finding,
+      status: "available",
+      published: true,
+      semantic_outcome_key: slot.content.semantic_outcome_key,
+      claim: slot.content.claim,
+      interpretation: slot.content.interpretation,
+      evidence_refs: slot.content.evidence_refs,
+      confidence: slot.content.confidence,
+      claim_contract: {
+        ...slot.content.claim_contract,
+        deep_handoff: {
+          cohort_reference: `fixture-${slotKey}-cohort`,
+          unanswered_alternatives: slot.content.claim_contract?.alternatives ?? ["Unobserved match context"]
+        }
+      },
+      interaction: { kind: slot.content.cross_session_transitions ? "cross_session" : "text_evidence", enabled: true, fallback: "text_evidence" }
+    };
+  });
+  item.quality = { ...item.quality, published_findings: Object.values(slots).filter((slot) => slot?.available).length };
+  return item;
+}
+
+const persistedStoryPayloadReports = [
+  storyPayloadReport("v61-story-full-fixture", loadPersistedFixture("v61-story-payload-both.json")),
+  storyPayloadReport("v61-story-finding-none-fixture", loadPersistedFixture("v61-story-payload-none.json")),
+  storyPayloadReport("v61-story-finding-post-loss-fixture", loadPersistedFixture("v61-story-payload-post-loss.json")),
+  storyPayloadReport("v61-story-finding-transfer-fixture", loadPersistedFixture("v61-story-payload-transfer.json")),
+  storyPayloadReport("v61-story-degraded-fixture", loadPersistedFixture("v61-story-payload-degraded.json")),
+  storyPayloadReport("v61-story-long-streak-fixture", loadPersistedFixture("v61-story-payload-long-streak.json"))
+];
+const persistedHistoricalReport = persistedStoryPayloadBaseReport;
 const legacyV4 = { ...report, report_id: "legacy-v4-fixture", schema_version: "free-dna-report-4.0.0" };
 const legacyV5 = { ...report, report_id: "legacy-v5-fixture", schema_version: "free-dna-report-5.2.0" };
-const reports = new Map([[reportId, report], [legacyV4.report_id, legacyV4], [legacyV5.report_id, legacyV5], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report], ...v61Reports.map((item) => [item.report_id, item]), ...v61Aliases.map((item) => [item.report_id, item])]);
+const reports = new Map([[reportId, report], [legacyV4.report_id, legacyV4], [legacyV5.report_id, legacyV5], [noClearReport.report_id, noClearReport], [v6Report.report_id, v6Report], ...v61Reports.map((item) => [item.report_id, item]), ...v61Aliases.map((item) => [item.report_id, item]), ...persistedStoryPayloadReports.map((item) => [item.report_id, item]), [persistedHistoricalReport.report_id, persistedHistoricalReport]]);
 const interactionSessions = new Map();
 const deepJobs = new Map();
 let nextSessionNumber = 1;
