@@ -8,7 +8,9 @@ Research one candidate only:
 
 This is a conditional death-context composition. It is not raw death rate, KDA, fight participation, aggression, positioning quality, skill, intent, or causality.
 
-Status is **PARTIAL** until the bounded Tier-2 pilot verifies teamfight semantics, longitudinal completeness, heterogeneity, control survival, stability, and latency. The 2026-08-29 live supplement is collection-blocked and did not produce a pilot estimate.
+Status was **PARTIAL** during collection. After final completion of the frozen
+panel and the registered analysis, the candidate is **DROPPED** on the frozen
+adjusted-residual-IQR gate.
 
 ## Overnight supplement outcome — 2026-08-29
 
@@ -188,3 +190,24 @@ Drop the candidate when a condition fails. Do not weaken gates, expand calls, ad
 The pilot produces local private raw responses, ledgers, normalized event rows, aggregate completeness/latency/control/stability diagnostics, and a tracked aggregate evidence report without raw account, profile, or match identifiers.
 
 It does not change production code, V6.1 methodology, artifacts, thresholds, public report contracts, database state, infrastructure, or deployment.
+
+## Final completion outcome — 2026-08-29
+
+The separately authorized final-completion campaign reused the exact same
+outcome-blind panel and requested only the ten unresolved records. It made ten
+serial direct OpenDota detail GETs; all ten succeeded on the first attempt.
+The frozen panel is complete at 960 / 960, and the complete registered
+analysis ran locally from the preserved Tier-2 corpus.
+
+The structural teamfight gate passed at 100% core completeness with 0 malformed
+fights. The common-direction, control-retention, attenuation, and N25/N30
+stability gates passed. The adjusted residual IQR was **0.091519**, below the
+frozen **0.10** minimum, so the terminal scientific verdict is
+`DROP_DEATH_CONTEXT`. This is not a collection block and not a production
+finding. No calibration prompt, redesign, production report, V6.1 artifact,
+threshold, or public contract changed.
+
+The final completion receipt is recorded in
+`docs/evidence/free-dna-death-context-final-completion-2026-08-29.md`; the
+scientific rejection is recorded in
+`docs/evidence/free-dna-death-context-rejection-2026-08-29.md`.

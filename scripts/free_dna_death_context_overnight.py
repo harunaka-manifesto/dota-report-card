@@ -1248,7 +1248,9 @@ class Baseline:
         self.base: dict[str, dict[str, dict[tuple[Any, ...], list[float]]]] = defaultdict(
             lambda: defaultdict(dict)
         )
-        self.match_all: dict[str, dict[tuple[Any, ...], list[float]]] = defaultdict(dict)
+        self.match_all: dict[str, dict[int, dict[tuple[Any, ...], list[float]]]] = defaultdict(
+            lambda: defaultdict(dict)
+        )
         self.match_profile: dict[str, dict[int, dict[str, dict[tuple[Any, ...], list[float]]]]] = defaultdict(
             lambda: defaultdict(lambda: defaultdict(dict))
         )
@@ -1266,15 +1268,14 @@ class Baseline:
 
     def _build(self, rows: Sequence[Mapping[str, Any]], profile_ids: Sequence[str]) -> None:
         for mode in MODES:
-            all_target = self.match_all[mode]
             for row in rows:
                 if not nonnegative_number(row.get("deaths")) or not nonnegative_number(row.get("fight_deaths")):
                     continue
                 deaths = float(row["deaths"])
                 fight_deaths = float(row["fight_deaths"])
                 key = row_key(row, mode)
-                self.add(all_target, key, deaths, fight_deaths)
                 match_id = int(row["match_id"])
+                self.add(self.match_all[mode][match_id], key, deaths, fight_deaths)
                 profile_id = row.get("profile_id")
                 if isinstance(profile_id, str):
                     self.add(self.match_profile[profile_id][match_id][mode], key, deaths, fight_deaths)
@@ -1298,7 +1299,7 @@ class Baseline:
         if key is None:
             return None
         base_cell = self.base[profile_id][mode].get(key, [0.0, 0.0])
-        all_match_cell = self.match_all[mode].get(key, [0.0, 0.0])
+        all_match_cell = self.match_all[mode].get(match_id, {}).get(key, [0.0, 0.0])
         profile_match_cell = self.match_profile[profile_id][match_id][mode].get(key, [0.0, 0.0])
         deaths = base_cell[0] - all_match_cell[0] + profile_match_cell[0]
         fight_deaths = base_cell[1] - all_match_cell[1] + profile_match_cell[1]
@@ -1315,7 +1316,8 @@ def expected_rate(row: Mapping[str, Any], profile_id: str, baseline: Baseline, m
             return exact, "hero_exact"
         fallback = baseline.rate(profile_id, match_id, "hero_fallback", row_key(row, "hero_fallback"))
         return fallback, "hero_outcome_fallback" if fallback is not None else None
-    return baseline.rate(profile_id, match_id, mode, row_key(row, mode))
+    rate = baseline.rate(profile_id, match_id, mode, row_key(row, mode))
+    return rate, mode if rate is not None else None
 
 
 def estimate_profile(

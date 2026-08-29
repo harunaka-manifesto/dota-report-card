@@ -103,3 +103,28 @@ research, approved calibration research, and provider-comparison research.
 Forbidden: provider relabeling, validation unsealing, holdout reuse, outcome-
 based replacement, changing historical provenance, or production analytical
 changes.
+
+## Final-completion state recorded on 2026-08-29
+
+The owner-authorized final-10 campaign reused the exact ten unresolved IDs from
+the frozen panel and made ten serial direct OpenDota detail GETs. All ten
+succeeded on their first attempts, completing the frozen panel at 960 / 960.
+No retry, replacement, adaptive top-up, replay parse, STRATZ, Steam, holdout,
+or fresh sealed-validation call occurred.
+
+The canonical corpus now contains:
+
+- 960 persisted successful live raw responses;
+- 19 earlier immutable source-body references;
+- 979 normalized records;
+- normalized digest `1ceafed83e7d001be14f40591d88aad871a81ff3c50c9001894a18258728bff1`;
+- manifest SHA-256 `46ec54f8c8d56e775eeb26f5f0c04897616e8d857b4185308d690d4ab2332ff3`;
+- `analytical_outcome_results_generated: true` for the research-only complete
+  panel; and
+- 272,299,569 bytes / 259.68 MiB of corpus-plus-final-diagnostics storage at
+  receipt time, within the 384 MiB ceiling.
+
+The complete registered analysis failed the adjusted residual-IQR gate
+(`0.091519 < 0.10`) and produced `DROP_DEATH_CONTEXT`. The corpus remains
+reusable for offline research and schema/semantics QA, but it is not a
+production report source and does not authorize calibration or redesign.

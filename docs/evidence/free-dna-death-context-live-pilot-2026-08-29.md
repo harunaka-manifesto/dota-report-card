@@ -165,3 +165,20 @@ Next status under the current brief is **STOP — PILOT_COLLECTION_BLOCKED**.
 Any future provider attempt requires a separately authorized, newly named
 campaign that resolves the provider failure; this campaign must not be
 silently retried.
+
+## Final-10 completion and frozen analysis — 2026-08-29
+
+A separately authorized final-completion campaign reused the same frozen panel
+and requested only the ten unresolved IDs. All ten returned valid details on
+their first attempt: 10 physical GETs, 0 retries, 0 HTTP 429s, and Rp20 pro
+rata. The panel reached 960 / 960 without replacement, adaptive top-up, replay
+parse, STRATZ, Steam, holdout, or fresh sealed-validation calls.
+
+The complete registered analysis then ran locally. Teamfight structural QA was
+100% complete with 0 malformed fights, 9,940 provider windows, and 381
+overlapping window pairs. Personalization controls and N25/N30 stability
+passed, but adjusted residual IQR was 0.091519 against the frozen 0.10 gate.
+The terminal verdict is `DROP_DEATH_CONTEXT`; no calibration prompt or
+production change was created. Full details are in
+`docs/evidence/free-dna-death-context-final-completion-2026-08-29.md` and
+`docs/evidence/free-dna-death-context-rejection-2026-08-29.md`.
