@@ -134,11 +134,15 @@ export const COPY = {
     range: (start: string, end: string) => `${start} → ${end}.`,
     singleLead: "You never let the losses pile up very far.",
     singleHeadline: "Longest slide: 1 match.",
-    // Positional reveal choreography, tied to the second and third revealed
-    // loss block.  The third scripted line ("And… yeah.") is conditional on
-    // streak length, which is a threshold the frontend may not evaluate, so it
-    // ships when the payload supplies the condition.  See plan Risk 5.
-    microcopy: ["One more.", "And another."],
+    // Reveal choreography.  The first two lines are positional, tied to the
+    // second and third revealed loss block.  The third is conditional on
+    // streak length; the owner froze that minimum at three on 2026-08-30, so
+    // it is a supplied rule rather than a frontend judgement.
+    microcopy: {
+      positional: ["One more.", "And another."],
+      long: "And… yeah.",
+      longMinimumLength: 3,
+    },
     brokenLead: (hero: string) => `Until ${hero} finally put a stop to it.`,
     brokenSupport: (length: string) => `After ${length} straight losses, you won this one.`,
     brokenDry: (hero: string) => `Thank you for your service, ${hero}.`,

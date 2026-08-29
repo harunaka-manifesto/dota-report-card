@@ -354,7 +354,9 @@ def test_combat_modules_keep_zero_totals_available_and_rank_individuals() -> Non
 
     assert kills["data"]["total"] == 8
     assert kills["data"]["leading_hero"]["hero_id"] == 1
-    assert kills["data"]["individuals"][0]["duration_seconds"] == 2_400
+    # The rows belong to the leading hero, because the page copy names it.
+    assert [row["hero_id"] for row in kills["data"]["individuals"]] == [1]
+    assert kills["data"]["individuals"][0]["duration_seconds"] == 1_800
     assert zero["state"] == "available"
     assert zero["data"]["leading_hero"] is None
     assert zero["data"]["individuals"] == []

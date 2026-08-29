@@ -768,7 +768,8 @@ const persistedStoryPayloadReports = [
   storyPayloadReport("v61-story-finding-none-fixture", loadPersistedFixture("v61-story-payload-none.json")),
   storyPayloadReport("v61-story-finding-post-loss-fixture", loadPersistedFixture("v61-story-payload-post-loss.json")),
   storyPayloadReport("v61-story-finding-transfer-fixture", loadPersistedFixture("v61-story-payload-transfer.json")),
-  storyPayloadReport("v61-story-degraded-fixture", loadPersistedFixture("v61-story-payload-degraded.json"))
+  storyPayloadReport("v61-story-degraded-fixture", loadPersistedFixture("v61-story-payload-degraded.json")),
+  storyPayloadReport("v61-story-long-streak-fixture", loadPersistedFixture("v61-story-payload-long-streak.json"))
 ];
 const persistedHistoricalReport = persistedStoryPayloadBaseReport;
 const legacyV4 = { ...report, report_id: "legacy-v4-fixture", schema_version: "free-dna-report-4.0.0" };

@@ -181,18 +181,6 @@
           },
           {
             "assists": 18,
-            "date": "2025-09-02",
-            "deaths": 3,
-            "duration_seconds": 2040,
-            "hero_id": 2,
-            "hero_name": "Hero Beta",
-            "kills": 7,
-            "outcome": "win",
-            "rank": 2,
-            "stat_value": 18
-          },
-          {
-            "assists": 18,
             "date": "2025-06-05",
             "deaths": 2,
             "duration_seconds": 1920,
@@ -200,8 +188,20 @@
             "hero_name": "Hero Epsilon",
             "kills": 5,
             "outcome": "loss",
-            "rank": 3,
+            "rank": 2,
             "stat_value": 18
+          },
+          {
+            "assists": 15,
+            "date": "2025-08-05",
+            "deaths": 7,
+            "duration_seconds": 2520,
+            "hero_id": 5,
+            "hero_name": "Hero Epsilon",
+            "kills": 4,
+            "outcome": "loss",
+            "rank": 3,
+            "stat_value": 15
           }
         ],
         "leading_hero": {
@@ -359,30 +359,6 @@
       "data": {
         "individuals": [
           {
-            "assists": 6,
-            "date": "2025-12-02",
-            "deaths": 7,
-            "duration_seconds": 2520,
-            "hero_id": 2,
-            "hero_name": "Hero Beta",
-            "kills": 12,
-            "outcome": "win",
-            "rank": 1,
-            "stat_value": 7
-          },
-          {
-            "assists": 14,
-            "date": "2025-11-01",
-            "deaths": 7,
-            "duration_seconds": 2520,
-            "hero_id": 1,
-            "hero_name": "Hero Alpha",
-            "kills": 5,
-            "outcome": "win",
-            "rank": 2,
-            "stat_value": 7
-          },
-          {
             "assists": 7,
             "date": "2025-09-06",
             "deaths": 7,
@@ -391,8 +367,32 @@
             "hero_name": "Hero Zeta",
             "kills": 11,
             "outcome": "win",
-            "rank": 3,
+            "rank": 1,
             "stat_value": 7
+          },
+          {
+            "assists": 10,
+            "date": "2025-01-02",
+            "deaths": 7,
+            "duration_seconds": 2520,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 8,
+            "outcome": "win",
+            "rank": 2,
+            "stat_value": 7
+          },
+          {
+            "assists": 13,
+            "date": "2025-10-06",
+            "deaths": 6,
+            "duration_seconds": 2400,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 4,
+            "outcome": "win",
+            "rank": 3,
+            "stat_value": 6
           }
         ],
         "leading_hero": {
@@ -1011,28 +1011,28 @@
             "stat_value": 14
           },
           {
-            "assists": 14,
-            "date": "2025-06-01",
-            "deaths": 5,
-            "duration_seconds": 2280,
-            "hero_id": 1,
-            "hero_name": "Hero Alpha",
-            "kills": 14,
-            "outcome": "win",
-            "rank": 2,
-            "stat_value": 14
-          },
-          {
-            "assists": 12,
-            "date": "2025-08-02",
+            "assists": 13,
+            "date": "2025-05-06",
             "deaths": 4,
             "duration_seconds": 2160,
-            "hero_id": 2,
-            "hero_name": "Hero Beta",
-            "kills": 14,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 13,
+            "outcome": "win",
+            "rank": 2,
+            "stat_value": 13
+          },
+          {
+            "assists": 10,
+            "date": "2025-07-06",
+            "deaths": 2,
+            "duration_seconds": 1920,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 12,
             "outcome": "win",
             "rank": 3,
-            "stat_value": 14
+            "stat_value": 12
           }
         ],
         "leading_hero": {

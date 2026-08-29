@@ -433,8 +433,15 @@ function Page12({ story, page, headingRef }: PageProps) {
   const data = story.payload.modules.losing_streak.data;
   const dry = page.closesWithDryLine;
   const single = data?.length === 1;
-  // Positional microcopy is tied to the second and third revealed loss block.
-  const microcopy = single ? [] : COPY.page12.microcopy.slice(0, Math.max(0, Math.min(2, (data?.length ?? 0) - 1)));
+  const length = data?.length ?? 0;
+  const microcopy = single
+    ? []
+    : [
+        // Tied to the second and third revealed loss block.
+        ...COPY.page12.microcopy.positional.slice(0, Math.max(0, Math.min(2, length - 1))),
+        // Frozen minimum streak, not a frontend threshold.
+        ...(length >= COPY.page12.microcopy.longMinimumLength ? [COPY.page12.microcopy.long] : []),
+      ];
   useBeatPlan({
     total: single ? 3 : microcopy.length + 6,
     holdAfter: single ? undefined : 2 + microcopy.length,
@@ -457,7 +464,7 @@ function Page12({ story, page, headingRef }: PageProps) {
     );
   }
 
-  const length = formatCount(data.length);
+  const displayLength = formatCount(data.length);
   const countIndex = 2 + microcopy.length;
   const rangeIndex = countIndex + 1;
   const terminalIndex = rangeIndex + 1;
@@ -475,7 +482,7 @@ function Page12({ story, page, headingRef }: PageProps) {
           {COPY.page12.lead}
         </h1>
       </Beat>
-      <Sequence index={1} label={`${length} consecutive losses`} blocks={blocks} />
+      <Sequence index={1} label={`${displayLength} consecutive losses`} blocks={blocks} />
       {microcopy.map((line, position) => (
         <Beat key={line} index={2 + position} className={styles.microcopy} as="p">
           {line}
@@ -483,9 +490,9 @@ function Page12({ story, page, headingRef }: PageProps) {
       ))}
       <Beat index={countIndex} className={styles.dominant}>
         <p className={styles.dominantSentence}>
-          {COPY.page12.headline(length)[0]}
-          <span className={styles.dominantValue}>{COPY.page12.headline(length)[1]}</span>
-          {COPY.page12.headline(length)[2]}
+          {COPY.page12.headline(displayLength)[0]}
+          <span className={styles.dominantValue}>{COPY.page12.headline(displayLength)[1]}</span>
+          {COPY.page12.headline(displayLength)[2]}
         </p>
       </Beat>
       <Beat index={rangeIndex} className={styles.support} as="p">
@@ -495,7 +502,7 @@ function Page12({ story, page, headingRef }: PageProps) {
         {data.terminal_state === "broken_by_win" && data.breaker ? (
           <>
             {COPY.page12.brokenLead(data.breaker.hero_name)}{" "}
-            <span className={styles.support}>{COPY.page12.brokenSupport(length)}</span>
+            <span className={styles.support}>{COPY.page12.brokenSupport(displayLength)}</span>
           </>
         ) : data.terminal_state === "observation_ended" ? (
           COPY.page12.observationEnded
@@ -816,13 +823,10 @@ function CombatPage({
   const zero = data?.total === 0;
   const rows = data?.individuals ?? [];
   /*
-   * The contracted rows copy names the leading hero ("The three games where
-   * {Hero} really got involved"), but the producer ranks `individuals` across
-   * every hero, so the rows and the sentence can disagree.  Render them only
-   * when every supplied row belongs to the leading hero — the state the copy
-   * actually describes.  Omission is the behaviour the whole story uses for
-   * content it cannot state truthfully; no replacement copy is invented.
-   * Cross-layer: producer or script must reconcile this.
+   * The rows copy names the leading hero, and the producer now projects only
+   * that hero's matches into `individuals`.  This check enforces the promise
+   * rather than defending against it: a payload that broke it would put a
+   * hero in the list that the sentence above never introduced.
    */
   const rowsMatchLeadingHero =
     Boolean(data?.leading_hero) && rows.every((row) => row.hero_id === data?.leading_hero?.hero_id);

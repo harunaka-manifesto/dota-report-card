@@ -121,6 +121,7 @@ test.describe("copy_variant vocabulary", () => {
       "v61-story-payload-post-loss",
       "v61-story-payload-transfer",
       "v61-story-payload-degraded",
+      "v61-story-payload-long-streak",
     ]) {
       const normalized = normalizeStoryPayload(fixture(name))!;
       expect(
@@ -229,6 +230,7 @@ test.describe("the frozen dry-line cadence", () => {
       "v61-story-payload-post-loss",
       "v61-story-payload-transfer",
       "v61-story-payload-degraded",
+      "v61-story-payload-long-streak",
     ]) {
       let run = 0;
       for (const page of composeWithElements(name).pages) {

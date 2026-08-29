@@ -161,7 +161,11 @@ def main() -> int:
             or "generated copy review catalog is stale"
         )
 
-    cancelled = re.compile(r"\b(?:archetype|archetypes|classifier|classifiers)\b", re.IGNORECASE)
+    # The cancelled domain is the CLASSIFIER work, not the archetype surface.
+    # V6.1 ships `archetype_contract` as a real, versioned, not-ready interface
+    # (`StoryArchetypeModuleV61Schema`, `STORY_ARCHETYPE_CONTRACT_VERSION`), and
+    # the story renders it, so the word is no longer evidence of a revival.
+    cancelled = re.compile(r"\b(?:classifier|classifiers)\b", re.IGNORECASE)
     for root in ACTIVE_SOURCE_ROOTS:
         paths = [root] if root.is_file() else root.rglob("*")
         for path in paths:

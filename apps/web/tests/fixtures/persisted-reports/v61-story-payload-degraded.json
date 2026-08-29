@@ -97,44 +97,7 @@
     "assists": {
       "copy_variant": "available",
       "data": {
-        "individuals": [
-          {
-            "assists": 18,
-            "date": "2025-06-05",
-            "deaths": 2,
-            "duration_seconds": 1920,
-            "hero_id": 5,
-            "hero_name": null,
-            "kills": 5,
-            "outcome": "loss",
-            "rank": 1,
-            "stat_value": 18
-          },
-          {
-            "assists": 18,
-            "date": "2025-03-02",
-            "deaths": 1,
-            "duration_seconds": 1800,
-            "hero_id": 2,
-            "hero_name": null,
-            "kills": 3,
-            "outcome": "win",
-            "rank": 2,
-            "stat_value": 18
-          },
-          {
-            "assists": 17,
-            "date": "2025-03-01",
-            "deaths": 7,
-            "duration_seconds": 2520,
-            "hero_id": 1,
-            "hero_name": null,
-            "kills": 2,
-            "outcome": "win",
-            "rank": 3,
-            "stat_value": 17
-          }
-        ],
+        "individuals": [],
         "leading_hero": null,
         "total": 330
       },
@@ -244,44 +207,7 @@
     "deaths": {
       "copy_variant": "available",
       "data": {
-        "individuals": [
-          {
-            "assists": 16,
-            "date": "2025-06-03",
-            "deaths": 7,
-            "duration_seconds": 2520,
-            "hero_id": 3,
-            "hero_name": null,
-            "kills": 3,
-            "outcome": "win",
-            "rank": 1,
-            "stat_value": 7
-          },
-          {
-            "assists": 9,
-            "date": "2025-05-02",
-            "deaths": 7,
-            "duration_seconds": 2520,
-            "hero_id": 2,
-            "hero_name": null,
-            "kills": 9,
-            "outcome": "win",
-            "rank": 2,
-            "stat_value": 7
-          },
-          {
-            "assists": 17,
-            "date": "2025-03-01",
-            "deaths": 7,
-            "duration_seconds": 2520,
-            "hero_id": 1,
-            "hero_name": null,
-            "kills": 2,
-            "outcome": "win",
-            "rank": 3,
-            "stat_value": 7
-          }
-        ],
+        "individuals": [],
         "leading_hero": null,
         "total": 117
       },
@@ -357,44 +283,7 @@
     "kills": {
       "copy_variant": "available",
       "data": {
-        "individuals": [
-          {
-            "assists": 16,
-            "date": "2025-02-06",
-            "deaths": 6,
-            "duration_seconds": 2400,
-            "hero_id": 6,
-            "hero_name": null,
-            "kills": 14,
-            "outcome": "win",
-            "rank": 1,
-            "stat_value": 14
-          },
-          {
-            "assists": 14,
-            "date": "2025-06-01",
-            "deaths": 5,
-            "duration_seconds": 2280,
-            "hero_id": 1,
-            "hero_name": null,
-            "kills": 14,
-            "outcome": "win",
-            "rank": 2,
-            "stat_value": 14
-          },
-          {
-            "assists": 15,
-            "date": "2025-02-05",
-            "deaths": 5,
-            "duration_seconds": 2280,
-            "hero_id": 5,
-            "hero_name": null,
-            "kills": 13,
-            "outcome": "loss",
-            "rank": 3,
-            "stat_value": 13
-          }
-        ],
+        "individuals": [],
         "leading_hero": null,
         "total": 226
       },

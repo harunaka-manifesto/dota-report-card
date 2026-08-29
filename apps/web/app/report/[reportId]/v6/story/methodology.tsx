@@ -16,7 +16,9 @@ import type { V61Report } from "../types";
 export function Methodology({ report, story }: { report: V61Report; story: ComposedStory }) {
   const universe = story.payload.universe;
   const provenance = story.payload.provenance;
-  const modes = universe.mode_counts;
+  // The mode split stays backstage: ranked and unranked are reported as one
+  // total.  The ranked denominator is the supplied one, never a frontend sum.
+  const rankedMatches = story.payload.modules.rank_points.data?.ranked_matches ?? null;
   return (
     <>
       <section>
@@ -34,19 +36,21 @@ export function Methodology({ report, story }: { report: V61Report; story: Compo
       <section>
         <h3>Which matches count</h3>
         <p>
-          Yearly totals cover ranked and unranked All Pick plus Captain&rsquo;s Mode:{" "}
-          {formatCount(modes.unranked_all_pick)} unranked All Pick, {formatCount(modes.ranked_all_pick)} ranked All
-          Pick, {formatCount(modes.unranked_captains_mode)} unranked Captain&rsquo;s Mode, and{" "}
-          {formatCount(modes.ranked_captains_mode)} ranked Captain&rsquo;s Mode.{" "}
+          Yearly totals cover both ranked and unranked matches.{" "}
           {formatCount(universe.excluded_or_unknown_count)} matches were excluded or could not be identified.
         </p>
-        <p>Rank points cover ranked All Pick and ranked Captain&rsquo;s Mode only.</p>
+        {rankedMatches === null ? (
+          <p>Rank points cover ranked matches only.</p>
+        ) : (
+          <p>Rank points cover the {formatCount(rankedMatches)} ranked matches only.</p>
+        )}
       </section>
       <section>
         <h3>What rank points are</h3>
         <p>
           Rank points are a modeled figure derived only from the ranked win-loss record at a frozen 25 points per
-          ranked match. They are not a provider-reported rating and not a medal.
+          ranked match. Dota does not report this number; we compute it here, and it is the only rank-root figure this
+          report shows.
         </p>
       </section>
       <section>

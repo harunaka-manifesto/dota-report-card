@@ -42,16 +42,21 @@ def timestamp(value: str) -> int:
     return int(datetime.fromisoformat(value).replace(tzinfo=UTC).timestamp())
 
 
-def story_rows() -> list[dict[str, object]]:
+def story_rows(
+    outcomes: tuple[bool, ...] = (True, True, True, False, False, True),
+) -> list[dict[str, object]]:
     """Return a deterministic synthetic summary corpus for public fixtures.
 
     April is intentionally empty while the other eleven months have six
     dated matches.  This exercises an empty Hero Era without weakening the
     builder's selection or evidence gates.
+
+    ``outcomes`` is the repeating win/loss pattern.  The default gives a
+    two-match losing streak; a loss-heavy pattern produces a long streak and a
+    negative Rank Points direction, neither of which the default reaches.
     """
 
     rows: list[dict[str, object]] = []
-    outcomes = (True, True, True, False, False, True)
     heroes = (1, 2, 3, 4, 5, 6)
     for month in range(1, 13):
         if month == 4:
@@ -283,6 +288,20 @@ def main() -> None:
             ),
         )
     write_json(
+        "v61-story-payload-long-streak.json",
+        build_payload(
+            # Four consecutive losses inside each month, so the losing streak
+            # clears the frozen three-match microcopy minimum, and ranked
+            # losses outnumber ranked wins.
+            story_rows(outcomes=(True, False, False, False, False, True)),
+            post_loss=True,
+            transfer=False,
+            hero_metadata=metadata,
+            completeness="complete",
+            display_name="Long streak fixture player",
+        ),
+    )
+    write_json(
         "v61-story-payload-degraded.json",
         build_payload(
             rows[:30],
@@ -294,7 +313,7 @@ def main() -> None:
         ),
     )
     write_json("v61-historical-production.json", historical_report())
-    print(f"wrote {len(combinations) + 2} fixtures to {OUTPUT_DIR}")
+    print(f"wrote {len(combinations) + 3} fixtures to {OUTPUT_DIR}")
 
 
 if __name__ == "__main__":

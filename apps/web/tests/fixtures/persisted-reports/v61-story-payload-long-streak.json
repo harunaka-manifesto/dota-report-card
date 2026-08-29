@@ -90,11 +90,6 @@
       "page": 19
     },
     {
-      "id": "story-card-transfer",
-      "module": "transfer",
-      "page": 21
-    },
-    {
       "id": "story-card-kills",
       "module": "kills",
       "page": 22
@@ -146,42 +141,13 @@
       "family": "post_loss_response"
     },
     "transfer": {
-      "available": true,
-      "content": {
-        "claim": "Observed transfer evidence in this fixture.",
-        "claim_contract": {
-          "alternatives": [
-            "Unobserved match context"
-          ],
-          "claim": "Observed transfer evidence in this fixture.",
-          "copy_version": "free-dna-semantic-copy-6.1.0",
-          "evidence": "Two public summary signals support the bounded observation.",
-          "interaction": "open_deep",
-          "interpretation": "This describes an association without assigning a cause.",
-          "recommendation": null,
-          "verification": {
-            "abstention": "too early to tell",
-            "causal": false,
-            "eligibility_games": 5,
-            "guardrail_metric": "sample_size",
-            "primary_metric": "win_rate"
-          }
-        },
-        "comparable_opportunities": null,
-        "confidence": "high",
-        "cross_session_transitions": false,
-        "evidence_refs": [
-          "fixture:transfer"
-        ],
-        "family": "transfer",
-        "interpretation": "This bounded fixture relationship remains descriptive.",
-        "semantic_outcome_key": "clean_transfer"
-      },
+      "available": false,
+      "content": null,
       "family": "transfer"
     }
   },
   "identity": {
-    "display_name": "Story fixture player"
+    "display_name": "Long streak fixture player"
   },
   "modules": {
     "archetype": {
@@ -368,11 +334,6 @@
             "page": 19
           },
           {
-            "id": "story-card-transfer",
-            "module": "transfer",
-            "page": 21
-          },
-          {
             "id": "story-card-kills",
             "module": "kills",
             "page": 22
@@ -467,7 +428,7 @@
     "hello": {
       "copy_variant": "named_full",
       "data": {
-        "display_name": "Story fixture player",
+        "display_name": "Long streak fixture player",
         "history_materially_short": false,
         "observed_from": "2025-01-02",
         "observed_to": "2025-12-06",
@@ -1116,8 +1077,8 @@
           "outcome": "win"
         },
         "end_date": "2025-12-05",
-        "length": 2,
-        "start_date": "2025-12-04",
+        "length": 4,
+        "start_date": "2025-12-02",
         "terminal_state": "broken_by_win"
       },
       "reason": null,
@@ -1133,16 +1094,16 @@
       "state": "available"
     },
     "rank_points": {
-      "copy_variant": "positive",
+      "copy_variant": "zero",
       "data": {
         "classification_reliable": true,
-        "direction": "positive",
+        "direction": "zero",
         "formula_version": "rank-points-story-1.0.0",
-        "points_absolute": 550,
+        "points_absolute": 0,
         "points_per_match": 25,
-        "ranked_losses": 0,
+        "ranked_losses": 11,
         "ranked_matches": 22,
-        "ranked_wins": 22
+        "ranked_wins": 11
       },
       "reason": null,
       "state": "available"
@@ -1152,7 +1113,7 @@
       "data": {
         "breaker_exists": true,
         "roughest_day": {
-          "daily_losses": 2,
+          "daily_losses": 4,
           "date": "2025-01-02"
         },
         "rows": [
@@ -1169,6 +1130,13 @@
             "losses": 11,
             "matches": 11,
             "rank": 2
+          },
+          {
+            "hero_id": 3,
+            "hero_name": "Hero Gamma",
+            "losses": 11,
+            "matches": 11,
+            "rank": 3
           }
         ]
       },
@@ -1187,17 +1155,10 @@
             "wins": 11
           },
           {
-            "hero_id": 3,
-            "hero_name": "Hero Gamma",
+            "hero_id": 1,
+            "hero_name": "Hero Alpha",
             "matches": 11,
             "rank": 2,
-            "wins": 11
-          },
-          {
-            "hero_id": 2,
-            "hero_name": "Hero Beta",
-            "matches": 11,
-            "rank": 3,
             "wins": 11
           }
         ]
@@ -1209,10 +1170,10 @@
       "copy_variant": "many",
       "data": {
         "winningest_day": {
-          "daily_wins": 4,
+          "daily_wins": 2,
           "date": "2025-01-02"
         },
-        "wins": 44
+        "wins": 22
       },
       "reason": null,
       "state": "available"
@@ -1220,8 +1181,8 @@
     "winning_streak": {
       "copy_variant": "streak",
       "data": {
-        "end_date": "2025-12-03",
-        "length": 4,
+        "end_date": "2025-12-01",
+        "length": 2,
         "start_date": "2025-11-06"
       },
       "reason": null,
@@ -1230,7 +1191,7 @@
     "wins_bridge": {
       "copy_variant": "wins",
       "data": {
-        "wins": 44
+        "wins": 22
       },
       "reason": null,
       "state": "available"
@@ -1323,11 +1284,6 @@
       "page": 19
     },
     {
-      "id": "transfer",
-      "module": "transfer",
-      "page": 21
-    },
-    {
       "id": "kills",
       "module": "kills",
       "page": 22
@@ -1364,7 +1320,7 @@
     "parse_requests": 0,
     "physical_history_requests": 1,
     "provider": "opendota_summary",
-    "story_input_sha256": "c5549190e59c713f587a5970d492ac61e7d866e31e89951b6f8934d5e26a9324"
+    "story_input_sha256": "47fab77e8c59c76e763297c2c96e1b8f9531b9a924b7c5702255681bb13d763d"
   },
   "universe": {
     "duration_candidate_count": 66,

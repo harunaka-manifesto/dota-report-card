@@ -5,6 +5,7 @@ const NONE = "/report/v61-story-finding-none-fixture";
 const POST_LOSS = "/report/v61-story-finding-post-loss-fixture";
 const TRANSFER = "/report/v61-story-finding-transfer-fixture";
 const DEGRADED = "/report/v61-story-degraded-fixture";
+const LONG_STREAK = "/report/v61-story-long-streak-fixture";
 const HISTORICAL = "/report/v61-historical-production-fixture";
 
 const FORBIDDEN_STORY_TEXT = [
@@ -116,6 +117,35 @@ test.describe("story composition in the browser", () => {
     expect(pages).not.toContain(20);
     expect(pages).toContain(16);
     expect(pages[pages.length - 1]).toBe(33);
+  });
+
+  test("a long losing streak shows all three microcopy lines", async ({ page }) => {
+    await openStory(page, LONG_STREAK);
+    await advanceTo(page, 12);
+    const text = await page.locator("article[data-page]").innerText();
+    expect(text).toContain("You lost 4 matches in a row.");
+    expect(text).toContain("One more.");
+    expect(text).toContain("And another.");
+    // Frozen minimum streak of three.
+    expect(text).toContain("And… yeah.");
+  });
+
+  test("a two-match streak stops before the frozen minimum", async ({ page }) => {
+    await openStory(page, FULL);
+    await advanceTo(page, 12);
+    const text = await page.locator("article[data-page]").innerText();
+    expect(text).toContain("You lost 2 matches in a row.");
+    expect(text).toContain("One more.");
+    expect(text).not.toContain("And another.");
+    expect(text).not.toContain("And… yeah.");
+  });
+
+  test("rank points read flat at exactly zero", async ({ page }) => {
+    await openStory(page, LONG_STREAK);
+    await advanceTo(page, 4);
+    const text = await page.locator("article[data-page]").innerText();
+    expect(text).toContain("You ended the year exactly where you started.");
+    expect(text).not.toContain("-");
   });
 
   test("the degraded run still ends on the final card", async ({ page }) => {
@@ -298,6 +328,16 @@ test.describe("collage, share, and the ending", () => {
     while (!(await next.isDisabled())) await step(page, "Next");
   }
 
+  test("combat rows all belong to the leading hero named above them", async ({ page }) => {
+    await openStory(page, FULL);
+    await advanceTo(page, 22);
+    await expect(page.getByText("Hero Zeta contributed more than any other hero: 93.")).toBeVisible();
+    await expect(page.getByText("The three games where Hero Zeta really got involved:")).toBeVisible();
+    const names = await page.locator("article ol li span:nth-child(2)").allInnerTexts();
+    expect(names.length).toBe(3);
+    for (const name of names) expect(name).toBe("Hero Zeta");
+  });
+
   test("the collage completes its rows and closes the chapter", async ({ page }) => {
     await openStory(page, FULL);
     await advanceTo(page, 32);
@@ -387,7 +427,12 @@ test.describe("evidence, methodology, and focus", () => {
     await opener.click();
     const dialog = page.locator("dialog[open]");
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText("Captain’s Mode", { exact: false }).first()).toBeVisible();
+    // Mode scope stays backstage: one combined total, and no per-mode split.
+    await expect(dialog.getByText("both ranked and unranked matches", { exact: false })).toBeVisible();
+    await expect(dialog.getByText("ranked matches only", { exact: false })).toBeVisible();
+    const body = await dialog.innerText();
+    expect(body).not.toMatch(/Captain’s Mode|All Pick/);
+    expect(body).not.toMatch(/\bMMR\b|\bmedal\b|\bbracket\b|\btier\b/i);
     await page.keyboard.press("Escape");
     await expect(page.locator("dialog[open]")).toHaveCount(0);
     await expect(opener).toBeFocused();

@@ -1155,10 +1155,17 @@ def build_stat_module(
                 **_hero_ref(hero_id, hero_metadata),
                 "total": hero_totals[0]["total"],
             }
+    # The individual rows belong to the leading hero.  Page 22/23/24 copy names
+    # that hero ("The three games where {Hero} really got involved"), so rows
+    # drawn from the whole roster would contradict the sentence introducing
+    # them.  Without a leading hero there is no such sentence and no rows.
+    leading_hero_id = leading_hero["hero_id"] if leading_hero else None
     candidates = [
         (index, row)
         for index, row in enumerate(rows)
-        if (_stat(row, stat_key) or 0) > 0
+        if leading_hero_id is not None
+        and _hero_id(row) == leading_hero_id
+        and (_stat(row, stat_key) or 0) > 0
         and _date_string(_timestamp(row)) is not None
         and _outcome_label(row) is not None
         and all(_stat(row, key) is not None for key in ("kills", "deaths", "assists"))
