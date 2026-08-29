@@ -148,15 +148,16 @@ outputs were discarded and are not evidence.
 ## Staging
 
 - staging before: `2c6c18bea7780a4b9b42a66266853bf1458264ee`;
-- completion commit: RECORDED AFTER INTEGRATION;
-- staging after: RECORDED AFTER INTEGRATION;
-- integrated: PENDING CLEANUP;
+- completion commit: `8a19a9c3894c29e44df82387870a25782bc360e4`;
+- staging after: `8a19a9c3894c29e44df82387870a25782bc360e4` at the verified
+  execution integration point;
+- integrated: YES;
 - main changed: NO.
 
 ## Cleanup
 
-- temporary worktree removed: PENDING;
-- temporary branch deleted: PENDING;
+- temporary worktree removed: YES;
+- temporary branch deleted: YES;
 - unique local assets preserved: YES;
 - unknown branches deleted: NO.
 
@@ -178,7 +179,7 @@ outputs were discarded and are not evidence.
 ```text
 TASK TYPE: ANALYTICAL RESEARCH + DOCUMENTATION + REPOSITORY HYGIENE
 BASE SHA: 2c6c18bea7780a4b9b42a66266853bf1458264ee
-NEW SHA: RECORDED AFTER INTEGRATION
+NEW SHA: 8a19a9c3894c29e44df82387870a25782bc360e4 (execution integration point)
 CHANGED FILES: research runner, frozen research helper, final evidence, rejection evidence, prior Death Context evidence/design records
 BACKEND FILES CHANGED: NO
 ANALYTICAL FILES CHANGED: YES (research execution helper only; frozen method restored)
