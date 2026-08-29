@@ -29,6 +29,29 @@ corpus. No calibration design was opened, and the production report remains
 unchanged. A future provider attempt requires separate authorization and a
 new campaign; this campaign is not silently retried.
 
+## Continuation outcome — 2026-08-29
+
+The owner-authorized continuation reused the exact same frozen panel and
+queued the prior HTTP-500 match first, followed by the 900 never-attempted
+matches in deterministic panel order. It made 930 new direct OpenDota detail
+GETs: 891 new unique details succeeded, 39 attempts returned HTTP 429, and 29
+retries were issued under the predeclared maximum of two after the initial
+request. Seven retry attempts succeeded; ten matches remained unresolved after
+the retry limit.
+
+The terminal state remains `PILOT_COLLECTION_BLOCKED`: 950 of 960 frozen
+details are available and 28 of 32 profiles are complete. The full-panel
+estimand, residuals, controls, common-direction guard, bootstrap intervals,
+stability, and product routing conclusions were not evaluated. The 950
+available details support structural QA only. No calibration or rejection
+evidence was opened, and no production or analytical behavior changed.
+
+The continuation preserved its successful responses in the canonical Tier-2
+corpus. The corpus now contains 950 persisted successful live details, 19
+earlier referenced source bodies, and 969 normalized records. The continuation
+receipt is recorded in
+`docs/evidence/free-dna-death-context-continuation-2026-08-29.md`.
+
 ## Registered estimand
 
 For player `p` and selected match `m`:
@@ -140,6 +163,12 @@ Even if the panel passes analytically, the current Free report must remain uncha
 - zero retries;
 - zero replay parse requests;
 - zero provider calls before explicit owner approval.
+
+The initial overnight campaign used zero retries. Its separately authorized
+continuation allowed at most 960 new physical GETs including retries, at most
+two retries after an initial transient failure, and the same Rp1,920 / $0.096
+ceiling. It reduced concurrency from 5 to 1 after HTTP 429 instability and
+stopped with `PILOT_COLLECTION_BLOCKED` when ten fixed IDs remained unresolved.
 
 ## Success and stop
 

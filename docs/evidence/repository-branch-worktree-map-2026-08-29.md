@@ -3,16 +3,18 @@
 ## Scope
 
 This map records the repository state for the Death Context overnight
-completion. It covers local provenance and integration boundaries; it does not
-authorize deployment, remote updates, or deletion of user-owned work.
+completion and its owner-authorized continuation. It covers local provenance
+and integration boundaries; it does not authorize deployment, remote updates,
+or deletion of user-owned work.
 
 ## Branches
 
 | Role | Local ref | SHA | State |
 | --- | --- | --- | --- |
 | Production baseline | `main` | `6d088f76e3c0ca39a3649a6c80ee2cfb1db93d95` | unchanged |
-| Local integration target | `staging` | `8b1baa3f` | tracks `origin/staging`; includes the integrated execution tip |
+| Local integration target | `staging` | `72791c2b` | continuation base; to receive only the temporary continuation handoff |
 | Overnight execution | `execution/free-dna-death-context-local-reuse-pilot` | `9911c26` | fully integrated; local branch and worktree removed after preservation |
+| Continuation execution | `execution/death-context-continuation` | `72791c2b` base | temporary isolated branch; collection receipt is blocked at 950/960 and is pending local staging handoff |
 | Research base | `research/free-dna-death-context-feasibility` | `98e471453b2ea5b6de418ad9ca8d4e5400c913eb` | frozen Tier-2 pilot base |
 
 The execution branch is not an ancestor of `staging`; their common ancestor is
@@ -26,6 +28,7 @@ files. Integration therefore belongs in local `staging`, not `main`.
 | --- | --- |
 | `/Users/nikanakamanifesto/Documents/GitHub/dota-report-card` | `staging`; owner worktree with unrelated untracked files preserved |
 | `/Users/nikanakamanifesto/Documents/GitHub/dota-report-card-death-context-local-reuse-pilot` | removed after canonical artifact preservation; tip `9911c26` remains reachable from `staging` |
+| `/Users/nikanakamanifesto/Documents/GitHub/dota-report-card-death-context-continuation` | `execution/death-context-continuation`; temporary continuation worktree; remove only after local staging reachability is proven |
 | `/Users/nikanakamanifesto/Documents/GitHub/dota-report-card-v7-stratz-corpus-acquisition` | `data/v7-stratz-corpus-acquisition`; retained data worktree |
 | `/sessions/rcw-01rq9g37eta2rpt1vaxdsbkm/research-v61-findings-recovery` | `research/v61-findings-recovery`; locked initializing worktree |
 | `/sessions/rcw-01rq9g37eta2rpt1vaxdsbkm/research-v61-frozen-repro` | `research/v61-frozen-repro`; locked initializing worktree |
@@ -60,6 +63,7 @@ and preserve the canonical ignored local artifacts:
 .local/corpora/opendota/free-dna-tier2/
 .local/diagnostics/free-dna-death-context-live-pilot/
 .local/diagnostics/free-dna-death-context-overnight/
+.local/diagnostics/free-dna-death-context-continuation/
 ```
 
 Do not remove the owner worktree, the data worktree, locked research worktrees,

@@ -71,6 +71,30 @@ does not authorize retrying this campaign. Any future supplement must use a
 newly named, separately approved campaign and preserve this ledger as
 historical provenance.
 
+## Continuation decision recorded on 2026-08-29
+
+The separately authorized continuation reused the same 960-ID panel and made
+930 new direct detail GETs. It produced 891 new successful unique details,
+including seven successful retry attempts after 39 transient HTTP 429
+responses. Ten fixed matches remained unresolved after the two-retry limit,
+so the panel stopped at 950 / 960 successful details and
+`PILOT_COLLECTION_BLOCKED`. No analytical outcome result was generated.
+
+The canonical corpus now contains:
+
+- 950 persisted successful live raw responses (59 from the prior run plus 891 continuation details);
+- 19 earlier immutable source-body references;
+- 969 normalized records;
+- normalized digest `f6987a1b695c0c2446c140987ac992f651f7074e68afc501b86dc26d41c0b01f`;
+- manifest SHA-256 `ba19ab9b7992c2e6b81988636ea7c0f5aaef475acd764f5edad9eee4a92cd6d4`;
+- `analytical_outcome_results_generated: false`; and
+- 270,801,746 bytes / 258.26 MiB of local corpus-plus-continuation diagnostics.
+
+The continuation queue, retry ledger, raw bodies, and provider receipts remain
+ignored/private. The successful data is reusable for offline schema and
+semantics QA, but the incomplete panel is not a basis for publication,
+calibration, or a partial Death Context estimate.
+
 ## Future uses
 
 Allowed: offline schema/semantics QA, bug investigation, descriptive Tier-2
