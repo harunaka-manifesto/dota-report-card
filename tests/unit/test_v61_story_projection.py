@@ -139,6 +139,28 @@ def test_projection_is_strict_schema_compatible_and_projects_findings() -> None:
     page_numbers = [
         item["page"] if isinstance(item, dict) else item for item in payload["page_manifest"]
     ]
+    assert all(left < right for left, right in zip(page_numbers, page_numbers[1:], strict=False))
+    page_by_module = {
+        item["module"]: item["page"]
+        for item in payload["page_manifest"]
+        if isinstance(item, dict) and item.get("module") is not None
+    }
+    assert page_by_module["transfer"] == 21
+    assert page_by_module["hero_era_payoff"] < page_by_module["transfer"] < page_by_module["kills"]
+    assert 13 < page_by_module["post_loss"] < page_by_module["hero_pool"]
+
+    cards = payload["modules"]["card_collage"]["data"]["cards"]
+    card_modules = [card["module"] for card in cards]
+    assert card_modules == [card["module"] for card in payload["card_manifest"]]
+    assert all(
+        card["page"] < next_card["page"]
+        for card, next_card in zip(cards, cards[1:], strict=False)
+    )
+    assert card_modules == [
+        item["module"]
+        for item in payload["page_manifest"]
+        if isinstance(item, dict) and item.get("module") not in {None, "card_collage"}
+    ]
     assert 25 not in page_numbers
     assert page_numbers[page_numbers.index(24) + 1] == 26
     assert "death_context" not in str(payload).casefold()

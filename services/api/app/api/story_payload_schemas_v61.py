@@ -149,7 +149,7 @@ STORY_MODULE_PAGES: dict[str, int] = {
     "final_identity_card": 33,
     "deep": 34,
     "post_loss": 15,
-    "transfer": 14,
+    "transfer": 21,
 }
 
 _FORBIDDEN_STORY_KEYS = frozenset(
