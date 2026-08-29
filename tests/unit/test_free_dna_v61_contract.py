@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+from copy import deepcopy
 from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 from app.analysis.service import AnalysisService
@@ -16,10 +18,16 @@ from app.ingestion.summary_history_contract import (
     normalize_canonical_summary_history,
 )
 from app.player_analysis_v6.artifacts import ArtifactValidationError
+from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
 from app.player_analysis_v61.calibration_corpus import normalize_calibration_history
 from app.player_analysis_v61.portfolio_shape import chronological_thirds
-from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
+from app.player_analysis_v61.semantic_outcomes import (
+    SEMANTIC_OUTCOME_CATALOG,
+    SEMANTIC_OUTCOME_REGISTRY,
+)
+from app.player_analysis_v61.story_selector import select_story_matches
 from app.player_analysis_v61.supporting_signals import SUPPORTING_SIGNAL_CATALOG
+from app.reports import dna_assembly_v61 as dna_assembly_v61_module
 from app.storage.repository import InMemoryRepository
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "v6"
@@ -127,6 +135,151 @@ def test_v61_generates_new_immutable_contract_with_old_ontology() -> None:
     assert source.requests.count(("summary_history_once", 42)) == 1
     assert not any(request[0] == "match" for request in source.requests)
     validate_free_dna_report(report)
+
+
+def test_v61_publication_cap_keeps_transfer_and_post_loss_before_later_families(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original_assemble = dna_assembly_v61_module.assemble_free_dna_report_v6
+
+    def all_candidates(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        report = original_assemble(*args, **kwargs)
+        for finding in report["findings"]:
+            finding["published"] = True
+        return report
+
+    def all_qualified(
+        family_p: dict[str, float],
+        branch_p: dict[str, dict[str, float]],
+    ) -> dict[str, dict[str, object]]:
+        result: dict[str, dict[str, object]] = {}
+        for family in FINDING_FAMILY_KEYS:
+            branches = dict(branch_p.get(family, {}))
+            for key, definition in SEMANTIC_OUTCOME_REGISTRY.items():
+                if definition.family_key == family:
+                    branches.setdefault(key, 0.0)
+            result[family] = {
+                "raw_p_value": family_p.get(family, 0.0),
+                "adjusted_q_value": 0.0,
+                "qualified": True,
+                "branches": {
+                    key: {
+                        "raw_p_value": value,
+                        "adjusted_q_value": 0.0,
+                        "qualified": True,
+                    }
+                    for key, value in branches.items()
+                },
+            }
+        return result
+
+    monkeypatch.setattr(dna_assembly_v61_module, "assemble_free_dna_report_v6", all_candidates)
+    monkeypatch.setattr(dna_assembly_v61_module, "hierarchical_qualification", all_qualified)
+
+    report, _ = _generate()
+
+    assert tuple(item["family"] for item in report["findings"]) == FINDING_FAMILY_KEYS
+    assert [
+        item["family"] for item in report["findings"] if item["published"]
+    ] == list(FINDING_FAMILY_KEYS[:3])
+
+
+def test_story_population_adds_captains_mode_without_widening_inferential_rows() -> None:
+    rows = _rows(30)
+    rows.extend(
+        {
+            **row,
+            "match_id": 962_000_000 + index,
+            "game_mode": 2,
+        }
+        for index, row in enumerate(_rows(10))
+    )
+
+    report, source = _generate(rows=rows)
+
+    assert report["metadata"]["processed_matches"] == 40
+    assert report["metadata"]["eligible_matches"] == 30
+    story = report["story_payload"]
+    assert story["universe"]["match_count"] == 40
+    assert story["universe"]["mode_counts"] == {
+        "unranked_all_pick": 30,
+        "ranked_all_pick": 0,
+        "unranked_captains_mode": 10,
+        "ranked_captains_mode": 0,
+    }
+    assert story["provenance"]["physical_history_requests"] == 1
+    assert story["provenance"]["detail_requests"] == 0
+    assert story["provenance"]["parse_requests"] == 0
+    assert source.requests == [("player", 42), ("summary_history_once", 42)]
+    validate_free_dna_report(report)
+
+
+def test_story_activation_omits_cross_product_rows_and_story_versions_below_thirty() -> None:
+    rows = _rows(30)
+    for row in rows[25:]:
+        row["lobby_type"] = 7
+
+    report, _source = _generate(rows=rows)
+
+    assert report["metadata"]["eligible_matches"] == 30
+    assert "story_payload" not in report
+    assert all(
+        key not in report["versions"]
+        for key in (
+            "story_payload",
+            "story_rules",
+            "story_copy",
+            "game_mode_map",
+            "hero_taxonomy",
+            "hero_metadata",
+            "archetype_contract",
+        )
+    )
+    validate_free_dna_report(report)
+
+
+def test_story_extension_does_not_change_ap_only_legacy_surfaces(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    rows = _rows()
+    original_selector = select_story_matches
+
+    def no_story_selection(matches: Any) -> Any:
+        selection = original_selector(matches)
+        return replace(selection, matches=selection.matches[:29])
+
+    monkeypatch.setattr("app.analysis.service.select_story_matches", no_story_selection)
+    without_story, _ = _generate(rows=rows)
+    monkeypatch.undo()
+    with_story, _ = _generate(rows=rows)
+
+    def legacy_surface(report: dict[str, object]) -> dict[str, object]:
+        value = deepcopy(report)
+        value.pop("report_id", None)
+        value.pop("story_payload", None)
+        versions = value.get("versions")
+        if isinstance(versions, dict):
+            for key in (
+                "story_payload",
+                "story_rules",
+                "story_copy",
+                "game_mode_map",
+                "hero_taxonomy",
+                "hero_metadata",
+                "archetype_contract",
+                "analysis_version_fingerprint",
+            ):
+                versions.pop(key, None)
+        metadata = value.get("metadata")
+        if isinstance(metadata, dict):
+            metadata.pop("created_at", None)
+            metadata.pop("expires_at", None)
+        reproducibility = value.get("reproducibility")
+        if isinstance(reproducibility, dict):
+            reproducibility.pop("generated_at", None)
+        return value
+
+    assert legacy_surface(without_story) == legacy_surface(with_story)
 
 
 def test_known_production_regression_player_completes_v61_assembly_and_persistence() -> None:

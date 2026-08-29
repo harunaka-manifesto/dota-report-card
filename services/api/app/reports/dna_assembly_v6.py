@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
@@ -59,8 +59,13 @@ def assemble_free_dna_report_v6(
     thresholds: Mapping[str, MetricThreshold] | None = None,
     taxonomy_by_hero: Mapping[Any, Any] | None = None,
     completed_sessions: Mapping[str, bool] | None = None,
+    internal_evidence_out: MutableMapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Assemble one immutable v6 snapshot without altering v5 projection code."""
+    """Assemble one immutable v6 snapshot without altering v5 projection code.
+
+    ``internal_evidence_out`` receives only non-serialized evidence needed by
+    additive V6.1 projections.
+    """
 
     del account_id  # Raw player identifiers never cross the public report boundary.
     generated_at = datetime.now(UTC).isoformat()
@@ -75,6 +80,7 @@ def assemble_free_dna_report_v6(
         thresholds=thresholds,
         taxonomy_by_hero=taxonomy_by_hero,
         completed_sessions=completed_sessions,
+        internal_evidence_out=internal_evidence_out,
     )
     public = core.as_dict()
     elements = [_element(item) for item in core.elements]
