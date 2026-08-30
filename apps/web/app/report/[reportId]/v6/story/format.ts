@@ -4,7 +4,19 @@
  * `display_value` + `display_unit`, and dates arrive as ISO calendar days.
  */
 
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})/;
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function parseStoryDate(value: string | null | undefined): Date | null {
+  const match = typeof value === "string" ? DATE_ONLY.exec(value) : null;
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+    ? date
+    : null;
+}
 
 /**
  * Formats a supplied ISO calendar day.  Day boundaries are a frozen UTC
@@ -12,10 +24,8 @@ const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})/;
  * never imply a player-local "your Saturday".
  */
 export function formatStoryDate(value: string | null | undefined): string {
-  const match = typeof value === "string" ? DATE_ONLY.exec(value) : null;
-  if (!match) return "";
-  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
-  if (Number.isNaN(date.getTime())) return "";
+  const date = parseStoryDate(value);
+  if (!date) return "";
   return new Intl.DateTimeFormat("en-US", {
     timeZone: "UTC",
     month: "short",
@@ -26,10 +36,8 @@ export function formatStoryDate(value: string | null | undefined): string {
 
 /** Short form for tick labels and era captions. */
 export function formatStoryMonth(value: string | null | undefined): string {
-  const match = typeof value === "string" ? DATE_ONLY.exec(value) : null;
-  if (!match) return "";
-  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
-  if (Number.isNaN(date.getTime())) return "";
+  const date = parseStoryDate(value);
+  if (!date) return "";
   return new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short" }).format(date);
 }
 
@@ -41,8 +49,10 @@ export function formatStoryMonth(value: string | null | undefined): string {
 export function formatPeriodLabel(value: string): string {
   const match = /^(\d{4})-(\d{2})$/.exec(value);
   if (!match) return value;
-  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1));
-  if (Number.isNaN(date.getTime())) return value;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const date = new Date(Date.UTC(year, month - 1, 1));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1) return value;
   return new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "long", year: "numeric" }).format(date);
 }
 

@@ -18,6 +18,7 @@ import {
   type RefObject,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -98,6 +99,7 @@ export default function LegacyStoryV61({ report }: { report: V61Report }) {
   const [fallbackUrl, setFallbackUrl] = useState("");
   const pointerStart = useRef<PointerStart | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const focusHeadingAfterNavigation = useRef(false);
   const evidenceControl = useRef<HTMLButtonElement | null>(null);
   const overlayStarted = useRef(0);
   const overlayOrigin = useRef<HTMLElement | null>(null);
@@ -110,6 +112,12 @@ export default function LegacyStoryV61({ report }: { report: V61Report }) {
 
   useEffect(() => { setEvidenceOpen(false); }, [pageIndex]);
 
+  useLayoutEffect(() => {
+    if (!focusHeadingAfterNavigation.current) return;
+    focusHeadingAfterNavigation.current = false;
+    headingRef.current?.focus({ preventScroll: true });
+  }, [page.id]);
+
   /**
    * The page commits on the press. There is no leave phase to wait out, so the
    * frame never blanks and a press cadence faster than the entrance can never
@@ -120,10 +128,10 @@ export default function LegacyStoryV61({ report }: { report: V61Report }) {
       const nextIndex = current + step;
       if (nextIndex < 0 || nextIndex >= pages.length) return current;
       leaveDirection.current = nextDirection;
+      focusHeadingAfterNavigation.current = true;
       setNavSource(source);
       setDirection(nextDirection);
       requestAnimationFrame(() => {
-        headingRef.current?.focus({ preventScroll: true });
         track("report.story_transition_completed.v1", {
           page_id: pages[nextIndex].id,
           direction: nextDirection,
@@ -221,8 +229,8 @@ export default function LegacyStoryV61({ report }: { report: V61Report }) {
     leaveDirection.current = "read_again";
     setCopyStatus("idle");
     setDirection("backward");
+    focusHeadingAfterNavigation.current = true;
     setPageIndex(0);
-    requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
   };
 
   const confirmExit = () => {
@@ -448,6 +456,7 @@ function ScopeReceipt({ page, reducedMotion, exitOpen, settled, onComplete, head
 
   useEffect(() => {
     if (reducedMotion || settled.current) {
+      setStage(finalStage);
       // The completion event belongs to the sequence, not to this mount, so a
       // return visit to a settled receipt must not fire it again.
       if (!settled.current && !completed.current) onCompleteRef.current();

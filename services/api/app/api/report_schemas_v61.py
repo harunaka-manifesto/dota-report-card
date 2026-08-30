@@ -28,6 +28,7 @@ from app.api.story_payload_schemas_v61 import (
     StoryPayloadV61Schema,
     StoryPayloadVersion,
     StoryRulesVersion,
+    public_story_evidence_refs,
 )
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
 
@@ -392,7 +393,7 @@ class FreeDnaReportV61Schema(PublicV6Model):
                 if (
                     content.claim != finding.claim
                     or content.interpretation != finding.interpretation
-                    or content.evidence_refs != finding.evidence_refs
+                    or content.evidence_refs != public_story_evidence_refs(finding.evidence_refs)
                     or content.confidence != finding.confidence
                     or content.semantic_outcome_key != finding.semantic_outcome_key
                 ):

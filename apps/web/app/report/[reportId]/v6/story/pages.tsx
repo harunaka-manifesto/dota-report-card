@@ -1026,7 +1026,11 @@ function Page31({ story, headingRef, archetypeRevealed, onRevealArchetype, reduc
 }
 
 function Page32({ story, page, headingRef, reducedMotion }: PageProps) {
-  const cards = buildCollageCards(story.payload, story.payload.modules.card_collage.data?.cards ?? []);
+  const cards = buildCollageCards(
+    story.payload,
+    story.payload.modules.card_collage.data?.cards ?? [],
+    new Set(story.pages.map((item) => item.page)),
+  );
   const dry = page.closesWithDryLine;
   useBeatPlan({ total: 3 });
   return (
@@ -1038,6 +1042,7 @@ function Page32({ story, page, headingRef, reducedMotion }: PageProps) {
             <li
               key={card.id}
               className={styles.collageCard}
+              data-module={card.module}
               style={{
                 ["--span-narrow" as string]: spans.narrow,
                 ["--span-wide" as string]: spans.wide,

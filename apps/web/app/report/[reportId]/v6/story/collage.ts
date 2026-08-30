@@ -8,7 +8,7 @@
  */
 
 import { formatCount, formatDisplayValue, formatPeriodLabel, formatShare, formatStoryDate } from "./format";
-import type { StoryCard, StoryCardModuleKey, StoryPayload } from "./payload-types";
+import { STORY_MODULE_PAGES, type StoryCard, type StoryCardModuleKey, type StoryPayload } from "./payload-types";
 
 export type CollageCard = {
   id: string;
@@ -47,8 +47,13 @@ const LABELS: Record<StoryCardModuleKey, string> = {
   deep: "Deeper",
 };
 
-export function buildCollageCards(payload: StoryPayload, cards: StoryCard[]): CollageCard[] {
+export function buildCollageCards(
+  payload: StoryPayload,
+  cards: StoryCard[],
+  renderedPages: ReadonlySet<number>,
+): CollageCard[] {
   return cards
+    .filter((card) => renderedPages.has(STORY_MODULE_PAGES[card.module]))
     .map((card) => {
       const content = cardContent(payload, card.module);
       if (content === null) return null;
@@ -92,11 +97,10 @@ function cardContent(
       const data = modules.longest_match.data;
       return data ? { value: data.formatted_duration, detail: data.hero_name } : null;
     }
-    case "wins_bridge":
-      // Page 8 displays no number, and its card would repeat the win summary
-      // verbatim.  A collage card recaps a moment the reader actually saw, so
-      // this one is skipped rather than duplicated.
-      return null;
+    case "wins_bridge": {
+      const data = modules.wins_bridge.data;
+      return data ? { value: formatCount(data.wins), detail: data.wins === 1 ? "win" : "wins" } : null;
+    }
     case "win_summary": {
       const data = modules.win_summary.data;
       return data ? { value: formatCount(data.wins), detail: data.wins === 1 ? "win" : "wins" } : null;

@@ -13,6 +13,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import type { BeatPlan } from "./motion";
@@ -253,9 +254,25 @@ export function InlineEvidence({
   limitations: string[];
 }) {
   const regionId = `${id}-region`;
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const regionRef = useRef<HTMLDivElement>(null);
+  const previousOpen = useRef(open);
+  useEffect(() => {
+    if (previousOpen.current === open) return;
+    previousOpen.current = open;
+    requestAnimationFrame(() => (open ? regionRef.current : toggleRef.current)?.focus());
+  }, [open]);
   return (
-    <div className={styles.evidence}>
+    <div
+      className={styles.evidence}
+      onKeyDown={(event) => {
+        if (event.key !== "Escape") return;
+        event.preventDefault();
+        onToggle();
+      }}
+    >
       <button
+        ref={toggleRef}
         type="button"
         className={styles.evidenceToggle}
         aria-expanded={open}
@@ -265,6 +282,7 @@ export function InlineEvidence({
         {open ? "Hide evidence" : "Why this?"}
       </button>
       <div
+        ref={regionRef}
         id={regionId}
         className={styles.evidenceRegion}
         role="region"

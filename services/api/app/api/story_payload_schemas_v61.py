@@ -182,6 +182,27 @@ _DEATH_CONTEXT_RE = re.compile(r"death[-_ ]context", re.IGNORECASE)
 _PRIVATE_STORY_KEY_TOKENS = frozenset(
     re.sub(r"[^a-z0-9]", "", key) for key in _FORBIDDEN_STORY_KEYS
 )
+_PRIVATE_STORY_REFERENCE_PREFIXES = ("match:", "session:", "cohort:", "protected:")
+_PRIVATE_POST_LOSS_REFERENCE = re.compile(r"^post_loss:\d+$", re.IGNORECASE)
+
+
+def _is_private_story_reference(value: str) -> bool:
+    return value.casefold().startswith(_PRIVATE_STORY_REFERENCE_PREFIXES) or bool(
+        _PRIVATE_POST_LOSS_REFERENCE.fullmatch(value)
+    )
+
+
+def public_story_evidence_refs(values: Any) -> list[str]:
+    """Return stable public evidence labels without row/session identifiers."""
+
+    result: list[str] = []
+    for value in values or ():
+        ref = str(value)
+        if _is_private_story_reference(ref):
+            continue
+        if ref not in result:
+            result.append(ref)
+    return result
 
 
 def validate_story_privacy(value: Any) -> None:
@@ -208,6 +229,8 @@ def validate_story_privacy(value: Any) -> None:
             for index, nested in enumerate(item):
                 walk(nested, f"{path}[{index}]")
         elif isinstance(item, str):
+            if _is_private_story_reference(item):
+                raise ValueError(f"story payload contains a private reference at {path}")
             if _DEATH_CONTEXT_RE.search(item):
                 raise ValueError(f"story payload cannot contain Death Context at {path}")
             if _PAGE_25_RE.search(item):
@@ -1206,5 +1229,6 @@ __all__ = [
     "StoryOutcome",
     "StoryState",
     "StoryFinalIdentityCardModuleV61Schema",
+    "public_story_evidence_refs",
     "validate_story_privacy",
 ]

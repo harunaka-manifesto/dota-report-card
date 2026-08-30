@@ -9,6 +9,7 @@ from app.api.report_schemas import validate_free_dna_report
 from app.api.story_payload_schemas_v61 import (
     StoryCombatRowV61Schema,
     StoryPayloadV61Schema,
+    validate_story_privacy,
 )
 from app.player_analysis_v61.story_selector import MODE_MAP_SHA256
 
@@ -75,6 +76,9 @@ def test_story_privacy_rejects_private_identifier_keys() -> None:
     invalid["identity"]["account_id"] = 42  # type: ignore[index]
     with pytest.raises(ValueError):
         StoryPayloadV61Schema.model_validate(invalid)
+
+    with pytest.raises(ValueError, match="private reference"):
+        validate_story_privacy({"evidence_refs": ["post_loss:123456789"]})
 
 
 def test_story_provenance_binds_pinned_and_digest_checksums() -> None:

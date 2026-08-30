@@ -2,9 +2,10 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
 import { ARCHETYPE_NOT_READY_RENDER_EXCEPTION } from "../../app/report/[reportId]/v6/story/archetype-placeholder";
-import { collageSpans } from "../../app/report/[reportId]/v6/story/collage";
+import { buildCollageCards, collageSpans } from "../../app/report/[reportId]/v6/story/collage";
 import { composeStory, moduleRenders } from "../../app/report/[reportId]/v6/story/compose";
 import { COPY_VARIANTS } from "../../app/report/[reportId]/v6/story/copy-variants";
+import { formatPeriodLabel, formatStoryDate } from "../../app/report/[reportId]/v6/story/format";
 import { initialHeroEraIndex } from "../../app/report/[reportId]/v6/story/hero-eras-selection";
 import { normalizeStoryPayload } from "../../app/report/[reportId]/v6/story/normalize-story";
 import { STORY_MODULE_KEYS } from "../../app/report/[reportId]/v6/story/payload-types";
@@ -220,6 +221,40 @@ test.describe("composed page arrays", () => {
       if (pages.has(16)) expect(pages.has(17) || pages.has(18) || pages.has(19)).toBe(true);
     }
   });
+
+  test("rejects synthetic pages that are not connected to their source page", () => {
+    const raw = fixture("v61-story-payload-both") as { page_manifest: unknown[] };
+    raw.page_manifest = [
+      { page: 26, module: null },
+      { page: 31, module: null },
+    ];
+    const normalized = normalizeStoryPayload(raw)!;
+    const story = composeStory(normalized.payload, [{ key: "breadth", label: "Breadth" }] as never, []);
+    expect(story.pages.map((page) => page.page)).not.toEqual(expect.arrayContaining([26, 27, 31]));
+  });
+
+  test("keeps unimplemented analytical and Deep pages out of hand-edited manifests", () => {
+    const raw = fixture("v61-story-payload-both") as {
+      modules: Record<string, unknown>;
+      page_manifest: unknown[];
+    };
+    raw.modules.element_distinctiveness = {
+      state: "available",
+      reason: null,
+      copy_variant: "not_ready",
+      data: { rows: [], nothing_meaningfully_stands_out: true },
+    };
+    raw.modules.deep = {
+      state: "available",
+      reason: null,
+      copy_variant: "available",
+      data: { available: true },
+    };
+    raw.page_manifest.push({ page: 28, module: "element_distinctiveness" }, { page: 34, module: "deep" });
+    const normalized = normalizeStoryPayload(raw)!;
+    const pages = composeStory(normalized.payload, [], []).pages.map((page) => page.page);
+    expect(pages).not.toEqual(expect.arrayContaining([28, 34]));
+  });
 });
 
 test.describe("the frozen dry-line cadence", () => {
@@ -248,6 +283,21 @@ test.describe("the frozen dry-line cadence", () => {
 });
 
 test.describe("collage geometry", () => {
+  test("mirrors every rendered manifest card, including the wins bridge", () => {
+    const normalized = normalizeStoryPayload(fixture("v61-story-payload-both"))!;
+    const story = composeWithElements("v61-story-payload-both");
+    const manifest = normalized.payload.modules.card_collage.data!.cards;
+    const pages = new Set(story.pages.map((page) => page.page));
+    const cards = buildCollageCards(normalized.payload, manifest, pages);
+    expect(cards).toHaveLength(manifest.length);
+    expect(cards.map((card) => card.module)).toContain("wins_bridge");
+
+    pages.delete(8);
+    expect(buildCollageCards(normalized.payload, manifest, pages).map((card) => card.module)).not.toContain(
+      "wins_bridge",
+    );
+  });
+
   test("completes every row at any card count", () => {
     for (let total = 1; total <= 24; total += 1) {
       for (let index = 0; index < total; index += 1) {
@@ -267,7 +317,10 @@ test.describe("normalization repairs structure without inventing meaning", () =>
   test("a malformed hero era row is dropped, not replaced", () => {
     const raw = fixture("v61-story-payload-both") as { modules: Record<string, { data: { periods: unknown[] } }> };
     const periods = raw.modules.hero_eras.data.periods as Array<{ top_heroes: unknown[] }>;
-    periods[0].top_heroes = [{ rank: 1, hero_name: "Kept", matches: 3 }, { rank: 2, hero_name: null, matches: 2 }];
+    periods[0].top_heroes = [
+      { rank: 1, hero_id: 1, hero_name: "Kept", matches: 3 },
+      { rank: 2, hero_id: 2, hero_name: null, matches: 2 },
+    ];
     const normalized = normalizeStoryPayload(raw)!;
     expect(normalized.payload.modules.hero_eras.data?.periods[0].top_heroes).toHaveLength(1);
   });
@@ -275,5 +328,28 @@ test.describe("normalization repairs structure without inventing meaning", () =>
   test("a report without a story payload does not compose", () => {
     expect(normalizeStoryPayload(undefined)).toBeNull();
     expect(normalizeStoryPayload({ modules: {} })).toBeNull();
+  });
+
+  test("an unknown payload version or malformed root falls back to legacy", () => {
+    const future = fixture("v61-story-payload-both") as Record<string, unknown>;
+    future.version = "free-story-payload-2.0.0";
+    expect(normalizeStoryPayload(future)).toBeNull();
+
+    const malformed = fixture("v61-story-payload-both") as { universe: Record<string, unknown> };
+    delete malformed.universe.history_completeness;
+    expect(normalizeStoryPayload(malformed)).toBeNull();
+  });
+
+  test("an available module with unusable data is omitted before composition", () => {
+    const raw = fixture("v61-story-payload-both") as { modules: Record<string, unknown> };
+    raw.modules.match_count = { state: "available", reason: null, copy_variant: "normal", data: {} };
+    const normalized = normalizeStoryPayload(raw)!;
+    expect(normalized.payload.modules.match_count.state).toBe("omitted");
+    expect(composeStory(normalized.payload, [], []).pages.map((page) => page.page)).not.toContain(2);
+  });
+
+  test("invalid calendar values are never silently normalized", () => {
+    expect(formatStoryDate("2025-02-31")).toBe("");
+    expect(formatPeriodLabel("2025-13")).toBe("2025-13");
   });
 });

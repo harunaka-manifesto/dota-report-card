@@ -23,6 +23,7 @@ from app.api.story_payload_schemas_v61 import (
     STORY_MODULE_PAGES,
     STORY_PAYLOAD_VERSION,
     StoryPayloadV61Schema,
+    public_story_evidence_refs,
 )
 from app.player_analysis_v61.story_payload import build_story_modules
 from app.player_analysis_v61.story_selector import StorySelection
@@ -198,7 +199,7 @@ def _finding_slot(
         "claim": finding.get("claim"),
         "interpretation": finding.get("interpretation"),
         "claim_contract": projected_contract,
-        "evidence_refs": [str(value) for value in finding.get("evidence_refs", ())],
+        "evidence_refs": public_story_evidence_refs(finding.get("evidence_refs", ())),
         "confidence": finding.get("confidence", "unavailable"),
         "semantic_outcome_key": finding.get("semantic_outcome_key"),
         "comparable_opportunities": comparable_pair_count

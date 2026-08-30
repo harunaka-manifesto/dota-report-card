@@ -144,7 +144,7 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
 
   const navigate = useCallback(
     (nextIndex: number, nextDirection: Direction) => {
-      if (nextIndex < 0 || nextIndex >= pages.length || nextIndex === pageIndex) return;
+      if (evidenceOpen || nextIndex < 0 || nextIndex >= pages.length || nextIndex === pageIndex) return;
       setDirection(nextDirection);
       setEvidenceOpen(false);
       setPageIndex(nextIndex);
@@ -156,7 +156,7 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
       });
       requestAnimationFrame(() => headingRef.current?.focus({ preventScroll: true }));
     },
-    [pageIndex, pages, reducedMotion],
+    [evidenceOpen, pageIndex, pages, reducedMotion],
   );
 
   /**
@@ -164,12 +164,13 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
    * the second advances.  This prevents skipping an unseen fact.
    */
   const forward = useCallback(() => {
+    if (evidenceOpen) return;
     if (!complete && revealed !== Number.POSITIVE_INFINITY) {
       completeNow();
       return;
     }
     navigate(pageIndex + 1, "forward");
-  }, [complete, revealed, completeNow, navigate, pageIndex]);
+  }, [evidenceOpen, complete, revealed, completeNow, navigate, pageIndex]);
 
   const backward = useCallback(() => navigate(pageIndex - 1, "backward"), [navigate, pageIndex]);
 
@@ -187,7 +188,7 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (methodologyOpen || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (methodologyOpen || evidenceOpen || event.altKey || event.ctrlKey || event.metaKey) return;
       const target = event.target as HTMLElement | null;
       // While a control has focus its own keys win; the story never steals them.
       if (target?.closest("input, textarea, select, button, a, [contenteditable='true']")) return;
@@ -204,7 +205,7 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [forward, backward, methodologyOpen]);
+  }, [forward, backward, methodologyOpen, evidenceOpen]);
 
   useEffect(() => {
     if (!page) return;
@@ -330,7 +331,7 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
       </section>
 
       <nav className={styles.dock} aria-label="Story navigation">
-        <button className={styles.textControl} type="button" onClick={backward} disabled={pageIndex === 0}>
+        <button className={styles.textControl} type="button" onClick={backward} disabled={evidenceOpen || pageIndex === 0}>
           {COPY.shell.back}
         </button>
         <button
@@ -347,7 +348,7 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
           className={styles.textControl}
           type="button"
           onClick={forward}
-          disabled={pageIndex === pages.length - 1 && (complete || revealed === Number.POSITIVE_INFINITY)}
+          disabled={evidenceOpen || (pageIndex === pages.length - 1 && (complete || revealed === Number.POSITIVE_INFINITY))}
         >
           {COPY.shell.next}
         </button>

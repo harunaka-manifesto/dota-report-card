@@ -1,12 +1,9 @@
 /**
  * Methodology.
  *
- * Analytical caveats live here, not in the story.  Captain's Mode scope is
- * disclosed here too: mode detail matters backstage and distracts onstage.
- *
- * OWNER APPROVAL OUTSTANDING for the scope wording below (plan Risk 10).  It
- * states only values the payload already carries and uses no rank-root
- * vocabulary beyond the fixed "rank points" and "ranked matches" phrases.
+ * Analytical caveats live here, not in the story.  The owner-approved mode
+ * wording keeps ranked and unranked history combined while limiting rank
+ * points to the supplied ranked-match denominator.
  */
 
 import type { ComposedStory } from "./compose";

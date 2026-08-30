@@ -342,7 +342,8 @@ test.describe("collage, share, and the ending", () => {
     await openStory(page, FULL);
     await advanceTo(page, 32);
     const cards = page.locator("article ul li");
-    expect(await cards.count()).toBeGreaterThan(0);
+    await expect(cards).toHaveCount(21);
+    await expect(page.locator('article li[data-module="wins_bridge"]')).toHaveCount(1);
     await expect(page.getByRole("heading", { name: "Well. That was your year." })).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
@@ -412,13 +413,21 @@ test.describe("evidence, methodology, and focus", () => {
     await openStory(page, FULL);
     await advanceTo(page, 15);
     const toggle = page.getByRole("button", { name: "Why this?" });
-    await expect(page.getByRole("region", { name: /Observed post loss/ })).toBeHidden();
+    const region = page.getByRole("region", { name: /Observed post loss/ });
+    await expect(region).toBeHidden();
     await toggle.click();
-    await expect(page.getByRole("region", { name: /Observed post loss/ })).toBeVisible();
+    await expect(region).toBeVisible();
+    await expect(region).toBeFocused();
     const opened = page.getByRole("button", { name: "Hide evidence" });
     await expect(opened).toHaveAttribute("aria-expanded", "true");
-    await opened.click();
-    await expect(page.getByRole("region", { name: /Observed post loss/ })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Back", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Next", exact: true })).toBeDisabled();
+    await page.keyboard.press("ArrowRight");
+    expect(await currentPage(page)).toBe(15);
+    await page.keyboard.press("Escape");
+    await expect(region).toBeHidden();
+    await expect(toggle).toBeFocused();
+    await expect(page.getByRole("button", { name: "Next", exact: true })).toBeEnabled();
   });
 
   test("methodology is a native dialog with focus restoration", async ({ page }) => {

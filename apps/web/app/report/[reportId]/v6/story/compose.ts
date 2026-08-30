@@ -109,13 +109,15 @@ function parseManifest(payload: StoryPayload, diagnostics: StoryDiagnostic[]): M
     }
     // Page 25 is structurally unrepresentable upstream.  Enforce it here too
     // so a hand-edited payload cannot introduce it.
-    if (entry.page === 25 || entry.page < 1 || entry.page > 34) continue;
+    if (entry.page === 25 || entry.page === 28 || entry.page < 1 || entry.page > 34) continue;
     if (seen.has(entry.page)) continue;
     if (!manifestEntryIsShippable(payload, entry)) continue;
     seen.add(entry.page);
     entries.push(entry);
   }
-  return entries.sort((left, right) => left.page - right.page);
+  return entries
+    .filter((entry) => entry.page !== 26 || seen.has(24))
+    .sort((left, right) => left.page - right.page);
 }
 
 function readManifestItem(item: StoryPayload["page_manifest"][number]): ManifestEntry | null {
@@ -151,9 +153,12 @@ function moduleForPage(page: number): StoryCardModuleKey | null {
 
 function manifestEntryIsShippable(payload: StoryPayload, entry: ManifestEntry): boolean {
   const key = entry.module;
-  if (key === null) return true; // The synthetic Page 26 bridge entry.
+  if (key === null) return entry.page === 26;
   if (key === "post_loss") return payload.finding_slots.post_loss.available;
   if (key === "transfer") return payload.finding_slots.transfer.available;
+  // No validated destination ships in this release, so Page 34 cannot be a
+  // usable manifest entry even if hand-edited JSON marks Deep available.
+  if (key === "deep") return false;
   if (!(STORY_MODULE_KEYS as readonly string[]).includes(key)) return false;
   // Normalization may have demoted this module (unknown copy_variant,
   // unusable data).  Omission propagates from there to here.
@@ -290,7 +295,7 @@ export function composeStory(payload: StoryPayload, elements: V6Element[], diagn
   if (has(15)) add(14);
   if (has(17) || has(18) || has(19)) add(16);
   if (has(21)) add(20);
-  if (usableElements.length > 0) add(27);
+  if (has(26) && usableElements.length > 0) add(27);
 
   // THE NARROW EXCEPTION — archetype pages only.  Nothing else consults
   // `not_ready` state, and `moduleRenders` is the only gate that knows about it.

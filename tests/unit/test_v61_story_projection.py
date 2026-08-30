@@ -45,12 +45,15 @@ def _rows(count: int = 30) -> list[dict[str, object]]:
 
 
 def _finding(family: str, *, published: bool = True) -> dict[str, object]:
+    evidence_refs = [f"{family}:evidence"]
+    if family == "post_loss_response":
+        evidence_refs.append("post_loss:123456789")
     return {
         "family": family,
         "published": published,
         "claim": f"{family} claim",
         "interpretation": f"{family} interpretation",
-        "evidence_refs": [f"{family}:evidence"],
+        "evidence_refs": evidence_refs,
         "confidence": "high",
         "semantic_outcome_key": "clean_transfer" if family == "transfer" else "one_loss_runback",
         "claim_contract": {
@@ -132,6 +135,9 @@ def test_projection_is_strict_schema_compatible_and_projects_findings() -> None:
     assert validated.finding_slots.post_loss.available is True
     assert validated.finding_slots.post_loss.content is not None
     assert validated.finding_slots.post_loss.content.comparable_opportunities == 7
+    assert validated.finding_slots.post_loss.content.evidence_refs == [
+        "post_loss_response:evidence"
+    ]
     assert validated.finding_slots.post_loss.content.claim_contract is not None
     assert "deep_handoff" not in validated.finding_slots.post_loss.content.claim_contract.model_dump()
     assert validated.finding_slots.transfer.available is True
