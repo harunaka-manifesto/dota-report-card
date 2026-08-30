@@ -189,6 +189,24 @@
   transform: translateY(8px);
 }
 
+.story[data-rhythm="immediate"] .beat,
+.story[data-rhythm="immediate"] .stackRow,
+.story[data-rhythm="immediate"] .sequenceBlock {
+  transition-duration: 240ms;
+}
+
+.story[data-rhythm="quiet"] .beat {
+  transition: opacity 420ms var(--enter);
+}
+
+.story[data-rhythm="quiet"] .beat[data-revealed="false"] {
+  transform: none;
+}
+
+.story[data-rhythm="accumulation"] .beat[data-revealed="false"] {
+  transform: translateY(4px);
+}
+
 /* A focused beat is always visible: the focus ring must never land on
    something the reader cannot see. */
 .beat:has(:focus-visible) {
@@ -201,7 +219,6 @@
 }
 
 /* Blocks that own the full story column rather than the copy measure. */
-.anchors,
 .collage,
 .signalField,
 .sequence,
@@ -713,39 +730,7 @@
 /* After the turn, the title holds alone before the description arrives. */
 .cardFace[data-face="up"] .cardDescription { transition-delay: 1000ms; }
 
-.cardPreview,
-.anchorCard { justify-self: center; }
-
-/* --- Page 31 anchors --------------------------------------------------- */
-
-.anchors {
-  display: grid;
-  gap: var(--space-5);
-  width: 100%;
-}
-
-.anchor { display: grid; gap: var(--space-2); }
-
-.anchorLabel {
-  color: var(--role-identity);
-  font-size: var(--type-meta);
-  font-weight: var(--weight-medium);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.anchorBody {
-  color: var(--color-muted-text);
-  font-size: var(--type-body);
-  line-height: 1.45;
-}
-
-@media (min-width: 768px) {
-  /* Two anchors take equal halves; three take equal thirds. */
-  .anchors { grid-template-columns: repeat(var(--anchor-columns, 2), minmax(0, 1fr)); }
-  .anchor[data-count="3"] { --anchor-columns: 3; }
-  .anchors:has(.anchor[data-count="3"]) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
+.cardPreview { justify-self: center; }
 
 /* --- Collage ----------------------------------------------------------- */
 

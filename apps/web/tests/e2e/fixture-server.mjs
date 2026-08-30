@@ -763,13 +763,18 @@ function storyPayloadReport(reportIdValue, payload) {
   return item;
 }
 
+const missingFindingEvidencePayload = loadPersistedFixture("v61-story-payload-post-loss.json");
+missingFindingEvidencePayload.finding_slots.post_loss.content.claim_contract.evidence = null;
+missingFindingEvidencePayload.finding_slots.post_loss.content.claim_contract.alternatives = [];
+
 const persistedStoryPayloadReports = [
   storyPayloadReport("v61-story-full-fixture", loadPersistedFixture("v61-story-payload-both.json")),
   storyPayloadReport("v61-story-finding-none-fixture", loadPersistedFixture("v61-story-payload-none.json")),
   storyPayloadReport("v61-story-finding-post-loss-fixture", loadPersistedFixture("v61-story-payload-post-loss.json")),
   storyPayloadReport("v61-story-finding-transfer-fixture", loadPersistedFixture("v61-story-payload-transfer.json")),
   storyPayloadReport("v61-story-degraded-fixture", loadPersistedFixture("v61-story-payload-degraded.json")),
-  storyPayloadReport("v61-story-long-streak-fixture", loadPersistedFixture("v61-story-payload-long-streak.json"))
+  storyPayloadReport("v61-story-long-streak-fixture", loadPersistedFixture("v61-story-payload-long-streak.json")),
+  storyPayloadReport("v61-story-missing-finding-evidence-fixture", missingFindingEvidencePayload)
 ];
 const persistedHistoricalReport = persistedStoryPayloadBaseReport;
 const legacyV4 = { ...report, report_id: "legacy-v4-fixture", schema_version: "free-dna-report-4.0.0" };

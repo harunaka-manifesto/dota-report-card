@@ -28,7 +28,7 @@ export function ArchetypeCard({
   heading = true,
   /**
    * The turn belongs to Page 30 and to nothing else.  Page 29 watches the card
-   * arrive face-down and Pages 31 and 33 show it at rest; neither is a second
+   * arrive face-down and Page 33 shows it at rest; neither is a second
    * reveal interaction.
    */
   canTurn = false,

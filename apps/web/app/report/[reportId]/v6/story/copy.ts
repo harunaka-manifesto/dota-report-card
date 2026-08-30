@@ -1,27 +1,23 @@
 /**
- * Contracted copy from `docs/dota-v6.1-main-script.md`.
- *
- * Every string here is quoted, not paraphrased.  Curly quotation marks and
- * ellipses are reproduced as written; Page 7's loss outcome deliberately keeps
- * a STRAIGHT apostrophe because the script writes it that way.
+ * Editorial copy for the V6.1 story.
  *
  * Branch selection reads a supplied `copy_variant`, a supplied boolean, or the
- * composed presence of another page.  It never thresholds, sums, or ranks.
+ * composed presence of another page. It never thresholds, sums, or ranks.
  */
 
 export const CHAPTERS: Record<number, string> = {
-  1: "Your Year",
-  2: "The Good News",
-  3: "And Then There Was This",
-  4: "What Happened Next?",
-  5: "Your Heroes",
-  6: "Outside the Comfort Zone",
-  7: "The Body Count",
+  1: "The Year in Queue",
+  2: "When It Worked",
+  3: "When It Didn’t",
+  4: "The Next Queue",
+  5: "The Heroes That Returned",
+  6: "Outside the Short List",
+  7: "The Scoreboard",
   // Chapter 8 (Deaths Have Context) does not exist in Free.
-  9: "The Seven Signals",
-  10: "Your Archetype",
-  11: "Your Dota DNA",
-  12: "There's More Down There",
+  9: "The Pattern Underneath",
+  10: "The Reveal",
+  11: "The Year, Reassembled",
+  12: "One Layer Deeper",
 };
 
 /** Which chapter owns each rendered page. */
@@ -39,34 +35,21 @@ export const PAGE_CHAPTER: Record<number, number> = {
   34: 12,
 };
 
-/**
- * Bridge pages carry no dry line, and these four always close silently
- * (script, Content Safety and Tone Rules).  The cadence rule is frozen, not a
- * frontend judgement call.
- */
-export const ALWAYS_SILENT_PAGES: ReadonlySet<number> = new Set([4, 9, 22, 30]);
-export const BRIDGE_PAGES: ReadonlySet<number> = new Set([8, 14, 16, 20, 26, 34]);
-
 export const COPY = {
   page1: {
     greetingNamed: (name: string) => `Hey, ${name}.`,
     greetingAnonymous: "Hey.",
     scopeFull: "We looked back at 365 days of your Dota.",
     scopeShort: "We looked back through your Dota from the last 365 days.",
-    // Suppressed on the short-history branch: "All of it" would claim a
-    // completeness the short-history copy has just declined to claim.
-    dry: "Yes. All of it.",
+    promise: "The obvious receipts come first. The pattern comes later.",
   },
   page2: {
     headline: (formatted: string, count: number) => (count === 1 ? "1 match." : `${formatted} matches.`),
-    support: "That’s how much Dota happened this year.",
-    dryNormal: "That’s a lot of Ancient exploding.",
-    dryLimited: "Enough to leave a trail.",
+    support: "The first receipt is simple: how much Dota happened here.",
   },
   page3: {
     headline: (value: string, unit: "hours" | "minutes") => `${value} ${unit}.`,
-    support: "Spent inside those matches.",
-    dry: "We’ll let you decide whether that sounds impressive or concerning.",
+    support: "The next receipt: time spent inside those matches.",
   },
   page4: {
     // Sentence parts keep the contracted wording intact while the numeral
@@ -78,61 +61,53 @@ export const COPY = {
     split: (wins: string, losses: string) => `${wins} ranked wins · ${losses} ranked losses.`,
   },
   page5: {
-    lead: "But one week stood above the rest.",
+    question: "Which week held the most Dota?",
     range: (start: string, end: string) => `${start} — ${end}.`,
     withHours: (matches: string, hours: string, unit: string) => `${matches} matches · ${hours} ${unit}.`,
     matchesOnly: (matches: string) => `${matches} matches.`,
-    dry: "Apparently, plans were optional that week.",
   },
   page6: {
-    leadInside: "Inside that week, one day did most of the work.",
-    leadOutside: "And one single day outplayed all of them.",
+    leadInside: "Inside that week, one day held the most Dota.",
+    leadOutside: "Outside that week, another day held the most Dota.",
     withHours: (matches: string, hours: string, unit: string) => `${matches} matches · ${hours} ${unit}.`,
     matchesOnly: (matches: string) => `${matches} matches.`,
-    dry: "A full shift, essentially.",
   },
   page7: {
-    leadRefused: "And one match refused to end.",
-    leadOnBusiestDay: "That day also held the longest match of your year.",
-    leadNeutral: "Your longest match of the year.",
+    question: "Which match kept going?",
     match: (hero: string, date: string) => `${hero} · ${date}.`,
     win: "You won that one.",
-    // Straight apostrophe, exactly as the script writes it.
     loss: "That one didn't go your way.",
     detail: (kills: number, deaths: number, assists: number) => `${kills} / ${deaths} / ${assists}`,
-    dry: "Nobody was calling GG in that one.",
+    dry: "That match earned its own line in the report.",
   },
   page8: {
-    leadWins: "Alright. Let’s start with the good news.",
-    leadZero: "Alright. Let’s start with what the year gave us.",
-    dry: "You did, in fact, win some Dota.",
+    leadWins: "The scale is set. Now the result column gives wins the first word.",
+    leadZero: "The scale is set. Now the result column starts with what was recorded.",
   },
   page9: {
     zero: "No wins made it into this year’s recorded history.",
     headline: (wins: string, count: number) => (count === 1 ? "1 win." : `${wins} wins.`),
-    support: (matches: string) => `Out of ${matches} matches this year.`,
+    support: (matches: string) => `Out of ${matches} matches in this report.`,
     winningestDay: (date: string, wins: string) => `Your winningest day: ${date} · ${wins} wins.`,
   },
   page10: {
-    lead: "And at one point, you simply refused to lose.",
+    lead: "The wins kept going here.",
     headline: (length: string) => `${length} wins in a row.`,
     range: (start: string, end: string) => `${start} → ${end}.`,
-    dry: (length: string) => `For ${length} games, matchmaking behaved itself.`,
-    singleLead: "No giant streak this year, but every run starts somewhere.",
+    dry: (length: string) => `${length} straight. No footnote needed.`,
+    singleLead: "No long run appeared here. Every run starts somewhere.",
     singleHeadline: "Longest run: 1 win.",
   },
   page11: {
-    headlineThree: "These heroes showed up for the most wins.",
-    // Script: "If fewer than three heroes have wins ... use this."
-    headlineFew: "These heroes showed up for your wins.",
-    headlineOne: "This hero showed up for more wins than anyone else.",
-    dry: "Keep them close.",
+    headlineThree: "These heroes appeared in the most wins.",
+    headlineFew: "These heroes appeared in the most wins.",
+    headlineOne: "This hero appeared in more wins than anyone else.",
   },
   page12: {
-    lead: "Unfortunately, Dota does believe in balance.",
+    lead: "Then came the losses.",
     headline: (length: string) => ["You lost ", length, " matches in a row."] as const,
     range: (start: string, end: string) => `${start} → ${end}.`,
-    singleLead: "You never let the losses pile up very far.",
+    singleLead: "The longest recorded loss run stopped at one.",
     singleHeadline: "Longest slide: 1 match.",
     // Reveal choreography.  The first two lines are positional, tied to the
     // second and third revealed loss block.  The third is conditional on
@@ -143,66 +118,57 @@ export const COPY = {
       long: "And… yeah.",
       longMinimumLength: 3,
     },
-    brokenLead: (hero: string) => `Until ${hero} finally put a stop to it.`,
-    brokenSupport: (length: string) => `After ${length} straight losses, you won this one.`,
-    brokenDry: (hero: string) => `Thank you for your service, ${hero}.`,
-    observationEnded: "And that’s where the recorded year ends.",
-    historyBoundary: "That streak ends at the edge of the history we can see.",
+    brokenLead: (hero: string) => `The next recorded win arrived on ${hero}.`,
+    brokenSupport: (length: string) => `After ${length} straight losses, the next result was a win.`,
+    brokenDry: (hero: string) => `${hero} gets the last word.`,
+    observationEnded: "The recorded year ends here.",
+    historyBoundary: "The streak reaches the edge of the history we can see.",
   },
   page13: {
-    breakerLead: (hero: string) => `${hero} got you out of that mess.`,
-    breakerSecond: "Your other heroes had… mixed results.",
-    neutralLead: "Some heroes spent more time on the wrong side of the Ancient.",
-    headlineThree: "These three accompanied you through the most losses this year.",
-    // Script: show only the remaining heroes, and remove plural wording when
-    // there is a single losing hero.
-    headlineFew: "These accompanied you through the most losses this year.",
-    headlineOne: "This hero accompanied you through the most losses this year.",
+    breakerLead: (hero: string) => `The breaker game was on ${hero}.`,
+    breakerSecond: "The other heroes filled the loss column.",
+    neutralLead: "The loss column had a recurring cast.",
+    headlineThree: "These three appeared in the most losses this year.",
+    headlineFew: "These heroes appeared in the most losses this year.",
+    headlineOne: "This hero appeared in the most losses this year.",
     roughestDay: (date: string, losses: string) => `Your roughest day: ${date} · ${losses} losses.`,
-    dry: "They were there for you. Technically.",
   },
   page14: {
-    lead: "Losing is one thing.",
-    second: "What you did next is more interesting.",
+    lead: "The result is one line.",
+    second: "The next queue is another.",
   },
   page15: {
     question: "After a loss, did your next game change?",
     sample: (count: string) => `Based on ${count} comparable loss → next-game moments.`,
   },
   page16: {
-    lead: "Wins, losses, streaks, questionable decisions…",
-    second: "Some heroes kept showing up through all of it.",
-    // Fixed combined transition used when Post-Loss did not render.
-    combined:
-      "Wins, losses, streaks, questionable decisions… some heroes kept showing up through all of it.",
+    lead: "The result column is clear enough.",
+    second: "Now for the hero names that kept returning.",
+    combined: "The result column is clear enough. Now for the hero names that kept returning.",
   },
   page17: {
-    headlineFull: "These were your heroes.",
-    headlineFew: "These were the heroes you kept coming back to.",
+    headlineFull: "These were the heroes your year kept returning to.",
+    headlineFew: "These were the heroes you kept returning to.",
     share: (percent: string) => `Together, they made up ${percent} of your matches.`,
-    dryConcentrated: "Some people call it a hero pool. Sometimes it’s more of a hero puddle.",
-    dryBroad: "Plenty of room in that pool.",
   },
   page18: {
     lead: "But your hero pool didn’t stay still.",
-    prompt: "Drag through your year.",
-    dry: "Different month. Different obsession.",
+    prompt: "Move through your year.",
+    dry: "The year had eras.",
     sparseLead: "Your hero pool changed through the year.",
     emptyPeriod: "No recorded matches in this period.",
     control: "Hero era period",
   },
   page19: {
-    lead: "Some heroes stayed all year. Others had their moment.",
+    lead: "The chronology has a payoff.",
     persistence: (hero: string, periods: string) => `${hero} stayed in your top five for ${periods} periods.`,
-    takeover: (hero: string, period: string) => `${hero} really took over around ${period}.`,
+    takeover: (hero: string, period: string) => `${hero} became the leading name around ${period}.`,
     steady: "Your top heroes were remarkably steady.",
-    dry: "It was a phase. A very well-documented phase.",
   },
   page20: {
-    lead: "Knowing your favorite heroes is easy.",
-    second: "The interesting part is what happens when you leave them.",
-    // Fixed direct transition used when Transfer did not render.
-    directToCombat: "However the hero names changed, the scoreboard kept keeping count.",
+    lead: "Knowing the names was the easy part.",
+    second: "What followed when the names changed?",
+    directToCombat: "The names changed. The scoreboard kept the count.",
   },
   page21: {
     question: "How much of your game travels with you?",
@@ -212,35 +178,32 @@ export const COPY = {
   page22: {
     headline: (total: string) => ["You collected ", total, " kills this year."] as const,
     zero: "No kills made it into this recorded year.",
-    leading: (hero: string, total: string) => `${hero} contributed more than any other hero: ${total}.`,
-    rowsThree: (hero: string) => `The three games where ${hero} really got involved:`,
-    rowsFew: (hero: string) => `Your biggest ${hero} kill games.`,
+    leading: (hero: string, total: string) => `${hero} led the kill total: ${total}.`,
+    rowsThree: (hero: string) => `The three ${hero} games with the highest kill count:`,
+    rowsFew: (hero: string) => `The ${hero} games with the highest kill count.`,
   },
   page23: {
     headline: (total: string) => ["You also recorded ", total, " assists."] as const,
     zero: "No assists made it into this recorded year.",
     leading: (hero: string, total: string) => `${hero} led the way with ${total}.`,
-    rowsThree: (hero: string) => `The three games where ${hero} led the way:`,
-    rowsFew: (hero: string) => `Your biggest ${hero} assist games.`,
-    dry: "Proof that clicking the same person together can occasionally be called teamwork.",
+    rowsThree: (hero: string) => `The three ${hero} games with the highest assist count:`,
+    rowsFew: (hero: string) => `The ${hero} games with the highest assist count.`,
   },
   page24: {
-    headline: (total: string) => ["Dota collected ", total, " deaths in return."] as const,
+    headline: (total: string) => ["The year recorded ", total, " deaths."] as const,
     zero: "Zero recorded deaths.",
     leading: (hero: string, total: string) => `${hero} was there for ${total} of them.`,
-    rowsThree: (hero: string) => `The three bloodiest ${hero} games:`,
-    rowsFew: (hero: string) => `The games where that number climbed highest.`,
-    dry: "We said we looked at everything.",
+    rowsThree: (hero: string) => `The three ${hero} games with the highest death count:`,
+    rowsFew: (hero: string) => `The ${hero} games with the highest death count.`,
   },
   page26: {
-    // Death Context is permanently absent, so the Dynamic Chapter Assembly
-    // transition copy replaces Page 26's default opening.
-    lead: "Kills, assists, deaths—that’s the visible part.",
-    second: "Underneath all of it, we were measuring something else.",
+    lead: "The scoreboard is visible.",
+    second: "The pattern underneath is next.",
   },
   page27: {
-    headline: "Your Dota, measured seven ways.",
-    support: "Seven different ways of asking: ‘What kind of Dota do you keep playing?’",
+    headline: "This report checks the signals it could support.",
+    support: (count: number) =>
+      count === 1 ? "One signal. It is not the whole story." : `${count} signals. None of them is the whole story.`,
   },
   page29: {
     lines: {
@@ -250,27 +213,24 @@ export const COPY = {
       stayed: "Which heroes stayed.",
       changed: "And what followed you when they changed.",
     },
-    close: "Put it all together…",
+    close: "What shape do these receipts make together?",
   },
   page30: {
-    reveal: "Reveal your archetype",
-    revealed: "Archetype revealed.",
+    reveal: "Turn the report card",
+    revealed: "Report card turned.",
     // The scripted optional line "Built from your heroes, your Elements, and
     // the patterns we could actually prove." asserts a provenance the
     // placeholder does not have.  Restored with the archetype engine.
   },
-  page31: {
-    heading: (archetype: string) => `Why ${archetype}?`,
-  },
   page32: {
-    close: "Well. That was your year.",
-    dry: "Some wins. Some losses. Several thousand clicks.",
+    close: "Your year, reassembled.",
   },
   page33: {
     matches: (count: string) => `${count} matches sequenced.`,
-    lookback: "365 days of Dota.",
-    share: "Share your Dota DNA.",
-    runItBack: "Run it back.",
+    lookback: (days: string, historyComplete: boolean) =>
+      historyComplete ? `${days} days of Dota.` : "From the history this report could see.",
+    share: "Share the receipts.",
+    runItBack: "Read it again.",
     shareCopied: "Report link copied.",
     shareCopyFailed: "The link is below. Select it to copy.",
     shareUrlLabel: "Report link",
@@ -279,7 +239,6 @@ export const COPY = {
     lead: "Your match history tells us this much.",
     second: "Inside the matches, there’s another layer.",
     cta: "Go deeper.",
-    dry: "Because apparently 365 days still wasn’t enough.",
   },
   shell: {
     exit: "Exit",

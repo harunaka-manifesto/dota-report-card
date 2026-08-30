@@ -4,11 +4,13 @@ import { expect, test } from "@playwright/test";
 import { ARCHETYPE_NOT_READY_RENDER_EXCEPTION } from "../../app/report/[reportId]/v6/story/archetype-placeholder";
 import { buildCollageCards, collageSpans } from "../../app/report/[reportId]/v6/story/collage";
 import { composeStory, moduleRenders } from "../../app/report/[reportId]/v6/story/compose";
+import { COPY } from "../../app/report/[reportId]/v6/story/copy";
 import { COPY_VARIANTS } from "../../app/report/[reportId]/v6/story/copy-variants";
 import { formatPeriodLabel, formatStoryDate } from "../../app/report/[reportId]/v6/story/format";
 import { initialHeroEraIndex } from "../../app/report/[reportId]/v6/story/hero-eras-selection";
 import { normalizeStoryPayload } from "../../app/report/[reportId]/v6/story/normalize-story";
 import { STORY_MODULE_KEYS } from "../../app/report/[reportId]/v6/story/payload-types";
+import { beatOffsets, MOTION } from "../../app/report/[reportId]/v6/story/motion";
 import type { StoryHeroEra, StoryPayload } from "../../app/report/[reportId]/v6/story/payload-types";
 
 const FIXTURE_DIR = path.join(__dirname, "..", "fixtures", "persisted-reports");
@@ -138,7 +140,7 @@ test.describe("composed page arrays", () => {
 
   test("both findings present", () => {
     const pages = composeWithElements("v61-story-payload-both").pages.map((page) => page.page);
-    expect(pages).toEqual([...descriptive, 14, 15, 20, 21, 29, 30, 31, 33].sort((a, b) => a - b));
+    expect(pages).toEqual([...descriptive, 14, 15, 20, 21, 29, 30, 33].sort((a, b) => a - b));
   });
 
   test("post-loss only", () => {
@@ -166,7 +168,7 @@ test.describe("composed page arrays", () => {
     expect(story.heroBridgeCombined).toBe(true);
     // Page 19 carries the fixed transition into combat.
     expect(story.pages.find((page) => page.page === 19)?.transitionLine).toBe(
-      "However the hero names changed, the scoreboard kept keeping count.",
+      "The names changed. The scoreboard kept the count.",
     );
   });
 
@@ -201,8 +203,7 @@ test.describe("composed page arrays", () => {
     expect(pages).not.toContain(17);
     expect(pages).toContain(32);
     expect(pages[pages.length - 1]).toBe(33);
-    // Fewer than two defensible anchors: page 31 is omitted rather than padded.
-    expect(story.archetypeAnchors.length).toBeLessThan(2);
+    // No qualified identity anchors: page 31 is omitted rather than inferred.
     expect(pages).not.toContain(31);
   });
 
@@ -211,6 +212,21 @@ test.describe("composed page arrays", () => {
     expect(composeWithElements("v61-story-payload-both").recapLines).toContain(
       "And what followed you when they changed.",
     );
+  });
+
+  test("a zero-win summary never recaps how the player won", () => {
+    const raw = fixture("v61-story-payload-both") as {
+      modules: { win_summary: { copy_variant: string; data: { wins: number; winningest_day: unknown } } };
+    };
+    raw.modules.win_summary.copy_variant = "zero";
+    raw.modules.win_summary.data = { wins: 0, winningest_day: null };
+    const normalized = normalizeStoryPayload(raw)!;
+    expect(composeStory(normalized.payload, [], normalized.diagnostics).recapLines).not.toContain("How you won.");
+  });
+
+  test("signal support copy uses the number that rendered", () => {
+    expect(COPY.page27.support(1)).toBe("One signal. It is not the whole story.");
+    expect(COPY.page27.support(3)).toBe("3 signals. None of them is the whole story.");
   });
 
   test("no bridge is orphaned", () => {
@@ -257,28 +273,56 @@ test.describe("composed page arrays", () => {
   });
 });
 
-test.describe("the frozen dry-line cadence", () => {
-  test("never runs three consecutive dry closes", () => {
-    for (const name of [
-      "v61-story-payload-both",
-      "v61-story-payload-none",
-      "v61-story-payload-post-loss",
-      "v61-story-payload-transfer",
-      "v61-story-payload-degraded",
-      "v61-story-payload-long-streak",
-    ]) {
-      let run = 0;
-      for (const page of composeWithElements(name).pages) {
-        run = page.closesWithDryLine ? run + 1 : 0;
-        expect(run, `${name} stacked three dry lines at page ${page.page}`).toBeLessThanOrEqual(2);
-      }
-    }
+test.describe("curated closes and narrative rhythm", () => {
+  test("only evidence-earned pages receive a dry close", () => {
+    const dryPages = composeWithElements("v61-story-payload-both").pages
+      .filter((page) => page.closesWithDryLine)
+      .map((page) => page.page);
+    expect(dryPages).toEqual([7, 10, 12, 18, 21]);
   });
 
-  test("pages 4, 9, 22, and 30 always close silently", () => {
-    for (const page of composeWithElements("v61-story-payload-both").pages) {
-      if ([4, 9, 22, 30].includes(page.page)) expect(page.closesWithDryLine).toBe(false);
-    }
+  test("the longest-match close requires the supplied refused-and-win branch", () => {
+    const raw = fixture("v61-story-payload-both") as {
+      modules: { longest_match: { data: { refused_to_end: boolean; outcome: string } } };
+    };
+    raw.modules.longest_match.data.refused_to_end = false;
+    const normalized = normalizeStoryPayload(raw)!;
+    const page = composeStory(normalized.payload, [], normalized.diagnostics).pages.find((item) => item.page === 7);
+    expect(page?.closesWithDryLine).toBe(false);
+  });
+
+  test("the breaker and non-sparse chronology gates stay conditional", () => {
+    const raw = fixture("v61-story-payload-both") as {
+      modules: {
+        losing_streak: { data: { terminal_state: string; breaker: unknown } };
+        hero_eras: { copy_variant: string; data: { sparse_fallback: boolean } };
+      };
+    };
+    raw.modules.losing_streak.data.terminal_state = "observation_ended";
+    raw.modules.losing_streak.data.breaker = null;
+    raw.modules.hero_eras.copy_variant = "sparse_fallback";
+    raw.modules.hero_eras.data.sparse_fallback = true;
+    const normalized = normalizeStoryPayload(raw)!;
+    const pages = composeStory(normalized.payload, [], normalized.diagnostics).pages;
+    expect(pages.find((item) => item.page === 12)?.closesWithDryLine).toBe(false);
+    expect(pages.find((item) => item.page === 18)?.closesWithDryLine).toBe(false);
+  });
+
+  test("question, accumulation, and hold timings remain distinct", () => {
+    expect(beatOffsets({ total: 2, rhythm: "question" })[1]).toBeGreaterThan(
+      beatOffsets({ total: 2, rhythm: "immediate" })[1],
+    );
+    expect(beatOffsets({ total: 4, rhythm: "accumulation" })).toEqual([0, 320, 640, 960]);
+    expect(beatOffsets({ total: 3, rhythm: "immediate", holdAfter: 0 })).toEqual([
+      0,
+      MOTION.settle + MOTION.factHold,
+      MOTION.settle + MOTION.factHold + 300,
+    ]);
+    expect(beatOffsets({ total: 3, rhythm: "quiet", identityHoldAfter: 0 })).toEqual([
+      0,
+      MOTION.identityHold,
+      MOTION.identityHold + 700,
+    ]);
   });
 });
 

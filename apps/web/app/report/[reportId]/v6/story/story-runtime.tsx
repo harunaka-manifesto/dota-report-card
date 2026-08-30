@@ -47,9 +47,10 @@ export function useBeatPlan(plan: BeatPlan): void {
   const total = plan.total;
   const holdAfter = plan.holdAfter;
   const identityHoldAfter = plan.identityHoldAfter;
+  const rhythm = plan.rhythm;
   useEffect(() => {
-    registerPlan({ total, holdAfter, identityHoldAfter });
-  }, [registerPlan, total, holdAfter, identityHoldAfter]);
+    registerPlan({ total, holdAfter, identityHoldAfter, rhythm });
+  }, [registerPlan, total, holdAfter, identityHoldAfter, rhythm]);
 }
 
 export function Beat({
@@ -73,8 +74,8 @@ export function Beat({
 
 /**
  * The Endstop: silence with a visible full stop.  It resolves after the final
- * factual beat and stays still.  Shown on every silent close and whenever an
- * optional joke is suppressed by the cadence rule.
+ * factual beat and stays still. Shown on every silent close and whenever an
+ * optional close is not selected.
  */
 export function Endstop({ index }: { index: number }) {
   const { revealed } = useBeats();
