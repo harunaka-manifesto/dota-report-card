@@ -6,11 +6,10 @@
  * Rules that hold on every page:
  *  - exactly one `h1`, always beat 0, so navigation focus lands on a real
  *    heading in reading order;
- *  - contracted copy is quoted from `copy.ts`, never assembled from fragments;
+ *  - editorial copy comes from `copy.ts`, never from runtime inference;
  *  - supplied formatted values are rendered as supplied — `formatted_duration`,
  *    `display_value` + `display_unit` — never reformatted from seconds;
- *  - a page that closes silently, or whose optional joke the cadence rule
- *    suppressed, ends on the Endstop.
+ *  - a page without an evidence-gated close ends on the Endstop.
  *
  * Page 25 has no renderer.  It is not reachable, not omitted-with-a-message,
  * and not represented in this file at all.
@@ -18,7 +17,6 @@
 
 import type { RefObject } from "react";
 import { ArchetypeCard } from "./archetype-card";
-import { ARCHETYPE_PLACEHOLDER } from "./archetype-placeholder";
 import { buildCollageCards, collageSpans } from "./collage";
 import { CANONICAL_ELEMENT_KEYS, type ComposedStory, type RenderedPage } from "./compose";
 import { COPY, transferClosingLine } from "./copy";
@@ -84,7 +82,6 @@ export function StoryPageView(props: PageProps) {
     case 27: return <Page27 {...props} />;
     case 29: return <Page29 {...props} />;
     case 30: return <Page30 {...props} />;
-    case 31: return <Page31 {...props} />;
     case 32: return <Page32 {...props} />;
     case 33: return <Page33 {...props} />;
     case 34: return <Page34 {...props} />;
@@ -104,10 +101,9 @@ function Close({ index, line, dry }: { index: number; line: string | null; dry: 
   return <Endstop index={index} />;
 }
 
-function Page1({ story, page, headingRef }: PageProps) {
+function Page1({ story, headingRef }: PageProps) {
   const data = story.payload.modules.hello.data;
-  const dry = page.closesWithDryLine;
-  useBeatPlan({ total: 3 });
+  useBeatPlan({ total: 4 });
   const name = data?.display_name?.trim();
   return (
     <>
@@ -119,14 +115,16 @@ function Page1({ story, page, headingRef }: PageProps) {
       <Beat index={1} className={styles.lead} as="p">
         {data?.history_materially_short ? COPY.page1.scopeShort : COPY.page1.scopeFull}
       </Beat>
-      <Close index={2} line={COPY.page1.dry} dry={dry} />
+      <Beat index={2} className={styles.support} as="p">
+        {COPY.page1.promise}
+      </Beat>
+      <Endstop index={3} />
     </>
   );
 }
 
-function Page2({ story, page, headingRef }: PageProps) {
+function Page2({ story, headingRef }: PageProps) {
   const data = story.payload.modules.match_count.data;
-  const dry = page.closesWithDryLine;
   useBeatPlan({ total: 3, holdAfter: 0 });
   if (!data) return null;
   return (
@@ -140,18 +138,13 @@ function Page2({ story, page, headingRef }: PageProps) {
       <Beat index={1} className={styles.lead} as="p">
         {COPY.page2.support}
       </Beat>
-      <Close
-        index={2}
-        line={data.volume_variant === "limited" ? COPY.page2.dryLimited : COPY.page2.dryNormal}
-        dry={dry}
-      />
+      <Endstop index={2} />
     </>
   );
 }
 
-function Page3({ story, page, headingRef }: PageProps) {
+function Page3({ story, headingRef }: PageProps) {
   const data = story.payload.modules.hours_in_matches.data;
-  const dry = page.closesWithDryLine;
   useBeatPlan({ total: 3, holdAfter: 0 });
   if (!data || data.display_value === null || data.display_value === undefined || !data.display_unit) return null;
   return (
@@ -165,7 +158,7 @@ function Page3({ story, page, headingRef }: PageProps) {
       <Beat index={1} className={styles.lead} as="p">
         {COPY.page3.support}
       </Beat>
-      <Close index={2} line={COPY.page3.dry} dry={dry} />
+      <Endstop index={2} />
     </>
   );
 }
@@ -205,10 +198,9 @@ function Page4({ story, headingRef }: PageProps) {
   );
 }
 
-function Page5({ story, page, headingRef }: PageProps) {
+function Page5({ story, headingRef }: PageProps) {
   const data = story.payload.modules.busiest_week.data;
   const variant = story.payload.modules.busiest_week.copy_variant;
-  const dry = page.closesWithDryLine;
   useBeatPlan({ total: 4 });
   if (!data) return null;
   const matches = formatCount(data.match_count);
@@ -216,7 +208,7 @@ function Page5({ story, page, headingRef }: PageProps) {
     <>
       <Beat index={0}>
         <h1 className={styles.chapterType} ref={headingRef} tabIndex={-1}>
-          {COPY.page5.lead}
+          {COPY.page5.question}
         </h1>
       </Beat>
       <Beat index={1} className={styles.lead} as="p">
@@ -227,15 +219,14 @@ function Page5({ story, page, headingRef }: PageProps) {
           ? COPY.page5.withHours(matches, formatDisplayValue(data.display_value), data.display_unit)
           : COPY.page5.matchesOnly(matches)}
       </Beat>
-      <Close index={3} line={COPY.page5.dry} dry={dry} />
+      <Endstop index={3} />
     </>
   );
 }
 
-function Page6({ story, page, headingRef }: PageProps) {
+function Page6({ story, headingRef }: PageProps) {
   const data = story.payload.modules.busiest_day.data;
   const variant = story.payload.modules.busiest_day.copy_variant;
-  const dry = page.closesWithDryLine;
   useBeatPlan({ total: 4 });
   if (!data) return null;
   const matches = formatCount(data.match_count);
@@ -254,7 +245,7 @@ function Page6({ story, page, headingRef }: PageProps) {
           ? COPY.page6.withHours(matches, formatDisplayValue(data.display_value), data.display_unit)
           : COPY.page6.matchesOnly(matches)}
       </Beat>
-      <Close index={3} line={COPY.page6.dry} dry={dry} />
+      <Endstop index={3} />
     </>
   );
 }
@@ -264,13 +255,6 @@ function Page7({ story, page, headingRef }: PageProps) {
   const dry = page.closesWithDryLine;
   useBeatPlan({ total: 5, holdAfter: 1 });
   if (!data) return null;
-  const busiestDayRendered = story.pages.some((item) => item.page === 6);
-  const lead =
-    busiestDayRendered && data.on_busiest_day
-      ? COPY.page7.leadOnBusiestDay
-      : data.refused_to_end
-        ? COPY.page7.leadRefused
-        : COPY.page7.leadNeutral;
   const detail =
     typeof data.kills === "number" && typeof data.deaths === "number" && typeof data.assists === "number"
       ? COPY.page7.detail(data.kills, data.deaths, data.assists)
@@ -279,7 +263,7 @@ function Page7({ story, page, headingRef }: PageProps) {
     <>
       <Beat index={0}>
         <h1 className={styles.chapterType} ref={headingRef} tabIndex={-1}>
-          {lead}
+          {COPY.page7.question}
         </h1>
       </Beat>
       {/* `formatted_duration` is supplied.  Never format from seconds. */}
@@ -296,9 +280,8 @@ function Page7({ story, page, headingRef }: PageProps) {
   );
 }
 
-function Page8({ story, page, headingRef }: PageProps) {
+function Page8({ story, headingRef }: PageProps) {
   const zero = story.payload.modules.wins_bridge.copy_variant === "zero";
-  const dry = page.closesWithDryLine;
   useBeatPlan({ total: 2 });
   return (
     <>
@@ -307,7 +290,7 @@ function Page8({ story, page, headingRef }: PageProps) {
           {zero ? COPY.page8.leadZero : COPY.page8.leadWins}
         </h1>
       </Beat>
-      <Close index={1} line={COPY.page8.dry} dry={dry} />
+      <Endstop index={1} />
     </>
   );
 }
@@ -358,7 +341,7 @@ function Page10({ story, page, headingRef }: PageProps) {
   const data = story.payload.modules.winning_streak.data;
   const single = story.payload.modules.winning_streak.copy_variant === "single_win";
   const dry = page.closesWithDryLine;
-  useBeatPlan({ total: single ? 3 : 4, holdAfter: single ? undefined : 1 });
+  useBeatPlan({ total: single ? 3 : 5, holdAfter: single ? undefined : 2 });
   if (!data) return null;
   if (single) {
     return (
@@ -383,7 +366,6 @@ function Page10({ story, page, headingRef }: PageProps) {
           {COPY.page10.lead}
         </h1>
       </Beat>
-      <DominantFact index={1} value={length} unit="wins in a row." heading={false} />
       <Sequence
         index={1}
         label={`${length} consecutive wins`}
@@ -392,17 +374,17 @@ function Page10({ story, page, headingRef }: PageProps) {
           tone: "win" as const,
         }))}
       />
-      <Beat index={2} className={styles.support} as="p">
+      <DominantFact index={2} value={length} unit="wins in a row." heading={false} />
+      <Beat index={3} className={styles.support} as="p">
         {COPY.page10.range(formatStoryDate(data.start_date), formatStoryDate(data.end_date))}
       </Beat>
-      <Close index={3} line={COPY.page10.dry(length)} dry={dry} />
+      <Close index={4} line={COPY.page10.dry(length)} dry={dry} />
     </>
   );
 }
 
-function Page11({ story, page, headingRef }: PageProps) {
+function Page11({ story, headingRef }: PageProps) {
   const rows = story.payload.modules.top_win_heroes.data?.rows ?? [];
-  const dry = page.closesWithDryLine;
   useBeatPlan({ total: 3 });
   if (rows.length === 0) return null;
   const headline =
@@ -424,7 +406,7 @@ function Page11({ story, page, headingRef }: PageProps) {
           detail: `${formatCount(row.wins)} ${row.wins === 1 ? "win" : "wins"} · ${formatCount(row.matches)} ${row.matches === 1 ? "match" : "matches"}`,
         }))}
       />
-      <Close index={2} line={COPY.page11.dry} dry={dry} />
+      <Endstop index={2} />
     </>
   );
 }
@@ -519,10 +501,9 @@ function Page12({ story, page, headingRef }: PageProps) {
   );
 }
 
-function Page13({ story, page, headingRef }: PageProps) {
+function Page13({ story, headingRef }: PageProps) {
   const data = story.payload.modules.top_loss_heroes.data;
   const breaker = story.payload.modules.losing_streak.data?.breaker ?? null;
-  const dry = page.closesWithDryLine;
   const rows = data?.rows ?? [];
   const hasBreakerLead = Boolean(data?.breaker_exists && breaker);
   const hasRoughest = Boolean(data?.roughest_day);
@@ -571,7 +552,7 @@ function Page13({ story, page, headingRef }: PageProps) {
           )}
         </Beat>
       ) : null}
-      <Close index={closeIndex} line={COPY.page13.dry} dry={dry} />
+      <Endstop index={closeIndex} />
     </>
   );
 }
@@ -593,7 +574,7 @@ function Page14({ headingRef }: PageProps) {
   );
 }
 
-/** Pages 15 and 21 share one shape: question, claim, explanation, evidence. */
+/** Pages 15 and 21 share evidence plumbing but use different reveal order. */
 function FindingPage({
   story,
   page,
@@ -607,7 +588,8 @@ function FindingPage({
   const sample = slot === "post_loss" && typeof content?.comparable_opportunities === "number";
   useBeatPlan({ total: 4 + (sample ? 1 : 0) });
   if (!content?.claim || !content.interpretation) return null;
-  const sampleIndex = 3;
+  const interpretationIndex = sample ? 3 : 2;
+  const sampleIndex = 2;
   const closeIndex = sample ? 4 : 3;
   return (
     <>
@@ -619,20 +601,22 @@ function FindingPage({
       <Beat index={1} className={styles.findingClaim} as="p">
         {content.claim}
       </Beat>
-      <Beat index={2} className={styles.lead} as="p">
-        {content.interpretation}
-      </Beat>
       {sample ? (
         <Beat index={sampleIndex} className={styles.support} as="p">
           {COPY.page15.sample(formatCount(content.comparable_opportunities as number))}
         </Beat>
       ) : null}
-      <FindingEvidence
-        id={`finding-${slot}`}
-        content={content}
-        open={evidenceOpen}
-        onToggle={onToggleEvidence}
-      />
+      <Beat index={interpretationIndex} className={styles.lead} as="p">
+        {content.interpretation}
+      </Beat>
+      {content.claim_contract?.evidence || content.claim_contract?.alternatives?.length ? (
+        <FindingEvidence
+          id={`finding-${slot}`}
+          content={content}
+          open={evidenceOpen}
+          onToggle={onToggleEvidence}
+        />
+      ) : null}
       <Close
         index={closeIndex}
         line={slot === "transfer" ? transferClosingLine(content.semantic_outcome_key) : null}
@@ -693,10 +677,8 @@ function Page16({ story, headingRef }: PageProps) {
   );
 }
 
-function Page17({ story, page, headingRef }: PageProps) {
+function Page17({ story, headingRef }: PageProps) {
   const data = story.payload.modules.hero_pool.data;
-  const band = story.payload.modules.hero_pool.copy_variant;
-  const dry = page.closesWithDryLine;
   useBeatPlan({ total: 4 });
   if (!data || data.heroes.length === 0) return null;
   return (
@@ -719,11 +701,7 @@ function Page17({ story, page, headingRef }: PageProps) {
       <Beat index={2} className={styles.lead} as="p">
         {COPY.page17.share(formatShare(data.top_five_share))}
       </Beat>
-      <Close
-        index={3}
-        line={band === "concentrated" ? COPY.page17.dryConcentrated : band === "broad" ? COPY.page17.dryBroad : null}
-        dry={dry}
-      />
+      <Endstop index={3} />
     </>
   );
 }
@@ -756,7 +734,6 @@ function Page18({ story, page, headingRef, reducedMotion }: PageProps) {
 
 function Page19({ story, page, headingRef }: PageProps) {
   const data = story.payload.modules.hero_era_payoff.data;
-  const dry = page.closesWithDryLine;
   const lines: string[] = [];
   if (data?.persistence) {
     lines.push(COPY.page19.persistence(data.persistence.hero.hero_name, formatCount(data.persistence.top_five_periods)));
@@ -778,7 +755,7 @@ function Page19({ story, page, headingRef }: PageProps) {
           {line}
         </Beat>
       ))}
-      <Close index={closeIndex} line={COPY.page19.dry} dry={dry} />
+      <Endstop index={closeIndex} />
       <TransitionLine index={closeIndex + 1} line={page.transitionLine} />
     </>
   );
@@ -813,12 +790,10 @@ function Page20({ headingRef }: PageProps) {
 
 function CombatPage({
   story,
-  page,
   headingRef,
   module,
 }: PageProps & { module: "kills" | "assists" | "deaths" }) {
   const data: StoryCombatData | null | undefined = story.payload.modules[module].data;
-  const dry = page.closesWithDryLine;
   const copy = module === "kills" ? COPY.page22 : module === "assists" ? COPY.page23 : COPY.page24;
   const zero = data?.total === 0;
   const rows = data?.individuals ?? [];
@@ -887,7 +862,7 @@ function CombatPage({
           />
         </>
       ) : null}
-      <Close index={closeIndex} line={module === "kills" ? null : (copy as { dry: string }).dry} dry={dry} />
+      <Endstop index={closeIndex} />
     </>
   );
 }
@@ -931,7 +906,7 @@ function Page27({ story, headingRef }: PageProps) {
       </Beat>
       <SignalField index={1} channels={channels} />
       <Beat index={2} className={styles.lead} as="p">
-        {COPY.page27.support}
+        {COPY.page27.support(channels.length)}
       </Beat>
       <Endstop index={3} />
     </>
@@ -990,48 +965,12 @@ function Page30({ headingRef, archetypeRevealed, onRevealArchetype, reducedMotio
   );
 }
 
-function Page31({ story, headingRef, archetypeRevealed, onRevealArchetype, reducedMotion }: PageProps) {
-  const anchors = story.archetypeAnchors;
-  useBeatPlan({ total: 3 });
-  return (
-    <>
-      <Beat index={0}>
-        <h1 className={styles.chapterType} ref={headingRef} tabIndex={-1}>
-          {COPY.page31.heading(ARCHETYPE_PLACEHOLDER.name)}
-        </h1>
-      </Beat>
-      <div className={styles.anchorCard} aria-hidden="true">
-        <ArchetypeCard
-          revealed={archetypeRevealed}
-          onReveal={onRevealArchetype}
-          reducedMotion={reducedMotion}
-          scale="token"
-          heading={false}
-          alwaysFaceUp
-        />
-      </div>
-      <Beat index={1} className={styles.anchors} as="ul" >
-        {anchors.map((key) => (
-          <li key={key} className={styles.anchor} data-count={anchors.length}>
-            <h2 className={styles.anchorLabel}>{ARCHETYPE_PLACEHOLDER.anchors[key].label}</h2>
-            <p className={styles.anchorBody}>{ARCHETYPE_PLACEHOLDER.anchors[key].body}</p>
-          </li>
-        ))}
-      </Beat>
-      {/* The scripted closing line is suppressed while the archetype is a
-          frontend constant.  See archetype-placeholder.ts. */}
-      <Endstop index={2} />
-    </>
-  );
-}
-
-function Page32({ story, page, headingRef, reducedMotion }: PageProps) {
+function Page32({ story, headingRef, reducedMotion }: PageProps) {
   const cards = buildCollageCards(
     story.payload,
     story.payload.modules.card_collage.data?.cards ?? [],
     new Set(story.pages.map((item) => item.page)),
   );
-  const dry = page.closesWithDryLine;
   useBeatPlan({ total: 3 });
   return (
     <>
@@ -1061,7 +1000,7 @@ function Page32({ story, page, headingRef, reducedMotion }: PageProps) {
           {COPY.page32.close}
         </h1>
       </Beat>
-      <Close index={2} line={COPY.page32.dry} dry={dry} />
+      <Endstop index={2} />
     </>
   );
 }
@@ -1112,7 +1051,11 @@ function Page33({
           {COPY.page33.matches(formatCount(identity.storyMatchCount))}
         </Beat>
         <Beat index={offset + 2} className={styles.support} as="p">
-          {COPY.page33.lookback}
+          {COPY.page33.lookback(
+            formatCount(identity.lookbackDays),
+            story.payload.universe.history_completeness === "complete" &&
+              story.payload.modules.hello.data?.history_materially_short !== true,
+          )}
         </Beat>
       </div>
       <Beat index={offset + 3} className={styles.finalActions}>
@@ -1125,8 +1068,7 @@ function Page33({
   );
 }
 
-function Page34({ story, page, headingRef }: PageProps) {
-  const dry = page.closesWithDryLine;
+function Page34({ story, headingRef }: PageProps) {
   useBeatPlan({ total: 4 });
   // Composition already removed this page when there is no destination, so a
   // dead CTA cannot reach the reader.
@@ -1146,7 +1088,7 @@ function Page34({ story, page, headingRef }: PageProps) {
           {COPY.page34.cta}
         </a>
       </Beat>
-      <Close index={3} line={COPY.page34.dry} dry={dry} />
+      <Endstop index={3} />
     </>
   );
 }

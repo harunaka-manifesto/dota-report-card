@@ -11,12 +11,8 @@
  * progress position, and no collage card.
  */
 
-import {
-  ARCHETYPE_NOT_READY_RENDER_EXCEPTION,
-  ARCHETYPE_PLACEHOLDER,
-  type ArchetypeAnchorKey,
-} from "./archetype-placeholder";
-import { ALWAYS_SILENT_PAGES, CHAPTERS, COPY, PAGE_CHAPTER, transferClosingLine } from "./copy";
+import { ARCHETYPE_NOT_READY_RENDER_EXCEPTION, ARCHETYPE_PLACEHOLDER } from "./archetype-placeholder";
+import { CHAPTERS, COPY, PAGE_CHAPTER, transferClosingLine } from "./copy";
 import type { StoryDiagnostic } from "./copy-variants";
 import type {
   StoryCardModuleKey,
@@ -48,7 +44,7 @@ export type RenderedPage = {
   chapterName: string;
   module: StoryCardModuleKey | null;
   alignment: "center" | "left";
-  /** Set by the frozen cadence pass, never by a per-page taste decision. */
+  /** True only for the small set of evidence-gated editorial closes. */
   closesWithDryLine: boolean;
   /** Fixed transition copy appended when the following page was omitted. */
   transitionLine: string | null;
@@ -71,8 +67,6 @@ export type ComposedStory = {
   heroBridgeCombined: boolean;
   /** Page 29 recap membership, gated on pages that actually rendered. */
   recapLines: string[];
-  /** Page 31 anchor membership, gated on pages that actually rendered. */
-  archetypeAnchors: ArchetypeAnchorKey[];
   finalIdentity: FinalIdentity | null;
   deepDestination: string | null;
 };
@@ -208,69 +202,22 @@ export function resolveDeepDestination(payload: StoryPayload): string | null {
   return null;
 }
 
-/** Which pages own a dry line before the frozen cadence rule is applied. */
-function pageOwnsDryLine(payload: StoryPayload, page: number, present: ReadonlySet<number>): boolean {
-  if (ALWAYS_SILENT_PAGES.has(page)) return false;
+/** Which pages own a dry line after the receipt has earned it. */
+function pageOwnsDryLine(payload: StoryPayload, page: number): boolean {
   const modules = payload.modules;
   switch (page) {
-    case 1:
-      // "Yes. All of it." claims completeness the short-history branch declines.
-      return modules.hello.data?.history_materially_short === false;
-    case 2:
-    case 3:
-    case 5:
-    case 11:
-    case 13:
-    case 18:
-    case 32:
-      return true;
-    case 6:
-      // Optional; dropped when volume is low or hours were unavailable.
-      return modules.busiest_day.copy_variant === "hours" && payload.universe.volume_tier !== "limited";
     case 7:
       return modules.longest_match.data?.refused_to_end === true && modules.longest_match.data?.outcome === "win";
-    case 8:
-      // Page-specific scripted second line.  See plan Risk 11 — no further
-      // bridge humour is added anywhere.
-      return modules.wins_bridge.copy_variant === "wins";
     case 10:
       return modules.winning_streak.copy_variant === "streak";
     case 12:
       return modules.losing_streak.data?.terminal_state === "broken_by_win";
-    case 17:
-      return modules.hero_pool.copy_variant === "concentrated" || modules.hero_pool.copy_variant === "broad";
-    case 19:
-      return modules.hero_era_payoff.copy_variant === "takeover" || modules.hero_era_payoff.copy_variant === "persistence";
+    case 18:
+      return modules.hero_eras.copy_variant === "calendar_month" && modules.hero_eras.data?.sparse_fallback !== true;
     case 21:
       return transferClosingLine(payload.finding_slots.transfer.content?.semantic_outcome_key) !== null;
-    case 23:
-    case 24:
-      return (page === 23 ? modules.assists.data?.total : modules.deaths.data?.total) !== 0;
-    case 34:
-      return present.has(34);
     default:
       return false;
-  }
-}
-
-/**
- * The frozen cadence rule: no more than two consecutive rendered pages may
- * close with a dry line.  Applied over the composed sequence, so a report that
- * omits pages does not accidentally stack three jokes.
- */
-function applyDryLineCadence(pages: RenderedPage[]): void {
-  let run = 0;
-  for (const page of pages) {
-    if (!page.closesWithDryLine) {
-      run = 0;
-      continue;
-    }
-    if (run >= 2) {
-      page.closesWithDryLine = false;
-      run = 0;
-      continue;
-    }
-    run += 1;
   }
 }
 
@@ -304,23 +251,18 @@ export function composeStory(payload: StoryPayload, elements: V6Element[], diagn
 
   const recapLines: string[] = [];
   if (has(2)) recapLines.push(COPY.page29.lines.played);
-  if (has(9) || has(10) || has(11)) recapLines.push(COPY.page29.lines.won);
+  if ((payload.modules.win_summary.data?.wins ?? 0) > 0 && (has(9) || has(10) || has(11))) {
+    recapLines.push(COPY.page29.lines.won);
+  }
   if (has(15)) recapLines.push(COPY.page29.lines.losses);
   if (has(17) || has(18) || has(19)) recapLines.push(COPY.page29.lines.stayed);
   if (has(21)) recapLines.push(COPY.page29.lines.changed);
 
-  const archetypeAnchors: ArchetypeAnchorKey[] = [];
-  if (has(17)) archetypeAnchors.push("hero_pool");
-  if (has(15)) archetypeAnchors.push("post_loss");
-  if (has(21)) archetypeAnchors.push("transfer");
-
   if (archetypeRenders) {
     add(29, "archetype");
     add(30, "archetype");
-    // Page 31 explains the archetype from evidence that actually rendered.
-    // With fewer than two defensible anchors there is nothing to explain, and
-    // the script forbids inventing one for layout symmetry.
-    if (archetypeAnchors.length >= 2) add(31, "archetype");
+    // Page 31 needs qualified identity anchors from the payload. Mere source
+    // page presence is not identity evidence, so it remains absent for now.
   }
   if (finalIdentity) add(33, "final_identity_card");
 
@@ -337,7 +279,7 @@ export function composeStory(payload: StoryPayload, elements: V6Element[], diagn
       chapterName: CHAPTERS[chapter] ?? "",
       module: moduleByPage.get(page) ?? null,
       alignment: CENTERED_PAGES.has(page) ? "center" : "left",
-      closesWithDryLine: pageOwnsDryLine(payload, page, pageNumbers),
+      closesWithDryLine: pageOwnsDryLine(payload, page),
       transitionLine: null,
     };
   });
@@ -349,8 +291,6 @@ export function composeStory(payload: StoryPayload, elements: V6Element[], diagn
     if (carrier) carrier.transitionLine = COPY.page20.directToCombat;
   }
 
-  applyDryLineCadence(pages);
-
   return {
     pages,
     payload,
@@ -358,11 +298,9 @@ export function composeStory(payload: StoryPayload, elements: V6Element[], diagn
     diagnostics,
     heroBridgeCombined: !has(15),
     recapLines,
-    archetypeAnchors,
     finalIdentity,
     deepDestination,
   };
 }
 
 export { ARCHETYPE_PLACEHOLDER };
-export type { ArchetypeAnchorKey };

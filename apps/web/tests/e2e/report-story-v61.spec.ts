@@ -6,6 +6,7 @@ const POST_LOSS = "/report/v61-story-finding-post-loss-fixture";
 const TRANSFER = "/report/v61-story-finding-transfer-fixture";
 const DEGRADED = "/report/v61-story-degraded-fixture";
 const LONG_STREAK = "/report/v61-story-long-streak-fixture";
+const MISSING_FINDING_EVIDENCE = "/report/v61-story-missing-finding-evidence-fixture";
 const HISTORICAL = "/report/v61-historical-production-fixture";
 
 const FORBIDDEN_STORY_TEXT = [
@@ -16,6 +17,19 @@ const FORBIDDEN_STORY_TEXT = [
   /not enough data/i,
   /\bMMR\b/i,
   /\bmedal\b/i,
+  /Ancient exploding/i,
+  /plans were optional/i,
+  /full shift/i,
+  /matchmaking behaved/i,
+  /hero puddle/i,
+  /clicking the same person/i,
+  /looked at everything/i,
+  /several thousand clicks/i,
+  /Run it back/i,
+  /Share your Dota DNA/i,
+  /Reveal your archetype/i,
+  /What supports this shape\?/i,
+  /THE RECURRING PLAYER/i,
 ];
 
 /** Reduced motion composes every page instantly, which makes traversal exact. */
@@ -83,7 +97,7 @@ test.describe("story composition in the browser", () => {
     await openStory(page, FULL);
 
     const forward = await traverseForward(page);
-    expect(forward).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 30, 31, 32, 33]);
+    expect(forward).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 27, 29, 30, 32, 33]);
     expect(forward).not.toContain(25);
     expect(forward).not.toContain(28);
     expect(forward).not.toContain(34);
@@ -155,6 +169,15 @@ test.describe("story composition in the browser", () => {
     expect(pages).not.toContain(17);
     expect(pages).not.toContain(31);
     expect(pages[pages.length - 1]).toBe(33);
+    await expect(page.getByText("From the history this report could see.", { exact: true })).toBeVisible();
+    await expect(page.getByText("365 days of Dota.", { exact: true })).toHaveCount(0);
+  });
+
+  test("a finding without receipt content omits the evidence control", async ({ page }) => {
+    await openStory(page, MISSING_FINDING_EVIDENCE);
+    await advanceTo(page, 15);
+    await expect(page.getByText("Observed post loss response evidence in this fixture.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Why this?" })).toHaveCount(0);
   });
 
   test("a historical report without a story payload still renders", async ({ page }) => {
@@ -222,8 +245,22 @@ test.describe("navigation", () => {
   test("progress reports the composed total", async ({ page }) => {
     await openStory(page, FULL);
     const progress = page.getByRole("progressbar");
-    await expect(progress).toHaveAttribute("aria-valuetext", "Page 1 of 31");
-    await expect(progress).toHaveAttribute("aria-valuemax", "31");
+    await expect(progress).toHaveAttribute("aria-valuetext", "Page 1 of 30");
+    await expect(progress).toHaveAttribute("aria-valuemax", "30");
+  });
+
+  test("semantic rhythms reach the story shell", async ({ page }) => {
+    await openStory(page, FULL);
+    const rhythms = new Map<number, string | null>();
+    for (const target of [1, 2, 5, 8, 10, 30, 33]) {
+      await advanceTo(page, target);
+      rhythms.set(target, await page.locator("main").getAttribute("data-rhythm"));
+    }
+    expect(rhythms.get(1)).toBe("measured");
+    expect(rhythms.get(2)).toBe("immediate");
+    expect(rhythms.get(5)).toBe("question");
+    expect(rhythms.get(8)).toBe("quiet");
+    expect(new Set(rhythms.values()).size).toBeGreaterThan(3);
   });
 });
 
@@ -268,8 +305,8 @@ test.describe("the archetype card", () => {
 
   test("reduced motion shows the card face-up with no trigger", async ({ page }) => {
     await gotoArchetype(page);
-    await expect(page.getByRole("heading", { level: 1, name: "THE RECURRING PLAYER" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Reveal your archetype/i })).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 1, name: "THE YEAR IN QUEUE" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Turn the report card/i })).toHaveCount(0);
   });
 
   test("the turn happens on a real button and back returns face-up", async ({ page }) => {
@@ -283,14 +320,14 @@ test.describe("the archetype card", () => {
       await next.click();
       await page.waitForTimeout(50);
     }
-    const trigger = page.getByRole("button", { name: /Reveal your archetype/i });
+    const trigger = page.getByRole("button", { name: /Turn the report card/i });
     await expect(trigger).toBeVisible();
     await trigger.click();
-    await expect(page.getByRole("button", { name: /Reveal your archetype/i })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Turn the report card/i })).toHaveCount(0);
     await page.getByRole("button", { name: "Back", exact: true }).click();
     await page.getByRole("button", { name: "Next" }).click();
     expect(await currentPage(page)).toBe(30);
-    await expect(page.getByRole("button", { name: /Reveal your archetype/i })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Turn the report card/i })).toHaveCount(0);
   });
 
   test("the turn is the only reveal interaction in the whole story", async ({ page }) => {
@@ -298,7 +335,7 @@ test.describe("the archetype card", () => {
     await page.goto(FULL);
     const article = page.locator("article[data-page]");
     const next = page.getByRole("button", { name: "Next", exact: true });
-    const trigger = page.getByRole("button", { name: /Reveal your archetype/i });
+    const trigger = page.getByRole("button", { name: /Turn the report card/i });
     for (let index = 0; index < 60; index += 1) {
       const current = Number(await article.getAttribute("data-page"));
       // Only Page 30 may offer the turn.
@@ -310,14 +347,10 @@ test.describe("the archetype card", () => {
     }
   });
 
-  test("page 31 shows only anchors backed by rendered pages", async ({ page }) => {
+  test("identity anchors stay absent until the payload qualifies them", async ({ page }) => {
     await openStory(page, FULL);
-    await advanceTo(page, 31);
-    await expect(page.getByRole("heading", { name: "Your hero pool." })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "After losses." })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Outside your usual heroes." })).toBeVisible();
-    // The scripted closing line is suppressed while the archetype is a constant.
-    await expect(page.getByText("Not a personality test")).toHaveCount(0);
+    expect(await traverseForward(page)).not.toContain(31);
+    await expect(page.getByText("What supports this shape?", { exact: true })).toHaveCount(0);
   });
 });
 
@@ -331,8 +364,8 @@ test.describe("collage, share, and the ending", () => {
   test("combat rows all belong to the leading hero named above them", async ({ page }) => {
     await openStory(page, FULL);
     await advanceTo(page, 22);
-    await expect(page.getByText("Hero Zeta contributed more than any other hero: 93.")).toBeVisible();
-    await expect(page.getByText("The three games where Hero Zeta really got involved:")).toBeVisible();
+    await expect(page.getByText("Hero Zeta led the kill total: 93.")).toBeVisible();
+    await expect(page.getByText("The three Hero Zeta games with the highest kill count:")).toBeVisible();
     const names = await page.locator("article ol li span:nth-child(2)").allInnerTexts();
     expect(names.length).toBe(3);
     for (const name of names) expect(name).toBe("Hero Zeta");
@@ -344,7 +377,7 @@ test.describe("collage, share, and the ending", () => {
     const cards = page.locator("article ul li");
     await expect(cards).toHaveCount(21);
     await expect(page.locator('article li[data-module="wins_bridge"]')).toHaveCount(1);
-    await expect(page.getByRole("heading", { name: "Well. That was your year." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your year, reassembled." })).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });
@@ -361,7 +394,7 @@ test.describe("collage, share, and the ending", () => {
       // than deleting it.
       Object.defineProperty(navigator, "share", { configurable: true, value: undefined });
     });
-    await page.getByRole("button", { name: "Share your Dota DNA." }).click();
+    await page.getByRole("button", { name: "Share the receipts." }).click();
     await expect(page.getByText("Report link copied.")).toBeVisible();
     const copied = await page.evaluate(() => navigator.clipboard.readText());
     expect(copied).toBe(`${new URL(page.url()).origin}/report/v61-story-full-fixture`);
@@ -375,7 +408,7 @@ test.describe("collage, share, and the ending", () => {
       (navigator as unknown as { share: () => Promise<void> }).share = () =>
         Promise.reject(new DOMException("cancelled", "AbortError"));
     });
-    await page.getByRole("button", { name: "Share your Dota DNA." }).click();
+    await page.getByRole("button", { name: "Share the receipts." }).click();
     await expect(page.getByText("Report link copied.")).toHaveCount(0);
     await expect(page.getByText("The link is below.")).toHaveCount(0);
   });
@@ -389,14 +422,14 @@ test.describe("collage, share, and the ending", () => {
         value: { writeText: () => Promise.reject(new Error("denied")) },
       });
     });
-    await page.getByRole("button", { name: "Share your Dota DNA." }).click();
+    await page.getByRole("button", { name: "Share the receipts." }).click();
     await expect(page.getByText("The link is below.")).toBeVisible();
     await expect(page.getByLabel("Report link")).toBeVisible();
   });
 
-  test("run it back returns to page one", async ({ page }) => {
+  test("read it again returns to page one", async ({ page }) => {
     await gotoEnd(page);
-    await page.getByRole("button", { name: "Run it back." }).click();
+    await page.getByRole("button", { name: "Read it again." }).click();
     expect(await currentPage(page)).toBe(1);
     await expect(page.getByRole("button", { name: "Back", exact: true })).toBeDisabled();
   });

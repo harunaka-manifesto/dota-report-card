@@ -20,7 +20,7 @@ import {
 import { track } from "../../../../lib/analytics";
 import type { ComposedStory } from "./compose";
 import { COPY } from "./copy";
-import { beatOffsets, MOTION, type BeatPlan } from "./motion";
+import { beatOffsets, MOTION, rhythmForPage, type BeatPlan } from "./motion";
 import { StoryPageView } from "./pages";
 import { BeatProvider } from "./story-runtime";
 import styles from "./story.module.css";
@@ -79,15 +79,17 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
   revealedRef.current = revealed;
 
   const registerPlan = useCallback((next: BeatPlan) => {
+    const rhythm = next.rhythm ?? rhythmForPage(page?.page ?? 0);
     setBeatState((current) =>
       current.plan &&
       current.plan.total === next.total &&
       current.plan.holdAfter === next.holdAfter &&
-      current.plan.identityHoldAfter === next.identityHoldAfter
+      current.plan.identityHoldAfter === next.identityHoldAfter &&
+      current.plan.rhythm === rhythm
         ? current
-        : { ...current, plan: next },
+        : { ...current, plan: { ...next, rhythm } },
     );
-  }, []);
+  }, [page?.page]);
 
   // Timers pause while the document is hidden or a dialog is open.
   useEffect(() => {
@@ -269,11 +271,14 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
 
   if (!page) return null;
 
+  const rhythm = plan?.rhythm ?? rhythmForPage(page.page);
+
   return (
     <main
       className={styles.story}
       data-direction={direction}
       data-alignment={page.alignment}
+      data-rhythm={rhythm}
       data-keyboard={keyboardOrigin.current}
     >
       <header className={styles.rail}>
