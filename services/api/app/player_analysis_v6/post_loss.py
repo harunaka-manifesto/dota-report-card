@@ -115,6 +115,12 @@ class PostLossResult:
     support_bootstrap_replicates: Mapping[str, tuple[float, ...]] = field(default_factory=dict)
     limitations: tuple[str, ...] = ()
 
+    @property
+    def comparable_pair_count(self) -> int:
+        """Return the exact target/control pair count already computed."""
+
+        return len(self.control_matches)
+
     def as_dict(self) -> dict[str, Any]:
         return {
             "transition_count": len(self.transitions),

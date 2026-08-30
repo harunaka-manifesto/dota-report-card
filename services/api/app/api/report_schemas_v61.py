@@ -19,6 +19,17 @@ from app.api.report_schemas_v6 import (
     ShareCandidateV6Schema,
     StoryPageV6Schema,
 )
+from app.api.story_payload_schemas_v61 import (
+    StoryArchetypeContractVersion,
+    StoryCopyVersion,
+    StoryHeroMetadataVersion,
+    StoryHeroTaxonomyVersion,
+    StoryModeMapVersion,
+    StoryPayloadV61Schema,
+    StoryPayloadVersion,
+    StoryRulesVersion,
+    public_story_evidence_refs,
+)
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
 
 ConfidenceTier = Literal["unavailable", "descriptive", "moderate", "high"]
@@ -44,6 +55,13 @@ class VersionsV61Schema(PublicV6Model):
     model: Literal["free-dna-model-6.1.0"]
     template: str
     analysis_version_fingerprint: str
+    story_payload: StoryPayloadVersion | None = None
+    story_rules: StoryRulesVersion | None = None
+    story_copy: StoryCopyVersion | None = None
+    game_mode_map: StoryModeMapVersion | None = None
+    hero_taxonomy: StoryHeroTaxonomyVersion | None = None
+    hero_metadata: StoryHeroMetadataVersion | None = None
+    archetype_contract: StoryArchetypeContractVersion | None = None
 
 
 class ReproducibilityV61Schema(PublicV6Model):
@@ -276,6 +294,7 @@ class FreeDnaReportV61Schema(PublicV6Model):
     share_candidates: list[ShareCandidateV6Schema] = Field(max_length=3)
     methodology: MethodologyV61Schema
     cost: FreeCostV6Schema
+    story_payload: StoryPayloadV61Schema | None = None
 
     @model_validator(mode="after")
     def validate_v61_contract(self) -> FreeDnaReportV61Schema:
@@ -314,6 +333,71 @@ class FreeDnaReportV61Schema(PublicV6Model):
             raise ValueError("V6.1 pages must match the nine-beat story")
         if set(self.selection_audit) != FINDING_FAMILIES:
             raise ValueError("V6.1 selection audit must cover exactly five families")
+        story_version_keys = (
+            "story_payload",
+            "story_rules",
+            "story_copy",
+            "game_mode_map",
+            "hero_taxonomy",
+            "hero_metadata",
+            "archetype_contract",
+        )
+        story_versions = {key: getattr(self.versions, key) for key in story_version_keys}
+        if self.story_payload is None:
+            if any(value is not None for value in story_versions.values()):
+                raise ValueError("story version keys require a story_payload block")
+        else:
+            if any(value is None for value in story_versions.values()):
+                raise ValueError("story_payload requires all story version keys")
+            if self.story_payload.version != self.versions.story_payload:
+                raise ValueError("story_payload version does not match versions.story_payload")
+            if self.story_payload.provenance.mode_map_version != self.versions.game_mode_map:
+                raise ValueError("story mode-map provenance does not match versions.game_mode_map")
+            if self.story_payload.provenance.hero_taxonomy_version != self.versions.hero_taxonomy:
+                raise ValueError("story hero taxonomy provenance does not match versions.hero_taxonomy")
+            if self.story_payload.provenance.hero_metadata_version != self.versions.hero_metadata:
+                raise ValueError("story hero metadata provenance does not match versions.hero_metadata")
+
+            # Finding slots are a deliberately narrow projection of the
+            # already-published legacy records.  Do not let a story payload
+            # invent copy, evidence, or semantic outcomes, and never carry
+            # the protected Deep handoff into the public story surface.
+            findings_by_family = {finding.family: finding for finding in self.findings}
+            for slot_name, family in (
+                ("post_loss", "post_loss_response"),
+                ("transfer", "transfer"),
+            ):
+                slot = getattr(self.story_payload.finding_slots, slot_name)
+                finding = findings_by_family[family]
+                source_contract = finding.claim_contract
+                eligible = bool(
+                    finding.published
+                    and finding.claim
+                    and finding.interpretation
+                    and source_contract is not None
+                )
+                if slot.available != eligible:
+                    raise ValueError(
+                        f"story {slot_name} availability must match its published finding"
+                    )
+                if not eligible:
+                    continue
+                content = slot.content
+                if content is None or content.claim_contract is None or source_contract is None:
+                    raise ValueError(f"story {slot_name} is missing its claim projection")
+                expected_contract = source_contract.model_dump(mode="json", by_alias=True)
+                expected_contract.pop("deep_handoff", None)
+                actual_contract = content.claim_contract.model_dump(mode="json", by_alias=True)
+                if actual_contract != expected_contract:
+                    raise ValueError(f"story {slot_name} claim contract does not match its finding")
+                if (
+                    content.claim != finding.claim
+                    or content.interpretation != finding.interpretation
+                    or content.evidence_refs != public_story_evidence_refs(finding.evidence_refs)
+                    or content.confidence != finding.confidence
+                    or content.semantic_outcome_key != finding.semantic_outcome_key
+                ):
+                    raise ValueError(f"story {slot_name} content does not match its finding")
         public = self.model_dump(mode="json", by_alias=True)
         forbidden_private_keys = {"match_ids", "account_id", "rank_tier", "average_rank", "mmr"}
 
@@ -335,7 +419,27 @@ class FreeDnaReportV61Schema(PublicV6Model):
 
 
 def validate_free_dna_report_v61(report: dict[str, Any]) -> dict[str, Any]:
-    return FreeDnaReportV61Schema.model_validate(report).model_dump(mode="json", by_alias=True)
+    validated = FreeDnaReportV61Schema.model_validate(report).model_dump(mode="json", by_alias=True)
+    # New story fields are additive.  Do not turn a historical report's
+    # structural absence into explicit nulls merely by crossing validation.
+    if "story_payload" not in report:
+        validated.pop("story_payload", None)
+    source_versions = report.get("versions")
+    if isinstance(source_versions, dict):
+        output_versions = validated.get("versions")
+        if isinstance(output_versions, dict):
+            for key in (
+                "story_payload",
+                "story_rules",
+                "story_copy",
+                "game_mode_map",
+                "hero_taxonomy",
+                "hero_metadata",
+                "archetype_contract",
+            ):
+                if key not in source_versions:
+                    output_versions.pop(key, None)
+    return validated
 
 
 __all__ = ["FreeDnaReportV61Schema", "validate_free_dna_report_v61"]

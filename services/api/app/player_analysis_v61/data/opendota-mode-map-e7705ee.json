@@ -1,0 +1,22 @@
+{
+  "version": "opendota-mode-map-e7705ee",
+  "upstream_commit": "e7705ee975ebec2a88a59a7b455d4cae5dc69ca1",
+  "categories": {
+    "unranked_all_pick": {
+      "game_mode": 1,
+      "lobby_type": 0
+    },
+    "ranked_all_pick": {
+      "game_mode": 22,
+      "lobby_type": 7
+    },
+    "unranked_captains_mode": {
+      "game_mode": 2,
+      "lobby_type": 0
+    },
+    "ranked_captains_mode": {
+      "game_mode": 2,
+      "lobby_type": 7
+    }
+  }
+}

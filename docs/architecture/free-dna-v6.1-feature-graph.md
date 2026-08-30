@@ -168,6 +168,13 @@ cohort members or source identifiers.
 | thresholds | `metric-thresholds-6.1.0` | changed exact-key manifest |
 | claims | `claim-contract-2.0.0` | changed alternatives/verification |
 | story | `free-story-6.1.0` | changed payload, same nine beats |
+| story payload | `free-story-payload-1.0.0` | new additive descriptive module payload |
+| story rules | `free-story-rules-1.0.0` | new frozen aggregation and omission rules |
+| story copy | `free-story-copy-1.0.0` | new deterministic story copy variants |
+| game mode map | `opendota-mode-map-e7705ee` | new pinned AP/CM mode and lobby tuples |
+| hero taxonomy | `hero-taxonomy-2026-08-16` | new frozen public hero taxonomy |
+| hero metadata | `hero-knowledge-semantic-freeze-full-roster-v1` | new frozen public hero roster |
+| archetype contract | `free-archetype-interface-1.0.0` | new not-ready archetype interface |
 | copy | `free-dna-semantic-copy-6.1.0` | changed outcome-owned copy |
 | recommendations | `free-dna-recommendations-6.1.0` | changed verification contract |
 | Deep diagnostics | `deep-diagnostics-2.1.0` | changed protected cohort refs |

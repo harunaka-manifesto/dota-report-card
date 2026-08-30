@@ -1,0 +1,1305 @@
+{
+  "availability": {
+    "reason": null,
+    "state": "available"
+  },
+  "card_manifest": [
+    {
+      "id": "story-card-hello",
+      "module": "hello",
+      "page": 1
+    },
+    {
+      "id": "story-card-match_count",
+      "module": "match_count",
+      "page": 2
+    },
+    {
+      "id": "story-card-hours_in_matches",
+      "module": "hours_in_matches",
+      "page": 3
+    },
+    {
+      "id": "story-card-rank_points",
+      "module": "rank_points",
+      "page": 4
+    },
+    {
+      "id": "story-card-busiest_week",
+      "module": "busiest_week",
+      "page": 5
+    },
+    {
+      "id": "story-card-busiest_day",
+      "module": "busiest_day",
+      "page": 6
+    },
+    {
+      "id": "story-card-longest_match",
+      "module": "longest_match",
+      "page": 7
+    },
+    {
+      "id": "story-card-wins_bridge",
+      "module": "wins_bridge",
+      "page": 8
+    },
+    {
+      "id": "story-card-win_summary",
+      "module": "win_summary",
+      "page": 9
+    },
+    {
+      "id": "story-card-winning_streak",
+      "module": "winning_streak",
+      "page": 10
+    },
+    {
+      "id": "story-card-top_win_heroes",
+      "module": "top_win_heroes",
+      "page": 11
+    },
+    {
+      "id": "story-card-losing_streak",
+      "module": "losing_streak",
+      "page": 12
+    },
+    {
+      "id": "story-card-top_loss_heroes",
+      "module": "top_loss_heroes",
+      "page": 13
+    },
+    {
+      "id": "story-card-hero_pool",
+      "module": "hero_pool",
+      "page": 17
+    },
+    {
+      "id": "story-card-hero_eras",
+      "module": "hero_eras",
+      "page": 18
+    },
+    {
+      "id": "story-card-hero_era_payoff",
+      "module": "hero_era_payoff",
+      "page": 19
+    },
+    {
+      "id": "story-card-kills",
+      "module": "kills",
+      "page": 22
+    },
+    {
+      "id": "story-card-assists",
+      "module": "assists",
+      "page": 23
+    },
+    {
+      "id": "story-card-deaths",
+      "module": "deaths",
+      "page": 24
+    }
+  ],
+  "finding_slots": {
+    "post_loss": {
+      "available": false,
+      "content": null,
+      "family": "post_loss_response"
+    },
+    "transfer": {
+      "available": false,
+      "content": null,
+      "family": "transfer"
+    }
+  },
+  "identity": {
+    "display_name": "Story fixture player"
+  },
+  "modules": {
+    "archetype": {
+      "copy_variant": "not_ready",
+      "data": {
+        "description": null,
+        "evidence_anchors": [],
+        "name": null,
+        "production_ready": false,
+        "recap_available": false,
+        "share_card_available": false
+      },
+      "reason": "archetype_not_ready",
+      "state": "not_ready"
+    },
+    "assists": {
+      "copy_variant": "available",
+      "data": {
+        "individuals": [
+          {
+            "assists": 18,
+            "date": "2025-11-05",
+            "deaths": 4,
+            "duration_seconds": 2160,
+            "hero_id": 5,
+            "hero_name": "Hero Epsilon",
+            "kills": 9,
+            "outcome": "loss",
+            "rank": 1,
+            "stat_value": 18
+          },
+          {
+            "assists": 18,
+            "date": "2025-06-05",
+            "deaths": 2,
+            "duration_seconds": 1920,
+            "hero_id": 5,
+            "hero_name": "Hero Epsilon",
+            "kills": 5,
+            "outcome": "loss",
+            "rank": 2,
+            "stat_value": 18
+          },
+          {
+            "assists": 15,
+            "date": "2025-08-05",
+            "deaths": 7,
+            "duration_seconds": 2520,
+            "hero_id": 5,
+            "hero_name": "Hero Epsilon",
+            "kills": 4,
+            "outcome": "loss",
+            "rank": 3,
+            "stat_value": 15
+          }
+        ],
+        "leading_hero": {
+          "hero_id": 5,
+          "hero_name": "Hero Epsilon",
+          "total": 129
+        },
+        "total": 705
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "busiest_day": {
+      "copy_variant": "hours",
+      "data": {
+        "also_longest_match_day": false,
+        "date": "2025-01-02",
+        "display_unit": "hours",
+        "display_value": 3.7,
+        "hours_available": true,
+        "inside_busiest_week": false,
+        "match_count": 6,
+        "total_duration_seconds": 13320
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "busiest_week": {
+      "copy_variant": "hours",
+      "data": {
+        "date_end": "2025-12-07",
+        "date_start": "2025-12-01",
+        "display_unit": "hours",
+        "display_value": 3.6,
+        "hours_available": true,
+        "match_count": 6,
+        "period_kind": "iso_calendar_week",
+        "total_duration_seconds": 12840
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "card_collage": {
+      "copy_variant": "free-story-cards-1.0.0",
+      "data": {
+        "cards": [
+          {
+            "id": "story-card-hello",
+            "module": "hello",
+            "page": 1
+          },
+          {
+            "id": "story-card-match_count",
+            "module": "match_count",
+            "page": 2
+          },
+          {
+            "id": "story-card-hours_in_matches",
+            "module": "hours_in_matches",
+            "page": 3
+          },
+          {
+            "id": "story-card-rank_points",
+            "module": "rank_points",
+            "page": 4
+          },
+          {
+            "id": "story-card-busiest_week",
+            "module": "busiest_week",
+            "page": 5
+          },
+          {
+            "id": "story-card-busiest_day",
+            "module": "busiest_day",
+            "page": 6
+          },
+          {
+            "id": "story-card-longest_match",
+            "module": "longest_match",
+            "page": 7
+          },
+          {
+            "id": "story-card-wins_bridge",
+            "module": "wins_bridge",
+            "page": 8
+          },
+          {
+            "id": "story-card-win_summary",
+            "module": "win_summary",
+            "page": 9
+          },
+          {
+            "id": "story-card-winning_streak",
+            "module": "winning_streak",
+            "page": 10
+          },
+          {
+            "id": "story-card-top_win_heroes",
+            "module": "top_win_heroes",
+            "page": 11
+          },
+          {
+            "id": "story-card-losing_streak",
+            "module": "losing_streak",
+            "page": 12
+          },
+          {
+            "id": "story-card-top_loss_heroes",
+            "module": "top_loss_heroes",
+            "page": 13
+          },
+          {
+            "id": "story-card-hero_pool",
+            "module": "hero_pool",
+            "page": 17
+          },
+          {
+            "id": "story-card-hero_eras",
+            "module": "hero_eras",
+            "page": 18
+          },
+          {
+            "id": "story-card-hero_era_payoff",
+            "module": "hero_era_payoff",
+            "page": 19
+          },
+          {
+            "id": "story-card-kills",
+            "module": "kills",
+            "page": 22
+          },
+          {
+            "id": "story-card-assists",
+            "module": "assists",
+            "page": 23
+          },
+          {
+            "id": "story-card-deaths",
+            "module": "deaths",
+            "page": 24
+          }
+        ],
+        "version": "free-story-cards-1.0.0"
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "deaths": {
+      "copy_variant": "available",
+      "data": {
+        "individuals": [
+          {
+            "assists": 7,
+            "date": "2025-09-06",
+            "deaths": 7,
+            "duration_seconds": 2520,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 11,
+            "outcome": "win",
+            "rank": 1,
+            "stat_value": 7
+          },
+          {
+            "assists": 10,
+            "date": "2025-01-02",
+            "deaths": 7,
+            "duration_seconds": 2520,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 8,
+            "outcome": "win",
+            "rank": 2,
+            "stat_value": 7
+          },
+          {
+            "assists": 13,
+            "date": "2025-10-06",
+            "deaths": 6,
+            "duration_seconds": 2400,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 4,
+            "outcome": "win",
+            "rank": 3,
+            "stat_value": 6
+          }
+        ],
+        "leading_hero": {
+          "hero_id": 6,
+          "hero_name": "Hero Zeta",
+          "total": 50
+        },
+        "total": 261
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "deep": {
+      "copy_variant": "unavailable",
+      "data": {
+        "available": false
+      },
+      "reason": "deep_unavailable",
+      "state": "degraded"
+    },
+    "element_distinctiveness": {
+      "copy_variant": "not_ready",
+      "data": null,
+      "reason": "analytical_release_required",
+      "state": "not_ready"
+    },
+    "final_identity_card": {
+      "copy_variant": "not_ready",
+      "data": null,
+      "reason": "archetype_not_ready",
+      "state": "not_ready"
+    },
+    "hello": {
+      "copy_variant": "named_full",
+      "data": {
+        "display_name": "Story fixture player",
+        "history_materially_short": false,
+        "observed_from": "2025-01-02",
+        "observed_to": "2025-12-06",
+        "requested_window_days": 365,
+        "window_end": "2025-12-31",
+        "window_start": "2025-01-01"
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "hero_era_payoff": {
+      "copy_variant": "takeover",
+      "data": {
+        "persistence": {
+          "hero": {
+            "hero_id": 2,
+            "hero_name": "Hero Beta"
+          },
+          "top_five_periods": 11
+        },
+        "steady_pool": false,
+        "takeover": {
+          "hero": {
+            "hero_id": 6,
+            "hero_name": "Hero Zeta"
+          },
+          "period": "2025-02"
+        }
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "hero_eras": {
+      "copy_variant": "calendar_month",
+      "data": {
+        "period_kind": "calendar_month",
+        "periods": [
+          {
+            "date_end": "2025-01-31",
+            "date_start": "2025-01-01",
+            "empty": false,
+            "id": "2025-01",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 1,
+                "hero_name": "Hero Alpha",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-02-28",
+            "date_start": "2025-02-01",
+            "empty": false,
+            "id": "2025-02",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-03-31",
+            "date_start": "2025-03-01",
+            "empty": false,
+            "id": "2025-03",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-04-30",
+            "date_start": "2025-04-01",
+            "empty": true,
+            "id": "2025-04",
+            "match_count": 0,
+            "period_kind": "calendar_month",
+            "sparse": true,
+            "top_heroes": []
+          },
+          {
+            "date_end": "2025-05-31",
+            "date_start": "2025-05-01",
+            "empty": false,
+            "id": "2025-05",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-06-30",
+            "date_start": "2025-06-01",
+            "empty": false,
+            "id": "2025-06",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-07-31",
+            "date_start": "2025-07-01",
+            "empty": false,
+            "id": "2025-07",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-08-31",
+            "date_start": "2025-08-01",
+            "empty": false,
+            "id": "2025-08",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-09-30",
+            "date_start": "2025-09-01",
+            "empty": false,
+            "id": "2025-09",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-10-31",
+            "date_start": "2025-10-01",
+            "empty": false,
+            "id": "2025-10",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-11-30",
+            "date_start": "2025-11-01",
+            "empty": false,
+            "id": "2025-11",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          },
+          {
+            "date_end": "2025-12-31",
+            "date_start": "2025-12-01",
+            "empty": false,
+            "id": "2025-12",
+            "match_count": 6,
+            "period_kind": "calendar_month",
+            "sparse": false,
+            "top_heroes": [
+              {
+                "hero_id": 6,
+                "hero_name": "Hero Zeta",
+                "matches": 1,
+                "rank": 1
+              },
+              {
+                "hero_id": 5,
+                "hero_name": "Hero Epsilon",
+                "matches": 1,
+                "rank": 2
+              },
+              {
+                "hero_id": 4,
+                "hero_name": "Hero Delta",
+                "matches": 1,
+                "rank": 3
+              },
+              {
+                "hero_id": 3,
+                "hero_name": "Hero Gamma",
+                "matches": 1,
+                "rank": 4
+              },
+              {
+                "hero_id": 2,
+                "hero_name": "Hero Beta",
+                "matches": 1,
+                "rank": 5
+              }
+            ]
+          }
+        ],
+        "sparse_fallback": false
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "hero_pool": {
+      "copy_variant": "concentrated",
+      "data": {
+        "concentration_band": "concentrated",
+        "heroes": [
+          {
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "matches": 11,
+            "rank": 1,
+            "share": 0.166667
+          },
+          {
+            "hero_id": 5,
+            "hero_name": "Hero Epsilon",
+            "matches": 11,
+            "rank": 2,
+            "share": 0.166667
+          },
+          {
+            "hero_id": 4,
+            "hero_name": "Hero Delta",
+            "matches": 11,
+            "rank": 3,
+            "share": 0.166667
+          },
+          {
+            "hero_id": 3,
+            "hero_name": "Hero Gamma",
+            "matches": 11,
+            "rank": 4,
+            "share": 0.166667
+          },
+          {
+            "hero_id": 2,
+            "hero_name": "Hero Beta",
+            "matches": 11,
+            "rank": 5,
+            "share": 0.166667
+          }
+        ],
+        "top_five_share": 0.833333,
+        "total_matches": 66
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "hours_in_matches": {
+      "copy_variant": "hours",
+      "data": {
+        "coverage_denominator": 66,
+        "coverage_numerator": 66,
+        "coverage_ratio": 1.0,
+        "display_unit": "hours",
+        "display_value": 40.0,
+        "hours_available": true,
+        "total_duration_seconds": 144300
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "kills": {
+      "copy_variant": "available",
+      "data": {
+        "individuals": [
+          {
+            "assists": 16,
+            "date": "2025-02-06",
+            "deaths": 6,
+            "duration_seconds": 2400,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 14,
+            "outcome": "win",
+            "rank": 1,
+            "stat_value": 14
+          },
+          {
+            "assists": 13,
+            "date": "2025-05-06",
+            "deaths": 4,
+            "duration_seconds": 2160,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 13,
+            "outcome": "win",
+            "rank": 2,
+            "stat_value": 13
+          },
+          {
+            "assists": 10,
+            "date": "2025-07-06",
+            "deaths": 2,
+            "duration_seconds": 1920,
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "kills": 12,
+            "outcome": "win",
+            "rank": 3,
+            "stat_value": 12
+          }
+        ],
+        "leading_hero": {
+          "hero_id": 6,
+          "hero_name": "Hero Zeta",
+          "total": 93
+        },
+        "total": 523
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "longest_match": {
+      "copy_variant": "refused_to_end",
+      "data": {
+        "assists": 11,
+        "date": "2025-02-01",
+        "deaths": 1,
+        "duration_seconds": 3900,
+        "formatted_duration": "1h 05m",
+        "hero_id": 1,
+        "hero_name": "Hero Alpha",
+        "kills": 9,
+        "on_busiest_day": false,
+        "outcome": "win",
+        "refused_to_end": true
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "losing_streak": {
+      "copy_variant": "broken_by_win",
+      "data": {
+        "breaker": {
+          "assists": 10,
+          "date": "2025-12-06",
+          "deaths": 4,
+          "duration_seconds": 2160,
+          "hero_id": 6,
+          "hero_name": "Hero Zeta",
+          "kills": 3,
+          "outcome": "win"
+        },
+        "end_date": "2025-12-05",
+        "length": 2,
+        "start_date": "2025-12-04",
+        "terminal_state": "broken_by_win"
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "match_count": {
+      "copy_variant": "normal",
+      "data": {
+        "match_count": 66,
+        "volume_variant": "normal"
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "rank_points": {
+      "copy_variant": "positive",
+      "data": {
+        "classification_reliable": true,
+        "direction": "positive",
+        "formula_version": "rank-points-story-1.0.0",
+        "points_absolute": 550,
+        "points_per_match": 25,
+        "ranked_losses": 0,
+        "ranked_matches": 22,
+        "ranked_wins": 22
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "top_loss_heroes": {
+      "copy_variant": "ranked",
+      "data": {
+        "breaker_exists": true,
+        "roughest_day": {
+          "daily_losses": 2,
+          "date": "2025-01-02"
+        },
+        "rows": [
+          {
+            "hero_id": 5,
+            "hero_name": "Hero Epsilon",
+            "losses": 11,
+            "matches": 11,
+            "rank": 1
+          },
+          {
+            "hero_id": 4,
+            "hero_name": "Hero Delta",
+            "losses": 11,
+            "matches": 11,
+            "rank": 2
+          }
+        ]
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "top_win_heroes": {
+      "copy_variant": "ranked",
+      "data": {
+        "rows": [
+          {
+            "hero_id": 6,
+            "hero_name": "Hero Zeta",
+            "matches": 11,
+            "rank": 1,
+            "wins": 11
+          },
+          {
+            "hero_id": 3,
+            "hero_name": "Hero Gamma",
+            "matches": 11,
+            "rank": 2,
+            "wins": 11
+          },
+          {
+            "hero_id": 2,
+            "hero_name": "Hero Beta",
+            "matches": 11,
+            "rank": 3,
+            "wins": 11
+          }
+        ]
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "win_summary": {
+      "copy_variant": "many",
+      "data": {
+        "winningest_day": {
+          "daily_wins": 4,
+          "date": "2025-01-02"
+        },
+        "wins": 44
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "winning_streak": {
+      "copy_variant": "streak",
+      "data": {
+        "end_date": "2025-12-03",
+        "length": 4,
+        "start_date": "2025-11-06"
+      },
+      "reason": null,
+      "state": "available"
+    },
+    "wins_bridge": {
+      "copy_variant": "wins",
+      "data": {
+        "wins": 44
+      },
+      "reason": null,
+      "state": "available"
+    }
+  },
+  "page_manifest": [
+    {
+      "id": "hello",
+      "module": "hello",
+      "page": 1
+    },
+    {
+      "id": "match_count",
+      "module": "match_count",
+      "page": 2
+    },
+    {
+      "id": "hours_in_matches",
+      "module": "hours_in_matches",
+      "page": 3
+    },
+    {
+      "id": "rank_points",
+      "module": "rank_points",
+      "page": 4
+    },
+    {
+      "id": "busiest_week",
+      "module": "busiest_week",
+      "page": 5
+    },
+    {
+      "id": "busiest_day",
+      "module": "busiest_day",
+      "page": 6
+    },
+    {
+      "id": "longest_match",
+      "module": "longest_match",
+      "page": 7
+    },
+    {
+      "id": "wins_bridge",
+      "module": "wins_bridge",
+      "page": 8
+    },
+    {
+      "id": "win_summary",
+      "module": "win_summary",
+      "page": 9
+    },
+    {
+      "id": "winning_streak",
+      "module": "winning_streak",
+      "page": 10
+    },
+    {
+      "id": "top_win_heroes",
+      "module": "top_win_heroes",
+      "page": 11
+    },
+    {
+      "id": "losing_streak",
+      "module": "losing_streak",
+      "page": 12
+    },
+    {
+      "id": "top_loss_heroes",
+      "module": "top_loss_heroes",
+      "page": 13
+    },
+    {
+      "id": "hero_pool",
+      "module": "hero_pool",
+      "page": 17
+    },
+    {
+      "id": "hero_eras",
+      "module": "hero_eras",
+      "page": 18
+    },
+    {
+      "id": "hero_era_payoff",
+      "module": "hero_era_payoff",
+      "page": 19
+    },
+    {
+      "id": "kills",
+      "module": "kills",
+      "page": 22
+    },
+    {
+      "id": "assists",
+      "module": "assists",
+      "page": 23
+    },
+    {
+      "id": "deaths",
+      "module": "deaths",
+      "page": 24
+    },
+    {
+      "id": "page-26",
+      "module": null,
+      "page": 26
+    },
+    {
+      "id": "card_collage",
+      "module": "card_collage",
+      "page": 32
+    }
+  ],
+  "provenance": {
+    "detail_requests": 0,
+    "hero_metadata_version": "hero-knowledge-semantic-freeze-full-roster-v1",
+    "hero_taxonomy_editorial_checksum": "394190d3a4c8b067b9eda04975d8d7c1b19092a9f1c9a39d46266bfec5533e0d",
+    "hero_taxonomy_factual_checksum": "56b0c0fb2f9f1e75d3649b655780197d12a845edb26ccb0d2645370b42e2cb89",
+    "hero_taxonomy_version": "hero-taxonomy-2026-08-16",
+    "mode_map_checksum": "ce78848ca0511309422e560f2db9bd67080b32a165069ca747370c94176e135a",
+    "mode_map_version": "opendota-mode-map-e7705ee",
+    "parse_requests": 0,
+    "physical_history_requests": 1,
+    "provider": "opendota_summary",
+    "story_input_sha256": "c5549190e59c713f587a5970d492ac61e7d866e31e89951b6f8934d5e26a9324"
+  },
+  "universe": {
+    "duration_candidate_count": 66,
+    "duration_coverage": 1.0,
+    "duration_known_count": 66,
+    "excluded_or_unknown_count": 0,
+    "history_completeness": "complete",
+    "history_materially_short": false,
+    "key": "public_ap_cm_story_v1",
+    "match_count": 66,
+    "mode_counts": {
+      "ranked_all_pick": 22,
+      "ranked_captains_mode": 0,
+      "unranked_all_pick": 44,
+      "unranked_captains_mode": 0
+    },
+    "observed_days": 339,
+    "observed_from": "2025-01-02",
+    "observed_to": "2025-12-06",
+    "requested_window_days": 365,
+    "volume_tier": "normal",
+    "window_end": "2025-12-31",
+    "window_start": "2025-01-01"
+  },
+  "version": "free-story-payload-1.0.0"
+}

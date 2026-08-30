@@ -72,6 +72,7 @@ from app.player_analysis_v61.artifacts import (
     load_v61_artifact_bundle,
     load_v61_production_beta_authorization,
 )
+from app.player_analysis_v61.story_selector import select_story_matches
 from app.player_analysis_v61.versions import MODEL_VERSION as V61_MODEL_VERSION
 from app.reports.assembly import assemble_player_dna_report, assemble_report
 from app.reports.dna_assembly import assemble_free_dna_report_v4
@@ -802,6 +803,18 @@ class AnalysisService:
                 raise V61RuntimeEvidenceIncomplete(
                     "V6.1 generation requires loaded analytical artifacts"
                 )
+            try:
+                story_selection = select_story_matches(
+                    filter_history_window(
+                        normalized.matches,
+                        window_start=window_start,
+                        window_end=window_end,
+                    )
+                )
+            except (TypeError, ValueError) as exc:
+                raise V61RuntimeEvidenceIncomplete(
+                    "V6.1 story mode-map evidence is incomplete"
+                ) from exc
             session_result = infer_sessions(
                 windowed_matches,
                 SessionPolicy(gap_minutes=self.settings.effective_session_gap_minutes),
@@ -818,10 +831,11 @@ class AnalysisService:
                 message="Building your V6.1 identity, findings, and story report",
             )
             protected_cohorts: dict[str, Any] = {}
+            report_profile = _profile_for_report(profile, identifier.account_id)
             try:
                 report = assemble_free_dna_report_v61(
                     account_id=identifier.account_id,
-                    profile=_profile_for_report(profile, identifier.account_id),
+                    profile=report_profile,
                     matches=tuple(session_result.matches),
                     canonical_history=canonical_history,
                     processed_matches=job.processed_matches,
@@ -839,6 +853,9 @@ class AnalysisService:
                     shadow_enabled=self.settings.free_dna_v61_shadow_enabled,
                     experimental_evolution_enabled=self.settings.free_dna_v61_experimental_evolution_enabled,
                     experimental_loops_enabled=self.settings.free_dna_v61_experimental_loops_enabled,
+                    story_selection=story_selection,
+                    story_window_start=window_start,
+                    story_window_end=window_end,
                     protected_cohorts_out=protected_cohorts,
                 )
             except ValueError as exc:

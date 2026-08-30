@@ -87,6 +87,13 @@ Supporting signals below are evidence and never additional public score cards.
 | thresholds | `metric-thresholds-6.1.0` | changed | registry-key manifest |
 | claims | `claim-contract-2.0.0` | changed | alternatives and verification added |
 | story | `free-story-6.1.0` | changed | same nine beats; interaction-aware payload |
+| story_payload | `free-story-payload-1.0.0` | new | additive descriptive module payload |
+| story_rules | `free-story-rules-1.0.0` | new | frozen story aggregation and omission rules |
+| story_copy | `free-story-copy-1.0.0` | new | deterministic story copy variants |
+| game_mode_map | `opendota-mode-map-e7705ee` | new | pinned AP/CM mode and lobby tuples |
+| hero_taxonomy | `hero-taxonomy-2026-08-16` | new | frozen public hero taxonomy |
+| hero_metadata | `hero-knowledge-semantic-freeze-full-roster-v1` | new | frozen public hero metadata roster |
+| archetype_contract | `free-archetype-interface-1.0.0` | new | not-ready archetype interface |
 | copy | `free-dna-semantic-copy-6.1.0` | changed | outcome-owned deterministic copy |
 | recommendations | `free-dna-recommendations-6.1.0` | changed | five-game verification contract |
 | deep_diagnostics | `deep-diagnostics-2.1.0` | changed | protected qualifying cohort references |

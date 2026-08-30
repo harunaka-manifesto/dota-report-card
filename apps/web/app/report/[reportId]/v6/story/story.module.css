@@ -1,0 +1,1003 @@
+/*
+ * Midnight Specimen, text only.
+ *
+ * Type, rhythm, alignment, colour roles, rules, dots, blocks, and bars carry
+ * every piece of hierarchy here.  There are no hero portraits, item icons,
+ * illustrations, photographs, imported art, canvas, or decorative SVG in this
+ * file, and none may be added.
+ */
+
+.story {
+  --type-micro: 12px;
+  --type-meta: 15px;
+  --type-body: clamp(17px, 1.4vw, 19px);
+  --type-lead: clamp(20px, 2vw, 24px);
+  --type-card: clamp(24px, 3vw, 30px);
+  --type-chapter: clamp(28px, 4.4vw, 38px);
+  --type-display: clamp(34px, 6vw, 48px);
+  --type-hero: clamp(40px, 8vw, 60px);
+  --type-monument: clamp(52px, 13vw, 120px);
+
+  --rail-height: 52px;
+  --dock-height: 64px;
+  --page-inline: 20px;
+
+  --enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --move: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Chapter role colours, keyed by chapter number, never by array position. */
+  --role-scale: var(--color-saffron);
+  --role-hero: var(--color-coral);
+  --role-finding: var(--color-lilac);
+  --role-identity: var(--color-cobalt);
+  --role-action: var(--color-cyan);
+
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-void);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-weight: var(--weight-regular);
+}
+
+.story *,
+.story *::before,
+.story *::after {
+  box-sizing: border-box;
+}
+
+.story h1,
+.story h2,
+.story h3,
+.story p,
+.story ul,
+.story ol,
+.story dl {
+  margin: 0;
+}
+
+.story ul,
+.story ol {
+  padding: 0;
+  list-style: none;
+}
+
+.story button,
+.story input,
+.story a {
+  font: inherit;
+}
+
+.story :focus-visible,
+.dialog :focus-visible {
+  outline: 3px solid var(--color-cyan);
+  outline-offset: 3px;
+}
+
+/* --- Top rail ---------------------------------------------------------- */
+
+.rail {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-5);
+  min-height: var(--rail-height);
+  padding: max(var(--space-3), env(safe-area-inset-top)) max(var(--page-inline), env(safe-area-inset-right))
+    var(--space-3) max(var(--page-inline), env(safe-area-inset-left));
+}
+
+.chapterLabel {
+  color: var(--color-muted-text);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.progress {
+  position: relative;
+  height: 2px;
+  min-width: 0;
+  background: var(--color-line);
+}
+
+.progressFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--color-text);
+  transition: width 320ms var(--move);
+}
+
+.progressTick {
+  position: absolute;
+  top: -3px;
+  width: 1px;
+  height: 8px;
+  background: var(--color-line);
+}
+
+/* --- Stage ------------------------------------------------------------- */
+
+.stage {
+  position: relative;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The chapter rule sits behind the story axis and moves on a chapter change. */
+.chapterRule {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: max(var(--page-inline), env(safe-area-inset-left));
+  width: 1px;
+  background: var(--color-line);
+  transition: background-color 320ms var(--move);
+}
+
+.chapterRule[data-chapter="1"] { background: var(--role-scale); opacity: 0.5; }
+.chapterRule[data-chapter="2"],
+.chapterRule[data-chapter="3"] { background: var(--role-scale); opacity: 0.35; }
+.chapterRule[data-chapter="4"],
+.chapterRule[data-chapter="6"] { background: var(--role-finding); opacity: 0.5; }
+.chapterRule[data-chapter="5"] { background: var(--role-hero); opacity: 0.5; }
+.chapterRule[data-chapter="7"],
+.chapterRule[data-chapter="9"] { background: var(--color-line); }
+.chapterRule[data-chapter="10"],
+.chapterRule[data-chapter="11"],
+.chapterRule[data-chapter="12"] { background: var(--role-identity); opacity: 0.6; }
+
+.page {
+  display: grid;
+  align-content: center;
+  gap: var(--space-5);
+  width: min(100%, 1120px);
+  min-height: 100%;
+  margin-inline: auto;
+  padding: clamp(32px, 8vh, 72px) max(var(--page-inline), env(safe-area-inset-right)) var(--space-7)
+    max(calc(var(--page-inline) + 20px), env(safe-area-inset-left));
+  animation: pageEnter 320ms var(--enter) both;
+}
+
+.story[data-alignment="center"] .page {
+  justify-items: center;
+  text-align: center;
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --- Beats ------------------------------------------------------------- */
+
+.beat {
+  max-width: var(--beat-max, 46ch);
+  opacity: 1;
+  transform: none;
+  transition: opacity 320ms var(--enter), transform 320ms var(--enter);
+}
+
+.beat[data-revealed="false"] {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* A focused beat is always visible: the focus ring must never land on
+   something the reader cannot see. */
+.beat:has(:focus-visible) {
+  opacity: 1;
+  transform: none;
+}
+
+.story[data-alignment="center"] .beat {
+  --beat-max: 34ch;
+}
+
+/* Blocks that own the full story column rather than the copy measure. */
+.anchors,
+.collage,
+.signalField,
+.sequence,
+.dominant,
+.finalActions {
+  --beat-max: none;
+}
+
+.display {
+  font-size: var(--type-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.chapterType {
+  font-size: var(--type-chapter);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.lead {
+  color: var(--color-text);
+  font-size: var(--type-lead);
+  line-height: 1.38;
+  text-wrap: pretty;
+}
+
+.support {
+  color: var(--color-muted-text);
+  font-size: var(--type-body);
+  line-height: 1.5;
+}
+
+.dryLine {
+  color: var(--color-muted-text);
+  font-size: var(--type-body);
+  line-height: 1.5;
+}
+
+.microcopy {
+  color: var(--color-muted-text);
+  font-size: var(--type-meta);
+  letter-spacing: 0.02em;
+}
+
+.recapLine {
+  font-size: var(--type-lead);
+  line-height: 1.3;
+}
+
+.transition {
+  color: var(--color-muted-text);
+  font-size: var(--type-body);
+  line-height: 1.5;
+}
+
+.findingClaim {
+  color: var(--role-finding);
+  font-size: var(--type-card);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.015em;
+  line-height: 1.14;
+  text-wrap: balance;
+}
+
+/* --- Endstop ----------------------------------------------------------- */
+
+.endstop {
+  width: 32px;
+  height: 2px;
+  background: var(--role-scale);
+  opacity: 0;
+  transition: opacity 420ms var(--enter);
+}
+
+.endstop[data-revealed="true"] {
+  opacity: 1;
+}
+
+/* --- Dominant number --------------------------------------------------- */
+
+.dominant {
+  width: 100%;
+}
+
+.dominantLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.28em;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.045em;
+  line-height: 0.94;
+}
+
+.dominantValue {
+  font-size: var(--type-monument);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.dominantUnit {
+  color: var(--color-muted-text);
+  font-size: var(--type-hero);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.02em;
+}
+
+.dominantSentence {
+  font-size: var(--type-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.dominantSentence .dominantValue {
+  font-size: var(--type-hero);
+  letter-spacing: -0.04em;
+}
+
+/* Five digits and beyond step down one named size rather than scaling. */
+.dominantValue:not(:empty) {
+  overflow-wrap: normal;
+}
+
+/* --- Ordered stack ----------------------------------------------------- */
+
+.stack {
+  display: grid;
+  max-width: 46ch;
+  gap: 0;
+}
+
+.stackRow {
+  display: grid;
+  grid-template-columns: 2ch minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-line);
+  opacity: 1;
+  transform: none;
+  transition: opacity 320ms var(--enter), transform 320ms var(--enter);
+}
+
+.stackRow[data-revealed="false"] {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.stackOrdinal {
+  color: var(--color-muted-text);
+  font-size: var(--type-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+.stackName {
+  color: var(--role-hero);
+  font-size: var(--type-card);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.stackDetail {
+  color: var(--color-muted-text);
+  font-size: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* --- Sequence ---------------------------------------------------------- */
+
+.sequence {
+  width: 100%;
+}
+
+.sequenceTrack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.sequenceBlock {
+  width: 14px;
+  height: 26px;
+  background: var(--color-line);
+  opacity: 1;
+  transform: none;
+  transition: opacity 460ms var(--enter), transform 460ms var(--enter);
+}
+
+.sequenceBlock[data-revealed="false"] {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.sequenceBlock[data-tone="win"] { background: var(--color-muted-text); }
+.sequenceBlock[data-tone="loss"] { background: var(--color-line); }
+.sequenceBlock[data-tone="highlight"] {
+  background: var(--role-scale);
+  outline: 2px solid var(--role-scale);
+  outline-offset: 2px;
+}
+
+/* --- Signal field ------------------------------------------------------ */
+
+.signalField {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.signalChannel {
+  display: grid;
+  grid-template-columns: minmax(0, 14ch) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  opacity: 1;
+  transition: opacity 320ms var(--enter);
+}
+
+.signalChannel[data-revealed="false"] { opacity: 0; }
+
+.signalLabel {
+  font-size: var(--type-meta);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.signalRail {
+  height: 2px;
+  background: var(--color-line);
+}
+
+.signalChannel[data-element="breadth"] .signalRail[data-measured="true"] { background: var(--color-coral); }
+.signalChannel[data-element="toolkit"] .signalRail[data-measured="true"] { background: var(--color-saffron); }
+.signalChannel[data-element="involvement"] .signalRail[data-measured="true"] { background: var(--color-lilac); }
+.signalChannel[data-element="finishing"] .signalRail[data-measured="true"] { background: var(--color-cobalt); }
+.signalChannel[data-element="death_exposure"] .signalRail[data-measured="true"] { background: var(--color-cyan); }
+.signalChannel[data-element="transfer"] .signalRail[data-measured="true"] { background: var(--color-magenta); }
+.signalChannel[data-element="consistency"] .signalRail[data-measured="true"] { background: var(--color-aqua); }
+
+/* --- Inline evidence --------------------------------------------------- */
+
+.evidence {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 52ch;
+}
+
+.evidenceToggle {
+  justify-self: start;
+  min-height: var(--control-height);
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--role-action);
+  font-size: var(--type-meta);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.evidenceRegion {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-muted-text);
+  font-size: var(--type-meta);
+  line-height: 1.5;
+}
+
+.evidenceRegion[hidden] { display: none; }
+
+.evidenceRegion h3 {
+  color: var(--color-text);
+  font-size: var(--type-meta);
+  font-weight: var(--weight-medium);
+}
+
+.evidenceRegion ul {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.evidenceRegion li::before {
+  content: "— ";
+  color: var(--color-line);
+}
+
+/* --- Hero eras --------------------------------------------------------- */
+
+.eras {
+  display: grid;
+  gap: var(--space-5);
+  max-width: 46ch;
+}
+
+.eraControl {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.eraRange {
+  width: 100%;
+  min-height: var(--control-height);
+  accent-color: var(--role-hero);
+  background: transparent;
+}
+
+.eraTicks {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+}
+
+.eraTick {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.eraTickMark {
+  width: 1px;
+  height: 8px;
+  background: var(--color-line);
+}
+
+.eraTick[data-active="true"] .eraTickMark { background: var(--role-hero); height: 12px; }
+.eraTick[data-empty="true"] .eraTickMark { opacity: 0.4; }
+
+.eraTickLabel {
+  color: var(--color-muted-text);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.eraTick[data-active="true"] .eraTickLabel {
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+}
+
+.eraRows { min-height: 200px; }
+
+.eraEmpty {
+  padding: var(--space-4) 0;
+  color: var(--color-muted-text);
+  font-size: var(--type-body);
+}
+
+.eraSequence {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.eraSequenceLabel {
+  margin-bottom: var(--space-2);
+  color: var(--color-muted-text);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 768px) {
+  .eraSequence {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+  }
+}
+
+/* --- Archetype card ---------------------------------------------------- */
+
+.cardShell {
+  --card-width: min(340px, 76vw);
+  /* Tarot proportion, 2.75 x 4.75. Defined once; never drifts per page. */
+  --card-ratio: 1 / 1.727;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+}
+
+.cardShell[data-scale="compact"] { --card-width: min(200px, 48vw); }
+/* The quiet reference used by the build-up and the explanation page: a token
+   the reader recognises, not a second reveal. */
+.cardShell[data-scale="token"] { --card-width: min(140px, 36vw); }
+.cardShell[data-scale="token"] .cardTitle { font-size: var(--type-micro); letter-spacing: 0.12em; }
+.cardShell[data-scale="token"] .cardRule { width: 28px; }
+
+.cardButton {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cardPrompt {
+  color: var(--role-action);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.cardButton:hover .cardFace,
+.cardButton:focus-visible .cardFace {
+  border-color: var(--role-action);
+}
+
+.cardFace {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  width: var(--card-width);
+  max-height: min(58vh, 480px);
+  aspect-ratio: var(--card-ratio);
+  padding: var(--space-5) var(--space-4);
+  border: 1px solid var(--role-identity);
+  background: var(--color-surface);
+  text-align: center;
+  transition: border-color 460ms var(--enter), background-color 460ms var(--enter);
+}
+
+.cardRule {
+  width: 40px;
+  height: 1px;
+  background: var(--role-identity);
+}
+
+.cardTitle {
+  color: var(--color-text);
+  font-size: var(--type-body);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  line-height: 1.12;
+  text-transform: uppercase;
+  /* An archetype name is a name: it wraps between words or not at all. */
+  word-break: keep-all;
+  overflow-wrap: normal;
+  hyphens: none;
+  transition: opacity 460ms var(--enter);
+}
+
+/* Sized so the longest single word clears the card's inner width rather than
+   breaking mid-word.  The tarot proportion caps how large this can go. */
+.cardShell[data-scale="full"] .cardTitle { font-size: var(--type-chapter); letter-spacing: 0.01em; }
+
+.cardDescription {
+  color: var(--color-muted-text);
+  font-size: var(--type-meta);
+  line-height: 1.45;
+  transition: opacity 460ms var(--enter);
+}
+
+.cardName {
+  font-size: var(--type-card);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+/* The face-down state reads as occupied, not as a failed image load: rules,
+   blocks, and the identity colour stand in for the concealed face. */
+.cardBackPattern {
+  position: absolute;
+  inset: var(--space-4);
+  display: none;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  background: var(--color-raised);
+  border: 1px solid var(--role-identity);
+}
+
+.cardBackPattern span {
+  width: 56px;
+  height: 2px;
+  background: var(--role-identity);
+  opacity: 0.65;
+}
+
+.cardBackPattern span:nth-child(2) { width: 34px; }
+.cardBackPattern span:nth-child(3) { width: 20px; }
+
+.cardFace[data-face="down"] .cardBackPattern { display: grid; }
+.cardFace[data-face="down"] .cardTitle,
+.cardFace[data-face="down"] .cardDescription {
+  opacity: 0;
+}
+
+/* After the turn, the title holds alone before the description arrives. */
+.cardFace[data-face="up"] .cardDescription { transition-delay: 1000ms; }
+
+.cardPreview,
+.anchorCard { justify-self: center; }
+
+/* --- Page 31 anchors --------------------------------------------------- */
+
+.anchors {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+}
+
+.anchor { display: grid; gap: var(--space-2); }
+
+.anchorLabel {
+  color: var(--role-identity);
+  font-size: var(--type-meta);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.anchorBody {
+  color: var(--color-muted-text);
+  font-size: var(--type-body);
+  line-height: 1.45;
+}
+
+@media (min-width: 768px) {
+  /* Two anchors take equal halves; three take equal thirds. */
+  .anchors { grid-template-columns: repeat(var(--anchor-columns, 2), minmax(0, 1fr)); }
+  .anchor[data-count="3"] { --anchor-columns: 3; }
+  .anchors:has(.anchor[data-count="3"]) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* --- Collage ----------------------------------------------------------- */
+
+.collage {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.collageCard {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  grid-column: span var(--span-narrow, 2);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.collageLabel {
+  color: var(--color-muted-text);
+  font-size: 10px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.collageValue {
+  font-size: var(--type-body);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.collageDetail {
+  color: var(--color-muted-text);
+  font-size: var(--type-micro);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 1024px) {
+  .collage { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .collageCard { grid-column: span var(--span-wide, 2); }
+}
+
+/* --- Final card and share ---------------------------------------------- */
+
+.finalCard {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.finalActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4) var(--space-6);
+}
+
+.share { display: grid; gap: var(--space-2); justify-items: center; }
+
+.shareStatus {
+  min-height: 20px;
+  color: var(--color-muted-text);
+  font-size: var(--type-meta);
+}
+
+.shareFallback {
+  width: min(100%, 42ch);
+  min-height: var(--control-height);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+/* --- Controls ---------------------------------------------------------- */
+
+.dock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: var(--dock-height);
+  padding: var(--space-2) max(var(--page-inline), env(safe-area-inset-right))
+    max(var(--space-2), env(safe-area-inset-bottom)) max(var(--page-inline), env(safe-area-inset-left));
+  background: var(--color-void);
+  border-top: 1px solid var(--color-line);
+}
+
+.textControl {
+  min-height: var(--control-height);
+  min-width: 44px;
+  padding: var(--space-2) 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.textControl:disabled { color: var(--color-muted-text); cursor: default; }
+.textControl:hover:not(:disabled) { color: var(--role-action); }
+.textControl:active:not(:disabled) { color: var(--role-action); opacity: 0.7; }
+
+.primaryControl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-height);
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--color-text);
+  background: var(--color-text);
+  color: var(--color-ink);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* --- Dialog ------------------------------------------------------------ */
+
+.dialog {
+  width: min(680px, calc(100% - 40px));
+  max-height: min(760px, calc(100dvh - 40px));
+  padding: var(--space-5);
+  border: 1px solid var(--color-line);
+  background: var(--color-void);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+.dialog::backdrop { background: rgb(0 0 0 / 0.82); }
+
+.dialogHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.dialogHeader h2 {
+  font-size: var(--type-card);
+  letter-spacing: -0.02em;
+}
+
+.dialogBody {
+  display: grid;
+  gap: var(--space-5);
+  color: var(--color-muted-text);
+  font-size: var(--type-meta);
+  line-height: 1.55;
+}
+
+.dialogBody section { display: grid; gap: var(--space-2); }
+.dialogBody h3 { color: var(--color-text); font-size: var(--type-meta); font-weight: var(--weight-medium); }
+.dialogBody ul { display: grid; gap: var(--space-2); }
+.dialogBody dl { display: grid; gap: var(--space-2); }
+.dialogBody dl div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--space-3); }
+.dialogBody dt { color: var(--color-muted-text); }
+.dialogBody dd { margin: 0; overflow-wrap: anywhere; }
+
+/* --- Utilities --------------------------------------------------------- */
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.stateShell {
+  display: grid;
+  align-content: center;
+  gap: var(--space-5);
+  min-height: 100dvh;
+  padding: var(--space-6);
+  background: var(--color-void);
+  color: var(--color-text);
+}
+
+/* --- Responsive -------------------------------------------------------- */
+
+@media (min-width: 768px) {
+  .story { --rail-height: 60px; --page-inline: 32px; }
+  .beat { max-width: var(--beat-max, 52ch); }
+}
+
+@media (min-width: 1024px) {
+  .story { --page-inline: clamp(48px, 5vw, 72px); }
+}
+
+/* Short viewports step the largest type down and tighten the rhythm. */
+@media (max-height: 700px) {
+  .story { --type-monument: clamp(40px, 9vw, 64px); --type-display: clamp(28px, 5vw, 38px); }
+  .page { gap: var(--space-4); padding-block: var(--space-5); }
+}
+
+@media (max-height: 620px) {
+  .page { align-content: start; }
+}
+
+/* --- Reduced motion ---------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .story *,
+  .story *::before,
+  .story *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .beat,
+  .stackRow,
+  .sequenceBlock,
+  .signalChannel,
+  .collageCard {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .endstop { opacity: 1 !important; }
+  .cardFace[data-face="down"] .cardTitle,
+  .cardFace[data-face="down"] .cardDescription { opacity: 1 !important; }
+}
+
+/* --- Forced colors ----------------------------------------------------- */
+
+@media (forced-colors: active) {
+  .cardFace,
+  .collageCard,
+  .evidenceRegion,
+  .dialog,
+  .primaryControl {
+    border: 1px solid CanvasText;
+  }
+  .endstop,
+  .signalRail,
+  .sequenceBlock,
+  .progressFill,
+  .progressTick,
+  .cardRule {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+}
