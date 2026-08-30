@@ -1,9 +1,9 @@
 # V6.1 Storytelling and Reveal Implementation Report
 
-- Status: implementation complete pending final orchestration
+- Status: implementation complete pending Preview and owner review
 - Report date: 2026-08-31
 - Base SHA: `b119948069da5890df17ed1be229674864b0fc5f`
-- New commit SHA: pending; this working state has not been committed or pushed
+- Implementation commit SHA: `8d12c489634a98d815024fa383c658e875831f2f`
 
 This report records the presentation implementation, its evidence boundary,
 and the verification supplied by the implementation run. It does not authorize
@@ -301,8 +301,8 @@ made.
 
 ## Remaining risks and follow-up
 
-1. **Final orchestration is pending.** The branch has no new commit SHA in this
-   report, and main has not been pushed. Vercel Preview and owner review remain
+1. **Release gates are pending.** The implementation is committed on the feature
+   branch, but main has not been pushed. Vercel Preview and owner review remain
    release steps.
 2. **Neutral ending is intentionally provisional.** The current report can
    show `THE YEAR IN QUEUE`, a report artifact, while the archetype payload is
@@ -378,7 +378,7 @@ worktree:
 ```text
 TASK TYPE: PRESENTATION / FRONTEND APPLICATION / DOCUMENTATION
 BASE SHA: b119948069da5890df17ed1be229674864b0fc5f
-NEW SHA: PENDING FINAL ORCHESTRATION
+NEW SHA: Recorded in the release handoff
 CHANGED FILES: Listed above
 BACKEND FILES CHANGED: NO
 ANALYTICAL FILES CHANGED: NO
@@ -394,5 +394,5 @@ HOLDOUT RERUN: NO
 RECALIBRATION: NO
 OPENDOTA QA CALLS: 0 (one documentation/OpenAPI GET for research)
 DEPLOYED: NO
-SAFE TO MERGE: NO — Vercel Preview, owner review, commit, and final orchestration are pending.
+SAFE TO MERGE: NO — Vercel Preview and owner review are pending.
 ```
