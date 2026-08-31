@@ -1,13 +1,14 @@
 # V6.1 Storytelling and Reveal Implementation Report
 
-- Status: implementation complete pending Preview and owner review
+- Status: implementation complete pending combined Preview verification
 - Report date: 2026-08-31
 - Base SHA: `b119948069da5890df17ed1be229674864b0fc5f`
 - Implementation commit SHA: `8d12c489634a98d815024fa383c658e875831f2f`
 
-This report records the presentation implementation, its evidence boundary,
-and the verification supplied by the implementation run. It does not authorize
-merge, deployment, analytical release, or production enablement.
+This report records the presentation implementation, landing-page follow-up,
+worker reliability fix, evidence boundary, and verification supplied by the
+implementation run. It does not authorize an analytical release or production
+configuration change.
 
 ## Outcome
 
@@ -19,7 +20,41 @@ implementation does not claim a measured increase in user engagement; it
 implements the research-backed mechanics that make recognition, anticipation,
 contrast, and ownership possible without adding unsupported personal meaning.
 
+The follow-up also gives the landing page the same receipt-first trust model and
+fixes an intermittent production worker lifecycle failure without changing the
+report contract or analysis semantics.
+
 ## What changed
+
+### Landing page and analysis entry
+
+The landing page now explains one bounded progression: public identifier →
+report → reachable evidence. Its hero promises a short story from the public
+history actually available to the report, the decorative scope preview says
+`Up to 365 days`, and the backstage section explains that unsupported material
+is omitted. The form copy no longer implies unqualified habits, roles, or
+identity while work is in progress.
+
+The entry flow retains the existing API requests and polling behavior. Visible
+and accessible labels now agree, the live loading region receives focus, an
+error restores focus to the input, header actions meet the 44px touch target,
+and the true 375px layout fits without hiding overflow.
+
+### Celery worker event-loop reliability
+
+Production reuses one `AnalysisService` and its `OpenDotaClient` in each Celery
+prefork child. The old task wrapper created and closed a fresh event loop with
+`asyncio.run()` for every delivery, so a later task could reuse an HTTP
+keep-alive transport bound to the closed prior loop. That raised
+`RuntimeError("Event loop is closed")`, which the service correctly hid behind
+`ANALYSIS_FAILED / Unexpected analysis failure`.
+
+The worker now reuses one lazy `asyncio.Runner` per worker process and closes it
+through Celery's prefork and non-prefork shutdown signals. A regression test
+executes two tasks against one loop-bound persistent client and proves both use
+the same loop. This is classified as an **INTERNAL IMPLEMENTATION CHANGE**:
+task name, arguments, responses, report schema, analytical code, and persisted
+data remain unchanged.
 
 ### Editorial copy and chapter framing
 
@@ -264,7 +299,9 @@ uses the same page/beat semantics without animated translation.
 
 ### Explicitly not changed
 
-- No API, schema, backend, worker, database, infrastructure, or migration file.
+- No API route, public schema, report contract, database, infrastructure, or
+  migration file. The only backend change is the internal Celery worker loop
+  lifecycle described above.
 - No Element definition, family root, estimator, baseline, threshold,
   significance/error-control logic, calibration, holdout evidence, or model.
 - No rank/MMR, cohort benchmark, actual-role, causal, psychological, or
@@ -281,7 +318,13 @@ this report:
 - Chromium story E2E: **34 passed**.
 - Other engines and reduced-motion story coverage: **133 passed**; **3 expected
   non-Chromium clipboard skips**.
-- Complete web E2E suite: **367 passed**; **27 capability-specific skips**.
+- Complete web E2E suite after the landing and worker follow-up: **377 passed**;
+  **27 capability-specific skips**.
+- Landing matrix across Chromium, Firefox, WebKit, mobile Safari, and reduced
+  motion: **45 passed**, including live-status focus, error focus restoration,
+  in-page navigation, touch sizing, and true 375px overflow.
+- Backend suite: **599 passed**; **3 expected skips**.
+- Worker regression, API, and OpenDota-client focus set: **17 passed**.
 - Current fixture and sanitized historical production-shaped fixture: **pass**.
 - Full `make typecheck`: **pass** — mypy 210 plus TypeScript.
 - Full `make lint`: **pass**.
@@ -295,15 +338,17 @@ this report:
 - OpenDota QA calls: **0**. Research used one documentation/OpenAPI GET only;
   no player/match/replay endpoint was called for QA.
 
-No Vercel Preview, persisted-production smoke against a deployed preview, or
-owner review has been completed in this report. No production deployment was
-made.
+A Vercel Preview for the earlier story commit loaded successfully. A refreshed
+Preview for the combined landing/worker/Opus integration and its existing
+persisted-report smoke remain release gates. No OpenDota report was generated
+for QA.
 
 ## Remaining risks and follow-up
 
-1. **Release gates are pending.** The implementation is committed on the feature
-   branch, but main has not been pushed. Vercel Preview and owner review remain
-   release steps.
+1. **Combined Preview verification is pending.** The earlier story commit reached
+   Preview, but the landing/worker follow-up and Opus integration require a new
+   deployment and smoke before the final production handoff is considered
+   verified.
 2. **Neutral ending is intentionally provisional.** The current report can
    show `THE YEAR IN QUEUE`, a report artifact, while the archetype payload is
    `not_ready`; a future server-owned Signature engine must replace it before
@@ -364,6 +409,11 @@ worktree:
 - `apps/web/app/report/[reportId]/v6/story/story-runtime.tsx`
 - `apps/web/app/report/[reportId]/v6/story/story-shell.tsx`
 - `apps/web/app/report/[reportId]/v6/story/story.module.css`
+- `apps/web/app/components/analysis-form.tsx`
+- `apps/web/app/layout.tsx`
+- `apps/web/app/page.tsx`
+- `apps/web/app/styles/landing.css`
+- `apps/web/tests/e2e/home.spec.ts`
 - `apps/web/tests/e2e/report-story-v61.spec.ts`
 - `apps/web/tests/e2e/fixture-server.mjs`
 - `apps/web/tests/unit/story-composition.spec.ts`
@@ -372,15 +422,17 @@ worktree:
 - `docs/product/v61-story-audit-and-narrative.md`
 - `docs/product/v61-storytelling-research.md`
 - `docs/product/v61-storytelling-reveal-implementation-report.md`
+- `services/api/app/workers/tasks.py`
+- `tests/unit/test_worker_tasks.py`
 
 ## Completion record
 
 ```text
-TASK TYPE: PRESENTATION / FRONTEND APPLICATION / DOCUMENTATION
+TASK TYPE: PRESENTATION / FRONTEND APPLICATION / BACKEND / DOCUMENTATION
 BASE SHA: b119948069da5890df17ed1be229674864b0fc5f
 NEW SHA: Recorded in the release handoff
 CHANGED FILES: Listed above
-BACKEND FILES CHANGED: NO
+BACKEND FILES CHANGED: YES — internal Celery worker lifecycle only
 ANALYTICAL FILES CHANGED: NO
 PUBLIC REPORT CONTRACT CHANGED: NO
 PERSISTED REPORT COMPATIBILITY TESTED: YES
@@ -394,5 +446,5 @@ HOLDOUT RERUN: NO
 RECALIBRATION: NO
 OPENDOTA QA CALLS: 0 (one documentation/OpenAPI GET for research)
 DEPLOYED: NO
-SAFE TO MERGE: NO — Vercel Preview and owner review are pending.
+SAFE TO MERGE: NO — combined Preview verification is pending.
 ```

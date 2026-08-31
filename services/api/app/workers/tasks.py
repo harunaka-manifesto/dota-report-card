@@ -4,7 +4,7 @@ import asyncio
 import logging
 
 from celery import Celery
-from celery.signals import worker_init
+from celery.signals import worker_init, worker_process_shutdown, worker_shutdown
 
 from app.analysis.service import AnalysisService
 from app.core.config import get_settings
@@ -24,11 +24,23 @@ celery_app.conf.beat_schedule = {
     }
 }
 _service: AnalysisService | None = None
+_runner: asyncio.Runner | None = None
 
 
 def configure_service(service: AnalysisService) -> None:
     global _service
     _service = service
+
+
+def _close_runner(**_kwargs: object) -> None:
+    global _runner
+    if _runner is not None:
+        _runner.close()
+        _runner = None
+
+
+worker_process_shutdown.connect(_close_runner)
+worker_shutdown.connect(_close_runner)
 
 
 @worker_init.connect
@@ -82,6 +94,7 @@ def release_identity_task() -> dict[str, object]:
 
 @celery_app.task(name="dota_report_card.run_analysis")
 def run_analysis_task(job_id: str, account_id: int, canonical_player: str) -> None:
+    global _runner
     service = _service
     if service is None:
         # A Celery worker is a separate process. Build its service from the
@@ -92,9 +105,11 @@ def run_analysis_task(job_id: str, account_id: int, canonical_player: str) -> No
     job = service.repository.get_job(job_id)
     if job is None:
         raise RuntimeError("Analysis job does not exist")
-    asyncio.run(
-        service.run_job(job, PlayerIdentifier(account_id, canonical_player))
-    )
+    if _runner is None:
+        # OpenDotaClient owns one AsyncClient for the worker lifetime. Keep
+        # its transport on the same event loop across Celery tasks.
+        _runner = asyncio.Runner()
+    _runner.run(service.run_job(job, PlayerIdentifier(account_id, canonical_player)))
 
 
 @celery_app.task(name="dota_report_card.purge_expired")
