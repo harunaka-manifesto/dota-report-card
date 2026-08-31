@@ -1,6 +1,12 @@
 /**
  * Editorial copy for the V6.1 story.
  *
+ * House rule: the narrator never describes the report's own structure. Lines
+ * like "the first receipt is simple" or "the chronology has a payoff" tell the
+ * reader what the page is doing instead of telling them what their year did,
+ * and they are the fastest way to drain a recap of energy. Say something about
+ * the player, or say nothing and let the Endstop hold the beat.
+ *
  * Branch selection reads a supplied `copy_variant`, a supplied boolean, or the
  * composed presence of another page. It never thresholds, sums, or ranks.
  */
@@ -41,15 +47,16 @@ export const COPY = {
     greetingAnonymous: "Hey.",
     scopeFull: "We looked back at 365 days of your Dota.",
     scopeShort: "We looked back through your Dota from the last 365 days.",
-    promise: "The obvious receipts come first. The pattern comes later.",
+    promise: "One year of queueing. Let\u2019s go through it.",
   },
   page2: {
     headline: (formatted: string, count: number) => (count === 1 ? "1 match." : `${formatted} matches.`),
-    support: "The first receipt is simple: how much Dota happened here.",
+    support: "That\u2019s how much Dota you actually played.",
   },
   page3: {
     headline: (value: string, unit: "hours" | "minutes") => `${value} ${unit}.`,
-    support: "The next receipt: time spent inside those matches.",
+    support: "Spent inside those matches.",
+    dry: "Queue time, drafts and loading screens not included.",
   },
   page4: {
     // Sentence parts keep the contracted wording intact while the numeral
@@ -81,8 +88,8 @@ export const COPY = {
     dry: "That match earned its own line in the report.",
   },
   page8: {
-    leadWins: "The scale is set. Now the result column gives wins the first word.",
-    leadZero: "The scale is set. Now the result column starts with what was recorded.",
+    leadWins: "Good news first.",
+    leadZero: "Let\u2019s start with what the year gave you.",
   },
   page9: {
     zero: "No wins made it into this year’s recorded history.",
@@ -91,10 +98,10 @@ export const COPY = {
     winningestDay: (date: string, wins: string) => `Your winningest day: ${date} · ${wins} wins.`,
   },
   page10: {
-    lead: "The wins kept going here.",
+    lead: "And then, briefly, nothing went wrong.",
     headline: (length: string) => `${length} wins in a row.`,
     range: (start: string, end: string) => `${start} → ${end}.`,
-    dry: (length: string) => `${length} straight. No footnote needed.`,
+    dry: (length: string) => `${length} in a row. Matchmaking looked away for a while.`,
     singleLead: "No long run appeared here. Every run starts somewhere.",
     singleHeadline: "Longest run: 1 win.",
   },
@@ -118,16 +125,17 @@ export const COPY = {
       long: "And… yeah.",
       longMinimumLength: 3,
     },
-    brokenLead: (hero: string) => `The next recorded win arrived on ${hero}.`,
-    brokenSupport: (length: string) => `After ${length} straight losses, the next result was a win.`,
+    brokenLead: "Then it stopped.",
+    brokenSupport: (length: string) => `After ${length} straight, this one went your way.`,
     brokenDry: (hero: string) => `${hero} gets the last word.`,
+    breakerLabel: "The one that ended it",
     observationEnded: "The recorded year ends here.",
     historyBoundary: "The streak reaches the edge of the history we can see.",
   },
   page13: {
-    breakerLead: (hero: string) => `The breaker game was on ${hero}.`,
-    breakerSecond: "The other heroes filled the loss column.",
-    neutralLead: "The loss column had a recurring cast.",
+    breakerLead: (hero: string) => `${hero} got you out of that.`,
+    breakerSecond: "These ones were less helpful.",
+    neutralLead: "Some names kept turning up on the wrong side.",
     headlineThree: "These three appeared in the most losses this year.",
     headlineFew: "These heroes appeared in the most losses this year.",
     headlineOne: "This hero appeared in the most losses this year.",
@@ -142,28 +150,31 @@ export const COPY = {
     sample: (count: string) => `Based on ${count} comparable loss → next-game moments.`,
   },
   page16: {
-    lead: "The result column is clear enough.",
-    second: "Now for the hero names that kept returning.",
-    combined: "The result column is clear enough. Now for the hero names that kept returning.",
+    lead: "Wins, losses, streaks, questionable picks.",
+    second: "Some names were there for all of it.",
+    combined: "Wins, losses, streaks, questionable picks \u2014 some names were there for all of it.",
   },
   page17: {
     headlineFull: "These were the heroes your year kept returning to.",
     headlineFew: "These were the heroes you kept returning to.",
+    // The call-it-before-it-resolves moment. The reader almost always knows.
+    guessLead: "You already know who\u2019s first.",
+    guessPrompt: "Tap to confirm",
     share: (percent: string) => `Together, they made up ${percent} of your matches.`,
   },
   page18: {
     lead: "But your hero pool didn’t stay still.",
     prompt: "Move through your year.",
-    dry: "The year had eras.",
+    dry: "Different month. Different obsession.",
     sparseLead: "Your hero pool changed through the year.",
     emptyPeriod: "No recorded matches in this period.",
     control: "Hero era period",
   },
   page19: {
-    lead: "The chronology has a payoff.",
+    lead: "Some names stayed. Others had a moment.",
     persistence: (hero: string, periods: string) => `${hero} stayed in your top five for ${periods} periods.`,
     takeover: (hero: string, period: string) => `${hero} became the leading name around ${period}.`,
-    steady: "Your top heroes were remarkably steady.",
+    steady: "The top of the list barely moved all year.",
   },
   page20: {
     lead: "Knowing the names was the easy part.",
@@ -197,11 +208,11 @@ export const COPY = {
     rowsFew: (hero: string) => `The ${hero} games with the highest death count.`,
   },
   page26: {
-    lead: "The scoreboard is visible.",
-    second: "The pattern underneath is next.",
+    lead: "Kills, assists, deaths \u2014 that\u2019s the visible part.",
+    second: "Underneath it, we were measuring something else.",
   },
   page27: {
-    headline: "This report checks the signals it could support.",
+    headline: "Seven ways of asking the same question.",
     support: (count: number) =>
       count === 1 ? "One signal. It is not the whole story." : `${count} signals. None of them is the whole story.`,
   },
@@ -213,11 +224,14 @@ export const COPY = {
       stayed: "Which heroes stayed.",
       changed: "And what followed you when they changed.",
     },
-    close: "What shape do these receipts make together?",
+    close: "Put it together\u2026",
   },
   page30: {
-    reveal: "Turn the report card",
-    revealed: "Report card turned.",
+    reveal: "Turn the card",
+    revealed: "Card turned.",
+    /** Used when no supplied variant can name the year's shape. */
+    neutralTitle: "The Year in Queue",
+    neutralLine: "Assembled from the matches, results and hero choices this history could support.",
     // The scripted optional line "Built from your heroes, your Elements, and
     // the patterns we could actually prove." asserts a provenance the
     // placeholder does not have.  Restored with the archetype engine.

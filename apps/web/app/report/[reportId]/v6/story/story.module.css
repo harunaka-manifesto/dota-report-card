@@ -395,6 +395,108 @@
   text-align: right;
 }
 
+/* --- Call it before it resolves ---------------------------------------- */
+
+.conceal { width: 100%; }
+
+.concealButton {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.concealPrompt {
+  color: var(--role-action);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.concealBody {
+  display: grid;
+  grid-template-columns: 2ch minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+/*
+ * Concealment is visual only; the same text is in the accessibility tree.
+ * The mask is striped rather than blank so it reads as deliberately withheld
+ * instead of as a row that failed to render.
+ */
+.concealBody[data-open="false"] .concealName,
+.concealBody[data-open="false"] .concealDetail {
+  color: transparent;
+  user-select: none;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--color-raised) 0 6px,
+    var(--color-surface) 6px 12px
+  );
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+
+.concealButton:hover .concealBody[data-open="false"] .concealName,
+.concealButton:focus-visible .concealBody[data-open="false"] .concealName {
+  box-shadow: inset 0 0 0 1px var(--role-action);
+}
+
+.concealOrdinal {
+  color: var(--color-muted-text);
+  font-size: var(--type-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+.concealName {
+  color: var(--role-hero);
+  font-size: var(--type-card);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+  transition: color 460ms var(--enter);
+}
+
+.concealDetail {
+  color: var(--color-muted-text);
+  font-size: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  transition: color 460ms var(--enter);
+}
+
+/* --- The hero that ended the slide -------------------------------------- */
+
+.breaker {
+  display: grid;
+  gap: var(--space-1);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--role-scale);
+}
+
+.breakerName {
+  color: var(--color-text);
+  font-size: var(--type-chapter);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.breakerLine {
+  color: var(--color-muted-text);
+  font-size: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+}
+
 /* --- Sequence ---------------------------------------------------------- */
 
 .sequence {
@@ -440,7 +542,7 @@
 
 .signalChannel {
   display: grid;
-  grid-template-columns: minmax(0, 14ch) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 14ch) minmax(0, 1fr) minmax(0, 8ch);
   align-items: center;
   gap: var(--space-4);
   opacity: 1;
@@ -459,6 +561,14 @@
 .signalRail {
   height: 2px;
   background: var(--color-line);
+}
+
+.signalZone {
+  color: var(--color-muted-text);
+  font-size: var(--type-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: right;
 }
 
 .signalChannel[data-element="breadth"] .signalRail[data-measured="true"] { background: var(--color-coral); }

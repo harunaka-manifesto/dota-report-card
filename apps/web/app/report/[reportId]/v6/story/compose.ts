@@ -22,6 +22,7 @@ import type {
 } from "./payload-types";
 import { STORY_MODULE_KEYS, STORY_MODULE_PAGES } from "./payload-types";
 import type { V6Element } from "../types";
+import { yearShape, type YearShape } from "./year-shape";
 
 /** Canonical Element keys, frozen in `player_analysis_v6/constants.py`. */
 export const CANONICAL_ELEMENT_KEYS = [
@@ -68,6 +69,8 @@ export type ComposedStory = {
   /** Page 29 recap membership, gated on pages that actually rendered. */
   recapLines: string[];
   finalIdentity: FinalIdentity | null;
+  /** Names the year from a supplied variant; null falls back to the constant. */
+  shape: YearShape | null;
   deepDestination: string | null;
 };
 
@@ -299,6 +302,7 @@ export function composeStory(payload: StoryPayload, elements: V6Element[], diagn
     heroBridgeCombined: !has(15),
     recapLines,
     finalIdentity,
+    shape: yearShape(payload),
     deepDestination,
   };
 }

@@ -20,6 +20,8 @@ import { COPY } from "./copy";
 import styles from "./story.module.css";
 
 export function ArchetypeCard({
+  title,
+  description,
   revealed,
   onReveal,
   reducedMotion,
@@ -35,6 +37,9 @@ export function ArchetypeCard({
   /** Pages the reader can only reach after the reveal show the resolved face. */
   alwaysFaceUp = false,
 }: {
+  /** Supplied by `year-shape.ts`, or the neutral constant when it returns null. */
+  title: string;
+  description: string;
   revealed: boolean;
   onReveal: () => void;
   reducedMotion: boolean;
@@ -57,14 +62,14 @@ export function ArchetypeCard({
       <span className={styles.cardRule} aria-hidden="true" />
       {heading ? (
         <h1 className={styles.cardTitle} ref={headingRef} tabIndex={-1}>
-          {ARCHETYPE_PLACEHOLDER.name}
+          {title}
         </h1>
       ) : (
-        <p className={styles.cardTitle}>{ARCHETYPE_PLACEHOLDER.name}</p>
+        <p className={styles.cardTitle}>{title}</p>
       )}
       <span className={styles.cardRule} aria-hidden="true" />
       {showDescription ? (
-        <p className={styles.cardDescription}>{ARCHETYPE_PLACEHOLDER.description}</p>
+        <p className={styles.cardDescription}>{description}</p>
       ) : null}
       <span className={styles.cardBackPattern} aria-hidden="true">
         <span />

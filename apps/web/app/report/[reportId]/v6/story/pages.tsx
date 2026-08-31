@@ -26,6 +26,7 @@ import type { StoryCombatData, StoryFindingContent } from "./payload-types";
 import { ShareControl } from "./share";
 import {
   Beat,
+  ConcealedReveal,
   DominantFact,
   DominantSentence,
   Endstop,
@@ -44,6 +45,8 @@ export type PageProps = {
   reducedMotion: boolean;
   archetypeRevealed: boolean;
   onRevealArchetype: () => void;
+  poolRevealed: boolean;
+  onRevealPool: () => void;
   onRunItBack: () => void;
   evidenceOpen: boolean;
   onToggleEvidence: () => void;
@@ -424,8 +427,9 @@ function Page12({ story, page, headingRef }: PageProps) {
         // Frozen minimum streak, not a frontend threshold.
         ...(length >= COPY.page12.microcopy.longMinimumLength ? [COPY.page12.microcopy.long] : []),
       ];
+  const breakerBeats = data?.terminal_state === "broken_by_win" && data?.breaker ? 1 : 0;
   useBeatPlan({
-    total: single ? 3 : microcopy.length + 6,
+    total: single ? 3 : microcopy.length + 6 + breakerBeats,
     holdAfter: single ? undefined : 2 + microcopy.length,
   });
   if (!data) return null;
@@ -450,7 +454,11 @@ function Page12({ story, page, headingRef }: PageProps) {
   const countIndex = 2 + microcopy.length;
   const rangeIndex = countIndex + 1;
   const terminalIndex = rangeIndex + 1;
-  const closeIndex = terminalIndex + 1;
+  // The hero that ended the slide is the most loaded name in the payload.
+  // It gets its own beat instead of sharing a sentence with the count.
+  const breakerIndex = terminalIndex + 1;
+  const hasBreaker = data.terminal_state === "broken_by_win" && Boolean(data.breaker);
+  const closeIndex = hasBreaker ? breakerIndex + 1 : terminalIndex + 1;
   const blocks = Array.from({ length: Math.min(data.length, 24) }, (_item, position) => ({
     key: `loss-${position}`,
     tone: "loss" as const,
@@ -481,17 +489,28 @@ function Page12({ story, page, headingRef }: PageProps) {
         {COPY.page12.range(formatStoryDate(data.start_date), formatStoryDate(data.end_date))}
       </Beat>
       <Beat index={terminalIndex} className={styles.lead} as="p">
-        {data.terminal_state === "broken_by_win" && data.breaker ? (
-          <>
-            {COPY.page12.brokenLead(data.breaker.hero_name)}{" "}
-            <span className={styles.support}>{COPY.page12.brokenSupport(displayLength)}</span>
-          </>
-        ) : data.terminal_state === "observation_ended" ? (
-          COPY.page12.observationEnded
-        ) : (
-          COPY.page12.historyBoundary
-        )}
+        {hasBreaker
+          ? COPY.page12.brokenLead
+          : data.terminal_state === "observation_ended"
+            ? COPY.page12.observationEnded
+            : COPY.page12.historyBoundary}
       </Beat>
+      {hasBreaker && data.breaker ? (
+        <Beat index={breakerIndex} className={styles.breaker}>
+          <p className={styles.breakerName}>{data.breaker.hero_name}</p>
+          {typeof data.breaker.kills === "number" &&
+          typeof data.breaker.deaths === "number" &&
+          typeof data.breaker.assists === "number" ? (
+            <p className={styles.breakerLine}>
+              {COPY.page7.detail(data.breaker.kills, data.breaker.deaths, data.breaker.assists)}
+              {" · "}
+              {formatStoryDate(data.breaker.date)}
+            </p>
+          ) : (
+            <p className={styles.breakerLine}>{formatStoryDate(data.breaker.date)}</p>
+          )}
+        </Beat>
+      ) : null}
       <Close
         index={closeIndex}
         line={data.breaker ? COPY.page12.brokenDry(data.breaker.hero_name) : null}
@@ -677,31 +696,66 @@ function Page16({ story, headingRef }: PageProps) {
   );
 }
 
-function Page17({ story, headingRef }: PageProps) {
+function Page17({ story, headingRef, poolRevealed, onRevealPool }: PageProps) {
   const data = story.payload.modules.hero_pool.data;
-  useBeatPlan({ total: 4 });
-  if (!data || data.heroes.length === 0) return null;
+  const heroes = data?.heroes ?? [];
+  // The supplied order is preserved; the list is only split for presentation
+  // so the first name can be called before it resolves.
+  const lead = heroes[0];
+  const rest = heroes.slice(1);
+  const guessable = heroes.length >= 3;
+  useBeatPlan({ total: guessable ? 5 : 4 });
+  if (!data || heroes.length === 0) return null;
+
+  const row = (hero: (typeof heroes)[number]) => ({
+    key: `pool-${hero.hero_id}`,
+    ordinal: hero.rank,
+    name: hero.hero_name,
+    detail: `${formatCount(hero.matches)} ${hero.matches === 1 ? "match" : "matches"} · ${formatShare(hero.share)}`,
+  });
+
+  if (!guessable) {
+    return (
+      <>
+        <Beat index={0}>
+          <h1 className={styles.chapterType} ref={headingRef} tabIndex={-1}>
+            {COPY.page17.headlineFew}
+          </h1>
+        </Beat>
+        <OrderedStack index={1} label="Your most-played heroes" rows={heroes.map(row)} />
+        <Beat index={2} className={styles.lead} as="p">
+          {COPY.page17.share(formatShare(data.top_five_share))}
+        </Beat>
+        <Endstop index={3} />
+      </>
+    );
+  }
+
   return (
     <>
       <Beat index={0}>
         <h1 className={styles.chapterType} ref={headingRef} tabIndex={-1}>
-          {data.heroes.length >= 5 ? COPY.page17.headlineFull : COPY.page17.headlineFew}
+          {COPY.page17.guessLead}
         </h1>
       </Beat>
-      <OrderedStack
-        index={1}
-        label="Your most-played heroes"
-        rows={data.heroes.map((hero) => ({
-          key: `pool-${hero.hero_id}`,
-          ordinal: hero.rank,
-          name: hero.hero_name,
-          detail: `${formatCount(hero.matches)} ${hero.matches === 1 ? "match" : "matches"} · ${formatShare(hero.share)}`,
-        }))}
-      />
-      <Beat index={2} className={styles.lead} as="p">
+      {/* Everyone below the top name lands first, so the gap is obvious. */}
+      <OrderedStack index={1} label="The rest of your most-played heroes" rows={rest.map(row)} />
+      <ConcealedReveal
+        index={2}
+        prompt={COPY.page17.guessPrompt}
+        resolved={poolRevealed}
+        onResolve={onRevealPool}
+      >
+        <span className={styles.concealOrdinal}>{lead.rank}</span>
+        <span className={styles.concealName}>{lead.hero_name}</span>
+        <span className={styles.concealDetail}>
+          {formatCount(lead.matches)} {lead.matches === 1 ? "match" : "matches"} · {formatShare(lead.share)}
+        </span>
+      </ConcealedReveal>
+      <Beat index={3} className={styles.lead} as="p">
         {COPY.page17.share(formatShare(data.top_five_share))}
       </Beat>
-      <Endstop index={3} />
+      <Endstop index={4} />
     </>
   );
 }
@@ -889,12 +943,14 @@ function Page27({ story, headingRef }: PageProps) {
   const byKey = new Map(story.elements.map((element) => [element.key, element]));
   const channels = CANONICAL_ELEMENT_KEYS.map((key) => {
     const element = byKey.get(key);
+    const zone = typeof element?.zone === "string" && element.zone.trim() ? element.zone : null;
     return {
       key,
       label: element?.label ?? "",
       // An Element that could not be computed is identified in Evidence, never
       // given a fabricated neutral score.
       measured: Boolean(element && ["available", "descriptive", "limited"].includes(String(element.status ?? ""))),
+      zone,
     };
   }).filter((channel) => channel.label.length > 0);
   return (
@@ -935,6 +991,8 @@ function Page29({ story, headingRef, archetypeRevealed, onRevealArchetype, reduc
           reader has already watched arrive. */}
       <Beat index={lines.length + 1} className={styles.cardPreview}>
         <ArchetypeCard
+          title={story.shape?.title ?? COPY.page30.neutralTitle}
+          description={story.shape?.line ?? COPY.page30.neutralLine}
           revealed={archetypeRevealed}
           onReveal={onRevealArchetype}
           reducedMotion={reducedMotion}
@@ -946,12 +1004,14 @@ function Page29({ story, headingRef, archetypeRevealed, onRevealArchetype, reduc
   );
 }
 
-function Page30({ headingRef, archetypeRevealed, onRevealArchetype, reducedMotion }: PageProps) {
+function Page30({ story, headingRef, archetypeRevealed, onRevealArchetype, reducedMotion }: PageProps) {
   useBeatPlan({ total: 2, identityHoldAfter: 0 });
   return (
     <>
       <Beat index={0}>
         <ArchetypeCard
+          title={story.shape?.title ?? COPY.page30.neutralTitle}
+          description={story.shape?.line ?? COPY.page30.neutralLine}
           revealed={archetypeRevealed}
           onReveal={onRevealArchetype}
           reducedMotion={reducedMotion}
@@ -1038,6 +1098,8 @@ function Page33({
         ) : null}
         <Beat index={offset}>
           <ArchetypeCard
+            title={story.shape?.title ?? COPY.page30.neutralTitle}
+            description={story.shape?.line ?? COPY.page30.neutralLine}
             revealed={archetypeRevealed}
             onReveal={onRevealArchetype}
             reducedMotion={reducedMotion}
