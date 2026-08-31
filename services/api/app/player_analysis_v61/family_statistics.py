@@ -16,7 +16,6 @@ from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
 from .semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
 
 _TRANSFER_COMPONENTS = ("outcome", "activity", "survival")
-_FIXTURE_TRANSFER_ROPES = {"outcome": 0.08, "activity": 0.08, "survival": 0.35}
 
 
 def _empirical_two_sided_p(samples: list[float], null: float = 0.0) -> float:
@@ -132,27 +131,6 @@ def _transfer_component_bootstrap_p(
     )
 
 
-def _fixture_no_transfer_p(transfer: Mapping[str, Any]) -> float:
-    if transfer.get("frontier", "core") != "core":
-        return 1.0
-    reliable = transfer.get("bands", {}).get("reliable_stretch", {})
-    if reliable.get("supported") is not True:
-        return 1.0
-    equivalent = reliable.get("equivalent")
-    if not isinstance(equivalent, Mapping) or any(
-        not isinstance(equivalent.get(component), bool) for component in _TRANSFER_COMPONENTS
-    ):
-        return 1.0
-    if any(equivalent.values()):
-        return 1.0
-    statistic = _transfer_max_statistic(
-        reliable.get("component_deltas"), _FIXTURE_TRANSFER_ROPES
-    )
-    if statistic is None or statistic <= 1.0:
-        return 1.0
-    return _bounded_p(statistic, int(reliable.get("match_count", 0)), scale=1.0)
-
-
 def v61_family_p_values(
     *,
     portfolio_shape: Mapping[str, Any],
@@ -168,13 +146,15 @@ def v61_family_p_values(
     pool_p = _bounded_p(pool_effect, int(portfolio_shape.get("match_count", 0)), scale=0.12)
 
     reliable = transfer.get("bands", {}).get("reliable_stretch", {})
-    transfer_statistic = _transfer_max_statistic(
-        reliable.get("component_deltas"), _FIXTURE_TRANSFER_ROPES
-    )
+    transfer_deltas = [
+        abs(float(value))
+        for value in reliable.get("component_deltas", {}).values()
+        if value is not None
+    ]
     transfer_p = _bounded_p(
-        transfer_statistic if transfer_statistic is not None else 0.0,
+        max(transfer_deltas, default=0.0),
         int(reliable.get("match_count", 0)),
-        scale=1.0,
+        scale=0.10,
     )
 
     states = result_response.get("states", {})
@@ -314,8 +294,6 @@ def v61_branch_p_values(
             "localized_function_bottleneck": 1.0,
         }
     )
-    if "bands" in transfer:
-        values["transfer"]["no_transfer"] = _fixture_no_transfer_p(transfer)
 
     states = result_response.get("states", {})
     one = states.get("one_loss", {})
