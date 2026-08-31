@@ -35,6 +35,7 @@ from app.player_analysis_v61.estimators import (
     stabilized_finishing,
 )
 from app.player_analysis_v61.family_statistics import (
+    _ordered_post_loss_statistic,
     v61_branch_p_values,
     v61_family_p_values,
     v61_production_family_branch_p_values,
@@ -655,7 +656,7 @@ class _CachedBaselineResolver:
         return self._cache[key]
 
 
-_RESULT_RESPONSE_STATES = ("win", "one_loss", "two_plus_losses", "win_streak")
+_RESULT_RESPONSE_STATES = ("win", "one_loss", "two_plus_losses")
 
 
 def _post_loss_session_statistics(
@@ -696,14 +697,14 @@ def _post_loss_response_statistic(
     session_statistics: Sequence[Mapping[str, tuple[int, float | None]]],
     weights: Sequence[int],
 ) -> float | None:
-    """Return the result-state span after session-cluster resampling.
+    """Return the ordered result-state statistic after session resampling.
 
     Each session contributes one state mean per bootstrap draw. Opportunity
     and session floors match ``result_response_summary``; missing evidence
     stays absent instead of borrowing an unrelated element statistic.
     """
 
-    movements = []
+    states: dict[str, tuple[float, int]] = {}
     for state in _RESULT_RESPONSE_STATES:
         opportunities = 0
         sessions = 0
@@ -716,8 +717,43 @@ def _post_loss_response_statistic(
             sessions += weight
             movement_total += weight * movement
         if opportunities >= 12 and sessions >= 8:
-            movements.append(movement_total / sessions)
-    return max(movements) - min(movements) if len(movements) >= 2 else None
+            states[state] = (movement_total / sessions, sessions)
+    return _ordered_post_loss_statistic(states)
+
+
+def _post_loss_bootstrap_metrics(
+    session_statistics: Sequence[Mapping[str, tuple[int, float | None]]],
+    weights: Sequence[int],
+) -> dict[str, float | None]:
+    """Return trend and adjacent post-loss metrics for one session draw."""
+
+    states: dict[str, tuple[float, int]] = {}
+    for state in _RESULT_RESPONSE_STATES:
+        opportunities = 0
+        sessions = 0
+        movement_total = 0.0
+        for weight, statistics in zip(weights, session_statistics, strict=True):
+            count, movement = statistics[state]
+            if weight <= 0 or movement is None:
+                continue
+            opportunities += weight * count
+            sessions += weight
+            movement_total += weight * movement
+        if opportunities >= 12 and sessions >= 8:
+            states[state] = (movement_total / sessions, sessions)
+
+    result: dict[str, float | None] = {
+        "trend": _ordered_post_loss_statistic(states),
+        "one_loss_departure": None,
+        "two_loss_switch": None,
+    }
+    if "win" in states and "one_loss" in states:
+        result["one_loss_departure"] = abs(states["one_loss"][0] - states["win"][0])
+    if "one_loss" in states and "two_plus_losses" in states:
+        result["two_loss_switch"] = abs(
+            states["two_plus_losses"][0] - states["one_loss"][0]
+        )
+    return result
 
 
 def _semantic_bootstrap_evidence(
@@ -725,6 +761,8 @@ def _semantic_bootstrap_evidence(
     *,
     transfer_point: Mapping[str, float | None] | None = None,
     transfer_ropes: Mapping[str, float] | None = None,
+    post_loss_point: Mapping[str, float | None] | None = None,
+    post_loss_samples: Mapping[str, Sequence[float | None]] | None = None,
 ) -> dict[str, Any]:
     """Project runtime estimator draws into the frozen five-family registry."""
 
@@ -773,7 +811,7 @@ def _semantic_bootstrap_evidence(
     families = {
         "pool_shape": [left - right for left, right in zip(breadth, toolkit, strict=False)],
         "transfer": values("transfer"),
-        "post_loss_response": values("post_loss_response"),
+        "post_loss_response": values("post_loss_trend"),
         "combat_expression": [
             left - right for left, right in zip(involvement, death, strict=False)
         ],
@@ -783,7 +821,10 @@ def _semantic_bootstrap_evidence(
     for semantic_key, definition in SEMANTIC_OUTCOME_REGISTRY.items():
         if definition.rollout_status != "public_candidate":
             continue
-        branches[definition.family_key][semantic_key] = list(families[definition.family_key])
+        if definition.family_key in {"transfer", "post_loss_response"}:
+            branches[definition.family_key][semantic_key] = []
+        else:
+            branches[definition.family_key][semantic_key] = list(families[definition.family_key])
     evidence = {
         "version": "v61-runtime-semantic-bootstrap-1.0.0",
         "families": families,
@@ -804,6 +845,57 @@ def _semantic_bootstrap_evidence(
         evidence["transfer_point"] = dict(transfer_point)
     if transfer_ropes is not None:
         evidence["transfer_ropes"] = dict(transfer_ropes)
+    if (
+        isinstance(post_loss_point, Mapping)
+        and isinstance(post_loss_samples, Mapping)
+        and set(post_loss_point) == {
+            "one_loss_departure",
+            "two_loss_switch",
+            "trend",
+        }
+        and set(post_loss_samples) == set(post_loss_point)
+    ):
+        parsed_point: dict[str, float] = {}
+        raw_parsed_samples: dict[str, list[float | None]] = {}
+        valid = True
+        for key in post_loss_point:
+            value = post_loss_point[key]
+            raw_values = post_loss_samples[key]
+            if (
+                value is None
+                or isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))
+                or isinstance(raw_values, (str, bytes))
+                or not isinstance(raw_values, Sequence)
+            ):
+                valid = False
+                break
+            try:
+                values_for_key = [
+                    None if item is None else float(item)
+                    for item in raw_values
+                ]
+            except (TypeError, ValueError):
+                valid = False
+                break
+            if any(item is not None and not math.isfinite(item) for item in values_for_key):
+                valid = False
+                break
+            parsed_point[key] = float(value)
+            raw_parsed_samples[key] = values_for_key
+        if valid and len({len(values_for_key) for values_for_key in raw_parsed_samples.values()}) == 1:
+            usable = [
+                index
+                for index in range(len(next(iter(raw_parsed_samples.values()))))
+                if all(values_for_key[index] is not None for values_for_key in raw_parsed_samples.values())
+            ]
+            if usable:
+                evidence["post_loss_point"] = parsed_point
+                evidence["post_loss_samples"] = {
+                    key: [values_for_key[index] for index in usable]
+                    for key, values_for_key in raw_parsed_samples.items()
+                }
     return evidence
 
 
@@ -1047,6 +1139,7 @@ def _weighted_production_bootstrap(
             if normalized and active_sessions >= 12
             else None
         )
+        post_loss_metrics = _post_loss_bootstrap_metrics(post_loss_statistics, weights)
         return {
             "breadth": breadth,
             "toolkit": toolkit,
@@ -1056,10 +1149,10 @@ def _weighted_production_bootstrap(
             "transfer": transfer_value,
             "transfer_components": transfer_components,
             "consistency": consistency_value,
-            "post_loss_response": _post_loss_response_statistic(
-                post_loss_statistics,
-                weights,
-            ),
+            "post_loss_response": post_loss_metrics["trend"],
+            "post_loss_trend": post_loss_metrics["trend"],
+            "post_loss_one_loss_departure": post_loss_metrics["one_loss_departure"],
+            "post_loss_two_loss_switch": post_loss_metrics["two_loss_switch"],
         }
 
     point_weights = [1] * len(session_ids)
@@ -1104,6 +1197,20 @@ def _weighted_production_bootstrap(
             ],
             transfer_point=point.get("transfer_components"),
             transfer_ropes=distance["equivalence_ropes"],
+            post_loss_point={
+                "trend": point.get("post_loss_trend"),
+                "one_loss_departure": point.get("post_loss_one_loss_departure"),
+                "two_loss_switch": point.get("post_loss_two_loss_switch"),
+            },
+            post_loss_samples={
+                "trend": [sample.get("post_loss_trend") for sample in samples],
+                "one_loss_departure": [
+                    sample.get("post_loss_one_loss_departure") for sample in samples
+                ],
+                "two_loss_switch": [
+                    sample.get("post_loss_two_loss_switch") for sample in samples
+                ],
+            },
         ),
     }
 
@@ -1185,6 +1292,10 @@ def _production_bootstrap(
             taxonomy_by_hero=taxonomy_by_hero,
             reliability_calibration=reliability,
         )
+        post_loss_metrics = _post_loss_bootstrap_metrics(
+            post_loss_statistics,
+            session_weights,
+        )
         return {
             "breadth": (
                 float(shape["shannon_effective_heroes"])
@@ -1202,10 +1313,10 @@ def _production_bootstrap(
             "transfer": transfer.get("estimate"),
             "transfer_components": transfer_components,
             "consistency": consistency.get("estimate"),
-            "post_loss_response": _post_loss_response_statistic(
-                post_loss_statistics,
-                session_weights,
-            ),
+            "post_loss_response": post_loss_metrics["trend"],
+            "post_loss_trend": post_loss_metrics["trend"],
+            "post_loss_one_loss_departure": post_loss_metrics["one_loss_departure"],
+            "post_loss_two_loss_switch": post_loss_metrics["two_loss_switch"],
         }
 
     point, samples = bootstrap_recompute(
@@ -1241,6 +1352,20 @@ def _production_bootstrap(
             samples,
             transfer_point=point.get("transfer_components"),
             transfer_ropes=distance["equivalence_ropes"],
+            post_loss_point={
+                "trend": point.get("post_loss_trend"),
+                "one_loss_departure": point.get("post_loss_one_loss_departure"),
+                "two_loss_switch": point.get("post_loss_two_loss_switch"),
+            },
+            post_loss_samples={
+                "trend": [sample.get("post_loss_trend") for sample in samples],
+                "one_loss_departure": [
+                    sample.get("post_loss_one_loss_departure") for sample in samples
+                ],
+                "two_loss_switch": [
+                    sample.get("post_loss_two_loss_switch") for sample in samples
+                ],
+            },
         ),
     }
 
