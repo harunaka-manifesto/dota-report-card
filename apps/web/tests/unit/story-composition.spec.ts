@@ -9,6 +9,7 @@ import { COPY_VARIANTS } from "../../app/report/[reportId]/v6/story/copy-variant
 import { formatPeriodLabel, formatStoryDate } from "../../app/report/[reportId]/v6/story/format";
 import { initialHeroEraIndex } from "../../app/report/[reportId]/v6/story/hero-eras-selection";
 import { normalizeStoryPayload } from "../../app/report/[reportId]/v6/story/normalize-story";
+import { yearShape } from "../../app/report/[reportId]/v6/story/year-shape";
 import { STORY_MODULE_KEYS } from "../../app/report/[reportId]/v6/story/payload-types";
 import { beatOffsets, MOTION } from "../../app/report/[reportId]/v6/story/motion";
 import type { StoryHeroEra, StoryPayload } from "../../app/report/[reportId]/v6/story/payload-types";
@@ -327,19 +328,24 @@ test.describe("curated closes and narrative rhythm", () => {
 });
 
 test.describe("collage geometry", () => {
-  test("mirrors every rendered manifest card, including the wins bridge", () => {
+  test("mirrors rendered manifest cards, minus the duplicate win total", () => {
     const normalized = normalizeStoryPayload(fixture("v61-story-payload-both"))!;
     const story = composeWithElements("v61-story-payload-both");
     const manifest = normalized.payload.modules.card_collage.data!.cards;
     const pages = new Set(story.pages.map((page) => page.page));
     const cards = buildCollageCards(normalized.payload, manifest, pages);
-    expect(cards).toHaveLength(manifest.length);
-    expect(cards.map((card) => card.module)).toContain("wins_bridge");
 
-    pages.delete(8);
-    expect(buildCollageCards(normalized.payload, manifest, pages).map((card) => card.module)).not.toContain(
-      "wins_bridge",
-    );
+    // `wins_bridge` carries only `{wins}`, the same number `win_summary`
+    // already shows, so mirroring it puts the identical card on the grid
+    // twice. The manifest is still the source of membership; this is the one
+    // module whose card is dropped, and only because it duplicates another.
+    expect(cards.map((card) => card.module)).not.toContain("wins_bridge");
+    expect(cards).toHaveLength(manifest.length - 1);
+    expect(cards.filter((card) => card.module === "win_summary")).toHaveLength(1);
+
+    // Page gating still governs every other card.
+    pages.delete(22);
+    expect(buildCollageCards(normalized.payload, manifest, pages).map((card) => card.module)).not.toContain("kills");
   });
 
   test("completes every row at any card count", () => {
@@ -395,5 +401,73 @@ test.describe("normalization repairs structure without inventing meaning", () =>
   test("invalid calendar values are never silently normalized", () => {
     expect(formatStoryDate("2025-02-31")).toBe("");
     expect(formatPeriodLabel("2025-13")).toBe("2025-13");
+  });
+});
+
+
+test.describe("the shape of the year names itself only from supplied variants", () => {
+  function withModules(overrides: Record<string, unknown>) {
+    const normalized = normalizeStoryPayload(fixture("v61-story-payload-both"))!;
+    return {
+      ...normalized.payload,
+      modules: { ...normalized.payload.modules, ...overrides },
+    } as StoryPayload;
+  }
+
+  test("a supplied takeover names the year after that hero", () => {
+    const shape = yearShape(normalizeStoryPayload(fixture("v61-story-payload-both"))!.payload);
+    expect(shape?.title).toBe("The Hero Zeta Year");
+    expect(shape?.source).toBe("hero_era_payoff:takeover");
+  });
+
+  test("a supplied persistence names the year after that hero", () => {
+    const shape = yearShape(
+      withModules({
+        hero_era_payoff: {
+          state: "available",
+          reason: null,
+          copy_variant: "persistence",
+          data: { persistence: { hero: { hero_id: 4, hero_name: "Hero Delta" }, top_five_periods: 9 }, takeover: null, steady_pool: false },
+        },
+      }),
+    );
+    expect(shape?.title).toBe("The Hero Delta Year");
+  });
+
+  test("it falls back to the supplied concentration band", () => {
+    const shape = yearShape(
+      withModules({
+        hero_era_payoff: { state: "omitted", reason: "unavailable", copy_variant: "unavailable", data: null },
+      }),
+    );
+    expect(shape?.source).toBe("hero_pool:concentrated");
+  });
+
+  test("with neither variant supplied it names nothing", () => {
+    const shape = yearShape(
+      withModules({
+        hero_era_payoff: { state: "omitted", reason: "unavailable", copy_variant: "unavailable", data: null },
+        hero_pool: { state: "omitted", reason: "unavailable", copy_variant: "unavailable", data: null },
+      }),
+    );
+    // Absence is never filled in; the caller uses the neutral constant.
+    expect(shape).toBeNull();
+  });
+
+  test("a neutral band is not a shape", () => {
+    const shape = yearShape(
+      withModules({
+        hero_era_payoff: { state: "omitted", reason: "unavailable", copy_variant: "unavailable", data: null },
+        hero_pool: { state: "available", reason: null, copy_variant: "neutral", data: { heroes: [], total_matches: 0, top_five_share: 0, concentration_band: null } },
+      }),
+    );
+    expect(shape).toBeNull();
+  });
+
+  test("the degraded fixture still reaches a shape or an honest null", () => {
+    const normalized = normalizeStoryPayload(fixture("v61-story-payload-degraded"))!;
+    const shape = yearShape(normalized.payload);
+    // Whatever it returns, it may never invent a hero the payload did not name.
+    if (shape) expect(shape.source).toMatch(/^(hero_era_payoff|hero_pool):/);
   });
 });

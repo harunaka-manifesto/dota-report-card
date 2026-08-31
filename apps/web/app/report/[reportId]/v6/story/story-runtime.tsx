@@ -174,6 +174,50 @@ export function OrderedStack({
 }
 
 /**
+ * A fact the reader is invited to call before it resolves.
+ *
+ * The concealed value is in the DOM and in the accessibility tree from mount —
+ * concealment is visual only, so a screen reader is never made to play a
+ * guessing game. Reduced motion renders it already resolved with no trigger,
+ * and once resolved the button semantics are removed rather than left behind.
+ */
+export function ConcealedReveal({
+  index,
+  prompt,
+  resolved,
+  onResolve,
+  children,
+}: {
+  index: number;
+  prompt: string;
+  resolved: boolean;
+  onResolve: () => void;
+  children: ReactNode;
+}) {
+  const { revealed, reducedMotion } = useBeats();
+  const open = resolved || reducedMotion;
+  const interactive = !open && revealed > index;
+  return (
+    <Beat index={index} className={styles.conceal}>
+      {interactive ? (
+        <button type="button" className={styles.concealButton} onClick={onResolve}>
+          <span className={styles.concealPrompt}>{prompt}</span>
+          <span className={styles.concealBody} data-open="false" aria-hidden="true">
+            {children}
+          </span>
+          <span className={styles.visuallyHidden}>{children}</span>
+        </button>
+      ) : (
+        <div className={styles.concealBody} data-open="true">
+          {children}
+        </div>
+      )}
+    </Beat>
+  );
+}
+
+
+/**
  * Dots or blocks on a rule, for streaks and week/day/match geometry.  The
  * chronology is supplied; the renderer never constructs it.
  */
@@ -212,7 +256,7 @@ export function SignalField({
   channels,
 }: {
   index: number;
-  channels: Array<{ key: string; label: string; measured: boolean }>;
+  channels: Array<{ key: string; label: string; measured: boolean; zone: string | null }>;
 }) {
   const { revealed, reducedMotion } = useBeats();
   const open = revealed > index;
@@ -228,6 +272,9 @@ export function SignalField({
         >
           <span className={styles.signalLabel}>{channel.label}</span>
           <span className={styles.signalRail} data-measured={channel.measured} aria-hidden="true" />
+          {/* The supplied zone, rendered as supplied. A channel the backend
+              left unzoned stays blank rather than being given a value. */}
+          <span className={styles.signalZone}>{channel.zone ?? ""}</span>
         </li>
       ))}
     </Beat>

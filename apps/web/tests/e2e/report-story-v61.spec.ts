@@ -305,8 +305,10 @@ test.describe("the archetype card", () => {
 
   test("reduced motion shows the card face-up with no trigger", async ({ page }) => {
     await gotoArchetype(page);
-    await expect(page.getByRole("heading", { level: 1, name: "THE YEAR IN QUEUE" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Turn the report card/i })).toHaveCount(0);
+    // The full fixture supplies a `takeover` era payoff, so the card is named
+    // from that supplied hero rather than from the neutral constant.
+    await expect(page.getByRole("heading", { level: 1, name: "The Hero Zeta Year" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Turn the card/i })).toHaveCount(0);
   });
 
   test("the turn happens on a real button and back returns face-up", async ({ page }) => {
@@ -320,31 +322,58 @@ test.describe("the archetype card", () => {
       await next.click();
       await page.waitForTimeout(50);
     }
-    const trigger = page.getByRole("button", { name: /Turn the report card/i });
+    const trigger = page.getByRole("button", { name: /Turn the card/i });
     await expect(trigger).toBeVisible();
     await trigger.click();
-    await expect(page.getByRole("button", { name: /Turn the report card/i })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Turn the card/i })).toHaveCount(0);
     await page.getByRole("button", { name: "Back", exact: true }).click();
     await page.getByRole("button", { name: "Next" }).click();
     expect(await currentPage(page)).toBe(30);
-    await expect(page.getByRole("button", { name: /Turn the report card/i })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Turn the card/i })).toHaveCount(0);
   });
 
-  test("the turn is the only reveal interaction in the whole story", async ({ page }) => {
+  test("reveal controls stay confined to the two pages that own them", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.goto(FULL);
     const article = page.locator("article[data-page]");
     const next = page.getByRole("button", { name: "Next", exact: true });
-    const trigger = page.getByRole("button", { name: /Turn the report card/i });
+    const turn = page.getByRole("button", { name: /Turn the card/i });
+    const call = page.getByRole("button", { name: /Tap to confirm/i });
+    // Exactly two reveal gestures exist in the whole story, and each belongs to
+    // one page: the hero-pool call on 17 and the card turn on 30. Any third
+    // control, or either control appearing elsewhere, fails here.
     for (let index = 0; index < 60; index += 1) {
       const current = Number(await article.getAttribute("data-page"));
-      // Only Page 30 may offer the turn.
-      expect(await trigger.count(), `page ${current} offered a reveal control`).toBe(current === 30 ? 1 : 0);
-      if (current === 30) await trigger.click();
+      expect(await turn.count(), `page ${current} offered the card turn`).toBe(current === 30 ? 1 : 0);
+      expect(await call.count(), `page ${current} offered the pool call`).toBe(current === 17 ? 1 : 0);
+      if (current === 17) await call.click();
+      if (current === 30) await turn.click();
       if (await next.isDisabled()) break;
       await next.click();
       await page.waitForTimeout(30);
     }
+  });
+
+  test("the hero-pool call resolves once and stays resolved", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(FULL);
+    const next = page.getByRole("button", { name: "Next", exact: true });
+    while ((await currentPage(page)) < 17) {
+      await next.click();
+      if ((await currentPage(page)) === 17) break;
+      await next.click();
+      await page.waitForTimeout(50);
+    }
+    const call = page.getByRole("button", { name: /Tap to confirm/i });
+    await expect(call).toBeVisible();
+    // The concealed name is in the accessibility tree before it is uncovered.
+    await expect(page.getByRole("button", { name: /Hero Zeta/ })).toBeVisible();
+    await call.click();
+    await expect(page.getByRole("button", { name: /Tap to confirm/i })).toHaveCount(0);
+    await page.getByRole("button", { name: "Back", exact: true }).click();
+    await page.getByRole("button", { name: "Next" }).click();
+    expect(await currentPage(page)).toBe(17);
+    await expect(page.getByRole("button", { name: /Tap to confirm/i })).toHaveCount(0);
   });
 
   test("identity anchors stay absent until the payload qualifies them", async ({ page }) => {
@@ -375,8 +404,10 @@ test.describe("collage, share, and the ending", () => {
     await openStory(page, FULL);
     await advanceTo(page, 32);
     const cards = page.locator("article ul li");
-    await expect(cards).toHaveCount(21);
-    await expect(page.locator('article li[data-module="wins_bridge"]')).toHaveCount(1);
+    await expect(cards).toHaveCount(20);
+    // The win total appears once, not once per module that happens to carry it.
+    await expect(page.locator('article li[data-module="wins_bridge"]')).toHaveCount(0);
+    await expect(page.locator('article li[data-module="win_summary"]')).toHaveCount(1);
     await expect(page.getByRole("heading", { name: "Your year, reassembled." })).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);

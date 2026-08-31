@@ -41,6 +41,8 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
   }));
   const [visited, setVisited] = useState<ReadonlySet<string>>(() => new Set<string>());
   const [archetypeRevealed, setArchetypeRevealed] = useState(false);
+  // The hero-pool call resolves once and stays resolved, like the card.
+  const [poolRevealed, setPoolRevealed] = useState(false);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [methodologyOpen, setMethodologyOpen] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -141,6 +143,7 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
     setBeatState((current) => ({ ...current, revealed: Number.POSITIVE_INFINITY }));
     // The card is a page beat, not an exception to the mid-reveal rule.
     if (page?.page === 30) setArchetypeRevealed(true);
+    if (page?.page === 17) setPoolRevealed(true);
     headingRef.current?.focus({ preventScroll: true });
   }, [page?.page]);
 
@@ -181,6 +184,7 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
     setEvidenceOpen(false);
     setMethodologyOpen(false);
     setArchetypeRevealed(false);
+    setPoolRevealed(false);
     setVisited(new Set<string>());
     setDirection("backward");
     setPageIndex(0);
@@ -324,6 +328,8 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
               reducedMotion={reducedMotion}
               archetypeRevealed={archetypeRevealed}
               onRevealArchetype={() => setArchetypeRevealed(true)}
+              poolRevealed={poolRevealed}
+              onRevealPool={() => setPoolRevealed(true)}
               onRunItBack={runItBack}
               evidenceOpen={evidenceOpen}
               onToggleEvidence={() => setEvidenceOpen((open) => !open)}
