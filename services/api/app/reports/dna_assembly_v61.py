@@ -721,7 +721,10 @@ def _post_loss_response_statistic(
 
 
 def _semantic_bootstrap_evidence(
-    samples: Sequence[Mapping[str, float | None]],
+    samples: Sequence[Mapping[str, Any]],
+    *,
+    transfer_point: Mapping[str, float | None] | None = None,
+    transfer_ropes: Mapping[str, float] | None = None,
 ) -> dict[str, Any]:
     """Project runtime estimator draws into the frozen five-family registry."""
 
@@ -738,6 +741,30 @@ def _semantic_bootstrap_evidence(
                     return []
                 result.append(parsed)
         return result
+
+    transfer_components: dict[str, list[float]] = {}
+    raw_transfer_components = [item.get("transfer_components") for item in samples]
+    if any(value is not None for value in raw_transfer_components):
+        component_names = ("outcome", "activity", "survival")
+        parsed_components: dict[str, list[float]] = {name: [] for name in component_names}
+        valid = True
+        for raw in raw_transfer_components:
+            if not isinstance(raw, Mapping):
+                valid = False
+                break
+            for component in component_names:
+                value = raw.get(component)
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, (int, float))
+                    or not math.isfinite(float(value))
+                ):
+                    valid = False
+                    break
+                parsed_components[component].append(float(value))
+            if not valid:
+                break
+        transfer_components = parsed_components if valid else {name: [] for name in component_names}
 
     breadth = values("breadth")
     toolkit = values("toolkit")
@@ -757,7 +784,7 @@ def _semantic_bootstrap_evidence(
         if definition.rollout_status != "public_candidate":
             continue
         branches[definition.family_key][semantic_key] = list(families[definition.family_key])
-    return {
+    evidence = {
         "version": "v61-runtime-semantic-bootstrap-1.0.0",
         "families": families,
         "branches": dict(branches),
@@ -771,6 +798,13 @@ def _semantic_bootstrap_evidence(
         },
         "source": "runtime-session-cluster-estimators",
     }
+    if transfer_components:
+        evidence["transfer_components"] = transfer_components
+    if transfer_point is not None:
+        evidence["transfer_point"] = dict(transfer_point)
+    if transfer_ropes is not None:
+        evidence["transfer_ropes"] = dict(transfer_ropes)
+    return evidence
 
 
 def _weighted_production_bootstrap(
@@ -902,7 +936,7 @@ def _weighted_production_bootstrap(
 
     ordered_stats = tuple(stats[sid] for sid in session_ids)
 
-    def estimate(weights: Sequence[int]) -> dict[str, float | None]:
+    def estimate(weights: Sequence[int]) -> dict[str, Any]:
         total_rows = 0
         active_sessions = 0
         heroes: Counter[int] = Counter()
@@ -958,6 +992,9 @@ def _weighted_production_bootstrap(
             else None
         )
         transfer_value: float | None = None
+        transfer_components: dict[str, float | None] = {
+            component: None for component in component_names
+        }
         core = band_totals["core"]
         stretch = band_totals["reliable_stretch"]
         if core["outcome"][1] >= 12 and stretch["outcome"][1] >= 12 and active_sessions >= 6:
@@ -968,6 +1005,7 @@ def _weighted_production_bootstrap(
                 for component in component_names
                 if core[component][1] and stretch[component][1]
             }
+            transfer_components.update(deltas)
             transfer_value = (
                 0.5
                 if all(
@@ -1016,6 +1054,7 @@ def _weighted_production_bootstrap(
             "finishing": finishing_value,
             "death_exposure": death_value,
             "transfer": transfer_value,
+            "transfer_components": transfer_components,
             "consistency": consistency_value,
             "post_loss_response": _post_loss_response_statistic(
                 post_loss_statistics,
@@ -1062,7 +1101,9 @@ def _weighted_production_bootstrap(
             [
                 {key: values[index] for key, values in samples.items()}
                 for index in range(BOOTSTRAP_ITERATIONS)
-            ]
+            ],
+            transfer_point=point.get("transfer_components"),
+            transfer_ropes=distance["equivalence_ropes"],
         ),
     }
 
@@ -1105,7 +1146,7 @@ def _production_bootstrap(
     post_loss_statistics = _post_loss_session_statistics(clusters, records_by_identity)
     representative_ids = tuple(id(cluster[0]) for cluster in clusters)
 
-    def estimate(sample: Sequence[Any]) -> dict[str, float | None]:
+    def estimate(sample: Sequence[Any]) -> dict[str, Any]:
         identity_counts = Counter(id(match) for match in sample)
         session_weights = [identity_counts[identity] for identity in representative_ids]
         distance_records = tuple(
@@ -1136,6 +1177,8 @@ def _production_bootstrap(
             distance_calibration=distance,
             distance_records=distance_records,
         )
+        reliable = transfer.get("bands", {}).get("reliable_stretch", {})
+        transfer_components = dict(reliable.get("component_deltas", {}))
         consistency = information_weighted_consistency(
             sample,
             baseline_resolver=cached_resolver,
@@ -1157,6 +1200,7 @@ def _production_bootstrap(
             "finishing": finishing.get("estimate"),
             "death_exposure": death.get("estimate"),
             "transfer": transfer.get("estimate"),
+            "transfer_components": transfer_components,
             "consistency": consistency.get("estimate"),
             "post_loss_response": _post_loss_response_statistic(
                 post_loss_statistics,
@@ -1193,7 +1237,11 @@ def _production_bootstrap(
         "profile_digest": profile_digest,
         "elements": intervals,
         "full_recomputation": {"core": True, "distance": True, "boundary": True},
-        "semantic_statistics": _semantic_bootstrap_evidence(samples),
+        "semantic_statistics": _semantic_bootstrap_evidence(
+            samples,
+            transfer_point=point.get("transfer_components"),
+            transfer_ropes=distance["equivalence_ropes"],
+        ),
     }
 
 
@@ -1390,6 +1438,9 @@ def assemble_free_dna_report_v61(
             semantic_calibration=supporting["semantic_calibration"],
             bootstrap_family_samples=semantic_statistics["families"],
             bootstrap_branch_samples=semantic_statistics["branches"],
+            bootstrap_transfer_components=semantic_statistics.get("transfer_components"),
+            transfer_point=semantic_statistics.get("transfer_point"),
+            transfer_ropes=semantic_statistics.get("transfer_ropes"),
         )
     else:
         family_p = v61_family_p_values(
@@ -1412,10 +1463,10 @@ def assemble_free_dna_report_v61(
         )
         for finding in report["findings"]
     }
-    branch_p = (
-        production_branch_p
-        if production_calibration
-        else v61_branch_p_values(
+    if production_calibration:
+        branch_p = production_branch_p
+    else:
+        branch_p = v61_branch_p_values(
             portfolio_shape=portfolio_shape,
             transfer=transfer,
             result_response=result_response,
@@ -1423,7 +1474,7 @@ def assemble_free_dna_report_v61(
             involvement=involvement,
             death_exposure=death_exposure,
         )
-    )
+        branch_p["transfer"].pop("no_transfer", None)
     selection_audit = hierarchical_qualification(family_p, branch_p)
     published_count = 0
     for finding in report["findings"]:

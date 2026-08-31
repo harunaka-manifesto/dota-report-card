@@ -15,6 +15,9 @@ from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
 
 from .semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
 
+_TRANSFER_COMPONENTS = ("outcome", "activity", "survival")
+_FIXTURE_TRANSFER_ROPES = {"outcome": 0.08, "activity": 0.08, "survival": 0.35}
+
 
 def _empirical_two_sided_p(samples: list[float], null: float = 0.0) -> float:
     if not samples:
@@ -55,6 +58,101 @@ def _equivalence_p(effect: float, opportunities: int, *, rope: float) -> float:
     return max(1e-12, min(1.0, math.exp(-0.5 * z_value**2)))
 
 
+def _transfer_component_vector(
+    deltas: Mapping[str, Any] | None,
+    ropes: Mapping[str, Any],
+) -> dict[str, float] | None:
+    if not isinstance(deltas, Mapping):
+        return None
+    vector: dict[str, float] = {}
+    for component in _TRANSFER_COMPONENTS:
+        value = deltas.get(component)
+        rope = ropes.get(component)
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(float(value))
+            or isinstance(rope, bool)
+            or not isinstance(rope, (int, float))
+            or not math.isfinite(float(rope))
+            or float(rope) <= 0
+        ):
+            return None
+        vector[component] = float(value)
+    return vector
+
+
+def _transfer_max_statistic(
+    deltas: Mapping[str, Any] | None,
+    ropes: Mapping[str, Any],
+) -> float | None:
+    vector = _transfer_component_vector(deltas, ropes)
+    if vector is None:
+        return None
+    return max(abs(vector[component]) / float(ropes[component]) for component in _TRANSFER_COMPONENTS)
+
+
+def _transfer_component_bootstrap_p(
+    *,
+    point_deltas: Mapping[str, Any] | None,
+    samples: Mapping[str, Sequence[Any]] | None,
+    ropes: Mapping[str, Any],
+) -> float:
+    point = _transfer_component_vector(point_deltas, ropes)
+    if point is None or not isinstance(samples, Mapping):
+        return 1.0
+    component_samples: dict[str, tuple[float, ...]] = {}
+    for component in _TRANSFER_COMPONENTS:
+        values = samples.get(component)
+        if isinstance(values, (str, bytes)) or not isinstance(values, Sequence) or not values:
+            return 1.0
+        try:
+            parsed = tuple(float(value) for value in values)
+        except (TypeError, ValueError):
+            return 1.0
+        if not all(math.isfinite(value) for value in parsed):
+            return 1.0
+        component_samples[component] = parsed
+    lengths = {len(values) for values in component_samples.values()}
+    if len(lengths) != 1:
+        return 1.0
+    observed = _transfer_max_statistic(point, ropes)
+    if observed is None:
+        return 1.0
+    null_statistics = []
+    for values in zip(*(component_samples[component] for component in _TRANSFER_COMPONENTS), strict=True):
+        null_statistics.append(
+            max(
+                abs(value - point[component]) / float(ropes[component])
+                for component, value in zip(_TRANSFER_COMPONENTS, values, strict=True)
+            )
+        )
+    return (1 + sum(statistic >= observed for statistic in null_statistics)) / (
+        len(null_statistics) + 1
+    )
+
+
+def _fixture_no_transfer_p(transfer: Mapping[str, Any]) -> float:
+    if transfer.get("frontier", "core") != "core":
+        return 1.0
+    reliable = transfer.get("bands", {}).get("reliable_stretch", {})
+    if reliable.get("supported") is not True:
+        return 1.0
+    equivalent = reliable.get("equivalent")
+    if not isinstance(equivalent, Mapping) or any(
+        not isinstance(equivalent.get(component), bool) for component in _TRANSFER_COMPONENTS
+    ):
+        return 1.0
+    if any(equivalent.values()):
+        return 1.0
+    statistic = _transfer_max_statistic(
+        reliable.get("component_deltas"), _FIXTURE_TRANSFER_ROPES
+    )
+    if statistic is None or statistic <= 1.0:
+        return 1.0
+    return _bounded_p(statistic, int(reliable.get("match_count", 0)), scale=1.0)
+
+
 def v61_family_p_values(
     *,
     portfolio_shape: Mapping[str, Any],
@@ -70,15 +168,13 @@ def v61_family_p_values(
     pool_p = _bounded_p(pool_effect, int(portfolio_shape.get("match_count", 0)), scale=0.12)
 
     reliable = transfer.get("bands", {}).get("reliable_stretch", {})
-    transfer_deltas = [
-        abs(float(value))
-        for value in reliable.get("component_deltas", {}).values()
-        if value is not None
-    ]
+    transfer_statistic = _transfer_max_statistic(
+        reliable.get("component_deltas"), _FIXTURE_TRANSFER_ROPES
+    )
     transfer_p = _bounded_p(
-        max(transfer_deltas, default=0.0),
+        transfer_statistic if transfer_statistic is not None else 0.0,
         int(reliable.get("match_count", 0)),
-        scale=0.10,
+        scale=1.0,
     )
 
     states = result_response.get("states", {})
@@ -218,6 +314,8 @@ def v61_branch_p_values(
             "localized_function_bottleneck": 1.0,
         }
     )
+    if "bands" in transfer:
+        values["transfer"]["no_transfer"] = _fixture_no_transfer_p(transfer)
 
     states = result_response.get("states", {})
     one = states.get("one_loss", {})
@@ -317,6 +415,9 @@ def v61_production_family_branch_p_values(
     semantic_calibration: Mapping[str, Any],
     bootstrap_family_samples: Mapping[str, Sequence[float]] | None = None,
     bootstrap_branch_samples: Mapping[str, Mapping[str, Sequence[float]]] | None = None,
+    bootstrap_transfer_components: Mapping[str, Sequence[float]] | None = None,
+    transfer_point: Mapping[str, Any] | None = None,
+    transfer_ropes: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, float], dict[str, dict[str, float]]]:
     """Return artifact-driven omnibus/branch p-values for production mode.
 
@@ -367,6 +468,16 @@ def v61_production_family_branch_p_values(
         family: _production_p(family_samples[family])
         for family in FINDING_FAMILY_KEYS
     }
+    if (
+        bootstrap_transfer_components is not None
+        and transfer_point is not None
+        and transfer_ropes is not None
+    ):
+        family_values["transfer"] = _transfer_component_bootstrap_p(
+            point_deltas=transfer_point,
+            samples=bootstrap_transfer_components,
+            ropes=transfer_ropes,
+        )
     branch_values: dict[str, dict[str, float]] = {family: {} for family in FINDING_FAMILY_KEYS}
     for definition in public:
         sample = branch_samples[definition.family_key][definition.semantic_outcome_key]

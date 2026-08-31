@@ -383,6 +383,33 @@ def continuous_transfer(
             subtype = "involvement_boundary"
         elif equivalent.get("activity") and not equivalent.get("survival"):
             subtype = "exposure_boundary"
+        else:
+            deltas = reliable.get("component_deltas", {})
+            complete = isinstance(deltas, Mapping) and all(
+                isinstance(equivalent.get(component), bool)
+                and isinstance(deltas.get(component), (int, float))
+                and not isinstance(deltas.get(component), bool)
+                and math.isfinite(float(deltas[component]))
+                and math.isfinite(float(margins[component]))
+                and margins[component] > 0
+                for component in ("outcome", "activity", "survival")
+            )
+            statistic = (
+                max(
+                    abs(float(deltas[component])) / margins[component]
+                    for component in ("outcome", "activity", "survival")
+                )
+                if complete
+                else None
+            )
+            if (
+                frontier == "core"
+                and complete
+                and not any(equivalent.values())
+                and statistic is not None
+                and statistic > 1.0
+            ):
+                subtype = "no_transfer"
     score = {"core": 0.0, "reliable_stretch": 0.5, "experimental_edge": 1.0}[frontier]
     return {
         "estimate": score,
