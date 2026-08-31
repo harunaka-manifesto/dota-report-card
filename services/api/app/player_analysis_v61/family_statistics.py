@@ -131,6 +131,64 @@ def _transfer_component_bootstrap_p(
     )
 
 
+def _bootstrap_departure_p(point: float, samples: Sequence[float]) -> float:
+    """Return a null-centered two-sided bootstrap departure p-value."""
+
+    if (
+        isinstance(point, bool)
+        or not isinstance(point, (int, float))
+        or not math.isfinite(float(point))
+        or isinstance(samples, (str, bytes))
+        or not isinstance(samples, Sequence)
+        or not samples
+    ):
+        return 1.0
+    try:
+        point_value = float(point)
+        values = tuple(float(value) for value in samples)
+    except (TypeError, ValueError):
+        return 1.0
+    if not all(math.isfinite(value) for value in values):
+        return 1.0
+    residuals = tuple(value - point_value for value in values)
+    observed = abs(point_value)
+    return (1 + sum(abs(residual) >= observed for residual in residuals)) / (len(values) + 1)
+
+
+def _bootstrap_equivalence_p(point: float, samples: Sequence[float], rope: float) -> float:
+    """Return a two-boundary bootstrap TOST p-value for ROPE equivalence."""
+
+    if (
+        isinstance(point, bool)
+        or not isinstance(point, (int, float))
+        or not math.isfinite(float(point))
+        or isinstance(rope, bool)
+        or not isinstance(rope, (int, float))
+        or not math.isfinite(float(rope))
+        or float(rope) <= 0
+        or isinstance(samples, (str, bytes))
+        or not isinstance(samples, Sequence)
+        or not samples
+    ):
+        return 1.0
+    try:
+        point_value = float(point)
+        rope_value = float(rope)
+        values = tuple(float(value) for value in samples)
+    except (TypeError, ValueError):
+        return 1.0
+    if not all(math.isfinite(value) for value in values):
+        return 1.0
+    residuals = tuple(value - point_value for value in values)
+    lower_p = (1 + sum(residual >= point_value + rope_value for residual in residuals)) / (
+        len(residuals) + 1
+    )
+    upper_p = (1 + sum(residual <= point_value - rope_value for residual in residuals)) / (
+        len(residuals) + 1
+    )
+    return max(lower_p, upper_p)
+
+
 def v61_family_p_values(
     *,
     portfolio_shape: Mapping[str, Any],
