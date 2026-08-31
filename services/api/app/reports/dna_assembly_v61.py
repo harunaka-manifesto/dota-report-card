@@ -848,43 +848,52 @@ def _semantic_bootstrap_evidence(
     if (
         isinstance(post_loss_point, Mapping)
         and isinstance(post_loss_samples, Mapping)
-        and set(post_loss_point) == {
-            "one_loss_departure",
-            "two_loss_switch",
-            "trend",
-        }
-        and set(post_loss_samples) == set(post_loss_point)
+        and "trend" in post_loss_point
+        and "trend" in post_loss_samples
     ):
         parsed_point: dict[str, float] = {}
         raw_parsed_samples: dict[str, list[float | None]] = {}
         valid = True
-        for key in post_loss_point:
+        for key in ("trend", "one_loss_departure", "two_loss_switch"):
+            if key not in post_loss_point or key not in post_loss_samples:
+                if key == "trend":
+                    valid = False
+                continue
             value = post_loss_point[key]
             raw_values = post_loss_samples[key]
+            if value is None:
+                if key == "trend":
+                    valid = False
+                continue
             if (
-                value is None
-                or isinstance(value, bool)
+                isinstance(value, bool)
                 or not isinstance(value, (int, float))
                 or not math.isfinite(float(value))
                 or isinstance(raw_values, (str, bytes))
                 or not isinstance(raw_values, Sequence)
             ):
-                valid = False
-                break
+                if key == "trend":
+                    valid = False
+                    break
+                continue
             try:
                 values_for_key = [
                     None if item is None else float(item)
                     for item in raw_values
                 ]
             except (TypeError, ValueError):
-                valid = False
-                break
+                if key == "trend":
+                    valid = False
+                    break
+                continue
             if any(item is not None and not math.isfinite(item) for item in values_for_key):
-                valid = False
-                break
+                if key == "trend":
+                    valid = False
+                    break
+                continue
             parsed_point[key] = float(value)
             raw_parsed_samples[key] = values_for_key
-        if valid and len({len(values_for_key) for values_for_key in raw_parsed_samples.values()}) == 1:
+        if valid and "trend" in parsed_point:
             usable = [
                 index
                 for index in range(len(next(iter(raw_parsed_samples.values()))))
@@ -1203,13 +1212,9 @@ def _weighted_production_bootstrap(
                 "two_loss_switch": point.get("post_loss_two_loss_switch"),
             },
             post_loss_samples={
-                "trend": [sample.get("post_loss_trend") for sample in samples],
-                "one_loss_departure": [
-                    sample.get("post_loss_one_loss_departure") for sample in samples
-                ],
-                "two_loss_switch": [
-                    sample.get("post_loss_two_loss_switch") for sample in samples
-                ],
+                "trend": samples.get("post_loss_trend", []),
+                "one_loss_departure": samples.get("post_loss_one_loss_departure", []),
+                "two_loss_switch": samples.get("post_loss_two_loss_switch", []),
             },
         ),
     }
@@ -1566,6 +1571,8 @@ def assemble_free_dna_report_v61(
             bootstrap_transfer_components=semantic_statistics.get("transfer_components"),
             transfer_point=semantic_statistics.get("transfer_point"),
             transfer_ropes=semantic_statistics.get("transfer_ropes"),
+            bootstrap_post_loss_point=semantic_statistics.get("post_loss_point"),
+            bootstrap_post_loss_samples=semantic_statistics.get("post_loss_samples"),
         )
     else:
         family_p = v61_family_p_values(

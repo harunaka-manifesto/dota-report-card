@@ -292,6 +292,28 @@ def _transfer_branch_bootstrap_p_values(
     }
 
 
+def _valid_transfer_bootstrap_evidence(
+    point_deltas: Mapping[str, Any] | None,
+    samples: Mapping[str, Sequence[Any]] | None,
+    ropes: Mapping[str, Any],
+) -> bool:
+    if _transfer_component_vector(point_deltas, ropes) is None or not isinstance(samples, Mapping):
+        return False
+    lengths = set()
+    for component in _TRANSFER_COMPONENTS:
+        values = samples.get(component)
+        if isinstance(values, (str, bytes)) or not isinstance(values, Sequence) or not values:
+            return False
+        try:
+            parsed = tuple(float(value) for value in values)
+        except (TypeError, ValueError):
+            return False
+        if not all(math.isfinite(value) for value in parsed):
+            return False
+        lengths.add(len(parsed))
+    return len(lengths) == 1
+
+
 def _transfer_family_bootstrap_p(branch_p_values: Mapping[str, Any] | None) -> float:
     """Return the Simes omnibus p-value across all seven transfer branches."""
 
@@ -371,27 +393,41 @@ def _post_loss_metric_evidence(
     if not isinstance(point_stats, Mapping) or not isinstance(sample_stats, Mapping):
         return None
     metric_keys = ("one_loss_departure", "two_loss_switch", "trend")
-    if all(key in point_stats for key in metric_keys):
+    if "trend" in point_stats:
         point: dict[str, float] = {}
         samples: dict[str, tuple[float, ...]] = {}
         for key in metric_keys:
+            if key not in point_stats or key not in sample_stats:
+                if key == "trend":
+                    return None
+                continue
             value = point_stats[key]
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
-                return None
-            raw_samples = sample_stats.get(key)
-            if isinstance(raw_samples, (str, bytes)) or not isinstance(raw_samples, Sequence) or not raw_samples:
-                return None
+            raw_samples = sample_stats[key]
+            if (
+                value is None
+                or isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))
+                or isinstance(raw_samples, (str, bytes))
+                or not isinstance(raw_samples, Sequence)
+                or not raw_samples
+            ):
+                if key == "trend":
+                    return None
+                continue
             try:
-                parsed = tuple(float(item) for item in raw_samples)
+                parsed = tuple(float(item) for item in raw_samples if item is not None)
             except (TypeError, ValueError):
-                return None
-            if not all(math.isfinite(item) for item in parsed):
-                return None
+                if key == "trend":
+                    return None
+                continue
+            if not parsed or not all(math.isfinite(item) for item in parsed):
+                if key == "trend":
+                    return None
+                continue
             point[key] = float(value)
             samples[key] = parsed
-        if len({len(values) for values in samples.values()}) != 1:
-            return None
-        return point, samples
+        return (point, samples) if "trend" in point else None
 
     state_point: dict[str, tuple[float, float]] = {}
     state_samples: dict[str, tuple[float, ...]] = {}
@@ -412,11 +448,15 @@ def _post_loss_metric_evidence(
             or float(weight) <= 0
         ):
             return None
-        raw_samples = sample_stats.get(state)
-        if isinstance(raw_samples, (str, bytes)) or not isinstance(raw_samples, Sequence) or not raw_samples:
+        state_raw_samples: Any = sample_stats.get(state)
+        if (
+            isinstance(state_raw_samples, (str, bytes))
+            or not isinstance(state_raw_samples, Sequence)
+            or not state_raw_samples
+        ):
             return None
         try:
-            parsed = tuple(float(item) for item in raw_samples)
+            parsed = tuple(float(item) for item in state_raw_samples)
         except (TypeError, ValueError):
             return None
         if not all(math.isfinite(item) for item in parsed):
@@ -433,10 +473,11 @@ def _post_loss_metric_evidence(
         point_metrics["two_loss_switch"] = abs(
             state_point["two_plus_losses"][0] - state_point["one_loss"][0]
         )
-    point_metrics["trend"] = _ordered_post_loss_statistic(state_point)
-    if point_metrics["trend"] is None:
+    trend = _ordered_post_loss_statistic(state_point)
+    if trend is None:
         return None
-    sample_metrics = {key: [] for key in point_metrics}
+    point_metrics["trend"] = trend
+    sample_metrics: dict[str, list[float]] = {key: [] for key in point_metrics}
     for index in range(len(next(iter(state_samples.values())))):
         draw = {state: state_samples[state][index] for state in ordered_states}
         if "win" in draw and "one_loss" in draw:
@@ -761,6 +802,8 @@ def v61_production_family_branch_p_values(
     bootstrap_transfer_components: Mapping[str, Sequence[float]] | None = None,
     transfer_point: Mapping[str, Any] | None = None,
     transfer_ropes: Mapping[str, Any] | None = None,
+    bootstrap_post_loss_point: Mapping[str, Any] | None = None,
+    bootstrap_post_loss_samples: Mapping[str, Sequence[Any]] | None = None,
 ) -> tuple[dict[str, float], dict[str, dict[str, float]]]:
     """Return artifact-driven omnibus/branch p-values for production mode.
 
@@ -811,20 +854,47 @@ def v61_production_family_branch_p_values(
         family: _production_p(family_samples[family])
         for family in FINDING_FAMILY_KEYS
     }
-    if (
-        bootstrap_transfer_components is not None
-        and transfer_point is not None
-        and transfer_ropes is not None
-    ):
-        family_values["transfer"] = _transfer_component_bootstrap_p(
-            point_deltas=transfer_point,
-            samples=bootstrap_transfer_components,
-            ropes=transfer_ropes,
-        )
     branch_values: dict[str, dict[str, float]] = {family: {} for family in FINDING_FAMILY_KEYS}
     for definition in public:
         sample = branch_samples[definition.family_key][definition.semantic_outcome_key]
         branch_values[definition.family_key][definition.semantic_outcome_key] = _production_p(sample)
+
+    if (
+        bootstrap_transfer_components is not None
+        and transfer_point is not None
+        and transfer_ropes is not None
+        and _valid_transfer_bootstrap_evidence(
+            transfer_point,
+            bootstrap_transfer_components,
+            transfer_ropes,
+        )
+    ):
+        transfer_branches = _transfer_branch_bootstrap_p_values(
+            transfer_point,
+            bootstrap_transfer_components,
+            transfer_ropes,
+        )
+        family_values["transfer"] = _transfer_family_bootstrap_p(transfer_branches)
+        for branch in expected_branches["transfer"]:
+            if branch in transfer_branches:
+                branch_values["transfer"][branch] = transfer_branches[branch]
+
+    post_loss_evidence = _post_loss_metric_evidence(
+        bootstrap_post_loss_point,
+        bootstrap_post_loss_samples,
+    )
+    if post_loss_evidence is not None:
+        family_values["post_loss_response"] = _post_loss_family_bootstrap_p(
+            bootstrap_post_loss_point,
+            bootstrap_post_loss_samples,
+        )
+        post_loss_branches = _post_loss_branch_bootstrap_p_values(
+            bootstrap_post_loss_point,
+            bootstrap_post_loss_samples,
+        )
+        for branch in expected_branches["post_loss_response"]:
+            if branch in post_loss_branches:
+                branch_values["post_loss_response"][branch] = post_loss_branches[branch]
     return family_values, branch_values
 
 
