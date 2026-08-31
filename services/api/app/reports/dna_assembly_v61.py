@@ -50,6 +50,7 @@ from app.player_analysis_v61.production_statistics import (
     bootstrap_recompute,
     deterministic_seed,
     scalar_interval,
+    session_clusters,
 )
 from app.player_analysis_v61.relationships import result_response_summary, session_position_curve
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
@@ -104,7 +105,11 @@ def _semantic_key(
         if two_loss.get("available") and one_loss.get("available"):
             first = one_loss.get("mean_distance_movement")
             second = two_loss.get("mean_distance_movement")
-            if first is not None and second is not None and abs(float(second) - float(first)) >= 0.10:
+            if (
+                first is not None
+                and second is not None
+                and abs(float(second) - float(first)) >= 0.10
+            ):
                 return "two_loss_switch"
         if finding.get("direction") in {"neutral", "unknown"}:
             return "result_invariant_response"
@@ -112,9 +117,7 @@ def _semantic_key(
     if family == "combat_expression":
         involvement_value = involvement.get("estimate")
         exposure_value = death_exposure.get("estimate")
-        involvement_holds = (
-            involvement_value is not None and abs(float(involvement_value)) <= 0.08
-        )
+        involvement_holds = involvement_value is not None and abs(float(involvement_value)) <= 0.08
         exposure_holds = exposure_value is not None and abs(float(exposure_value)) <= 0.35
         if involvement_holds and not exposure_holds:
             return "involvement_holds_exposure_moves"
@@ -154,8 +157,7 @@ def _story_hero_inputs(
     if taxonomy.version != STORY_HERO_TAXONOMY_VERSION:
         raise ValueError("V6.1 story hero taxonomy snapshot version mismatch")
     taxonomy_checksums = {
-        key: str(taxonomy.manifest[key])
-        for key in ("factual_checksum", "editorial_checksum")
+        key: str(taxonomy.manifest[key]) for key in ("factual_checksum", "editorial_checksum")
     }
     metadata: dict[int, dict[str, str]] = {}
     for raw_hero_id in hero_ids:
@@ -245,12 +247,8 @@ def _protect_deep_handoffs(
             "semantic_outcome_key": finding.get("semantic_outcome_key"),
             "history_hash": history_hash,
             "question": full_question,
-            "primary": _cohort_groups(
-                full_question.get("primary_hypothesis") or {}, matches
-            ),
-            "secondary": _cohort_groups(
-                full_question.get("secondary_hypothesis") or {}, matches
-            ),
+            "primary": _cohort_groups(full_question.get("primary_hypothesis") or {}, matches),
+            "secondary": _cohort_groups(full_question.get("secondary_hypothesis") or {}, matches),
             "unanswered_alternatives": list(
                 finding["claim_contract"]["deep_handoff"]["unanswered_alternatives"]
             ),
@@ -360,7 +358,9 @@ def _share_payload(
             None,
         )
         title = str((finding or {}).get("claim") or current.get("title") or "")
-        body = str((finding or {}).get("interpretation") or (finding or {}).get("evidence_text") or "")
+        body = str(
+            (finding or {}).get("interpretation") or (finding or {}).get("evidence_text") or ""
+        )
     else:
         title = "Hero Mirror"
         facts = list((hero_row or {}).get("facts", ()))
@@ -413,7 +413,11 @@ def _apply_v61_presentation(
     portfolio = dict(report.get("hero_portfolio") or {})
     hero_rows = _safe_hero_rows(portfolio, portfolio_shape)
     hero_row = hero_rows[0] if hero_rows else None
-    common_thread = _public_job_label(portfolio.get("common_thread")) if portfolio.get("common_thread") else None
+    common_thread = (
+        _public_job_label(portfolio.get("common_thread"))
+        if portfolio.get("common_thread")
+        else None
+    )
     hero_label = str((hero_row or {}).get("display_name") or common_thread or "").strip() or None
     hero_candidate = next(
         (
@@ -432,7 +436,9 @@ def _apply_v61_presentation(
         slots["anchor"] = None
 
     identity_summary = report.get("identity_summary")
-    if isinstance(identity_summary, dict) and isinstance(identity_summary.get("supporting_lines"), list):
+    if isinstance(identity_summary, dict) and isinstance(
+        identity_summary.get("supporting_lines"), list
+    ):
         supporting_lines: list[Any] = []
         for line in identity_summary["supporting_lines"]:
             if "portfolio thread" in str(line).casefold():
@@ -467,7 +473,9 @@ def _apply_v61_presentation(
         },
         "hero_behavior": {},
         "evidence_refs": ["supporting:portfolio_shape"] if hero_label else [],
-        "limitations": [] if (hero_candidate or {}).get("eligible") is True else list((hero_candidate or {}).get("blocking_confounders", ())),
+        "limitations": []
+        if (hero_candidate or {}).get("eligible") is True
+        else list((hero_candidate or {}).get("blocking_confounders", ())),
         "share_eligible": (hero_candidate or {}).get("eligible") is True,
     }
     portfolio.pop("hero_mirror_refs", None)
@@ -603,7 +611,10 @@ def _patch_element(
         )
         element["sample_size"] = int(overlay.get("matches", element.get("sample_size", 0)))
         element["independent_session_count"] = int(
-            overlay.get("sessions", overlay.get("session_count", element.get("independent_session_count", 0)))
+            overlay.get(
+                "sessions",
+                overlay.get("session_count", element.get("independent_session_count", 0)),
+            )
         )
         element["coverage"] = float(overlay.get("coverage", element.get("coverage", 0.0)))
     element["estimator_version"] = {
@@ -644,6 +655,71 @@ class _CachedBaselineResolver:
         return self._cache[key]
 
 
+_RESULT_RESPONSE_STATES = ("win", "one_loss", "two_plus_losses", "win_streak")
+
+
+def _post_loss_session_statistics(
+    clusters: Sequence[Sequence[Any]],
+    records_by_identity: Mapping[int, Any],
+) -> tuple[dict[str, tuple[int, float | None]], ...]:
+    """Precompute one result-response summary per independent session."""
+
+    result = []
+    for cluster in clusters:
+        summary = result_response_summary(
+            cluster,
+            None,
+            distance_records=tuple(
+                records_by_identity[id(match)]
+                for match in cluster
+                if id(match) in records_by_identity
+            ),
+        )
+        states = summary["states"]
+        result.append(
+            {
+                state: (
+                    int(states[state]["opportunities"]),
+                    (
+                        float(states[state]["mean_distance_movement"])
+                        if states[state]["mean_distance_movement"] is not None
+                        else None
+                    ),
+                )
+                for state in _RESULT_RESPONSE_STATES
+            }
+        )
+    return tuple(result)
+
+
+def _post_loss_response_statistic(
+    session_statistics: Sequence[Mapping[str, tuple[int, float | None]]],
+    weights: Sequence[int],
+) -> float | None:
+    """Return the result-state span after session-cluster resampling.
+
+    Each session contributes one state mean per bootstrap draw. Opportunity
+    and session floors match ``result_response_summary``; missing evidence
+    stays absent instead of borrowing an unrelated element statistic.
+    """
+
+    movements = []
+    for state in _RESULT_RESPONSE_STATES:
+        opportunities = 0
+        sessions = 0
+        movement_total = 0.0
+        for weight, statistics in zip(weights, session_statistics, strict=True):
+            count, movement = statistics[state]
+            if weight <= 0 or movement is None:
+                continue
+            opportunities += weight * count
+            sessions += weight
+            movement_total += weight * movement
+        if opportunities >= 12 and sessions >= 8:
+            movements.append(movement_total / sessions)
+    return max(movements) - min(movements) if len(movements) >= 2 else None
+
+
 def _semantic_bootstrap_evidence(
     samples: Sequence[Mapping[str, float | None]],
 ) -> dict[str, Any]:
@@ -670,8 +746,10 @@ def _semantic_bootstrap_evidence(
     families = {
         "pool_shape": [left - right for left, right in zip(breadth, toolkit, strict=False)],
         "transfer": values("transfer"),
-        "post_loss_response": values("finishing"),
-        "combat_expression": [left - right for left, right in zip(involvement, death, strict=False)],
+        "post_loss_response": values("post_loss_response"),
+        "combat_expression": [
+            left - right for left, right in zip(involvement, death, strict=False)
+        ],
         "session_drift": values("consistency"),
     }
     branches: dict[str, dict[str, list[float]]] = defaultdict(dict)
@@ -743,10 +821,11 @@ def _weighted_production_bootstrap(
         calibration=distance,
     )
     records_by_identity = {id(record.match): record for record in distance_records}
+    clusters = tuple(tuple(groups[sid]) for sid in session_ids)
+    post_loss_statistics = _post_loss_session_statistics(clusters, records_by_identity)
     cached_resolver = _CachedBaselineResolver(baseline_resolver)
     labels_by_hero = {
-        hero_id: taxonomy_labels(entry)
-        for hero_id, entry in (taxonomy_by_hero or {}).items()
+        hero_id: taxonomy_labels(entry) for hero_id, entry in (taxonomy_by_hero or {}).items()
     }
     component_names = ("outcome", "activity", "survival")
     stats: dict[str, dict[str, Any]] = {}
@@ -804,7 +883,9 @@ def _weighted_production_bootstrap(
                 taxonomy_by_hero=taxonomy_by_hero,
             )
             values = {
-                "outcome": float(bool(_value(match, "won"))) if isinstance(_value(match, "won"), bool) else None,
+                "outcome": float(bool(_value(match, "won")))
+                if isinstance(_value(match, "won"), bool)
+                else None,
                 "activity": activity,
                 "survival": -death if death is not None else None,
             }
@@ -851,8 +932,12 @@ def _weighted_production_bootstrap(
                 component_totals[component][1] += multiplier * source["components"][component][1]
             for band in band_totals:
                 for component in component_names:
-                    band_totals[band][component][0] += multiplier * source["bands"][band][component][0]
-                    band_totals[band][component][1] += multiplier * source["bands"][band][component][1]
+                    band_totals[band][component][0] += (
+                        multiplier * source["bands"][band][component][0]
+                    )
+                    band_totals[band][component][1] += (
+                        multiplier * source["bands"][band][component][1]
+                    )
 
         breadth = shannon_effective_count(heroes) if heroes else None
         toolkit = shannon_effective_count(jobs) if jobs else None
@@ -867,25 +952,30 @@ def _weighted_production_bootstrap(
         involvement_value = means["activity"] if total_rows >= 30 and active_sessions >= 8 else None
         death_value = means["survival"] if total_rows >= 30 and active_sessions >= 8 else None
         finishing_value = (
-            (float(prior["alpha"]) + kills) / (float(prior["alpha"]) + float(prior["beta"]) + events)
+            (float(prior["alpha"]) + kills)
+            / (float(prior["alpha"]) + float(prior["beta"]) + events)
             if events >= 100 and event_rows >= 30 and active_sessions >= 8
             else None
         )
         transfer_value: float | None = None
         core = band_totals["core"]
         stretch = band_totals["reliable_stretch"]
-        if (
-            core["outcome"][1] >= 12
-            and stretch["outcome"][1] >= 12
-            and active_sessions >= 6
-        ):
+        if core["outcome"][1] >= 12 and stretch["outcome"][1] >= 12 and active_sessions >= 6:
             ropes = distance["equivalence_ropes"]
             deltas = {
-                component: stretch[component][0] / stretch[component][1] - core[component][0] / core[component][1]
+                component: stretch[component][0] / stretch[component][1]
+                - core[component][0] / core[component][1]
                 for component in component_names
                 if core[component][1] and stretch[component][1]
             }
-            transfer_value = 0.5 if all(abs(deltas.get(component, 999.0)) <= float(ropes[component]) for component in component_names) else 0.0
+            transfer_value = (
+                0.5
+                if all(
+                    abs(deltas.get(component, 999.0)) <= float(ropes[component])
+                    for component in component_names
+                )
+                else 0.0
+            )
         centers = means
         normalized: list[float] = []
         shrinkage = reliability["shrinkage"]
@@ -905,13 +995,20 @@ def _weighted_production_bootstrap(
                 weighted_values.append((shrunk, weight, multiplier))
             denominator = sum(weight * multiplier for _value, weight, multiplier in weighted_values)
             variance = (
-                sum(multiplier * weight * (value - float(center)) ** 2 for value, weight, multiplier in weighted_values)
+                sum(
+                    multiplier * weight * (value - float(center)) ** 2
+                    for value, weight, multiplier in weighted_values
+                )
                 / denominator
                 if denominator and center is not None
                 else 0.0
             )
             normalized.append(min(1.0, variance / max(1e-12, float(scales[component]))))
-        consistency_value = max(0.0, 1.0 - sum(normalized) / len(normalized)) if normalized and active_sessions >= 12 else None
+        consistency_value = (
+            max(0.0, 1.0 - sum(normalized) / len(normalized))
+            if normalized and active_sessions >= 12
+            else None
+        )
         return {
             "breadth": breadth,
             "toolkit": toolkit,
@@ -920,6 +1017,10 @@ def _weighted_production_bootstrap(
             "death_exposure": death_value,
             "transfer": transfer_value,
             "consistency": consistency_value,
+            "post_loss_response": _post_loss_response_statistic(
+                post_loss_statistics,
+                weights,
+            ),
         }
 
     point_weights = [1] * len(session_ids)
@@ -934,7 +1035,16 @@ def _weighted_production_bootstrap(
         for key, value in sample.items():
             samples[key].append(value)
     intervals: dict[str, Any] = {}
-    for key, sample_values in samples.items():
+    for key in (
+        "breadth",
+        "toolkit",
+        "involvement",
+        "finishing",
+        "death_exposure",
+        "transfer",
+        "consistency",
+    ):
+        sample_values = samples[key]
         interval = scalar_interval(sample_values)
         interval["point"] = point.get(key)
         interval["seed"] = seed
@@ -990,12 +1100,16 @@ def _production_bootstrap(
         calibration=distance,
     )
     records_by_identity = {id(record.match): record for record in point_distance_records}
+    grouped_matches = session_clusters(matches)
+    clusters = tuple(tuple(grouped_matches[key]) for key in grouped_matches)
+    post_loss_statistics = _post_loss_session_statistics(clusters, records_by_identity)
+    representative_ids = tuple(id(cluster[0]) for cluster in clusters)
 
     def estimate(sample: Sequence[Any]) -> dict[str, float | None]:
+        identity_counts = Counter(id(match) for match in sample)
+        session_weights = [identity_counts[identity] for identity in representative_ids]
         distance_records = tuple(
-            records_by_identity[id(match)]
-            for match in sample
-            if id(match) in records_by_identity
+            records_by_identity[id(match)] for match in sample if id(match) in records_by_identity
         )
         shape = build_portfolio_shape(
             sample,
@@ -1044,6 +1158,10 @@ def _production_bootstrap(
             "death_exposure": death.get("estimate"),
             "transfer": transfer.get("estimate"),
             "consistency": consistency.get("estimate"),
+            "post_loss_response": _post_loss_response_statistic(
+                post_loss_statistics,
+                session_weights,
+            ),
         }
 
     point, samples = bootstrap_recompute(
@@ -1052,7 +1170,15 @@ def _production_bootstrap(
         seed=seed,
         iterations=BOOTSTRAP_ITERATIONS,
     )
-    keys = ("breadth", "toolkit", "involvement", "finishing", "death_exposure", "transfer", "consistency")
+    keys = (
+        "breadth",
+        "toolkit",
+        "involvement",
+        "finishing",
+        "death_exposure",
+        "transfer",
+        "consistency",
+    )
     intervals: dict[str, Any] = {}
     for key in keys:
         interval = scalar_interval([sample.get(key) for sample in samples])
@@ -1111,7 +1237,9 @@ def assemble_free_dna_report_v61(
         frozenset(required_supporting | {"production_beta_authorization"}),
     }
     if supporting and frozenset(supporting) not in allowed_supporting:
-        raise ValueError("V6.1 production calibration requires the complete supporting artifact bundle")
+        raise ValueError(
+            "V6.1 production calibration requires the complete supporting artifact bundle"
+        )
     production_calibration = frozenset(supporting) in allowed_supporting
     prior = supporting.get("summary_prior")
     distance = supporting.get("distance_calibration")
@@ -1142,7 +1270,11 @@ def assemble_free_dna_report_v61(
         baseline_resolver=runtime_resolver,
         taxonomy_by_hero=taxonomy_by_hero,
     )
-    finishing = stabilized_finishing(matches, prior=prior) if production_calibration else stabilized_finishing(matches)
+    finishing = (
+        stabilized_finishing(matches, prior=prior)
+        if production_calibration
+        else stabilized_finishing(matches)
+    )
     death_exposure = overdispersed_death_exposure(
         matches,
         baseline_resolver=runtime_resolver,
@@ -1175,12 +1307,12 @@ def assemble_free_dna_report_v61(
             )
             if bootstrap_mode == "weighted"
             else _production_bootstrap(
-            matches,
-            baseline_resolver=baseline_resolver,
-            taxonomy_by_hero=taxonomy_by_hero,
-            supporting_artifacts=supporting,
-            artifact_checksums=artifact_checksums,
-            profile_digest=canonical_history.audit.normalized_payload_sha256,
+                matches,
+                baseline_resolver=baseline_resolver,
+                taxonomy_by_hero=taxonomy_by_hero,
+                supporting_artifacts=supporting,
+                artifact_checksums=artifact_checksums,
+                profile_digest=canonical_history.audit.normalized_payload_sha256,
             )
         )
         if production_calibration
@@ -1189,7 +1321,11 @@ def assemble_free_dna_report_v61(
     if production_bootstrap is not None:
         for element in report["elements"]:
             interval = production_bootstrap["elements"].get(str(element.get("key")))
-            if isinstance(interval, Mapping) and interval.get("lower") is not None and interval.get("upper") is not None:
+            if (
+                isinstance(interval, Mapping)
+                and interval.get("lower") is not None
+                and interval.get("upper") is not None
+            ):
                 element["interval"] = {
                     "lower": interval["lower"],
                     "upper": interval["upper"],
@@ -1236,7 +1372,11 @@ def assemble_free_dna_report_v61(
     if production_bootstrap is not None:
         for element in report["elements"]:
             interval = production_bootstrap["elements"].get(str(element.get("key")))
-            if isinstance(interval, Mapping) and interval.get("lower") is not None and interval.get("upper") is not None:
+            if (
+                isinstance(interval, Mapping)
+                and interval.get("lower") is not None
+                and interval.get("upper") is not None
+            ):
                 element["interval"] = {
                     "lower": interval["lower"],
                     "upper": interval["upper"],
@@ -1291,13 +1431,11 @@ def assemble_free_dna_report_v61(
         semantic_key = selected_keys[family]
         definition = SEMANTIC_OUTCOME_REGISTRY[semantic_key]
         branch_values = selection_audit[family].get("branches")
-        branch = (
-            branch_values.get(semantic_key, {})
-            if isinstance(branch_values, Mapping)
-            else {}
-        )
+        branch = branch_values.get(semantic_key, {}) if isinstance(branch_values, Mapping) else {}
         eligible = bool(finding.get("published")) and bool(branch.get("qualified"))
-        eligible = eligible and definition.rollout_status == "public_candidate" and published_count < 3
+        eligible = (
+            eligible and definition.rollout_status == "public_candidate" and published_count < 3
+        )
         if family == "pool_shape" and canonical_history.audit.completeness != "complete":
             eligible = False
             selection_audit[family]["suppression_reason"] = "history_not_complete"
@@ -1394,7 +1532,9 @@ def assemble_free_dna_report_v61(
     }
     for family_audit in selection_audit.values():
         family_audit["calibration_status"] = (
-            "existing_corpus_training_frozen" if production_calibration else "fixture_synthetic_only"
+            "existing_corpus_training_frozen"
+            if production_calibration
+            else "fixture_synthetic_only"
         )
     if production_bootstrap is not None:
         report["supporting_evidence"]["production_bootstrap"] = production_bootstrap
@@ -1418,9 +1558,7 @@ def assemble_free_dna_report_v61(
         )
         if story_payload is not None:
             report["story_payload"] = story_payload
-            report["versions"].update(
-                {key: versions[key] for key in STORY_VERSION_KEYS}
-            )
+            report["versions"].update({key: versions[key] for key in STORY_VERSION_KEYS})
     report["reproducibility"].update(
         {
             "history_contract": canonical_history.audit.as_dict(),
@@ -1440,7 +1578,9 @@ def assemble_free_dna_report_v61(
         "public_elements": 7,
         "hierarchical_error_control": True,
         "calibration_status": (
-            "existing_corpus_training_frozen" if production_calibration else "fixture_synthetic_only"
+            "existing_corpus_training_frozen"
+            if production_calibration
+            else "fixture_synthetic_only"
         ),
         "rank_or_mmr_used": False,
         "shadow_enabled": shadow_enabled,

@@ -21,7 +21,11 @@ from app.player_analysis_v61.semantic_outcomes import (
     SEMANTIC_OUTCOME_REGISTRY,
 )
 from app.reports.dna_assembly_v6 import _plain_json
-from app.reports.dna_assembly_v61 import _protect_deep_handoffs, _semantic_bootstrap_evidence
+from app.reports.dna_assembly_v61 import (
+    _post_loss_response_statistic,
+    _protect_deep_handoffs,
+    _semantic_bootstrap_evidence,
+)
 from app.storage.repository import InMemoryRepository
 
 
@@ -92,6 +96,32 @@ def test_empty_production_semantic_evidence_abstains_without_crashing() -> None:
     assert all(value == 1.0 for values in branch.values() for value in values.values())
     evidence = _semantic_bootstrap_evidence([{}])
     assert all(not item["available"] for item in evidence["availability"].values())
+
+
+def test_post_loss_bootstrap_never_uses_finishing_as_family_evidence() -> None:
+    evidence = _semantic_bootstrap_evidence([{"finishing": 0.25}, {"finishing": 0.75}])
+
+    assert evidence["families"]["post_loss_response"] == []
+    assert evidence["availability"]["post_loss_response"] == {
+        "available": False,
+        "requested_iterations": 2,
+        "usable_iterations": 0,
+    }
+
+
+def test_post_loss_bootstrap_statistic_uses_session_weighted_result_states() -> None:
+    sessions = [
+        {
+            "win": (2, 0.0),
+            "one_loss": (2, 0.1),
+            "two_plus_losses": (0, None),
+            "win_streak": (0, None),
+        }
+        for _ in range(8)
+    ]
+
+    assert _post_loss_response_statistic(sessions, [1] * 8) == pytest.approx(0.1)
+    assert _post_loss_response_statistic(sessions, [1] * 7 + [0]) is None
 
 
 def test_public_question_projection_deeply_converts_frozen_mappings() -> None:
@@ -236,9 +266,7 @@ def test_deep_handoff_moves_exact_cohorts_out_of_public_question() -> None:
                 "published": True,
                 "semantic_outcome_key": "one_loss_runback",
                 "claim_contract": {
-                    "deep_handoff": {
-                        "unanswered_alternatives": ["Unobserved match context"]
-                    }
+                    "deep_handoff": {"unanswered_alternatives": ["Unobserved match context"]}
                 },
             }
         ],
