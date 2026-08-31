@@ -69,6 +69,8 @@ export type ComposedStory = {
   /** Page 29 recap membership, gated on pages that actually rendered. */
   recapLines: string[];
   finalIdentity: FinalIdentity | null;
+  /** Page 17 has a call-it reveal only when a ranked list can sustain one. */
+  heroPoolRevealRequired: boolean;
   /** Names the year from a supplied variant; null falls back to the constant. */
   shape: YearShape | null;
   deepDestination: string | null;
@@ -302,6 +304,7 @@ export function composeStory(payload: StoryPayload, elements: V6Element[], diagn
     heroBridgeCombined: !has(15),
     recapLines,
     finalIdentity,
+    heroPoolRevealRequired: (payload.modules.hero_pool.data?.heroes.length ?? 0) >= 3,
     shape: yearShape(payload),
     deepDestination,
   };

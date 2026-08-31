@@ -98,10 +98,10 @@ export const COPY = {
     winningestDay: (date: string, wins: string) => `Your winningest day: ${date} · ${wins} wins.`,
   },
   page10: {
-    lead: "And then, briefly, nothing went wrong.",
+    lead: "And then, briefly, the result screen had no bad news.",
     headline: (length: string) => `${length} wins in a row.`,
     range: (start: string, end: string) => `${start} → ${end}.`,
-    dry: (length: string) => `${length} in a row. Matchmaking looked away for a while.`,
+    dry: (length: string) => `${length} straight. The loss column sat that stretch out.`,
     singleLead: "No long run appeared here. Every run starts somewhere.",
     singleHeadline: "Longest run: 1 win.",
   },
@@ -150,9 +150,9 @@ export const COPY = {
     sample: (count: string) => `Based on ${count} comparable loss → next-game moments.`,
   },
   page16: {
-    lead: "Wins, losses, streaks, questionable picks.",
-    second: "Some names were there for all of it.",
-    combined: "Wins, losses, streaks, questionable picks \u2014 some names were there for all of it.",
+    lead: "Wins, losses, streaks — and the heroes you picked again anyway.",
+    second: "You know which names kept showing up.",
+    combined: "Wins, losses, streaks — and the heroes you picked again anyway.",
   },
   page17: {
     headlineFull: "These were the heroes your year kept returning to.",
@@ -165,7 +165,7 @@ export const COPY = {
   page18: {
     lead: "But your hero pool didn’t stay still.",
     prompt: "Move through your year.",
-    dry: "Different month. Different obsession.",
+    dry: "The year had eras.",
     sparseLead: "Your hero pool changed through the year.",
     emptyPeriod: "No recorded matches in this period.",
     control: "Hero era period",

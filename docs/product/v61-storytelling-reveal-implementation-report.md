@@ -1,6 +1,6 @@
 # V6.1 Storytelling and Reveal Implementation Report
 
-- Status: implementation complete pending combined Preview verification
+- Status: combined implementation and local release gates complete; deployment verification pending
 - Report date: 2026-08-31
 - Base SHA: `b119948069da5890df17ed1be229674864b0fc5f`
 - Implementation commit SHA: `8d12c489634a98d815024fa383c658e875831f2f`
@@ -157,25 +157,24 @@ shape:
 - Pages 29–30 and 32–33 now build a neutral report artifact, reassemble the
   observed receipts, and leave the user with share/read-again actions.
 
-### Neutral non-personalized ending
+### Provenanced presentation ending
 
-The archetype payload remains `not_ready`. The implementation therefore changes
-the frontend constant from `THE RECURRING PLAYER` to `THE YEAR IN QUEUE` and
-describes a report assembled from the available window, matches, results, hero
-choices, and qualified patterns. Page 30’s action is `Turn the report card`,
-which describes the physical
-interaction rather than imply a new computation. Page 31 is omitted until a
-future payload provides qualified identity anchors; rendered source pages are
-not treated as identity evidence.
+The archetype payload remains `not_ready`; no personality, tier, trait, or
+identity slot is synthesized. The report card can instead use a presentation
+title selected from a normalized, supplied `copy_variant` and a supplied hero
+name, such as `The Pudge Year`. Its supporting line restates only the supplied
+period, top-five count, or concentration band. Missing or neutral provenance
+returns `null` and uses the neutral `The Year in Queue` fallback. Page 30’s
+action is `Turn the card`, which describes the physical interaction rather
+than imply a new computation.
 
-This is a neutral report artifact, not a per-player archetype. The code does
-not seed, rotate, or derive a label from a hero, hash, raw metric, or missing
-identity slot. The narrow `not_ready` exception remains limited to
-`archetype` and `final_identity_card`; no other module is allowed to render on
-`not_ready`. The final card uses the existing truthful match-count/window
-fallback and optional display name, while short or possibly truncated histories
-avoid the false `365 days of Dota` claim. A future server-owned identity engine
-remains responsible for any personalized Signature and its evidence anchors.
+Page 31 remains omitted until a future payload provides qualified identity
+anchors; rendered source pages are not treated as identity evidence. The narrow
+`not_ready` exception remains limited to `archetype` and
+`final_identity_card`, and no other module is allowed to render on
+`not_ready`. The final card retains the truthful match-count/window fallback
+and optional display name. A future server-owned identity engine remains
+responsible for any personalized Signature and its evidence anchors.
 
 ## Why the sequence is more engaging
 
@@ -265,15 +264,16 @@ The implementation uses these concrete grammars while preserving page IDs:
   composed payload.
 - **Quiet evidence:** Pages 8, 14, 16, 26, 27, and 33 use calm transitions,
   labels, and Endstops so uncertainty and completion have room.
-- **Neutral identity artifact:** Pages 29–30 display a report shape, never an
-  invented personalized archetype, while the payload is `not_ready`. Page 31
-  stays absent until the payload can supply qualified identity anchors.
+- **Provenanced report title:** Pages 29–30 select a report title only from a
+  supplied copy variant and its normalized data, with a neutral fallback. They
+  never invent a personalized archetype. Page 31 stays absent until the payload
+  can supply qualified identity anchors.
 - **Artifact close:** Pages 32–33 turn prior receipts into a share/read-again
   finish; Page 34 remains a real conditional invitation, not a dead CTA.
 
 Motion is semantic: `immediate` is quick receipt, `question` creates a pause,
 `accumulation` builds, `chronology` orders time, `quiet` settles, and
-`identity` holds the final neutral object. Reduced motion keeps all content and
+`identity` holds the final report object. Reduced motion keeps all content and
 uses the same page/beat semantics without animated translation.
 
 ## Exact compatibility boundary
@@ -314,11 +314,13 @@ uses the same page/beat semantics without animated translation.
 The following results are the verified implementation-run results supplied for
 this report:
 
-- Unit story suite: **34 passed**.
-- Chromium story E2E: **34 passed**.
-- Other engines and reduced-motion story coverage: **133 passed**; **3 expected
+- Unit story suite after the final sparse/repetition guards: **42 passed**.
+- Final report-story browser matrix: **177 passed**; **3 expected
   non-Chromium clipboard skips**.
-- Complete web E2E suite after the landing and worker follow-up: **377 passed**;
+- Post-review Page 17 reveal/focus matrix: **10 passed** across Chromium,
+  Firefox, WebKit, mobile Safari, and reduced motion.
+- Complete web E2E suite after the landing, worker, and Opus integration:
+  **388 passed**;
   **27 capability-specific skips**.
 - Landing matrix across Chromium, Firefox, WebKit, mobile Safari, and reduced
   motion: **45 passed**, including live-status focus, error focus restoration,
@@ -338,21 +340,22 @@ this report:
 - OpenDota QA calls: **0**. Research used one documentation/OpenAPI GET only;
   no player/match/replay endpoint was called for QA.
 
-A Vercel Preview for the earlier story commit loaded successfully. A refreshed
-Preview for the combined landing/worker/Opus integration and its existing
-persisted-report smoke remain release gates. No OpenDota report was generated
-for QA.
+A Vercel Preview for the earlier story commit loaded successfully. The combined
+landing/worker/Opus integration completed all local release gates; deployment
+and post-deployment smoke are recorded separately from this implementation
+commit. No OpenDota report was generated for QA.
 
 ## Remaining risks and follow-up
 
-1. **Combined Preview verification is pending.** The earlier story commit reached
-   Preview, but the landing/worker follow-up and Opus integration require a new
-   deployment and smoke before the final production handoff is considered
-   verified.
-2. **Neutral ending is intentionally provisional.** The current report can
-   show `THE YEAR IN QUEUE`, a report artifact, while the archetype payload is
-   `not_ready`; a future server-owned Signature engine must replace it before
-   any personalized identity copy ships. The narrow exception must not widen.
+1. **Deployment verification is pending at commit time.** The combined change
+   requires deployment status and public landing smoke before handoff. A private
+   persisted report identifier must not be transmitted to a Preview without
+   owner authorization; sanitized current and historical fixtures are the local
+   compatibility gate.
+2. **The ending remains a report title, not an archetype.** Its personalized
+   wording is bounded to supplied hero/era or pool variants, and neutral data
+   falls back to `The Year in Queue`. A future server-owned Signature engine is
+   still required before any personality or identity classification ships.
 3. **Page 34 is reserved, not available.** `resolveDeepDestination` currently
    returns no route. Any future Deep CTA requires a validated destination,
    eligibility, privacy review, and its own compatibility tests.
@@ -402,6 +405,7 @@ worktree:
 
 - `apps/web/app/report/[reportId]/v6/story/archetype-placeholder.ts`
 - `apps/web/app/report/[reportId]/v6/story/archetype-card.tsx`
+- `apps/web/app/report/[reportId]/v6/story/collage.ts`
 - `apps/web/app/report/[reportId]/v6/story/compose.ts`
 - `apps/web/app/report/[reportId]/v6/story/copy.ts`
 - `apps/web/app/report/[reportId]/v6/story/motion.ts`
@@ -409,6 +413,7 @@ worktree:
 - `apps/web/app/report/[reportId]/v6/story/story-runtime.tsx`
 - `apps/web/app/report/[reportId]/v6/story/story-shell.tsx`
 - `apps/web/app/report/[reportId]/v6/story/story.module.css`
+- `apps/web/app/report/[reportId]/v6/story/year-shape.ts`
 - `apps/web/app/components/analysis-form.tsx`
 - `apps/web/app/layout.tsx`
 - `apps/web/app/page.tsx`
@@ -446,5 +451,5 @@ HOLDOUT RERUN: NO
 RECALIBRATION: NO
 OPENDOTA QA CALLS: 0 (one documentation/OpenAPI GET for research)
 DEPLOYED: NO
-SAFE TO MERGE: NO — combined Preview verification is pending.
+SAFE TO MERGE: YES — local release gates pass; deployment smoke remains.
 ```

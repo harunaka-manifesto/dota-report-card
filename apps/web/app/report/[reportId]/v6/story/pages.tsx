@@ -703,7 +703,7 @@ function Page17({ story, headingRef, poolRevealed, onRevealPool }: PageProps) {
   // so the first name can be called before it resolves.
   const lead = heroes[0];
   const rest = heroes.slice(1);
-  const guessable = heroes.length >= 3;
+  const guessable = story.heroPoolRevealRequired;
   useBeatPlan({ total: guessable ? 5 : 4 });
   if (!data || heroes.length === 0) return null;
 

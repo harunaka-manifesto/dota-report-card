@@ -97,7 +97,7 @@ presentation contract already permits, not new analysis:
 It is deliberately *not* an archetype. The archetype module remains `not_ready`,
 the narrow exception is unchanged, and nothing here claims a type, a
 personality, a tier, or a trait. It names a year after a hero the backend
-already said led it. Six unit tests pin this boundary, including that a
+already said led it. Eight unit tests pin this boundary, including that a
 `neutral` concentration band produces no shape at all.
 
 ### 4.2 The reader calls the top hero before it resolves
@@ -112,8 +112,10 @@ This is the cheapest available "I knew it" moment, and it costs no new analysis
 Accessibility: concealment is visual only. The hidden name is in the DOM and in
 the accessibility tree from mount, so a screen reader is never made to play a
 guessing game. Reduced motion renders it already resolved with no trigger. Once
-resolved it stays resolved, including after Back; Run It Back resets it. The
-mask is striped rather than blank so it reads as withheld rather than broken.
+resolved, the fact receives focus and a polite live announcement, and it stays
+resolved after Back; Run It Back resets it. A generic forward action may reveal
+the fact, but it cannot reveal and leave the page in the same action. The mask
+is striped rather than blank so it reads as withheld rather than broken.
 
 ### 4.3 The hero that ended the losing streak gets its own beat
 
@@ -138,8 +140,8 @@ Fourteen pages had their framing rewritten. Representative:
 | 2 | "The first receipt is simple: how much Dota happened here." | "That's how much Dota you actually played." |
 | 3 | "The next receipt: time spent inside those matches." | "Spent inside those matches." + "Queue time, drafts and loading screens not included." |
 | 8 | "The scale is set. Now the result column gives wins the first word." | "Good news first." |
-| 10 | "The wins kept going here." | "And then, briefly, nothing went wrong." |
-| 16 | "The result column is clear enough. Now for the hero names…" | "Wins, losses, streaks, questionable picks — some names were there for all of it." |
+| 10 | "The wins kept going here." | "And then, briefly, the result screen had no bad news." |
+| 16 | "The result column is clear enough. Now for the hero names…" | "Wins, losses, streaks — and the heroes you picked again anyway." |
 | 19 | "The chronology has a payoff." | "Some names stayed. Others had a moment." |
 | 27 | "This report checks the signals it could support." | "Seven ways of asking the same question." |
 

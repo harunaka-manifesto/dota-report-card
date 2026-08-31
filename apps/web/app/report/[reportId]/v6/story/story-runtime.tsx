@@ -197,6 +197,14 @@ export function ConcealedReveal({
   const { revealed, reducedMotion } = useBeats();
   const open = resolved || reducedMotion;
   const interactive = !open && revealed > index;
+  const resolvedRef = useRef<HTMLDivElement>(null);
+  const wasOpen = useRef(open);
+  useEffect(() => {
+    if (!wasOpen.current && open && !reducedMotion) {
+      requestAnimationFrame(() => resolvedRef.current?.focus({ preventScroll: true }));
+    }
+    wasOpen.current = open;
+  }, [open, reducedMotion]);
   return (
     <Beat index={index} className={styles.conceal}>
       {interactive ? (
@@ -208,7 +216,14 @@ export function ConcealedReveal({
           <span className={styles.visuallyHidden}>{children}</span>
         </button>
       ) : (
-        <div className={styles.concealBody} data-open="true">
+        <div
+          ref={resolvedRef}
+          className={styles.concealBody}
+          data-open="true"
+          role="status"
+          aria-live="polite"
+          tabIndex={-1}
+        >
           {children}
         </div>
       )}

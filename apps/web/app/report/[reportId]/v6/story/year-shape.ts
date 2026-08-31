@@ -18,6 +18,7 @@
  */
 
 import type { StoryPayload } from "./payload-types";
+import { formatPeriodLabel } from "./format";
 
 export type YearShape = {
   /** Short, descriptive, screenshot-sized. Never a personality label. */
@@ -43,15 +44,18 @@ export function yearShape(payload: StoryPayload): YearShape | null {
     if (eras.copy_variant === "takeover" && data?.takeover) {
       return {
         title: `The ${data.takeover.hero.hero_name} Year`,
-        line: "One name took the front of the list and kept it.",
+        line: `One name took the front of the list around ${formatPeriodLabel(data.takeover.period)}.`,
         source: "hero_era_payoff:takeover",
       };
     }
     // `persistence` — the backend named a hero and how many periods it held.
     if (eras.copy_variant === "persistence" && data?.persistence) {
+      const periods = data.persistence.top_five_periods;
       return {
         title: `The ${data.persistence.hero.hero_name} Year`,
-        line: "One name stayed on the list while the rest moved around it.",
+        line: periods === 1
+          ? "This hero made the top five in 1 recorded period."
+          : `This hero kept making the top five — ${periods} periods in all.`,
         source: "hero_era_payoff:persistence",
       };
     }
@@ -70,14 +74,14 @@ export function yearShape(payload: StoryPayload): YearShape | null {
     if (pool.copy_variant === "concentrated") {
       return {
         title: "The Short List Year",
-        line: "A small group of names carried most of the queue.",
+        line: "A short list did most of the queueing.",
         source: "hero_pool:concentrated",
       };
     }
     if (pool.copy_variant === "broad") {
       return {
         title: "The Wide Year",
-        line: "The names kept changing and the queue kept going.",
+        line: "The queue made room for a broad cast.",
         source: "hero_pool:broad",
       };
     }

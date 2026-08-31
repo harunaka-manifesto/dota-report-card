@@ -143,7 +143,6 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
     setBeatState((current) => ({ ...current, revealed: Number.POSITIVE_INFINITY }));
     // The card is a page beat, not an exception to the mid-reveal rule.
     if (page?.page === 30) setArchetypeRevealed(true);
-    if (page?.page === 17) setPoolRevealed(true);
     headingRef.current?.focus({ preventScroll: true });
   }, [page?.page]);
 
@@ -174,8 +173,14 @@ export function StoryShell({ story, methodology }: { story: ComposedStory; metho
       completeNow();
       return;
     }
+    // Page 17's call is its own beat: a forward action may reveal it, but may
+    // not both reveal it and leave the page.
+    if (page?.page === 17 && story.heroPoolRevealRequired && !poolRevealed && !reducedMotion) {
+      setPoolRevealed(true);
+      return;
+    }
     navigate(pageIndex + 1, "forward");
-  }, [evidenceOpen, complete, revealed, completeNow, navigate, pageIndex]);
+  }, [evidenceOpen, complete, revealed, completeNow, page?.page, story.heroPoolRevealRequired, poolRevealed, reducedMotion, navigate, pageIndex]);
 
   const backward = useCallback(() => navigate(pageIndex - 1, "backward"), [navigate, pageIndex]);
 

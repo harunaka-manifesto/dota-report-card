@@ -370,10 +370,50 @@ test.describe("the archetype card", () => {
     await expect(page.getByRole("button", { name: /Hero Zeta/ })).toBeVisible();
     await call.click();
     await expect(page.getByRole("button", { name: /Tap to confirm/i })).toHaveCount(0);
+    await expect(page.locator('article [role="status"]')).toBeFocused();
     await page.getByRole("button", { name: "Back", exact: true }).click();
     await page.getByRole("button", { name: "Next" }).click();
     expect(await currentPage(page)).toBe(17);
     await expect(page.getByRole("button", { name: /Tap to confirm/i })).toHaveCount(0);
+  });
+
+  test("forward navigation reveals the hero before it leaves the page", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(FULL);
+    const next = page.getByRole("button", { name: "Next", exact: true });
+    while ((await currentPage(page)) < 16) {
+      await next.click();
+      if ((await currentPage(page)) === 16) break;
+      await next.click();
+      await page.waitForTimeout(50);
+    }
+    // Freeze the beat scheduler before entering Page 17 so the first action
+    // deterministically exercises completeNow rather than racing its timers.
+    await page.evaluate(() => {
+      Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    await page.waitForTimeout(50);
+    await next.click();
+    if ((await currentPage(page)) === 16) await next.click();
+    await expect(page.locator("article[data-page]")).toHaveAttribute("data-page", "17");
+    await page.waitForTimeout(100);
+    const call = page.getByRole("button", { name: /Tap to confirm/i });
+
+    // The first action completes the scheduled beats without resolving the
+    // separate call-it interaction.
+    await next.click();
+    expect(await currentPage(page)).toBe(17);
+    await expect(call).toBeVisible();
+
+    // The second action may resolve the call, but may not also leave the page.
+    await next.click();
+    expect(await currentPage(page)).toBe(17);
+    await expect(call).toHaveCount(0);
+    await expect(page.locator('article [role="status"]')).toBeFocused();
+
+    await next.click();
+    expect(await currentPage(page)).toBe(18);
   });
 
   test("identity anchors stay absent until the payload qualifies them", async ({ page }) => {

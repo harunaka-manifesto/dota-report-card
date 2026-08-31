@@ -239,6 +239,17 @@ test.describe("composed page arrays", () => {
     }
   });
 
+  test("a short hero list does not require a call-it reveal", () => {
+    const raw = fixture("v61-story-payload-both") as {
+      modules: { hero_pool: { data: { heroes: unknown[] } } };
+    };
+    raw.modules.hero_pool.data.heroes = raw.modules.hero_pool.data.heroes.slice(0, 2);
+    const normalized = normalizeStoryPayload(raw)!;
+    const story = composeStory(normalized.payload, [], normalized.diagnostics);
+    expect(story.pages.map((page) => page.page)).toContain(17);
+    expect(story.heroPoolRevealRequired).toBe(false);
+  });
+
   test("rejects synthetic pages that are not connected to their source page", () => {
     const raw = fixture("v61-story-payload-both") as { page_manifest: unknown[] };
     raw.page_manifest = [
@@ -417,6 +428,7 @@ test.describe("the shape of the year names itself only from supplied variants", 
   test("a supplied takeover names the year after that hero", () => {
     const shape = yearShape(normalizeStoryPayload(fixture("v61-story-payload-both"))!.payload);
     expect(shape?.title).toBe("The Hero Zeta Year");
+    expect(shape?.line).toBe("One name took the front of the list around February 2025.");
     expect(shape?.source).toBe("hero_era_payoff:takeover");
   });
 
@@ -432,6 +444,21 @@ test.describe("the shape of the year names itself only from supplied variants", 
       }),
     );
     expect(shape?.title).toBe("The Hero Delta Year");
+    expect(shape?.line).toBe("This hero kept making the top five — 9 periods in all.");
+  });
+
+  test("one persistence period does not imply repetition", () => {
+    const shape = yearShape(
+      withModules({
+        hero_era_payoff: {
+          state: "available",
+          reason: null,
+          copy_variant: "persistence",
+          data: { persistence: { hero: { hero_id: 4, hero_name: "Hero Delta" }, top_five_periods: 1 }, takeover: null, steady_pool: false },
+        },
+      }),
+    );
+    expect(shape?.line).toBe("This hero made the top five in 1 recorded period.");
   });
 
   test("it falls back to the supplied concentration band", () => {
@@ -441,6 +468,7 @@ test.describe("the shape of the year names itself only from supplied variants", 
       }),
     );
     expect(shape?.source).toBe("hero_pool:concentrated");
+    expect(shape?.line).toBe("A short list did most of the queueing.");
   });
 
   test("with neither variant supplied it names nothing", () => {
