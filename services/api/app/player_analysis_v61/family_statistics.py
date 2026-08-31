@@ -194,6 +194,8 @@ def _simes_p(p_values: Sequence[float]) -> float:
 
     if isinstance(p_values, (str, bytes)) or not isinstance(p_values, Sequence) or not p_values:
         return 1.0
+    if any(isinstance(value, bool) for value in p_values):
+        return 1.0
     try:
         values = tuple(float(value) for value in p_values)
     except (TypeError, ValueError):
@@ -213,6 +215,21 @@ def _simes_p(p_values: Sequence[float]) -> float:
     )
 
 
+_TRANSFER_UNSUPPORTED_BRANCH_P_VALUES = {
+    "clean_transfer": 1.0,
+    "results_stop_first": 1.0,
+    "expression_stops_first": 1.0,
+    "involvement_boundary": 1.0,
+    "exposure_boundary": 1.0,
+    "localized_function_bottleneck": 1.0,
+    "no_transfer": 1.0,
+}
+
+
+def _unsupported_transfer_branch_p_values() -> dict[str, float]:
+    return dict(_TRANSFER_UNSUPPORTED_BRANCH_P_VALUES)
+
+
 def _transfer_branch_bootstrap_p_values(
     point_deltas: Mapping[str, Any] | None,
     samples: Mapping[str, Sequence[Any]] | None,
@@ -223,15 +240,7 @@ def _transfer_branch_bootstrap_p_values(
     components = _TRANSFER_COMPONENTS
     point = _transfer_component_vector(point_deltas, ropes)
     if point is None or not isinstance(samples, Mapping):
-        return {
-            "clean_transfer": 1.0,
-            "results_stop_first": 1.0,
-            "expression_stops_first": 1.0,
-            "involvement_boundary": 1.0,
-            "exposure_boundary": 1.0,
-            "localized_function_bottleneck": 1.0,
-            "no_transfer": 1.0,
-        }
+        return _unsupported_transfer_branch_p_values()
     parsed_samples: dict[str, tuple[float, ...]] = {}
     for component in components:
         values = samples.get(component)
@@ -240,48 +249,16 @@ def _transfer_branch_bootstrap_p_values(
             or not isinstance(values, Sequence)
             or not values
         ):
-            return {
-                "clean_transfer": 1.0,
-                "results_stop_first": 1.0,
-                "expression_stops_first": 1.0,
-                "involvement_boundary": 1.0,
-                "exposure_boundary": 1.0,
-                "localized_function_bottleneck": 1.0,
-                "no_transfer": 1.0,
-            }
+            return _unsupported_transfer_branch_p_values()
         try:
             parsed = tuple(float(value) for value in values)
         except (TypeError, ValueError):
-            return {
-                "clean_transfer": 1.0,
-                "results_stop_first": 1.0,
-                "expression_stops_first": 1.0,
-                "involvement_boundary": 1.0,
-                "exposure_boundary": 1.0,
-                "localized_function_bottleneck": 1.0,
-                "no_transfer": 1.0,
-            }
+            return _unsupported_transfer_branch_p_values()
         if not all(math.isfinite(value) for value in parsed):
-            return {
-                "clean_transfer": 1.0,
-                "results_stop_first": 1.0,
-                "expression_stops_first": 1.0,
-                "involvement_boundary": 1.0,
-                "exposure_boundary": 1.0,
-                "localized_function_bottleneck": 1.0,
-                "no_transfer": 1.0,
-            }
+            return _unsupported_transfer_branch_p_values()
         parsed_samples[component] = parsed
     if len({len(values) for values in parsed_samples.values()}) != 1:
-        return {
-            "clean_transfer": 1.0,
-            "results_stop_first": 1.0,
-            "expression_stops_first": 1.0,
-            "involvement_boundary": 1.0,
-            "exposure_boundary": 1.0,
-            "localized_function_bottleneck": 1.0,
-            "no_transfer": 1.0,
-        }
+        return _unsupported_transfer_branch_p_values()
 
     departure = {
         component: _bootstrap_departure_p(point[component], parsed_samples[component])
@@ -330,6 +307,193 @@ def _transfer_family_bootstrap_p(branch_p_values: Mapping[str, Any] | None) -> f
     if not isinstance(branch_p_values, Mapping) or set(branch_p_values) != expected:
         return 1.0
     return _simes_p(tuple(branch_p_values.values()))
+
+
+_POST_LOSS_STATE_KEYS = ("win", "one_loss", "two_plus_losses")
+_POST_LOSS_BRANCH_P_KEYS = (
+    "one_loss_runback",
+    "two_loss_switch",
+    "result_shaped_pool",
+    "result_invariant_response",
+    "adjustment_without_recovery",
+)
+
+
+def _ordered_post_loss_statistic(states: Mapping[str, Any] | None) -> float | None:
+    """Calculate the ordered post-loss contrast, ignoring ``win_streak``."""
+
+    if not isinstance(states, Mapping):
+        return None
+    available: list[tuple[float, float]] = []
+    for state in _POST_LOSS_STATE_KEYS:
+        if state not in states or states[state] is None:
+            continue
+        entry = states[state]
+        if isinstance(entry, (str, bytes)) or not isinstance(entry, Sequence) or len(entry) != 2:
+            return None
+        mean, weight = entry
+        if (
+            isinstance(mean, bool)
+            or not isinstance(mean, (int, float))
+            or not math.isfinite(float(mean))
+            or isinstance(weight, bool)
+            or not isinstance(weight, (int, float))
+            or not math.isfinite(float(weight))
+            or float(weight) <= 0
+        ):
+            return None
+        available.append((float(mean), float(weight)))
+    if len(available) < 2:
+        return None
+    if len(available) == 2:
+        return abs(available[1][0] - available[0][0])
+
+    total_weight = sum(weight for _, weight in available)
+    x_mean = sum(index * weight for index, (_, weight) in enumerate(available)) / total_weight
+    y_mean = sum(mean * weight for mean, weight in available) / total_weight
+    denominator = sum(
+        weight * (index - x_mean) ** 2
+        for index, (_, weight) in enumerate(available)
+    )
+    if denominator <= 0:
+        return None
+    slope = sum(
+        weight * (index - x_mean) * (mean - y_mean)
+        for index, (mean, weight) in enumerate(available)
+    ) / denominator
+    return abs(slope)
+
+
+def _post_loss_metric_evidence(
+    point_stats: Mapping[str, Any] | None,
+    sample_stats: Mapping[str, Sequence[Any]] | None,
+) -> tuple[dict[str, float], dict[str, tuple[float, ...]]] | None:
+    if not isinstance(point_stats, Mapping) or not isinstance(sample_stats, Mapping):
+        return None
+    metric_keys = ("one_loss_departure", "two_loss_switch", "trend")
+    if all(key in point_stats for key in metric_keys):
+        point: dict[str, float] = {}
+        samples: dict[str, tuple[float, ...]] = {}
+        for key in metric_keys:
+            value = point_stats[key]
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+                return None
+            raw_samples = sample_stats.get(key)
+            if isinstance(raw_samples, (str, bytes)) or not isinstance(raw_samples, Sequence) or not raw_samples:
+                return None
+            try:
+                parsed = tuple(float(item) for item in raw_samples)
+            except (TypeError, ValueError):
+                return None
+            if not all(math.isfinite(item) for item in parsed):
+                return None
+            point[key] = float(value)
+            samples[key] = parsed
+        if len({len(values) for values in samples.values()}) != 1:
+            return None
+        return point, samples
+
+    state_point: dict[str, tuple[float, float]] = {}
+    state_samples: dict[str, tuple[float, ...]] = {}
+    for state in _POST_LOSS_STATE_KEYS:
+        entry = point_stats.get(state)
+        if entry is None:
+            continue
+        if isinstance(entry, (str, bytes)) or not isinstance(entry, Sequence) or len(entry) != 2:
+            return None
+        mean, weight = entry
+        if (
+            isinstance(mean, bool)
+            or not isinstance(mean, (int, float))
+            or not math.isfinite(float(mean))
+            or isinstance(weight, bool)
+            or not isinstance(weight, (int, float))
+            or not math.isfinite(float(weight))
+            or float(weight) <= 0
+        ):
+            return None
+        raw_samples = sample_stats.get(state)
+        if isinstance(raw_samples, (str, bytes)) or not isinstance(raw_samples, Sequence) or not raw_samples:
+            return None
+        try:
+            parsed = tuple(float(item) for item in raw_samples)
+        except (TypeError, ValueError):
+            return None
+        if not all(math.isfinite(item) for item in parsed):
+            return None
+        state_point[state] = (float(mean), float(weight))
+        state_samples[state] = parsed
+    if len(state_point) < 2 or len({len(values) for values in state_samples.values()}) != 1:
+        return None
+    ordered_states = [state for state in _POST_LOSS_STATE_KEYS if state in state_point]
+    point_metrics: dict[str, float] = {}
+    if "win" in state_point and "one_loss" in state_point:
+        point_metrics["one_loss_departure"] = abs(state_point["one_loss"][0] - state_point["win"][0])
+    if "one_loss" in state_point and "two_plus_losses" in state_point:
+        point_metrics["two_loss_switch"] = abs(
+            state_point["two_plus_losses"][0] - state_point["one_loss"][0]
+        )
+    point_metrics["trend"] = _ordered_post_loss_statistic(state_point)
+    if point_metrics["trend"] is None:
+        return None
+    sample_metrics = {key: [] for key in point_metrics}
+    for index in range(len(next(iter(state_samples.values())))):
+        draw = {state: state_samples[state][index] for state in ordered_states}
+        if "win" in draw and "one_loss" in draw:
+            sample_metrics["one_loss_departure"].append(abs(draw["one_loss"] - draw["win"]))
+        if "one_loss" in draw and "two_plus_losses" in draw:
+            sample_metrics["two_loss_switch"].append(
+                abs(draw["two_plus_losses"] - draw["one_loss"])
+            )
+        trend = _ordered_post_loss_statistic({state: (draw[state], 1.0) for state in ordered_states})
+        if trend is not None:
+            sample_metrics["trend"].append(trend)
+    return point_metrics, {key: tuple(value) for key, value in sample_metrics.items()}
+
+
+def _post_loss_branch_bootstrap_p_values(
+    point_stats: Mapping[str, Any] | None,
+    sample_stats: Mapping[str, Sequence[Any]] | None,
+    rope: float = 0.08,
+) -> dict[str, float]:
+    """Compose post-loss branch p-values from adjacent state evidence."""
+
+    unsupported = {key: 1.0 for key in _POST_LOSS_BRANCH_P_KEYS}
+    if isinstance(rope, bool) or not isinstance(rope, (int, float)) or not math.isfinite(float(rope)) or float(rope) <= 0:
+        return unsupported
+    evidence = _post_loss_metric_evidence(point_stats, sample_stats)
+    if evidence is None:
+        return unsupported
+    point, samples = evidence
+    departure = {
+        key: _bootstrap_departure_p(point[key], samples[key])
+        for key in point
+    }
+    equivalence = [
+        _bootstrap_equivalence_p(point[key], samples[key], float(rope))
+        for key in ("one_loss_departure", "two_loss_switch")
+        if key in point
+    ]
+    return {
+        "one_loss_runback": departure.get("one_loss_departure", 1.0),
+        "two_loss_switch": departure.get("two_loss_switch", 1.0),
+        "result_shaped_pool": departure["trend"],
+        "result_invariant_response": max(equivalence, default=1.0),
+        "adjustment_without_recovery": 1.0,
+    }
+
+
+def _post_loss_family_bootstrap_p(
+    point_stats: Mapping[str, Any] | None,
+    sample_stats: Mapping[str, Sequence[Any]] | None,
+) -> float:
+    """Return the post-loss family p-value from the ordered trend departure."""
+
+    evidence = _post_loss_metric_evidence(point_stats, sample_stats)
+    if evidence is None:
+        return 1.0
+    point, samples = evidence
+    return _bootstrap_departure_p(point["trend"], samples["trend"])
 
 
 def v61_family_p_values(
