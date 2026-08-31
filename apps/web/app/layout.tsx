@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Free DNA — Your Dota habits, made visible",
-  description: "A personal portrait built from the way you actually play Dota.",
+  title: "Dota Report Card — Your Dota history, with the receipts",
+  description: "Turn available public Dota match history into a short, evidence-backed report.",
   robots: { index: false, follow: false }
 };
 

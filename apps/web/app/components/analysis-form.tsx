@@ -32,7 +32,9 @@ export default function AnalysisForm() {
   const [status, setStatus] = useState<AnalysisStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const mountedRef = useRef(true);
+  const statusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -41,6 +43,11 @@ export default function AnalysisForm() {
       controllerRef.current?.abort();
     };
   }, []);
+
+  useEffect(() => {
+    if (busy) statusRef.current?.focus();
+    else if (error) inputRef.current?.focus();
+  }, [busy, error]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -150,36 +157,42 @@ export default function AnalysisForm() {
     throw new Error("The analysis is taking longer than expected. Please try again.");
   }
 
-  const statusMessage = status ? stageCopy(status.stage) : "Opening your public profile.";
+  const statusMessage = status ? stageCopy(status.stage) : "Opening the public history.";
 
   return (
     <form className={`lookup${busy ? " is-busy" : ""}`} onSubmit={submit} aria-busy={busy}>
       <label className="lookup-label" htmlFor="player">
-        Public profile, Steam ID, or Steam profile URL
+        Start with a public identifier
       </label>
       <div className="lookup-row">
         <input
+          ref={inputRef}
           id="player"
           name="player"
-          aria-label="OpenDota profile or Steam32 ID"
           aria-describedby="player-hint"
           value={player}
           onChange={(event) => setPlayer(event.target.value)}
-          placeholder="193875165"
+          placeholder="Steam ID or profile URL"
           autoComplete="off"
           required
         />
         <button className="lookup-submit" type="submit" disabled={busy}>
-          {busy ? "Reading your pattern…" : "Build report"}
+          {busy ? "Reading the report…" : "Build report"}
         </button>
       </div>
       <p className="lookup-hint" id="player-hint">
-        Try 193875165 if you want to take it for a spin.
+        Use a Steam ID like 193875165, or a public profile URL.
       </p>
       {busy && (
-        <section className="lookup-status" aria-live="polite" aria-atomic="true">
-          <span className="lookup-status-kicker">Free DNA / Reading</span>
-          <h2>Finding the shape in your matches.</h2>
+        <section
+          ref={statusRef}
+          className="lookup-status"
+          aria-live="polite"
+          aria-atomic="true"
+          tabIndex={-1}
+        >
+          <span className="lookup-status-kicker">Report / Reading</span>
+          <h2>Reading the public history.</h2>
           <div className="lookup-status-track" aria-hidden="true"><span /></div>
           <p className="lookup-status-message">
             <span className="lookup-status-pulse" aria-hidden="true" />
@@ -238,21 +251,21 @@ function stageCopy(stage: string): string {
     resolving_player: "Finding your public profile.",
     player_found: "Your player is in view.",
     fetching_history: "Looking through your recent matches.",
-    filtering_matches: "Finding the moments that repeat.",
-    normalizing_history: "Finding the moments that repeat.",
-    feature_extraction: "Turning match history into habits.",
-    hero_features: "Looking for the heroes that feel like you.",
-    role_features: "Reading how you show up in a role.",
-    session_inference: "Noticing how your sessions change shape.",
-    dimension_scoring: "Giving your Elements a name.",
-    behavior_elements: "Arranging your Elements.",
-    behavior_patterns: "Connecting the Patterns.",
-    hero_portfolio: "Building your Hero Portfolio.",
-    rendering_report: "Putting your Dota shape together.",
-    completed: "Your pattern is ready.",
+    filtering_matches: "Checking which matches fit the report.",
+    normalizing_history: "Preparing the usable history.",
+    feature_extraction: "Summarizing the history we can see.",
+    hero_features: "Finding heroes that recur in the history.",
+    role_features: "Checking mapped roles when coverage allows.",
+    session_inference: "Reading how the covered sessions change shape.",
+    dimension_scoring: "Checking the registered signals.",
+    behavior_elements: "Arranging the available signals.",
+    behavior_patterns: "Connecting only the patterns that clear their gates.",
+    hero_portfolio: "Building the hero record.",
+    rendering_report: "Putting the report together.",
+    completed: "Your report is ready.",
     failed: "Analysis failed. We couldn't finish the read."
   };
-  return copy[stage] ?? "Reading the next part of your pattern.";
+  return copy[stage] ?? "Reading the next part of your report.";
 }
 
 function classifyInput(value: string): string {
