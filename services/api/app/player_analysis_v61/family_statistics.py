@@ -400,6 +400,14 @@ def _post_loss_metric_evidence(
             if key not in point_stats or key not in sample_stats:
                 if key == "trend":
                     return None
+                if (
+                    key in point_stats
+                    and point_stats[key] is not None
+                ) or (
+                    key in sample_stats
+                    and sample_stats[key] not in (None, [])
+                ):
+                    return None
                 continue
             value = point_stats[key]
             raw_samples = sample_stats[key]
@@ -414,17 +422,21 @@ def _post_loss_metric_evidence(
             ):
                 if key == "trend":
                     return None
-                continue
+                if value is None:
+                    continue
+                return None
             try:
                 parsed = tuple(float(item) for item in raw_samples if item is not None)
             except (TypeError, ValueError):
                 if key == "trend":
                     return None
-                continue
+                return None
             if not parsed or not all(math.isfinite(item) for item in parsed):
                 if key == "trend":
                     return None
-                continue
+                if not parsed:
+                    continue
+                return None
             point[key] = float(value)
             samples[key] = parsed
         return (point, samples) if "trend" in point else None
