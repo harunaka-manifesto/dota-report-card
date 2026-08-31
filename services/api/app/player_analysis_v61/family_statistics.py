@@ -189,6 +189,149 @@ def _bootstrap_equivalence_p(point: float, samples: Sequence[float], rope: float
     return max(lower_p, upper_p)
 
 
+def _simes_p(p_values: Sequence[float]) -> float:
+    """Return a fail-closed Simes combination of p-values."""
+
+    if isinstance(p_values, (str, bytes)) or not isinstance(p_values, Sequence) or not p_values:
+        return 1.0
+    try:
+        values = tuple(float(value) for value in p_values)
+    except (TypeError, ValueError):
+        return 1.0
+    if any(
+        isinstance(value, bool)
+        or not math.isfinite(value)
+        or value < 0.0
+        or value > 1.0
+        for value in values
+    ):
+        return 1.0
+    ordered = sorted(values)
+    return min(
+        1.0,
+        min(len(ordered) * value / rank for rank, value in enumerate(ordered, start=1)),
+    )
+
+
+def _transfer_branch_bootstrap_p_values(
+    point_deltas: Mapping[str, Any] | None,
+    samples: Mapping[str, Sequence[Any]] | None,
+    ropes: Mapping[str, Any],
+) -> dict[str, float]:
+    """Return claim-aligned transfer branch p-values from component draws."""
+
+    components = _TRANSFER_COMPONENTS
+    point = _transfer_component_vector(point_deltas, ropes)
+    if point is None or not isinstance(samples, Mapping):
+        return {
+            "clean_transfer": 1.0,
+            "results_stop_first": 1.0,
+            "expression_stops_first": 1.0,
+            "involvement_boundary": 1.0,
+            "exposure_boundary": 1.0,
+            "localized_function_bottleneck": 1.0,
+            "no_transfer": 1.0,
+        }
+    parsed_samples: dict[str, tuple[float, ...]] = {}
+    for component in components:
+        values = samples.get(component)
+        if (
+            isinstance(values, (str, bytes))
+            or not isinstance(values, Sequence)
+            or not values
+        ):
+            return {
+                "clean_transfer": 1.0,
+                "results_stop_first": 1.0,
+                "expression_stops_first": 1.0,
+                "involvement_boundary": 1.0,
+                "exposure_boundary": 1.0,
+                "localized_function_bottleneck": 1.0,
+                "no_transfer": 1.0,
+            }
+        try:
+            parsed = tuple(float(value) for value in values)
+        except (TypeError, ValueError):
+            return {
+                "clean_transfer": 1.0,
+                "results_stop_first": 1.0,
+                "expression_stops_first": 1.0,
+                "involvement_boundary": 1.0,
+                "exposure_boundary": 1.0,
+                "localized_function_bottleneck": 1.0,
+                "no_transfer": 1.0,
+            }
+        if not all(math.isfinite(value) for value in parsed):
+            return {
+                "clean_transfer": 1.0,
+                "results_stop_first": 1.0,
+                "expression_stops_first": 1.0,
+                "involvement_boundary": 1.0,
+                "exposure_boundary": 1.0,
+                "localized_function_bottleneck": 1.0,
+                "no_transfer": 1.0,
+            }
+        parsed_samples[component] = parsed
+    if len({len(values) for values in parsed_samples.values()}) != 1:
+        return {
+            "clean_transfer": 1.0,
+            "results_stop_first": 1.0,
+            "expression_stops_first": 1.0,
+            "involvement_boundary": 1.0,
+            "exposure_boundary": 1.0,
+            "localized_function_bottleneck": 1.0,
+            "no_transfer": 1.0,
+        }
+
+    departure = {
+        component: _bootstrap_departure_p(point[component], parsed_samples[component])
+        for component in components
+    }
+    equivalence = {
+        component: _bootstrap_equivalence_p(
+            point[component],
+            parsed_samples[component],
+            float(ropes[component]),
+        )
+        for component in components
+    }
+    return {
+        "clean_transfer": max(equivalence.values()),
+        "results_stop_first": max(
+            departure["outcome"], equivalence["activity"], equivalence["survival"]
+        ),
+        "expression_stops_first": max(
+            equivalence["outcome"],
+            min(1.0, 2.0 * min(departure["activity"], departure["survival"])),
+        ),
+        "involvement_boundary": max(departure["activity"], equivalence["survival"]),
+        "exposure_boundary": max(equivalence["activity"], departure["survival"]),
+        "localized_function_bottleneck": 1.0,
+        "no_transfer": _transfer_component_bootstrap_p(
+            point_deltas=point,
+            samples=parsed_samples,
+            ropes=ropes,
+        ),
+    }
+
+
+def _transfer_family_bootstrap_p(branch_p_values: Mapping[str, Any] | None) -> float:
+    """Return the Simes omnibus p-value across all seven transfer branches."""
+
+    expected = {
+        "clean_transfer",
+        "results_stop_first",
+        "expression_stops_first",
+        "involvement_boundary",
+        "exposure_boundary",
+        "localized_function_bottleneck",
+        "no_transfer",
+    }
+    if not isinstance(branch_p_values, Mapping) or set(branch_p_values) != expected:
+        return 1.0
+    return _simes_p(tuple(branch_p_values.values()))
+
+
 def v61_family_p_values(
     *,
     portfolio_shape: Mapping[str, Any],
