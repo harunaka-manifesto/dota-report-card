@@ -3,7 +3,7 @@
 Status: implementation source of truth for the next product-presentation batch
 Report contract: `free-dna-report-6.1.0`
 Story contract: `free-story-6.1.0`
-Copy contract to review: `free-dna-semantic-copy-6.1.0`
+Copy contract to review: `free-dna-semantic-copy-6.1.1`
 Scope: frontend composition, presentation payloads, and copy catalog only. No analytical, model, threshold, schema, calibration, holdout, or runtime behavior change is included.
 
 ## 1. Purpose and non-negotiables
@@ -412,6 +412,7 @@ analytical output is implied by a reference screen.
 - **User question:** “What actually travels with the hero change?”
 - **Exact primary copy by outcome:**
   - `clean_transfer`: “More of your observed expression travels when the hero changes.”
+  - `no_transfer`: “Your game changed outside your usual heroes.”
   - `results_stop_first`: “The result changes before your expression does.”
   - `expression_stops_first`: “Your expression changes before the result does.”
   - `involvement_boundary`: “Involvement holds farther into the hero change.”
@@ -988,7 +989,7 @@ The next implementation batch may change only:
 It must not change:
 
 - the seven Element definitions or estimators;
-- the five family roots, 28 outcome registry, denominators, or qualification;
+- the five family roots, 29 outcome registry, denominators, or qualification;
 - thresholds, baselines, bootstrap, calibration, holdout evidence, or model;
 - the strict V6.1 schema or one-request summary boundary;
 - the protected Deep cohort format;

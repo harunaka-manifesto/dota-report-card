@@ -33,20 +33,26 @@ from app.api.story_payload_schemas_v61 import (
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
 
 ConfidenceTier = Literal["unavailable", "descriptive", "moderate", "high"]
+SemanticOutcomesVersionV61 = Literal["semantic-outcomes-1.0.0", "semantic-outcomes-1.1.0"]
+SemanticCopyVersionV61 = Literal[
+    "free-dna-semantic-copy-6.1.0",
+    "free-dna-semantic-copy-6.1.1",
+]
+StatisticsVersionV61 = Literal["stats-cluster-bootstrap-2.0.0", "stats-cluster-bootstrap-2.1.0"]
 
 
 class VersionsV61Schema(PublicV6Model):
     elements: Literal["free-elements-6.1.0"]
     findings: Literal["free-findings-6.1.0"]
     supporting_signals: Literal["supporting-signals-1.0.0"]
-    semantic_outcomes: Literal["semantic-outcomes-1.0.0"]
+    semantic_outcomes: SemanticOutcomesVersionV61
     expression: Literal["summary-expression-multisignal-2.0.0"]
-    statistics: Literal["stats-cluster-bootstrap-2.0.0"]
+    statistics: StatisticsVersionV61
     context_baseline: Literal["context-baseline-3.0.0"]
     thresholds: Literal["metric-thresholds-6.1.0"]
     claims: Literal["claim-contract-2.0.0"]
     story: Literal["free-story-6.1.0"]
-    copy_: Literal["free-dna-semantic-copy-6.1.0"] = Field(alias="copy")
+    copy_: SemanticCopyVersionV61 = Field(alias="copy")
     recommendations: Literal["free-dna-recommendations-6.1.0"]
     deep_diagnostics: Literal["deep-diagnostics-2.1.0"]
     share_renderer: Literal["share-svg-6.1.0"]
@@ -126,7 +132,7 @@ class ClaimContractV61Schema(ClaimContractV6Schema):
     verification: VerificationV61Schema | None = None
     interaction: str | None = None
     deep_handoff: DeepHandoffV61Schema
-    copy_version: Literal["free-dna-semantic-copy-6.1.0"]
+    copy_version: SemanticCopyVersionV61
 
 
 class MeasurementV61Schema(PublicV6Model):

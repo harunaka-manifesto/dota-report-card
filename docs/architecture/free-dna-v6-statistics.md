@@ -69,7 +69,7 @@ inputs.
 
 V6.1 does not modify these V6.0 rules or artifacts. It advances expression and
 statistics to `summary-expression-multisignal-2.0.0` and
-`stats-cluster-bootstrap-2.0.0`, uses `context-baseline-3.0.0` and
+`stats-cluster-bootstrap-2.1.0`, uses `context-baseline-3.0.0` and
 `metric-thresholds-6.1.0`, adds event-weighted beta-binomial Finishing,
 cross-fitted component Transfer, information-weighted Consistency, direct
 opportunity-denominator session curves, and two-stage family/branch BH.

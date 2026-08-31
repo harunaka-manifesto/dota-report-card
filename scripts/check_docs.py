@@ -111,8 +111,8 @@ def main() -> int:
         failures.append("V6.1 public ontology must remain exactly 7 Elements and 5 roots")
     if len(SUPPORTING_SIGNAL_REGISTRY) != 128:
         failures.append("V6.1 supporting-signal registry must contain exactly 128 keys")
-    if len(SEMANTIC_OUTCOME_REGISTRY) != 28:
-        failures.append("V6.1 semantic-outcome registry must contain exactly 28 keys")
+    if len(SEMANTIC_OUTCOME_REGISTRY) != 29:
+        failures.append("V6.1 semantic-outcome registry must contain exactly 29 keys")
     if set(SEMANTIC_COPY_REGISTRY) != set(SEMANTIC_OUTCOME_REGISTRY):
         failures.append("V6.1 semantic copy must cover every outcome exactly")
 

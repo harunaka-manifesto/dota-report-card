@@ -104,6 +104,7 @@ SEMANTIC_OUTCOME_CATALOG = (
     _outcome("pool_shape", "names_narrow_jobs_wide", branch="name_job", interaction="contradiction_reveal"),
     _outcome("pool_shape", "names_changed_jobs_held", branch="migration", interaction="contradiction_reveal"),
     _outcome("transfer", "clean_transfer", branch="frontier", interaction="core_boundary", recommendation="verify_transfer"),
+    _outcome("transfer", "no_transfer", branch="frontier", interaction="core_boundary"),
     _outcome("transfer", "results_stop_first", branch="component_frontier", interaction="two_versions"),
     _outcome("transfer", "expression_stops_first", branch="component_frontier", interaction="two_versions"),
     _outcome("transfer", "involvement_boundary", branch="component_frontier", interaction="core_boundary"),

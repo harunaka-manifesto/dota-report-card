@@ -38,6 +38,7 @@ from app.content.renderer import (  # noqa: E402
     validate_copy_catalog,
 )
 from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION  # noqa: E402
+from app.player_analysis_v61.versions import SEMANTIC_COPY_VERSION  # noqa: E402
 
 OUTPUT_PATH = ROOT / "docs" / "generated" / "free-dna-v5.2-copy-review.md"
 V61_OUTPUT_PATH = ROOT / "docs" / "generated" / "free-dna-v6.1-copy-review.md"
@@ -270,7 +271,7 @@ def render_v61_catalog() -> str:
         "Generated from the frozen semantic-outcome and deterministic-copy registries.",
         "This is a review surface; runtime copy remains registry-owned and contains no LLM call.",
         "",
-        "- Copy version: `free-dna-semantic-copy-6.1.0`",
+        f"- Copy version: `{SEMANTIC_COPY_VERSION}`",
         "- Claim contract: `claim-contract-2.0.0`",
         f"- Registered outcomes: `{len(SEMANTIC_OUTCOME_REGISTRY)}`",
         "- Public ontology: exactly seven Elements and five family roots",

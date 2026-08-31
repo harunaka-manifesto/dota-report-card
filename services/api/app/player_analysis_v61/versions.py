@@ -42,9 +42,9 @@ VERSION_SURFACES = (
     VersionSurface("elements", "free-elements-6.1.0", "changed", "same seven ordered public keys"),
     VersionSurface("findings", "free-findings-6.1.0", "changed", "same five roots; nested outcomes"),
     VersionSurface("supporting_signals", "supporting-signals-1.0.0", "new", "private graph; selected evidence only"),
-    VersionSurface("semantic_outcomes", "semantic-outcomes-1.0.0", "new", "frozen hierarchical registry"),
+    VersionSurface("semantic_outcomes", "semantic-outcomes-1.1.0", "changed", "additive no-transfer outcome; prior reports remain readable"),
     VersionSurface("expression", "summary-expression-multisignal-2.0.0", "changed", "V6.1 estimators only"),
-    VersionSurface("statistics", "stats-cluster-bootstrap-2.0.0", "changed", "recomputed/cross-fitted estimators"),
+    VersionSurface("statistics", "stats-cluster-bootstrap-2.1.0", "changed", "ordered family/branch bootstrap statistics"),
     VersionSurface("context_baseline", "context-baseline-3.0.0", "changed", "V6.1 artifact schema"),
     VersionSurface("thresholds", "metric-thresholds-6.1.0", "changed", "registry-key manifest"),
     VersionSurface("claims", "claim-contract-2.0.0", "changed", "alternatives and verification added"),
@@ -56,7 +56,7 @@ VERSION_SURFACES = (
     VersionSurface("hero_taxonomy", STORY_HERO_TAXONOMY_VERSION, "new", "frozen public hero taxonomy"),
     VersionSurface("hero_metadata", STORY_HERO_METADATA_VERSION, "new", "frozen public hero metadata roster"),
     VersionSurface("archetype_contract", STORY_ARCHETYPE_CONTRACT_VERSION, "new", "not-ready archetype interface"),
-    VersionSurface("copy", "free-dna-semantic-copy-6.1.0", "changed", "outcome-owned deterministic copy"),
+    VersionSurface("copy", "free-dna-semantic-copy-6.1.1", "changed", "additive no-transfer copy; prior reports remain readable"),
     VersionSurface("recommendations", "free-dna-recommendations-6.1.0", "changed", "five-game verification contract"),
     VersionSurface("deep_diagnostics", "deep-diagnostics-2.1.0", "changed", "protected qualifying cohort references"),
     VersionSurface("share_renderer", "share-svg-6.1.0", "changed", "semantic cards gated separately"),
@@ -84,6 +84,7 @@ ELEMENTS_VERSION = version("elements")
 FINDINGS_VERSION = version("findings")
 SUPPORTING_SIGNALS_VERSION = version("supporting_signals")
 SEMANTIC_OUTCOMES_VERSION = version("semantic_outcomes")
+SEMANTIC_COPY_VERSION = version("copy")
 
 __all__ = [
     "ELEMENTS_VERSION",
@@ -91,6 +92,7 @@ __all__ = [
     "MODEL_VERSION",
     "REPORT_VERSION",
     "SEMANTIC_OUTCOMES_VERSION",
+    "SEMANTIC_COPY_VERSION",
     "STORY_ARCHETYPE_CONTRACT_VERSION",
     "STORY_COPY_VERSION",
     "STORY_HERO_METADATA_VERSION",

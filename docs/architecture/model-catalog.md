@@ -16,7 +16,7 @@ The human-readable model decisions live in [Elements](elements.md),
 | V6.1 public Elements | free-elements-6.1.0 | 7 |
 | V6.1 family roots | free-findings-6.1.0 | 5 |
 | V6.1 supporting signals | supporting-signals-1.0.0 | 128 |
-| V6.1 semantic outcomes | semantic-outcomes-1.0.0 | 28 |
+| V6.1 semantic outcomes | semantic-outcomes-1.1.0 | 29 |
 
 ## Free Elements
 
@@ -80,9 +80,9 @@ Supporting signals below are evidence and never additional public score cards.
 | elements | `free-elements-6.1.0` | changed | same seven ordered public keys |
 | findings | `free-findings-6.1.0` | changed | same five roots; nested outcomes |
 | supporting_signals | `supporting-signals-1.0.0` | new | private graph; selected evidence only |
-| semantic_outcomes | `semantic-outcomes-1.0.0` | new | frozen hierarchical registry |
+| semantic_outcomes | `semantic-outcomes-1.1.0` | changed | additive no-transfer outcome; prior reports remain readable |
 | expression | `summary-expression-multisignal-2.0.0` | changed | V6.1 estimators only |
-| statistics | `stats-cluster-bootstrap-2.0.0` | changed | recomputed/cross-fitted estimators |
+| statistics | `stats-cluster-bootstrap-2.1.0` | changed | ordered family/branch bootstrap statistics |
 | context_baseline | `context-baseline-3.0.0` | changed | V6.1 artifact schema |
 | thresholds | `metric-thresholds-6.1.0` | changed | registry-key manifest |
 | claims | `claim-contract-2.0.0` | changed | alternatives and verification added |
@@ -94,7 +94,7 @@ Supporting signals below are evidence and never additional public score cards.
 | hero_taxonomy | `hero-taxonomy-2026-08-16` | new | frozen public hero taxonomy |
 | hero_metadata | `hero-knowledge-semantic-freeze-full-roster-v1` | new | frozen public hero metadata roster |
 | archetype_contract | `free-archetype-interface-1.0.0` | new | not-ready archetype interface |
-| copy | `free-dna-semantic-copy-6.1.0` | changed | outcome-owned deterministic copy |
+| copy | `free-dna-semantic-copy-6.1.1` | changed | additive no-transfer copy; prior reports remain readable |
 | recommendations | `free-dna-recommendations-6.1.0` | changed | five-game verification contract |
 | deep_diagnostics | `deep-diagnostics-2.1.0` | changed | protected qualifying cohort references |
 | share_renderer | `share-svg-6.1.0` | changed | semantic cards gated separately |
@@ -110,6 +110,7 @@ Supporting signals below are evidence and never additional public score cards.
 | pool_shape | name_job | `names_narrow_jobs_wide` | matches | public_candidate | contradiction_reveal |
 | pool_shape | migration | `names_changed_jobs_held` | matches | public_candidate | contradiction_reveal |
 | transfer | frontier | `clean_transfer` | matches | public_candidate | core_boundary |
+| transfer | frontier | `no_transfer` | matches | public_candidate | core_boundary |
 | transfer | component_frontier | `results_stop_first` | matches | public_candidate | two_versions |
 | transfer | component_frontier | `expression_stops_first` | matches | public_candidate | two_versions |
 | transfer | component_frontier | `involvement_boundary` | matches | public_candidate | core_boundary |

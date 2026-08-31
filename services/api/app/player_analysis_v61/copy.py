@@ -85,6 +85,12 @@ _COPY = {
         "Covered distance bands only; no why.",
         _TRANSFER_VARIANTS,
     ),
+    "no_transfer": _matrix_copy(
+        "Your game changed outside your usual heroes.",
+        "Reliable-stretch outcome, activity, and survival distances.",
+        "Covered familiar and stretch bands only; no why.",
+        _TRANSFER_VARIANTS,
+    ),
     "results_stop_first": _matrix_copy(
         "The result changes before your expression does.",
         "Outcome versus expression frontiers.",

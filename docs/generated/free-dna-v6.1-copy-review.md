@@ -3,9 +3,9 @@
 Generated from the frozen semantic-outcome and deterministic-copy registries.
 This is a review surface; runtime copy remains registry-owned and contains no LLM call.
 
-- Copy version: `free-dna-semantic-copy-6.1.0`
+- Copy version: `free-dna-semantic-copy-6.1.1`
 - Claim contract: `claim-contract-2.0.0`
-- Registered outcomes: `28`
+- Registered outcomes: `29`
 - Public ontology: exactly seven Elements and five family roots
 - Forbidden inference: aggression, intent, tilt, fatigue, positioning, skill, cause, rank, and MMR
 
@@ -68,6 +68,18 @@ This is a review surface; runtime copy remains registry-owned and contains no LL
 - Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
 - Interaction / fallback: `core_boundary` / `text_evidence`
 - Recommendation / verification: `verify_transfer` / `primary, guardrail`
+
+## `no_transfer`
+
+- Family / branch: `transfer` / `frontier`
+- Rollout: `public_candidate`
+- Denominator: `matches`; minimum `30` opportunities and `12` sessions
+- Claim: Your game changed outside your usual heroes.
+- Evidence label: Reliable-stretch outcome, activity, and survival distances.
+- Interpretation: Covered familiar and stretch bands only; no why.
+- Alternatives: unobserved draft and match context; taxonomy or coverage uncertainty
+- Interaction / fallback: `core_boundary` / `text_evidence`
+- Recommendation / verification: `none` / `none`
 
 ## `results_stop_first`
 

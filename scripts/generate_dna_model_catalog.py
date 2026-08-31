@@ -17,7 +17,10 @@ from app.behavior.patterns.registry import PATTERN_REGISTRY, PATTERN_REGISTRY_VE
 from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS, PUBLIC_ELEMENT_KEYS  # noqa: E402
 from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG  # noqa: E402
 from app.player_analysis_v61.supporting_signals import SUPPORTING_SIGNAL_CATALOG  # noqa: E402
-from app.player_analysis_v61.versions import VERSION_SURFACES  # noqa: E402
+from app.player_analysis_v61.versions import (  # noqa: E402
+    SEMANTIC_OUTCOMES_VERSION,
+    VERSION_SURFACES,
+)
 
 CATALOG_PATH = ROOT / "docs" / "architecture" / "model-catalog.md"
 BEGIN = "<!-- BEGIN GENERATED MODEL CATALOG -->"
@@ -58,7 +61,7 @@ def render_generated_catalog() -> str:
                 ("V6.1 public Elements", "free-elements-6.1.0", len(PUBLIC_ELEMENT_KEYS)),
                 ("V6.1 family roots", "free-findings-6.1.0", len(FINDING_FAMILY_KEYS)),
                 ("V6.1 supporting signals", "supporting-signals-1.0.0", len(SUPPORTING_SIGNAL_CATALOG)),
-                ("V6.1 semantic outcomes", "semantic-outcomes-1.0.0", len(SEMANTIC_OUTCOME_CATALOG)),
+                ("V6.1 semantic outcomes", SEMANTIC_OUTCOMES_VERSION, len(SEMANTIC_OUTCOME_CATALOG)),
             ],
         ),
         "",

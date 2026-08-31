@@ -64,7 +64,7 @@ def test_every_public_branch_gets_a_predeclared_statistic() -> None:
     }
 
     assert {key for family in branches.values() for key in family} == expected
-    assert len(expected) == 25
+    assert len(expected) == 26
     assert all(0.0 <= value <= 1.0 for family in branches.values() for value in family.values())
 
 
@@ -140,6 +140,7 @@ def test_copy_registry_matches_all_registered_outcomes() -> None:
         "names_narrow_jobs_wide": "A compact hero set covers a wider mix of jobs.",
         "names_changed_jobs_held": "Your hero names moved more across the year than the jobs they covered.",
         "clean_transfer": "More of your observed expression travels when the hero changes.",
+        "no_transfer": "Your game changed outside your usual heroes.",
         "results_stop_first": "The result changes before your expression does.",
         "expression_stops_first": "Your expression changes before the result does.",
         "involvement_boundary": "Involvement holds farther into the hero change.",
@@ -172,7 +173,7 @@ def test_copy_registry_matches_all_registered_outcomes() -> None:
         if definition.rollout_status == "shadow_only"
     }
 
-    assert len(SEMANTIC_COPY_REGISTRY) == len(SEMANTIC_OUTCOME_REGISTRY) == 28
+    assert len(SEMANTIC_COPY_REGISTRY) == len(SEMANTIC_OUTCOME_REGISTRY) == 29
     assert set(SEMANTIC_COPY_REGISTRY) == set(SEMANTIC_OUTCOME_REGISTRY)
     assert set(public_claims) == public_keys
     assert {key: SEMANTIC_COPY_REGISTRY[key].claim for key in public_keys} == public_claims

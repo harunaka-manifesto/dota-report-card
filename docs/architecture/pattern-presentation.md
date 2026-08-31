@@ -109,7 +109,7 @@ or either catalog contains an invalid branch or placeholder.
 ## V6.1 relationship presentation
 
 V6.1 keeps its own `free-story-6.1.0`, `report-interactions-1.1.0`, and
-`free-dna-semantic-copy-6.1.0` contracts. Its finite relationship kinds are
+`free-dna-semantic-copy-6.1.1` contracts. Its finite relationship kinds are
 contradiction reveal, core boundary, two versions, after-X, variance
 decomposition, and session curve. Every visual has a keyboard-accessible table
 or disclosure equivalent and reduced-motion behavior. The server supplies the

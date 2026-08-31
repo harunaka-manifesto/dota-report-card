@@ -103,8 +103,8 @@ Eight signals are explicitly rejected:
 ## Five finding families and semantic outcomes
 
 The public roots remain Pool Shape, Transfer, Post-Loss Response, Combat
-Expression, and Session Drift. `semantic-outcomes-1.0.0` freezes 28 outcome
-definitions. Twenty-five are public candidates; `hero_lifecycle`,
+Expression, and Session Drift. `semantic-outcomes-1.1.0` freezes 29 outcome
+definitions. Twenty-six are public candidates; `hero_lifecycle`,
 `identity_eras`, and `behavioral_loop` are shadow-only experiments.
 
 Each outcome owns its family and hypothesis branch, at least two evidence
@@ -144,7 +144,7 @@ The story remains nine beats and gains finite interaction kinds:
 `contradiction_reveal`, `core_boundary`, `two_versions`, `after_x`,
 `variance_decomposition`, and `session_curve`. Every relationship surface has
 a table or disclosure alternative. Server copy is deterministic and registered
-for all 28 outcomes; missing copy is a validation error.
+for all 29 outcomes; missing copy is a validation error.
 
 Claims separate observation, bounded interpretation, unresolved alternatives,
 recommendation, verification, and limits. Recommendations lock one primary and
@@ -161,9 +161,9 @@ cohort members or source identifiers.
 | elements | `free-elements-6.1.0` | changed; same seven ordered keys |
 | findings | `free-findings-6.1.0` | changed; same five roots |
 | supporting signals | `supporting-signals-1.0.0` | new private graph |
-| semantic outcomes | `semantic-outcomes-1.0.0` | new hierarchical registry |
+| semantic outcomes | `semantic-outcomes-1.1.0` | additive no-transfer outcome; prior reports remain readable |
 | expression | `summary-expression-multisignal-2.0.0` | changed |
-| statistics | `stats-cluster-bootstrap-2.0.0` | changed |
+| statistics | `stats-cluster-bootstrap-2.1.0` | changed; ordered family/branch bootstrap statistics |
 | context baseline | `context-baseline-3.0.0` | changed artifact schema |
 | thresholds | `metric-thresholds-6.1.0` | changed exact-key manifest |
 | claims | `claim-contract-2.0.0` | changed alternatives/verification |
@@ -175,7 +175,7 @@ cohort members or source identifiers.
 | hero taxonomy | `hero-taxonomy-2026-08-16` | new frozen public hero taxonomy |
 | hero metadata | `hero-knowledge-semantic-freeze-full-roster-v1` | new frozen public hero roster |
 | archetype contract | `free-archetype-interface-1.0.0` | new not-ready archetype interface |
-| copy | `free-dna-semantic-copy-6.1.0` | changed outcome-owned copy |
+| copy | `free-dna-semantic-copy-6.1.1` | additive no-transfer copy; prior reports remain readable |
 | recommendations | `free-dna-recommendations-6.1.0` | changed verification contract |
 | Deep diagnostics | `deep-diagnostics-2.1.0` | changed protected cohort refs |
 | share renderer | `share-svg-6.1.0` | changed semantic cards |
