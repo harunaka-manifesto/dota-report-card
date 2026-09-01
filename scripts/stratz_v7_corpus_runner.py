@@ -400,6 +400,26 @@ def request_key(operation: GraphQLOperation, variables: Mapping[str, Any]) -> st
     )
 
 
+def _is_immutable_success_response(status: Any, error_kind: str | None) -> bool:
+    return (
+        isinstance(status, int)
+        and not isinstance(status, bool)
+        and 200 <= status < 400
+        and error_kind is None
+    )
+
+
+def _is_immutable_success_row(row: Mapping[str, Any]) -> bool:
+    return (
+        row.get("immutable_success") is True
+        and _is_immutable_success_response(row.get("http_status"), row.get("error_kind"))
+        and not row.get("error")
+        and isinstance(row.get("raw_metadata_path"), str)
+        and isinstance(row.get("raw_body_path"), str)
+        and isinstance(row.get("response_sha256"), str)
+    )
+
+
 class CohortTarget:
     __slots__ = ("pseudonym", "source_position", "split", "parsed_subset", "parsed_order", "account_id")
 
@@ -1416,7 +1436,7 @@ class CorpusRunner:
     def _success_index(self) -> dict[str, dict[str, Any]]:
         result: dict[str, dict[str, Any]] = {}
         for row in self.ledger_rows:
-            if row.get("immutable_success") is True:
+            if _is_immutable_success_row(row):
                 key = row.get("request_key")
                 if isinstance(key, str):
                     result[key] = row
@@ -1627,7 +1647,7 @@ class CorpusRunner:
                 "retry_after_seconds": retry_after,
                 "cache_hit": False,
                 "cache_miss": True,
-                "immutable_success": status is not None and status < 400,
+                "immutable_success": _is_immutable_success_response(status, error_kind),
                 "error_kind": error_kind,
                 "error": redact_text(error, self.token) if error else None,
                 "raw_body_path": raw_body_path,
@@ -1898,7 +1918,9 @@ class CorpusRunner:
         seen_success: set[str] = set()
         for row in self.ledger_rows:
             key = row.get("request_key")
-            if row.get("immutable_success") is True:
+            if row.get("immutable_success") is True and not _is_immutable_success_row(row):
+                raise RunnerError("ledger marks an errored response as immutable success")
+            if _is_immutable_success_row(row):
                 if not isinstance(key, str) or key in seen_success:
                     raise RunnerError("successful immutable request repeated")
                 seen_success.add(key)

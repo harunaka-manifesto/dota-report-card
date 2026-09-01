@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,9 @@ import pytest
 from app.stratz.queries import GET_PARSED_ACQUISITION_BATCH, GET_PLAYER_HISTORY_PAGE
 
 from scripts.stratz_v7_corpus_runner import (
+    EXPECTED_FRAME_COUNT,
+    EXPECTED_PARSED_COUNTS,
+    EXPECTED_SPLIT_COUNTS,
     CohortTarget,
     CorpusRunner,
     FrozenCohort,
@@ -23,6 +27,7 @@ from scripts.stratz_v7_corpus_runner import (
     load_stratz_token,
     normalize_history_page,
     normalize_parsed_batch,
+    pseudonymize_account,
     safe_response_headers,
 )
 
@@ -52,6 +57,77 @@ def _cohort(*, parsed_subset: bool = True) -> FrozenCohort:
         frame_digest="frame-digest",
         targets=(target,),
     )
+
+
+def _synthetic_frozen_artifacts(tmp_path: Path) -> tuple[Path, Path]:
+    salt = b"synthetic-v7-salt-012345678901234"[:32]
+    frame_path = tmp_path / "source-frame.json"
+    frame = {
+        "schema_version": "synthetic-source-frame",
+        "adaptive_top_up": False,
+        "selection": "/publicmatches HMAC synthetic fixture",
+        "positive_public_account_count": EXPECTED_FRAME_COUNT,
+        "ranked_frame": [
+            {"account_id": 1_000_000 + position, "position": position}
+            for position in range(EXPECTED_FRAME_COUNT)
+        ],
+    }
+    frame_path.write_text(json.dumps(frame), encoding="utf-8")
+    freeze_dir = tmp_path / "freeze"
+    split_path = freeze_dir / "manifests/split-manifest.json"
+    plan_path = freeze_dir / "manifests/corpus-plan.json"
+    (freeze_dir / "manifests").mkdir(parents=True)
+    (freeze_dir / "salt.bin").write_bytes(salt)
+    members: list[dict[str, Any]] = []
+    position = 0
+    for split, count in EXPECTED_SPLIT_COUNTS.items():
+        parsed_count = EXPECTED_PARSED_COUNTS[split]
+        for index in range(count):
+            members.append(
+                {
+                    "pseudonym": pseudonymize_account(1_000_000 + position, salt),
+                    "source_position": position,
+                    "split": split,
+                    "parsed_subset": index < parsed_count,
+                    "parsed_subset_order": index if index < parsed_count else None,
+                }
+            )
+            position += 1
+    split_path.write_text(
+        json.dumps(
+            {
+                "split_counts": EXPECTED_SPLIT_COUNTS,
+                "parsed_subset_counts": EXPECTED_PARSED_COUNTS,
+                "members": members,
+            }
+        ),
+        encoding="utf-8",
+    )
+    plan_path.write_text(
+        json.dumps(
+            {
+                "split_manifest_sha256": hashlib.sha256(split_path.read_bytes()).hexdigest(),
+                "split_counts": EXPECTED_SPLIT_COUNTS,
+                "parsed_subset_counts": EXPECTED_PARSED_COUNTS,
+                "pack_registry_check": {
+                    "packs": [
+                        {
+                            "operation": GET_PLAYER_HISTORY_PAGE.name,
+                            "operation_sha256": GET_PLAYER_HISTORY_PAGE.document_sha256,
+                            "operation_version": GET_PLAYER_HISTORY_PAGE.version,
+                        },
+                        {
+                            "operation": GET_PARSED_ACQUISITION_BATCH.name,
+                            "operation_sha256": GET_PARSED_ACQUISITION_BATCH.document_sha256,
+                            "operation_version": GET_PARSED_ACQUISITION_BATCH.version,
+                        },
+                    ]
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    return freeze_dir, frame_path
 
 
 def _history_payload() -> dict[str, Any]:
@@ -97,8 +173,9 @@ def test_token_loader_and_safe_headers_do_not_leak_credentials(tmp_path: Path, m
     ) == {"RateLimit-Limit": "8"}
 
 
-def test_frozen_cohort_excludes_reserved_and_sealed_members() -> None:
-    cohort = load_frozen_cohort()
+def test_frozen_cohort_excludes_reserved_and_sealed_members(tmp_path: Path) -> None:
+    freeze_dir, frame_path = _synthetic_frozen_artifacts(tmp_path)
+    cohort = load_frozen_cohort(freeze_dir, source_frame_path=frame_path, strict=False)
     assert len(cohort.targets) == 900
     assert len(cohort.parsed_targets) == 256
     assert {target.split for target in cohort.targets} == {"DISCOVERY", "CANDIDATE_TEST"}
@@ -333,7 +410,33 @@ async def test_graphql_partial_error_fails_closed_after_archival(tmp_path: Path)
             await runner.request(GET_PLAYER_HISTORY_PAGE, {"steamAccountId": ACCOUNT_ID})
     assert len(runner.ledger_rows) == 1
     assert runner.ledger_rows[0]["error_kind"] == "graphql_error"
-    assert runner.ledger_rows[0]["immutable_success"] is True
+    assert runner.ledger_rows[0]["immutable_success"] is False
+
+    calls = 0
+
+    async def recovery_handler(_request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(200, json=_history_payload())
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(recovery_handler)) as http:
+        resumed = CorpusRunner(
+            _cohort(parsed_subset=False),
+            output_dir=tmp_path,
+            token="fixture-token",
+            network=True,
+            http_client=http,
+            sleep=_no_sleep,
+        )
+        payload, metadata = await resumed.request(
+            GET_PLAYER_HISTORY_PAGE,
+            {"steamAccountId": ACCOUNT_ID},
+        )
+    assert calls == 1
+    assert metadata["cache_hit"] is False
+    assert payload["data"]["player"]["steamAccountId"] == ACCOUNT_ID
+    assert len(resumed.ledger_rows) == 2
+    assert resumed.ledger_rows[1]["immutable_success"] is True
 
 
 @pytest.mark.asyncio

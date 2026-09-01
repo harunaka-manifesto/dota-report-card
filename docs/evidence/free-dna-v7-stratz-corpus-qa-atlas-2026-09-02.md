@@ -1,15 +1,19 @@
 # V7 STRATZ corpus runner and neutral QA atlas — 2026-09-02
 
-Status: **PARTIAL_PAUSED**. The fixed live run reached the conservative local
-hourly ceiling and is resumable from its immutable local checkpoint. No
-reserved or sealed account was queried, no raw provider body is committed, and
-no Finding, report, calibration, or holdout output was produced.
+Status: **STOP_BLOCKED_PUBLIC_ELIGIBILITY**. The underlying runner checkpoint
+is `PARTIAL_PAUSED` at the conservative local hourly ceiling, but the observed
+valid-public denominator is zero and the frozen plan's feasibility/validity
+gate is not met. Preserve the immutable local corpus; do not resume or make
+further provider calls without owner direction on a new valid-public sampling
+frame/split. No reserved or sealed account was queried, no raw provider body is
+committed, and no Finding, report, calibration, or holdout output was produced.
 
 ## Phase checkpoint
 
 ```text
 PHASE: V7_STRATZ_HISTORY_ACQUISITION
 STATUS: PARTIAL_PAUSED
+RESEARCH GATE: STOP_BLOCKED_PUBLIC_ELIGIBILITY
 RUN DATE: 2026-09-01 UTC (checkpoint written before the 2026-09-02 handoff)
 PHYSICAL STRATZ ATTEMPTS: 1,000
 HISTORY ATTEMPTS: 1,000
@@ -18,8 +22,8 @@ OPENDOTA CALLS: 0
 RESERVED/SEALED TOUCHED: NO
 ADAPTIVE TOP-UP OR REPLACEMENT: NO
 RAW IDENTITIES OR PROVIDER ROWS COMMITTED: NO
-RESUME: safe after the recorded rate-window reset; the next history page is
-        still pending and successful immutable requests are cache-reusable
+RESUME: NOT AUTHORIZED; preserve the checkpoint and make no further calls
+        until owner direction establishes a new valid-public sampling frame/split
 ```
 
 The run used only the predeclared `DISCOVERY` and `CANDIDATE_TEST` targets from
@@ -58,12 +62,14 @@ pseudonym identifiers.
 | parsed batch attempts | 0 | 0 | 0 |
 
 The one failed history account is the account whose next attempt was blocked
-by the rate-window pause; it remains resumable, not analytically excluded.
-No private/unavailable response was observed in this checkpoint. Among the
-141 completed-or-paused profile states, 127 were non-anonymous with the
-provider public flag false and 14 were anonymous; therefore the measured
-product/public eligible count is zero at this checkpoint. This is an observed
-provider-state denominator, not a population claim.
+by the rate-window pause; its raw checkpoint is preserved. No
+private/unavailable response was observed in this checkpoint. Among the 141
+completed-or-paused profile states, 127 were non-anonymous with the provider
+public flag false and 14 were anonymous: **0/141 observed product-public**.
+This does not establish a different meaning for the provider flag. It means
+the predeclared valid-public sampling condition was not met, so the plan's
+feasibility/validity stop gate is triggered. Do not reinterpret the flag,
+top-up, replace, or adapt the frozen cohort.
 
 The history archive contains 90,262 canonical rows. All have a known start
 timestamp within the fixed window. Of these, 71,900 have non-null native
@@ -153,8 +159,9 @@ recalibration: NO
 deployment: NO
 ```
 
-The resumable local checkpoint is
+The preserved local checkpoint is
 `.local/corpora/stratz/v7-corpus-2026-09-02/`. It is intentionally ignored
-and is not part of the commit. A future continuation must use the same freeze,
-source-frame binding, fixed window, operation digests, and output directory;
-it must not regenerate or replace the fixed cohort.
+and is not part of the commit. It is **not authorized for continuation**. Any
+future acquisition requires owner direction on a new valid-public sampling
+frame/split and an explicit feasibility review; it must not reinterpret the
+provider flag, adaptively top up, regenerate, or replace this frozen cohort.
