@@ -6,7 +6,8 @@
 > POST requests with `User-Agent: STRATZ_API`; it does not use browser
 > automation or challenge bypasses.
 
-Brief: `docs/prompts/stratz/02-opus5-enrichment-research.md`
+Source set: this committed `research/stratz-enrichment/` report set. The
+superseded task brief remains available in Git history.
 Date: 2026-08-27 · Evidence: `.local/stratz-probe/enrichment/`
 Reproduce every number: `python3 .local/stratz-probe/enrichment/analyze.py`
 
@@ -25,13 +26,12 @@ Reproduce every number: `python3 .local/stratz-probe/enrichment/analyze.py`
 **PARTIAL.**
 
 Live parsed payloads were captured and analysed (7 successful operations of 8
-attempted, one core match,
-one support match, one unparsed match, ten-player context, and a playback
-sample), so the core semantics questions are **resolved from data, not
-inferred**. Three things keep this from PASS: Pack B and Pack C are written but
-not yet run, so roughly a third of the parsed surface remains un-queryable;
-STRATZ licensing is still `UNKNOWN`; and automated API access does not work at
-all, which blocks any corpus independently of licensing.
+attempted, one core match, one support match, one unparsed match, ten-player
+context, and a playback sample), so the core specimen questions are **resolved
+from data, not inferred**. Three things keep this from PASS: Pack B and Pack C
+are written but not yet run, so roughly a third of the parsed surface remains
+un-queryable; STRATZ licensing is still `UNKNOWN`; and this specimen does not
+establish population coverage for a corpus independently of licensing.
 
 ---
 
@@ -331,7 +331,7 @@ work.
 
 Full version in `04-corpus-lineage-roadmap.md` §3.
 
-**Phase 0 — unblock.** [OWNER] STRATZ licensing. [OWNER] automated API access —
+**Phase 0 — unblock.** [OWNER] STRATZ licensing and a bounded direct API probe;
 manual GraphiQL does not scale past this research. Run Pack B and Pack C; **C1
 decides whether Tier 2 exists at all.**
 
@@ -448,9 +448,10 @@ Files created by this research, all research-only:
   manually by the owner and stored in gitignored `.local/` under the owner's
   explicit instruction to save sanitized fixtures
 
-`git status --porcelain` also lists `docs/prompts/stratz/` and `docs/evidence/`
-as untracked. **Those predate this research and were not created by it**; they
-are the originating briefs and prior work.
+The originating task prompts were superseded during the 2026-09-01 repository
+hygiene audit. The committed research reports, the V7 provider contract, and
+the analytical learnings manual are the current references; Git history retains
+the old prompts for provenance.
 
 STRATZ requests attributable to this research: **8 manual GraphiQL operations**
 executed by the owner — `A1` (rejected on complexity), `A1b`, `A2`, `A3`, `A4`,

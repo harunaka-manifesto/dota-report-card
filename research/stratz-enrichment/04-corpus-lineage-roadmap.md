@@ -11,11 +11,13 @@ in front of collection and both are owner decisions, not engineering ones:
 1. **Licensing.** STRATZ storage, caching, attribution and commercial terms are
    `UNKNOWN — requires owner/STRATZ confirmation`. Every artifact below assumes
    permission that does not currently exist.
-2. **Access.** `api.stratz.com` returns HTTP 403 from every automated
-   environment available. Manual GraphiQL paste is the only working path, and
-   manual paste does not scale to a corpus at any size. **An automated-access
-   agreement is a hard prerequisite** — this is not a "nice to have" and it is
-   not solvable by better tooling on our side.
+2. **Access for the original research.** `api.stratz.com` returned HTTP 403
+   from every automated environment available on 2026-08-27, so manual
+   GraphiQL paste was the only working path at that time. The 2026-09-01
+   superseding note records automated direct access as resolved for the next
+   bounded live probe; this audit did not exercise it. A current token, live
+   rate/complexity measurements, and licensing confirmation are still required
+   before corpus collection.
 
 ---
 
@@ -213,7 +215,7 @@ the way this product reasons needs to be rebuilt.
 
 ```
 STRATZ research  (this document — PARTIAL; four Tier-1 BLOCKED items remain)
-  -> owner decision: licensing + automated access          [BLOCKING]
+  -> owner decision: licensing + bounded live access        [BLOCKING]
   -> Corpus H collection (1,000 players, ~6,000 requests)
   -> baseline derivation + fallback-level audit
   -> role calibration (role_effective population distribution)
@@ -234,8 +236,9 @@ Dependency-ordered. Owner decision points marked **[OWNER]**.
 ### Phase 0 — unblock (nothing else can start)
 
 1. **[OWNER]** STRATZ licensing: storage, caching, attribution, commercial use.
-2. **[OWNER]** Automated API access. Manual GraphiQL does not scale past this
-   research. Without it, Phase 2 is impossible regardless of the licensing answer.
+2. **[OWNER]** Bounded direct API probe with the required token and headers.
+   Manual GraphiQL does not scale past this research. The probe must measure
+   live limits before Phase 2 is planned, regardless of the licensing answer.
 3. Run Pack B (`B1`, `B3`, `B4`) and Pack C `C1` — see
    `05-blocked-and-queries.md`. **C1 decides whether Tier 2 exists at all.**
 

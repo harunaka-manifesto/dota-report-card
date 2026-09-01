@@ -1,5 +1,10 @@
 # Free DNA system
 
+This document describes the retained V5.2-compatible OpenDota runtime path.
+V7 is a separate STRATZ-native staging lineage; see the [V7 provider
+contract](stratz-v7-provider-contract.md) and [analytical learnings and
+gotchas](../../docs/agent/analytical-learnings-and-gotchas.md).
+
 ## Product chain
 
 summary history → sessions/features → Elements → Patterns → Hero Portfolio → report story

@@ -9,7 +9,7 @@
 - [Data provenance](architecture/data-provenance.md)
 - [Hero data sources](architecture/hero-data-sources.md)
 - [Hero knowledge](architecture/hero-knowledge.md)
-- [v5.2 SSOT and version compatibility](architecture/dota-dna-ssot.md)
+- [v5.2 SSOT and compatibility history](architecture/dota-dna-ssot.md)
 - [Free DNA v6 statistics](architecture/free-dna-v6-statistics.md)
 - [Free DNA V6.1 feature graph](architecture/free-dna-v6.1-feature-graph.md)
 - [Deep diagnostics v2](architecture/deep-diagnostics-v2.md)
@@ -26,5 +26,10 @@
 - [Free DNA V6.1 copy review](generated/free-dna-v6.1-copy-review.md)
 - [Model catalog](architecture/model-catalog.md)
 - [OpenDota inventory](opendota-data-inventory.md)
+- [STRATZ V7 provider contract](architecture/stratz-v7-provider-contract.md)
+- [Analytical learnings and gotchas](agent/analytical-learnings-and-gotchas.md)
+- [V7 repository hygiene audit](evidence/v7-repository-hygiene-audit-2026-09-01.md)
 
 The [archive](archive/README.md) contains superseded plans and snapshots.
+The retained V5.2/V6.0 material documents runtime compatibility and historical
+evidence; V7 forward development uses the STRATZ-native staging line.

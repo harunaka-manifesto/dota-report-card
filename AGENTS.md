@@ -41,6 +41,9 @@ compatibility with persisted reports is a release requirement.
 Read [production safety](docs/agent/production-safety.md) before changing
 production-connected code or release behavior.
 
+Agents designing or changing analytical behavior must also read
+[analytical learnings and gotchas](docs/agent/analytical-learnings-and-gotchas.md).
+
 ## 3. TASK CLASSIFICATION
 
 Before implementation, classify the task as one or more of:

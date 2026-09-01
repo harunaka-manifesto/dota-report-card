@@ -1,5 +1,9 @@
 # Patterns
 
+This is the retained V5.2-compatible Pattern registry and presentation
+contract. It is not a V7 Finding registry; V7 Findings must be re-derived
+from STRATZ-native data under a new versioned release.
+
 Patterns are reviewed relationships among public Element results. The active
 registry is `free-patterns-5.1.0` and contains exactly 11 active Patterns. A Pattern
 does not mine normalized rows again: it consumes the upstream Element result,

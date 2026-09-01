@@ -1,5 +1,10 @@
 # Elements
 
+This is the retained V5.2-compatible Element catalog. It is not the V7
+Finding registry. V7 starts from STRATZ-native data and a new analytical
+lineage; see the [provider contract](stratz-v7-provider-contract.md) and
+[analytical learnings and gotchas](../../docs/agent/analytical-learnings-and-gotchas.md).
+
 Elements are the 18 public atomic measurements in `free-elements-5.2.0`. They
 are descriptive signals, not player types. Every result carries status,
 confidence, sample size, coverage, zone, receipts, confounders, and missing

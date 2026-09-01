@@ -1,6 +1,6 @@
-# Dota DNA v5.2 — Single Source of Truth
+# Dota DNA v5.2 — Historical Compatibility SSOT
 
-Status: canonical for the current Free Dota DNA product  
+Status: retained for V5.2 compatibility and runtime lineage; not a V7 analytical contract
 Effective date: 2026-08-22  
 Repository baseline reviewed: `3670c49` (`v5.2 sol+luna`)
 

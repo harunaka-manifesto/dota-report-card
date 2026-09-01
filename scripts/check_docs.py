@@ -42,6 +42,7 @@ ACTIVE_DOCS = (
     ROOT / "docs" / "architecture" / "report-flow.md",
     ROOT / "docs" / "architecture" / "data-provenance.md",
     ROOT / "docs" / "architecture" / "dota-dna-ssot.md",
+    ROOT / "docs" / "architecture" / "stratz-v7-provider-contract.md",
     ROOT / "docs" / "architecture" / "free-dna-v6-statistics.md",
     ROOT / "docs" / "architecture" / "free-dna-v6.1-feature-graph.md",
     ROOT / "docs" / "architecture" / "deep-diagnostics-v2.md",
@@ -52,6 +53,7 @@ ACTIVE_DOCS = (
     ROOT / "docs" / "design" / "free-dna-v6.1-figma-documentation-update-agent-brief.md",
     ROOT / "docs" / "generated" / "free-dna-v6.1-copy-review.md",
     ROOT / "docs" / "evidence-contract.md",
+    ROOT / "docs" / "agent" / "analytical-learnings-and-gotchas.md",
     ROOT / "docs" / "opendota-data-inventory.md",
     ROOT / "docs" / "system-behavior-baseline.md",
 )

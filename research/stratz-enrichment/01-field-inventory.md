@@ -48,15 +48,16 @@ breadth × list cardinality. A2 (one player, full `stats`, one match) succeeded;
 A1b (7 types, shallow introspection) succeeded. **Any per-match parsed query
 must be complexity-budgeted, and the budget has to be measured, not assumed.**
 
-**Automated access remains dead.** `api.stratz.com` returns HTTP 403 from both
-the cloud sandbox and the device shell. Of the three checked-in probe runs under
-`.local/stratz-probe/runs/`, only `193875165-20260827T011356Z` made real
-requests: 8 requests, **all HTTP 403**, including introspection. The other two
-runs made zero physical requests and their 76-byte `introspection.json` files
-contain a `dry-run` stub, not an error response. Manual GraphiQL paste is the
-only working path.
-This is an acquisition blocker for any corpus, independent of the licensing
-question.
+**Historical access observation (2026-08-27).** `api.stratz.com` returned HTTP
+403 from both the cloud sandbox and the device shell. Of the three checked-in
+probe runs under `.local/stratz-probe/runs/`, only
+`193875165-20260827T011356Z` made real requests: 8 requests, **all HTTP 403**,
+including introspection. The other two runs made zero physical requests and
+their 76-byte `introspection.json` files contain a `dry-run` stub, not an error
+response. The 2026-09-01 superseding note records the blocker resolved for
+future direct server-side access; this inventory remains a historical specimen
+record, not a current access test. Licensing and population coverage remain
+separate unresolved corpus decisions.
 
 ---
 
