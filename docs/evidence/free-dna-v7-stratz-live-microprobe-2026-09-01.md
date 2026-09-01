@@ -1,8 +1,8 @@
 # V7 STRATZ live microprobe
 
-Date: 2026-09-01  
+Date: 2026-09-01
 Task: current-schema sentinel, parsed subtype sentinel, and parsed evidence
-batch economics  
+batch economics
 Status: complete for the recommended five-call path; optional branches deferred
 
 ## Evidence boundary
