@@ -132,7 +132,7 @@ context-baseline accounting.
 | provider path | semantic class / meaning | alignment | null behavior | parsed required | complexity | candidate consumers | disposition |
 |---|---|---|---|---:|---|---|---|
 | `profile.isAnonymous` | PRIVACY — provider privacy state | profile | null fails public eligibility | no | UNKNOWN | product eligibility | KEEP |
-| `profile.isStratzPublic` | PRIVACY — provider public-profile state | profile | null fails public eligibility | no | UNKNOWN | product eligibility | KEEP |
+| `profile.isStratzPublic` | PRIVACY — descriptive STRATZ-profile state; live history remained available when false | profile | retain null/false descriptively; do not gate data eligibility | no | UNKNOWN | QA stratification | KEEP |
 | `match.id` | META — opaque local parsed-join key | one match | missing row fails closed | no | UNKNOWN | T2-A, T2-B local join | KEEP, local-only |
 | `match.startDateTime` | META — match start timestamp | one match | null excludes chronology use | no | UNKNOWN | T1-A, T1-B | KEEP |
 | `match.endDateTime` | META — match end timestamp | one match | null excludes chronology use | no | UNKNOWN | T1-B | KEEP |

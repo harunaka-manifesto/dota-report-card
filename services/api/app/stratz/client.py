@@ -207,7 +207,7 @@ class StratzClient:
         if raw_player is None:
             raise ProfileUnavailable("STRATZ profile is private or unavailable")
         profile = self._parse_profile(raw_player)
-        _ensure_public_profile(profile)
+        _ensure_non_anonymous_profile(profile)
         if profile.steam_account_id != account_id:
             raise StratzSchemaDrift("STRATZ profile account ID does not match the request")
         return profile
@@ -257,7 +257,7 @@ class StratzClient:
         if raw_player is None:
             raise ProfileUnavailable("STRATZ profile is private or unavailable")
         page = self._parse_history_page(data, account_id, offset, page_size)
-        _ensure_public_profile(page.profile)
+        _ensure_non_anonymous_profile(page.profile)
         if page.profile.steam_account_id != account_id:
             raise StratzSchemaDrift("STRATZ history account ID does not match the request")
         return page
@@ -616,8 +616,8 @@ def _positive_id(value: int, label: str) -> int:
     return parsed
 
 
-def _ensure_public_profile(profile: StratzPlayerProfile) -> None:
-    if profile.is_anonymous is True or profile.is_stratz_public is False:
+def _ensure_non_anonymous_profile(profile: StratzPlayerProfile) -> None:
+    if profile.is_anonymous is True:
         raise ProfileUnavailable("STRATZ profile is private or unavailable")
 
 

@@ -200,6 +200,35 @@ async def test_private_profile_is_not_normalized_as_empty_public_data() -> None:
             await client.get_player_profile(ACCOUNT_ID)
 
 
+@pytest.mark.asyncio
+async def test_stratz_public_flag_does_not_block_available_profile() -> None:
+    payload = _payload()
+    payload["data"]["player"]["steamAccount"]["isStratzPublic"] = False
+
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        return _json_response({"data": {"player": payload["data"]["player"]}})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        client = StratzClient(_settings(), http_client=http, sleep=_no_sleep)
+        profile = await client.get_player_profile(ACCOUNT_ID)
+
+    assert profile.is_stratz_public is False
+
+
+@pytest.mark.asyncio
+async def test_anonymous_profile_remains_unavailable() -> None:
+    payload = _payload()
+    payload["data"]["player"]["steamAccount"]["isAnonymous"] = True
+
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        return _json_response({"data": {"player": payload["data"]["player"]}})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        client = StratzClient(_settings(), http_client=http, sleep=_no_sleep)
+        with pytest.raises(ProfileUnavailable):
+            await client.get_player_profile(ACCOUNT_ID)
+
+
 def _match_template(match_id: int, started_at: int, *, parsed: int | None = 2_000_000_000) -> dict[str, Any]:
     match = copy.deepcopy(_payload()["data"]["player"]["matches"][0])
     match["id"] = match_id

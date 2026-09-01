@@ -1120,9 +1120,7 @@ def build_qa_atlas(cohort: FrozenCohort, output_dir: Path, state: Mapping[str, A
             if isinstance(row, Mapping)
         ]
         public_profiles = [profile for profile in profiles if profile.get("is_public") is True]
-        product_profiles = [
-            profile for profile in public_profiles if profile.get("is_anonymous") is False
-        ]
+        product_profiles = [profile for profile in profiles if profile.get("is_anonymous") is False]
         split_summary[split] = {
             "predeclared_history_players": len(targets),
             "history_attempted_players": sum(state.get("status") != "pending" for state in states),
@@ -1133,9 +1131,7 @@ def build_qa_atlas(cohort: FrozenCohort, output_dir: Path, state: Mapping[str, A
             "history_public_profile_players": len(public_profiles),
             "history_product_eligible_players": len(product_profiles),
             "history_anonymous_profile_players": sum(profile.get("is_anonymous") is True for profile in profiles),
-            "history_privacy_unknown_players": sum(
-                profile.get("is_public") is None or profile.get("is_anonymous") is None for profile in profiles
-            ) + sum(
+            "history_privacy_unknown_players": sum(profile.get("is_anonymous") is None for profile in profiles) + sum(
                 1 for account_state in states
                 if not isinstance(account_state, Mapping) or not isinstance(account_state.get("profile"), Mapping)
             ),
@@ -1144,9 +1140,9 @@ def build_qa_atlas(cohort: FrozenCohort, output_dir: Path, state: Mapping[str, A
             "history_enum_failure_rows": sum(row.get("enum_failure") is True for row in split_rows),
             "history_structural_observable_rows": sum(row.get("enum_failure") is False for row in split_rows),
             "predeclared_parsed_players": len(ptargets),
-            "parsed_attempted_players": sum(state.get("status") not in {"pending", "skipped_not_public", "no_valid_opportunities"} for state in p_states),
+            "parsed_attempted_players": sum(state.get("status") not in {"pending", "skipped_anonymous", "no_valid_opportunities"} for state in p_states),
             "parsed_complete_players": sum(state.get("status") == "complete" for state in p_states),
-            "parsed_skipped_not_public": sum(state.get("status") == "skipped_not_public" for state in p_states),
+            "parsed_skipped_anonymous": sum(state.get("status") == "skipped_anonymous" for state in p_states),
             "parsed_no_valid_opportunities": sum(state.get("status") == "no_valid_opportunities" for state in p_states),
         }
     parsed_available = sum(row.get("parsed_at") is not None for row in history_rows)
@@ -1835,11 +1831,11 @@ class CorpusRunner:
     async def _acquire_parsed(self, target: CohortTarget) -> None:
         history_state = self._history_account_state(target)
         parsed_state = self._parsed_account_state(target)
-        if parsed_state.get("status") in {"complete", "skipped_not_public", "no_valid_opportunities"}:
+        if parsed_state.get("status") in {"complete", "skipped_anonymous", "no_valid_opportunities"}:
             return
         profile = history_state.get("profile", {})
-        if profile.get("is_anonymous") is not False or profile.get("is_public") is not True:
-            parsed_state["status"] = "skipped_not_public"
+        if profile.get("is_anonymous") is not False:
+            parsed_state["status"] = "skipped_anonymous"
             self._save_state()
             return
         match_ids = parsed_state.get("match_ids")

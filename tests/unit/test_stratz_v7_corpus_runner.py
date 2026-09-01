@@ -288,12 +288,14 @@ async def test_zero_network_default_writes_no_request_rows(tmp_path: Path) -> No
 @pytest.mark.asyncio
 async def test_live_run_archives_immutable_responses_and_resume_reuses_them(tmp_path: Path) -> None:
     requests: list[dict[str, Any]] = []
+    history_payload = _history_payload()
+    history_payload["data"]["player"]["steamAccount"]["isStratzPublic"] = False
 
     async def handler(request: httpx.Request) -> httpx.Response:
         body = json.loads(request.content)
         requests.append(body)
         if body["operationName"] == GET_PLAYER_HISTORY_PAGE.name:
-            return httpx.Response(200, json=_history_payload())
+            return httpx.Response(200, json=history_payload)
         return httpx.Response(200, json=_parsed_payload())
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
