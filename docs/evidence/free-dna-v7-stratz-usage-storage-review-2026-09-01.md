@@ -1,7 +1,8 @@
 # V7 STRATZ usage, storage, and redistribution review — 2026-09-01
 
-Status: complete for the documentation/research phase; live collection and
-commercial launch remain held pending owner decisions.
+Status: complete for the documentation/research phase; conservative local
+collection may proceed, while public/raw redistribution and commercial launch
+remain held pending written confirmation.
 
 Task type: **DOCUMENTATION + RESEARCH**
 
@@ -40,13 +41,16 @@ Current API/docs pages read: public documentation navigation only
 Clear provider prohibition of private local raw storage found: NO
 Raw redistribution: DO NOT DO
 Commercial/product launch: HOLD for written confirmation
-CHECKPOINT: PASS WITH CONSERVATIVE HOLD
+Population/local research: PROCEED under the conservative local-only controls below
+CHECKPOINT: PASS — LOCAL RESEARCH MAY PROCEED; PUBLIC/RAW REDISTRIBUTION AND COMMERCIAL LAUNCH HELD
 ```
 
 The GraphiQL link was inspected only as a public documentation destination; no
 query, introspection, token exchange, or data operation was submitted. The
-planned ignored local corpus remains a research design, not a provider-granted
-license.
+planned ignored local corpus remains a conservative research arrangement, not a
+provider-granted license. Because no clearly prohibited storage or collection
+term was found, population research may proceed under the controls below;
+unresolved terms continue to block redistribution and commercial use.
 
 ## Classification rubric
 
@@ -73,7 +77,7 @@ Classification count across the 21 matrix rows: `CLEARLY_ALLOWED` 8,
 | Use the STRATZ API/GraphQL interface with a token | `CLEARLY_ALLOWED` | The current [STRATZ Welcome page](https://stratz.com/welcome) says the API is available for free and that STRATZ moved from REST to GraphQL. FAQ [#7](https://github.com/STRATZ-Esports/knowledge-base/issues/7) points developers to the GraphQL documentation and says STRATZ.com is powered by the API. | Use the named, server-side GraphQL operations already defined by the V7 provider boundary. |
 | Request public Dota match/player data | `CLEARLY_ALLOWED` | FAQ [#7](https://github.com/STRATZ-Esports/knowledge-base/issues/7) says public game data is the API’s likely scope and contrasts it with private information such as actual MMR. The current [Welcome page](https://stratz.com/welcome) describes public-player profiles and public-match storage. | Keep the V7 projection to public, explicitly selected fields; fail closed for private/unavailable data. |
 | Build a web application or community tool | `CLEARLY_ALLOWED` | FAQ [#37](https://github.com/STRATZ-Esports/knowledge-base/issues/37) says Individual Tokens are intended for “web applications and community projects.” FAQ [#7](https://github.com/STRATZ-Esports/knowledge-base/issues/7) names external tools built with the API. | The product shape is within the publicly described use case, but token tier and referral conditions still apply. |
-| Use a Default Token for testing or a small personal project | `CLEARLY_ALLOWED` | FAQ [#37](https://github.com/STRATZ-Esports/knowledge-base/issues/37) describes the Default Token as requiring no special approval or referral links and as suitable for testing and small personal projects. | Do not use this statement to size a multi-user product or corpus. |
+| Use a Default Token for testing or a small personal project | `CLEARLY_ALLOWED` | FAQ [#37](https://github.com/STRATZ-Esports/knowledge-base/issues/37) describes the Default Token as requiring no special approval or referral links and as suitable for testing and small personal projects. | This supports bounded research use; do not infer that the historical Default-token description grants a multi-user product or public-output right. |
 | Use Multi-Tokens for a distributed desktop application with per-user calls | `CLEARLY_ALLOWED` | FAQ [#37](https://github.com/STRATZ-Esports/knowledge-base/issues/37) describes Multi-Tokens as allowing separate individual tokens for users of a desktop application. | Not the planned server-side Dota Report Card pattern; do not select this token class by analogy. |
 | Treat “free API” as a no-fee statement | `CLEARLY_ALLOWED` | The current [Welcome page](https://stratz.com/welcome) calls the API free; FAQ [#31](https://github.com/STRATZ-Esports/knowledge-base/issues/31) says it is “100% for free.” | Free pricing is not a data license. Keep licensing/storage questions open. |
 
@@ -82,7 +86,7 @@ Classification count across the 21 matrix rows: `CLEARLY_ALLOWED` 8,
 | issue | classification | precise first-party evidence | V7 decision |
 |---|---|---|---|
 | Link back to STRATZ when using a Default Token | `AMBIGUOUS` | FAQ [#31](https://github.com/STRATZ-Esports/knowledge-base/issues/31) says that, for a Default Token, “all we ask” is a link back referencing the data source. “Ask” is not a clearly stated mandatory condition, and the FAQ is from 2020. | Add a visible plain-text STRATZ attribution link anyway; treat it as mandatory until STRATZ confirms otherwise. |
-| Generate referral traffic when using Individual or Multi-Tokens | `AMBIGUOUS` | FAQ [#31](https://github.com/STRATZ-Esports/knowledge-base/issues/31) says users of the more powerful token classes are “required” to generate a certain amount of referral traffic, but gives no amount. FAQ [#37](https://github.com/STRATZ-Esports/knowledge-base/issues/37) directs users to the API page for token requirements. | Do not choose an Individual/Multi token for V7 production or corpus work until the current requirement and measurement are confirmed in writing. |
+| Generate referral traffic when using Individual or Multi-Tokens | `AMBIGUOUS` | FAQ [#31](https://github.com/STRATZ-Esports/knowledge-base/issues/31) says users of the more powerful token classes are “required” to generate a certain amount of referral traffic, but gives no amount. FAQ [#37](https://github.com/STRATZ-Esports/knowledge-base/issues/37) directs users to the API page for token requirements. | Local research may proceed with visible attribution and an owner-approved token; record the unresolved referral condition and confirm it before public/product use. |
 | Use a STRATZ attribution badge/link | `CLEARLY_ALLOWED` | FAQ [#31](https://github.com/STRATZ-Esports/knowledge-base/issues/31) expressly offers STRATZ badges as attribution links. | A plain linked “Data source: STRATZ API” label is the minimum; use an official badge only if its current asset/usage instructions are available. |
 
 ### Limits and request economics
@@ -91,14 +95,14 @@ Classification count across the 21 matrix rows: `CLEARLY_ALLOWED` 8,
 |---|---|---|---|
 | Make requests within the applicable token quota | `CLEARLY_ALLOWED` | FAQ [#15](https://github.com/STRATZ-Esports/knowledge-base/issues/15) says the API uses second/minute/hour/day limits and that the service exposes remaining calls in “My Tokens.” FAQ [#37](https://github.com/STRATZ-Esports/knowledge-base/issues/37) repeats the token-rate-limit model. | Keep bounded concurrency, count physical attempts/retries, stop on 429/reset signals, and never treat retries as free. |
 | Treat the exact numeric quotas published in FAQ #15 as the current 2026 contract | `AMBIGUOUS` | FAQ [#15](https://github.com/STRATZ-Esports/knowledge-base/issues/15) lists 2020-era figures (Default 20/sec, 250/min, 2,000/hour, 10,000/day; Individual 20/sec, 250/min, 4,000/hour, 20,000/day; Multi per-user limits), but the issue was opened on 2020-10-22 and the public API page does not expose a current unauthenticated quota table. | Do not cite those numbers as current permission. Use the token dashboard/response headers on an explicitly approved future probe and retain conservative local ceilings. |
-| Acquire a high-volume research corpus or automate repeated harvesting | `AMBIGUOUS` | The first-party [STRATZ 2022 update](https://medium.com/stratz/stratz-2022-d640d549b6f6) says STRATZ addressed “unauthorized use of our API” but does not define the conduct. The FAQ describes tools and token tiers but not a corpus-retention or bulk-harvesting policy. | No corpus acquisition until owner approval, current rate measurement, and written clarification of storage/redistribution/commercial scope. |
+| Acquire a high-volume research corpus or automate repeated harvesting | `AMBIGUOUS` | The first-party [STRATZ 2022 update](https://medium.com/stratz/stratz-2022-d640d549b6f6) says STRATZ addressed “unauthorized use of our API” but does not define the conduct. The FAQ describes tools and token tiers but not a corpus-retention or bulk-harvesting policy. | Population research may proceed under bounded, local-only controls, conservative local ceilings with recorded quota observations, minimum retention, and no redistribution; stop only if a clear provider prohibition or hard policy denial is encountered. |
 
 ### Caching, local persistence, and redistribution
 
 | issue | classification | precise first-party evidence | V7 decision |
 |---|---|---|---|
-| Cache raw STRATZ responses locally for bounded research reproducibility | `NOT_SPECIFIED` | No reviewed first-party STRATZ website, API page, FAQ issue, or STRATZ Medium article expressly grants or prohibits raw-response caching or a cache TTL. The 2022 unauthorized-use note does not define caching. | Do not call this “licensed.” If research proceeds, use a private, ignored, local-only raw archive with minimum necessary retention and no external sync. |
-| Persist raw responses in a local research corpus/database | `NOT_SPECIFIED` | The reviewed first-party sources discuss API access, token classes, public data, and attribution, but do not state whether a user may retain raw response bodies, for how long, or in what storage. | Keep raw bodies outside Git, production databases, shared caches, cloud drives, and backups unless an owner-approved written answer allows them. |
+| Cache raw STRATZ responses locally for bounded research reproducibility | `NOT_SPECIFIED` | No reviewed first-party STRATZ website, API page, FAQ issue, or STRATZ Medium article expressly grants or prohibits raw-response caching or a cache TTL. The 2022 unauthorized-use note does not define caching. | Do not call this “licensed.” For population research, use a private, ignored, local-only raw archive with minimum necessary retention and no external sync. |
+| Persist raw responses in a local research corpus/database | `NOT_SPECIFIED` | The reviewed first-party sources discuss API access, token classes, public data, and attribution, but do not state whether a user may retain raw response bodies, for how long, or in what storage. | For population research, keep raw bodies in the private ignored local archive only; exclude Git, production databases, shared caches, cloud drives, and external services, and apply minimum retention. |
 | Commit raw response bodies, raw identities, or token-bearing request material | `NOT_SPECIFIED` from STRATZ; `DO NOT COMMIT` under the repository contract | No STRATZ source reviewed answers Git/repository publication. The repository contract separately forbids committing tokens/private identifiers and requires sanitization. | Commit only aggregate evidence, field names, hashes, and sanitized structure. Never commit raw provider bodies or authorization material. |
 | Redistribute raw or row-level STRATZ responses to users, datasets, mirrors, or other services | `AMBIGUOUS` | FAQ [#7](https://github.com/STRATZ-Esports/knowledge-base/issues/7) confirms that outside tools use the API, but no first-party source reviewed grants a right to redistribute raw/row-level responses. The first-party 2022 unauthorized-use note makes an unconditional redistribution assumption unsafe. | No raw or row-level redistribution. Keep provider rows private and expose only the minimum derived/aggregate evidence needed by the product after owner review. |
 | Publish derived aggregates or player-facing reports based on STRATZ data | `AMBIGUOUS` | First-party sources support external tools and web applications, but do not define whether derived reports, player-level aggregates, or public dashboards may be published, especially for a commercial product. | Keep public output aggregate/minimized, avoid raw identifiers and proprietary/model fields, retain source attribution, and obtain written confirmation before public or paid launch. |
@@ -126,7 +130,7 @@ raw provider response
     -> committed evidence only after identifiers and raw bodies are removed
 ```
 
-Required controls before any future live collection:
+Required controls for any future live collection:
 
 1. Use an owner-approved token and a server-side transport. Never expose a
    token in a browser, fixture, log, report, or committed file.
@@ -150,9 +154,10 @@ Required controls before any future live collection:
 8. Add a visible attribution link such as `Data source: STRATZ API →
    https://stratz.com/`. If the selected token tier has a current referral
    requirement, satisfy and measure it before live product use.
-9. Stop the live phase on a current 403/429 policy response, unexpected quota,
-   written restriction, schema/terms change, or any disagreement about whether
-   a field may be retained or published.
+9. Stop the corpus phase if a current first-party term or provider response
+   clearly prohibits local collection/storage, or a hard quota/policy denial is
+   returned. Pause publication of the affected field and record unresolved
+   ambiguity for owner review; ambiguity alone does not stop local research.
 
 These controls are intentionally stricter than the public FAQ. They preserve
 the research question while keeping the unresolved provider-rights surface
@@ -173,7 +178,8 @@ The reviewed first-party material does **not** establish:
 - whether the public FAQ’s 2020/2021 token conditions remain unchanged.
 
 The correct status for these gaps is **not “allowed by silence.”** The owner
-decision before Corpus H or Corpus P is:
+decision before public/product publication (including Corpus H or Corpus P
+outputs) is:
 
 ```text
 REQUEST WRITTEN STRATZ CONFIRMATION OF:
@@ -185,8 +191,9 @@ REQUEST WRITTEN STRATZ CONFIRMATION OF:
 ```
 
 Until that answer exists, V7 may continue offline parser/normalizer work and
-aggregate-only documentation. It must not start a population corpus, add raw
-provider data to Git, or launch a public/commercial STRATZ-backed product.
+may run the population research corpus under the conservative local-only
+protocol above. It must not add raw provider data to Git, redistribute raw or
+row-level data, or launch a public/commercial STRATZ-backed product.
 
 ## First-party source record
 
