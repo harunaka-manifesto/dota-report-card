@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  retries: process.env.CI ? 2 : 0,
   webServer: {
     command: "node tests/e2e/fixture-server.mjs",
     url: "http://127.0.0.1:3000",
