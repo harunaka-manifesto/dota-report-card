@@ -1,29 +1,28 @@
 # V7 STRATZ corpus runner and neutral QA atlas — 2026-09-02
 
-Status: **STOP_BLOCKED_PUBLIC_ELIGIBILITY**. The underlying runner checkpoint
-is `PARTIAL_PAUSED` at the conservative local hourly ceiling, but the observed
-valid-public denominator is zero and the frozen plan's feasibility/validity
-gate is not met. Preserve the immutable local corpus; do not resume or make
-further provider calls without owner direction on a new valid-public sampling
-frame/split. No reserved or sealed account was queried, no raw provider body is
-committed, and no Finding, report, calibration, or holdout output was produced.
+Status: **PARTIAL_PAUSED** at the conservative local hourly ceiling. On
+2026-09-02 the owner confirmed that `isStratzPublic=false` does not prevent
+valid API history access and authorized continuing without using that
+descriptive flag as an eligibility gate. `isAnonymous=true` remains excluded.
+No reserved or sealed account was queried, no raw provider body is committed,
+and no Finding, report, calibration, or holdout output was produced.
 
 ## Phase checkpoint
 
 ```text
 PHASE: V7_STRATZ_HISTORY_ACQUISITION
 STATUS: PARTIAL_PAUSED
-RESEARCH GATE: STOP_BLOCKED_PUBLIC_ELIGIBILITY
-RUN DATE: 2026-09-01 UTC (checkpoint written before the 2026-09-02 handoff)
-PHYSICAL STRATZ ATTEMPTS: 1,000
-HISTORY ATTEMPTS: 1,000
+RESEARCH GATE: OPEN — OWNER AUTHORIZED DESCRIPTIVE isStratzPublic HANDLING
+RUN DATE: 2026-09-01 UTC
+PHYSICAL STRATZ ATTEMPTS: 2,000
+HISTORY ATTEMPTS: 2,000
 PARSED BATCH ATTEMPTS: 0
 OPENDOTA CALLS: 0
 RESERVED/SEALED TOUCHED: NO
 ADAPTIVE TOP-UP OR REPLACEMENT: NO
 RAW IDENTITIES OR PROVIDER ROWS COMMITTED: NO
-RESUME: NOT AUTHORIZED; preserve the checkpoint and make no further calls
-        until owner direction establishes a new valid-public sampling frame/split
+RESUME: after 2026-09-02T00:36:12.547084+00:00 under the same fixed cohort,
+        window, operation digests, and local checkpoint
 ```
 
 The run used only the predeclared `DISCOVERY` and `CANDIDATE_TEST` targets from
@@ -54,29 +53,26 @@ pseudonym identifiers.
 | measure | `DISCOVERY` | `CANDIDATE_TEST` | total allowed cohort |
 |---|---:|---:|---:|
 | predeclared history players | 600 | 300 | 900 |
-| history attempted | 141 | 0 | 141 |
-| history complete | 139 | 0 | 139 |
-| history truncated at safety ceiling | 1 | 0 | 1 |
-| history failed/pending at pause | 1 / 0 | 0 / 300 | 1 / 300 |
+| history attempted | 289 | 0 | 289 |
+| history complete | 285 | 0 | 285 |
+| history truncated at safety ceiling | 4 | 0 | 4 |
+| history failed/pending at pause | 0 / 311 | 0 / 300 | 0 / 611 |
 | predeclared parsed players | 128 | 128 | 256 |
 | parsed batch attempts | 0 | 0 | 0 |
 
-The one failed history account is the account whose next attempt was blocked
-by the rate-window pause; its raw checkpoint is preserved. No
-private/unavailable response was observed in this checkpoint. Among the 141
-completed-or-paused profile states, 127 were non-anonymous with the provider
-public flag false and 14 were anonymous: **0/141 observed product-public**.
-This does not establish a different meaning for the provider flag. It means
-the predeclared valid-public sampling condition was not met, so the plan's
-feasibility/validity stop gate is triggered. Do not reinterpret the flag,
-top-up, replace, or adapt the frozen cohort.
+No private/unavailable response was observed. Among 290 profile states, 261
+are non-anonymous and 29 are anonymous; all 290 have the descriptive provider
+flag `isStratzPublic=false`, yet their history operations returned data. The
+owner therefore authorized eligibility based on actual operation availability
+and required-field coverage rather than that flag. No account was topped up,
+replaced, or adaptively selected.
 
-The history archive contains 90,262 canonical rows. All have a known start
-timestamp within the fixed window. Of these, 71,900 have non-null native
-`parsedDateTime` and 18,362 do not. The observed history row duration summary
-is count 90,262, minimum 326 seconds, maximum 6,988 seconds, mean 1,899.8
-seconds. Native enum observations are retained separately: 69,460 rows have
-no observed role/position/lane/leaver vocabulary failure and 20,802 fail at
+The history archive contains 183,730 canonical rows. All have a known start
+timestamp within the fixed window. Of these, 146,143 have non-null native
+`parsedDateTime` and 37,587 do not. The observed history row duration summary
+is count 183,730, minimum 326 seconds, maximum 7,578 seconds, mean 1,893.739
+seconds. Native enum observations are retained separately: 141,277 rows have
+no observed role/position/lane/leaver vocabulary failure and 42,453 fail at
 least one observed enum check. Structural eligibility remains **unknown**
 until native game-mode, lobby, and leaver semantics are verified; no row is
 promoted to an eligible Finding denominator.
@@ -85,14 +81,14 @@ promoted to an eligible Finding denominator.
 
 | gate | result |
 |---|---|
-| physical request ledger rows | 1,000 |
-| immutable raw metadata/body objects | 1,000 / 1,000 |
-| HTTP statuses | 1,000 × 200 |
-| retries | 0 |
+| physical request ledger rows | 2,000 |
+| immutable raw metadata/body objects | 1,999 / 1,999 |
+| HTTP statuses | 1,999 × 200; one retried `ReadTimeout` without a response |
+| retries | 1 |
 | cache hits during live phase | 0 |
-| response bytes | 41,564,659 |
-| summed response latency | 341.914323 seconds |
-| response hash manifest | `07efcf887bd60c252f6b421307b8ad2461f67bbb64ca7476b5e7cdb731269738` |
+| response bytes | 83,044,837 |
+| summed response latency | 773.522701 seconds |
+| response hash manifest | `97e9a1b1b7f949cbd5976132ae930f5149df25b988726b9b37d05cfcb8c8cbc8` |
 | ledger/raw reconciliation | PASS |
 | operation/version/document digest recorded | PASS |
 | variables retained | NO — only a variables SHA-256 and safe variable-key metadata are retained |
@@ -119,8 +115,9 @@ immutable raw response + metadata
 The history projection preserves native role, position, lane, game mode, lobby,
 game version, and leaver values as separate fields. It never uses the legacy
 OpenDota role mapping. Parsed acquisition is not started until a predeclared
-parsed-subset account is public, non-anonymous, and has valid non-null parsed
-opportunities. Batches are capped at eight requested IDs and require exact
+parsed-subset account is non-anonymous and has valid non-null parsed
+opportunities. `isStratzPublic` is retained descriptively but is not an access
+gate. Batches are capped at eight requested IDs and require exact
 requested-ID equality, one selected player row, and non-null `stats`.
 
 Rows with unknown enum values fail closed for dependent structural use. Native
@@ -138,7 +135,8 @@ eligibility, or Finding yield.
 
 ## Offline validation and release accounting
 
-Focused runner tests: **13 passed**. They cover dotenv-only token loading and
+Focused client/runner tests: **25 passed**. They cover descriptive
+`isStratzPublic` handling, anonymous-profile exclusion, dotenv-only token loading and
 redaction, zero-network default, frozen split exclusion, native normalization,
 exact parsed batches, duplicate handling, inclusive date boundaries, immutable
 hashes and cache reuse, ledger reconciliation, auth failure, GraphQL partial
@@ -148,7 +146,7 @@ the planned daily cap. Ruff and mypy pass for the runner and focused tests.
 ```text
 TASK TYPE: BACKEND RESEARCH TOOLING + ANALYTICAL DATA ENGINEERING + DOCUMENTATION
 BASE SHA: c538bb5ea99e3eaa4054df8db38c93728fa50808
-STRATZ calls: 1,000 history; 0 parsed; 1,000 physical attempts total
+STRATZ calls: 2,000 history; 0 parsed; 2,000 physical attempts total
 OpenDota calls: 0
 CALIBRATION_RESERVED / SEALED_VALIDATION touched: NO
 raw committed: NO
@@ -161,7 +159,7 @@ deployment: NO
 
 The preserved local checkpoint is
 `.local/corpora/stratz/v7-corpus-2026-09-02/`. It is intentionally ignored
-and is not part of the commit. It is **not authorized for continuation**. Any
-future acquisition requires owner direction on a new valid-public sampling
-frame/split and an explicit feasibility review; it must not reinterpret the
-provider flag, adaptively top up, regenerate, or replace this frozen cohort.
+and is not part of the commit. Continuation is owner-authorized after the
+recorded hourly reset, using the same fixed cohort, window, operation digests,
+and checkpoint. The provider flag remains descriptive; the cohort must not be
+adaptively topped up, regenerated, or replaced.
