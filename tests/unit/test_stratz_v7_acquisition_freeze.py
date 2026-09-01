@@ -17,14 +17,10 @@ from scripts.stratz_v7_acquisition_freeze import (
     build_split_manifest,
     calculate_economics,
     load_source_frame,
+    max_proportion_se,
     pseudonymize_account,
     validate_pack_registry,
     verify_no_split_overlap,
-)
-
-SOURCE_FRAME = Path(
-    "/Users/nikanakamanifesto/Documents/GitHub/dota-report-card/.local/"
-    "corpora/opendota/v61-session-drift-expansion/manifests/fixed-frame-manifest.json"
 )
 
 
@@ -59,10 +55,30 @@ def _small_counts() -> tuple[dict[str, int], dict[str, int]]:
     return split_counts, parsed_counts
 
 
-def test_fixed_source_frame_validates_without_exposing_accounts() -> None:
-    frame = load_source_frame(SOURCE_FRAME)
+def _write_synthetic_source_frame(path: Path) -> Path:
+    target = path / "fixed-frame-manifest.json"
+    target.write_text(
+        json.dumps(
+            {
+                "adaptive_top_up": False,
+                "positive_public_account_count": EXPECTED_FRAME_COUNT,
+                "schema_version": "fixture-frame-1.0.0",
+                "selection": "12 descending /publicMatches pages plus HMAC rank",
+                "ranked_frame": [
+                    {"account_id": 1_000_000_000 + index, "position": index}
+                    for index in range(EXPECTED_FRAME_COUNT)
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return target
+
+
+def test_fixed_source_frame_validates_without_exposing_accounts(tmp_path: Path) -> None:
+    frame = load_source_frame(_write_synthetic_source_frame(tmp_path))
     assert frame.frame_count == EXPECTED_FRAME_COUNT
-    assert frame.positive_public_account_count == 4_423
+    assert frame.positive_public_account_count == EXPECTED_FRAME_COUNT
     summary = frame.public_summary()
     encoded = json.dumps(summary)
     assert str(frame.records[0].account_id) not in encoded
@@ -149,13 +165,28 @@ def test_operation_digests_and_field_packs_are_frozen_and_safe() -> None:
 def test_batch_economics_uses_safe_batch_eight_and_daily_reserve() -> None:
     economics = calculate_economics()
     assert economics["sample_size"] == SAMPLE_SIZE
+    assert economics["planning_scenario"]["history_rows_per_player_year"] == 597
     assert economics["planning_scenario"]["parsed_batch_size"] == 8
+    assert economics["calls"]["history_pages_per_account"] == 6
+    assert economics["calls"]["history_calls"] == 7_200
     assert economics["calls"]["parsed_batches_per_account_upper_bound"] == 37
     assert economics["calls"]["parsed_calls"] == 9_472
-    assert economics["calls"]["total_planned_calls"] == 13_072
-    assert economics["daily_schedule"]["DAY_1"]["planned_calls"] == 8_336
+    assert economics["calls"]["total_planned_calls"] == 16_672
+    assert economics["daily_schedule"]["DAY_1"]["planned_calls"] == 7_200
     assert economics["daily_schedule"]["DAY_1"]["planned_calls"] < 9_000
     assert economics["daily_schedule"]["DAY_2"]["planned_calls"] == 4_736
+    assert economics["daily_schedule"]["DAY_3"]["planned_calls"] == 4_736
+    assert economics["wall_clock"]["day_1_hours_at_hour_ceiling"] == 7.2
+    assert economics["wall_clock"]["day_2_hours_at_hour_ceiling"] == 4.736
+    assert economics["wall_clock"]["day_3_hours_at_hour_ceiling"] == 4.736
+    assert economics["context_opportunities"]["history_rows"] == 716_400
+    assert economics["context_opportunities"]["history_structural_match_rows"] == 351_600
+    assert economics["bytes"]["history_raw_bytes_proxy"] == 744_775_200
+    assert economics["bytes"]["combined_raw_bytes_upper_bound"] == 1_010_928_928
+    parsed_se = max_proportion_se(128, EXPECTED_FRAME_COUNT)
+    assert economics["parsed_candidate_test_n"] == 128
+    assert economics["parsed_candidate_test_max_standard_error"] == parsed_se
+    assert economics["parsed_candidate_test_max_95_percent_margin"] == 1.96 * parsed_se
     assert economics["quotas"]["provider_observed"] == {
         "second": 8,
         "minute": 150,

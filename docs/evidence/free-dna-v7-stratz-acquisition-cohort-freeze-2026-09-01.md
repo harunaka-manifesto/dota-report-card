@@ -58,9 +58,10 @@ parsed subset is independently HMAC-ranked within `DISCOVERY` and
 yield, or analytical result is available; no top-up or replacement based on
 Finding yield is permitted. The candidate-test history split has a worst-case
 SE of 0.027804 (95% margin 5.450%), while the predeclared 128-account parsed
-candidate-test subset keeps a complete parsed confirmation wave operationally
-possible. These are precision bounds for reach-like proportions, not promises
-about final Finding tails.
+candidate-test subset has **n = 128**, a worst-case finite-population
+proportion SE of 0.043510 (95% margin 0.085280, or 8.528%), and keeps a
+complete parsed confirmation wave operationally possible. These are precision
+bounds for reach-like proportions, not promises about final Finding tails.
 
 The private local artifacts from the generated freeze are:
 
@@ -76,7 +77,7 @@ Only digests leave the local artifact boundary:
 |---|---|
 | salt (32 bytes, local only) | `2d552949ff32480ab7089d979152423a5e8bffd57fe4f613b9c7db698bdee7e4` |
 | split manifest | `ef24c63b1c2f56e4bb21b4947b0b43dedf0550bd3547ee818cc9346f4275d885` |
-| corpus plan | `816deb83232ec519bafabb9d4177683f0b1b09635781d9df01d8a15679f76165` |
+| corpus plan | `9a77fb59fc22e8ac9cad036e3c7854f2668f97a46ed155d6a0a2a86aebac8dd0` |
 
 The split manifest contains HMAC pseudonyms, HMAC rank digests, source-frame
 positions, partition labels, and parsed-subset flags. It contains no raw
@@ -92,14 +93,19 @@ Denominators are kept separate:
 | structural eligible | unknown until history mode/lobby/native-leaver checks; leaver semantics remain unresolved |
 | information eligible | candidate-specific non-null opportunities after acquisition; parsed availability is not assumed |
 
-The scenario used for cost planning is 293 history-eligible matches per
-account-year, derived from the existing specimen research and explicitly not a
-population estimate. Role, position, and lane observed specimen rates (93%,
-91%, and 93%) are recorded only as unresolved planning context; no population
-coverage is claimed. Candidate gates remain candidate-specific: a role-shape
-pass needs its declared match/session support, and parsed candidates require
-non-null information opportunities. An account count is never substituted for
-an opportunity count.
+The unfiltered history operation is planned against **597 all-history rows per
+account-year**, extrapolated from one recovered q3 specimen with 100 rows over
+approximately 61 days. This is a planning proxy, **not population truth**. It
+drives the six-page/account history proxy. Separately, the parsed-batch and
+structural context scenario uses 293 structurally eligible matches per
+account-year from the existing specimen research; that value is also not a
+population estimate and must not be used to truncate unfiltered history.
+Role, position, and lane observed specimen rates (93%, 91%, and 93%) are
+recorded only as unresolved planning context; no population coverage is
+claimed. Candidate gates remain candidate-specific: a role-shape pass needs
+its declared match/session support, and parsed candidates require non-null
+information opportunities. An account count is never substituted for an
+opportunity count.
 
 ## Versioned acquisition packs
 
@@ -208,14 +214,15 @@ not exposed, so no complexity number is fabricated.
 
 | quantity | projected value | basis |
 |---|---:|---|
-| history pages/account-year | 3 | `ceil(293 / 100)`; history operation already carries profile state |
-| history calls, N=1,200 | 3,600 | 1,200 × 3 |
+| all-history rows/account-year | 597 | extrapolated from one recovered q3 specimen with 100 rows over approximately 61 days; **not population truth** |
+| history pages/account-year proxy | 6 | `ceil(597 / 100)`; unfiltered history, all rows, planning proxy only |
+| history calls, N=1,200 | 7,200 | 1,200 × 6 |
 | parsed batches/parsed account-year | 37 | `ceil(293 / 8)`; upper bound before parsed availability is measured |
 | parsed calls, 256 accounts | 9,472 | 128 discovery + 128 candidate-test, each × 37 |
-| planned calls, all waves | 13,072 | history + parsed; retries are additional physical attempts |
-| history raw bytes proxy | 372,387,600 | 3,600 × 103,441; specimen proxy, not SLA |
+| planned calls, all waves | 16,672 | history + parsed; retries are additional physical attempts |
+| history raw bytes proxy | 744,775,200 | 7,200 × 103,441; specimen proxy, not SLA |
 | parsed raw bytes upper bound | 266,153,728 | 9,472 × 28,099; safe-batch proxy |
-| combined raw bytes upper bound | 638,541,328 | approximately 608.96 MiB, local-only |
+| combined raw bytes upper bound | 1,010,928,928 | approximately 964.1 MiB, local-only |
 
 The observed provider limits were 8/sec, 150/min, 1,500/hour, 15,000/day.
 The orchestration ceilings are 5/sec, 100/min, 1,000/hour, 10,000/day. A 10%
@@ -223,16 +230,21 @@ daily reserve leaves a planned cap of 9,000 calls/day. The wave schedule is:
 
 | day | waves | planned calls | reserve to 9,000 | wall time at 1,000/hour |
 |---|---|---:|---:|---:|
-| 1 | History Core 3,600 + Parsed Discovery 4,736 | 8,336 | 664 | 8.336 h |
-| 2 | Parsed Candidate Test 4,736 | 4,736 | 4,264 | 4.736 h |
-| **total** | — | **13,072** | — | **13.072 h at the hourly ceiling** |
+| 1 | History Core | 7,200 | 1,800 | 7.2 h |
+| 2 | Parsed Discovery | 4,736 | 4,264 | 4.736 h |
+| 3 | Parsed Candidate Test | 4,736 | 4,264 | 4.736 h |
+| **total** | — | **16,672** | — | **16.672 h at the hourly ceiling** |
 
 The hourly ceiling binds before the second/minute limits for this schedule.
 Retries, partial-response recovery, and reset waits count as physical attempts
-and consume the daily reserve; the run stops before the 9,000 planned-call cap.
-The 293-match scenario is a planning input, not a promise that all accounts
-will be product, structural, or information eligible. Actual counts are
-recorded by denominator after collection, with no adaptive top-up.
+and consume the daily reserve; each day stops before the 9,000 planned-call
+cap. Six pages is an observed planning proxy, not a completeness ceiling: the
+actual runner must paginate the unfiltered history to the 365-day window start
+(or provider exhaustion), with a page ceiling only as a safety guard. Calls
+and bytes can exceed the proxy only while remaining within the daily budget.
+The 293-match structural scenario is a planning input, not a promise that all
+accounts will be product, structural, or information eligible. Actual counts
+are recorded by denominator after collection, with no adaptive top-up.
 
 ## Validation and release boundary
 
@@ -246,7 +258,10 @@ Offline checks implemented in `scripts/stratz_v7_acquisition_freeze.py`:
 - deterministic repeatability for a supplied salt;
 - aggregate summary generation with raw-ID absence check;
 - operation registry identity/digest checks and pack field checks;
-- safe batch-8 economics, daily reserve, bytes, and wall-clock calculations.
+- safe batch-8 economics, all-history page proxy, daily reserve, bytes, and
+  wall-clock calculations, including the n=128 parsed candidate-test bound;
+- repository-relative source-frame default so ordinary CI uses only synthetic
+  test fixtures; the real source frame is supplied explicitly at freeze time.
 
 The focused unit suite is credential-free and made no provider calls. The
 source frame is read locally only. No analytical output, calibration data, or
@@ -271,7 +286,7 @@ BROWSER E2E: NOT APPLICABLE
 TYPECHECK: PASS / focused script is outside mypy's configured services/api scope
 LINT: PASS (focused ruff)
 BUILD: NOT APPLICABLE
-DOCS-CHECK: pending final run
+DOCS-CHECK: PASS
 ANALYTICAL BEHAVIOR CHANGED: NO
 HOLDOUT RERUN: NO
 RECALIBRATION: NO

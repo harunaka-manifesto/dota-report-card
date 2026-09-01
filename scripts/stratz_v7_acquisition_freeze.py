@@ -19,7 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-API_ROOT = Path(__file__).resolve().parents[1] / "services/api"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+API_ROOT = REPO_ROOT / "services/api"
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
@@ -30,9 +31,9 @@ from app.stratz.queries import (  # noqa: E402
 )
 
 SCHEMA_VERSION = "stratz-v7-acquisition-freeze-1.0.0"
-SOURCE_FRAME_PATH = Path(
-    "/Users/nikanakamanifesto/Documents/GitHub/dota-report-card/.local/"
-    "corpora/opendota/v61-session-drift-expansion/manifests/fixed-frame-manifest.json"
+SOURCE_FRAME_PATH = (
+    REPO_ROOT
+    / ".local/corpora/opendota/v61-session-drift-expansion/manifests/fixed-frame-manifest.json"
 )
 DEFAULT_OUTPUT_DIR = Path(".local/corpora/stratz/v7-acquisition-freeze-2026-09-01")
 EXPECTED_FRAME_COUNT = 4_135
@@ -50,6 +51,14 @@ PARSED_SUBSET_COUNTS = {
     "SEALED_VALIDATION": 0,
 }
 EXPECTED_MATCHES_PER_PLAYER_YEAR = 293
+EXPECTED_HISTORY_ROWS_PER_PLAYER_YEAR = 597
+HISTORY_ROWS_PROXY_LABEL = (
+    "extrapolated from one recovered q3 specimen with 100 rows over approximately "
+    "61 days; not population truth"
+)
+STRUCTURAL_MATCHES_PROXY_LABEL = (
+    "specimen-derived structural scenario, not a population estimate"
+)
 HISTORY_PAGE_SIZE = 100
 PARSED_BATCH_SIZE = 8
 OBSERVED_HISTORY_PAGE_BYTES = 103_441
@@ -400,15 +409,21 @@ def calculate_economics(
     parsed_subset_counts: Mapping[str, int] = PARSED_SUBSET_COUNTS,
     population_size: int = EXPECTED_FRAME_COUNT,
     matches_per_player_year: int = EXPECTED_MATCHES_PER_PLAYER_YEAR,
+    history_rows_per_player_year: int = EXPECTED_HISTORY_ROWS_PER_PLAYER_YEAR,
     history_page_size: int = HISTORY_PAGE_SIZE,
     parsed_batch_size: int = PARSED_BATCH_SIZE,
 ) -> dict[str, Any]:
-    """Return a planning scenario using observed payload sizes and safe quotas."""
+    """Return a planning scenario using observed payload sizes and safe quotas.
+
+    History is an unfiltered 365-day feed, so its page proxy is based on all
+    history rows.  The structural match scenario remains separate because it
+    is used only for parsed-batch planning and candidate context accounting.
+    """
 
     parsed_discovery = int(parsed_subset_counts["DISCOVERY"])
     parsed_candidate_test = int(parsed_subset_counts["CANDIDATE_TEST"])
     candidate_test_size = int(split_counts["CANDIDATE_TEST"])
-    history_pages = math.ceil(matches_per_player_year / history_page_size)
+    history_pages = math.ceil(history_rows_per_player_year / history_page_size)
     parsed_batches = math.ceil(matches_per_player_year / parsed_batch_size)
     history_calls = sample_size * history_pages
     parsed_calls_by_wave = {
@@ -427,11 +442,15 @@ def calculate_economics(
         ORCHESTRATION_LIMITS["minute"] * 60,
         ORCHESTRATION_LIMITS["hour"],
     )
-    daily_history_and_discovery = history_calls + parsed_calls_by_wave["DISCOVERY"]
-    if daily_history_and_discovery > daily_planned_cap:
-        raise ValueError("frozen plan exceeds the first daily safe budget")
-    if parsed_calls_by_wave["CANDIDATE_TEST"] > daily_planned_cap:
-        raise ValueError("frozen candidate-test parsed wave exceeds the daily safe budget")
+    daily_history = history_calls
+    daily_discovery = parsed_calls_by_wave["DISCOVERY"]
+    daily_candidate_test = parsed_calls_by_wave["CANDIDATE_TEST"]
+    if any(
+        planned_calls > daily_planned_cap
+        for planned_calls in (daily_history, daily_discovery, daily_candidate_test)
+    ):
+        raise ValueError("frozen wave exceeds the daily safe budget")
+    parsed_candidate_test_se = max_proportion_se(parsed_candidate_test, population_size)
     return {
         "population_frame_count": population_size,
         "sample_size": sample_size,
@@ -442,14 +461,21 @@ def calculate_economics(
         ),
         "candidate_test_max_95_percent_margin": 1.96
         * max_proportion_se(candidate_test_size, population_size),
+        "parsed_candidate_test_n": parsed_candidate_test,
+        "parsed_candidate_test_max_standard_error": parsed_candidate_test_se,
+        "parsed_candidate_test_max_95_percent_margin": 1.96 * parsed_candidate_test_se,
         "planning_scenario": {
+            "history_rows_per_player_year": history_rows_per_player_year,
+            "history_rows_label": HISTORY_ROWS_PROXY_LABEL,
             "matches_per_player_year": matches_per_player_year,
-            "label": "specimen-derived planning input, not a population estimate",
+            "structurally_eligible_matches_per_player_year": matches_per_player_year,
+            "parsed_matches_label": STRUCTURAL_MATCHES_PROXY_LABEL,
             "history_page_size": history_page_size,
             "parsed_batch_size": parsed_batch_size,
         },
         "context_opportunities": {
-            "history_match_rows": sample_size * matches_per_player_year,
+            "history_rows": sample_size * history_rows_per_player_year,
+            "history_structural_match_rows": sample_size * matches_per_player_year,
             "parsed_match_rows_upper_bound": (parsed_discovery + parsed_candidate_test)
             * matches_per_player_year,
             "role_position_lane_population_rates": {
@@ -486,10 +512,12 @@ def calculate_economics(
         },
         "wall_clock": {
             "effective_orchestration_calls_per_hour": hourly_bound,
-            "day_1_calls": daily_history_and_discovery,
-            "day_1_hours_at_hour_ceiling": daily_history_and_discovery / hourly_bound,
-            "day_2_calls": parsed_calls_by_wave["CANDIDATE_TEST"],
-            "day_2_hours_at_hour_ceiling": parsed_calls_by_wave["CANDIDATE_TEST"] / hourly_bound,
+            "day_1_calls": daily_history,
+            "day_1_hours_at_hour_ceiling": daily_history / hourly_bound,
+            "day_2_calls": daily_discovery,
+            "day_2_hours_at_hour_ceiling": daily_discovery / hourly_bound,
+            "day_3_calls": daily_candidate_test,
+            "day_3_hours_at_hour_ceiling": daily_candidate_test / hourly_bound,
             "total_hours_at_hour_ceiling": total_calls / hourly_bound,
             "note": "Retries are physical attempts and consume the reserved daily budget.",
         },
@@ -499,16 +527,35 @@ def calculate_economics(
             "daily_reserve_fraction": DAILY_RESERVE_FRACTION,
             "daily_planned_cap": daily_planned_cap,
         },
+        "history_pagination": {
+            "planning_proxy_pages_per_account": history_pages,
+            "runner_rule": (
+                "paginate the unfiltered history until the 365-day window start or "
+                "the provider returns no more rows"
+            ),
+            "page_ceiling_role": (
+                "safety guard only; never a completeness stopping condition"
+            ),
+            "budget_rule": (
+                "actual calls and bytes may exceed this proxy only within the daily "
+                "reserve and must stop before the daily planned cap"
+            ),
+        },
         "daily_schedule": {
             "DAY_1": {
-                "waves": {"HISTORY_CORE": history_calls, "PARSED_DISCOVERY": parsed_calls_by_wave["DISCOVERY"]},
-                "planned_calls": daily_history_and_discovery,
-                "reserve_calls": daily_planned_cap - daily_history_and_discovery,
+                "waves": {"HISTORY_CORE": daily_history},
+                "planned_calls": daily_history,
+                "reserve_calls": daily_planned_cap - daily_history,
             },
             "DAY_2": {
-                "waves": {"PARSED_CANDIDATE_TEST": parsed_calls_by_wave["CANDIDATE_TEST"]},
-                "planned_calls": parsed_calls_by_wave["CANDIDATE_TEST"],
-                "reserve_calls": daily_planned_cap - parsed_calls_by_wave["CANDIDATE_TEST"],
+                "waves": {"PARSED_DISCOVERY": daily_discovery},
+                "planned_calls": daily_discovery,
+                "reserve_calls": daily_planned_cap - daily_discovery,
+            },
+            "DAY_3": {
+                "waves": {"PARSED_CANDIDATE_TEST": daily_candidate_test},
+                "planned_calls": daily_candidate_test,
+                "reserve_calls": daily_planned_cap - daily_candidate_test,
             },
         },
     }
@@ -689,7 +736,7 @@ def build_corpus_plan(
                 "representativeness": "not established",
             },
             "selected_preselection": {
-                "count": SAMPLE_SIZE,
+                "count": sample_size,
                 "meaning": "fixed HMAC-selected accounts before discovery",
             },
             "product_eligible": {
