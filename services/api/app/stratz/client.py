@@ -14,6 +14,7 @@ from typing import Any, cast
 
 import httpx
 
+from app.core.cache import CacheBackend, MemoryCache, RedisCache
 from app.core.config import (
     DEFAULT_STRATZ_USER_AGENT,
     Settings,
@@ -32,7 +33,6 @@ from app.core.errors import (
 )
 from app.core.metrics import record_metric
 from app.core.security import redact
-from app.opendota.cache import CacheBackend, MemoryCache, RedisCache
 from app.providers.base import (
     HistoryWindow,
     RequestLedger,

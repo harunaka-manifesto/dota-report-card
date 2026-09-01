@@ -10,8 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.analysis.service import AnalysisService
-from app.analysis.source import AnalysisSource, FixtureOpenDotaSource
+from app.analysis.source import FixtureOpenDotaSource, OpenDotaAnalysisSource
 from app.api.routes import router
+from app.core.cache import RedisCache
 from app.core.config import Settings, get_settings, validate_runtime_configuration
 from app.core.errors import AppError
 from app.core.logging import configure_logging
@@ -20,7 +21,6 @@ from app.core.release import build_release_identity
 from app.core.security import RateLimiter
 from app.features.models import MatchFeature
 from app.identity.steam import SteamWebResolver
-from app.opendota.cache import RedisCache
 from app.opendota.client import OpenDotaClient
 from app.opendota.parse_client import OpenDotaParseClient
 from app.providers import build_v7_provider
@@ -75,7 +75,7 @@ def create_app(
     )
     parse_transport = OpenDotaParseClient(settings) if isinstance(source, OpenDotaClient) else None
     service = AnalysisService(
-        cast(AnalysisSource, source),
+        cast(OpenDotaAnalysisSource, source),
         repository=repository,
         settings=settings,
         cohort_population=cohort_population,

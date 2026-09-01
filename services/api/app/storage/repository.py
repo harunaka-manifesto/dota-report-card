@@ -15,8 +15,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.core.cache import payload_hash
 from app.insights.models import EvidenceObject
-from app.opendota.cache import payload_hash
 from app.storage.database import (
     check_database_revision,
     create_database_engine,

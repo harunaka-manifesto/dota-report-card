@@ -3,10 +3,10 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 from app.analysis.service import AnalysisService
+from app.core.cache import MemoryCache
 from app.core.config import MATCH_HISTORY_LIMIT, Settings
 from app.features.calculators import calculate_match_feature
 from app.ingestion.normalize import normalize_match
-from app.opendota.cache import MemoryCache
 from app.storage.repository import InMemoryRepository
 
 
@@ -114,6 +114,19 @@ def test_cache_ttl_expires_even_when_marked_immutable() -> None:
     assert cache.get("hero_stats") == [1]
     now[0] += timedelta(seconds=61)
     assert cache.get("hero_stats") is None
+
+
+def test_legacy_analysis_names_remain_compatible() -> None:
+    from app.analysis.source import AnalysisSource, OpenDotaAnalysisSource
+    from app.reports.dna_assembly import (
+        assemble_free_dna_report_v4,
+        assemble_free_dna_report_v5,
+        assemble_legacy_free_dna_report,
+    )
+
+    assert AnalysisSource is OpenDotaAnalysisSource
+    assert assemble_free_dna_report_v4 is assemble_legacy_free_dna_report
+    assert assemble_free_dna_report_v5 is assemble_legacy_free_dna_report
 
 
 def test_death_events_drive_early_death_feature() -> None:

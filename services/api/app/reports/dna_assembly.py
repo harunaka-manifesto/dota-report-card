@@ -1,4 +1,4 @@
-"""Public v5 report projection for Elements, Patterns, and Hero Portfolio."""
+"""Retained V5.2-compatible OpenDota report projection."""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ REPORT_SCHEMA_VERSION = "free-dna-report-5.2.0"
 REPORT_STORY_VERSION = "free-story-5.3.0"
 
 
-def assemble_free_dna_report_v4(
+def assemble_legacy_free_dna_report(
     *,
     account_id: int,
     profile: dict[str, Any],
@@ -701,6 +701,12 @@ def _public_semantic_label(value: Any) -> str:
     return str(value).replace("_", " ").strip().lower()
 
 
-assemble_free_dna_report_v5 = assemble_free_dna_report_v4
+assemble_free_dna_report_v4 = assemble_legacy_free_dna_report
+assemble_free_dna_report_v5 = assemble_legacy_free_dna_report
 
-__all__ = ["REPORT_SCHEMA_VERSION", "assemble_free_dna_report_v4", "assemble_free_dna_report_v5"]
+__all__ = [
+    "REPORT_SCHEMA_VERSION",
+    "assemble_legacy_free_dna_report",
+    "assemble_free_dna_report_v4",
+    "assemble_free_dna_report_v5",
+]

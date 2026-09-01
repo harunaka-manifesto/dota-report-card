@@ -66,7 +66,7 @@ class RedisCache:
 
     Cache outages must never turn a report request into an application outage;
     callers simply fall back to the upstream request when Redis is unavailable.
-    The prefix keeps OpenDota, Steam, and any future cache users isolated.
+    The prefix keeps provider, Steam, and analysis cache users isolated.
     """
 
     def __init__(

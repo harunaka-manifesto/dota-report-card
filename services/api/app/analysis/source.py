@@ -9,7 +9,7 @@ from app.core.config import FREE_HISTORY_LIMIT, FREE_HISTORY_WINDOW_DAYS
 from app.core.errors import ProfileUnavailable
 
 
-class AnalysisSource(Protocol):
+class OpenDotaAnalysisSource(Protocol):
     async def get_player(self, account_id: int) -> dict[str, Any]: ...
 
     async def get_matches(
@@ -31,6 +31,11 @@ class AnalysisSource(Protocol):
     ) -> list[dict[str, Any]]: ...
 
     async def get_match(self, match_id: int) -> dict[str, Any]: ...
+
+
+# Compatibility alias for integrations that imported the old internal name.
+# V7 uses app.providers.HistoryProvider instead.
+AnalysisSource = OpenDotaAnalysisSource
 
 
 class FixtureOpenDotaSource:
