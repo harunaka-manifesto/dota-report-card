@@ -23,6 +23,7 @@ from app.identity.steam import SteamWebResolver
 from app.opendota.cache import RedisCache
 from app.opendota.client import OpenDotaClient
 from app.opendota.parse_client import OpenDotaParseClient
+from app.providers import build_v7_provider
 from app.storage.repository import InMemoryRepository, SqlAlchemyRepository
 
 
@@ -35,7 +36,10 @@ def create_app(
 ) -> FastAPI:
     settings = settings or get_settings()
     validate_runtime_configuration(settings)
-    configure_logging(settings.log_level, (settings.opendota_api_key, settings.steam_api_key))
+    configure_logging(
+        settings.log_level,
+        (settings.opendota_api_key, settings.steam_api_key, settings.stratz_api_token),
+    )
     if source is None:
         source = (
             FixtureOpenDotaSource(settings.effective_fixture_dir)
@@ -44,6 +48,9 @@ def create_app(
         )
     if settings.app_env == "production" and isinstance(source, FixtureOpenDotaSource):
         raise ValueError("fixture OpenDota source is not allowed in production")
+    # V7 has its own provider seam; the existing AnalysisService remains the
+    # OpenDota/V6.1 runtime until a V7 assembler is introduced.
+    v7_provider = build_v7_provider(settings)
     if repository is None:
         repository = (
             SqlAlchemyRepository(settings)
@@ -106,6 +113,8 @@ def create_app(
                 await source.aclose()
             if parse_transport is not None:
                 await parse_transport.aclose()
+            if v7_provider is not None:
+                await v7_provider.aclose()
             if identity_resolver is not None:
                 await identity_resolver.aclose()
 
@@ -116,6 +125,8 @@ def create_app(
         lifespan=lifespan,
     )
     app.state.analysis_service = service
+    app.state.v7_provider = v7_provider
+    app.state.data_provider = settings.data_provider
     app.state.settings = settings
     app.state.readiness = app_readiness
     app.state.release_identity = app_release

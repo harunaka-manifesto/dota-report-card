@@ -3,7 +3,7 @@ name: Free DNA QA
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, staging]
 
 permissions:
   contents: read
@@ -47,6 +47,8 @@ jobs:
       - run: uv run ruff check services/api tests
       - run: uv run mypy
       - run: make test
+      - name: V7 STRATZ fixture and architecture tests
+        run: make test-v7-stratz
       - run: make test-contract
       - run: make test-integration
       - run: make taxonomy-validate

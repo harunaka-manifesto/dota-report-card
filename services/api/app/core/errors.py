@@ -48,6 +48,47 @@ class OpenDotaUnavailable(AppError):
     status_code = 503
 
 
+class StratzProviderError(AppError):
+    code = "STRATZ_PROVIDER_ERROR"
+    status_code = 503
+
+
+class StratzRateLimited(StratzProviderError):
+    code = "STRATZ_RATE_LIMITED"
+    status_code = 429
+
+
+class StratzUnavailable(StratzProviderError):
+    code = "STRATZ_UNAVAILABLE"
+    status_code = 503
+
+
+class StratzForbidden(StratzProviderError):
+    code = "STRATZ_FORBIDDEN"
+    status_code = 502
+
+
+class StratzChallengeError(StratzForbidden):
+    code = "STRATZ_EDGE_CHALLENGE"
+
+
+class StratzInvalidResponse(StratzProviderError):
+    code = "STRATZ_INVALID_RESPONSE"
+    status_code = 502
+
+
+class StratzGraphQLError(StratzInvalidResponse):
+    code = "STRATZ_GRAPHQL_ERROR"
+
+
+class StratzPartialResponse(StratzGraphQLError):
+    code = "STRATZ_PARTIAL_RESPONSE"
+
+
+class StratzSchemaDrift(StratzInvalidResponse):
+    code = "STRATZ_SCHEMA_DRIFT"
+
+
 class CanonicalHistoryInvalid(AppError):
     code = "CANONICAL_HISTORY_INVALID"
     status_code = 502

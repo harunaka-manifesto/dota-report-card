@@ -1,5 +1,11 @@
 # STRATZ parsed-data enrichment research
 
+> **Superseding operational note — 2026-09-01:** **AUTOMATED STRATZ ACCESS
+> BLOCKER = RESOLVED.** The 403 observations documented below remain historical
+> evidence from 2026-08-27. V7 provider work uses direct server-side GraphQL
+> POST requests with `User-Agent: STRATZ_API`; it does not use browser
+> automation or challenge bypasses.
+
 Brief: `docs/prompts/stratz/02-opus5-enrichment-research.md`
 Date: 2026-08-27 · Evidence: `.local/stratz-probe/enrichment/`
 Reproduce every number: `python3 .local/stratz-probe/enrichment/analyze.py`

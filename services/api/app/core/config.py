@@ -28,12 +28,18 @@ DEFAULT_SUMMARY_HISTORY_CACHE_TTL_SECONDS = 120
 DEFAULT_REPORT_RETENTION_DAYS = 30
 DEFAULT_REPORT_INTERACTION_RETENTION_DAYS = 90
 DEFAULT_STEAM_RESOLVER_BASE_URL = "https://api.steampowered.com"
+DEFAULT_STRATZ_BASE_URL = "https://api.stratz.com/graphql"
+DEFAULT_STRATZ_USER_AGENT = "STRATZ_API"
+DEFAULT_STRATZ_TIMEOUT_SECONDS = 20.0
+DEFAULT_STRATZ_MAX_RETRIES = 3
+DEFAULT_STRATZ_MAX_HISTORY_PAGES = 25
 DEFAULT_CORS_ORIGINS = (
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 )
 
 SUPPORTED_OPENDOTA_SOURCES = frozenset({"fixture", "live"})
+SUPPORTED_DATA_PROVIDERS = frozenset({"opendota", "stratz"})
 
 
 def _as_bool(value: str | None, default: bool = False) -> bool:
@@ -61,12 +67,25 @@ def _optional_bool(value: str | None, *, default: bool | None) -> bool | None:
 
 
 def validate_runtime_configuration(settings: Settings) -> None:
+    if settings.data_provider not in SUPPORTED_DATA_PROVIDERS:
+        raise ValueError(
+            f"DATA_PROVIDER must be one of {sorted(SUPPORTED_DATA_PROVIDERS)}"
+        )
     if settings.opendota_source not in SUPPORTED_OPENDOTA_SOURCES:
         raise ValueError(f"OPENDOTA_SOURCE must be one of {sorted(SUPPORTED_OPENDOTA_SOURCES)}")
+    if settings.data_provider == "stratz":
+        if settings.stratz_user_agent != DEFAULT_STRATZ_USER_AGENT:
+            raise ValueError("STRATZ_USER_AGENT must be STRATZ_API")
+        if settings.free_dna_v6_enabled or settings.free_dna_v61_enabled:
+            raise ValueError(
+                "DATA_PROVIDER=stratz is V7-only; V6/V6.1 must remain on the OpenDota path"
+            )
     if settings.app_env != "production":
         return
     if settings.opendota_source != "live":
         raise ValueError("APP_ENV=production requires OPENDOTA_SOURCE=live")
+    if settings.data_provider == "stratz" and not settings.stratz_api_token:
+        raise ValueError("APP_ENV=production with DATA_PROVIDER=stratz requires STRATZ_API_TOKEN")
     if settings.effective_storage_backend != "database":
         raise ValueError("APP_ENV=production requires STORAGE_BACKEND=database")
     if settings.effective_analysis_execution_backend != "celery":
@@ -102,6 +121,7 @@ def validate_runtime_configuration(settings: Settings) -> None:
 class Settings:
     app_env: str = "development"
     log_level: str = "INFO"
+    data_provider: str = "opendota"
     opendota_source: str = "fixture"
     opendota_base_url: str = "https://api.opendota.com/api"
     opendota_api_key: str | None = None
@@ -116,6 +136,12 @@ class Settings:
     analysis_max_concurrency: int = 4
     opendota_max_retries: int = 3
     opendota_timeout_seconds: float = 15.0
+    stratz_base_url: str = DEFAULT_STRATZ_BASE_URL
+    stratz_api_token: str | None = None
+    stratz_user_agent: str = DEFAULT_STRATZ_USER_AGENT
+    stratz_timeout_seconds: float = DEFAULT_STRATZ_TIMEOUT_SECONDS
+    stratz_max_retries: int = DEFAULT_STRATZ_MAX_RETRIES
+    stratz_max_history_pages: int = DEFAULT_STRATZ_MAX_HISTORY_PAGES
     # Broad summary reads and deep evidence acquisition have independent
     # budgets.  ``history_limit`` is a deprecated constructor alias kept for
     # existing integrations; new code should use ``free_history_limit``.
@@ -174,6 +200,7 @@ class Settings:
         return cls(
             app_env=app_env,
             log_level=os.getenv("LOG_LEVEL", "INFO"),
+            data_provider=os.getenv("DATA_PROVIDER", "opendota").lower(),
             opendota_source=os.getenv("OPENDOTA_SOURCE", "fixture").lower(),
             opendota_base_url=os.getenv("OPENDOTA_BASE_URL", cls.opendota_base_url),
             opendota_api_key=api_key,
@@ -197,6 +224,18 @@ class Settings:
             ),
             opendota_timeout_seconds=float(
                 os.getenv("OPENDOTA_TIMEOUT_SECONDS", str(cls.opendota_timeout_seconds))
+            ),
+            stratz_base_url=os.getenv("STRATZ_BASE_URL", cls.stratz_base_url),
+            stratz_api_token=os.getenv("STRATZ_API_TOKEN") or None,
+            stratz_user_agent=os.getenv("STRATZ_USER_AGENT", cls.stratz_user_agent),
+            stratz_timeout_seconds=float(
+                os.getenv("STRATZ_TIMEOUT_SECONDS", str(cls.stratz_timeout_seconds))
+            ),
+            stratz_max_retries=int(
+                os.getenv("STRATZ_MAX_RETRIES", str(cls.stratz_max_retries))
+            ),
+            stratz_max_history_pages=int(
+                os.getenv("STRATZ_MAX_HISTORY_PAGES", str(cls.stratz_max_history_pages))
             ),
             free_history_limit=_optional_int(
                 os.getenv("FREE_HISTORY_LIMIT", os.getenv("HISTORY_LIMIT")),
@@ -376,6 +415,10 @@ class Settings:
     @property
     def effective_summary_history_cache_ttl_seconds(self) -> int:
         return max(1, self.summary_history_cache_ttl_seconds)
+
+    @property
+    def effective_stratz_max_history_pages(self) -> int:
+        return max(1, self.stratz_max_history_pages)
 
     @property
     def effective_report_retention_days(self) -> int:

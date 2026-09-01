@@ -3,7 +3,7 @@ name: Free DNA v6 quality
 on:
   pull_request:
   push:
-    branches: [main, master]
+    branches: [main, master, staging]
 
 jobs:
   backend:
