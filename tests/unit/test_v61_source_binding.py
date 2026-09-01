@@ -25,6 +25,10 @@ from scripts import build_v61_calibration_artifacts as builder
 from scripts import package_v61_production_bundle as packager
 
 ANALYTICAL_SOURCE_SHA = "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
+APPROVED_SEMANTIC_ARTIFACT = (
+    Path(__file__).resolve().parents[2]
+    / "infra/runtime-artifacts/free_dna_v61/6.1.0/semantic-outcome-calibration-1.0.0.json"
+)
 
 
 def _fake_v61_bundle() -> SimpleNamespace:
@@ -62,6 +66,43 @@ def _manifest_bundle(
         ),
         encoding="utf-8",
     )
+
+
+def _approved_semantic_artifact() -> dict[str, object]:
+    return json.loads(APPROVED_SEMANTIC_ARTIFACT.read_text(encoding="utf-8"))
+
+
+def test_semantic_validator_accepts_approved_legacy_registry_shape() -> None:
+    artifact_module._validate_semantic(_approved_semantic_artifact())
+
+
+def test_semantic_validator_accepts_rebuilt_current_registry_shape() -> None:
+    artifact = _approved_semantic_artifact()
+    outcomes = artifact["outcomes"]
+    ropes = artifact["ropes"]
+    assert isinstance(outcomes, list)
+    assert isinstance(ropes, dict)
+    outcomes.append(
+        {
+            "semantic_outcome_key": "no_transfer",
+            "family": "transfer",
+            "branch": "frontier",
+            "rollout_status": "public_candidate",
+        }
+    )
+    ropes["no_transfer"] = 0.1
+
+    artifact_module._validate_semantic(artifact)
+
+
+def test_semantic_validator_rejects_unknown_registry_shape() -> None:
+    artifact = _approved_semantic_artifact()
+    outcomes = artifact["outcomes"]
+    assert isinstance(outcomes, list)
+    outcomes[0]["semantic_outcome_key"] = "unexpected_transfer"
+
+    with pytest.raises(ArtifactValidationError, match="semantic artifact registry drift"):
+        artifact_module._validate_semantic(artifact)
 
 
 @pytest.mark.parametrize(

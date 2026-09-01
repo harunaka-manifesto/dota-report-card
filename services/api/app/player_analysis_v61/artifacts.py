@@ -40,6 +40,40 @@ V61_BUILD_MANIFEST_VERSION = "v61-calibration-build-manifest-2.0.0"
 FREEZE_RECORD_VERSION = "v61-freeze-record-2.0.0"
 PRODUCTION_BETA_AUTHORIZATION_VERSION = "v61-production-beta-authorization-1.0.0"
 
+# The approved 6.1.0 package predates the additive ``no_transfer`` outcome.
+# Keep its exact public key shape readable while accepting only the explicitly
+# rebuilt current shape; any other registry evolution must ship a new audit.
+_LEGACY_SEMANTIC_OUTCOME_KEYS = frozenset(
+    {
+        "hidden_center",
+        "names_wide_jobs_narrow",
+        "names_narrow_jobs_wide",
+        "names_changed_jobs_held",
+        "clean_transfer",
+        "results_stop_first",
+        "expression_stops_first",
+        "involvement_boundary",
+        "exposure_boundary",
+        "localized_function_bottleneck",
+        "one_loss_runback",
+        "two_loss_switch",
+        "result_shaped_pool",
+        "result_invariant_response",
+        "adjustment_without_recovery",
+        "involvement_holds_exposure_moves",
+        "exposure_holds_involvement_moves",
+        "same_expression_different_results",
+        "different_expression_same_results",
+        "localized_variance",
+        "opening_game_signature",
+        "gradual_session_drift",
+        "predeclared_breakpoint",
+        "selection_only_drift",
+        "bounded_stopping_response",
+    }
+)
+_CURRENT_SEMANTIC_OUTCOME_KEYS = _LEGACY_SEMANTIC_OUTCOME_KEYS | {"no_transfer"}
+
 
 def _no_duplicate_pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
@@ -313,21 +347,29 @@ def _validate_reliability(payload: Mapping[str, Any]) -> None:
 def _validate_semantic(payload: Mapping[str, Any]) -> None:
     from .semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
 
-    expected = {
+    current_registry = {
         definition.semantic_outcome_key
         for definition in SEMANTIC_OUTCOME_CATALOG
         if definition.rollout_status == "public_candidate"
     }
+    if current_registry != _CURRENT_SEMANTIC_OUTCOME_KEYS:
+        raise ArtifactValidationError("V6.1 current semantic registry shape is unsupported")
     outcomes = payload.get("outcomes")
-    if not isinstance(outcomes, list):
+    if not isinstance(outcomes, list) or any(not isinstance(item, Mapping) for item in outcomes):
         raise ArtifactValidationError("V6.1 semantic artifact outcomes must be a list")
-    keys = [item.get("semantic_outcome_key") for item in outcomes if isinstance(item, Mapping)]
-    if len(keys) != len(set(keys)) or set(keys) != expected:
+    keys = [item.get("semantic_outcome_key") for item in outcomes]
+    if any(not isinstance(key, str) for key in keys):
+        raise ArtifactValidationError("V6.1 semantic artifact registry drift")
+    artifact_keys = frozenset(keys)
+    if (
+        len(keys) != len(artifact_keys)
+        or artifact_keys not in {_LEGACY_SEMANTIC_OUTCOME_KEYS, _CURRENT_SEMANTIC_OUTCOME_KEYS}
+    ):
         raise ArtifactValidationError("V6.1 semantic artifact registry drift")
     if payload.get("family_fdr_q") != 0.05 or payload.get("branch_procedure") != "qualified-family-bh":
         raise ArtifactValidationError("V6.1 semantic artifact must declare the frozen five-family procedure")
     ropes = payload.get("ropes")
-    if not isinstance(ropes, Mapping) or set(ropes) != expected:
+    if not isinstance(ropes, Mapping) or frozenset(ropes) != artifact_keys:
         raise ArtifactValidationError("V6.1 semantic artifact must predeclare every public branch rope")
     for key, value in ropes.items():
         _finite_number(value, f"semantic rope {key}", minimum=0.0)
