@@ -39,6 +39,7 @@ from .normalize import (
 )
 from .queries import (
     GET_MATCH_CORE,
+    GET_PARSED_ACQUISITION_BATCH,
     GET_PARSED_MATCH_CORE,
     GET_PARSED_MATCHES_BATCH,
     GET_PLAYER_HISTORY_PAGE,
@@ -103,6 +104,7 @@ class StratzProvider:
 
 __all__ = [
     "GET_MATCH_CORE",
+    "GET_PARSED_ACQUISITION_BATCH",
     "GET_PARSED_MATCH_CORE",
     "GET_PARSED_MATCHES_BATCH",
     "GET_PLAYER_HISTORY_PAGE",

@@ -234,6 +234,52 @@ query GetParsedMatchesBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
 )
 
 
+GET_PARSED_ACQUISITION_BATCH = GraphQLOperation(
+    name="GetParsedAcquisitionBatch",
+    version="1.0.0",
+    purpose=(
+        "Acquire the minimum parsed evidence for candidate-test work and the "
+        "research-only item-signature candidate."
+    ),
+    response_model="StratzParsedAcquisitionBatch",
+    document="""
+query GetParsedAcquisitionBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
+  player(steamAccountId: $steamAccountId) {
+    matches(request: { matchIds: $matchIds }) {
+      id
+      durationSeconds
+      startDateTime
+      endDateTime
+      didRadiantWin
+      gameVersionId
+      parsedDateTime
+      radiantKills
+      direKills
+      radiantNetworthLeads
+      bottomLaneOutcome
+      midLaneOutcome
+      topLaneOutcome
+      players(steamAccountId: $steamAccountId) {
+        steamAccountId
+        isRadiant
+        isVictory
+        heroId
+        position
+        role
+        lane
+        stats {
+          killEvents { time }
+          assistEvents { time }
+          itemPurchases { time itemId }
+        }
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
 V7_SCHEMA_SENTINEL = GraphQLOperation(
     name="V7SchemaSentinel",
     version="1.0.0",
@@ -547,6 +593,7 @@ STRATZ_OPERATIONS = {
         GET_MATCH_CORE,
         GET_PARSED_MATCH_CORE,
         GET_PARSED_MATCHES_BATCH,
+        GET_PARSED_ACQUISITION_BATCH,
         V7_SCHEMA_SENTINEL,
         V7_PARSED_SUBTYPE_SHAPE_SENTINEL,
         PROBE_PARSED_EVIDENCE_BATCH,
@@ -568,6 +615,7 @@ def get_operation(name: str) -> GraphQLOperation:
 __all__ = [
     "GET_MATCH_CORE",
     "GET_PARSED_MATCH_CORE",
+    "GET_PARSED_ACQUISITION_BATCH",
     "GET_PARSED_MATCHES_BATCH",
     "GET_PLAYER_HISTORY_PAGE",
     "GET_PLAYER_PROFILE",
