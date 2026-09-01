@@ -1,10 +1,16 @@
 // Generated from FastAPI /openapi.json. Do not edit manually.
 export const apiPaths = [
   "/health",
+  "/health/live",
+  "/health/ready",
+  "/health/release",
   "/v1/analyses",
   "/v1/analyses/{job_id}",
   "/v1/analyses/{job_id}/events",
   "/v1/health",
+  "/v1/health/live",
+  "/v1/health/ready",
+  "/v1/health/release",
   "/v1/report-interactions/{session_id}",
   "/v1/report-interactions/{session_id}/follow-up",
   "/v1/reports/{report_id}",
