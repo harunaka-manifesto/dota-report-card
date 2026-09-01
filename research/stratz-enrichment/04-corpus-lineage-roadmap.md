@@ -1,5 +1,10 @@
 # Research corpus protocol, analytical lineage, implementation roadmap
 
+> **Superseding operational note — 2026-09-01:** **AUTOMATED STRATZ ACCESS
+> BLOCKER = RESOLVED.** The access blocker described in this historical
+> roadmap reflects 2026-08-27. The recovered specimens are not a population
+> corpus, and this audit remains strictly offline with zero provider requests.
+
 **NO CORPUS WAS COLLECTED.** This is a design. Two independent blockers stand
 in front of collection and both are owner decisions, not engineering ones:
 

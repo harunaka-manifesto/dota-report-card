@@ -1,5 +1,10 @@
 # STRATZ verified field inventory
 
+> **Superseding operational note — 2026-09-01:** **AUTOMATED STRATZ ACCESS
+> BLOCKER = RESOLVED.** The 403 observations in §0 remain historical evidence
+> from 2026-08-27. This inventory is a specimen record, not a current access
+> test; the offline recovery/gap audit makes no provider requests.
+
 **Status:** PARTIAL. Everything below is verified from live payloads captured
 2026-08-27 or from live introspection. Nothing here is remembered or inferred
 from field names.

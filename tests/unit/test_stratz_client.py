@@ -287,7 +287,7 @@ async def test_history_empty_page_and_page_ceiling_are_explicit() -> None:
 
 
 @pytest.mark.asyncio
-async def test_missing_token_fails_before_network() -> None:
+async def test_offline_no_token_guard_makes_zero_network_requests() -> None:
     calls = 0
 
     async def handler(_request: httpx.Request) -> httpx.Response:
@@ -300,3 +300,4 @@ async def test_missing_token_fails_before_network() -> None:
         with pytest.raises(StratzForbidden):
             await client.get_player_profile(ACCOUNT_ID)
     assert calls == 0
+    assert client.request_ledger.request_count == 0

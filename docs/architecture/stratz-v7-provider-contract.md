@@ -130,3 +130,12 @@ cache isolation, OpenDota coexistence, and V6.1 fail-closed selection. Legacy
 OpenDota/V6.1, storage, security, lifecycle, and persisted-report contract
 tests remain in the suite. Live STRATZ QA is opt-in and is not required for
 ordinary CI; this foundation uses zero live provider calls.
+
+Offline STRATZ research keeps immutable raw responses, normalized projections,
+cohort/split manifests, derived features, operation/schema records, and
+request ledgers in separate ignored `.local/corpora/stratz/` layers. A
+recovered specimen is evidence of one captured response, not population
+coverage. The committed synthetic history fixture is test input only and must
+not be cited as live field evidence. With no token configured, the client
+fails before the HTTP transport; the offline test asserts zero physical
+requests.
