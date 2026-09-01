@@ -234,6 +234,311 @@ query GetParsedMatchesBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
 )
 
 
+V7_SCHEMA_SENTINEL = GraphQLOperation(
+    name="V7SchemaSentinel",
+    version="1.0.0",
+    purpose="Confirm the current core STRATZ schema before a live microprobe.",
+    response_model="StratzSchemaSentinel",
+    document="""
+query V7SchemaSentinel {
+  match: __type(name: "MatchType") { ...TypeShape }
+  matchPlayer: __type(name: "MatchPlayerType") { ...TypeShape }
+  playerStats: __type(name: "MatchPlayerStatsType") { ...TypeShape }
+  playerPlayback: __type(name: "MatchPlayerPlaybackDataType") { ...TypeShape }
+  matchPlayback: __type(name: "MatchPlaybackDataType") { ...TypeShape }
+  player: __type(name: "PlayerType") { ...TypeShape }
+  matchesRequest: __type(name: "PlayerMatchesRequestType") { ...TypeShape }
+}
+
+fragment TypeShape on __Type {
+  kind
+  name
+  enumValues(includeDeprecated: true) { name }
+  inputFields { name type { ...TypeRef } }
+  fields(includeDeprecated: true) {
+    name
+    isDeprecated
+    args { name type { ...TypeRef } }
+    type { ...TypeRef }
+  }
+}
+
+fragment TypeRef on __Type {
+  kind
+  name
+  ofType {
+    kind
+    name
+    ofType {
+      kind
+      name
+      ofType { kind name }
+    }
+  }
+}
+""".strip(),
+)
+
+
+V7_PARSED_SUBTYPE_SHAPE_SENTINEL = GraphQLOperation(
+    name="V7ParsedSubtypeShapeSentinel",
+    version="1.0.0",
+    purpose="Resolve shallow parsed evidence subtype shapes before detail selection.",
+    response_model="StratzParsedSubtypeShapeSentinel",
+    document="""
+query V7ParsedSubtypeShapeSentinel {
+  laneReport: __type(name: "MatchStatsLaneReportType") { ...Shape }
+  towerDeath: __type(name: "MatchStatsTowerDeathType") { ...Shape }
+  pickBan: __type(name: "MatchStatsPickBanType") { ...Shape }
+  farmDistribution: __type(name: "MatchPlayerStatsFarmDistributionReportType") { ...Shape }
+  locationReport: __type(name: "MatchPlayerStatsLocationReportType") { ...Shape }
+  actionReport: __type(name: "MatchPlayerStatsActionReportType") { ...Shape }
+  heroDamageReport: __type(name: "MatchPlayerStatsHeroDamageReportType") { ...Shape }
+  abilityCastReport: __type(name: "MatchPlayerStatsAbilityCastReportType") { ...Shape }
+  inventoryReport: __type(name: "MatchPlayerInventoryType") { ...Shape }
+  killEvent: __type(name: "MatchPlayerStatsKillEventType") { ...Shape }
+  deathEvent: __type(name: "MatchPlayerStatsDeathEventType") { ...Shape }
+  assistEvent: __type(name: "MatchPlayerStatsAssistEventType") { ...Shape }
+  wardEvent: __type(name: "MatchPlayerStatsWardEventType") { ...Shape }
+  wardDestruction: __type(name: "MatchPlayerWardDestuctionObjectType") { ...Shape }
+  itemPurchase: __type(name: "MatchPlayerItemPurchaseEventType") { ...Shape }
+  itemUsed: __type(name: "MatchPlayerStatsItemUsedEventType") { ...Shape }
+  buffEvent: __type(name: "MatchPlayerStatsBuffEventType") { ...Shape }
+  courierKill: __type(name: "MatchPlayerStatsCourierKillEventType") { ...Shape }
+  runeEvent: __type(name: "MatchPlayerStatsRuneEventType") { ...Shape }
+  eLane: __type(name: "MatchLaneType") { ...EnumShape }
+  ePosition: __type(name: "MatchPlayerPositionType") { ...EnumShape }
+  eRole: __type(name: "MatchPlayerRoleType") { ...EnumShape }
+  eLaneOut: __type(name: "LaneOutcomeEnums") { ...EnumShape }
+  eLeaver: __type(name: "LeaverStatusEnum") { ...EnumShape }
+  eLobby: __type(name: "LobbyTypeEnum") { ...EnumShape }
+  eMode: __type(name: "GameModeEnumType") { ...EnumShape }
+  eRune: __type(name: "RuneTypeEnum") { ...EnumShape }
+}
+
+fragment Shape on __Type {
+  name
+  kind
+  fields(includeDeprecated: true) {
+    name
+    isDeprecated
+    type { kind name ofType { kind name ofType { kind name } } }
+  }
+}
+
+fragment EnumShape on __Type {
+  name
+  kind
+  enumValues(includeDeprecated: true) { name }
+}
+""".strip(),
+)
+
+
+PROBE_PARSED_EVIDENCE_BATCH = GraphQLOperation(
+    name="ProbeParsedEvidenceBatch",
+    version="1.0.0",
+    purpose="Measure the bounded parsed evidence selection at 4, 8, and 16 matches.",
+    response_model="StratzParsedEvidenceBatch",
+    document="""
+query ProbeParsedEvidenceBatch($accountId: Long!, $matchIds: [Long!]!) {
+  player(steamAccountId: $accountId) {
+    matches(request: { matchIds: $matchIds }) {
+      id
+      durationSeconds
+      startDateTime
+      endDateTime
+      didRadiantWin
+      gameMode
+      lobbyType
+      gameVersionId
+      parsedDateTime
+      players(steamAccountId: $accountId) {
+        steamAccountId
+        playerSlot
+        isRadiant
+        isVictory
+        heroId
+        position
+        role
+        lane
+        kills
+        deaths
+        assists
+        stats {
+          networthPerMinute
+          goldPerMinute
+          experiencePerMinute
+          lastHitsPerMinute
+          deniesPerMinute
+          heroDamagePerMinute
+          heroDamageReceivedPerMinute
+          actionsPerMinute
+          tripsFountainPerMinute
+          killEvents { time }
+          deathEvents { time }
+          assistEvents { time }
+          itemPurchases { time itemId }
+          wards { time type positionX positionY }
+          runes { time rune }
+        }
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
+PROBE_PARSED_CORE_BATCH_FALLBACK = GraphQLOperation(
+    name="ProbeParsedCoreBatchFallback",
+    version="1.0.0",
+    purpose="Measure a reduced parsed core selection after a full selection complexity failure.",
+    response_model="StratzParsedCoreBatch",
+    document="""
+query ProbeParsedCoreBatchFallback($accountId: Long!, $matchIds: [Long!]!) {
+  player(steamAccountId: $accountId) {
+    matches(request: { matchIds: $matchIds }) {
+      id
+      durationSeconds
+      startDateTime
+      gameVersionId
+      parsedDateTime
+      players(steamAccountId: $accountId) {
+        heroId
+        position
+        role
+        lane
+        stats {
+          networthPerMinute
+          experiencePerMinute
+          killEvents { time }
+          deathEvents { time }
+          assistEvents { time }
+          itemPurchases { time itemId }
+        }
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
+FIND_SHORT_PARSED_TRAJECTORY = GraphQLOperation(
+    name="FindShortParsedTrajectory",
+    version="1.0.0",
+    purpose="Find a short parsed match to distinguish level-array length semantics.",
+    response_model="StratzShortParsedTrajectoryIndex",
+    document="""
+query FindShortParsedTrajectory(
+  $accountId: Long!
+  $startDateTime: Long!
+  $endDateTime: Long!
+) {
+  player(steamAccountId: $accountId) {
+    matches(request: {
+      startDateTime: $startDateTime
+      endDateTime: $endDateTime
+      isParsed: true
+      take: 100
+      skip: 0
+    }) {
+      id
+      durationSeconds
+      parsedDateTime
+      players(steamAccountId: $accountId) {
+        heroId
+        position
+        role
+        lane
+        level
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
+GET_SHORT_PARSED_TRAJECTORY = GraphQLOperation(
+    name="GetShortParsedTrajectory",
+    version="1.0.0",
+    purpose="Read one selected short parsed trajectory for semantic contrast only.",
+    response_model="StratzShortParsedTrajectory",
+    document="""
+query GetShortParsedTrajectory($accountId: Long!, $matchId: Long!) {
+  match(id: $matchId) {
+    id
+    durationSeconds
+    parsedDateTime
+    gameVersionId
+    players(steamAccountId: $accountId) {
+      heroId
+      position
+      role
+      lane
+      level
+      stats {
+        networthPerMinute
+        experiencePerMinute
+        level
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
+PROBE_PARSED_AVAILABILITY = GraphQLOperation(
+    name="ProbeParsedAvailability",
+    version="1.0.0",
+    purpose="Spot-check parsed versus unfiltered ranked and Turbo first-page availability.",
+    response_model="StratzParsedAvailability",
+    document="""
+query ProbeParsedAvailability(
+  $accountId: Long!
+  $startDateTime: Long!
+  $endDateTime: Long!
+) {
+  player(steamAccountId: $accountId) {
+    allRanked: matches(request: {
+      startDateTime: $startDateTime
+      endDateTime: $endDateTime
+      gameModeIds: [22]
+      take: 100
+      skip: 0
+    }) { id parsedDateTime }
+    parsedRanked: matches(request: {
+      startDateTime: $startDateTime
+      endDateTime: $endDateTime
+      gameModeIds: [22]
+      isParsed: true
+      take: 100
+      skip: 0
+    }) { id parsedDateTime }
+    allTurbo: matches(request: {
+      startDateTime: $startDateTime
+      endDateTime: $endDateTime
+      gameModeIds: [23]
+      take: 100
+      skip: 0
+    }) { id parsedDateTime }
+    parsedTurbo: matches(request: {
+      startDateTime: $startDateTime
+      endDateTime: $endDateTime
+      gameModeIds: [23]
+      isParsed: true
+      take: 100
+      skip: 0
+    }) { id parsedDateTime }
+  }
+}
+""".strip(),
+)
+
+
 STRATZ_OPERATIONS = {
     operation.name: operation
     for operation in (
@@ -242,6 +547,13 @@ STRATZ_OPERATIONS = {
         GET_MATCH_CORE,
         GET_PARSED_MATCH_CORE,
         GET_PARSED_MATCHES_BATCH,
+        V7_SCHEMA_SENTINEL,
+        V7_PARSED_SUBTYPE_SHAPE_SENTINEL,
+        PROBE_PARSED_EVIDENCE_BATCH,
+        PROBE_PARSED_CORE_BATCH_FALLBACK,
+        FIND_SHORT_PARSED_TRAJECTORY,
+        GET_SHORT_PARSED_TRAJECTORY,
+        PROBE_PARSED_AVAILABILITY,
     )
 }
 
@@ -259,6 +571,13 @@ __all__ = [
     "GET_PARSED_MATCHES_BATCH",
     "GET_PLAYER_HISTORY_PAGE",
     "GET_PLAYER_PROFILE",
+    "FIND_SHORT_PARSED_TRAJECTORY",
+    "GET_SHORT_PARSED_TRAJECTORY",
+    "PROBE_PARSED_AVAILABILITY",
+    "PROBE_PARSED_CORE_BATCH_FALLBACK",
+    "PROBE_PARSED_EVIDENCE_BATCH",
+    "V7_PARSED_SUBTYPE_SHAPE_SENTINEL",
+    "V7_SCHEMA_SENTINEL",
     "GraphQLOperation",
     "STRATZ_OPERATIONS",
     "get_operation",
