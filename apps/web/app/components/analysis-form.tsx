@@ -27,6 +27,7 @@ const MAX_POLL_DELAY_MS = 10_000;
 
 export default function AnalysisForm() {
   const router = useRouter();
+  const [hydrated, setHydrated] = useState(false);
   const [player, setPlayer] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<AnalysisStatus | null>(null);
@@ -38,6 +39,7 @@ export default function AnalysisForm() {
 
   useEffect(() => {
     mountedRef.current = true;
+    setHydrated(true);
     return () => {
       mountedRef.current = false;
       controllerRef.current?.abort();
@@ -174,9 +176,10 @@ export default function AnalysisForm() {
           onChange={(event) => setPlayer(event.target.value)}
           placeholder="Steam ID or profile URL"
           autoComplete="off"
+          disabled={!hydrated}
           required
         />
-        <button className="lookup-submit" type="submit" disabled={busy}>
+        <button className="lookup-submit" type="submit" disabled={!hydrated || busy}>
           {busy ? "Reading the report…" : "Build report"}
         </button>
       </div>
