@@ -1,28 +1,28 @@
 {
   "artifacts": {
-    "context-baseline-3.0.0.json": "966026df08ebf1ca35594d6b5aa77b5207c8fe235cbee82a6430dc0ba8111800",
-    "metric-thresholds-6.1.0.json": "bcbf57901690f0e91dc4a275b3978b4b5f3e70117b6efecdbcdbba5850f876fd",
+    "context-baseline-3.0.0.json": "47fc0cb3542e31bd04ca2ed92ddcf7d8cd17ddb733ec43f65db5a9ba301cfb11",
+    "metric-thresholds-6.1.0.json": "872d625ca160f6daee8c73ed36ef6c31ec4cc86d824718eb38eb4f6a022d9205",
     "portfolio-distance-calibration-1.0.0.json": "af37cd06f3bfd88f195586c433e0688496bbb4a27aef447da399bdf2aa2b5dcf",
-    "semantic-outcome-calibration-1.0.0.json": "47624ba5d7d8c1c851850aab4790886e7b136ecfdb194cad6dd4f2b8bbe2b02e",
+    "semantic-outcome-calibration-1.0.0.json": "0882cd2791a4ab6ec4aaaab31aebe93034fb3b4ed258540d6ef46a1f92887c21",
     "session-reliability-calibration-1.0.0.json": "ba58c77a6de37d549146d8543b9289954cc6d6266ce96764f94bd7971cd53cfd",
     "summary-priors-6.1.0.json": "fac0d9d44dacc1950014fc22bcd670afc815d6e10a1a571e42e29443710e3292"
   },
   "builder_version": "v61-calibration-builder-2.0.0",
-  "code_fingerprint": "6e5f01455cfd7ad3c433aebf91399685551e19cfad464317d48417823aa91f6c",
-  "compatibility_audit_checksum": "f06802f245c961fcbafa703b3473a42e802c4b052a3b76b345435cddf2ab9cbb",
-  "compatibility_audit_path_digest": "14cf5ed686664e58a773c5f4c0ff5f7ed23c6b9ba59dab355a9cc30679678434",
+  "code_fingerprint": "1747fede5565d49b8086797728040eecd45acdc2eb22e830b55ded5eb4636b2c",
+  "compatibility_audit_checksum": "94f48858508666b3bd5735761de99e434682da4e696cd37befa54ef733c8d7e1",
+  "compatibility_audit_path_digest": "76a2d6e591f9e1bf30817d1858ef47f75d6992dc9cb30f07ba200430ce205fbf",
   "corpus_schema": "v61-calibration-corpus-2.1.0",
   "corpus_sha256": "5b80bd29d6ecd04c92e4ba37051b7a71f23775007614b9f6a110d9efa2090216",
   "estimator_fingerprint": "v61-runtime-estimator-parity-2.0.0",
-  "generated_at": "2026-08-25T08:37:07Z",
+  "generated_at": "2000-01-01T00:00:00+00:00",
   "holdout_output_inspected": false,
   "minimum_usable_matches": 30,
   "release_authorized": false,
-  "reuse_authorization_reference": "approved-v61-replacement:owner-2026-08-25-training-reuse",
+  "reuse_authorization_reference": "owner-recalibration-approval:2026-08-31",
   "seed": 6000,
   "source": {
     "dirty_worktree": false,
-    "repository_commit": "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
+    "repository_commit": "f85e88a277ffb365e76dd6eeac6f5009c7bd0165"
   },
   "split": {
     "holdout_profile_count": 339,

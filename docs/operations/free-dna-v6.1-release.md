@@ -1,9 +1,9 @@
 # Free DNA V6.1 release and rollback runbook
 
-V6.1 remains disabled. This runbook documents the future replacement, build,
-evaluation, authorization, and rollback workflow. The current adjudicated
-result is the consumed original holdout recorded in the release-gates document;
-this runbook does not authorize production and does not request a rerun.
+V6.1 remains disabled in deployed environments pending the reviewed release
+commit. This runbook records the replacement, build, evaluation, authorization,
+packaging, and rollback workflow; the current owner authorization does not by
+itself deploy or enable traffic.
 
 ## Current adjudicated holdout reference
 
@@ -19,9 +19,19 @@ this runbook does not authorize production and does not request a rerun.
 The source identities are intentionally split. `RELEASE_COMMIT_SHA` identifies
 the truthful software revision deployed by the API and worker. The mandatory
 production variable `FREE_DNA_V61_ANALYTICAL_SOURCE_SHA` remains
-`7df38e6d234ae9c4ee425490bc40b8cc92685f85`, the clean source recorded in the
-frozen analytical manifest. The verifier source is historical adjudication
-provenance only; it did not execute the original holdout.
+`f85e88a277ffb365e76dd6eeac6f5009c7bd0165`, the clean source recorded in the
+current frozen analytical manifest. The verifier source above is historical
+adjudication provenance for the consumed original holdout; it did not execute
+the replacement release.
+
+## Current owner-authorized production-beta candidate
+
+- Analytical source SHA: `f85e88a277ffb365e76dd6eeac6f5009c7bd0165`.
+- Runtime package digest: `22206d20b84bf9ee73b93c64177443e1bb585ccdb818c188ac40d9acfcb358f9`.
+- Production-beta authorization SHA-256: `3adb977f85c6896ef3228004bb4a60641ce51668688a9b57fa652136fd8ecfb9`.
+- Operator reference: `owner-production-approval:2026-09-01:codex-thread`.
+- Authorization is bound to the State B automated gates and remains separate
+  from the deployed code SHA; no production deployment has occurred yet.
 
 Release provenance:
 
@@ -48,7 +58,7 @@ FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED=false
 The public enable flag is mutually exclusive with `FREE_DNA_V6_ENABLED`.
 Production also requires `APP_ENV=production`, database-backed storage,
 Celery/Redis execution, `RELEASE_COMMIT_SHA=<release commit>`,
-`FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=7df38e6d234ae9c4ee425490bc40b8cc92685f85`,
+`FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=f85e88a277ffb365e76dd6eeac6f5009c7bd0165`,
 and `RELEASE_WORKTREE_DIRTY=false` when V6.1 is loaded. The API and worker must
 receive the same values. `OPENDOTA_SOURCE=fixture` is rejected in production.
 
@@ -380,16 +390,22 @@ The aggregate must bind the actual corpus SHA, bound split SHA, all artifact
 checksums, model/report versions, release commit, and clean-worktree state.
 State B evidence is not a production authorization.
 
-Only after State B aggregate evidence and the required independent reviews are
-complete may an owner create a separate beta authorization and package the
-bundle:
+The current State B aggregate evidence and owner decision produced the
+following separate production-beta authorization and package:
+
+- Authorization SHA-256:
+  `3adb977f85c6896ef3228004bb4a60641ce51668688a9b57fa652136fd8ecfb9`.
+- Package SHA-256:
+  `22206d20b84bf9ee73b93c64177443e1bb585ccdb818c188ac40d9acfcb358f9`.
+
+For a future authorized release, the command sequence is:
 
 ```bash
 uv run python scripts/evaluate_v61_calibration.py authorize-production-beta \
   --evaluation "$EVAL/calibration-evaluation-6.1.0.json" \
   --release-manifest "$EVAL/release-manifest-6.1.0.json" \
   --output "$EVAL/production-beta-authorization-6.1.0.json" \
-  --operator-reference "owner-beta-approval:<ticket>"
+  --operator-reference "owner-production-approval:2026-09-01:codex-thread"
 
 uv run python scripts/package_v61_production_bundle.py \
   --artifact-dir "$ARTIFACTS" \

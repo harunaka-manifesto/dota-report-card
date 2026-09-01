@@ -21,8 +21,8 @@ def test_api_image_bakes_the_same_package_for_api_and_worker() -> None:
     assert "COPY infra/runtime-artifacts/free_dna_v61/6.1.0/ ./runtime-artifacts/free_dna_v61/6.1.0/" in dockerfile
     assert "RUN python scripts/verify_v61_runtime_package.py /app/runtime-artifacts/free_dna_v61/6.1.0" in dockerfile
     assert f"FREE_DNA_V61_ANALYTICAL_SOURCE_SHA={EXPECTED_ANALYTICAL_SOURCE_SHA}" in dockerfile
-    assert EXPECTED_PACKAGE_SHA256 == "8e9e22a9fa36aa351abced843023b910488fea17c34c57b8d9b221c0c9b3aae0"
-    assert EXPECTED_AUTHORIZATION_SHA256 == "9ddde890c25a47fcabf7a5e51f22ba3a3007f79dd5e5f9c52845a2bfe4e69b2a"
+    assert EXPECTED_PACKAGE_SHA256 == "22206d20b84bf9ee73b93c64177443e1bb585ccdb818c188ac40d9acfcb358f9"
+    assert EXPECTED_AUTHORIZATION_SHA256 == "3adb977f85c6896ef3228004bb4a60641ce51668688a9b57fa652136fd8ecfb9"
 
 
 def test_api_image_is_non_root_and_keeps_artifacts_read_only() -> None:

@@ -31,7 +31,7 @@ from app.reports import dna_assembly_v61 as dna_assembly_v61_module
 from app.storage.repository import InMemoryRepository
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "v6"
-_ANALYTICAL_SOURCE_SHA = "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
+_ANALYTICAL_SOURCE_SHA = "f85e88a277ffb365e76dd6eeac6f5009c7bd0165"
 
 
 def _rows(count: int = 90) -> list[dict[str, object]]:

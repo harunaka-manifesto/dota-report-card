@@ -9,9 +9,9 @@ release.
 The current V6.1 analytical release references are:
 
 - analytical source SHA:
-  7df38e6d234ae9c4ee425490bc40b8cc92685f85
+  f85e88a277ffb365e76dd6eeac6f5009c7bd0165
 - frozen artifact bundle digest:
-  8e9e22a9fa36aa351abced843023b910488fea17c34c57b8d9b221c0c9b3aae0
+  22206d20b84bf9ee73b93c64177443e1bb585ccdb818c188ac40d9acfcb358f9
 
 These values document the current V6.1 analytical release. They are not
 placeholders and must not be modified merely because product code, frontend

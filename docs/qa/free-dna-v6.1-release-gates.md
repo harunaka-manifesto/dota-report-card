@@ -1,9 +1,9 @@
 # Free DNA V6.1 release gates
 
-Current status: **blocked pending remaining calibration/evaluation evidence and
-separate release authorization**. The original one-time holdout has a corrected
-adjudication pass recorded below; V6.1 remains disabled and this document does
-not authorize production.
+Current status: **replacement calibration/evaluation complete and the
+production-beta package is owner-authorized**. The original one-time holdout
+has a corrected adjudication pass recorded below; V6.1 remains disabled until
+the reviewed release commit is deployed.
 
 ## Current adjudicated holdout provenance
 
@@ -19,15 +19,27 @@ not authorize production.
 
 For production source binding, keep the deploy identity in
 `RELEASE_COMMIT_SHA` and set
-`FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=7df38e6d234ae9c4ee425490bc40b8cc92685f85`.
+`FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=f85e88a277ffb365e76dd6eeac6f5009c7bd0165`.
 The API and worker must report both values; the verifier source remains
 post-hoc adjudication provenance and is not the holdout execution source.
 
 The original holdout is consumed; there was no rerun;
-`HOLDOUT_ADJUDICATION_PASS` is recorded; release authorization remains false.
+`HOLDOUT_ADJUDICATION_PASS` is recorded. The current replacement candidate has
+separate owner authorization, but no production deployment has occurred.
+
+## Current owner-authorized production-beta package
+
+- Analytical source SHA: `f85e88a277ffb365e76dd6eeac6f5009c7bd0165`.
+- Runtime package digest: `22206d20b84bf9ee73b93c64177443e1bb585ccdb818c188ac40d9acfcb358f9`.
+- Production-beta authorization SHA-256: `3adb977f85c6896ef3228004bb4a60641ce51668688a9b57fa652136fd8ecfb9`.
+- Operator reference: `owner-production-approval:2026-09-01:codex-thread`.
+- Replacement holdout: 339/339 evaluated, 0 errors; `no_transfer` fired for
+  4/339 profiles (1.18%), not near-universal.
+- Package authorization is separate from the deployed code SHA; V6.1 remains
+  disabled until the reviewed release commit is deployed.
 
 Keep `FREE_DNA_V61_ENABLED=false` and all V6.1 shadow/experimental flags false
-until every required gate and the separate operator authorization succeeds.
+until the reviewed release commit is deployed.
 
 ## Historical failed release diagnostic (immutable)
 
@@ -155,11 +167,11 @@ claims must stay suppressed.
 
 ## State model
 
-| State | Required evidence | Status before the future run |
+| State | Required evidence | Current candidate status |
 |---|---|---|
 | A: implementation | code contract, fail-closed validation, synthetic tests, lint/type/docs checks | not asserted here |
-| B: calibration-ready | approved canonical corpus, exact split, frozen training artifacts, byte reproducibility, sealed holdout, runtime parity, aggregate gates | blocked |
-| C: release-ready | independent statistical/Dota/data-basis/privacy/accessibility reviews, container/checksum verification, operator decision | blocked |
+| B: calibration-ready | approved canonical corpus, exact split, frozen training artifacts, byte reproducibility, sealed holdout, runtime parity, aggregate gates | complete |
+| C: release-ready | independent statistical/Dota/data-basis/privacy/accessibility reviews, container/checksum verification, operator decision | pending; owner beta authorization is recorded separately |
 
 State B does not authorize production. Authorization is a separate owner
 decision that must be bound to the aggregate result and release source SHA.

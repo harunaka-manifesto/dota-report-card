@@ -1,11 +1,11 @@
 {
   "approval_basis": "owner-assumed-review-complete-per-explicit-task-instruction",
   "artifact_checksums": {
-    "build-manifest-6.1.0.json": "a6c1d0c08ceef553150c401b0711b24eb89aa4d316105b8977373f3cc79c4865",
-    "context-baseline-3.0.0.json": "966026df08ebf1ca35594d6b5aa77b5207c8fe235cbee82a6430dc0ba8111800",
-    "metric-thresholds-6.1.0.json": "bcbf57901690f0e91dc4a275b3978b4b5f3e70117b6efecdbcdbba5850f876fd",
+    "build-manifest-6.1.0.json": "7a3df033478858f7ece796d4f48f07b1bff0d2579c568553f8602fb10ee6950b",
+    "context-baseline-3.0.0.json": "47fc0cb3542e31bd04ca2ed92ddcf7d8cd17ddb733ec43f65db5a9ba301cfb11",
+    "metric-thresholds-6.1.0.json": "872d625ca160f6daee8c73ed36ef6c31ec4cc86d824718eb38eb4f6a022d9205",
     "portfolio-distance-calibration-1.0.0.json": "af37cd06f3bfd88f195586c433e0688496bbb4a27aef447da399bdf2aa2b5dcf",
-    "semantic-outcome-calibration-1.0.0.json": "47624ba5d7d8c1c851850aab4790886e7b136ecfdb194cad6dd4f2b8bbe2b02e",
+    "semantic-outcome-calibration-1.0.0.json": "0882cd2791a4ab6ec4aaaab31aebe93034fb3b4ed258540d6ef46a1f92887c21",
     "session-reliability-calibration-1.0.0.json": "ba58c77a6de37d549146d8543b9289954cc6d6266ce96764f94bd7971cd53cfd",
     "summary-priors-6.1.0.json": "fac0d9d44dacc1950014fc22bcd670afc815d6e10a1a571e42e29443710e3292"
   },
@@ -22,7 +22,7 @@
     "synthetic_gates": true
   },
   "generated_at": "2000-01-01T00:00:00+00:00",
-  "operator_authorization_reference": "owner-v61-production-beta-authorization-refresh-2026-08-26",
+  "operator_authorization_reference": "owner-production-approval:2026-09-01:codex-thread",
   "production_beta_authorized": true,
   "public_flags_must_remain_off": false,
   "release_authorized": true,
@@ -35,7 +35,7 @@
   },
   "source": {
     "dirty_worktree": false,
-    "repository_commit": "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
+    "repository_commit": "f85e88a277ffb365e76dd6eeac6f5009c7bd0165"
   },
   "state_b": true,
   "state_c": false,

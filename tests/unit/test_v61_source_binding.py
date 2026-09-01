@@ -24,7 +24,7 @@ from app.player_analysis_v61.calibration_evaluation import build_v61_calibration
 from scripts import build_v61_calibration_artifacts as builder
 from scripts import package_v61_production_bundle as packager
 
-ANALYTICAL_SOURCE_SHA = "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
+ANALYTICAL_SOURCE_SHA = "f85e88a277ffb365e76dd6eeac6f5009c7bd0165"
 APPROVED_SEMANTIC_ARTIFACT = (
     Path(__file__).resolve().parents[2]
     / "infra/runtime-artifacts/free_dna_v61/6.1.0/semantic-outcome-calibration-1.0.0.json"
@@ -69,7 +69,20 @@ def _manifest_bundle(
 
 
 def _approved_semantic_artifact() -> dict[str, object]:
-    return json.loads(APPROVED_SEMANTIC_ARTIFACT.read_text(encoding="utf-8"))
+    artifact = json.loads(APPROVED_SEMANTIC_ARTIFACT.read_text(encoding="utf-8"))
+    outcomes = artifact["outcomes"]
+    ropes = artifact["ropes"]
+    assert isinstance(outcomes, list)
+    assert isinstance(ropes, dict)
+    # The package now carries the current 29-outcome registry.  Keep these
+    # validator tests explicit about their legacy fixture by deriving the
+    # pre-no_transfer shape before exercising the upgrade path below.
+    artifact["outcomes"] = [
+        item for item in outcomes
+        if item.get("semantic_outcome_key") != "no_transfer"
+    ]
+    ropes.pop("no_transfer", None)
+    return artifact
 
 
 def test_semantic_validator_accepts_approved_legacy_registry_shape() -> None:

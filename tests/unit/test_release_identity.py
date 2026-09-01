@@ -6,7 +6,7 @@ import pytest
 from app.core.config import Settings, validate_runtime_configuration
 from app.core.release import artifact_bundle_digest, build_release_identity
 
-ANALYTICAL_SOURCE_SHA = "7df38e6d234ae9c4ee425490bc40b8cc92685f85"
+ANALYTICAL_SOURCE_SHA = "f85e88a277ffb365e76dd6eeac6f5009c7bd0165"
 DEPLOY_SOURCE_SHA = "a" * 40
 
 

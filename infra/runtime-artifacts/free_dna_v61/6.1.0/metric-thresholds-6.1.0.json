@@ -10,7 +10,7 @@
     "train_profile_digest": "2d961edcde679a529751c78b9129cf6d8cf0e56d32d17a226a12dd24a0c09461"
   },
   "estimator_version": "v61-runtime-estimator-parity-2.0.0",
-  "generated_at": "2026-08-25T08:37:07Z",
+  "generated_at": "2000-01-01T00:00:00+00:00",
   "metrics": {
     "breadth_effective_count": {
       "high_cutoff": 32.694923901799825,

@@ -59,6 +59,15 @@
       "semantic_outcome_key": "clean_transfer"
     },
     {
+      "branch": "frontier",
+      "family": "transfer",
+      "minimum_opportunities": 30,
+      "minimum_sessions": 12,
+      "opportunity_denominator": "matches",
+      "rollout_status": "public_candidate",
+      "semantic_outcome_key": "no_transfer"
+    },
+    {
       "branch": "component_frontier",
       "family": "transfer",
       "minimum_opportunities": 30,
@@ -256,6 +265,7 @@
     "names_changed_jobs_held": 0.09223679546260193,
     "names_narrow_jobs_wide": 0.09223679546260193,
     "names_wide_jobs_narrow": 0.09223679546260193,
+    "no_transfer": 0.09223679546260193,
     "one_loss_runback": 0.5,
     "opening_game_signature": 0.8647735608975679,
     "predeclared_breakpoint": 0.8647735608975679,

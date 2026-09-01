@@ -18,9 +18,9 @@ copies are derived from the same package. The Docker build fails unless the
 package file set, all manifest-linked artifact bytes, authorization bytes, and
 analytical source match the approved values:
 
-    package:           8e9e22a9fa36aa351abced843023b910488fea17c34c57b8d9b221c0c9b3aae0
-    authorization:     9ddde890c25a47fcabf7a5e51f22ba3a3007f79dd5e5f9c52845a2bfe4e69b2a
-    analytical source: 7df38e6d234ae9c4ee425490bc40b8cc92685f85
+    package:           22206d20b84bf9ee73b93c64177443e1bb585ccdb818c188ac40d9acfcb358f9
+    authorization:     3adb977f85c6896ef3228004bb4a60641ce51668688a9b57fa652136fd8ecfb9
+    analytical source: f85e88a277ffb365e76dd6eeac6f5009c7bd0165
 
 The package was inspected before committing it. It contains aggregate
 calibration values, hashes, counts, and release metadata; it contains no
@@ -120,7 +120,7 @@ services are named Postgres and Redis, as in the project description.
     FREE_DNA_V61_SEMANTIC_ARTIFACT=/app/runtime-artifacts/free_dna_v61/6.1.0/semantic-outcome-calibration-1.0.0.json
     FREE_DNA_V61_BUILD_MANIFEST=/app/runtime-artifacts/free_dna_v61/6.1.0/build-manifest-6.1.0.json
     FREE_DNA_V61_MODEL_VERSION=free-dna-model-6.1.0
-    FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=7df38e6d234ae9c4ee425490bc40b8cc92685f85
+    FREE_DNA_V61_ANALYTICAL_SOURCE_SHA=f85e88a277ffb365e76dd6eeac6f5009c7bd0165
 
     RELEASE_COMMIT_SHA=<final committed Railway candidate SHA>
     RELEASE_WORKTREE_DIRTY=false
@@ -159,7 +159,7 @@ Celery concurrency to 4.
 
 RELEASE_COMMIT_SHA is the truthful SHA of the committed code/image source; it
 is not the analytical SHA. FREE_DNA_V61_ANALYTICAL_SOURCE_SHA remains
-7df38e6d234ae9c4ee425490bc40b8cc92685f85.
+f85e88a277ffb365e76dd6eeac6f5009c7bd0165.
 
 ## Validation commands
 
