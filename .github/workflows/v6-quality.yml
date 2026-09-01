@@ -40,13 +40,14 @@ jobs:
       API_BASE_URL: https://api.example.invalid
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
           cache-dependency-path: apps/web/pnpm-lock.yaml
-      - name: Enable pnpm
-        run: corepack enable
       - name: Install web dependencies
         working-directory: apps/web
         run: pnpm install --frozen-lockfile

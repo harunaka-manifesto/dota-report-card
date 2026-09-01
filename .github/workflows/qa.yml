@@ -65,13 +65,14 @@ jobs:
         working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: pnpm
           cache-dependency-path: apps/web/pnpm-lock.yaml
-      - run: corepack enable
-      - run: corepack prepare pnpm@11.19.0 --activate
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: ./node_modules/.bin/next lint
       - run: ./node_modules/.bin/tsc --noEmit
