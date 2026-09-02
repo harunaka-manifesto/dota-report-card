@@ -1140,7 +1140,7 @@ def build_qa_atlas(cohort: FrozenCohort, output_dir: Path, state: Mapping[str, A
             "history_enum_failure_rows": sum(row.get("enum_failure") is True for row in split_rows),
             "history_structural_observable_rows": sum(row.get("enum_failure") is False for row in split_rows),
             "predeclared_parsed_players": len(ptargets),
-            "parsed_attempted_players": sum(state.get("status") not in {"pending", "skipped_anonymous", "no_valid_opportunities"} for state in p_states),
+            "parsed_attempted_players": sum(bool(state.get("batches")) for state in p_states if isinstance(state, Mapping)),
             "parsed_complete_players": sum(state.get("status") == "complete" for state in p_states),
             "parsed_skipped_anonymous": sum(state.get("status") == "skipped_anonymous" for state in p_states),
             "parsed_no_valid_opportunities": sum(state.get("status") == "no_valid_opportunities" for state in p_states),
