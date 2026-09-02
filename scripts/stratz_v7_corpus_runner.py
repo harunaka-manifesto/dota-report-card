@@ -1848,9 +1848,17 @@ class CorpusRunner:
                 self._save_state()
                 return
             self._save_state()
-        batch_index = int(parsed_state.get("next_batch", 0))
-        while batch_index < len(match_ids):
-            batch_ids = match_ids[batch_index : batch_index + PARSED_BATCH_SIZE]
+        match_offset = int(parsed_state.get("next_batch", 0))
+        batches = parsed_state.setdefault("batches", [])
+        if batches:
+            last_batch = max(
+                (item for item in batches if isinstance(item, Mapping) and isinstance(item.get("batch"), int)),
+                key=lambda item: int(item["batch"]),
+            )
+            last_doc = _read_json(self.output_dir / str(last_batch["normalized_path"]))
+            match_offset = max(match_offset, int(last_batch["batch"]) + int(last_doc["requested_batch_size"]))
+        while match_offset < len(match_ids):
+            batch_ids = match_ids[match_offset : match_offset + PARSED_BATCH_SIZE]
             payload, request_meta = await self.request(
                 GET_PARSED_ACQUISITION_BATCH,
                 {"steamAccountId": target.account_id, "matchIds": batch_ids},
@@ -1864,26 +1872,25 @@ class CorpusRunner:
                 split=target.split,
                 source_position=target.source_position,
             )
-            path = self.normalized_parsed_dir / target.pseudonym / f"batch-{batch_index:04d}.json"
+            path = self.normalized_parsed_dir / target.pseudonym / f"batch-{match_offset:04d}.json"
             normalized["raw_response_sha256"] = request_meta.get("raw_response_sha256")
             normalized["request_key"] = request_meta["request_key"]
             if path.exists() and digest(_read_json(path)) != digest(normalized):
                 raise RunnerError("normalized parsed batch changed on resume")
             if not path.exists():
                 _write_json(path, normalized)
-            batches = parsed_state.setdefault("batches", [])
-            if not any(item.get("batch") == batch_index for item in batches if isinstance(item, Mapping)):
+            if not any(item.get("batch") == match_offset for item in batches if isinstance(item, Mapping)):
                 batches.append(
                     {
-                        "batch": batch_index,
+                        "batch": match_offset,
                         "normalized_path": path.relative_to(self.output_dir).as_posix(),
                         "request_key": request_meta["request_key"],
                         "raw_response_sha256": request_meta.get("raw_response_sha256"),
                         "row_count": len(normalized["rows"]),
                     }
                 )
-            batch_index += 1
-            parsed_state["next_batch"] = batch_index
+            match_offset += len(batch_ids)
+            parsed_state["next_batch"] = match_offset
             self._save_state()
         batch_docs = [
             _read_json(self.output_dir / str(item["normalized_path"]))

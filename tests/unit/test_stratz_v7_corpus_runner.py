@@ -367,6 +367,46 @@ async def test_live_run_archives_immutable_responses_and_resume_reuses_them(tmp_
 
 
 @pytest.mark.asyncio
+async def test_parsed_acquisition_advances_by_batch_size(tmp_path: Path) -> None:
+    match_ids = list(range(9_000_000_001, 9_000_000_018))
+    calls: list[list[int]] = []
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        requested = json.loads(request.content)["variables"]["matchIds"]
+        calls.append(requested)
+        template = _parsed_payload()["data"]["player"]["matches"][0]
+        matches = []
+        for match_id in requested:
+            match = copy.deepcopy(template)
+            match["id"] = match_id
+            matches.append(match)
+        payload = _parsed_payload()
+        payload["data"]["player"]["matches"] = matches
+        return httpx.Response(200, json=payload)
+
+    cohort = _cohort()
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        runner = CorpusRunner(
+            cohort,
+            output_dir=tmp_path,
+            token="fixture-token",
+            network=True,
+            http_client=http,
+            sleep=_no_sleep,
+        )
+        target = cohort.targets[0]
+        runner._history_account_state(target)["profile"] = {"is_anonymous": False, "is_public": False}
+        parsed_state = runner._parsed_account_state(target)
+        parsed_state["match_ids"] = match_ids
+        parsed_state["batch_count"] = 3
+        await runner._acquire_parsed(target)
+
+    assert [len(batch) for batch in calls] == [8, 8, 1]
+    assert parsed_state["next_batch"] == 17
+    assert parsed_state["status"] == "complete"
+
+
+@pytest.mark.asyncio
 async def test_auth_failure_is_redacted_and_recorded_as_one_physical_attempt(tmp_path: Path) -> None:
     async def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(403, content=b"token=fixture-token", headers={"Authorization": "bad"})
