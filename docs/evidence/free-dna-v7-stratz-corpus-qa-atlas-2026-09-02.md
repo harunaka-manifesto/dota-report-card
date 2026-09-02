@@ -14,14 +14,14 @@ PHASE: V7_STRATZ_HISTORY_ACQUISITION
 STATUS: PARTIAL_PAUSED
 RESEARCH GATE: OPEN — OWNER AUTHORIZED DESCRIPTIVE isStratzPublic HANDLING
 RUN DATE: 2026-09-01 UTC
-PHYSICAL STRATZ ATTEMPTS: 4,000
-HISTORY ATTEMPTS: 4,000
+PHYSICAL STRATZ ATTEMPTS: 5,000
+HISTORY ATTEMPTS: 5,000
 PARSED BATCH ATTEMPTS: 0
 OPENDOTA CALLS: 0
 RESERVED/SEALED TOUCHED: NO
 ADAPTIVE TOP-UP OR REPLACEMENT: NO
 RAW IDENTITIES OR PROVIDER ROWS COMMITTED: NO
-RESUME: after 2026-09-02T02:57:49.778790+00:00 under the same fixed cohort,
+RESUME: after 2026-09-02T03:58:51.315508+00:00 under the same fixed cohort,
         window, operation digests, and local checkpoint
 ```
 
@@ -53,26 +53,26 @@ pseudonym identifiers.
 | measure | `DISCOVERY` | `CANDIDATE_TEST` | total allowed cohort |
 |---|---:|---:|---:|
 | predeclared history players | 600 | 300 | 900 |
-| history attempted | 574 | 0 | 574 |
-| history complete | 566 | 0 | 566 |
+| history attempted | 600 | 121 | 721 |
+| history complete | 592 | 121 | 713 |
 | history truncated at safety ceiling | 8 | 0 | 8 |
-| history failed/pending at pause | 0 / 26 | 0 / 300 | 0 / 326 |
+| history failed/pending at pause | 0 / 0 | 0 / 179 | 0 / 179 |
 | predeclared parsed players | 128 | 128 | 256 |
 | parsed batch attempts | 0 | 0 | 0 |
 
-No private/unavailable response was observed. Among 575 profile states, 533
-are non-anonymous and 42 are anonymous; 573 have the descriptive provider
-flag `isStratzPublic=false` and two have it true, while their history operations returned data. The
+No private/unavailable response was observed. Among 721 completed history
+profiles, 670 are non-anonymous and 51 are anonymous; 718 have the descriptive
+provider flag `isStratzPublic=false` and three have it true, while their history operations returned data. The
 owner therefore authorized eligibility based on actual operation availability
 and required-field coverage rather than that flag. No account was topped up,
 replaced, or adaptively selected.
 
-The history archive contains 368,334 canonical rows. All have a known start
-timestamp within the fixed window. Of these, 291,811 have non-null native
-`parsedDateTime` and 76,523 do not. The observed history row duration summary
-is count 368,334, minimum 326 seconds, maximum 7,578 seconds, mean 1,869.316
-seconds. Native enum observations are retained separately: 282,343 rows have
-no observed role/position/lane/leaver vocabulary failure and 85,991 fail at
+The history archive contains 460,960 canonical rows. All have a known start
+timestamp within the fixed window. Of these, 365,347 have non-null native
+`parsedDateTime` and 95,613 do not. The observed history row duration summary
+is count 460,960, minimum 326 seconds, maximum 7,578 seconds, mean 1,870.883
+seconds. Native enum observations are retained separately: 353,625 rows have
+no observed role/position/lane/leaver vocabulary failure and 107,335 fail at
 least one observed enum check. Structural eligibility remains **unknown**
 until native game-mode, lobby, and leaver semantics are verified; no row is
 promoted to an eligible Finding denominator.
@@ -81,14 +81,14 @@ promoted to an eligible Finding denominator.
 
 | gate | result |
 |---|---|
-| physical request ledger rows | 4,000 |
-| immutable raw metadata/body objects | 3,998 / 3,998 |
-| HTTP statuses | 3,998 × 200; two retried `ReadTimeout` attempts without responses |
-| retries | 2 |
+| physical request ledger rows | 5,000 |
+| immutable raw metadata/body objects | 4,998 / 4,998 |
+| HTTP statuses | 4,997 × 200; one transient 403; two `ReadTimeout` attempts without responses |
+| retries | two automatic timeout retries; one checkpointed retry after the isolated 403 |
 | cache hits during live phase | 0 |
-| response bytes | 166,082,466 |
-| summed response latency | 1,865.342544 seconds |
-| response hash manifest | `05e0ea540ec6b0c6ac62a464cacc8d3e8c5306a553d5b4041d85c4582dca41fa` |
+| response bytes | 207,701,173 |
+| summed response latency | 2,296.416721 seconds |
+| response hash manifest | `cbeffb217c9bd67863ecb3f37ebb152029953c0b491f04ce405defa173a5a9ef` |
 | ledger/raw reconciliation | PASS |
 | operation/version/document digest recorded | PASS |
 | variables retained | NO — only a variables SHA-256 and safe variable-key metadata are retained |
@@ -146,7 +146,7 @@ the planned daily cap. Ruff and mypy pass for the runner and focused tests.
 ```text
 TASK TYPE: BACKEND RESEARCH TOOLING + ANALYTICAL DATA ENGINEERING + DOCUMENTATION
 BASE SHA: c538bb5ea99e3eaa4054df8db38c93728fa50808
-STRATZ calls: 4,000 history; 0 parsed; 4,000 physical attempts total
+STRATZ calls: 5,000 history; 0 parsed; 5,000 physical attempts total
 OpenDota calls: 0
 CALIBRATION_RESERVED / SEALED_VALIDATION touched: NO
 raw committed: NO
