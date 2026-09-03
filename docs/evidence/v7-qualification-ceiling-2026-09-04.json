@@ -1,0 +1,262 @@
+{
+  "families": [
+    {
+      "family": "duration_tempo",
+      "information_eligible": 372,
+      "observed_share_of_information_eligible_01": 0.3225806451612903,
+      "parsed_dependent": false,
+      "predicted_share": {
+        "0.01": 0.7914620256042693,
+        "0.05": 0.8405475761915173
+      },
+      "ratio_at_se_median": 9.690243490298943,
+      "ratio_at_se_p25": 12.045677531996363,
+      "se_median": 0.009739552865801932,
+      "se_p25": 0.00783506270241471,
+      "se_p75": 0.012787519742278756,
+      "tau": 0.09437863875625958
+    },
+    {
+      "family": "purchase_tempo",
+      "information_eligible": 68,
+      "observed_share_of_information_eligible_01": 0.5147058823529411,
+      "parsed_dependent": true,
+      "predicted_share": {
+        "0.01": 0.7321682201125569,
+        "0.05": 0.7945440137269957
+      },
+      "ratio_at_se_median": 7.459593289686246,
+      "ratio_at_se_p25": 11.013698917250721,
+      "se_median": 0.008301023827067083,
+      "se_p25": 0.005622294753393577,
+      "se_p75": 0.011224460343636108,
+      "tau": 0.06192226163791525
+    },
+    {
+      "family": "position_flexibility",
+      "information_eligible": 37,
+      "observed_share_of_information_eligible_01": 0.35135135135135137,
+      "parsed_dependent": true,
+      "predicted_share": {
+        "0.01": 0.5922167128055595,
+        "0.05": 0.6835956951087334
+      },
+      "ratio_at_se_median": 4.703882186883265,
+      "ratio_at_se_p25": 5.781901157763476,
+      "se_median": 0.022521397028147188,
+      "se_p25": 0.01832234682223548,
+      "se_p75": 0.03006047862923947,
+      "tau": 0.10593799830442727
+    },
+    {
+      "family": "hero_novelty",
+      "information_eligible": 355,
+      "observed_share_of_information_eligible_01": 0.30704225352112674,
+      "parsed_dependent": false,
+      "predicted_share": {
+        "0.01": 0.4679973386144286,
+        "0.05": 0.580796974110364
+      },
+      "ratio_at_se_median": 3.4054507805227816,
+      "ratio_at_se_p25": 5.247129004366548,
+      "se_median": 0.02996557568859508,
+      "se_p25": 0.019448024440150008,
+      "se_p75": 0.045098571996863984,
+      "tau": 0.10204629311754061
+    },
+    {
+      "family": "fight_timing_centroid",
+      "information_eligible": 67,
+      "observed_share_of_information_eligible_01": 0.23880597014925373,
+      "parsed_dependent": true,
+      "predicted_share": {
+        "0.01": 0.4362206906118915,
+        "0.05": 0.5535596317816043
+      },
+      "ratio_at_se_median": 3.153568009106522,
+      "ratio_at_se_p25": 4.10617529851496,
+      "se_median": 0.004035263696720306,
+      "se_p25": 0.003099107460630914,
+      "se_p75": 0.004700056359450967,
+      "tau": 0.012725478502286081
+    },
+    {
+      "family": "post_loss_hero_switch",
+      "information_eligible": 511,
+      "observed_share_of_information_eligible_01": 0.20156555772994128,
+      "parsed_dependent": false,
+      "predicted_share": {
+        "0.01": 0.4266852835899613,
+        "0.05": 0.5452943617685974
+      },
+      "ratio_at_se_median": 3.082385180235766,
+      "ratio_at_se_p25": 4.387564755470198,
+      "se_median": 0.034660860976264696,
+      "se_p25": 0.02435021023319371,
+      "se_p75": 0.04950108426539504,
+      "tau": 0.10683812420745048
+    },
+    {
+      "family": "post_loss_session_continuation",
+      "information_eligible": 527,
+      "observed_share_of_information_eligible_01": 0.27514231499051234,
+      "parsed_dependent": false,
+      "predicted_share": {
+        "0.01": 0.35374796873698966,
+        "0.05": 0.4804234881863394
+      },
+      "ratio_at_se_median": 2.591388325163109,
+      "ratio_at_se_p25": 3.4512263334722926,
+      "se_median": 0.03768725084266867,
+      "se_p25": 0.028297854850605146,
+      "se_p75": 0.050877517256166765,
+      "tau": 0.09766230184118513
+    },
+    {
+      "family": "post_loss_requeue_latency",
+      "information_eligible": 511,
+      "observed_share_of_information_eligible_01": 0.22309197651663404,
+      "parsed_dependent": false,
+      "predicted_share": {
+        "0.01": 0.30981628950635287,
+        "0.05": 0.4396514593063461
+      },
+      "ratio_at_se_median": 2.33078031375159,
+      "ratio_at_se_p25": 3.2373092265599843,
+      "se_median": 0.0940952240300123,
+      "se_p25": 0.06774616832641783,
+      "se_p75": 0.13225961711359469,
+      "tau": 0.21931529578719822
+    },
+    {
+      "family": "transfer_risk",
+      "information_eligible": 495,
+      "observed_share_of_information_eligible_01": 0.07878787878787878,
+      "parsed_dependent": false,
+      "predicted_share": {
+        "0.01": 0.08527935961489141,
+        "0.05": 0.1903990288458034
+      },
+      "ratio_at_se_median": 1.1137931740734544,
+      "ratio_at_se_p25": 1.5988141262674183,
+      "se_median": 0.11774700372483048,
+      "se_p25": 0.08202692662122645,
+      "se_p75": 0.16562259515304995,
+      "tau": 0.13114580901631778
+    },
+    {
+      "family": "lead_retention",
+      "information_eligible": 109,
+      "observed_share_of_information_eligible_01": 0.045871559633027525,
+      "parsed_dependent": true,
+      "predicted_share": {
+        "0.01": 0.07239998503263645,
+        "0.05": 0.17161286145684418
+      },
+      "ratio_at_se_median": 1.0274131775112467,
+      "ratio_at_se_p25": 1.3055185923908414,
+      "se_median": 0.05309470516671125,
+      "se_p25": 0.04178431472542566,
+      "se_p75": 0.06921052004938576,
+      "tau": 0.054550199744353614
+    },
+    {
+      "family": "transfer_activity",
+      "information_eligible": 495,
+      "observed_share_of_information_eligible_01": 0.06060606060606061,
+      "parsed_dependent": false,
+      "predicted_share": {
+        "0.01": 0.07148494480353307,
+        "0.05": 0.17023623785060726
+      },
+      "ratio_at_se_median": 1.0209764860359378,
+      "ratio_at_se_p25": 1.3393707409199744,
+      "se_median": 0.3012557700285591,
+      "se_p25": 0.22964146377465627,
+      "se_p75": 0.43950318091687496,
+      "tau": 0.30757505748180886
+    },
+    {
+      "family": "lane_recovery_participation",
+      "information_eligible": 113,
+      "observed_share_of_information_eligible_01": 0.035398230088495575,
+      "parsed_dependent": true,
+      "predicted_share": {
+        "0.01": 0.04212861547296831,
+        "0.05": 0.1220202417440035
+      },
+      "ratio_at_se_median": 0.7787817440635638,
+      "ratio_at_se_p25": 0.9492885911921206,
+      "se_median": 0.44218800815261233,
+      "se_p25": 0.3627642335410627,
+      "se_p75": 0.6251460779848649,
+      "tau": 0.3443679481930848
+    },
+    {
+      "family": "side_sensitivity",
+      "information_eligible": 527,
+      "observed_share_of_information_eligible_01": 0.009487666034155597,
+      "parsed_dependent": false,
+      "predicted_share": {
+        "0.01": 0.015291833456925863,
+        "0.05": 0.0649654336020804
+      },
+      "ratio_at_se_median": 0.3576289653973285,
+      "ratio_at_se_p25": 0.463859280988223,
+      "se_median": 0.04067173998264801,
+      "se_p25": 0.031357338070105066,
+      "se_p75": 0.0557849987881858,
+      "tau": 0.014545392290903568
+    }
+  ],
+  "is_a_threshold_choice": false,
+  "note": "Closed-form ceiling under the tournament's own variance components. Assumes a perfectly calibrated test, no multiplicity correction, no effect-size requirement and no stability gate, so it is an upper bound on what a significance-gated Finding can reach.",
+  "portfolio": {
+    "five_candidates_at_least_three": {
+      "0.60": 0.5537459025135267,
+      "0.70": 0.6101816494690417,
+      "0.80": 0.673402062158589,
+      "0.85": 0.7100822089108301,
+      "0.90": 0.7533635467115334
+    },
+    "implied_ratio_for_at_least_three_of_five": {
+      "0.01": {
+        "0.60": 4.233409264817958,
+        "0.70": 4.9525367761091506,
+        "0.80": 6.028970672098194,
+        "0.85": 6.856469233605904,
+        "0.90": 8.136644007665895
+      },
+      "0.05": {
+        "0.60": 3.1551986165042907,
+        "0.70": 3.712132722680888,
+        "0.80": 4.541359992736133,
+        "0.85": 5.176621379004115,
+        "0.90": 6.157125867247047
+      }
+    }
+  },
+  "required_ratio_for_share": {
+    "0.01": {
+      "0.60": 4.809080644545685,
+      "0.70": 6.6096827436522965,
+      "0.75": 8.02174870446812,
+      "0.80": 10.11789733122256,
+      "0.85": 13.583432335105853,
+      "0.90": 20.473776220431592
+    },
+    "0.05": {
+      "0.60": 3.6012705464694554,
+      "0.70": 4.987315120347716,
+      "0.75": 6.069210230243382,
+      "0.80": 7.671376638850956,
+      "0.85": 10.3153277829295,
+      "0.90": 15.565100585872605
+    }
+  },
+  "schema_version": "v7-qualification-ceiling-1.0.0",
+  "source": "docs/evidence/v7-statistical-tournament-discovery-2026-09-03.json",
+  "source_code_sha": "40c9c7061d31b6eb200d924b117430597a4ff99e",
+  "source_design_digest": "4b702dc29f7cd60caecd74ec2bdba3ff5775038fed664e1eb0fa9ffedc4573f3",
+  "split": "DISCOVERY"
+}
