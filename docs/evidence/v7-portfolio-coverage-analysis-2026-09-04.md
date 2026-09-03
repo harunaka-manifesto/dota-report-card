@@ -146,12 +146,17 @@ Three structural facts follow directly:
 The four archetypal options the research plan asks for do not all exist here.
 What the evidence actually supports:
 
-| option | five candidates | P(≥3) 0.01 | P(≥3) 0.05 | behavioural diversity | parsed dependency | statistical confidence | main tradeoff |
-|---|---|---:|---:|---|---|---|---|
-| **A — highest reach** | session_continuation, hero_switch, requeue_latency, hero_novelty, duration_tempo | 0.154 | 0.277 | low — three post-loss, one redundant pair | none | mixed: two A, one B, two C whose nulls are not certified | buys reach with two candidates whose p-values the tournament could not certify |
-| **B — highest confidence** | session_continuation, hero_switch, requeue_latency, transfer_risk, purchase_tempo | 0.086 | 0.170 | moderate | one | the only all-A/B option | the lowest coverage of any option, and still contains the redundant pair |
-| **C — most diverse** | session_continuation, hero_switch, transfer_risk, hero_novelty, purchase_tempo | 0.093 | 0.180 | highest available — setback, hero choice, novelty, build tempo | one | two A, two B, one C | drops requeue_latency to break the redundant pair, and pays for it in reach |
-| **D — balanced** | session_continuation, hero_switch, requeue_latency, transfer_risk, hero_novelty | 0.131 | 0.230 | moderate | none | two A, two B, one C | still three post-loss candidates; hero_novelty's null is anticonservative even i.i.d. |
+| option | five candidates | P(≥3) 0.01 | P(≥3) 0.05 | P(all 5) 0.01 | diversity | parsed | confidence | main tradeoff |
+|---|---|---:|---:|---:|---|---|---|---|
+| **A — highest reach** | session_continuation, hero_switch, requeue_latency, hero_novelty, duration_tempo | **0.154** | 0.277 | 0.006 | low — three post-loss, one redundant pair | none | A A B C C | buys reach with two candidates whose nulls the tournament could not certify |
+| **B — highest confidence** | session_continuation, hero_switch, requeue_latency, transfer_risk, purchase_tempo | 0.072 | 0.152 | 0.000 | moderate | one | A A B B B — the only all-A/B option | less than half the reach of option A, and still contains the redundant pair |
+| **C — most diverse** | session_continuation, hero_switch, transfer_risk, hero_novelty, purchase_tempo | 0.066 | 0.135 | 0.000 | highest available — setback, hero choice, novelty, build tempo | one | A A B B C | the lowest coverage of the four; breaking the redundant pair costs more than the redundancy did |
+| **D — balanced** | session_continuation, hero_switch, requeue_latency, transfer_risk, hero_novelty | 0.131 | 0.230 | 0.002 | moderate | none | A A B B C | still three post-loss candidates; hero_novelty's null is anticonservative even under an i.i.d. permutation |
+
+Note what the ordering says: the highest-confidence option has **less than half**
+the coverage of the highest-reach option, and the most diverse option is the
+worst of the four. Diversity and statistical confidence both cost reach here,
+because the candidates that supply them are the weaker ones.
 
 There is no option that reaches the target. Presenting one would require either
 a different qualification concept or a relaxed standard, and the second is
