@@ -1,0 +1,3150 @@
+{
+  "ab_only_coverage": {
+    "denominator": 527,
+    "histogram": {
+      "0": 255,
+      "1": 151,
+      "2": 83,
+      "3": 33,
+      "4": 5,
+      "5": 0
+    },
+    "share_at_least": {
+      "1": 0.5161290322580645,
+      "2": 0.22960151802656548,
+      "3": 0.07210626185958255,
+      "4": 0.009487666034155597,
+      "5": 0.0
+    }
+  },
+  "ab_only_coverage_05": {
+    "denominator": 527,
+    "histogram": {
+      "0": 144,
+      "1": 188,
+      "2": 115,
+      "3": 61,
+      "4": 19,
+      "5": 0
+    },
+    "share_at_least": {
+      "1": 0.7267552182163188,
+      "2": 0.3700189753320683,
+      "3": 0.15180265654648956,
+      "4": 0.036053130929791274,
+      "5": 0.0
+    }
+  },
+  "all_candidate_coverage": {
+    "histogram": {
+      "0": 198,
+      "1": 143,
+      "2": 85,
+      "3": 49,
+      "4": 34,
+      "5": 11,
+      "6": 6,
+      "7": 1
+    },
+    "never_qualified": 198,
+    "never_qualified_share": 0.3757115749525617
+  },
+  "candidate_definition_version": "v7-luna-b-candidates-1.0.0",
+  "candidate_test_read": false,
+  "corpus": {
+    "run_manifest_canonical_sha256": "d45bf9a04d5c2c0c01c115347900eb1cd0e923d3f0570e368b8ce8d3848ec176",
+    "run_manifest_file_sha256": "256676abc8254b6d1dd804a371ea1636469710fee57ca3ce8151dee25a4ed704"
+  },
+  "denominators": {
+    "any_information_eligible": 527,
+    "parsed_eligible": 116,
+    "product_eligible": 553,
+    "sampled": 600
+  },
+  "design_digest": "4b702dc29f7cd60caecd74ec2bdba3ff5775038fed664e1eb0fa9ffedc4573f3",
+  "effect_correlation_spearman": {
+    "duration_tempo": {
+      "duration_tempo": 0.9999999999999998,
+      "fight_timing_centroid": 0.21996967036475382,
+      "hero_novelty": 0.02570724288599623,
+      "lane_recovery_participation": 0.08282607783048569,
+      "lead_retention": -0.2755761722849586,
+      "position_flexibility": 0.25462304409672837,
+      "post_loss_hero_switch": -0.07943172210459376,
+      "post_loss_requeue_latency": -0.026372109384123953,
+      "post_loss_session_continuation": 0.05851571829748805,
+      "purchase_tempo": 0.08928503263732489,
+      "transfer_activity": -0.057479608118682995,
+      "transfer_risk": -0.009962235951280384
+    },
+    "fight_timing_centroid": {
+      "duration_tempo": 0.21996967036475382,
+      "fight_timing_centroid": 1.0000000000000002,
+      "hero_novelty": -0.07817862558863438,
+      "lane_recovery_participation": -0.048487508979168335,
+      "lead_retention": 0.08173038550562696,
+      "position_flexibility": -0.06092935040303463,
+      "post_loss_hero_switch": 0.08133131135765026,
+      "post_loss_requeue_latency": -0.10128501875648498,
+      "post_loss_session_continuation": -0.08743714582169368,
+      "purchase_tempo": 0.46611860483677875,
+      "transfer_activity": -0.04936547210471706,
+      "transfer_risk": 0.07730066246308566
+    },
+    "hero_novelty": {
+      "duration_tempo": 0.02570724288599623,
+      "fight_timing_centroid": -0.07817862558863438,
+      "hero_novelty": 1.0,
+      "lane_recovery_participation": -0.057475158084914185,
+      "lead_retention": -0.03640469738030714,
+      "position_flexibility": 0.14295874822190616,
+      "post_loss_hero_switch": -0.14386448188272657,
+      "post_loss_requeue_latency": 0.08282044198154075,
+      "post_loss_session_continuation": -0.09937664455596654,
+      "purchase_tempo": 7.634461961293278e-05,
+      "transfer_activity": 0.10002116699814771,
+      "transfer_risk": -0.2276561370431259
+    },
+    "lane_recovery_participation": {
+      "duration_tempo": 0.08282607783048569,
+      "fight_timing_centroid": -0.048487508979168335,
+      "hero_novelty": -0.057475158084914185,
+      "lane_recovery_participation": 1.0,
+      "lead_retention": -0.17477527569270687,
+      "position_flexibility": -0.29540066382171654,
+      "post_loss_hero_switch": 0.09828460654148728,
+      "post_loss_requeue_latency": -0.24886053693393143,
+      "post_loss_session_continuation": 0.12984064142657528,
+      "purchase_tempo": -0.04718097492079246,
+      "transfer_activity": -0.05248927290895199,
+      "transfer_risk": 0.10440055643723428
+    },
+    "lead_retention": {
+      "duration_tempo": -0.2755761722849586,
+      "fight_timing_centroid": 0.08173038550562696,
+      "hero_novelty": -0.03640469738030714,
+      "lane_recovery_participation": -0.17477527569270687,
+      "lead_retention": 1.0,
+      "position_flexibility": 0.12494073020388813,
+      "post_loss_hero_switch": 0.3226948382911686,
+      "post_loss_requeue_latency": 0.3441849689556112,
+      "post_loss_session_continuation": -0.4167917709202113,
+      "purchase_tempo": 0.16520975684238653,
+      "transfer_activity": 0.3473226356315759,
+      "transfer_risk": -0.03166206234448168
+    },
+    "position_flexibility": {
+      "duration_tempo": 0.25462304409672837,
+      "fight_timing_centroid": -0.06092935040303463,
+      "hero_novelty": 0.14295874822190616,
+      "lane_recovery_participation": -0.29540066382171654,
+      "lead_retention": 0.12494073020388813,
+      "position_flexibility": 1.0000000000000002,
+      "post_loss_hero_switch": 0.17211948790896164,
+      "post_loss_requeue_latency": -0.0007112375533428166,
+      "post_loss_session_continuation": -0.07159791370317688,
+      "purchase_tempo": 0.07183499288762449,
+      "transfer_activity": 0.031057373162636327,
+      "transfer_risk": -0.26244665718349935
+    },
+    "post_loss_hero_switch": {
+      "duration_tempo": -0.07943172210459376,
+      "fight_timing_centroid": 0.08133131135765026,
+      "hero_novelty": -0.14386448188272657,
+      "lane_recovery_participation": 0.09828460654148728,
+      "lead_retention": 0.3226948382911686,
+      "position_flexibility": 0.17211948790896164,
+      "post_loss_hero_switch": 0.9999999999999998,
+      "post_loss_requeue_latency": 0.20530758964544718,
+      "post_loss_session_continuation": -0.27078644814090014,
+      "purchase_tempo": -0.007405428102454479,
+      "transfer_activity": -0.05111168679013241,
+      "transfer_risk": 0.05313824284679415
+    },
+    "post_loss_requeue_latency": {
+      "duration_tempo": -0.026372109384123953,
+      "fight_timing_centroid": -0.10128501875648498,
+      "hero_novelty": 0.08282044198154075,
+      "lane_recovery_participation": -0.24886053693393143,
+      "lead_retention": 0.3441849689556112,
+      "position_flexibility": -0.0007112375533428166,
+      "post_loss_hero_switch": 0.20530758964544718,
+      "post_loss_requeue_latency": 0.9999999999999998,
+      "post_loss_session_continuation": -0.5798652980027627,
+      "purchase_tempo": 0.019811428789556055,
+      "transfer_activity": -0.019761534504782078,
+      "transfer_risk": 0.09360287056454454
+    },
+    "post_loss_session_continuation": {
+      "duration_tempo": 0.05851571829748805,
+      "fight_timing_centroid": -0.08743714582169368,
+      "hero_novelty": -0.09937664455596654,
+      "lane_recovery_participation": 0.12984064142657528,
+      "lead_retention": -0.4167917709202113,
+      "position_flexibility": -0.07159791370317688,
+      "post_loss_hero_switch": -0.27078644814090014,
+      "post_loss_requeue_latency": -0.5798652980027627,
+      "post_loss_session_continuation": 1.0000000000000002,
+      "purchase_tempo": -0.07664999809138451,
+      "transfer_activity": -0.0015850024338988685,
+      "transfer_risk": -0.03293817105362097
+    },
+    "purchase_tempo": {
+      "duration_tempo": 0.08928503263732489,
+      "fight_timing_centroid": 0.46611860483677875,
+      "hero_novelty": 7.634461961293278e-05,
+      "lane_recovery_participation": -0.04718097492079246,
+      "lead_retention": 0.16520975684238653,
+      "position_flexibility": 0.07183499288762449,
+      "post_loss_hero_switch": -0.007405428102454479,
+      "post_loss_requeue_latency": 0.019811428789556055,
+      "post_loss_session_continuation": -0.07664999809138451,
+      "purchase_tempo": 1.0,
+      "transfer_activity": -0.025308241401687217,
+      "transfer_risk": 0.05237240905447189
+    },
+    "transfer_activity": {
+      "duration_tempo": -0.057479608118682995,
+      "fight_timing_centroid": -0.04936547210471706,
+      "hero_novelty": 0.10002116699814771,
+      "lane_recovery_participation": -0.05248927290895199,
+      "lead_retention": 0.3473226356315759,
+      "position_flexibility": 0.031057373162636327,
+      "post_loss_hero_switch": -0.05111168679013241,
+      "post_loss_requeue_latency": -0.019761534504782078,
+      "post_loss_session_continuation": -0.0015850024338988685,
+      "purchase_tempo": -0.025308241401687217,
+      "transfer_activity": 1.0,
+      "transfer_risk": -0.3585048935218714
+    },
+    "transfer_risk": {
+      "duration_tempo": -0.009962235951280384,
+      "fight_timing_centroid": 0.07730066246308566,
+      "hero_novelty": -0.2276561370431259,
+      "lane_recovery_participation": 0.10440055643723428,
+      "lead_retention": -0.03166206234448168,
+      "position_flexibility": -0.26244665718349935,
+      "post_loss_hero_switch": 0.05313824284679415,
+      "post_loss_requeue_latency": 0.09360287056454454,
+      "post_loss_session_continuation": -0.03293817105362097,
+      "purchase_tempo": 0.05237240905447189,
+      "transfer_activity": -0.3585048935218714,
+      "transfer_risk": 1.0
+    }
+  },
+  "family_summary": {
+    "duration_tempo": {
+      "information_eligible": 372,
+      "parsed_dependent": false,
+      "reach_of_applicable": 0.6726943942133815,
+      "reach_of_sampled": 0.62
+    },
+    "fight_timing_centroid": {
+      "information_eligible": 67,
+      "parsed_dependent": true,
+      "reach_of_applicable": 0.5775862068965517,
+      "reach_of_sampled": 0.11166666666666666
+    },
+    "hero_novelty": {
+      "information_eligible": 355,
+      "parsed_dependent": false,
+      "reach_of_applicable": 0.6419529837251357,
+      "reach_of_sampled": 0.5916666666666667
+    },
+    "lane_recovery_participation": {
+      "information_eligible": 113,
+      "parsed_dependent": true,
+      "reach_of_applicable": 0.9741379310344828,
+      "reach_of_sampled": 0.18833333333333332
+    },
+    "lead_retention": {
+      "information_eligible": 109,
+      "parsed_dependent": true,
+      "reach_of_applicable": 0.9396551724137931,
+      "reach_of_sampled": 0.18166666666666667
+    },
+    "position_flexibility": {
+      "information_eligible": 37,
+      "parsed_dependent": true,
+      "reach_of_applicable": 0.31896551724137934,
+      "reach_of_sampled": 0.06166666666666667
+    },
+    "post_loss_hero_switch": {
+      "information_eligible": 511,
+      "parsed_dependent": false,
+      "reach_of_applicable": 0.9240506329113924,
+      "reach_of_sampled": 0.8516666666666667
+    },
+    "post_loss_requeue_latency": {
+      "information_eligible": 511,
+      "parsed_dependent": false,
+      "reach_of_applicable": 0.9240506329113924,
+      "reach_of_sampled": 0.8516666666666667
+    },
+    "post_loss_session_continuation": {
+      "information_eligible": 527,
+      "parsed_dependent": false,
+      "reach_of_applicable": 0.9529837251356239,
+      "reach_of_sampled": 0.8783333333333333
+    },
+    "purchase_tempo": {
+      "information_eligible": 68,
+      "parsed_dependent": true,
+      "reach_of_applicable": 0.5862068965517241,
+      "reach_of_sampled": 0.11333333333333333
+    },
+    "transfer_activity": {
+      "information_eligible": 495,
+      "parsed_dependent": false,
+      "reach_of_applicable": 0.895117540687161,
+      "reach_of_sampled": 0.825
+    },
+    "transfer_risk": {
+      "information_eligible": 495,
+      "parsed_dependent": false,
+      "reach_of_applicable": 0.895117540687161,
+      "reach_of_sampled": 0.825
+    }
+  },
+  "feature_version": "v7-luna-b-features-1.0.0",
+  "five_candidate_portfolios": [
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 0,
+      "share_all_five_01": 0.0056925996204933585,
+      "share_at_least_one_01": 0.5882352941176471,
+      "share_at_least_three_01": 0.15370018975332067,
+      "share_at_least_three_05": 0.27703984819734345
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty"
+      ],
+      "parsed_dependent_count": 0,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.5540796963946869,
+      "share_at_least_three_01": 0.13092979127134724,
+      "share_at_least_three_05": 0.22960151802656548
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 0,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.5559772296015181,
+      "share_at_least_three_01": 0.13092979127134724,
+      "share_at_least_three_05": 0.24478178368121442
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.5521821631878557,
+      "share_at_least_three_01": 0.13092979127134724,
+      "share_at_least_three_05": 0.2333965844402277
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 0,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.5616698292220114,
+      "share_at_least_three_01": 0.12903225806451613,
+      "share_at_least_three_05": 0.2333965844402277
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.5370018975332068,
+      "share_at_least_three_01": 0.1252371916508539,
+      "share_at_least_three_05": 0.22770398481973433
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.538899430740038,
+      "share_at_least_three_01": 0.12333965844402277,
+      "share_at_least_three_05": 0.2239089184060721
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.5559772296015181,
+      "share_at_least_three_01": 0.11385199240986717,
+      "share_at_least_three_05": 0.21062618595825428
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.540796963946869,
+      "share_at_least_three_01": 0.11005692599620494,
+      "share_at_least_three_05": 0.2030360531309298
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.5578747628083491,
+      "share_at_least_three_01": 0.10815939278937381,
+      "share_at_least_three_05": 0.19924098671726756
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.5464895635673624,
+      "share_at_least_three_01": 0.10815939278937381,
+      "share_at_least_three_05": 0.2049335863377609
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 0,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.5218216318785579,
+      "share_at_least_three_01": 0.10815939278937381,
+      "share_at_least_three_05": 0.22011385199240988
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0056925996204933585,
+      "share_at_least_one_01": 0.538899430740038,
+      "share_at_least_three_01": 0.1062618595825427,
+      "share_at_least_three_05": 0.2030360531309298
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 0,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.5768500948766604,
+      "share_at_least_three_01": 0.10436432637571158,
+      "share_at_least_three_05": 0.2125237191650854
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.007590132827324478,
+      "share_at_least_one_01": 0.5180265654648957,
+      "share_at_least_three_01": 0.10436432637571158,
+      "share_at_least_three_05": 0.20872865275142316
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5445920303605313,
+      "share_at_least_three_01": 0.10246679316888045,
+      "share_at_least_three_05": 0.1954459203036053
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0056925996204933585,
+      "share_at_least_one_01": 0.5066413662239089,
+      "share_at_least_three_01": 0.09867172675521822,
+      "share_at_least_three_05": 0.19924098671726756
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.5047438330170778,
+      "share_at_least_three_01": 0.0967741935483871,
+      "share_at_least_three_05": 0.19734345351043645
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.5749525616698292,
+      "share_at_least_three_01": 0.09487666034155598,
+      "share_at_least_three_05": 0.19165085388994307
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5578747628083491,
+      "share_at_least_three_01": 0.08538899430740038,
+      "share_at_least_three_05": 0.17836812144212524
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.5616698292220114,
+      "share_at_least_three_01": 0.08538899430740038,
+      "share_at_least_three_05": 0.18026565464895636
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5123339658444023,
+      "share_at_least_three_01": 0.08349146110056926,
+      "share_at_least_three_05": 0.15939278937381404
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4857685009487666,
+      "share_at_least_three_01": 0.08159392789373814,
+      "share_at_least_three_05": 0.14041745730550284
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5218216318785579,
+      "share_at_least_three_01": 0.07969639468690702,
+      "share_at_least_three_05": 0.16129032258064516
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5464895635673624,
+      "share_at_least_three_01": 0.07969639468690702,
+      "share_at_least_three_05": 0.15370018975332067
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.48956356736242884,
+      "share_at_least_three_01": 0.0777988614800759,
+      "share_at_least_three_05": 0.1555977229601518
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4990512333965844,
+      "share_at_least_three_01": 0.07400379506641366,
+      "share_at_least_three_05": 0.15180265654648956
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.476280834914611,
+      "share_at_least_three_01": 0.07400379506641366,
+      "share_at_least_three_05": 0.1366223908918406
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.476280834914611,
+      "share_at_least_three_01": 0.07400379506641366,
+      "share_at_least_three_05": 0.15370018975332067
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "B"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5161290322580645,
+      "share_at_least_three_01": 0.07210626185958255,
+      "share_at_least_three_05": 0.15180265654648956
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.50853889943074,
+      "share_at_least_three_01": 0.07210626185958255,
+      "share_at_least_three_05": 0.1555977229601518
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4971537001897533,
+      "share_at_least_three_01": 0.07210626185958255,
+      "share_at_least_three_05": 0.1347248576850095
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.540796963946869,
+      "share_at_least_three_01": 0.07020872865275142,
+      "share_at_least_three_05": 0.13282732447817835
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.47058823529411764,
+      "share_at_least_three_01": 0.07020872865275142,
+      "share_at_least_three_05": 0.13092979127134724
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4648956356736243,
+      "share_at_least_three_01": 0.07020872865275142,
+      "share_at_least_three_05": 0.1461100569259962
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4781783681214421,
+      "share_at_least_three_01": 0.07020872865275142,
+      "share_at_least_three_05": 0.15749525616698293
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5313092979127134,
+      "share_at_least_three_01": 0.0683111954459203,
+      "share_at_least_three_05": 0.13282732447817835
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5047438330170778,
+      "share_at_least_three_01": 0.0683111954459203,
+      "share_at_least_three_05": 0.15370018975332067
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.4838709677419355,
+      "share_at_least_three_01": 0.0683111954459203,
+      "share_at_least_three_05": 0.1347248576850095
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.4952561669829222,
+      "share_at_least_three_01": 0.0683111954459203,
+      "share_at_least_three_05": 0.1366223908918406
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5313092979127134,
+      "share_at_least_three_01": 0.0683111954459203,
+      "share_at_least_three_05": 0.14800759013282733
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4819734345351044,
+      "share_at_least_three_01": 0.0683111954459203,
+      "share_at_least_three_05": 0.13851992409867173
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0056925996204933585,
+      "share_at_least_one_01": 0.45161290322580644,
+      "share_at_least_three_01": 0.0683111954459203,
+      "share_at_least_three_05": 0.14800759013282733
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5370018975332068,
+      "share_at_least_three_01": 0.06641366223908918,
+      "share_at_least_three_05": 0.1347248576850095
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4857685009487666,
+      "share_at_least_three_01": 0.06641366223908918,
+      "share_at_least_three_05": 0.13282732447817835
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.45540796963946867,
+      "share_at_least_three_01": 0.06641366223908918,
+      "share_at_least_three_05": 0.13092979127134724
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5313092979127134,
+      "share_at_least_three_01": 0.06451612903225806,
+      "share_at_least_three_05": 0.1461100569259962
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5256166982922201,
+      "share_at_least_three_01": 0.06451612903225806,
+      "share_at_least_three_05": 0.12144212523719165
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.46110056925996207,
+      "share_at_least_three_01": 0.06451612903225806,
+      "share_at_least_three_05": 0.14231499051233396
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0056925996204933585,
+      "share_at_least_one_01": 0.4573055028462998,
+      "share_at_least_three_01": 0.06451612903225806,
+      "share_at_least_three_05": 0.14041745730550284
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.45351043643263755,
+      "share_at_least_three_01": 0.06451612903225806,
+      "share_at_least_three_05": 0.1366223908918406
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5199240986717267,
+      "share_at_least_three_01": 0.06261859582542695,
+      "share_at_least_three_05": 0.11954459203036052
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.48956356736242884,
+      "share_at_least_three_01": 0.06261859582542695,
+      "share_at_least_three_05": 0.12333965844402277
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.523719165085389,
+      "share_at_least_three_01": 0.06261859582542695,
+      "share_at_least_three_05": 0.127134724857685
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.46110056925996207,
+      "share_at_least_three_01": 0.06261859582542695,
+      "share_at_least_three_05": 0.11954459203036052
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4971537001897533,
+      "share_at_least_three_01": 0.06072106261859583,
+      "share_at_least_three_05": 0.14231499051233396
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4952561669829222,
+      "share_at_least_three_01": 0.06072106261859583,
+      "share_at_least_three_05": 0.13851992409867173
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.47438330170777987,
+      "share_at_least_three_01": 0.06072106261859583,
+      "share_at_least_three_05": 0.12144212523719165
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4629981024667932,
+      "share_at_least_three_01": 0.06072106261859583,
+      "share_at_least_three_05": 0.14990512333965844
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5180265654648957,
+      "share_at_least_three_01": 0.058823529411764705,
+      "share_at_least_three_05": 0.1252371916508539
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4667931688804554,
+      "share_at_least_three_01": 0.058823529411764705,
+      "share_at_least_three_05": 0.127134724857685
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.4971537001897533,
+      "share_at_least_three_01": 0.056925996204933584,
+      "share_at_least_three_05": 0.11764705882352941
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5218216318785579,
+      "share_at_least_three_01": 0.056925996204933584,
+      "share_at_least_three_05": 0.127134724857685
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.523719165085389,
+      "share_at_least_three_01": 0.056925996204933584,
+      "share_at_least_three_05": 0.127134724857685
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0056925996204933585,
+      "share_at_least_one_01": 0.4629981024667932,
+      "share_at_least_three_01": 0.056925996204933584,
+      "share_at_least_three_05": 0.1157495256166983
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4648956356736243,
+      "share_at_least_three_01": 0.056925996204933584,
+      "share_at_least_three_05": 0.1442125237191651
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0056925996204933585,
+      "share_at_least_one_01": 0.4952561669829222,
+      "share_at_least_three_01": 0.05502846299810247,
+      "share_at_least_three_05": 0.12333965844402277
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.003795066413662239,
+      "share_at_least_one_01": 0.5199240986717267,
+      "share_at_least_three_01": 0.05502846299810247,
+      "share_at_least_three_05": 0.11195445920303605
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 1,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4629981024667932,
+      "share_at_least_three_01": 0.05502846299810247,
+      "share_at_least_three_05": 0.127134724857685
+    },
+    {
+      "grades": [
+        "B",
+        "C",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.44212523719165087,
+      "share_at_least_three_01": 0.05502846299810247,
+      "share_at_least_three_05": 0.1366223908918406
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5218216318785579,
+      "share_at_least_three_01": 0.05313092979127135,
+      "share_at_least_three_05": 0.10056925996204934
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.5218216318785579,
+      "share_at_least_three_01": 0.05313092979127135,
+      "share_at_least_three_05": 0.11954459203036052
+    },
+    {
+      "grades": [
+        "A",
+        "C",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5104364326375711,
+      "share_at_least_three_01": 0.05313092979127135,
+      "share_at_least_three_05": 0.11954459203036052
+    },
+    {
+      "grades": [
+        "A",
+        "C",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.444022770398482,
+      "share_at_least_three_01": 0.05313092979127135,
+      "share_at_least_three_05": 0.11954459203036052
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.007590132827324478,
+      "share_at_least_one_01": 0.4629981024667932,
+      "share_at_least_three_01": 0.051233396584440226,
+      "share_at_least_three_05": 0.11005692599620494
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.4648956356736243,
+      "share_at_least_three_01": 0.04933586337760911,
+      "share_at_least_three_05": 0.1062618595825427
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.4819734345351044,
+      "share_at_least_three_01": 0.04743833017077799,
+      "share_at_least_three_05": 0.11195445920303605
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.50853889943074,
+      "share_at_least_three_01": 0.04743833017077799,
+      "share_at_least_three_05": 0.11195445920303605
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.45351043643263755,
+      "share_at_least_three_01": 0.04743833017077799,
+      "share_at_least_three_05": 0.1062618595825427
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4174573055028463,
+      "share_at_least_three_01": 0.04743833017077799,
+      "share_at_least_three_05": 0.08349146110056926
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4098671726755218,
+      "share_at_least_three_01": 0.04743833017077799,
+      "share_at_least_three_05": 0.09108159392789374
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.5066413662239089,
+      "share_at_least_three_01": 0.04554079696394687,
+      "share_at_least_three_05": 0.09867172675521822
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4098671726755218,
+      "share_at_least_three_01": 0.04554079696394687,
+      "share_at_least_three_05": 0.08349146110056926
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.45351043643263755,
+      "share_at_least_three_01": 0.04174573055028463,
+      "share_at_least_three_05": 0.10056925996204934
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4060721062618596,
+      "share_at_least_three_01": 0.04174573055028463,
+      "share_at_least_three_05": 0.08159392789373814
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4174573055028463,
+      "share_at_least_three_01": 0.04174573055028463,
+      "share_at_least_three_05": 0.08349146110056926
+    },
+    {
+      "grades": [
+        "B",
+        "C",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "purchase_tempo",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.38140417457305503,
+      "share_at_least_three_01": 0.04174573055028463,
+      "share_at_least_three_05": 0.06641366223908918
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4857685009487666,
+      "share_at_least_three_01": 0.03984819734345351,
+      "share_at_least_three_05": 0.07590132827324478
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.396584440227704,
+      "share_at_least_three_01": 0.03984819734345351,
+      "share_at_least_three_05": 0.07400379506641366
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.40037950664136623,
+      "share_at_least_three_01": 0.03795066413662239,
+      "share_at_least_three_05": 0.07210626185958255
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.44212523719165087,
+      "share_at_least_three_01": 0.036053130929791274,
+      "share_at_least_three_05": 0.07590132827324478
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4459203036053131,
+      "share_at_least_three_01": 0.03415559772296015,
+      "share_at_least_three_05": 0.07400379506641366
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4667931688804554,
+      "share_at_least_three_01": 0.03415559772296015,
+      "share_at_least_three_05": 0.07020872865275142
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.44212523719165087,
+      "share_at_least_three_01": 0.03415559772296015,
+      "share_at_least_three_05": 0.05313092979127135
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.45920303605313095,
+      "share_at_least_three_01": 0.03415559772296015,
+      "share_at_least_three_05": 0.058823529411764705
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.3984819734345351,
+      "share_at_least_three_01": 0.03415559772296015,
+      "share_at_least_three_05": 0.07020872865275142
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4098671726755218,
+      "share_at_least_three_01": 0.03415559772296015,
+      "share_at_least_three_05": 0.0777988614800759
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4079696394686907,
+      "share_at_least_three_01": 0.03415559772296015,
+      "share_at_least_three_05": 0.07020872865275142
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4857685009487666,
+      "share_at_least_three_01": 0.03225806451612903,
+      "share_at_least_three_05": 0.07590132827324478
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.396584440227704,
+      "share_at_least_three_01": 0.03225806451612903,
+      "share_at_least_three_05": 0.06451612903225806
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.3984819734345351,
+      "share_at_least_three_01": 0.030360531309297913,
+      "share_at_least_three_05": 0.0683111954459203
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.3738140417457306,
+      "share_at_least_three_01": 0.030360531309297913,
+      "share_at_least_three_05": 0.05313092979127135
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4686907020872865,
+      "share_at_least_three_01": 0.028462998102466792,
+      "share_at_least_three_05": 0.06451612903225806
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.44212523719165087,
+      "share_at_least_three_01": 0.028462998102466792,
+      "share_at_least_three_05": 0.04364326375711575
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4117647058823529,
+      "share_at_least_three_01": 0.028462998102466792,
+      "share_at_least_three_05": 0.07210626185958255
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.3738140417457306,
+      "share_at_least_three_01": 0.028462998102466792,
+      "share_at_least_three_05": 0.04743833017077799
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.38519924098671726,
+      "share_at_least_three_01": 0.028462998102466792,
+      "share_at_least_three_05": 0.051233396584440226
+    },
+    {
+      "grades": [
+        "B",
+        "C",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "transfer_risk",
+        "hero_novelty",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.3984819734345351,
+      "share_at_least_three_01": 0.028462998102466792,
+      "share_at_least_three_05": 0.0777988614800759
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4686907020872865,
+      "share_at_least_three_01": 0.026565464895635674,
+      "share_at_least_three_05": 0.0683111954459203
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.4269449715370019,
+      "share_at_least_three_01": 0.026565464895635674,
+      "share_at_least_three_05": 0.06451612903225806
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.4098671726755218,
+      "share_at_least_three_01": 0.026565464895635674,
+      "share_at_least_three_05": 0.04933586337760911
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "B",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.41366223908918404,
+      "share_at_least_three_01": 0.026565464895635674,
+      "share_at_least_three_05": 0.07210626185958255
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.3889943074003795,
+      "share_at_least_three_01": 0.026565464895635674,
+      "share_at_least_three_05": 0.06641366223908918
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.3757115749525617,
+      "share_at_least_three_01": 0.026565464895635674,
+      "share_at_least_three_05": 0.04743833017077799
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.47058823529411764,
+      "share_at_least_three_01": 0.024667931688804556,
+      "share_at_least_three_05": 0.06261859582542695
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "purchase_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0018975332068311196,
+      "share_at_least_one_01": 0.3908918406072106,
+      "share_at_least_three_01": 0.024667931688804556,
+      "share_at_least_three_05": 0.03795066413662239
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.3870967741935484,
+      "share_at_least_three_01": 0.024667931688804556,
+      "share_at_least_three_05": 0.056925996204933584
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.47438330170777987,
+      "share_at_least_three_01": 0.022770398481973434,
+      "share_at_least_three_05": 0.06641366223908918
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.40037950664136623,
+      "share_at_least_three_01": 0.020872865275142316,
+      "share_at_least_three_05": 0.058823529411764705
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_requeue_latency",
+        "transfer_risk",
+        "purchase_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.31688804554079697,
+      "share_at_least_three_01": 0.020872865275142316,
+      "share_at_least_three_05": 0.036053130929791274
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "transfer_risk",
+        "purchase_tempo",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.301707779886148,
+      "share_at_least_three_01": 0.020872865275142316,
+      "share_at_least_three_05": 0.03984819734345351
+    },
+    {
+      "grades": [
+        "B",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "transfer_risk",
+        "purchase_tempo",
+        "duration_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.31499051233396586,
+      "share_at_least_three_01": 0.020872865275142316,
+      "share_at_least_three_05": 0.03984819734345351
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "C",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "hero_novelty",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.45540796963946867,
+      "share_at_least_three_01": 0.018975332068311195,
+      "share_at_least_three_05": 0.056925996204933584
+    },
+    {
+      "grades": [
+        "A",
+        "A",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 2,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.45351043643263755,
+      "share_at_least_three_01": 0.017077798861480076,
+      "share_at_least_three_05": 0.05313092979127135
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_session_continuation",
+        "transfer_risk",
+        "purchase_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.38140417457305503,
+      "share_at_least_three_01": 0.015180265654648957,
+      "share_at_least_three_05": 0.04174573055028463
+    },
+    {
+      "grades": [
+        "A",
+        "B",
+        "B",
+        "C",
+        "C"
+      ],
+      "members": [
+        "post_loss_hero_switch",
+        "transfer_risk",
+        "purchase_tempo",
+        "position_flexibility",
+        "fight_timing_centroid"
+      ],
+      "parsed_dependent_count": 3,
+      "share_all_five_01": 0.0,
+      "share_at_least_one_01": 0.29601518026565465,
+      "share_at_least_three_01": 0.015180265654648957,
+      "share_at_least_three_05": 0.030360531309297913
+    }
+  ],
+  "grades": {
+    "duration_tempo": "C",
+    "fight_timing_centroid": "C",
+    "hero_novelty": "C",
+    "lane_recovery_participation": "D",
+    "lead_retention": "D",
+    "position_flexibility": "C",
+    "post_loss_hero_switch": "A",
+    "post_loss_requeue_latency": "B",
+    "post_loss_session_continuation": "A",
+    "purchase_tempo": "B",
+    "transfer_activity": "D",
+    "transfer_risk": "B"
+  },
+  "identities_included": false,
+  "inference_version": "v7-luna-c-inference-1.0.0",
+  "new_provider_calls": 0,
+  "publication_thresholds_chosen": false,
+  "qualification_overlap_jaccard_01": {
+    "duration_tempo": {
+      "duration_tempo": 1.0,
+      "fight_timing_centroid": 0.046153846153846156,
+      "hero_novelty": 0.25136612021857924,
+      "lane_recovery_participation": 0.024793388429752067,
+      "lead_retention": 0.008064516129032258,
+      "position_flexibility": 0.047244094488188976,
+      "post_loss_hero_switch": 0.24581005586592178,
+      "post_loss_requeue_latency": 0.25806451612903225,
+      "post_loss_session_continuation": 0.18303571428571427,
+      "purchase_tempo": 0.11510791366906475,
+      "transfer_activity": 0.056338028169014086,
+      "transfer_risk": 0.11971830985915492
+    },
+    "fight_timing_centroid": {
+      "duration_tempo": 0.046153846153846156,
+      "fight_timing_centroid": 1.0,
+      "hero_novelty": 0.07758620689655173,
+      "lane_recovery_participation": 0.1111111111111111,
+      "lead_retention": 0.10526315789473684,
+      "position_flexibility": 0.03571428571428571,
+      "post_loss_hero_switch": 0.0625,
+      "post_loss_requeue_latency": 0.06557377049180328,
+      "post_loss_session_continuation": 0.05228758169934641,
+      "purchase_tempo": 0.275,
+      "transfer_activity": 0.022222222222222223,
+      "transfer_risk": 0.0
+    },
+    "hero_novelty": {
+      "duration_tempo": 0.25136612021857924,
+      "fight_timing_centroid": 0.07758620689655173,
+      "hero_novelty": 1.0,
+      "lane_recovery_participation": 0.008928571428571428,
+      "lead_retention": 0.017857142857142856,
+      "position_flexibility": 0.03389830508474576,
+      "post_loss_hero_switch": 0.20454545454545456,
+      "post_loss_requeue_latency": 0.25280898876404495,
+      "post_loss_session_continuation": 0.19248826291079812,
+      "purchase_tempo": 0.11627906976744186,
+      "transfer_activity": 0.07751937984496124,
+      "transfer_risk": 0.0962962962962963
+    },
+    "lane_recovery_participation": {
+      "duration_tempo": 0.024793388429752067,
+      "fight_timing_centroid": 0.1111111111111111,
+      "hero_novelty": 0.008928571428571428,
+      "lane_recovery_participation": 1.0,
+      "lead_retention": 0.2857142857142857,
+      "position_flexibility": 0.0,
+      "post_loss_hero_switch": 0.01904761904761905,
+      "post_loss_requeue_latency": 0.02608695652173913,
+      "post_loss_session_continuation": 0.013605442176870748,
+      "purchase_tempo": 0.05405405405405406,
+      "transfer_activity": 0.030303030303030304,
+      "transfer_risk": 0.0
+    },
+    "lead_retention": {
+      "duration_tempo": 0.008064516129032258,
+      "fight_timing_centroid": 0.10526315789473684,
+      "hero_novelty": 0.017857142857142856,
+      "lane_recovery_participation": 0.2857142857142857,
+      "lead_retention": 1.0,
+      "position_flexibility": 0.0,
+      "post_loss_hero_switch": 0.018867924528301886,
+      "post_loss_requeue_latency": 0.017094017094017096,
+      "post_loss_session_continuation": 0.006711409395973154,
+      "purchase_tempo": 0.02564102564102564,
+      "transfer_activity": 0.06060606060606061,
+      "transfer_risk": 0.0
+    },
+    "position_flexibility": {
+      "duration_tempo": 0.047244094488188976,
+      "fight_timing_centroid": 0.03571428571428571,
+      "hero_novelty": 0.03389830508474576,
+      "lane_recovery_participation": 0.0,
+      "lead_retention": 0.0,
+      "position_flexibility": 1.0,
+      "post_loss_hero_switch": 0.03571428571428571,
+      "post_loss_requeue_latency": 0.040983606557377046,
+      "post_loss_session_continuation": 0.025974025974025976,
+      "purchase_tempo": 0.2631578947368421,
+      "transfer_activity": 0.0,
+      "transfer_risk": 0.0
+    },
+    "post_loss_hero_switch": {
+      "duration_tempo": 0.24581005586592178,
+      "fight_timing_centroid": 0.0625,
+      "hero_novelty": 0.20454545454545456,
+      "lane_recovery_participation": 0.01904761904761905,
+      "lead_retention": 0.018867924528301886,
+      "position_flexibility": 0.03571428571428571,
+      "post_loss_hero_switch": 1.0,
+      "post_loss_requeue_latency": 0.1793478260869565,
+      "post_loss_session_continuation": 0.17535545023696683,
+      "purchase_tempo": 0.08661417322834646,
+      "transfer_activity": 0.07258064516129033,
+      "transfer_risk": 0.11811023622047244
+    },
+    "post_loss_requeue_latency": {
+      "duration_tempo": 0.25806451612903225,
+      "fight_timing_centroid": 0.06557377049180328,
+      "hero_novelty": 0.25280898876404495,
+      "lane_recovery_participation": 0.02608695652173913,
+      "lead_retention": 0.017094017094017096,
+      "position_flexibility": 0.040983606557377046,
+      "post_loss_hero_switch": 0.1793478260869565,
+      "post_loss_requeue_latency": 1.0,
+      "post_loss_session_continuation": 0.34196891191709844,
+      "purchase_tempo": 0.09558823529411764,
+      "transfer_activity": 0.08270676691729323,
+      "transfer_risk": 0.10071942446043165
+    },
+    "post_loss_session_continuation": {
+      "duration_tempo": 0.18303571428571427,
+      "fight_timing_centroid": 0.05228758169934641,
+      "hero_novelty": 0.19248826291079812,
+      "lane_recovery_participation": 0.013605442176870748,
+      "lead_retention": 0.006711409395973154,
+      "position_flexibility": 0.025974025974025976,
+      "post_loss_hero_switch": 0.17535545023696683,
+      "post_loss_requeue_latency": 0.34196891191709844,
+      "post_loss_session_continuation": 1.0,
+      "purchase_tempo": 0.058823529411764705,
+      "transfer_activity": 0.06707317073170732,
+      "transfer_risk": 0.06976744186046512
+    },
+    "purchase_tempo": {
+      "duration_tempo": 0.11510791366906475,
+      "fight_timing_centroid": 0.275,
+      "hero_novelty": 0.11627906976744186,
+      "lane_recovery_participation": 0.05405405405405406,
+      "lead_retention": 0.02564102564102564,
+      "position_flexibility": 0.2631578947368421,
+      "post_loss_hero_switch": 0.08661417322834646,
+      "post_loss_requeue_latency": 0.09558823529411764,
+      "post_loss_session_continuation": 0.058823529411764705,
+      "purchase_tempo": 1.0,
+      "transfer_activity": 0.0,
+      "transfer_risk": 0.0136986301369863
+    },
+    "transfer_activity": {
+      "duration_tempo": 0.056338028169014086,
+      "fight_timing_centroid": 0.022222222222222223,
+      "hero_novelty": 0.07751937984496124,
+      "lane_recovery_participation": 0.030303030303030304,
+      "lead_retention": 0.06060606060606061,
+      "position_flexibility": 0.0,
+      "post_loss_hero_switch": 0.07258064516129033,
+      "post_loss_requeue_latency": 0.08270676691729323,
+      "post_loss_session_continuation": 0.06707317073170732,
+      "purchase_tempo": 0.0,
+      "transfer_activity": 1.0,
+      "transfer_risk": 0.045454545454545456
+    },
+    "transfer_risk": {
+      "duration_tempo": 0.11971830985915492,
+      "fight_timing_centroid": 0.0,
+      "hero_novelty": 0.0962962962962963,
+      "lane_recovery_participation": 0.0,
+      "lead_retention": 0.0,
+      "position_flexibility": 0.0,
+      "post_loss_hero_switch": 0.11811023622047244,
+      "post_loss_requeue_latency": 0.10071942446043165,
+      "post_loss_session_continuation": 0.06976744186046512,
+      "purchase_tempo": 0.0136986301369863,
+      "transfer_activity": 0.045454545454545456,
+      "transfer_risk": 1.0
+    }
+  },
+  "schema_version": "v7-portfolio-analysis-1.0.0",
+  "seed": 20260903,
+  "source_tournament_code_sha": "40c9c7061d31b6eb200d924b117430597a4ff99e",
+  "split": "DISCOVERY"
+}
