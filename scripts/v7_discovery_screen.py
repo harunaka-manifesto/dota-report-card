@@ -11,7 +11,6 @@ Every table in the Luna B evidence document is reproducible from this script.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import subprocess
 import sys
@@ -22,7 +21,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.v7_research.corpus import DISCOVERY, corpus_paths, read_json  # noqa: E402
+from scripts.v7_research.corpus import (  # noqa: E402
+    DISCOVERY,
+    corpus_paths,
+    manifest_digests,
+)
 from scripts.v7_research.features import FEATURE_VERSION, load_frames  # noqa: E402
 from scripts.v7_research.registry import (  # noqa: E402
     CANDIDATE_DEFINITION_VERSION,
@@ -82,24 +85,6 @@ def git_sha() -> str:
         ).stdout.strip()
     except Exception:  # pragma: no cover - provenance is best-effort
         return "unknown"
-
-
-def manifest_digests(root: Path) -> dict[str, str]:
-    manifest_path = root / "manifests" / "run-manifest.json"
-    out: dict[str, str] = {}
-    if manifest_path.is_file():
-        raw = manifest_path.read_bytes()
-        out["run_manifest_sha256"] = hashlib.sha256(raw).hexdigest()
-        try:
-            manifest = read_json(manifest_path)
-        except Exception:  # pragma: no cover
-            return out
-        for key in ("split_manifest_digest", "splitManifestDigest"):
-            value = _deep_find(manifest, key)
-            if value:
-                out["split_manifest_digest"] = str(value)
-                break
-    return out
 
 
 def _deep_find(node: Any, key: str) -> Any:

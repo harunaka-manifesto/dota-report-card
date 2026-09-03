@@ -22,7 +22,8 @@ RANK / MMR / IMP / BEHAVIOUR / PLAYBACK USED: NO
 | item | value |
 |---|---|
 | code SHA | `dd0930269fcd324b56d230f11d83ffddcd0aaf9c` |
-| corpus run-manifest digest | `256676abc8254b6d1dd804a371ea1636469710fee57ca3ce8151dee25a4ed704` |
+| corpus run-manifest digest (raw file) | `256676abc8254b6d1dd804a371ea1636469710fee57ca3ce8151dee25a4ed704` |
+| corpus run-manifest digest (canonical JSON) | `d45bf9a04d5c2c0c01c115347900eb1cd0e923d3f0570e368b8ce8d3848ec176` |
 | split-manifest digest | `ef24c63b1c2f56e4bb21b4947b0b43dedf0550bd3547ee818cc9346f4275d885` |
 | feature version | `v7-luna-b-features-1.0.0` |
 | screen version | `v7-luna-b-screen-1.0.0` |
