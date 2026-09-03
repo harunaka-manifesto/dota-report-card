@@ -1,0 +1,117 @@
+{
+  "candidate_definition_version": "v7-luna-b-candidates-1.0.0",
+  "candidate_test_passes_permitted": 1,
+  "declared_robustness_probes": {
+    "hero_choice_draft_exclusion": [
+      "hero_novelty",
+      "post_loss_hero_switch",
+      "transfer_risk",
+      "transfer_activity"
+    ],
+    "hero_free_projection": [
+      "transfer_risk",
+      "transfer_activity"
+    ],
+    "mode_split_agreement": [
+      "duration_tempo"
+    ],
+    "parsed_selection_probe": "history-only families recomputed on parsed matches only",
+    "session_gap_families": [
+      "post_loss_session_continuation",
+      "post_loss_hero_switch",
+      "post_loss_requeue_latency",
+      "position_flexibility"
+    ],
+    "session_gap_sweep_seconds": [
+      7200,
+      10800,
+      14400,
+      21600
+    ],
+    "volume_equalisation_cap": 500
+  },
+  "design": {
+    "context_projection": {
+      "arm_is_a_factor_for_contrast_families": true,
+      "method": "additive categorical projection by alternating group-mean removal",
+      "player_is_a_factor": false
+    },
+    "estimand": {
+      "contrast": "E[residual | player, treated] - E[residual | player, control], with the arm carried as a context factor so the population average response is removed before the player is compared",
+      "level": "E[context-adjusted residual | player]",
+      "unit_of_observation": "one opportunity, in chronological order"
+    },
+    "inference_version": "v7-luna-c-inference-1.0.0",
+    "multiplicity": "NOT CHOSEN IN THIS PHASE",
+    "null_dgp": {
+      "contrast_primary": "within-player circular shift of the arm-label sequence",
+      "contrast_secondary": "within-player i.i.d. permutation of the arm labels",
+      "level_block_lengths_measured": [
+        5,
+        25,
+        100,
+        200
+      ],
+      "level_primary": "between-player reassignment of contiguous residual blocks inside a mode stratum, preserving each player's volume and block count",
+      "level_secondary": "i.i.d. restricted permutation inside a mode stratum",
+      "why_level_differs": "a within-player permutation leaves a level estimand unchanged and is therefore not a null for it"
+    },
+    "partial_pooling": {
+      "degenerate_zero_se_players": "excluded from the variance-components fit",
+      "model": "delta_p ~ N(mu, tau^2); delta_hat_p | delta_p ~ N(delta_p, SE_p^2)",
+      "qualification_uses_shrunken_estimates": false,
+      "tau_estimator": "Paule-Mandel"
+    },
+    "provisional_alpha": 0.01,
+    "publication_thresholds": "NOT CHOSEN IN THIS PHASE",
+    "reported_alphas": [
+      0.05,
+      0.01
+    ],
+    "seeded": true,
+    "stability": {
+      "chronological_split_half": true,
+      "random_split_half": "reported only for comparability with the discovery screen"
+    },
+    "test_statistic": {
+      "contrast_blocks": {
+        "min_blocks": 8,
+        "min_per_block": 4,
+        "target_blocks": 20
+      },
+      "level_blocks": {
+        "min_blocks": 4,
+        "min_per_block": 100,
+        "target_blocks": 20
+      },
+      "method": "batched means over contiguous chronological blocks",
+      "reference": "Student t on (valid blocks - 1) degrees of freedom, two-sided",
+      "standard_error": "sd(block statistics) / sqrt(valid blocks)"
+    }
+  },
+  "design_digest": "4b702dc29f7cd60caecd74ec2bdba3ff5775038fed664e1eb0fa9ffedc4573f3",
+  "evaluated_families": [
+    "post_loss_session_continuation",
+    "post_loss_hero_switch",
+    "post_loss_requeue_latency",
+    "hero_novelty",
+    "transfer_risk",
+    "transfer_activity",
+    "duration_tempo",
+    "position_flexibility",
+    "fight_timing_centroid",
+    "purchase_tempo",
+    "lead_retention",
+    "lane_recovery_participation",
+    "side_sensitivity"
+  ],
+  "feature_version": "v7-luna-b-features-1.0.0",
+  "frozen_at_code_sha": "40c9c7061d31b6eb200d924b117430597a4ff99e",
+  "frozen_registry_digest": "f9f5af7806ee5936e40d826eeb5904fe8bffa488995c967a959f8e9e5456086c",
+  "inference_version": "v7-luna-c-inference-1.0.0",
+  "negative_control": "side_sensitivity",
+  "phase": "V7_LUNA_C_INFERENCE_DESIGN_FREEZE",
+  "registry_version": "v7-luna-b-candidate-registry-1.0.0",
+  "seed": 20260903,
+  "tournament_version": "v7-luna-c-tournament-1.0.0"
+}
