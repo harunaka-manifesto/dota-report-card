@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 import random
 from typing import Any
@@ -603,3 +604,61 @@ def test_family_matrix_player_views_are_consistent() -> None:
         assert len(matrix.player_values(pseudonym)) == len(matrix.player_arms(pseudonym)) == 60
     assert sum(len(v) for v in matrix.order.values()) == len(matrix.residual)
     assert MIN_BLOCKS >= 2
+
+
+# ---------------------------------------------------------------------------
+# confirmation discipline
+# ---------------------------------------------------------------------------
+
+
+def test_the_frozen_design_digest_is_stable_and_content_addressed() -> None:
+    from scripts.v7_research.inference import design_digest, design_payload
+
+    first = design_digest()
+    assert first == design_digest()
+    payload = design_payload()
+    assert payload["multiplicity"] == "NOT CHOSEN IN THIS PHASE"
+    assert payload["publication_thresholds"] == "NOT CHOSEN IN THIS PHASE"
+    assert payload["partial_pooling"]["qualification_uses_shrunken_estimates"] is False
+    assert payload["test_statistic"]["level_blocks"]["min_per_block"] == 100
+    assert payload["test_statistic"]["contrast_blocks"]["min_per_block"] == 4
+
+
+def test_a_changed_design_is_refused_against_a_stale_freeze(tmp_path: Any) -> None:
+    from scripts.v7_statistical_tournament import _check_design
+
+    stale = tmp_path / "design.json"
+    stale.write_text(
+        json.dumps({"design_digest": "0" * 64, "frozen_registry_digest": "0" * 64}),
+        encoding="utf-8",
+    )
+    with pytest.raises(SystemExit) as excinfo:
+        _check_design(str(stale))
+    assert "does not match the code" in str(excinfo.value)
+
+
+def test_the_current_freeze_on_disk_still_matches_the_code() -> None:
+    from pathlib import Path
+
+    from scripts.v7_research.inference import design_digest
+    from scripts.v7_statistical_tournament import REPO_ROOT, _check_design
+
+    frozen = Path(REPO_ROOT) / "docs" / "evidence" / "v7-inference-design-2026-09-03.json"
+    if not frozen.is_file():  # pragma: no cover - only when the artefact is absent
+        pytest.skip("frozen design artefact not present")
+    payload = _check_design(str(frozen))
+    assert payload["design_digest"] == design_digest()
+    assert payload["candidate_test_passes_permitted"] == 1
+
+
+def test_the_evaluated_set_is_exactly_the_frozen_twelve_plus_the_control() -> None:
+    from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES
+    from scripts.v7_research.registry import digest, registry_payload
+    from scripts.v7_statistical_tournament import EVALUATED, NEGATIVE_CONTROL
+
+    assert len(FROZEN_SERIOUS_CANDIDATES) == 12
+    assert set(EVALUATED) == set(FROZEN_SERIOUS_CANDIDATES) | {NEGATIVE_CONTROL}
+    assert (
+        digest(registry_payload(FROZEN_SERIOUS_CANDIDATES))
+        == "f9f5af7806ee5936e40d826eeb5904fe8bffa488995c967a959f8e9e5456086c"
+    )

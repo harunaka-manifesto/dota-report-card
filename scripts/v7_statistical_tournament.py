@@ -29,7 +29,6 @@ No provider call of any kind is made by this script.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import subprocess
 import sys
@@ -46,6 +45,7 @@ from scripts.v7_research.corpus import (  # noqa: E402
     CANDIDATE_TEST,
     DISCOVERY,
     corpus_paths,
+    manifest_digests,
     read_json,
 )
 from scripts.v7_research.features import FEATURE_VERSION, load_frames  # noqa: E402
@@ -75,6 +75,12 @@ from scripts.v7_research.variants import (  # noqa: E402
     session_gap_override,
     volume_capped,
     without_non_chosen_hero_modes,
+)
+from scripts.v7_research.verdicts import (  # noqa: E402
+    CONTROL_CHRONOLOGICAL_BAND,
+    VERDICT_BY_FAMILY,
+    VERDICT_VERSION,
+    VERDICTS,
 )
 
 NEGATIVE_CONTROL = "side_sensitivity"
@@ -113,6 +119,15 @@ VOLUME_CAP = 500
 LEDGER = REPO_ROOT / "docs" / "evidence" / "v7-candidate-test-access-ledger.jsonl"
 
 
+def _repo_relative(path: Path) -> str:
+    """Path relative to the repository root when it lies inside it, else as given."""
+
+    try:
+        return str(path.resolve().relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
+
+
 def git_sha() -> str:
     try:
         return subprocess.run(
@@ -125,12 +140,6 @@ def git_sha() -> str:
         return "unknown"
 
 
-def manifest_digests(root: Path) -> dict[str, str]:
-    manifest = root / "manifests" / "run-manifest.json"
-    if not manifest.is_file():
-        return {}
-    payload = json.dumps(read_json(manifest), sort_keys=True, separators=(",", ":"))
-    return {"run_manifest_sha256": hashlib.sha256(payload.encode("utf-8")).hexdigest()}
 
 
 def denominators_for(frames: list[Any]) -> Denominators:
@@ -611,7 +620,7 @@ def stage_candidate_test(args: argparse.Namespace) -> int:
                     "design_digest": frozen["design_digest"],
                     "code_sha": git_sha(),
                     "families": list(EVALUATED),
-                    "output": str(out.relative_to(REPO_ROOT)),
+                    "output": _repo_relative(out),
                 },
                 sort_keys=True,
             )
@@ -619,6 +628,125 @@ def stage_candidate_test(args: argparse.Namespace) -> int:
         )
     print(f"wrote {out}")
     print(f"CANDIDATE_TEST pass number {previous + 1}; ledger {LEDGER}")
+    return 0
+
+
+def stage_summarise(args: argparse.Namespace) -> int:
+    """Join the graded verdicts to the measured numbers from both splits."""
+
+    discovery = read_json(Path(args.discovery))
+    confirmation = read_json(Path(args.candidate_test))
+    d_by = {e["family"]: e for e in discovery["evaluations"]}
+    c_by = {e["family"]: e for e in confirmation["evaluations"]}
+
+    rows = []
+    for verdict in VERDICTS:
+        d = d_by[verdict.family]
+        c = c_by[verdict.family]
+        row = verdict.as_dict()
+        row["discovery"] = {
+            "structurally_eligible": d["structurally_eligible"],
+            "information_eligible": d["information_eligible"],
+            "provisionally_qualified_01": d["provisionally_qualified_01"],
+            "provisionally_qualified_05": d["provisionally_qualified_05"],
+            "reach_of_sampled": d["reach_of_sampled"],
+            "reach_of_applicable": d["reach_of_applicable"],
+            "obs_p25": d["obs_p25"],
+            "obs_median": d["obs_median"],
+            "obs_p75": d["obs_p75"],
+            "tau": d["tau"],
+            "i_squared": d["i_squared"],
+            "shrinkage_p10": d["shrinkage_p10"],
+            "shrinkage_median": d["shrinkage_median"],
+            "shrinkage_p90": d["shrinkage_p90"],
+            "shrinkage_reach_inflation": d["shrinkage_reach_inflation"],
+            "split_half_chrono_sb": d["split_half_chrono_sb"],
+            "split_half_random_sb": d["split_half_random_sb"],
+            "mde_p25": d["mde_p25"],
+            "mde_median": d["mde_median"],
+            "mde_p75": d["mde_p75"],
+            "delta_volume_spearman": d["delta_volume_spearman"],
+            "variance_ratio": d["variance_ratio"],
+            "eta2": d["eta2"],
+            "type_i": d["type_i"],
+        }
+        row["candidate_test"] = {
+            "structurally_eligible": c["structurally_eligible"],
+            "information_eligible": c["information_eligible"],
+            "provisionally_qualified_01": c["provisionally_qualified_01"],
+            "reach_of_sampled": c["reach_of_sampled"],
+            "reach_of_applicable": c["reach_of_applicable"],
+            "tau": c["tau"],
+            "i_squared": c["i_squared"],
+            "split_half_chrono_sb": c["split_half_chrono_sb"],
+            "type_i": c["type_i"],
+        }
+        rows.append(row)
+
+    control_d = d_by[NEGATIVE_CONTROL]
+    control_c = c_by[NEGATIVE_CONTROL]
+    document = {
+        "phase": "V7_LUNA_C_STATISTICAL_FEASIBILITY_TOURNAMENT",
+        "verdict_version": VERDICT_VERSION,
+        "inference_version": INFERENCE_VERSION,
+        "tournament_version": TOURNAMENT_VERSION,
+        "feature_version": FEATURE_VERSION,
+        "registry_version": REGISTRY_VERSION,
+        "candidate_definition_version": CANDIDATE_DEFINITION_VERSION,
+        "frozen_registry_digest": digest(registry_payload(FROZEN_SERIOUS_CANDIDATES)),
+        "design_digest": design_digest(),
+        "code_sha": git_sha(),
+        "seed": discovery["seed"],
+        "corpus": discovery["corpus"],
+        "candidate_test_passes_executed": confirmation["pass_number"],
+        "denominators": {
+            "discovery": discovery["denominators"],
+            "candidate_test": confirmation["denominators"],
+        },
+        "negative_control": {
+            "family": NEGATIVE_CONTROL,
+            "discovery": {
+                "information_eligible": control_d["information_eligible"],
+                "provisionally_qualified_01": control_d["provisionally_qualified_01"],
+                "provisionally_qualified_05": control_d["provisionally_qualified_05"],
+                "tau": control_d["tau"],
+                "i_squared": control_d["i_squared"],
+                "split_half_chrono_sb": control_d["split_half_chrono_sb"],
+                "type_i": control_d["type_i"],
+            },
+            "candidate_test": {
+                "information_eligible": control_c["information_eligible"],
+                "provisionally_qualified_01": control_c["provisionally_qualified_01"],
+                "tau": control_c["tau"],
+                "i_squared": control_c["i_squared"],
+                "split_half_chrono_sb": control_c["split_half_chrono_sb"],
+                "type_i": control_c["type_i"],
+            },
+            "chronological_noise_band": list(CONTROL_CHRONOLOGICAL_BAND),
+        },
+        "grades": {verdict.family: verdict.grade for verdict in VERDICTS},
+        "decision_rows": rows,
+        "portfolio": {
+            "discovery": discovery["portfolio"],
+            "candidate_test": confirmation["portfolio"],
+        },
+        "redundancy_spearman": discovery["redundancy_spearman"],
+        "probes": discovery["probes"],
+        "not_decided_in_this_phase": [
+            "publication thresholds",
+            "the final multiplicity family and q/alpha",
+            "population percentiles",
+            "the final five",
+        ],
+    }
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"wrote {out}")
+    for grade in ("A", "B", "C", "D"):
+        names = [v.family for v in VERDICTS if v.grade == grade]
+        print(f"  {grade}: {', '.join(names) if names else '-'}")
+    assert set(VERDICT_BY_FAMILY) == set(FROZEN_SERIOUS_CANDIDATES)
     return 0
 
 
@@ -643,6 +771,12 @@ def main() -> int:
         else:
             stage.add_argument("--acknowledge-repeat", action="store_true")
         stage.set_defaults(func=handler)
+
+    summarise = sub.add_parser("summarise")
+    summarise.add_argument("--discovery", required=True)
+    summarise.add_argument("--candidate-test", required=True)
+    summarise.add_argument("--out", required=True)
+    summarise.set_defaults(func=stage_summarise)
 
     args = parser.parse_args()
     return int(args.func(args))

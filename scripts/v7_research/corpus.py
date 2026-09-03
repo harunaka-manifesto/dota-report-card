@@ -7,6 +7,7 @@ never issues a provider call.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from collections.abc import Iterator
@@ -188,3 +189,25 @@ def forbidden_fields_in(document: Any) -> set[str]:
 
     walk(document)
     return hits
+
+def manifest_digests(root: str | os.PathLike[str] | Path) -> dict[str, str]:
+    """Digests of a corpus run manifest, both ways, always both.
+
+    Two reasonable digests exist for the same artefact — the raw bytes on disk
+    and a canonicalised re-serialisation — and they do not agree. Emitting only
+    one invites two research documents to quote different digests for an
+    identical, unchanged corpus and look like a provenance failure. Every V7
+    analysis records both.
+    """
+
+    manifest = Path(root) / "manifests" / "run-manifest.json"
+    if not manifest.is_file():
+        return {}
+    raw = manifest.read_bytes()
+    canonical = json.dumps(
+        json.loads(raw.decode("utf-8")), sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return {
+        "run_manifest_file_sha256": hashlib.sha256(raw).hexdigest(),
+        "run_manifest_canonical_sha256": hashlib.sha256(canonical).hexdigest(),
+    }
