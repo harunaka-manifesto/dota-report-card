@@ -585,6 +585,221 @@ query ProbeParsedAvailability(
 )
 
 
+
+# ---------------------------------------------------------------------------
+# V7 pass-2 operations.
+#
+# Pass 1 acquired kill/assist/item timings and the match-level net-worth lead.
+# Pass 2 adds what the report narrative actually needs: death timings, the
+# per-minute trajectories, wards, runes, and a scalars-only projection of the
+# other nine players.
+#
+# Deliberately absent, and they must stay absent: imp, award, behavior,
+# intentionalFeeding, streakPrediction, actualRank, averageRank, averageImp,
+# rank, bracket, analysisOutcome, predictedOutcomeWeight, winRates,
+# predictedWinRates, chatEvents, allTalks, chatWheels, playbackData at either
+# level, and the steamAccount identity block for players other than the
+# sampled one. A field that is not requested cannot leak.
+# ---------------------------------------------------------------------------
+
+
+GET_DEEP_MATCH_BATCH = GraphQLOperation(
+    name="GetDeepMatchBatch",
+    version="2.0.0",
+    purpose=(
+        "Pass-2 acquisition: own-player full parsed detail, match context, and "
+        "a scalars-only projection of all ten players."
+    ),
+    response_model="StratzDeepMatchBatch",
+    document="""
+query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
+  player(steamAccountId: $steamAccountId) {
+    matches(request: { matchIds: $matchIds }) {
+      id
+      didRadiantWin
+      durationSeconds
+      startDateTime
+      endDateTime
+      gameMode
+      lobbyType
+      gameVersionId
+      regionId
+      parsedDateTime
+      firstBloodTime
+      towerStatusRadiant
+      towerStatusDire
+      barracksStatusRadiant
+      barracksStatusDire
+      radiantKills
+      direKills
+      radiantNetworthLeads
+      radiantExperienceLeads
+      bottomLaneOutcome
+      midLaneOutcome
+      topLaneOutcome
+      allPlayers: players {
+        playerSlot
+        isRadiant
+        isVictory
+        heroId
+        position
+        role
+        lane
+        kills
+        deaths
+        assists
+        numLastHits
+        numDenies
+        goldPerMinute
+        experiencePerMinute
+        networth
+        heroDamage
+        towerDamage
+        heroHealing
+      }
+      players(steamAccountId: $steamAccountId) {
+        steamAccountId
+        playerSlot
+        isRadiant
+        isVictory
+        heroId
+        variant
+        position
+        role
+        roleBasic
+        lane
+        leaverStatus
+        isRandom
+        kills
+        deaths
+        assists
+        numLastHits
+        numDenies
+        goldPerMinute
+        experiencePerMinute
+        networth
+        level
+        gold
+        goldSpent
+        heroDamage
+        towerDamage
+        heroHealing
+        item0Id
+        item1Id
+        item2Id
+        item3Id
+        item4Id
+        item5Id
+        backpack0Id
+        backpack1Id
+        backpack2Id
+        neutral0Id
+        stats {
+          networthPerMinute
+          goldPerMinute
+          experiencePerMinute
+          lastHitsPerMinute
+          deniesPerMinute
+          heroDamagePerMinute
+          heroDamageReceivedPerMinute
+          towerDamagePerMinute
+          healPerMinute
+          campStack
+          killEvents { time }
+          deathEvents { time }
+          assistEvents { time }
+          itemPurchases { time itemId }
+          wards { time type positionX positionY }
+          runes { time rune }
+        }
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
+PROBE_LOCATION_REPORT = GraphQLOperation(
+    name="ProbeLocationReport",
+    version="1.0.0",
+    purpose=(
+        "Establish the shape and complexity cost of stats.locationReport, the "
+        "only route to a map-position answer that does not touch playback."
+    ),
+    response_model="StratzLocationReportProbe",
+    document="""
+query ProbeLocationReport($steamAccountId: Long!, $matchIds: [Long!]!) {
+  player(steamAccountId: $steamAccountId) {
+    matches(request: { matchIds: $matchIds }) {
+      id
+      durationSeconds
+      players(steamAccountId: $steamAccountId) {
+        heroId
+        position
+        stats {
+          locationReport
+        }
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
+PROBE_ITEM_VOCABULARY = GraphQLOperation(
+    name="ProbeItemVocabulary",
+    version="1.0.0",
+    purpose=(
+        "Static reference data: item id to name and cost, so an item-timing "
+        "Finding can tell a consumable from a real item."
+    ),
+    response_model="StratzItemVocabulary",
+    document="""
+query ProbeItemVocabulary {
+  constants {
+    items {
+      id
+      displayName
+      shortName
+      stat {
+        cost
+        isSideShop
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
+GET_PLAYER_RANK_HISTORY = GraphQLOperation(
+    name="GetPlayerRankHistory",
+    version="1.0.0",
+    purpose=(
+        "DISPLAY ONLY. Rank progression for the history section of the report. "
+        "This operation's output must never reach a canonical research table, a "
+        "derived feature, a context projection, or a cohort filter; it is stored "
+        "in a separate display-only table that the research reader cannot return."
+    ),
+    response_model="StratzPlayerRankHistory",
+    document="""
+query GetPlayerRankHistory($steamAccountId: Long!) {
+  player(steamAccountId: $steamAccountId) {
+    steamAccountId
+    ranks {
+      seasonRankId
+      asOfDateTime
+      isCore
+      rank
+    }
+  }
+}
+""".strip(),
+)
+
+
 STRATZ_OPERATIONS = {
     operation.name: operation
     for operation in (
@@ -601,6 +816,10 @@ STRATZ_OPERATIONS = {
         FIND_SHORT_PARSED_TRAJECTORY,
         GET_SHORT_PARSED_TRAJECTORY,
         PROBE_PARSED_AVAILABILITY,
+        GET_DEEP_MATCH_BATCH,
+        PROBE_LOCATION_REPORT,
+        PROBE_ITEM_VOCABULARY,
+        GET_PLAYER_RANK_HISTORY,
     )
 }
 
@@ -613,6 +832,7 @@ def get_operation(name: str) -> GraphQLOperation:
 
 
 __all__ = [
+    "GET_DEEP_MATCH_BATCH",
     "GET_MATCH_CORE",
     "GET_PARSED_MATCH_CORE",
     "GET_PARSED_ACQUISITION_BATCH",
@@ -623,6 +843,9 @@ __all__ = [
     "GET_SHORT_PARSED_TRAJECTORY",
     "PROBE_PARSED_AVAILABILITY",
     "PROBE_PARSED_CORE_BATCH_FALLBACK",
+    "GET_PLAYER_RANK_HISTORY",
+    "PROBE_ITEM_VOCABULARY",
+    "PROBE_LOCATION_REPORT",
     "PROBE_PARSED_EVIDENCE_BATCH",
     "V7_PARSED_SUBTYPE_SHAPE_SENTINEL",
     "V7_SCHEMA_SENTINEL",
