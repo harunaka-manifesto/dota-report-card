@@ -11,11 +11,14 @@ from app.stratz.queries import (
     STRATZ_OPERATIONS,
 )
 
+import scripts.stratz_v7_pass2_probe as pass2
 from scripts.stratz_v7_pass2_probe import (
     BATCH_LADDER,
     MAX_PHYSICAL_CALLS,
+    NoProbeTargetError,
     main,
     projected_cost,
+    select_probe_target,
     summarise_deep_batch,
     summarise_item_vocabulary,
     summarise_location_report,
@@ -260,3 +263,113 @@ def test_item_vocabulary_summary_counts_costs() -> None:
         "element_keys": ["displayName", "id", "stat"],
         "usable": True,
     }
+
+
+class _Target:
+    def __init__(self, pseudonym: str, split: str, parsed_subset: bool, account_id: int) -> None:
+        self.pseudonym = pseudonym
+        self.split = split
+        self.parsed_subset = parsed_subset
+        self.account_id = account_id
+
+
+class _Cohort:
+    def __init__(self, targets) -> None:
+        self.targets = targets
+
+
+def _corpus_with(tmp_path, rows_by_pseudonym: dict[str, int]):
+    import json as _json
+
+    parsed = tmp_path / "canonical" / "parsed"
+    parsed.mkdir(parents=True)
+    for pseudonym, count in rows_by_pseudonym.items():
+        (parsed / f"{pseudonym}.json").write_text(
+            _json.dumps({"rows": [{"match_id": 1000 + i} for i in range(count)]}),
+            encoding="utf-8",
+        )
+    return tmp_path
+
+
+def _patch_cohort(monkeypatch, targets) -> None:
+    monkeypatch.setattr(pass2, "load_frozen_cohort", lambda *a, **k: _Cohort(targets))
+
+
+def test_target_selection_needs_no_operator_input(monkeypatch, tmp_path) -> None:
+    _patch_cohort(monkeypatch, [_Target("v7p_a", "DISCOVERY", True, 11)])
+    corpus = _corpus_with(tmp_path, {"v7p_a": 40})
+    target = select_probe_target(
+        freeze_dir=tmp_path, source_frame=tmp_path, corpus_dir=corpus
+    )
+    assert target["account_id"] == 11
+    assert target["match_ids"] == [1000 + i for i in range(8)]
+    assert target["available_parsed_matches"] == 40
+
+
+def test_target_selection_never_touches_the_confirmation_split(monkeypatch, tmp_path) -> None:
+    _patch_cohort(
+        monkeypatch,
+        [
+            _Target("v7p_ct", "CANDIDATE_TEST", True, 99),
+            _Target("v7p_d", "DISCOVERY", True, 11),
+        ],
+    )
+    corpus = _corpus_with(tmp_path, {"v7p_ct": 500, "v7p_d": 20})
+    target = select_probe_target(freeze_dir=tmp_path, source_frame=tmp_path, corpus_dir=corpus)
+    assert target["pseudonym"] == "v7p_d"
+    assert target["split"] == "DISCOVERY"
+
+
+def test_target_selection_takes_frozen_order_not_the_biggest_account(
+    monkeypatch, tmp_path
+) -> None:
+    # Picking the account with the most data would be an adaptive choice, and
+    # adaptive choices are how a frozen cohort becomes a convenience sample.
+    _patch_cohort(
+        monkeypatch,
+        [
+            _Target("v7p_first", "DISCOVERY", True, 11),
+            _Target("v7p_bigger", "DISCOVERY", True, 22),
+        ],
+    )
+    corpus = _corpus_with(tmp_path, {"v7p_first": 8, "v7p_bigger": 900})
+    target = select_probe_target(freeze_dir=tmp_path, source_frame=tmp_path, corpus_dir=corpus)
+    assert target["pseudonym"] == "v7p_first"
+
+
+def test_target_selection_skips_accounts_without_enough_parsed_matches(
+    monkeypatch, tmp_path
+) -> None:
+    _patch_cohort(
+        monkeypatch,
+        [
+            _Target("v7p_thin", "DISCOVERY", True, 11),
+            _Target("v7p_ok", "DISCOVERY", True, 22),
+        ],
+    )
+    corpus = _corpus_with(tmp_path, {"v7p_thin": 7, "v7p_ok": 8})
+    target = select_probe_target(freeze_dir=tmp_path, source_frame=tmp_path, corpus_dir=corpus)
+    assert target["pseudonym"] == "v7p_ok"
+
+
+def test_target_selection_ignores_non_parsed_subset_members(monkeypatch, tmp_path) -> None:
+    _patch_cohort(monkeypatch, [_Target("v7p_hist", "DISCOVERY", False, 11)])
+    corpus = _corpus_with(tmp_path, {"v7p_hist": 500})
+    with pytest.raises(NoProbeTargetError):
+        select_probe_target(freeze_dir=tmp_path, source_frame=tmp_path, corpus_dir=corpus)
+
+
+def test_target_selection_fails_closed_when_nothing_qualifies(monkeypatch, tmp_path) -> None:
+    _patch_cohort(monkeypatch, [_Target("v7p_a", "DISCOVERY", True, 11)])
+    corpus = _corpus_with(tmp_path, {"v7p_a": 3})
+    with pytest.raises(NoProbeTargetError):
+        select_probe_target(freeze_dir=tmp_path, source_frame=tmp_path, corpus_dir=corpus)
+
+
+def test_a_half_given_override_is_refused() -> None:
+    for argv in (
+        ["--dotenv", "/nonexistent", "--steam-account-id", "1"],
+        ["--dotenv", "/nonexistent", "--match-ids", "1", "2"],
+    ):
+        with pytest.raises(SystemExit):
+            main(argv)

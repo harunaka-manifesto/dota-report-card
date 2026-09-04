@@ -12,6 +12,12 @@ Answers exactly three questions, with a hard ceiling on physical requests:
 3. Can the item vocabulary be fetched, so an item-timing Finding can tell a
    consumable from a real item?
 
+The operator supplies a credential and nothing else. Like the corpus runner,
+the probe resolves its own target from the frozen cohort and the pass-1 corpus:
+the first DISCOVERY parsed-subset account in frozen manifest order that already
+has eight parsed matches. That keeps the choice deterministic and reproducible,
+and keeps it away from the confirmation split.
+
 The command is separate from the production provider. It reads
 ``STRATZ_API_TOKEN`` from an explicitly supplied dotenv file, never logs or
 stores it, writes redacted evidence under the ignored local corpus tree, and
@@ -46,6 +52,12 @@ from app.stratz.queries import (  # noqa: E402
     GraphQLOperation,
 )
 
+from scripts.stratz_v7_corpus_runner import (  # noqa: E402
+    DEFAULT_FREEZE_DIR,
+    DEFAULT_OUTPUT_DIR,
+    DEFAULT_SOURCE_FRAME,
+    load_frozen_cohort,
+)
 from scripts.stratz_v7_live_microprobe import (  # noqa: E402
     extract_complexity,
     graphql_error_text,
@@ -77,6 +89,61 @@ class ProbeError(RuntimeError):
 
 class BudgetExceeded(ProbeError):
     pass
+
+
+
+#: How many parsed matches the probe wants from the chosen account. The batch
+#: ladder starts at eight, so eight is the minimum that exercises the top rung.
+PROBE_MATCH_COUNT = 8
+
+
+class NoProbeTargetError(ProbeError):
+    """No frozen account has enough parsed matches in the existing corpus."""
+
+
+def select_probe_target(
+    *,
+    freeze_dir: Path,
+    source_frame: Path,
+    corpus_dir: Path,
+    match_count: int = PROBE_MATCH_COUNT,
+) -> dict[str, Any]:
+    """Pick the probe's account and match ids from the frozen cohort.
+
+    The operator supplies a credential and nothing else. The account is the
+    first DISCOVERY parsed-subset member, *in frozen manifest order*, that
+    already has enough parsed matches in the pass-1 corpus. Frozen order makes
+    the choice deterministic and reproducible; taking the first qualifying
+    member rather than the best one keeps the selection non-adaptive, which
+    matters because an adaptive pick is how a cohort quietly becomes a
+    convenience sample.
+
+    CANDIDATE_TEST is excluded. A sizing probe has no business touching the
+    confirmation split.
+    """
+
+    cohort = load_frozen_cohort(freeze_dir, source_frame_path=source_frame)
+    parsed_dir = corpus_dir / "canonical" / "parsed"
+    for target in cohort.targets:
+        if target.split != "DISCOVERY" or not target.parsed_subset:
+            continue
+        document_path = parsed_dir / f"{target.pseudonym}.json"
+        if not document_path.is_file():
+            continue
+        rows = json.loads(document_path.read_text(encoding="utf-8")).get("rows") or []
+        match_ids = [row["match_id"] for row in rows if row.get("match_id")]
+        if len(match_ids) < match_count:
+            continue
+        return {
+            "account_id": target.account_id,
+            "pseudonym": target.pseudonym,
+            "split": target.split,
+            "match_ids": match_ids[:match_count],
+            "available_parsed_matches": len(match_ids),
+        }
+    raise NoProbeTargetError(
+        f"no DISCOVERY parsed-subset account has {match_count} parsed matches under {parsed_dir}"
+    )
 
 
 def summarise_deep_batch(payload: Mapping[str, Any] | None) -> dict[str, Any]:
@@ -315,6 +382,24 @@ def projected_cost(batch_size: int, accounts: int, matches_per_account: int) -> 
 
 async def run(args: argparse.Namespace) -> int:
     token = load_stratz_token(Path(args.dotenv))
+
+    if args.steam_account_id and args.match_ids:
+        target = {
+            "account_id": args.steam_account_id,
+            "pseudonym": None,
+            "split": None,
+            "match_ids": list(args.match_ids),
+            "available_parsed_matches": len(args.match_ids),
+            "selection": "operator override",
+        }
+    else:
+        target = select_probe_target(
+            freeze_dir=Path(args.freeze_dir),
+            source_frame=Path(args.source_frame),
+            corpus_dir=Path(args.corpus_dir),
+        )
+        target["selection"] = "first DISCOVERY parsed-subset member in frozen order"
+
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     output_dir = Path(args.output_root) / stamp
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -336,6 +421,15 @@ async def run(args: argparse.Namespace) -> int:
         },
         "identities_included": False,
         "raw_bodies_retained": False,
+        # The pseudonym is the corpus's own public handle for the account and
+        # the real id is never written here.
+        "target": {
+            "pseudonym": target["pseudonym"],
+            "split": target["split"],
+            "selection": target["selection"],
+            "match_ids_used": len(target["match_ids"]),
+            "available_parsed_matches": target["available_parsed_matches"],
+        },
     }
 
     async with Pass2Probe(
@@ -347,12 +441,12 @@ async def run(args: argparse.Namespace) -> int:
     ) as probe:
         try:
             report["batch_sizing"] = await probe.find_batch_size(
-                args.steam_account_id, args.match_ids
+                target["account_id"], target["match_ids"]
             )
 
             payload, _ = await probe.request(
                 PROBE_LOCATION_REPORT,
-                {"steamAccountId": args.steam_account_id, "matchIds": list(args.match_ids[:2])},
+                {"steamAccountId": target["account_id"], "matchIds": target["match_ids"][:2]},
                 label="location-report",
             )
             report["location_report"] = summarise_location_report(payload)
@@ -365,7 +459,7 @@ async def run(args: argparse.Namespace) -> int:
             if args.probe_rank:
                 payload, _ = await probe.request(
                     GET_PLAYER_RANK_HISTORY,
-                    {"steamAccountId": args.steam_account_id},
+                    {"steamAccountId": target["account_id"]},
                     label="rank-history-display-only",
                 )
                 ranks = (((payload or {}).get("data") or {}).get("player") or {}).get("ranks")
@@ -410,13 +504,33 @@ async def run(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dotenv", required=True, help="path to the dotenv holding STRATZ_API_TOKEN")
-    parser.add_argument("--steam-account-id", type=int, required=True)
+    parser.add_argument(
+        "--freeze-dir",
+        default=str(DEFAULT_FREEZE_DIR),
+        help="acquisition freeze holding the frozen split manifest",
+    )
+    parser.add_argument(
+        "--source-frame",
+        default=str(DEFAULT_SOURCE_FRAME),
+        help="fixed source frame that maps a frozen position to an account",
+    )
+    parser.add_argument(
+        "--corpus-dir",
+        default=str(DEFAULT_OUTPUT_DIR),
+        help="pass-1 corpus supplying the parsed match ids to probe with",
+    )
+    parser.add_argument(
+        "--steam-account-id",
+        type=int,
+        default=None,
+        help="override the automatic cohort selection (must be paired with --match-ids)",
+    )
     parser.add_argument(
         "--match-ids",
         type=int,
         nargs="+",
-        required=True,
-        help="at least 8 parsed match ids belonging to that account",
+        default=None,
+        help="override the automatic cohort selection (must be paired with --steam-account-id)",
     )
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT)
     parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT))
@@ -432,6 +546,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if bool(args.steam_account_id) != bool(args.match_ids):
+        raise SystemExit("--steam-account-id and --match-ids must be given together or not at all")
     if args.max_calls > MAX_PHYSICAL_CALLS:
         raise SystemExit(
             f"--max-calls above the built-in ceiling of {MAX_PHYSICAL_CALLS} is refused"
