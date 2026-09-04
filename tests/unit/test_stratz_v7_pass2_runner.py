@@ -1306,3 +1306,47 @@ def test_boundary_helper_rounds_up_to_the_next_window() -> None:
     assert _next_boundary(3_600.0, 3_600.0) == 7_200.0
     assert _next_boundary(3_601.0, 3_600.0) == 7_200.0
     assert _next_boundary(0.0, 60.0) == 60.0
+
+
+async def test_a_rolling_local_window_does_not_override_the_providers_clock_window() -> None:
+    # Measured 2026-09-04: the run stalled at 1,500 attempts inside a rolling
+    # hour while the provider's own header still reported 1,194 remaining,
+    # because STRATZ resets on the clock and our backstop counted a rolling
+    # window straddling two of its hours.
+    import time as _time
+
+    from scripts.stratz_v7_pass2_runner import Pass2RateController
+
+    controller = Pass2RateController(sleep=_no_sleep)
+    controller.remaining.update({"second": 7, "minute": 120, "hour": 1194, "day": 12000})
+    now = _time.time()
+    controller.times.extend(now - 3_500 + index * 0.1 for index in range(1_600))
+    await controller.before_attempt()
+    assert len(controller.times) == 1_601
+
+
+async def test_the_local_backstop_still_applies_without_provider_headers() -> None:
+    import time as _time
+
+    from scripts.stratz_v7_pass2_runner import Pass2RateController
+
+    controller = Pass2RateController(sleep=_no_sleep)
+    now = _time.time()
+    controller.times.extend(now - 3_500 + index * 0.1 for index in range(1_600))
+    with pytest.raises(PauseRun, match="bounded wait"):
+        await controller.before_attempt()
+
+
+async def test_a_partially_reported_bucket_set_uses_headers_where_it_has_them() -> None:
+    import time as _time
+
+    from scripts.stratz_v7_pass2_runner import Pass2RateController
+
+    controller = Pass2RateController(sleep=_no_sleep)
+    # Provider reports the hour but not the day: the hour is trusted, the day
+    # keeps its backstop.
+    controller.remaining.update({"hour": 900})
+    now = _time.time()
+    controller.times.extend(now - 3_500 + index * 0.1 for index in range(1_600))
+    await controller.before_attempt()
+    assert len(controller.times) == 1_601

@@ -219,10 +219,18 @@ class Pass2RateController(RateController):
         if second_remaining is not None and second_remaining <= PASS2_RESERVES["second"]:
             delay = max(delay, self._reset_delay(now) or 1.0)
 
-        # Local windows remain a backstop for the case where the provider stops
-        # sending headers entirely.
+        # Local windows are a backstop for the case where the provider stops
+        # sending headers, and *only* that case.
+        #
+        # They count a rolling window; STRATZ resets on the clock. A rolling
+        # hour therefore straddles two provider hours and hits 1,500 while the
+        # provider is still offering hundreds — measured on 2026-09-04, the run
+        # stalled with 1,194 remaining on the header. Where the provider tells
+        # us what is left, its number is the only one that means anything.
         windows = {"second": 1.0, "minute": 60.0, "hour": 3_600.0, "day": 86_400.0}
         for bucket, limit in self._effective_limits().items():
+            if self.remaining.get(bucket) is not None:
+                continue
             active = [stamp for stamp in self.times if now - stamp < windows[bucket]]
             if len(active) >= limit:
                 delay = max(delay, active[0] + windows[bucket] - now)

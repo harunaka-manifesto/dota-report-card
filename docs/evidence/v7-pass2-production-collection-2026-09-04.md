@@ -212,8 +212,31 @@ STRATZ sends a reset header only for the per-second window, so an exhausted
 minute, hour or day window waits to the next aligned boundary and re-checks.
 Waiting slightly too long is cheap; guessing an early reset is a 429.
 
+### The rolling-versus-clock mismatch
+
+The first fix was not enough. The run stalled again at 5,500 attempts with the
+provider's header reporting **1,194 requests still remaining that hour**.
+
+The cause: our local backstop counts a *rolling* hour, while STRATZ resets on
+the *clock*. A rolling window straddles two provider windows, so it reaches
+1,500 while the provider — having reset in the middle — is still offering
+hundreds. Observed hourly throughput shows it plainly: 1,354 in the 08:00 hour
+and 1,429 in the 09:00 hour, but a rolling window spanning both counts well over
+1,500.
+
+The local windows are a backstop for missing headers and only that. Where the
+provider reports what is left for a bucket, its number is now the only one
+consulted for that bucket; the rolling count is skipped. A bucket the provider
+does not report keeps its backstop.
+
 Expected effect: about **9–10 hours** for the full run rather than a day and a
 half, with pauses only when the provider itself is genuinely near a limit.
+
+### Running it unattended
+
+The supervisor is an ordinary foreground process and dies with its terminal.
+One observed stall was simply that: the pause elapsed and nothing was alive to
+resume it. For a multi-hour run, detach it — see §7.
 
 ## 5. Safety properties
 
@@ -275,11 +298,14 @@ uv run python scripts/stratz_v7_pass2_runner.py collect \
 uv run python scripts/stratz_v7_pass2_runner.py verify \
     --output-dir .local/corpora/stratz/v7-pass2-2026-09-04
 
-# full production run, supervised through quota pauses
-uv run python scripts/stratz_v7_pass2_supervisor.py --dotenv .env
+# full production run, supervised through quota pauses.
+# Detached, because the supervisor dies with its terminal and the run spans hours.
+nohup uv run python scripts/stratz_v7_pass2_supervisor.py --dotenv .env \
+    > .local/corpora/stratz/v7-pass2-supervisor.log 2>&1 &
 
 # resume — identical command; the checkpoint decides what is outstanding
-uv run python scripts/stratz_v7_pass2_supervisor.py --dotenv .env
+nohup uv run python scripts/stratz_v7_pass2_supervisor.py --dotenv .env \
+    > .local/corpora/stratz/v7-pass2-supervisor.log 2>&1 &
 ```
 
 Stopping is safe at any point: Ctrl-C leaves the checkpoint and the archive
