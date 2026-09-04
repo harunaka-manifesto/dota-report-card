@@ -248,11 +248,6 @@ _EVENT_FIELDS = (
     ("itemUsed", "item_used", ("itemId", "count")),
     ("wardDestruction", "ward_destruction", ("time", "isWard", "gold", "experience")),
     ("matchPlayerBuffEvent", "buff_events", ("time", "itemId", "abilityId", "stackCount")),
-    (
-        "towerDamageReport",
-        "tower_damage_report",
-        ("npcId", "damage", "damageCreeps", "damageFromAbility"),
-    ),
 )
 
 _CAMEL_BOUNDARY = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
@@ -316,6 +311,30 @@ def _int_series(value: Any, path: str) -> list[int | None] | None:
     if series is None:
         return None
     return [_optional_int(item, f"{path}[{index}]") for index, item in enumerate(series)]
+
+
+
+#: Where a player's gold and experience came from. ``id`` is a location
+#: identifier; these two buckets answer the lane-versus-jungle question the
+#: field audit asked for, and nothing else in the payload exposes it.
+#:
+#: Only two, because STRATZ prices the *selection set* rather than the batch:
+#: measured on 2026-09-04, four buckets plus the damage report put the query at
+#: 379,382 against a 310,000 ceiling, and the same number came back at every
+#: batch size from 8 down to 1. Ancient and bounty buckets, and the per-tower
+#: damage report, were traded away to fit this one in.
+_FARM_BUCKETS = ("creepLocation", "neutralLocation")
+
+def _farm_distribution(farm: Mapping[str, Any], path: str) -> dict[str, Any]:
+    out: dict[str, Any] = {
+        "buy_back_gold": _optional_int(farm.get("buyBackGold"), f"{path}.buyBackGold"),
+        "abandon_gold": _optional_int(farm.get("abandonGold"), f"{path}.abandonGold"),
+    }
+    for bucket in _FARM_BUCKETS:
+        out[_snake(bucket)] = _event_list(
+            farm.get(bucket), ("id", "count", "gold", "xp"), f"{path}.{bucket}"
+        )
+    return out
 
 
 def normalize_deep_batch(
@@ -553,14 +572,7 @@ def normalize_deep_batch(
                     "trajectories": trajectories,
                     "quarantined_trajectories": quarantined,
                     "events": events,
-                    "farm_distribution": {
-                        "buy_back_gold": _optional_int(
-                            farm.get("buyBackGold"), f"{path}.stats.farm.buyBackGold"
-                        ),
-                        "abandon_gold": _optional_int(
-                            farm.get("abandonGold"), f"{path}.stats.farm.abandonGold"
-                        ),
-                    }
+                    "farm_distribution": _farm_distribution(farm, f"{path}.stats.farm")
                     if farm is not None
                     else None,
                 },

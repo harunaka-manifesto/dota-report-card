@@ -233,8 +233,15 @@ def _match(match_id: int, *, started: int = 1_700_000_000) -> dict[str, Any]:
                     "towerDamageReport": [
                         {"npcId": 12, "damage": 900, "damageCreeps": 10, "damageFromAbility": 100}
                     ],
-                    "farmDistributionReport": {"buyBackGold": 0, "abandonGold": 0},
-                },
+                    "farmDistributionReport": {
+                        "buyBackGold": 0,
+                        "abandonGold": 0,
+                        "creepLocation": [{"id": 1, "count": 40, "gold": 900, "xp": 700}],
+                        "neutralLocation": [{"id": 2, "count": 10, "gold": 300, "xp": 200}],
+                        "ancientLocation": [],
+                        "bountyGold": [],
+                    },
+},
             }
         ],
     }
@@ -285,9 +292,28 @@ async def _no_sleep(_seconds: float) -> None:
 
 
 def test_production_query_is_versioned_and_hashed() -> None:
-    assert GET_DEEP_MATCH_BATCH.version == "3.0.0"
+    assert GET_DEEP_MATCH_BATCH.version == "3.4.0"
     assert len(GET_DEEP_MATCH_BATCH.document_sha256) == 64
     assert GET_DEEP_MATCH_BATCH.document_sha256 == GET_DEEP_MATCH_BATCH.digest
+
+
+def _selection_block(document: str, block: str) -> str:
+    """The full selection set for ``block``, braces matched.
+
+    Needed because farmDistributionReport now nests its own blocks, so scanning
+    to the first closing brace stops in the middle of a child.
+    """
+
+    start = document.index(block + " {")
+    depth = 0
+    for index in range(start, len(document)):
+        if document[index] == "{":
+            depth += 1
+        elif document[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return document[start : index + 1]
+    raise AssertionError(f"unbalanced selection set for {block}")
 
 
 def test_production_query_selects_every_resolved_object_we_decided_to_keep() -> None:
@@ -299,11 +325,14 @@ def test_production_query_selects_every_resolved_object_we_decided_to_keep() -> 
         "itemUsed": ("itemId", "count"),
         "wardDestruction": ("time", "isWard", "gold", "experience"),
         "matchPlayerBuffEvent": ("time", "itemId", "abilityId", "stackCount"),
-        "towerDamageReport": ("npcId", "damage", "damageCreeps", "damageFromAbility"),
-        "farmDistributionReport": ("buyBackGold", "abandonGold"),
+        "farmDistributionReport": (
+            "buyBackGold",
+            "abandonGold",
+            "creepLocation",
+            "neutralLocation",
+        ),
     }.items():
-        start = document.index(block + " {")
-        body = document[start : document.index("}", start)]
+        body = _selection_block(document, block)
         for field in fields:
             assert field in body, f"{block} is missing {field}"
 
@@ -315,12 +344,25 @@ def test_production_query_excludes_the_objects_we_decided_against() -> None:
     # nested objects or mechanical-intensity counters.
     for excluded in (
         "locationReport",
-        "heroDamageReport",
         "inventoryReport",
         "laneReport",
         "abilityCastReport",
         "actionReport",
         "courierKills",
+        # The heavy halves of heroDamageReport: per-ability, per-item and
+        # per-target breakdowns serve no defined research question.
+        "dealtSourceAbility",
+        "dealtSourceItem",
+        "dealtTargets",
+        "receivedSourceAbility",
+        "receivedSourceItem",
+        "receivedTargets",
+        # The farm buckets we decided against.
+        "creepType",
+        "ancientLocation",
+        "bountyGold",
+        "towerDamageReport",
+        "heroDamageReport",
     ):
         assert excluded not in words
 
@@ -448,8 +490,11 @@ def test_normalisation_keeps_every_resolved_object_selection() -> None:
     assert events["item_used"] == [{"item_id": 116, "count": 3}]
     assert events["ward_destruction"][0]["is_ward"] is True
     assert events["buff_events"][0]["item_id"] == 609
-    assert events["tower_damage_report"][0]["npc_id"] == 12
-    assert row["self"]["farm_distribution"] == {"buy_back_gold": 0, "abandon_gold": 0}
+    farm = row["self"]["farm_distribution"]
+    assert farm["buy_back_gold"] == 0
+    assert farm["creep_location"] == [{"id": 1, "count": 40, "gold": 900, "xp": 700}]
+    assert farm["neutral_location"] == [{"id": 2, "count": 10, "gold": 300, "xp": 200}]
+    assert "damage_report" not in row["self"]
     assert row["self"]["party_id"] == 1
     assert row["radiant_experience_leads"] == [0, 300]
 

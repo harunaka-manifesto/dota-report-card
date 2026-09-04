@@ -49,6 +49,7 @@ from app.stratz.queries import (  # noqa: E402
     GET_PLAYER_RANK_HISTORY,
     PROBE_ITEM_VOCABULARY,
     PROBE_LOCATION_REPORT,
+    V7_PASS2_NESTED_TYPE_SENTINEL,
     V7_PASS2_TYPE_SENTINEL,
     GraphQLOperation,
 )
@@ -424,6 +425,12 @@ class Pass2Probe:
                 # A field the endpoint does not know will not start working at a
                 # smaller batch size. Stop rather than burn the budget.
                 break
+            if record["complexity_failure"]:
+                # Measured 2026-09-04: STRATZ prices the *selection set*, not the
+                # number of matches — the same complexity came back at every rung
+                # from 8 down to 1. Shrinking the batch cannot fix a query that is
+                # too complex; the query has to lose fields.
+                break
         return {"ladder": rungs, "largest_successful_batch": None, "bytes_per_match": None}
 
 
@@ -475,6 +482,7 @@ async def run(args: argparse.Namespace) -> int:
             for op in (
                 GET_DEEP_MATCH_BATCH,
                 V7_PASS2_TYPE_SENTINEL,
+                V7_PASS2_NESTED_TYPE_SENTINEL,
                 PROBE_LOCATION_REPORT,
                 PROBE_ITEM_VOCABULARY,
                 GET_PLAYER_RANK_HISTORY,
@@ -509,6 +517,12 @@ async def run(args: argparse.Namespace) -> int:
                 V7_PASS2_TYPE_SENTINEL, {}, label="type-shape-sentinel"
             )
             report["type_shapes"] = summarise_type_sentinel(payload)
+
+            if args.nested_shapes:
+                payload, _ = await probe.request(
+                    V7_PASS2_NESTED_TYPE_SENTINEL, {}, label="nested-type-shape-sentinel"
+                )
+                report["nested_type_shapes"] = summarise_type_sentinel(payload)
 
             payload, _ = await probe.request(
                 PROBE_LOCATION_REPORT,
@@ -607,6 +621,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-root", default=str(DEFAULT_OUTPUT_ROOT))
     parser.add_argument("--timeout", type=float, default=DEFAULT_TIMEOUT_SECONDS)
     parser.add_argument("--max-calls", type=int, default=MAX_PHYSICAL_CALLS)
+    parser.add_argument(
+        "--nested-shapes",
+        action="store_true",
+        help="also resolve the second-level object types the first sentinel left unresolved",
+    )
     parser.add_argument(
         "--probe-rank",
         action="store_true",

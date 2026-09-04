@@ -605,11 +605,12 @@ query ProbeParsedAvailability(
 
 GET_DEEP_MATCH_BATCH = GraphQLOperation(
     name="GetDeepMatchBatch",
-    version="3.0.0",
+    version="3.4.0",
     purpose=(
         "Pass-2 production acquisition: own-player full parsed detail, match "
         "context, and a scalars-only projection of all ten players. Finalised "
-        "against the shapes measured by the 2026-09-04 sizing probe."
+        "against the first- and second-level shapes measured by the 2026-09-04 "
+        "sizing probes."
     ),
     response_model="StratzDeepMatchBatch",
     document="""
@@ -751,15 +752,21 @@ query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
             abilityId
             stackCount
           }
-          towerDamageReport {
-            npcId
-            damage
-            damageCreeps
-            damageFromAbility
-          }
           farmDistributionReport {
             buyBackGold
             abandonGold
+            creepLocation {
+              id
+              count
+              gold
+              xp
+            }
+            neutralLocation {
+              id
+              count
+              gold
+              xp
+            }
           }
           killEvents { time }
           deathEvents { time }
@@ -899,6 +906,44 @@ fragment Shape on __Type {
 )
 
 
+
+V7_PASS2_NESTED_TYPE_SENTINEL = GraphQLOperation(
+    name="V7Pass2NestedTypeSentinel",
+    version="1.0.0",
+    purpose=(
+        "Resolve the second-level object types the first sentinel left "
+        "unresolved. These are the only remaining fields that could force a "
+        "second deep collection, so they are settled before the first one runs."
+    ),
+    response_model="StratzPass2NestedTypeSentinel",
+    document="""
+query V7Pass2NestedTypeSentinel {
+  farmDistributionObject: __type(name: "MatchPlayerStatsFarmDistributionObjectType") { ...Shape }
+  laneReportFaction: __type(name: "MatchStatsLaneReportFactionObjectType") { ...Shape }
+  inventoryObject: __type(name: "MatchPlayerInventoryObjectType") { ...Shape }
+  towerReportObject: __type(name: "MatchStatsTowerReportObjectType") { ...Shape }
+  outpostReportObject: __type(name: "MatchStatsOutpostReportObjectType") { ...Shape }
+  abilityCastObject: __type(name: "MatchPlayerStatsAbilityCastObjectType") { ...Shape }
+  damageSourceAbility: __type(name: "MatchPlayerHeroDamageSourceAbilityReportObjectType") { ...Shape }
+  damageSourceItem: __type(name: "MatchPlayerHeroDamageSourceItemReportObjectType") { ...Shape }
+  damageTargets: __type(name: "MatchPlayerHeroDamageTargetReportObjectType") { ...Shape }
+  damageTotal: __type(name: "MatchPlayerHeroDamageTotalReportObjectType") { ...Shape }
+  damageTotalReceived: __type(name: "MatchPlayerHeroDamageTotalRecievedReportObjectType") { ...Shape }
+}
+
+fragment Shape on __Type {
+  kind
+  name
+  fields(includeDeprecated: true) {
+    name
+    isDeprecated
+    type { kind name ofType { kind name ofType { kind name } } }
+  }
+}
+""".strip(),
+)
+
+
 STRATZ_OPERATIONS = {
     operation.name: operation
     for operation in (
@@ -920,6 +965,7 @@ STRATZ_OPERATIONS = {
         PROBE_ITEM_VOCABULARY,
         GET_PLAYER_RANK_HISTORY,
         V7_PASS2_TYPE_SENTINEL,
+        V7_PASS2_NESTED_TYPE_SENTINEL,
     )
 }
 
@@ -948,6 +994,7 @@ __all__ = [
     "PROBE_LOCATION_REPORT",
     "PROBE_PARSED_EVIDENCE_BATCH",
     "V7_PARSED_SUBTYPE_SHAPE_SENTINEL",
+    "V7_PASS2_NESTED_TYPE_SENTINEL",
     "V7_PASS2_TYPE_SENTINEL",
     "V7_SCHEMA_SENTINEL",
     "GraphQLOperation",
