@@ -38,6 +38,12 @@ from scripts.stratz_v7_pass2_runner import DEFAULT_PASS2_OUTPUT_DIR  # noqa: E40
 #: misreported reset cannot turn into a hot retry loop.
 MIN_PAUSE_SECONDS = 5.0
 
+#: How many consecutive collector runs may fail to make any progress before the
+#: supervisor gives up. Without this it will happily respawn a child that cannot
+#: start at all: observed in the wild as a 13-hour spin after the launching
+#: terminal closed and the inherited stdin became a bad file descriptor.
+MAX_STALLED_ATTEMPTS = 3
+
 
 def seconds_until(value: str, *, now: datetime | None = None) -> float:
     target = datetime.fromisoformat(value)
@@ -100,10 +106,33 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     authentication_retry_used = False
+    stalled = 0
+    last_attempts = -1
     while True:
-        result = subprocess.run(collect_command(args), cwd=ROOT, check=False)
+        # stdin is DEVNULL on purpose. A detached supervisor outlives the shell
+        # that launched it, and an inherited-but-closed stdin makes CPython die
+        # during interpreter start-up with "can't initialize sys standard
+        # streams" - before it can run, report, or record anything.
+        result = subprocess.run(
+            collect_command(args), cwd=ROOT, check=False, stdin=subprocess.DEVNULL
+        )
         state = read_state(args.output_dir)
         status = state.get("status")
+
+        attempts = state.get("physical_attempts")
+        if attempts == last_attempts:
+            stalled += 1
+            if stalled >= MAX_STALLED_ATTEMPTS:
+                print(
+                    f"collector made no progress across {stalled} consecutive runs "
+                    f"(exit code {result.returncode}); stopping rather than spinning. "
+                    "Check the log above for a start-up failure.",
+                    file=sys.stderr,
+                )
+                return result.returncode or 3
+        else:
+            stalled = 0
+        last_attempts = attempts
         if status == "COMPLETE":
             print("pass 2 complete")
             return 0

@@ -191,15 +191,19 @@ class Pass2RateController(RateController):
         """The longest window the provider says is spent, and when it resets."""
 
         windows = {"minute": 60.0, "hour": 3_600.0, "day": 86_400.0}
-        worst: tuple[str, float] | None = None
+        worst: tuple[str, float, float] | None = None
         for bucket, length in windows.items():
             remaining = self.remaining.get(bucket)
             if remaining is None or remaining > PASS2_RESERVES[bucket]:
                 continue
             resume = _next_boundary(now, length)
-            if worst is None or resume > worst[1]:
-                worst = (bucket, resume)
-        return worst
+            # Later resume wins; on a tie the longer window wins, because at
+            # 23:xx the next hour *is* the next midnight and reporting "hour
+            # exhausted" would hide that the day is spent too.
+            key = (resume, length)
+            if worst is None or key > (worst[1], worst[2]):
+                worst = (bucket, resume, length)
+        return (worst[0], worst[1]) if worst is not None else None
 
     async def before_attempt(self, planned_attempts: int = 0) -> None:
         now = time.time()

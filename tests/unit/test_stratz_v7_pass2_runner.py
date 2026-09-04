@@ -1350,3 +1350,113 @@ async def test_a_partially_reported_bucket_set_uses_headers_where_it_has_them() 
     controller.times.extend(now - 3_500 + index * 0.1 for index in range(1_600))
     await controller.before_attempt()
     assert len(controller.times) == 1_601
+
+
+# ---------------------------------------------------------------------------
+# Supervisor resilience
+# ---------------------------------------------------------------------------
+
+
+def _supervisor_args(tmp_path: Path):
+    import argparse
+
+    return argparse.Namespace(
+        freeze_dir=tmp_path,
+        source_frame=tmp_path,
+        pass1_dir=tmp_path,
+        output_dir=tmp_path,
+        dotenv=tmp_path / ".env",
+        max_accounts=300,
+    )
+
+
+def _write_state(tmp_path: Path, **fields) -> None:
+    manifests = tmp_path / "manifests"
+    manifests.mkdir(parents=True, exist_ok=True)
+    base = {"status": "PARTIAL_PAUSED", "physical_attempts": 100, "resume_at": None}
+    base.update(fields)
+    (manifests / "state.json").write_text(json.dumps(base), encoding="utf-8")
+
+
+def test_the_child_is_spawned_with_a_detached_stdin(monkeypatch, tmp_path) -> None:
+    # A detached supervisor outlives its shell. Inheriting a closed stdin kills
+    # CPython during start-up with "can't initialize sys standard streams",
+    # which was observed spinning for thirteen hours.
+    import subprocess as _subprocess
+
+    import scripts.stratz_v7_pass2_supervisor as sup
+
+    seen = {}
+
+    def _run(command, **kwargs):
+        seen.update(kwargs)
+        _write_state(tmp_path, status="COMPLETE")
+        return _subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(sup.subprocess, "run", _run)
+    _write_state(tmp_path, status="COMPLETE")
+    monkeypatch.setattr(sup, "build_parser", lambda: _FakeParser(_supervisor_args(tmp_path)))
+    assert sup.main([]) == 0
+    assert seen["stdin"] is _subprocess.DEVNULL
+
+
+class _FakeParser:
+    def __init__(self, namespace):
+        self._namespace = namespace
+
+    def parse_args(self, argv=None):
+        return self._namespace
+
+
+def test_a_child_that_never_progresses_stops_the_supervisor(monkeypatch, tmp_path) -> None:
+    import subprocess as _subprocess
+
+    import scripts.stratz_v7_pass2_supervisor as sup
+
+    calls = {"n": 0}
+
+    def _run(command, **kwargs):
+        calls["n"] += 1
+        # Child dies at start-up: state never changes.
+        return _subprocess.CompletedProcess(command, 1)
+
+    monkeypatch.setattr(sup.subprocess, "run", _run)
+    monkeypatch.setattr(sup.time, "sleep", lambda _seconds: None)
+    _write_state(tmp_path, status="PARTIAL_PAUSED", resume_at="2026-09-04T17:00:00+00:00")
+    monkeypatch.setattr(sup, "build_parser", lambda: _FakeParser(_supervisor_args(tmp_path)))
+
+    assert sup.main([]) != 0
+    # The first run establishes the baseline attempt count; the next three are
+    # the ones that show no progress.
+    assert calls["n"] == sup.MAX_STALLED_ATTEMPTS + 1
+
+
+def test_real_progress_resets_the_stall_counter(monkeypatch, tmp_path) -> None:
+    import subprocess as _subprocess
+
+    import scripts.stratz_v7_pass2_supervisor as sup
+
+    progress = iter([100, 100, 250, 400, 400, 400])
+
+    def _run(command, **kwargs):
+        try:
+            attempts = next(progress)
+        except StopIteration:
+            _write_state(tmp_path, status="COMPLETE", physical_attempts=999)
+            return _subprocess.CompletedProcess(command, 0)
+        _write_state(
+            tmp_path,
+            status="PARTIAL_PAUSED",
+            physical_attempts=attempts,
+            resume_at="2026-09-04T17:00:00+00:00",
+        )
+        return _subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(sup.subprocess, "run", _run)
+    monkeypatch.setattr(sup.time, "sleep", lambda _seconds: None)
+    _write_state(tmp_path, status="PARTIAL_PAUSED", resume_at="2026-09-04T17:00:00+00:00")
+    monkeypatch.setattr(sup, "build_parser", lambda: _FakeParser(_supervisor_args(tmp_path)))
+
+    # Stalls interleaved with real progress must reset the counter, so the run
+    # reaches COMPLETE instead of tripping the stall ceiling.
+    assert sup.main([]) == 0
