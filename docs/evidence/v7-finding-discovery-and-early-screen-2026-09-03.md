@@ -21,7 +21,8 @@ RANK / MMR / IMP / BEHAVIOUR / PLAYBACK USED: NO
 
 | item | value |
 |---|---|
-| code SHA | `dd0930269fcd324b56d230f11d83ffddcd0aaf9c` |
+| code SHA (screen run) | `dd0930269fcd324b56d230f11d83ffddcd0aaf9c` — the tree the screen executed against |
+| code SHA (this phase's code) | `db45c1b` — the commit that first contains `v7_discovery_screen.py`, `features.py`, `registry.py` and `screen.py` |
 | corpus run-manifest digest (raw file) | `256676abc8254b6d1dd804a371ea1636469710fee57ca3ce8151dee25a4ed704` |
 | corpus run-manifest digest (canonical JSON) | `d45bf9a04d5c2c0c01c115347900eb1cd0e923d3f0570e368b8ce8d3848ec176` |
 | split-manifest digest | `ef24c63b1c2f56e4bb21b4947b0b43dedf0550bd3547ee818cc9346f4275d885` |
@@ -32,6 +33,10 @@ RANK / MMR / IMP / BEHAVIOUR / PLAYBACK USED: NO
 | full registry digest | `24de598a5ad044d0d2a3d26e6b22353932fbebc301c41b1489f8b6151fdd0164` |
 | **frozen serious-candidate digest** | `f9f5af7806ee5936e40d826eeb5904fe8bffa488995c967a959f8e9e5456086c` |
 | seed | `20260903` |
+
+The screen was run from an uncommitted working tree whose parent was
+`dd09302`, so the SHA the runner stamped is the parent, not the code. Reproduce
+from `db45c1b` or later. Flagged by the independent red-team.
 
 Reproduce with:
 

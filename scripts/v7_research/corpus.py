@@ -10,8 +10,10 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import sys
 from collections.abc import Iterator
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +27,13 @@ RESERVED_SPLITS = frozenset({CALIBRATION_RESERVED, SEALED_VALIDATION})
 
 CORPUS_ROOT_ENV = "V7_CORPUS_ROOT"
 FREEZE_ROOT_ENV = "V7_FREEZE_ROOT"
+
+#: Every read of CANDIDATE_TEST is appended here *before* any row is yielded.
+#: Ledgering after the fact does not work: an aborted read leaves the data seen
+#: and the ledger clean, which is exactly the failure this control exists for.
+CANDIDATE_TEST_LEDGER = (
+    Path(__file__).resolve().parents[2] / "docs" / "evidence" / "v7-candidate-test-access-ledger.jsonl"
+)
 
 # Provider fields that must never reach a canonical research table or a derived
 # feature.  The check is name-based on purpose: a forbidden field arriving under
@@ -137,17 +146,46 @@ def _iter_player_files(directory: Path) -> Iterator[Path]:
     yield from sorted(directory.glob("v7p_*.json"))
 
 
+def record_candidate_test_read(reason: str, ledger: Path | None = None) -> None:
+    """Append one line to the confirmation-split access ledger.
+
+    Called before any CANDIDATE_TEST row is handed out, so a crashed or aborted
+    read still leaves a record. The ledger is the audit trail for the rule that
+    the confirmation split is read once; it is not itself the enforcement.
+    """
+
+    target = ledger or CANDIDATE_TEST_LEDGER
+    entry = {
+        "read_at_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "reason": reason,
+        "argv": sys.argv[:8],
+    }
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(entry, sort_keys=True) + "\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
 def iter_players(
     paths: CorpusPaths,
     table: str,
-    splits: frozenset[str] | set[str] = RESEARCH_SPLITS,
+    splits: frozenset[str] | set[str] = frozenset({DISCOVERY}),
+    *,
+    candidate_test_reason: str | None = None,
+    ledger: Path | None = None,
 ) -> Iterator[dict[str, Any]]:
     """Yield canonical player documents from ``history`` or ``parsed``.
 
-    ``splits`` fails closed: a reserved or sealed split can never be requested
-    through this helper, so ordinary research commands cannot reach the
-    partitions that must stay untouched until owner selection and final
-    validation.
+    The default is **DISCOVERY only**. Exploratory work must not be able to
+    reach the confirmation split by leaving an argument off: an earlier version
+    defaulted to both research splits, and a descriptive atlas silently read all
+    900 accounts because of it.
+
+    ``splits`` fails closed on the reserved partitions, which can never be
+    requested at all. Requesting CANDIDATE_TEST additionally requires a written
+    ``candidate_test_reason``, which is appended to the access ledger before the
+    first row is yielded.
     """
 
     requested = frozenset(splits)
@@ -157,6 +195,13 @@ def iter_players(
             "reserved/sealed splits are not readable by research code: "
             + ", ".join(sorted(forbidden))
         )
+    if CANDIDATE_TEST in requested:
+        if not candidate_test_reason:
+            raise CorpusError(
+                "reading CANDIDATE_TEST requires an explicit candidate_test_reason; "
+                "the confirmation split is not a split you reach by default"
+            )
+        record_candidate_test_read(candidate_test_reason, ledger)
     if table == "history":
         directory = paths.canonical_history
     elif table == "parsed":

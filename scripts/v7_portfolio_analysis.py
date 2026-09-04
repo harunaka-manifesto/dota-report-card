@@ -182,18 +182,21 @@ def main() -> int:
     portfolios.sort(key=lambda row: -row["share_at_least_three_01"])
 
     # Who is never covered, and is it the same people every time?
+    # Across *every* candidate, not only the selectable ones. An earlier version
+    # counted over the A/B/C subset and published the result as "all twelve",
+    # which understated coverage and silently contradicted the tournament.
     never_qualified = [
         pseudonym
         for pseudonym in population
         if all(
             (row := per_family[name].get(pseudonym)) is None or row["p"] >= 0.01
-            for name in selectable
+            for name in families
         )
     ]
     coverage_counts = Counter(
         sum(
             1
-            for name in selectable
+            for name in families
             if (row := per_family[name].get(pseudonym)) is not None and row["p"] < 0.01
         )
         for pseudonym in population
@@ -224,6 +227,7 @@ def main() -> int:
         "qualification_overlap_jaccard_01": overlap,
         "effect_correlation_spearman": effect_correlation,
         "all_candidate_coverage": {
+            "candidates_counted": list(families),
             "histogram": {str(k): v for k, v in sorted(coverage_counts.items())},
             "never_qualified": len(never_qualified),
             "never_qualified_share": len(never_qualified) / len(population),

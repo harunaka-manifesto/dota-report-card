@@ -36,18 +36,33 @@
     }
   },
   "all_candidate_coverage": {
+    "candidates_counted": [
+      "post_loss_session_continuation",
+      "post_loss_hero_switch",
+      "post_loss_requeue_latency",
+      "transfer_risk",
+      "purchase_tempo",
+      "hero_novelty",
+      "duration_tempo",
+      "position_flexibility",
+      "fight_timing_centroid",
+      "transfer_activity",
+      "lead_retention",
+      "lane_recovery_participation"
+    ],
     "histogram": {
-      "0": 198,
-      "1": 143,
-      "2": 85,
-      "3": 49,
+      "0": 188,
+      "1": 144,
+      "2": 87,
+      "3": 53,
       "4": 34,
       "5": 11,
       "6": 6,
-      "7": 1
+      "7": 3,
+      "8": 1
     },
-    "never_qualified": 198,
-    "never_qualified_share": 0.3757115749525617
+    "never_qualified": 188,
+    "never_qualified_share": 0.3567362428842505
   },
   "candidate_definition_version": "v7-luna-b-candidates-1.0.0",
   "candidate_test_read": false,

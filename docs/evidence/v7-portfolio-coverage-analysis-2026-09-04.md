@@ -81,18 +81,25 @@ provisional 0.01 level, before multiplicity:
 
 | qualified findings | accounts (of 527) | share |
 |---|---:|---:|
-| 0 | 198 | 37.6% |
-| 1 | 143 | 27.1% |
-| 2 | 85 | 16.1% |
-| 3 | 49 | 9.3% |
+| 0 | 188 | 35.7% |
+| 1 | 144 | 27.3% |
+| 2 | 87 | 16.5% |
+| 3 | 53 | 10.1% |
 | 4 | 34 | 6.5% |
-| 5+ | 18 | 3.4% |
+| 5+ | 21 | 4.0% |
 
 ```text
->=1 of twelve   62.4%
->=2 of twelve   35.3%
->=3 of twelve   19.2%
+>=1 of twelve   64.3%
+>=2 of twelve   37.0%
+>=3 of twelve   20.5%
 ```
+
+> **Correction, 2026-09-04.** This table first reported 198 / 62.4% / 19.2%,
+> because the script counted over the nine A/B/C candidates while the heading
+> said all twelve. The red-team caught it by noticing that the tournament's own
+> DISCOVERY numbers (108 of 600 at three or more) disagreed with this document.
+> The corrected figures above match the tournament exactly. The error was
+> conservative and reverses no conclusion.
 
 Restricting to the five A and B candidates only:
 
@@ -132,7 +139,7 @@ Three structural facts follow directly:
    three — including the one genuinely redundant pair. The portfolio is not
    diverse because the diverse alternatives are weaker, not because diversity
    was not sought.
-3. **The uncovered population is not a segment, it is the middle.** 37.6% of
+3. **The uncovered population is not a segment, it is the middle.** 35.7% of
    information-eligible accounts qualify for nothing across all twelve
    candidates. They are not concentrated in a role, a mode, a patch, or an
    activity band: they are the players whose behaviour is close to the

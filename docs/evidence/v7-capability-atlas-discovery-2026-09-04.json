@@ -1,0 +1,832 @@
+{
+  "corpus_bindings": {
+    "corpus_plan_sha256": "9a77fb59fc22e8ac9cad036e3c7854f2668f97a46ed155d6a0a2a86aebac8dd0",
+    "source_frame_sha256": "98a442c0f04f7db8b5d5c32a51acdc0ece47e9fbc490408a29dfb23219bffaa9",
+    "split_manifest_sha256": "ef24c63b1c2f56e4bb21b4947b0b43dedf0550bd3547ee818cc9346f4275d885"
+  },
+  "corpus_root": "/private/tmp/dota-report-card-v7-research/.local/corpora/stratz/v7-corpus-2026-09-02",
+  "denominators": {
+    "accounts_by_split": {
+      "DISCOVERY": 600
+    },
+    "accounts_with_no_product_context_row": 47,
+    "frozen_cohort_accounts": 1200,
+    "history_rows": 383605,
+    "parsed_accounts_by_split": {
+      "DISCOVERY": 116
+    },
+    "parsed_flagged_product_rows": 294401,
+    "parsed_rows": 68924,
+    "product_context_rows": 371628,
+    "research_split_accounts": 600,
+    "rows_with_role_context": 284737,
+    "source_frame_accounts": 4135,
+    "standard_mode_rows": 130571,
+    "structurally_observable_rows": 383605,
+    "turbo_rows": 241057
+  },
+  "duration_seconds_by_stratum": {
+    "STANDARD": {
+      "max": 7578.0,
+      "mean": 2471.835,
+      "min": 326.0,
+      "n": 135807,
+      "p25": 2035.0,
+      "p5": 1595.0,
+      "p50": 2417.0,
+      "p75": 2818.0,
+      "p95": 3597.0
+    },
+    "TURBO": {
+      "max": 6390.0,
+      "mean": 1543.51,
+      "min": 374.0,
+      "n": 247798,
+      "p25": 1276.0,
+      "p5": 1000.0,
+      "p50": 1484.0,
+      "p75": 1777.0,
+      "p95": 2293.0
+    }
+  },
+  "identities_included": false,
+  "new_provider_calls": 0,
+  "operation_registry": {
+    "GetParsedAcquisitionBatch": "e8db761e962fb0aa411424ac2eccf3c6f74a41b880897bdc1410a6cd992bd8fc",
+    "GetPlayerHistoryPage": "b6012c49e7a0150340e447ca0695cc9782075c02e04fb3c6ae7774e964c5589e"
+  },
+  "parsed_availability_by_observable_context": {
+    "STANDARD|RANKED|CORE|None|180": {
+      "parsed_share": 0.0656,
+      "rows": 1387
+    },
+    "STANDARD|RANKED|CORE|None|182": {
+      "parsed_share": 0.343,
+      "rows": 5810
+    },
+    "STANDARD|RANKED|CORE|POSITION_1|180": {
+      "parsed_share": 1.0,
+      "rows": 5756
+    },
+    "STANDARD|RANKED|CORE|POSITION_1|182": {
+      "parsed_share": 1.0,
+      "rows": 18322
+    },
+    "STANDARD|RANKED|CORE|POSITION_2|180": {
+      "parsed_share": 1.0,
+      "rows": 5941
+    },
+    "STANDARD|RANKED|CORE|POSITION_2|182": {
+      "parsed_share": 1.0,
+      "rows": 15472
+    },
+    "STANDARD|RANKED|CORE|POSITION_3|180": {
+      "parsed_share": 1.0,
+      "rows": 5421
+    },
+    "STANDARD|RANKED|CORE|POSITION_3|182": {
+      "parsed_share": 1.0,
+      "rows": 12900
+    },
+    "STANDARD|RANKED|HARD_SUPPORT|None|182": {
+      "parsed_share": 0.3569,
+      "rows": 1639
+    },
+    "STANDARD|RANKED|HARD_SUPPORT|POSITION_5|180": {
+      "parsed_share": 1.0,
+      "rows": 6228
+    },
+    "STANDARD|RANKED|HARD_SUPPORT|POSITION_5|182": {
+      "parsed_share": 1.0,
+      "rows": 14754
+    },
+    "STANDARD|RANKED|LIGHT_SUPPORT|None|182": {
+      "parsed_share": 0.3701,
+      "rows": 1343
+    },
+    "STANDARD|RANKED|LIGHT_SUPPORT|POSITION_4|180": {
+      "parsed_share": 1.0,
+      "rows": 5462
+    },
+    "STANDARD|RANKED|LIGHT_SUPPORT|POSITION_4|182": {
+      "parsed_share": 1.0,
+      "rows": 11331
+    },
+    "STANDARD|RANKED|None|None|182": {
+      "parsed_share": 0.3147,
+      "rows": 893
+    },
+    "STANDARD|UNRANKED|CORE|POSITION_1|180": {
+      "parsed_share": 1.0,
+      "rows": 1073
+    },
+    "STANDARD|UNRANKED|CORE|POSITION_1|182": {
+      "parsed_share": 1.0,
+      "rows": 2629
+    },
+    "STANDARD|UNRANKED|CORE|POSITION_2|180": {
+      "parsed_share": 1.0,
+      "rows": 911
+    },
+    "STANDARD|UNRANKED|CORE|POSITION_2|182": {
+      "parsed_share": 1.0,
+      "rows": 2401
+    },
+    "STANDARD|UNRANKED|CORE|POSITION_3|180": {
+      "parsed_share": 1.0,
+      "rows": 842
+    },
+    "STANDARD|UNRANKED|CORE|POSITION_3|182": {
+      "parsed_share": 1.0,
+      "rows": 2241
+    },
+    "STANDARD|UNRANKED|HARD_SUPPORT|POSITION_5|180": {
+      "parsed_share": 1.0,
+      "rows": 954
+    },
+    "STANDARD|UNRANKED|HARD_SUPPORT|POSITION_5|182": {
+      "parsed_share": 1.0,
+      "rows": 2048
+    },
+    "STANDARD|UNRANKED|LIGHT_SUPPORT|POSITION_4|180": {
+      "parsed_share": 1.0,
+      "rows": 822
+    },
+    "STANDARD|UNRANKED|LIGHT_SUPPORT|POSITION_4|182": {
+      "parsed_share": 1.0,
+      "rows": 1973
+    },
+    "STANDARD|UNRANKED|None|None|182": {
+      "parsed_share": 0.3099,
+      "rows": 1607
+    },
+    "TURBO|UNRANKED|CORE|POSITION_1|180": {
+      "parsed_share": 1.0,
+      "rows": 8431
+    },
+    "TURBO|UNRANKED|CORE|POSITION_1|181": {
+      "parsed_share": 1.0,
+      "rows": 619
+    },
+    "TURBO|UNRANKED|CORE|POSITION_1|182": {
+      "parsed_share": 1.0,
+      "rows": 27807
+    },
+    "TURBO|UNRANKED|CORE|POSITION_2|180": {
+      "parsed_share": 1.0,
+      "rows": 8960
+    },
+    "TURBO|UNRANKED|CORE|POSITION_2|181": {
+      "parsed_share": 1.0,
+      "rows": 766
+    },
+    "TURBO|UNRANKED|CORE|POSITION_2|182": {
+      "parsed_share": 1.0,
+      "rows": 28287
+    },
+    "TURBO|UNRANKED|CORE|POSITION_3|180": {
+      "parsed_share": 1.0,
+      "rows": 7321
+    },
+    "TURBO|UNRANKED|CORE|POSITION_3|181": {
+      "parsed_share": 1.0,
+      "rows": 559
+    },
+    "TURBO|UNRANKED|CORE|POSITION_3|182": {
+      "parsed_share": 1.0,
+      "rows": 24714
+    },
+    "TURBO|UNRANKED|CORE|POSITION_4|182": {
+      "parsed_share": 1.0,
+      "rows": 546
+    },
+    "TURBO|UNRANKED|HARD_SUPPORT|POSITION_5|180": {
+      "parsed_share": 1.0,
+      "rows": 7679
+    },
+    "TURBO|UNRANKED|HARD_SUPPORT|POSITION_5|181": {
+      "parsed_share": 1.0,
+      "rows": 582
+    },
+    "TURBO|UNRANKED|HARD_SUPPORT|POSITION_5|182": {
+      "parsed_share": 1.0,
+      "rows": 24179
+    },
+    "TURBO|UNRANKED|LIGHT_SUPPORT|POSITION_4|180": {
+      "parsed_share": 1.0,
+      "rows": 7039
+    },
+    "TURBO|UNRANKED|LIGHT_SUPPORT|POSITION_4|181": {
+      "parsed_share": 1.0,
+      "rows": 545
+    },
+    "TURBO|UNRANKED|LIGHT_SUPPORT|POSITION_4|182": {
+      "parsed_share": 1.0,
+      "rows": 22990
+    },
+    "TURBO|UNRANKED|LIGHT_SUPPORT|POSITION_5|182": {
+      "parsed_share": 1.0,
+      "rows": 700
+    },
+    "TURBO|UNRANKED|None|None|180": {
+      "parsed_share": 0.0108,
+      "rows": 19671
+    },
+    "TURBO|UNRANKED|None|None|181": {
+      "parsed_share": 0.0,
+      "rows": 1843
+    },
+    "TURBO|UNRANKED|None|None|182": {
+      "parsed_share": 0.1051,
+      "rows": 52968
+    }
+  },
+  "parsed_semantics": {
+    "assist_event_minus_history_assists": {
+      "-1": 11278,
+      "-2": 4906,
+      "-3": 6442,
+      "0": 35033,
+      "1": 6279,
+      "2": 1354,
+      "3": 1206
+    },
+    "event_agreement": {
+      "assists_differ": 31465,
+      "assists_exact": 35033,
+      "kills_differ": 3177,
+      "kills_exact": 63321
+    },
+    "kill_event_minus_history_kills": {
+      "-1": 2601,
+      "-2": 142,
+      "-3": 11,
+      "0": 63321,
+      "1": 193,
+      "2": 79,
+      "3": 151
+    },
+    "length_minus_expected": {
+      "0": 65371,
+      "1": 1127
+    },
+    "orientation_resolved_rows": 66498,
+    "trajectory_rows": 66498
+  },
+  "per_player": {
+    "active_days": {
+      "all": {
+        "max": 363.0,
+        "mean": 138.915,
+        "min": 0.0,
+        "n": 600,
+        "p25": 62.0,
+        "p5": 0.0,
+        "p50": 138.0,
+        "p75": 209.0,
+        "p95": 297.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 363.0,
+        "mean": 138.915,
+        "min": 0.0,
+        "n": 600,
+        "p25": 62.0,
+        "p5": 0.0,
+        "p50": 138.0,
+        "p75": 209.0,
+        "p95": 297.0
+      }
+    },
+    "distinct_heroes": {
+      "all": {
+        "max": 127.0,
+        "mean": 68.81,
+        "min": 0.0,
+        "n": 600,
+        "p25": 44.0,
+        "p5": 0.0,
+        "p50": 74.0,
+        "p75": 96.0,
+        "p95": 120.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 127.0,
+        "mean": 68.81,
+        "min": 0.0,
+        "n": 600,
+        "p25": 44.0,
+        "p5": 0.0,
+        "p50": 74.0,
+        "p75": 96.0,
+        "p95": 120.0
+      }
+    },
+    "distinct_positions": {
+      "all": {
+        "max": 5.0,
+        "mean": 4.537,
+        "min": 0.0,
+        "n": 600,
+        "p25": 5.0,
+        "p5": 0.0,
+        "p50": 5.0,
+        "p75": 5.0,
+        "p95": 5.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 5.0,
+        "mean": 4.537,
+        "min": 0.0,
+        "n": 600,
+        "p25": 5.0,
+        "p5": 0.0,
+        "p50": 5.0,
+        "p75": 5.0,
+        "p95": 5.0
+      }
+    },
+    "history_rows": {
+      "all": {
+        "max": 2500.0,
+        "mean": 639.342,
+        "min": 0.0,
+        "n": 600,
+        "p25": 239.0,
+        "p5": 0.0,
+        "p50": 543.0,
+        "p75": 917.0,
+        "p95": 1676.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 2500.0,
+        "mean": 639.342,
+        "min": 0.0,
+        "n": 600,
+        "p25": 239.0,
+        "p5": 0.0,
+        "p50": 543.0,
+        "p75": 917.0,
+        "p95": 1676.0
+      }
+    },
+    "in_session_losses_with_successor": {
+      "all": {
+        "max": 1166.0,
+        "mean": 222.222,
+        "min": 0.0,
+        "n": 600,
+        "p25": 68.0,
+        "p5": 0.0,
+        "p50": 170.0,
+        "p75": 316.0,
+        "p95": 635.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 1166.0,
+        "mean": 222.222,
+        "min": 0.0,
+        "n": 600,
+        "p25": 68.0,
+        "p5": 0.0,
+        "p50": 170.0,
+        "p75": 316.0,
+        "p95": 635.0
+      }
+    },
+    "in_session_transitions": {
+      "all": {
+        "max": 2250.0,
+        "mean": 444.803,
+        "min": 0.0,
+        "n": 600,
+        "p25": 139.0,
+        "p5": 0.0,
+        "p50": 338.0,
+        "p75": 609.0,
+        "p95": 1260.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 2250.0,
+        "mean": 444.803,
+        "min": 0.0,
+        "n": 600,
+        "p25": 139.0,
+        "p5": 0.0,
+        "p50": 338.0,
+        "p75": 609.0,
+        "p95": 1260.0
+      }
+    },
+    "multi_match_sessions": {
+      "all": {
+        "max": 536.0,
+        "mean": 127.883,
+        "min": 0.0,
+        "n": 600,
+        "p25": 52.0,
+        "p5": 0.0,
+        "p50": 118.0,
+        "p75": 187.0,
+        "p95": 302.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 536.0,
+        "mean": 127.883,
+        "min": 0.0,
+        "n": 600,
+        "p25": 52.0,
+        "p5": 0.0,
+        "p50": 118.0,
+        "p75": 187.0,
+        "p95": 302.0
+      }
+    },
+    "parsed_flagged_product_rows": {
+      "all": {
+        "max": 2355.0,
+        "mean": 490.668,
+        "min": 0.0,
+        "n": 600,
+        "p25": 181.0,
+        "p5": 0.0,
+        "p50": 412.0,
+        "p75": 697.0,
+        "p95": 1334.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 2355.0,
+        "mean": 490.668,
+        "min": 0.0,
+        "n": 600,
+        "p25": 181.0,
+        "p5": 0.0,
+        "p50": 412.0,
+        "p75": 697.0,
+        "p95": 1334.0
+      }
+    },
+    "parsed_flagged_share_of_product": {
+      "all": {
+        "max": 1.0,
+        "mean": 0.741,
+        "min": 0.0,
+        "n": 600,
+        "p25": 0.7015,
+        "p5": 0.0,
+        "p50": 0.8085,
+        "p75": 0.8881,
+        "p95": 0.9567
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 1.0,
+        "mean": 0.741,
+        "min": 0.0,
+        "n": 600,
+        "p25": 0.7015,
+        "p5": 0.0,
+        "p50": 0.8085,
+        "p75": 0.8881,
+        "p95": 0.9567
+      }
+    },
+    "parsed_product_rows": {
+      "all": {
+        "max": 2355.0,
+        "mean": 111.547,
+        "min": 0.0,
+        "n": 600,
+        "p25": 0.0,
+        "p5": 0.0,
+        "p50": 0.0,
+        "p75": 0.0,
+        "p95": 735.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 2355.0,
+        "mean": 111.547,
+        "min": 0.0,
+        "n": 600,
+        "p25": 0.0,
+        "p5": 0.0,
+        "p50": 0.0,
+        "p75": 0.0,
+        "p95": 735.0
+      }
+    },
+    "parsed_rows": {
+      "all": {
+        "max": 2392.0,
+        "mean": 114.873,
+        "min": 0.0,
+        "n": 600,
+        "p25": 0.0,
+        "p5": 0.0,
+        "p50": 0.0,
+        "p75": 0.0,
+        "p95": 745.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 2392.0,
+        "mean": 114.873,
+        "min": 0.0,
+        "n": 600,
+        "p25": 0.0,
+        "p5": 0.0,
+        "p50": 0.0,
+        "p75": 0.0,
+        "p95": 745.0
+      }
+    },
+    "product_rows": {
+      "all": {
+        "max": 2483.0,
+        "mean": 619.38,
+        "min": 0.0,
+        "n": 600,
+        "p25": 232.0,
+        "p5": 0.0,
+        "p50": 526.0,
+        "p75": 873.0,
+        "p95": 1618.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 2483.0,
+        "mean": 619.38,
+        "min": 0.0,
+        "n": 600,
+        "p25": 232.0,
+        "p5": 0.0,
+        "p50": 526.0,
+        "p75": 873.0,
+        "p95": 1618.0
+      }
+    },
+    "rows_with_role_context": {
+      "all": {
+        "max": 2245.0,
+        "mean": 474.562,
+        "min": 0.0,
+        "n": 600,
+        "p25": 178.0,
+        "p5": 0.0,
+        "p50": 401.0,
+        "p75": 670.0,
+        "p95": 1301.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 2245.0,
+        "mean": 474.562,
+        "min": 0.0,
+        "n": 600,
+        "p25": 178.0,
+        "p5": 0.0,
+        "p50": 401.0,
+        "p75": 670.0,
+        "p95": 1301.0
+      }
+    },
+    "sessions": {
+      "all": {
+        "max": 630.0,
+        "mean": 174.577,
+        "min": 0.0,
+        "n": 600,
+        "p25": 71.0,
+        "p5": 0.0,
+        "p50": 163.0,
+        "p75": 251.0,
+        "p95": 397.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 630.0,
+        "mean": 174.577,
+        "min": 0.0,
+        "n": 600,
+        "p25": 71.0,
+        "p5": 0.0,
+        "p50": 163.0,
+        "p75": 251.0,
+        "p95": 397.0
+      }
+    },
+    "standard_rows": {
+      "all": {
+        "max": 2475.0,
+        "mean": 217.618,
+        "min": 0.0,
+        "n": 600,
+        "p25": 3.0,
+        "p5": 0.0,
+        "p50": 67.0,
+        "p75": 306.0,
+        "p95": 924.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 2475.0,
+        "mean": 217.618,
+        "min": 0.0,
+        "n": 600,
+        "p25": 3.0,
+        "p5": 0.0,
+        "p50": 67.0,
+        "p75": 306.0,
+        "p95": 924.0
+      }
+    },
+    "turbo_rows": {
+      "all": {
+        "max": 2476.0,
+        "mean": 401.762,
+        "min": 0.0,
+        "n": 600,
+        "p25": 44.0,
+        "p5": 0.0,
+        "p50": 252.0,
+        "p75": 580.0,
+        "p95": 1307.0
+      },
+      "candidate_test": {
+        "n": 0
+      },
+      "discovery": {
+        "max": 2476.0,
+        "mean": 401.762,
+        "min": 0.0,
+        "n": 600,
+        "p25": 44.0,
+        "p5": 0.0,
+        "p50": 252.0,
+        "p75": 580.0,
+        "p95": 1307.0
+      }
+    }
+  },
+  "per_player_thresholds": {
+    "in_session_losses_with_successor": {
+      ">= 10": 0.8933,
+      ">= 100": 0.6583,
+      ">= 20": 0.8717,
+      ">= 30": 0.85,
+      ">= 50": 0.795
+    },
+    "multi_match_sessions": {
+      ">= 10": 0.885,
+      ">= 20": 0.85,
+      ">= 30": 0.8117,
+      ">= 50": 0.7583
+    },
+    "parsed_flagged_product_rows": {
+      ">= 100": 0.83,
+      ">= 200": 0.73,
+      ">= 30": 0.895,
+      ">= 400": 0.5167,
+      ">= 50": 0.8717
+    },
+    "parsed_product_rows_within_parsed_subset": {
+      ">= 100": 0.9224,
+      ">= 200": 0.8534,
+      ">= 30": 1.0,
+      ">= 400": 0.6034,
+      ">= 50": 0.9741
+    },
+    "product_rows": {
+      ">= 100": 0.8433,
+      ">= 200": 0.775,
+      ">= 30": 0.8967,
+      ">= 400": 0.62,
+      ">= 50": 0.8833
+    },
+    "rows_with_role_context": {
+      ">= 100": 0.8283,
+      ">= 200": 0.7283,
+      ">= 30": 0.895,
+      ">= 400": 0.5017,
+      ">= 50": 0.8717
+    },
+    "standard_rows": {
+      ">= 100": 0.4467,
+      ">= 200": 0.3317,
+      ">= 30": 0.5933,
+      ">= 400": 0.1817,
+      ">= 50": 0.545
+    },
+    "turbo_rows": {
+      ">= 100": 0.6583,
+      ">= 200": 0.55,
+      ">= 30": 0.7767,
+      ">= 50": 0.7317
+    }
+  },
+  "row_coverage": {
+    "game_mode_native": {
+      "ALL_PICK": 4,
+      "ALL_PICK_RANKED": 127215,
+      "CAPTAINS_MODE": 480,
+      "RANDOM_DRAFT": 144,
+      "SINGLE_DRAFT": 7964,
+      "TURBO": 247798
+    },
+    "game_version_id": {
+      "180": 96368,
+      "181": 7784,
+      "182": 279453
+    },
+    "lane_native": {
+      "JUNGLE": 1114,
+      "MID_LANE": 66974,
+      "OFF_LANE": 108868,
+      "ROAMING": 564,
+      "SAFE_LANE": 127891,
+      "UNKNOWN": 218,
+      "__MISSING__": 77976
+    },
+    "leaver_status_native": {
+      "ABANDONED": 398,
+      "AFK": 456,
+      "DISCONNECTED": 9361,
+      "DISCONNECTED_TOO_LONG": 1254,
+      "NONE": 372136
+    },
+    "lobby_type_native": {
+      "BATTLE_CUP": 247,
+      "PRACTICE": 294,
+      "RANKED": 116575,
+      "UNRANKED": 266489
+    },
+    "position_native": {
+      "POSITION_1": 65209,
+      "POSITION_2": 63427,
+      "POSITION_3": 54781,
+      "POSITION_4": 52329,
+      "POSITION_5": 58327,
+      "__MISSING__": 89532
+    },
+    "role_native": {
+      "CORE": 191439,
+      "HARD_SUPPORT": 59909,
+      "LIGHT_SUPPORT": 54281,
+      "__MISSING__": 77976
+    }
+  },
+  "schema_version": "v7-capability-atlas-1.0.0",
+  "session_gap_seconds": 10800,
+  "unavailable_by_construction": {
+    "own_death_events": "not requested",
+    "own_hero_damage_trajectory": "not requested",
+    "own_last_hits_denies_trajectory": "not requested",
+    "own_networth_trajectory": "not requested by GetParsedAcquisitionBatch v1.0.0",
+    "playback_features": "prohibited surface",
+    "rank_mmr_bracket_imp_behaviour": "prohibited surface"
+  },
+  "window": {
+    "days": 365,
+    "end_timestamp": 1788281426,
+    "start_timestamp": 1756745426
+  }
+}

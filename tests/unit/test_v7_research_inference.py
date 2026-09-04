@@ -594,7 +594,18 @@ def test_research_splits_remain_requestable(tmp_path: Any) -> None:
 
     (tmp_path / "canonical" / "history").mkdir(parents=True)
     paths = corpus_paths(tmp_path)
-    assert list(iter_players(paths, "history", frozenset({DISCOVERY, CANDIDATE_TEST}))) == []
+    assert (
+        list(
+            iter_players(
+                paths,
+                "history",
+                frozenset({DISCOVERY, CANDIDATE_TEST}),
+                candidate_test_reason="unit test: confirmation split stays requestable",
+                ledger=tmp_path / "ledger.jsonl",
+            )
+        )
+        == []
+    )
 
 
 def test_family_matrix_player_views_are_consistent() -> None:

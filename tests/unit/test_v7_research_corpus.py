@@ -43,10 +43,53 @@ def test_reserved_splits_are_not_requestable(tmp_path: Path) -> None:
             list(iter_players(paths, "history", {DISCOVERY, split}))
 
 
-def test_default_iteration_yields_research_splits_only(tmp_path: Path) -> None:
+def test_default_iteration_is_discovery_only(tmp_path: Path) -> None:
+    # The default must not include CANDIDATE_TEST. An earlier version defaulted
+    # to both research splits, and a purely descriptive atlas silently read all
+    # 900 accounts because a caller left the argument off.
     paths = corpus_paths(_corpus(tmp_path))
     splits = sorted(document["split"] for document in iter_players(paths, "history"))
-    assert splits == [CANDIDATE_TEST, DISCOVERY]
+    assert splits == [DISCOVERY]
+
+
+def test_candidate_test_requires_a_written_reason(tmp_path: Path) -> None:
+    paths = corpus_paths(_corpus(tmp_path))
+    with pytest.raises(CorpusError):
+        list(iter_players(paths, "history", {DISCOVERY, CANDIDATE_TEST}))
+
+
+def test_candidate_test_read_is_ledgered_before_any_row_is_yielded(tmp_path: Path) -> None:
+    paths = corpus_paths(_corpus(tmp_path))
+    ledger = tmp_path / "ledger.jsonl"
+    stream = iter_players(
+        paths,
+        "history",
+        {DISCOVERY, CANDIDATE_TEST},
+        candidate_test_reason="unit test",
+        ledger=ledger,
+    )
+    next(stream)
+    assert ledger.is_file()
+    entries = [json.loads(line) for line in ledger.read_text(encoding="utf-8").splitlines()]
+    assert len(entries) == 1
+    assert entries[0]["reason"] == "unit test"
+
+
+def test_an_abandoned_candidate_test_read_still_leaves_a_ledger_line(tmp_path: Path) -> None:
+    # The failure this control exists for: the data was seen, the run died, and
+    # an after-the-fact ledger write never happened.
+    paths = corpus_paths(_corpus(tmp_path))
+    ledger = tmp_path / "ledger.jsonl"
+    stream = iter_players(
+        paths,
+        "history",
+        {DISCOVERY, CANDIDATE_TEST},
+        candidate_test_reason="abandoned",
+        ledger=ledger,
+    )
+    next(stream)
+    stream.close()
+    assert len(ledger.read_text(encoding="utf-8").splitlines()) == 1
 
 
 def test_discovery_only_iteration_excludes_candidate_test(tmp_path: Path) -> None:
