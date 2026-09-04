@@ -49,6 +49,7 @@ from app.stratz.queries import (  # noqa: E402
     GET_PLAYER_RANK_HISTORY,
     PROBE_ITEM_VOCABULARY,
     PROBE_LOCATION_REPORT,
+    V7_PASS2_TYPE_SENTINEL,
     GraphQLOperation,
 )
 
@@ -78,7 +79,7 @@ DEFAULT_OUTPUT_ROOT = ROOT / ".local" / "corpora" / "stratz" / "v7-pass2-probe"
 BATCH_LADDER: tuple[int, ...] = (8, 6, 4, 3, 2, 1)
 
 #: Hard ceiling. Raising it is a deliberate act, not a flag you forget.
-MAX_PHYSICAL_CALLS = 12
+MAX_PHYSICAL_CALLS = 14
 
 DEFAULT_TIMEOUT_SECONDS = 45.0
 
@@ -208,6 +209,61 @@ def summarise_deep_batch(payload: Mapping[str, Any] | None) -> dict[str, Any]:
         },
         "usable": own_rows > 0 and present["deathEvents"] > 0,
     }
+
+
+
+def summarise_type_sentinel(payload: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Report the selectable fields of each type the pass-2 query cannot yet reach.
+
+    A GraphQL selection set cannot be written against an unknown object type, so
+    every one of these fields is currently unrequestable. Guessing a selection
+    set is how a multi-day collection fails on its first call.
+    """
+
+    data = (payload or {}).get("data") or {}
+    out: dict[str, Any] = {}
+    for alias, node in data.items():
+        if not isinstance(node, Mapping):
+            out[alias] = {"present": False}
+            continue
+        fields = node.get("fields") or []
+        names = [
+            field["name"]
+            for field in fields
+            if isinstance(field, Mapping) and not field.get("isDeprecated")
+        ]
+
+        def leaf(field: Mapping[str, Any]) -> str:
+            ref = field.get("type") or {}
+            name = ref.get("name")
+            while ref.get("ofType"):
+                ref = ref["ofType"]
+                name = ref.get("name") or name
+            return str(name)
+
+        out[alias] = {
+            "present": True,
+            "type_name": node.get("name"),
+            "kind": node.get("kind"),
+            "field_count": len(names),
+            "fields": sorted(names),
+            "scalar_fields": sorted(
+                field["name"]
+                for field in fields
+                if isinstance(field, Mapping)
+                and not field.get("isDeprecated")
+                and (field.get("type") or {}).get("kind") in {"SCALAR", "ENUM"}
+            ),
+            "leaf_types": {
+                field["name"]: leaf(field)
+                for field in fields
+                if isinstance(field, Mapping) and not field.get("isDeprecated")
+            },
+        }
+    out["_usable"] = any(
+        isinstance(value, Mapping) and value.get("present") for value in out.values()
+    )
+    return out
 
 
 def summarise_location_report(payload: Mapping[str, Any] | None) -> dict[str, Any]:
@@ -414,6 +470,7 @@ async def run(args: argparse.Namespace) -> int:
             op.name: {"version": op.version, "document_sha256": op.document_sha256}
             for op in (
                 GET_DEEP_MATCH_BATCH,
+                V7_PASS2_TYPE_SENTINEL,
                 PROBE_LOCATION_REPORT,
                 PROBE_ITEM_VOCABULARY,
                 GET_PLAYER_RANK_HISTORY,
@@ -443,6 +500,11 @@ async def run(args: argparse.Namespace) -> int:
             report["batch_sizing"] = await probe.find_batch_size(
                 target["account_id"], target["match_ids"]
             )
+
+            payload, _ = await probe.request(
+                V7_PASS2_TYPE_SENTINEL, {}, label="type-shape-sentinel"
+            )
+            report["type_shapes"] = summarise_type_sentinel(payload)
 
             payload, _ = await probe.request(
                 PROBE_LOCATION_REPORT,
@@ -495,6 +557,11 @@ async def run(args: argparse.Namespace) -> int:
                 f"  {row['accounts']:>3} accounts x {row['matches_per_account']} matches"
                 f" -> {row['total_calls']:,} calls, {row['days_at_15000_per_day']} days"
             )
+    shapes = report.get("type_shapes", {})
+    resolved = sum(
+        1 for k, v in shapes.items() if k != "_usable" and isinstance(v, Mapping) and v.get("present")
+    )
+    print(f"type shapes resolved: {resolved} of {max(0, len(shapes) - 1)}")
     print(f"locationReport usable: {report.get('location_report', {}).get('usable')}")
     print(f"item vocabulary usable: {report.get('item_vocabulary', {}).get('usable')}")
     print(f"report: {output_dir / 'report.json'}")

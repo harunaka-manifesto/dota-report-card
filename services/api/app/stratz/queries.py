@@ -605,7 +605,7 @@ query ProbeParsedAvailability(
 
 GET_DEEP_MATCH_BATCH = GraphQLOperation(
     name="GetDeepMatchBatch",
-    version="2.0.0",
+    version="2.1.0",
     purpose=(
         "Pass-2 acquisition: own-player full parsed detail, match context, and "
         "a scalars-only projection of all ten players."
@@ -625,6 +625,9 @@ query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
       gameVersionId
       regionId
       parsedDateTime
+      statsDateTime
+      isStats
+      numHumanPlayers
       firstBloodTime
       towerStatusRadiant
       towerStatusDire
@@ -670,6 +673,8 @@ query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
         lane
         leaverStatus
         isRandom
+        partyId
+        invisibleSeconds
         kills
         deaths
         assists
@@ -705,6 +710,9 @@ query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
           towerDamagePerMinute
           healPerMinute
           campStack
+          level
+          actionsPerMinute
+          tripsFountainPerMinute
           killEvents { time }
           deathEvents { time }
           assistEvents { time }
@@ -800,6 +808,49 @@ query GetPlayerRankHistory($steamAccountId: Long!) {
 )
 
 
+
+V7_PASS2_TYPE_SENTINEL = GraphQLOperation(
+    name="V7Pass2TypeSentinel",
+    version="1.0.0",
+    purpose=(
+        "Learn the field shape of the object and list types the pass-2 query "
+        "cannot yet select from. A GraphQL selection set cannot be written "
+        "against an unknown type, and guessing one costs a failed collection."
+    ),
+    response_model="StratzPass2TypeSentinel",
+    document="""
+query V7Pass2TypeSentinel {
+  towerDeath: __type(name: "MatchStatsTowerDeathType") { ...Shape }
+  pickBan: __type(name: "MatchStatsPickBanType") { ...Shape }
+  laneReport: __type(name: "MatchStatsLaneReportType") { ...Shape }
+  towerStatus: __type(name: "MatchStatsTowerReportType") { ...Shape }
+  playerAbility: __type(name: "PlayerAbilityType") { ...Shape }
+  itemUsed: __type(name: "MatchPlayerStatsItemUsedEventType") { ...Shape }
+  wardDestruction: __type(name: "MatchPlayerWardDestuctionObjectType") { ...Shape }
+  farmDistribution: __type(name: "MatchPlayerStatsFarmDistributionReportType") { ...Shape }
+  heroDamageReport: __type(name: "MatchPlayerStatsHeroDamageReportType") { ...Shape }
+  towerDamageReport: __type(name: "MatchPlayerStatsTowerDamageReportType") { ...Shape }
+  inventoryReport: __type(name: "MatchPlayerInventoryType") { ...Shape }
+  actionReport: __type(name: "MatchPlayerStatsActionReportType") { ...Shape }
+  abilityCastReport: __type(name: "MatchPlayerStatsAbilityCastReportType") { ...Shape }
+  locationReport: __type(name: "MatchPlayerStatsLocationReportType") { ...Shape }
+  buffEvent: __type(name: "MatchPlayerStatsBuffEventType") { ...Shape }
+  courierKill: __type(name: "MatchPlayerStatsCourierKillEventType") { ...Shape }
+}
+
+fragment Shape on __Type {
+  kind
+  name
+  fields(includeDeprecated: true) {
+    name
+    isDeprecated
+    type { kind name ofType { kind name ofType { kind name } } }
+  }
+}
+""".strip(),
+)
+
+
 STRATZ_OPERATIONS = {
     operation.name: operation
     for operation in (
@@ -820,6 +871,7 @@ STRATZ_OPERATIONS = {
         PROBE_LOCATION_REPORT,
         PROBE_ITEM_VOCABULARY,
         GET_PLAYER_RANK_HISTORY,
+        V7_PASS2_TYPE_SENTINEL,
     )
 }
 
@@ -848,6 +900,7 @@ __all__ = [
     "PROBE_LOCATION_REPORT",
     "PROBE_PARSED_EVIDENCE_BATCH",
     "V7_PARSED_SUBTYPE_SHAPE_SENTINEL",
+    "V7_PASS2_TYPE_SENTINEL",
     "V7_SCHEMA_SENTINEL",
     "GraphQLOperation",
     "STRATZ_OPERATIONS",

@@ -373,3 +373,77 @@ def test_a_half_given_override_is_refused() -> None:
     ):
         with pytest.raises(SystemExit):
             main(argv)
+
+
+def test_deep_batch_carries_the_newly_confirmed_scalar_fields() -> None:
+    words = _words(GET_DEEP_MATCH_BATCH.document)
+    # Shapes already known from the captured introspection, so these needed no
+    # further discovery: party membership, the per-minute level curve, fountain
+    # trips, click rate, and match-quality flags.
+    assert {
+        "partyId",
+        "invisibleSeconds",
+        "level",
+        "actionsPerMinute",
+        "tripsFountainPerMinute",
+        "numHumanPlayers",
+        "isStats",
+        "statsDateTime",
+    } <= words
+
+
+def test_type_sentinel_covers_every_unresolved_pass_two_type() -> None:
+    from app.stratz.queries import V7_PASS2_TYPE_SENTINEL
+
+    document = V7_PASS2_TYPE_SENTINEL.document
+    for type_name in (
+        "MatchStatsTowerDeathType",
+        "MatchStatsPickBanType",
+        "MatchStatsLaneReportType",
+        "MatchStatsTowerReportType",
+        "PlayerAbilityType",
+        "MatchPlayerStatsItemUsedEventType",
+        "MatchPlayerWardDestuctionObjectType",
+        "MatchPlayerStatsFarmDistributionReportType",
+        "MatchPlayerStatsHeroDamageReportType",
+        "MatchPlayerStatsTowerDamageReportType",
+        "MatchPlayerInventoryType",
+        "MatchPlayerStatsActionReportType",
+        "MatchPlayerStatsAbilityCastReportType",
+        "MatchPlayerStatsLocationReportType",
+        "MatchPlayerStatsBuffEventType",
+        "MatchPlayerStatsCourierKillEventType",
+    ):
+        assert type_name in document, type_name
+
+
+def test_type_sentinel_summary_lists_selectable_fields() -> None:
+    from scripts.stratz_v7_pass2_probe import summarise_type_sentinel
+
+    payload = {
+        "data": {
+            "towerDeath": {
+                "kind": "OBJECT",
+                "name": "MatchStatsTowerDeathType",
+                "fields": [
+                    {"name": "time", "isDeprecated": False, "type": {"kind": "SCALAR", "name": "Int"}},
+                    {"name": "isRadiant", "isDeprecated": False, "type": {"kind": "SCALAR", "name": "Boolean"}},
+                    {"name": "gone", "isDeprecated": True, "type": {"kind": "SCALAR", "name": "Int"}},
+                ],
+            }
+        }
+    }
+    summary = summarise_type_sentinel(payload)
+    assert summary["towerDeath"]["present"] is True
+    assert summary["towerDeath"]["fields"] == ["isRadiant", "time"]
+    assert summary["towerDeath"]["scalar_fields"] == ["isRadiant", "time"]
+    assert summary["towerDeath"]["leaf_types"]["time"] == "Int"
+    assert summary["_usable"] is True
+
+
+def test_type_sentinel_summary_reports_an_absent_type() -> None:
+    from scripts.stratz_v7_pass2_probe import summarise_type_sentinel
+
+    summary = summarise_type_sentinel({"data": {"towerDeath": None}})
+    assert summary["towerDeath"] == {"present": False}
+    assert summary["_usable"] is False
