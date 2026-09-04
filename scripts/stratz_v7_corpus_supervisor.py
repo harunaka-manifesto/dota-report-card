@@ -24,7 +24,10 @@ from scripts.stratz_v7_corpus_runner import (  # noqa: E402
     DEFAULT_SOURCE_FRAME,
 )
 
-DEFAULT_DOTENV = Path("/private/tmp/dota-report-card-v7-hygiene/.env")
+# Relative to the worktree it runs in. This used to be an absolute path into a
+# sibling worktree, which tied one collection to another checkout's credential
+# file and broke the moment that worktree was cleaned up.
+DEFAULT_DOTENV = Path(".env")
 
 
 def seconds_until(value: str, *, now: datetime | None = None) -> float:
