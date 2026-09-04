@@ -205,6 +205,134 @@ one recommendation actually changed anything.
 
 Recap, and the one thing.
 
+## 2.10 Additions — insights the outline did not ask for
+
+The nine sections describe a shape. These are the specific Findings I would
+build inside it, chosen because each one is a **contrast**, sits **upstream of
+the result**, and needs nothing beyond the field set in §3. Ordered by how much
+I think they would change a player's next game.
+
+### A. Do you convert a won fight into a map? — the biggest one
+
+Your team wins a fight at minute 23: two or more kills, nobody dead on your
+side. What happens in the next two minutes? A tower, or everyone walks back to
+their jungle.
+
+```text
+signal   minutes with >=2 own-team kills and 0 own deaths
+follow   towerDamagePerMinute in the next 2 minutes
+```
+
+*"When you win a fight, a tower falls within two minutes 64% of the time in
+your wins and 21% of the time in your losses. You are winning fights and buying
+nothing with them."* This is the most common mistake in the game below the very
+top, it is invisible without a season of data, and it is one sentence to fix.
+
+### B. Do you use your spike, or just buy it?
+
+Your Blink lands at minute 22. Some players are in a fight 90 seconds later;
+some farm for six more minutes.
+
+```text
+signal   time of a key item purchase
+follow   own kill/assist events and own net-worth lead over the next 3 minutes
+```
+
+*"Your Blink Dagger lands at 22 minutes. In your wins you fight within two
+minutes of buying it; in your losses you farm for another six."* Needs the item
+vocabulary.
+
+### C. Do you go back in too fast?
+
+Not how many times you die — whether deaths come in runs. Two deaths inside 90
+seconds usually means walking back into the same fight.
+
+```text
+signal   gaps between consecutive deathEvents
+```
+
+*"A third of your deaths come within 90 seconds of the previous one."* Derivable
+from death timings alone, which makes it one of the cheapest strong Findings
+available.
+
+### D. Does winning your lane actually mean anything?
+
+A very common and very frustrating pattern: you win the lane and the game is
+level by minute 20 anyway.
+
+```text
+signal   lane outcome + own last-hit lead at 10 minutes
+follow   own net worth and team lead at 20 minutes; tower damage between 10 and 20
+```
+
+*"You win your lane 58% of the time, and your team's lead at 20 minutes is the
+same whether you won it or not."*
+
+### E. Closer or comeback player?
+
+This replaces the provider's opaque `COMEBACK` label with something we compute
+ourselves and can explain.
+
+```text
+signal   own net-worth lead crossing +/-10k, and the eventual result
+```
+
+*"You close 91% of games where you go 10k up — but at 5k down you fold, well
+below your own baseline."* Two numbers, both memorable, and they say something
+real about temperament rather than skill.
+
+### F. Your worst minute
+
+Sweep the net-worth lead curve for the window where your position most
+consistently slips relative to your own average.
+
+*"Minutes 18 to 22 are where your games go wrong."* Legible, and it gives the
+recommendation in section 5 a place to point.
+
+### G. Vision coverage and vision predictability — for supports
+
+Two separate ideas, both from `wards{time,type,positionX,positionY}`.
+
+- **Coverage**: share of game minutes with at least one of your observers
+  plausibly alive. *"Your vision covers 41% of the game; your wins average 58%."*
+- **Predictability**: spread of your ward positions. *"78% of your wards go in
+  three spots."* Wards in the same three places every game get killed, and this
+  is the single most fixable support habit.
+
+### H. Do you carry a TP scroll?
+
+Once the item vocabulary exists: TP purchases per game, contrasted with deaths
+that happen far from your team's activity. *"You buy three TP scrolls a game in
+wins and one in losses."* Old-fashioned coaching, and it is measurable.
+
+### I. Do you adapt your build, or run the same one?
+
+Compare item purchase sequences across your games on the same hero.
+
+*"You build the same first three items on Juggernaut in 89% of games."*
+Adaptivity is a genuine axis and nobody can see it about themselves.
+
+### J. Farm while alive, not farm overall
+
+Last hits per minute **of time alive**, from last-hit trajectories and death
+timings. Two players with identical GPM are different players if one of them is
+dead a fifth of the game. It separates "farms badly" from "dies a lot", which
+the raw number cannot.
+
+### K. Session drift, measured inside the game
+
+Earlier research rejected session drift because it was measured on match
+outcomes, where nothing survived. In-game it is a different question and worth
+re-testing: across a session, do your last hits at ten minutes decline? Do your
+deaths move earlier? Match results are far too noisy to see fatigue. Laning
+numbers are not.
+
+### What none of these need
+
+No field beyond §3, and no playback. Items B, H and I depend on the item
+vocabulary; G depends on ward positions, which the specimens confirm are
+returned. That is a useful check on the spec: the additions did not widen it.
+
 ## 3. What the second pass must fetch
 
 Every field below appears in a **live specimen already captured** in
@@ -318,12 +446,76 @@ match. `CALIBRATION_RESERVED` and `SEALED_VALIDATION` stay untouched, and the
 frozen cohort must not be topped up, replaced, or adaptively reselected — the
 split manifest is already frozen and digested.
 
-## 5. Open decisions for the owner
+## 5. Owner decisions — settled 2026-09-04
 
-1. **Rank in section 1** — display-only, or keep it out entirely. Recommendation:
-   out of pass 2 until decided, because a collected field leaks.
-2. **Parsed depth** — 300 accounts or 900. This is days of collection, not a
-   research question.
-3. **Where you die** — accept "when and in what state" only, or authorise a
-   probe of `stats.locationReport` to see whether a coarse map answer exists
-   without touching playback.
+### 5.1 Rank: display-only, and fenced in code
+
+Decision: collect and show rank progression in section 1 as history. It is
+**never** an analytical input.
+
+"Show it but do not use it" is not a policy, it is a hope, unless the code
+enforces it. The enforcement mirrors the reserved-split control that already
+exists: rank lands in a separate display-only table that the research reader
+cannot return, and the forbidden-field gate keeps failing closed on every
+canonical research table and derived feature. Analysis code physically cannot
+reach it; the report renderer can. Without that fence the field leaks into a
+context projection within a month and every Finding quietly becomes a skill
+proxy.
+
+### 5.2 Depth: 300 accounts — enough for the decision
+
+Yes. The question is how precisely we can estimate, across players, how
+reliable and how heterogeneous each candidate is, because that is what ranks
+candidates against each other.
+
+| accounts | SE of a reliability of 0.7 | relative SE on `tau` |
+|---:|---:|---:|
+| 116 (today) | 0.048 | 6.6% |
+| **300** | **0.030** | **4.1%** |
+| 600 | 0.021 | 2.9% |
+| 900 | 0.017 | 2.4% |
+
+At 300 accounts, two candidates whose reliability differs by 0.10 separate at
+about 2.4 standard errors. That is the actual decision being made, and it is
+comfortably supported. For calibration: the parsed work already completed used
+**116** accounts and still separated candidates unambiguously, from I² 0.236 to
+0.969. Tripling that is not a close call.
+
+What 300 does **not** buy, and should not be claimed later:
+
+- population percentiles in narrow cells — "position 5 supports, Turbo, patch
+  182" thins out fast across players, even though it stays fine at match level;
+- reference statistics for rare heroes;
+- a confirmation pass. These 300 are DISCOVERY. `CANDIDATE_TEST` needs its own
+  depth before anything is confirmed, and `CALIBRATION_RESERVED` and
+  `SEALED_VALIDATION` stay untouched.
+
+Depth per account matters more than account count here, and it is already
+strong: a median of 526 product-context matches per account across a year.
+
+### 5.3 Where you die: probe `stats.locationReport`
+
+`deathEvents` carries `time` only. `stats.locationReport` has never been
+requested and its shape is unknown; it is the only route to a map answer that
+does not touch playback. The microprobe adds it as a single field on a handful
+of matches and reports the shape and the complexity cost. If it returns a
+usable grid, "where you die" and "where you ward" both become answerable and
+several Findings in §2.10 get sharper. If it does not, the report is scoped to
+*when* and *in what state*, which is where the actionable material lives anyway.
+
+## 6. Order of work
+
+1. **Complexity microprobe** — a handful of calls. Find the largest match batch
+   that stays under the 310,000 complexity ceiling with own-player full stats
+   plus the ten-player slim projection, and establish `locationReport`'s shape
+   and cost. Everything downstream is sized by its answer.
+2. **Item vocabulary** — static reference data, fetched once. Without it,
+   §2.10 B, H and I cannot ship and "most-purchased item" reports a consumable.
+3. **Pass-2 collection** — 300 DISCOVERY accounts, full parsed detail, resumable
+   from the existing runner and checkpoint, driven from the owner's terminal.
+4. **Re-normalise and re-atlas** against the widened schema.
+5. **Re-score the candidate universe under the new definition** — ranking rather
+   than gating, with the level families readmitted.
+
+The frozen cohort and split manifest are already digested and must not be
+topped up, replaced, or adaptively reselected.
