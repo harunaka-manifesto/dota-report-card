@@ -447,3 +447,34 @@ def test_type_sentinel_summary_reports_an_absent_type() -> None:
     summary = summarise_type_sentinel({"data": {"towerDeath": None}})
     assert summary["towerDeath"] == {"present": False}
     assert summary["_usable"] is False
+
+
+def test_item_vocabulary_tolerates_a_null_stat_block() -> None:
+    # STRATZ returns "stat": null for some items. A .get("stat", {}) lookup
+    # returns None for those and then raises on the next .get, which is how the
+    # first live probe run failed.
+    from scripts.stratz_v7_pass2_probe import summarise_item_vocabulary
+
+    payload = {
+        "data": {
+            "constants": {
+                "items": [
+                    {"id": 1, "displayName": "Tango", "stat": {"cost": 90}},
+                    {"id": 2, "displayName": "Recipe", "stat": None},
+                    {"id": 3, "displayName": "NoStatKey"},
+                    {"id": 4, "displayName": "NullCost", "stat": {"cost": None}},
+                ]
+            }
+        }
+    }
+    summary = summarise_item_vocabulary(payload)
+    assert summary["items"] == 4
+    assert summary["with_cost"] == 1
+    assert summary["usable"] is True
+
+
+def test_item_vocabulary_survives_a_null_item_entry() -> None:
+    from scripts.stratz_v7_pass2_probe import summarise_item_vocabulary
+
+    payload = {"data": {"constants": {"items": [None, {"id": 1, "stat": {"cost": 5}}]}}}
+    assert summarise_item_vocabulary(payload)["with_cost"] == 1

@@ -297,7 +297,11 @@ def summarise_item_vocabulary(payload: Mapping[str, Any] | None) -> dict[str, An
     items = constants.get("items") or []
     if not isinstance(items, list) or not items:
         return {"items": 0, "usable": False}
-    with_cost = sum(1 for item in items if (item or {}).get("stat", {}).get("cost") is not None)
+    # STRATZ returns "stat": null for some items, so the nested lookup has to
+    # tolerate a null rather than assume a dict. Measured: 15 of 575 items.
+    with_cost = sum(
+        1 for item in items if ((item or {}).get("stat") or {}).get("cost") is not None
+    )
     return {
         "items": len(items),
         "with_cost": with_cost,

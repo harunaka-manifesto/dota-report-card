@@ -605,10 +605,11 @@ query ProbeParsedAvailability(
 
 GET_DEEP_MATCH_BATCH = GraphQLOperation(
     name="GetDeepMatchBatch",
-    version="2.1.0",
+    version="3.0.0",
     purpose=(
-        "Pass-2 acquisition: own-player full parsed detail, match context, and "
-        "a scalars-only projection of all ten players."
+        "Pass-2 production acquisition: own-player full parsed detail, match "
+        "context, and a scalars-only projection of all ten players. Finalised "
+        "against the shapes measured by the 2026-09-04 sizing probe."
     ),
     response_model="StratzDeepMatchBatch",
     document="""
@@ -640,6 +641,22 @@ query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
       bottomLaneOutcome
       midLaneOutcome
       topLaneOutcome
+      towerDeaths {
+        time
+        isRadiant
+        npcId
+        attacker
+      }
+      pickBans {
+        isPick
+        isRadiant
+        heroId
+        bannedHeroId
+        order
+        playerIndex
+        isCaptain
+        wasBannedSuccessfully
+      }
       allPlayers: players {
         playerSlot
         isRadiant
@@ -669,7 +686,6 @@ query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
         variant
         position
         role
-        roleBasic
         lane
         leaverStatus
         isRandom
@@ -699,6 +715,12 @@ query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
         backpack1Id
         backpack2Id
         neutral0Id
+        abilities {
+          abilityId
+          level
+          time
+          isTalent
+        }
         stats {
           networthPerMinute
           goldPerMinute
@@ -713,6 +735,32 @@ query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
           level
           actionsPerMinute
           tripsFountainPerMinute
+          itemUsed {
+            itemId
+            count
+          }
+          wardDestruction {
+            time
+            isWard
+            gold
+            experience
+          }
+          matchPlayerBuffEvent {
+            time
+            itemId
+            abilityId
+            stackCount
+          }
+          towerDamageReport {
+            npcId
+            damage
+            damageCreeps
+            damageFromAbility
+          }
+          farmDistributionReport {
+            buyBackGold
+            abandonGold
+          }
           killEvents { time }
           deathEvents { time }
           assistEvents { time }
