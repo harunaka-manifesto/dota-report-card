@@ -278,17 +278,22 @@ playbackData (either level), steamAccount identity blocks, dotaPlus
 match — and it is exactly the kind of opaque derived label the rules exclude. We
 can compute comeback ourselves from the net-worth lead curve, transparently.
 
-### 3.5 A bug to fix first, at zero cost
+### 3.5 Item identity — already collected, no fix needed
 
-`itemPurchases` is already collected **with** `itemId` — the raw archive has
-`{"time":-89,"itemId":44}` — but normalisation dropped the id and kept only the
-time, so all 211,428 purchases in the canonical table read `itemId: null`. Item
-identity is therefore recoverable from the immutable raw archive with **no
-provider call at all**. This must be fixed before pass 2, or the same loss
-happens again on a much larger volume.
+An earlier draft of this document reported that normalisation had dropped
+`itemId` and that all 211,428 purchases read null. **That was wrong**, and the
+error was mine: I probed the canonical table for a camel-case `itemId` when the
+canonical schema uses `item_id`. The field is present and complete —
+422,726 purchases scanned across 30 accounts, **262 distinct item ids, zero
+nulls**. Nothing needs recovering and nothing needs repairing before pass 2.
 
-An item vocabulary (id → name, tier, consumable/starter flag) is also needed.
-That is static reference data, not player data.
+What *is* still missing is the vocabulary: we have ids, not meanings. Id 43 is
+the most-purchased id in the corpus at 57,015 purchases, which is almost
+certainly a consumable rather than anything a report should celebrate. An item
+reference table (id → name, tier, consumable/starter flag) is required before
+any item-timing Finding ships, and the capability atlas already rates item
+semantics as unverified for exactly this reason. That table is static reference
+data, fetched once, and is not player data.
 
 ## 4. What pass 2 costs
 
