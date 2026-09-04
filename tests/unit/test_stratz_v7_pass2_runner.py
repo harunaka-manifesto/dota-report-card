@@ -9,7 +9,7 @@ import httpx
 import pytest
 from app.stratz.queries import GET_DEEP_MATCH_BATCH
 
-from scripts.stratz_v7_corpus_runner import StopRun
+from scripts.stratz_v7_corpus_runner import PauseRun, StopRun
 from scripts.stratz_v7_pass2_runner import (
     PASS2_BATCH_SIZE,
     PASS2_CANONICAL_SCHEMA,
@@ -1205,3 +1205,104 @@ async def test_a_paused_run_still_writes_an_inspectable_manifest(tmp_path: Path)
     )
     assert manifest["status"] == "PARTIAL_PAUSED"
     assert manifest["physical_attempts"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Rate control
+# ---------------------------------------------------------------------------
+
+
+def _controller(**remaining):
+    from scripts.stratz_v7_pass2_runner import Pass2RateController
+
+    controller = Pass2RateController(sleep=_no_sleep)
+    controller.remaining.update(remaining)
+    return controller
+
+
+def test_local_ceilings_start_at_the_providers_advertised_limits() -> None:
+    from scripts.stratz_v7_pass2_runner import PASS2_PROVIDER_LIMITS
+
+    # Measured from live headers: 8/150/1500/15000. Pass 1's conservative
+    # 1,000/hour paused a real run while the provider still reported 1,129 left.
+    assert PASS2_PROVIDER_LIMITS == {
+        "second": 8,
+        "minute": 150,
+        "hour": 1_500,
+        "day": 15_000,
+    }
+    assert _controller().limits == PASS2_PROVIDER_LIMITS
+
+
+async def test_healthy_provider_headroom_does_not_pause() -> None:
+    controller = _controller(second=7, minute=119, hour=1129, day=14424)
+    await controller.before_attempt()  # the exact state that used to pause
+    assert len(controller.times) == 1
+
+
+async def test_an_exhausted_hour_pauses_to_the_next_hour_boundary() -> None:
+    controller = _controller(hour=5, day=9000)
+    with pytest.raises(PauseRun) as excinfo:
+        await controller.before_attempt()
+    assert "hour window exhausted" in str(excinfo.value)
+    resume = excinfo.value.resume_at
+    assert resume is not None
+    from datetime import datetime as _dt
+
+    parsed = _dt.fromisoformat(resume)
+    assert parsed.minute == 0 and parsed.second == 0
+
+
+async def test_an_exhausted_day_pauses_to_midnight_not_to_the_hour() -> None:
+    controller = _controller(hour=5, day=10)
+    with pytest.raises(PauseRun) as excinfo:
+        await controller.before_attempt()
+    assert "day window exhausted" in str(excinfo.value)
+    from datetime import datetime as _dt
+
+    parsed = _dt.fromisoformat(excinfo.value.resume_at or "")
+    assert (parsed.hour, parsed.minute, parsed.second) == (0, 0, 0)
+
+
+async def test_the_reserve_stops_short_of_zero() -> None:
+    from scripts.stratz_v7_pass2_runner import PASS2_RESERVES
+
+    # One above the reserve proceeds; exactly at the reserve pauses, because the
+    # counter is shared with any other session using the same key.
+    await _controller(hour=PASS2_RESERVES["hour"] + 1).before_attempt()
+    with pytest.raises(PauseRun):
+        await _controller(hour=PASS2_RESERVES["hour"]).before_attempt()
+
+
+async def test_there_is_no_hardcoded_daily_cap(tmp_path: Path) -> None:
+    # Pass 1 stopped at a planned 9,000 attempts per UTC day regardless of what
+    # the provider allowed. Pass 2 asks the provider instead.
+    controller = _controller(day=14_000, hour=1_400, minute=140)
+    import time as _time
+
+    now = _time.time()
+    controller.times.extend(now - 3_600 + index * 0.1 for index in range(9_500))
+    await controller.before_attempt()
+    assert len(controller.times) == 9_501
+
+
+async def test_a_spent_second_window_sleeps_briefly_rather_than_pausing() -> None:
+    slept: list[float] = []
+
+    async def _record(seconds: float) -> None:
+        slept.append(seconds)
+
+    from scripts.stratz_v7_pass2_runner import Pass2RateController
+
+    controller = Pass2RateController(sleep=_record)
+    controller.remaining.update({"second": 0, "minute": 100, "hour": 1000, "day": 14000})
+    await controller.before_attempt()
+    assert slept and slept[0] > 0
+
+
+def test_boundary_helper_rounds_up_to_the_next_window() -> None:
+    from scripts.stratz_v7_pass2_runner import _next_boundary
+
+    assert _next_boundary(3_600.0, 3_600.0) == 7_200.0
+    assert _next_boundary(3_601.0, 3_600.0) == 7_200.0
+    assert _next_boundary(0.0, 60.0) == 60.0

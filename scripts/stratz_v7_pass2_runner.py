@@ -138,6 +138,105 @@ SMOKE_MATCH_TARGET = 24
 SMOKE_MAX_REQUESTS = 15
 
 
+
+# ---------------------------------------------------------------------------
+# Rate control
+# ---------------------------------------------------------------------------
+
+#: The provider's advertised ceilings, measured from live response headers on
+#: 2026-09-04: 8/second, 150/minute, 1,500/hour, 15,000/day.
+#:
+#: Pass 1 ran under hardcoded local ceilings of 1,000/hour and a planned daily
+#: cap of 9,000. Those were a sensible default when nothing about the account's
+#: real limits was known, but they are strictly below what this key actually
+#: allows, and they cost real time: the first pass-2 run paused at exactly 1,000
+#: attempts while the provider's own header still reported 1,129 requests
+#: remaining that hour.
+PASS2_PROVIDER_LIMITS = {"second": 8, "minute": 150, "hour": 1_500, "day": 15_000}
+
+#: Headroom left unused in each window. The provider's counter is authoritative
+#: and shared across every client using this key, so stopping short of zero is
+#: what keeps a concurrent session from turning our last request into a 429.
+PASS2_RESERVES = {"second": 1, "minute": 10, "hour": 40, "day": 150}
+
+
+def _next_boundary(now: float, seconds: float) -> float:
+    """Start of the next aligned window of ``seconds`` length."""
+
+    return (int(now // seconds) + 1) * seconds
+
+
+class Pass2RateController(RateController):
+    """Rate control that believes the provider's counters over its own guesses.
+
+    Two differences from the pass-1 controller, both measured rather than
+    assumed:
+
+    * the local window ceilings start at the provider's advertised limits
+      instead of a conservative fraction of them;
+    * there is no hardcoded daily cap. The pause decision comes from the live
+      ``x-ratelimit-remaining-*`` headers, which account for other sessions
+      sharing the key and for windows that reset mid-run.
+
+    STRATZ sends a reset header only for the per-second window, so an exhausted
+    minute, hour or day window waits to the next aligned boundary and re-checks.
+    Waiting slightly too long is cheap; guessing an early reset is a 429.
+    """
+
+    def __init__(self, *, sleep: Sleep, attempt_times: Sequence[float] = ()) -> None:
+        super().__init__(sleep=sleep, attempt_times=attempt_times)
+        self.limits = dict(PASS2_PROVIDER_LIMITS)
+
+    def _provider_pause(self, now: float) -> tuple[str, float] | None:
+        """The longest window the provider says is spent, and when it resets."""
+
+        windows = {"minute": 60.0, "hour": 3_600.0, "day": 86_400.0}
+        worst: tuple[str, float] | None = None
+        for bucket, length in windows.items():
+            remaining = self.remaining.get(bucket)
+            if remaining is None or remaining > PASS2_RESERVES[bucket]:
+                continue
+            resume = _next_boundary(now, length)
+            if worst is None or resume > worst[1]:
+                worst = (bucket, resume)
+        return worst
+
+    async def before_attempt(self, planned_attempts: int = 0) -> None:
+        now = time.time()
+        self._purge(now)
+
+        spent = self._provider_pause(now)
+        if spent is not None:
+            bucket, resume = spent
+            raise PauseRun(
+                f"provider {bucket} window exhausted "
+                f"({self.remaining.get(bucket)} left, reserve {PASS2_RESERVES[bucket]})",
+                resume_at=datetime.fromtimestamp(resume, UTC).isoformat(),
+            )
+
+        delay = 0.0
+        second_remaining = self.remaining.get("second")
+        if second_remaining is not None and second_remaining <= PASS2_RESERVES["second"]:
+            delay = max(delay, self._reset_delay(now) or 1.0)
+
+        # Local windows remain a backstop for the case where the provider stops
+        # sending headers entirely.
+        windows = {"second": 1.0, "minute": 60.0, "hour": 3_600.0, "day": 86_400.0}
+        for bucket, limit in self._effective_limits().items():
+            active = [stamp for stamp in self.times if now - stamp < windows[bucket]]
+            if len(active) >= limit:
+                delay = max(delay, active[0] + windows[bucket] - now)
+
+        if delay > MAX_WAIT_SECONDS:
+            raise PauseRun(
+                "rate-window reset exceeds bounded wait; resume from checkpoint",
+                resume_at=datetime.fromtimestamp(now + delay, UTC).isoformat(),
+            )
+        if delay > 0:
+            await self._sleep(delay)
+        self.times.append(time.time())
+
+
 class Pass2Error(RunnerError):
     """Pass-2 specific failure."""
 
@@ -713,7 +812,7 @@ class Pass2Runner:
         attempt_times = [
             float(row["timestamp_epoch"]) for row in self.ledger_rows if row.get("timestamp_epoch")
         ]
-        self.rate = RateController(sleep=sleep, attempt_times=attempt_times)
+        self.rate = Pass2RateController(sleep=sleep, attempt_times=attempt_times)
         for row in self.ledger_rows:
             headers = row.get("safe_rate_headers")
             if isinstance(headers, Mapping):
@@ -896,15 +995,7 @@ class Pass2Runner:
         last_payload: Mapping[str, Any] | None = None
         last_reason: str | None = None
         for attempt in range(self.max_retries + 1):
-            # Same daily-cap accounting as pass 1: the controller needs to know
-            # how many attempts today's ledger already contains.
-            today = datetime.now(UTC).date()
-            planned_today = sum(
-                datetime.fromtimestamp(float(row["timestamp_epoch"]), UTC).date() == today
-                for row in self.ledger_rows
-                if row.get("timestamp_epoch")
-            )
-            await self.rate.before_attempt(planned_today)
+            await self.rate.before_attempt()
             if self._http is None:
                 self._http = httpx.AsyncClient(timeout=self.timeout_seconds)
             ordinal = len(self.ledger_rows) + 1

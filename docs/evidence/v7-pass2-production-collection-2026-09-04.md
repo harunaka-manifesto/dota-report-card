@@ -173,6 +173,48 @@ projected requests               13,253
 Lower than the probe's 18,900 projection because the median account has ~350
 parsed matches rather than 500.
 
+## 4b. Rate control believes the provider, not a guess
+
+The first live run paused at exactly 1,000 attempts. That was not the provider
+saying stop — its own header at that moment reported **1,129 requests still
+remaining that hour**. The ceiling was ours.
+
+Measured provider limits, from live response headers:
+
+```text
+x-ratelimit-limit-second   8
+x-ratelimit-limit-minute   150
+x-ratelimit-limit-hour     1500
+x-ratelimit-limit-day      15000
+```
+
+Pass 1 ran under hardcoded local ceilings of 5/second, 100/minute, 1,000/hour
+and a planned daily cap of 9,000. Those were reasonable when nothing was known
+about the key's real limits, but they are strictly below what it allows, and
+`_effective_limits` takes the **minimum** of local and observed — so the local
+guess won every time. For a 13,253-request collection the two binding caps cost
+roughly four extra hours of hourly stalls, plus a potential wait to the next UTC
+midnight once the 9,000 daily cap tripped.
+
+`Pass2RateController` subclasses the pass-1 controller and changes two things:
+
+- local window ceilings start at the provider's advertised limits rather than a
+  fraction of them;
+- there is no hardcoded daily cap. The pause decision reads the live
+  `x-ratelimit-remaining-*` counters, which account for windows that reset
+  mid-run and for any other session sharing the key.
+
+A reserve is left unused in each window — 1/second, 10/minute, 40/hour,
+150/day — because the counter is shared, and stopping short of zero is what
+keeps a concurrent session from turning our last request into a 429.
+
+STRATZ sends a reset header only for the per-second window, so an exhausted
+minute, hour or day window waits to the next aligned boundary and re-checks.
+Waiting slightly too long is cheap; guessing an early reset is a 429.
+
+Expected effect: about **9–10 hours** for the full run rather than a day and a
+half, with pauses only when the provider itself is genuinely near a limit.
+
 ## 5. Safety properties
 
 - **Idempotent.** Every request is keyed by operation plus variables. A repeat
