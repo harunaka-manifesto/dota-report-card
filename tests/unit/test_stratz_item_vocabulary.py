@@ -1,4 +1,4 @@
-"""Tests for the STRATZ item vocabulary loader and classifiers."""
+"""Tests for the STRATZ item vocabulary loader and predicates."""
 
 from __future__ import annotations
 
@@ -106,16 +106,17 @@ class TestIsRealItem:
         for item in real_items:
             assert is_real_item(item), f"{item.short_name} should be a real item"
 
-    def test_consumables_not_real(self) -> None:
-        """Consumables are not real items even if expensive (like bottle)."""
-        # Bottle is expensive but consumable (stores runes, has charges).
-        bottle = ItemInfo(id=41, name="Bottle", short_name="bottle", cost=675)
-        # Although bottle > 500, it's consumable so not a "real item".
-        # Actually, reviewing the requirement: real items are not consumables
-        # AND cost >= 500. Bottle at 675 is expensive enough, but it IS a
-        # consumable (stores runes with charges).
-        # So is_real_item should return False because is_consumable is True.
-        assert not is_real_item(bottle), "Consumables should not be real items"
+    def test_consumables_are_not_real_items_however_expensive(self) -> None:
+        """A consumable is excluded on identity, not on price.
+
+        Dust of Appearance costs 180 and Smoke of Deceit 50, so price alone
+        would already exclude them; the point of the allowlist is that the rule
+        does not depend on that coincidence.
+        """
+        smoke = ItemInfo(id=188, name="Smoke of Deceit", short_name="smoke_of_deceit", cost=50)
+        expensive_consumable = ItemInfo(id=999, name="Fake", short_name="tango", cost=5000)
+        assert not is_real_item(smoke)
+        assert not is_real_item(expensive_consumable)
 
     def test_cheap_items_not_real(self) -> None:
         """Items with low cost are not real items."""
@@ -167,3 +168,42 @@ class TestItemInfo:
         item3 = ItemInfo(id=1, name="Test", short_name="test", cost=200)
         assert item1 == item2
         assert item1 != item3
+
+
+def test_recipes_are_not_real_items() -> None:
+    """A recipe purchase is the same build event as the item it completes.
+
+    Counting both would double-count every build, which would corrupt any
+    measurement of when a player's build comes together.
+    """
+    from app.stratz.item_vocabulary import is_real_item, is_recipe, load_item_vocabulary
+
+    vocabulary = load_item_vocabulary()
+    recipes = [item for item in vocabulary.values() if is_recipe(item)]
+    assert len(recipes) > 40, "expected the vocabulary to carry many recipes"
+    assert all(not is_real_item(item) for item in recipes)
+    # Priced above the threshold, so price alone would not have excluded it.
+    bkb_recipe = next(i for i in recipes if i.short_name == "recipe_black_king_bar")
+    assert bkb_recipe.cost is not None and bkb_recipe.cost >= 500
+    assert not is_real_item(bkb_recipe)
+
+
+def test_bottle_is_a_real_item_not_a_consumable() -> None:
+    """Bottle holds an inventory slot all game; its timing is a build milestone."""
+
+    from app.stratz.item_vocabulary import is_consumable, is_real_item, load_item_vocabulary
+
+    bottle = next(
+        i for i in load_item_vocabulary().values() if i.short_name == "bottle"
+    )
+    assert not is_consumable(bottle)
+    assert is_real_item(bottle)
+
+
+def test_the_real_item_set_is_the_expected_size() -> None:
+    from app.stratz.item_vocabulary import is_real_item, load_item_vocabulary
+
+    vocabulary = load_item_vocabulary()
+    real = [item for item in vocabulary.values() if is_real_item(item)]
+    # 215 before recipes were excluded and bottle was reclassified.
+    assert 150 <= len(real) <= 200

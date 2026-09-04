@@ -1,7 +1,7 @@
 """Load and classify the STRATZ item vocabulary.
 
 The item vocabulary is fetched once and committed as a static JSON file. This
-module loads it at runtime and provides classifiers to distinguish consumables
+module loads it at runtime and provides predicates that distinguish consumables
 from real items — a critical distinction for item-timing analysis.
 
 A "real item" is something a player keeps in their inventory (a BKB, a Blink, etc.),
@@ -55,15 +55,29 @@ _CONSUMABLE_SHORT_NAMES: frozenset[str] = frozenset(
         "smoke_of_deceit",
         "dust",  # Dust of Appearance
         "tpscroll",  # Town Portal Scroll
-        "bottle",  # Can store runes, provides charges
         "tome_of_knowledge",  # Instant XP, one-time use per availability
     )
+    # Bottle is deliberately absent. It costs 675, occupies an inventory slot
+    # for the whole game, and its purchase time is a genuine build milestone for
+    # a mid player. Its rune charges make it feel consumable; the slot does not.
 )
 
-# Real items must have a cost >= 500 gold to be considered a true inventory item
-# rather than a minor component or consumable. This threshold is chosen to
-# filter out recipe components, cheap utility items, and early-game consumables.
+# A real item costs at least this much. The threshold is a stated choice, not a
+# derived constant: it keeps Boots of Speed (500) and excludes Magic Wand (460)
+# and the cheap components below it.
 _REAL_ITEM_MIN_COST = 500
+
+#: Recipes are priced like items and appear in the purchase stream, but buying
+#: one is the *same build event* as completing the item it upgrades. Counting
+#: both double-counts every build, which would corrupt any "when does your build
+#: come together" measurement. 52 of the vocabulary's entries are recipes.
+_RECIPE_PREFIX = "recipe_"
+
+
+def is_recipe(item: ItemInfo) -> bool:
+    """Return True if the item is a recipe rather than a finished item."""
+
+    return item.short_name.startswith(_RECIPE_PREFIX)
 
 
 def load_item_vocabulary(path: Path | None = None) -> dict[int, ItemInfo]:
@@ -119,14 +133,12 @@ def is_consumable(item: ItemInfo) -> bool:
 def is_real_item(item: ItemInfo) -> bool:
     """Return True if the item is a real, permanent inventory item.
 
-    A real item is:
-    - Not a consumable.
-    - Has a non-None cost.
-    - Has a cost of at least {_REAL_ITEM_MIN_COST} gold.
-
-    This filters out consumables, recipes, components, and other temporary items.
+    A real item is not a consumable, not a recipe, and costs at least
+    ``_REAL_ITEM_MIN_COST``. Recipes are excluded explicitly rather than by
+    price: many cost well over the threshold, and counting a recipe purchase
+    alongside the item it completes would double-count the same build event.
     """
-    if is_consumable(item):
+    if is_consumable(item) or is_recipe(item):
         return False
     if item.cost is None:
         return False
