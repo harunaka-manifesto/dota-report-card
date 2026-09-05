@@ -1,0 +1,204 @@
+{
+  "dimensions": {
+    "closer_vs_comeback": {
+      "description": "Contrast: win rate when the player's team ever led by 10k ('closing when ahead') versus when it was ever down 10k ('recovering when behind').",
+      "is_actionable": false,
+      "is_contrast": true,
+      "primary": {
+        "median_observation_count": 248.0,
+        "players_with_a_value": 272,
+        "value_quantiles": {
+          "max": 1.0,
+          "mean": 0.8501,
+          "min": 0.6667,
+          "n": 272,
+          "p25": 0.8203,
+          "p5": 0.7729,
+          "p50": 0.8526,
+          "p75": 0.8821,
+          "p95": 0.9261
+        }
+      },
+      "report_section": "response_to_a_loss",
+      "secondary": {
+        "median_observation_count": 224.0,
+        "players_with_a_value": 272,
+        "value_quantiles": {
+          "max": 0.3488,
+          "mean": 0.1582,
+          "min": 0.0,
+          "n": 272,
+          "p25": 0.1296,
+          "p5": 0.0784,
+          "p50": 0.1611,
+          "p75": 0.188,
+          "p95": 0.2331
+        }
+      }
+    },
+    "death_clustering": {
+      "description": "Share of the player's deaths occurring within 90 seconds of their previous death.",
+      "is_actionable": true,
+      "is_contrast": false,
+      "primary": {
+        "median_observation_count": 2350,
+        "players_with_a_value": 275,
+        "value_quantiles": {
+          "max": 0.7713,
+          "mean": 0.2234,
+          "min": 0.0846,
+          "n": 275,
+          "p25": 0.1743,
+          "p5": 0.1369,
+          "p50": 0.2097,
+          "p75": 0.2445,
+          "p95": 0.3501
+        }
+      },
+      "report_section": "what_is_costing_you"
+    },
+    "deaths_alone_share": {
+      "description": "Share of the player's deaths falling in a minute with no team kill activity on either side.",
+      "is_actionable": true,
+      "is_contrast": false,
+      "primary": {
+        "median_observation_count": 427.0,
+        "players_with_a_value": 274,
+        "value_quantiles": {
+          "max": 0.7125,
+          "mean": 0.5162,
+          "min": 0.2072,
+          "n": 274,
+          "p25": 0.4771,
+          "p5": 0.4188,
+          "p50": 0.5174,
+          "p75": 0.5569,
+          "p95": 0.6199
+        }
+      },
+      "report_section": "what_is_costing_you"
+    },
+    "fight_conversion": {
+      "description": "Rate at which a minute where the player's team scored >= 2 kills and lost nobody is followed by an enemy tower falling within the next two minutes.",
+      "is_actionable": false,
+      "is_contrast": false,
+      "primary": {
+        "median_observation_count": 1204,
+        "players_with_a_value": 275,
+        "value_quantiles": {
+          "max": 0.625,
+          "mean": 0.4626,
+          "min": 0.3108,
+          "n": 275,
+          "p25": 0.4253,
+          "p5": 0.384,
+          "p50": 0.4688,
+          "p75": 0.4969,
+          "p95": 0.5269
+        }
+      },
+      "report_section": "what_is_costing_you"
+    },
+    "lane_to_map": {
+      "description": "Contrast: own net worth at minute 20 when the player won their lane versus when they did not.",
+      "is_actionable": false,
+      "is_contrast": true,
+      "primary": {
+        "median_observation_count": 134,
+        "players_with_a_value": 271,
+        "value_quantiles": {
+          "max": 24540.7455,
+          "mean": 14932.7955,
+          "min": 4936.2196,
+          "n": 271,
+          "p25": 11151.71,
+          "p5": 7828.0741,
+          "p50": 15516.6941,
+          "p75": 18495.8916,
+          "p95": 21907.7455
+        }
+      },
+      "report_section": "what_is_costing_you",
+      "secondary": {
+        "median_observation_count": 216,
+        "players_with_a_value": 271,
+        "value_quantiles": {
+          "max": 21492.087,
+          "mean": 13032.742,
+          "min": 4466.4474,
+          "n": 271,
+          "p25": 9172.4507,
+          "p5": 6712.5233,
+          "p50": 13680.2632,
+          "p75": 16572.4348,
+          "p95": 18862.7619
+        }
+      }
+    },
+    "lane_vs_jungle_share": {
+      "description": "Share of the player's creep gold that came from neutrals.",
+      "is_actionable": true,
+      "is_contrast": false,
+      "primary": {
+        "median_observation_count": 434.5,
+        "players_with_a_value": 274,
+        "value_quantiles": {
+          "max": 0.4303,
+          "mean": 0.2262,
+          "min": 0.0415,
+          "n": 274,
+          "p25": 0.1863,
+          "p5": 0.1396,
+          "p50": 0.2231,
+          "p75": 0.2662,
+          "p95": 0.3181
+        }
+      },
+      "report_section": "what_is_good"
+    },
+    "spike_usage": {
+      "description": "Median seconds between the player's first real-item purchase and their next kill or assist.",
+      "is_actionable": true,
+      "is_contrast": false,
+      "primary": {
+        "median_observation_count": 431.0,
+        "players_with_a_value": 274,
+        "value_quantiles": {
+          "max": 296.0,
+          "mean": 133.5511,
+          "min": 19.5,
+          "n": 274,
+          "p25": 110.5,
+          "p5": 85.5,
+          "p50": 127.5,
+          "p75": 148.0,
+          "p95": 204.5
+        }
+      },
+      "report_section": "what_is_good"
+    },
+    "vision_coverage": {
+      "description": "Share of game minutes with at least one of the player's observer wards plausibly alive (None if the player never warded).",
+      "is_actionable": true,
+      "is_contrast": false,
+      "primary": {
+        "median_observation_count": 447.0,
+        "players_with_a_value": 274,
+        "value_quantiles": {
+          "max": 0.864,
+          "mean": 0.2844,
+          "min": 0.0005,
+          "n": 274,
+          "p25": 0.1629,
+          "p5": 0.0769,
+          "p50": 0.2677,
+          "p75": 0.3731,
+          "p95": 0.5738
+        }
+      },
+      "report_section": "what_is_good"
+    }
+  },
+  "feature_version": "v7-pass2-features-1",
+  "players_considered": 276
+}
