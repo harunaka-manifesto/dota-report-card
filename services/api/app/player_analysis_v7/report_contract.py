@@ -99,13 +99,24 @@ ArchetypeModifier = Literal["metronome", "streaky"]
 _TOLERANCE = 1e-6
 
 
-def _expected_strength_band(score: float) -> StrengthBand:
-    """Provisional score -> band mapping; see ``StrengthBand`` docstring."""
+#: Provisional cut points, used only as a *construction default*. They are
+#: deliberately NOT a validation rule: calibration will choose the real cut
+#: points against the reserved split, and a contract that hard-codes today's
+#: guess would reject every payload built with tomorrow's bands.
+_PROVISIONAL_BAND_CUTS = ((1.5, "pronounced"), (0.5, "moderate"))
 
-    if score >= 1.5:
-        return "pronounced"
-    if score >= 0.5:
-        return "moderate"
+
+def default_strength_band(score: float) -> StrengthBand:
+    """Suggest a band for a score, pending calibration.
+
+    A convenience for building Findings before cut points are chosen. Nothing
+    validates against it; see ``ReportPayload.validate_report`` for the
+    invariant that *is* enforced - bands must be monotone in score.
+    """
+
+    for threshold, band in _PROVISIONAL_BAND_CUTS:
+        if score >= threshold:
+            return band  # type: ignore[return-value]
     return "slight"
 
 
@@ -237,12 +248,21 @@ class Finding(PublicV7Model):
     player_facing_question: str = Field(min_length=1)
 
     @model_validator(mode="after")
-    def score_matches_band(self) -> Finding:
-        expected = _expected_strength_band(self.score)
-        if self.strength_band != expected:
+    def score_is_the_shrunk_position(self) -> Finding:
+        """``score = |z| * reliability`` - the ranking model's own definition.
+
+        This is the invariant worth enforcing. It is arithmetic, it holds
+        whatever cut points calibration eventually picks, and it catches the
+        error that actually matters: a Finding ranked by something other than
+        the model. The earlier band-versus-score check was dropped because it
+        pinned the contract to provisional cut points.
+        """
+
+        expected = abs(self.z) * self.reliability
+        if abs(self.score - expected) > _TOLERANCE:
             raise ValueError(
-                f"strength_band {self.strength_band!r} is inconsistent with score "
-                f"{self.score!r} (expected {expected!r})"
+                f"score {self.score!r} is not |z| * reliability "
+                f"({abs(self.z)!r} * {self.reliability!r} = {expected!r})"
             )
         return self
 
@@ -804,6 +824,39 @@ class ReportProvenance(PublicV7Model):
     generated_at: str = Field(min_length=1, description="ISO 8601 timestamp.")
 
 
+_BAND_ORDER: dict[str, int] = {"slight": 0, "moderate": 1, "pronounced": 2}
+
+
+def _assert_bands_monotone_in_score(payload: ReportPayload) -> None:
+    """A higher-scoring Finding may never carry a weaker band.
+
+    Calibration-independent: it constrains the *relationship* between bands and
+    scores without asserting where the cut points fall, so it survives any
+    choice calibration makes while still catching a mislabelled Finding.
+    """
+
+    findings = [
+        finding
+        for section in (
+            payload.what_is_good,
+            payload.what_is_costing_you,
+            payload.response_to_a_loss,
+        )
+        for finding in section.findings
+    ]
+    ordered = sorted(findings, key=lambda finding: finding.score)
+    for lower, higher in zip(ordered, ordered[1:], strict=False):
+        if higher.score - lower.score > _TOLERANCE and (
+            _BAND_ORDER[higher.strength_band] < _BAND_ORDER[lower.strength_band]
+        ):
+            raise ValueError(
+                f"strength bands are not monotone in score: {lower.dimension_key!r} "
+                f"scores {lower.score!r} with band {lower.strength_band!r}, but "
+                f"{higher.dimension_key!r} scores {higher.score!r} with the weaker "
+                f"band {higher.strength_band!r}"
+            )
+
+
 class ReportPayload(PublicV7Model):
     """The complete V7 report: all nine sections plus provenance."""
 
@@ -828,6 +881,7 @@ class ReportPayload(PublicV7Model):
                 "closing.improvement_dimension_key must match "
                 "what_to_improve.recommendation.dimension_key"
             )
+        _assert_bands_monotone_in_score(self)
         _assert_no_identifiers(self.model_dump(mode="json", by_alias=True))
         return self
 
@@ -843,6 +897,7 @@ __all__ = [
     "DeathProfile",
     "DeathTimingBand",
     "Direction",
+    "default_strength_band",
     "Finding",
     "FightStyleAxis",
     "FindingSectionKey",

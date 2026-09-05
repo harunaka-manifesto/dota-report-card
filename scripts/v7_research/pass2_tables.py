@@ -47,7 +47,11 @@ Verified semantics, and the measurement that established each one
      varies unrelated to the other fields (e.g. length 30 alongside
      standard-field length 23 in one 1,380s match; length 14 alongside
      standard-field length 31 in a 1,907s match), and its raw values are
-     strictly increasing large integers with no per-minute character
+     non-decreasing large integers with no per-minute character. They are
+     non-decreasing rather than strictly increasing in 100% of rows against
+     51.5% (supervisor re-measurement, 13,399 rows): two level-ups can land
+     in the same second, so a strict-monotonicity assumption would be wrong
+     for about half the corpus
      (observed: ``[-89, 49, 107, 168, 244, 336, ..., 1791]`` for a 1,907s
      match) — consistent with "elapsed seconds at which each level was
      reached," one entry per level gained, not one entry per minute. It is
