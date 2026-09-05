@@ -78,36 +78,52 @@ list on noise alone.
 
 ## 3. What this does to the corpus we already have
 
-Reliability per family, computed from the tournament's own published `tau`,
-median `SE`, and dependence inflation. No new data.
+**Corrected 2026-09-05, after running the model end to end.** The first version
+of this table mixed two estimators: it took `tau` from the tournament's
+Paule-Mandel pooling, which subtracts only `SE^2`, and combined it with a
+dependence-inflated `SE^2 * D` in the denominator. That is inconsistent — if
+measurement variance is inflated for the reliability, the same inflated variance
+must be removed when estimating the between-player spread, or the spread is
+credited with noise it does not own. The effect was to **overstate reliability**,
+by up to 27 points on the post-loss families.
 
-| family | naive `r` | **dependence-corrected `r`** |
-|---|---:|---:|
-| duration_tempo | 0.989 | **0.973** |
-| purchase_tempo | 0.982 | **0.923** |
-| position_flexibility | 0.957 | **0.901** |
-| fight_timing_centroid | 0.909 | **0.851** |
-| post_loss_session_continuation | 0.870 | **0.713** |
-| hero_novelty | 0.921 | **0.688** |
-| post_loss_hero_switch | 0.905 | **0.672** |
-| post_loss_requeue_latency | 0.845 | **0.646** |
-| lead_retention | 0.514 | **0.536** |
-| transfer_risk | 0.554 | 0.291 |
-| transfer_activity | 0.510 | 0.281 |
-| lane_recovery_participation | 0.378 | 0.268 |
-| **side_sensitivity (negative control)** | 0.113 | **0.108** |
+The figures below come from running the real pipeline over DISCOVERY: per-player
+estimates from the validated inference layer, `D` measured per family from its
+own variance-ratio curve, and `tau` estimated consistently as
+`max(0, var(delta_hat) - mean(SE^2 * D))`.
 
-**Nine of twelve families clear 0.50.** For a typical player, 65–97% of their
-measured deviation on those dimensions is real.
+| family | players | `tau` (consistent) | **reliability (median)** | share scoring > 0.25 |
+|---|---:|---:|---:|---:|
+| duration_tempo | 538 | 0.1126 | **0.976** | 46.3% |
+| purchase_tempo | 116 | 0.0566 | **0.919** | 75.9% |
+| position_flexibility | 114 | 0.1077 | **0.828** | 78.1% |
+| fight_timing_centroid | 116 | 0.0116 | **0.808** | 75.0% |
+| hero_novelty | 525 | 0.1187 | **0.736** | 74.3% |
+| post_loss_session_continuation | 536 | 0.0679 | **0.537** | 70.5% |
+| lead_retention | 109 | 0.0546 | **0.537** | 71.6% |
+| post_loss_hero_switch | 527 | 0.0704 | **0.463** | 56.2% |
+| post_loss_requeue_latency | 527 | 0.1305 | **0.380** | 60.9% |
+| transfer_risk | 501 | 0.0000 | 0.000 | 0.0% |
+| transfer_activity | 501 | 0.0000 | 0.000 | 0.0% |
+| lane_recovery_participation | 113 | 0.0000 | 0.000 | 0.0% |
+| **side_sensitivity (negative control)** | 536 | **0.0000** | **0.000** | **0.0%** |
 
-The negative control is the proof the metric is not simply generous: a Finding
-built on which side of the map you were assigned — something no player controls
-— scores 0.108. The model says, correctly, that there is almost nothing there.
+**Nine families carry real between-player signal.** Four go to exactly zero,
+and that is the more interesting half of the result: under a consistent
+estimator their entire observed spread is explained by dependence-inflated
+measurement error. There is no between-player signal left to rank. The old model
+graded three of them D by a completely different route — a failed confirmation
+pass — and the two methods agree.
 
-Three families stay weak (`transfer_*`, `lane_recovery_participation`). Under
-the old model they were rejected; under this one they are simply outranked, per
-player, by dimensions that are measured better. No separate rejection rule is
-needed, which is a good sign the metric is doing real work.
+The negative control is the proof the metric is not generous. A Finding built on
+which side of the map a player was assigned — something nobody controls —
+returns `tau` of exactly zero, so reliability is zero, so no player receives a
+score at all. The estimator refuses to manufacture a Finding from noise, and it
+does so without any rule that mentions the control by name.
+
+Between 46% and 78% of measurable players score above 0.25 on the surviving
+families, which is what makes a ranked list possible for ordinary players rather
+than only for outliers.
 
 ## 4. Reach
 
@@ -119,6 +135,10 @@ and the median account has 526 product-context matches.
 So the design target — most sufficiently active players receiving several
 genuine Findings — is met by construction, and the 15.4% figure does not carry
 forward. **That number was a property of the discarded rule, not of the data.**
+
+This is a claim about *coverage*, not about strength. Every measurable player
+gets a ranked list; how much that list is worth depends on their own scores, and
+section 5 is what keeps the presentation honest about it.
 
 This is not a relaxation of a statistical standard. Nothing has been re-tuned,
 no alpha was raised, no threshold moved. The estimands, the standard errors and
