@@ -69,10 +69,16 @@ consistently alphabetical-by-role (index 0 is the "first" or more basic
 variant), and the frequency skew matches expectation — sentries are
 bought in greater number per game than observers under Dota's economy
 (more slots, shorter effective coverage need, frequently rebought after
-being killed). This is a MEDIUM-confidence reading, not a verified
-semantics rule on the order of anything in ``pass2_tables``; it is
-recorded here, in one place, rather than assumed silently at each call
-site.
+being killed).
+
+**Verified 2026-09-05** against the item-purchase stream, which is an
+independent record of the same act. Over 12,164 matches carrying both
+wards and purchases, the count of ``type == 0`` wards is closer to the
+player's observer purchases than to their sentry purchases in 78.0% of
+matches, and ``type == 1`` is closer to sentry purchases in 72.9%. The
+contingency is decisive in the same direction: of matches where the
+player bought more observers than sentries, 2,748 placed more type-0
+wards against 222 that did not. The reading is no longer an inference.
 """
 
 from __future__ import annotations
@@ -657,7 +663,15 @@ FEATURE_REGISTRY: dict[str, FeatureSpec] = {
             "within the next two minutes.",
             "what_is_costing_you",
             is_contrast=False,
-            is_actionable=False,
+            # Actionable, against the first reading. The tower falling is a
+            # team result, but the behaviour being measured is the player's own
+            # decision after a won fight - go to the tower, or go back to the
+            # jungle. "When you win a fight, take the tower" is a thing a
+            # player does in their next game, which is the test the
+            # recommendation model sets. Contrast lane_to_map and
+            # closer_vs_comeback, which are scoreboard readings the player
+            # receives rather than behaviours they emit.
+            is_actionable=True,
         ),
         _spec(
             "spike_usage",
