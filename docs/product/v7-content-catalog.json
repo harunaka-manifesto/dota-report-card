@@ -1,0 +1,869 @@
+{
+  "acquisition": {
+    "first_time_reports_per_day": 333,
+    "full_depth_matches": 500,
+    "measured_requests_per_account": 45,
+    "paid_may_acquire_more_than_free": false,
+    "persistence_requirements": [
+      "Raw provider payloads are stored per match and keyed by match id, so a match is fetched at most once per account regardless of how many reports are generated.",
+      "Derived per-match features are stored alongside the raw payload and keyed by the feature version, so a feature-version bump recomputes from storage rather than refetching from the provider.",
+      "Report generation for an account already in storage makes zero provider calls when no new matches have been played since the last acquisition.",
+      "Account creation and payment reuse the existing analysis: neither triggers a refetch, and neither is a precondition for having one.",
+      "Paid output is generated from the same stored matches as the free report. Depth of acquisition is identical; only the analysis differs."
+    ],
+    "persistence_wiring_implemented": false,
+    "policy_version": "v7-acquisition-policy-1.0.0",
+    "stored_match_ttl_days": null
+  },
+  "archetype": {
+    "axes": {
+      "fight_style": {
+        "copy_constraint": "'ghost' is a low-participation descriptor, not a judgement of effort or skill",
+        "cut": "ghost below the stratum participation tercile; otherwise frontliner at or above the stratum median deaths per fight minute, else opportunist",
+        "levels": [
+          "frontliner",
+          "opportunist",
+          "ghost"
+        ]
+      },
+      "modifier": {
+        "copy_constraint": "the measure carries a small residual downward bias; values near 1.0 are genuinely ambiguous",
+        "cut": "absolute: session dispersion ratio above 1.0 is streaky",
+        "levels": [
+          "metronome",
+          "streaky"
+        ]
+      },
+      "tempo": {
+        "copy_constraint": "relative tendency within the player's dominant mode, never a large behavioural difference",
+        "cut": "population terciles within the dominant mode stratum",
+        "levels": [
+          "early",
+          "mid",
+          "late"
+        ]
+      }
+    },
+    "axis_without_support": {
+      "fight_participation": 4,
+      "impact_centroid": 4,
+      "no_dominant_mode_stratum": 4,
+      "session_dispersion": 14
+    },
+    "grid_labels": [
+      {
+        "fight_style": "frontliner",
+        "label": "The Alarm Clock",
+        "modifier": "metronome",
+        "tempo": "early"
+      },
+      {
+        "fight_style": "opportunist",
+        "label": "The Ambusher",
+        "modifier": "streaky",
+        "tempo": "early"
+      },
+      {
+        "fight_style": "frontliner",
+        "label": "The Brawler",
+        "modifier": "streaky",
+        "tempo": "mid"
+      },
+      {
+        "fight_style": "opportunist",
+        "label": "The Closer's Apprentice",
+        "modifier": "streaky",
+        "tempo": "late"
+      },
+      {
+        "fight_style": "opportunist",
+        "label": "The Early Bird",
+        "modifier": "metronome",
+        "tempo": "early"
+      },
+      {
+        "fight_style": "frontliner",
+        "label": "The Engine Room",
+        "modifier": "metronome",
+        "tempo": "mid"
+      },
+      {
+        "fight_style": "frontliner",
+        "label": "The Last Word",
+        "modifier": "metronome",
+        "tempo": "late"
+      },
+      {
+        "fight_style": "ghost",
+        "label": "The Late Bloomer",
+        "modifier": "streaky",
+        "tempo": "late"
+      },
+      {
+        "fight_style": "opportunist",
+        "label": "The Long Game",
+        "modifier": "metronome",
+        "tempo": "late"
+      },
+      {
+        "fight_style": "frontliner",
+        "label": "The Opening Act",
+        "modifier": "streaky",
+        "tempo": "early"
+      },
+      {
+        "fight_style": "frontliner",
+        "label": "The Overtime",
+        "modifier": "streaky",
+        "tempo": "late"
+      },
+      {
+        "fight_style": "ghost",
+        "label": "The Patient One",
+        "modifier": "metronome",
+        "tempo": "late"
+      },
+      {
+        "fight_style": "opportunist",
+        "label": "The Pickpocket",
+        "modifier": "streaky",
+        "tempo": "mid"
+      },
+      {
+        "fight_style": "ghost",
+        "label": "The Quiet Start",
+        "modifier": "metronome",
+        "tempo": "early"
+      },
+      {
+        "fight_style": "ghost",
+        "label": "The Slow Burn",
+        "modifier": "streaky",
+        "tempo": "early"
+      },
+      {
+        "fight_style": "opportunist",
+        "label": "The Timekeeper",
+        "modifier": "metronome",
+        "tempo": "mid"
+      },
+      {
+        "fight_style": "ghost",
+        "label": "The Understudy",
+        "modifier": "metronome",
+        "tempo": "mid"
+      },
+      {
+        "fight_style": "ghost",
+        "label": "The Wildcard",
+        "modifier": "streaky",
+        "tempo": "mid"
+      }
+    ],
+    "is_analytical": false,
+    "measured_coverage": {
+      "joinable_players": 276,
+      "pass1_discovery_players": 600,
+      "pass2_discovery_players": 276,
+      "players_with_an_archetype": 262
+    },
+    "minimum_matches_in_stratum": 20,
+    "minimum_matches_per_session": 3,
+    "minimum_sessions": 8,
+    "mode_strata": [
+      "STANDARD",
+      "TURBO"
+    ],
+    "model_version": "v7-archetype-axes-1.0.0",
+    "refusal_has_no_default_label": true,
+    "share_safe": true,
+    "special_labels": [
+      {
+        "id": "the_closer",
+        "label": "The Closer",
+        "percentile_cut": 0.98,
+        "provisional": true,
+        "provisional_reason": "corpus-relative pilot value; refreshed from real pilot data, not from a reserved split"
+      },
+      {
+        "id": "the_lighthouse",
+        "label": "The Lighthouse",
+        "percentile_cut": 0.98,
+        "provisional": true,
+        "provisional_reason": "corpus-relative pilot value; refreshed from real pilot data, not from a reserved split"
+      }
+    ]
+  },
+  "decisions_needing_a_reserved_split": [],
+  "findings": {
+    "finding_floor": 3,
+    "model_version": "v7-luna-f-ranking-1.0.0",
+    "report_slots": 5,
+    "score_line": 0.25,
+    "sections": [
+      "what_is_good",
+      "what_is_costing_you",
+      "response_to_a_loss"
+    ],
+    "shipping_dimensions": [
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": true,
+        "dependence_inflation": 1.0,
+        "display_concept": "How much of the map your wards keep lit",
+        "id": "vision_coverage",
+        "is_negative_control": false,
+        "measured_players": 267,
+        "reliability_is_upper_bound": false,
+        "reliability_median": 0.985182,
+        "section": "what_is_good",
+        "source_pass": "pass2",
+        "tau": 0.10934
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 2.564712,
+        "display_concept": "Whether your games run long or short",
+        "id": "duration_tempo",
+        "is_negative_control": false,
+        "measured_players": 538,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.976145,
+        "section": "what_is_good",
+        "source_pass": "pass1",
+        "tau": 0.112601
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": true,
+        "dependence_inflation": 1.743063,
+        "display_concept": "Dying again soon after you died",
+        "id": "death_clustering",
+        "is_negative_control": false,
+        "measured_players": 273,
+        "reliability_is_upper_bound": false,
+        "reliability_median": 0.924596,
+        "section": "what_is_costing_you",
+        "source_pass": "pass2",
+        "tau": 0.046812
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 3.083811,
+        "display_concept": "Farming the jungle versus the lane",
+        "id": "lane_vs_jungle_share",
+        "is_negative_control": false,
+        "measured_players": 266,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.924159,
+        "section": "what_is_good",
+        "source_pass": "pass2",
+        "tau": 0.049444
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 4.654728,
+        "display_concept": "When your build comes online",
+        "id": "purchase_tempo",
+        "is_negative_control": false,
+        "measured_players": 116,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.920634,
+        "section": "what_is_good",
+        "source_pass": "pass1",
+        "tau": 0.056582
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": true,
+        "dependence_inflation": 1.215969,
+        "display_concept": "Dying away from your team",
+        "id": "deaths_alone_share",
+        "is_negative_control": false,
+        "measured_players": 266,
+        "reliability_is_upper_bound": false,
+        "reliability_median": 0.893313,
+        "section": "what_is_costing_you",
+        "source_pass": "pass2",
+        "tau": 0.038958
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 1.530442,
+        "display_concept": "Using your item window",
+        "id": "spike_usage",
+        "is_negative_control": false,
+        "measured_players": 266,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.887328,
+        "section": "what_is_good",
+        "source_pass": "pass2",
+        "tau": 31.06305
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 2.44136,
+        "display_concept": "Switching roles between games",
+        "id": "position_flexibility",
+        "is_negative_control": false,
+        "measured_players": 114,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.82849,
+        "section": "what_is_good",
+        "source_pass": "pass1",
+        "tau": 0.107675
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 1.739145,
+        "display_concept": "When in a game you show up",
+        "id": "fight_timing_centroid",
+        "is_negative_control": false,
+        "measured_players": 116,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.809585,
+        "section": "what_is_good",
+        "source_pass": "pass1",
+        "tau": 0.011638
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 5.252748,
+        "display_concept": "Trying heroes you have not played",
+        "id": "hero_novelty",
+        "is_negative_control": false,
+        "measured_players": 525,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.736202,
+        "section": "what_is_good",
+        "source_pass": "pass1",
+        "tau": 0.118652
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": true,
+        "dependence_inflation": 1.296542,
+        "display_concept": "Closing out leads versus coming back",
+        "id": "closer_vs_comeback",
+        "is_negative_control": false,
+        "measured_players": 264,
+        "reliability_is_upper_bound": false,
+        "reliability_median": 0.650855,
+        "section": "response_to_a_loss",
+        "source_pass": "pass2",
+        "tau": 0.049743
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 2.702313,
+        "display_concept": "Playing on after a loss",
+        "id": "post_loss_session_continuation",
+        "is_negative_control": false,
+        "measured_players": 536,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.53739,
+        "section": "response_to_a_loss",
+        "source_pass": "pass1",
+        "tau": 0.067895
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": true,
+        "dependence_inflation": 1.0,
+        "display_concept": "Holding a lead",
+        "id": "lead_retention",
+        "is_negative_control": false,
+        "measured_players": 109,
+        "reliability_is_upper_bound": false,
+        "reliability_median": 0.480043,
+        "section": "what_is_costing_you",
+        "source_pass": "pass1",
+        "tau": 0.051016
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 4.63825,
+        "display_concept": "Changing hero after a loss",
+        "id": "post_loss_hero_switch",
+        "is_negative_control": false,
+        "measured_players": 527,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.462643,
+        "section": "response_to_a_loss",
+        "source_pass": "pass1",
+        "tau": 0.070433
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": false,
+        "dependence_inflation": 2.97734,
+        "display_concept": "How fast you requeue after a loss",
+        "id": "post_loss_requeue_latency",
+        "is_negative_control": false,
+        "measured_players": 527,
+        "reliability_is_upper_bound": true,
+        "reliability_median": 0.379914,
+        "section": "response_to_a_loss",
+        "source_pass": "pass1",
+        "tau": 0.130508
+      },
+      {
+        "carries": [
+          "estimate",
+          "interval",
+          "reliability",
+          "score",
+          "direction",
+          "sample_size"
+        ],
+        "dependence_curve_plateaued": true,
+        "dependence_inflation": 1.023575,
+        "display_concept": "Turning won fights into towers",
+        "id": "fight_conversion",
+        "is_negative_control": false,
+        "measured_players": 273,
+        "reliability_is_upper_bound": false,
+        "reliability_median": 0.257408,
+        "section": "what_is_costing_you",
+        "source_pass": "pass2",
+        "tau": 0.008693
+      }
+    ],
+    "strength_bands_exist": false,
+    "withheld_dimensions": [
+      {
+        "display_concept": null,
+        "id": "lane_recovery_participation",
+        "is_negative_control": false,
+        "measured_players": 113,
+        "section": "what_is_costing_you",
+        "source_pass": "pass1",
+        "withheld_reason": "tau collapsed to zero: no measurable between-player signal"
+      },
+      {
+        "display_concept": null,
+        "id": "lane_to_map",
+        "is_negative_control": false,
+        "measured_players": 258,
+        "section": "what_is_costing_you",
+        "source_pass": "pass2",
+        "withheld_reason": "tau collapsed to zero: no measurable between-player signal"
+      },
+      {
+        "display_concept": null,
+        "id": "side_sensitivity",
+        "is_negative_control": true,
+        "measured_players": 536,
+        "section": "what_is_good",
+        "source_pass": "pass1",
+        "withheld_reason": "negative control; must never be surfaced"
+      },
+      {
+        "display_concept": null,
+        "id": "transfer_activity",
+        "is_negative_control": false,
+        "measured_players": 501,
+        "section": "what_is_good",
+        "source_pass": "pass1",
+        "withheld_reason": "tau collapsed to zero: no measurable between-player signal"
+      },
+      {
+        "display_concept": null,
+        "id": "transfer_risk",
+        "is_negative_control": false,
+        "measured_players": 501,
+        "section": "what_is_costing_you",
+        "source_pass": "pass1",
+        "withheld_reason": "tau collapsed to zero: no measurable between-player signal"
+      }
+    ]
+  },
+  "owner_decisions": {
+    "D1": {
+      "choice": "c",
+      "provisional": false,
+      "summary": "Always show at least three Findings; apply the score gate to slots four and five only."
+    },
+    "D2": {
+      "choice": "c",
+      "provisional": false,
+      "summary": "Drop the slight / moderate / pronounced bands entirely. A Finding carries direction, score and a shrunk estimate with an interval, and no adjective. CALIBRATION_RESERVED is not spent on this."
+    },
+    "D3": {
+      "choice": "a",
+      "provisional": false,
+      "summary": "Keep the modal-sign cut at 0.95."
+    },
+    "D4": {
+      "choice": "a",
+      "provisional": false,
+      "summary": "Ship all sixteen dimensions carrying between-player signal. Reliability shrinkage is the only gate; no second hard reliability cutoff."
+    },
+    "D5": {
+      "choice": "a",
+      "provisional": false,
+      "summary": "Keep early / mid / late."
+    },
+    "D6": {
+      "choice": "a",
+      "provisional": true,
+      "summary": "Ship The Lighthouse and The Closer. Both stay positive and shareable."
+    },
+    "D7": {
+      "choice": "a",
+      "provisional": false,
+      "summary": "Keep fifteen per arm. Settled by the DISCOVERY sensitivity sweep; CALIBRATION_RESERVED is not spent on this."
+    },
+    "D8": {
+      "choice": "a",
+      "provisional": false,
+      "summary": "Spend CALIBRATION_RESERVED on calibration. SEALED_VALIDATION stays untouched and is opened only on the owner's express approval."
+    },
+    "D9": {
+      "choice": "a",
+      "provisional": false,
+      "summary": "Full-depth acquisition for every pilot user. Persist the acquired and derived data so repeat report generation, account creation and paid output all reuse it rather than refetching. Paid quality must not depend on having analysed more matches during the pilot."
+    }
+  },
+  "owner_decisions_version": "v7-owner-decisions-2026-09-06b",
+  "production_certified": false,
+  "recommendation": {
+    "carries": [
+      "win_value",
+      "loss_value",
+      "gap",
+      "direction",
+      "reliability",
+      "actionability_weight",
+      "priority_score",
+      "sample_wins",
+      "sample_losses",
+      "verification"
+    ],
+    "claims_causation": false,
+    "dimensions": [
+      {
+        "actionability_weight": 0.95,
+        "canonical_recommendation_text": "For five games, care about nothing but last hits until minute 10.",
+        "canonical_verification_text": "last_hits_per_minute cumulated to minute 10",
+        "chosen_for_players": 135,
+        "dimension_scale": 13.256635,
+        "display_concept": "Last hits by minute 10",
+        "eligible": true,
+        "higher_is_worse": false,
+        "id": "last_hits_at_ten",
+        "modal_sign_share": 0.946565,
+        "outcome_contaminated": false,
+        "upstream_of_result": true
+      },
+      {
+        "actionability_weight": 0.9,
+        "canonical_recommendation_text": "Do not cross the river without a teammate on screen.",
+        "canonical_verification_text": "share of your death minutes with no team kill activity",
+        "chosen_for_players": 17,
+        "dimension_scale": 0.239382,
+        "display_concept": "Dying away from your team",
+        "eligible": true,
+        "higher_is_worse": true,
+        "id": "deaths_alone_share",
+        "modal_sign_share": 0.633962,
+        "outcome_contaminated": false,
+        "upstream_of_result": true
+      },
+      {
+        "actionability_weight": 0.85,
+        "canonical_recommendation_text": "Buy your first big item before your damage item.",
+        "canonical_verification_text": "time of your first real-item purchase",
+        "chosen_for_players": 17,
+        "dimension_scale": 158.223291,
+        "display_concept": "When your first real item lands",
+        "eligible": true,
+        "higher_is_worse": true,
+        "id": "first_real_item_time",
+        "modal_sign_share": 0.656604,
+        "outcome_contaminated": false,
+        "upstream_of_result": true
+      },
+      {
+        "actionability_weight": 0.8,
+        "canonical_recommendation_text": "Place your first ward before the horn.",
+        "canonical_verification_text": "time of your first observer ward placement",
+        "chosen_for_players": 29,
+        "dimension_scale": 363.228889,
+        "display_concept": "When your first ward goes down",
+        "eligible": true,
+        "higher_is_worse": true,
+        "id": "first_ward_time",
+        "modal_sign_share": 0.58,
+        "outcome_contaminated": false,
+        "upstream_of_result": true
+      },
+      {
+        "actionability_weight": 0.75,
+        "canonical_recommendation_text": "Take the lane creeps when they are there.",
+        "canonical_verification_text": "share of your creep gold taken from neutrals",
+        "chosen_for_players": 43,
+        "dimension_scale": 0.134901,
+        "display_concept": "Farming the jungle versus the lane",
+        "eligible": true,
+        "higher_is_worse": true,
+        "id": "lane_vs_jungle_share",
+        "modal_sign_share": 0.686792,
+        "outcome_contaminated": false,
+        "upstream_of_result": true
+      },
+      {
+        "actionability_weight": 0.6,
+        "canonical_recommendation_text": "Replace your ward the moment the old one expires.",
+        "canonical_verification_text": "share of minutes with one of your observer wards alive",
+        "chosen_for_players": 10,
+        "dimension_scale": 0.232559,
+        "display_concept": "How much of the map your wards keep lit",
+        "eligible": true,
+        "higher_is_worse": false,
+        "id": "vision_coverage",
+        "modal_sign_share": 0.532075,
+        "outcome_contaminated": false,
+        "upstream_of_result": true
+      },
+      {
+        "actionability_weight": 0.45,
+        "canonical_recommendation_text": "When your item finishes, go and use it.",
+        "canonical_verification_text": "seconds from your first real item to your next kill or assist",
+        "chosen_for_players": 14,
+        "dimension_scale": 168.209057,
+        "display_concept": "Using your item window",
+        "eligible": true,
+        "higher_is_worse": true,
+        "id": "spike_usage",
+        "modal_sign_share": 0.841509,
+        "outcome_contaminated": false,
+        "upstream_of_result": true
+      },
+      {
+        "actionability_weight": 0.7,
+        "canonical_recommendation_text": "After you die, take the long way back.",
+        "canonical_verification_text": "share of your death-to-death gaps at or under 90 seconds",
+        "chosen_for_players": 0,
+        "dimension_scale": 0.19441,
+        "display_concept": "Dying again soon after you died",
+        "eligible": false,
+        "higher_is_worse": true,
+        "id": "death_clustering",
+        "modal_sign_share": 0.988593,
+        "outcome_contaminated": true,
+        "upstream_of_result": true
+      },
+      {
+        "actionability_weight": 0.5,
+        "canonical_recommendation_text": "When you win a fight, go to the tower.",
+        "canonical_verification_text": "rate a won fight minute is followed by an enemy tower falling",
+        "chosen_for_players": 0,
+        "dimension_scale": 0.325312,
+        "display_concept": "Turning won fights into towers",
+        "eligible": false,
+        "higher_is_worse": false,
+        "id": "fight_conversion",
+        "modal_sign_share": 1.0,
+        "outcome_contaminated": true,
+        "upstream_of_result": true
+      }
+    ],
+    "exactly_one_ships": true,
+    "excluded_downstream_of_result": {
+      "closer_vs_comeback": "win rate given a lead is the result itself; recommending it is circular",
+      "lane_to_map": "net worth at minute 20 is a scoreboard reading, not a behaviour",
+      "lead_retention": "whether a lead survives is a team outcome the player receives"
+    },
+    "excluded_outcome_contaminated": {
+      "death_clustering": "gap runs the same way for 260 of 263 players (modal-sign share 0.9886)",
+      "fight_conversion": "gap runs the same way for all 262 players (modal-sign share 1.0000)"
+    },
+    "minimum_matches_per_arm": 15,
+    "modal_sign_share_limit": 0.95,
+    "model_version": "v7-improvement-recommendation-1.0.0",
+    "runners_up_retained": 2,
+    "share_safe": false
+  },
+  "refusal_states": [
+    {
+      "capability": "dominant_mode",
+      "cascades_to": [
+        "archetype"
+      ],
+      "condition": "neither mode stratum reaches 20 matches",
+      "fallback_permitted": false,
+      "reason": "no_dominant_mode_stratum"
+    },
+    {
+      "capability": "archetype",
+      "cascades_to": [],
+      "condition": "fewer than 20 matches in the dominant stratum",
+      "fallback_permitted": false,
+      "reason": "insufficient_event_support"
+    },
+    {
+      "capability": "archetype",
+      "cascades_to": [],
+      "condition": "fewer than 8 sessions of 3+ matches",
+      "fallback_permitted": false,
+      "reason": "insufficient_sessions"
+    },
+    {
+      "capability": "recommendation",
+      "cascades_to": [],
+      "condition": "no eligible dimension has 15 wins and 15 losses",
+      "fallback_permitted": false,
+      "reason": "insufficient_wins_or_losses_per_arm"
+    },
+    {
+      "capability": "finding_slate",
+      "cascades_to": [],
+      "condition": "fewer than 3 dimensions qualify",
+      "fallback_permitted": false,
+      "reason": "fewer_than_floor_dimensions"
+    },
+    {
+      "capability": "finding_slate",
+      "cascades_to": [],
+      "condition": "no dimension has enough support",
+      "fallback_permitted": false,
+      "reason": "no_valid_opportunities"
+    },
+    {
+      "capability": "pass2_dependent_capabilities",
+      "cascades_to": [
+        "archetype",
+        "recommendation"
+      ],
+      "condition": "the account is anonymous or private",
+      "fallback_permitted": false,
+      "reason": "skipped_anonymous"
+    },
+    {
+      "capability": "rank_display",
+      "cascades_to": [],
+      "condition": "rank display disabled or unavailable",
+      "fallback_permitted": false,
+      "reason": "not_collected"
+    }
+  ],
+  "report_payload_producer_exists": false,
+  "schema_version": "v7-content-catalog-1.0.0",
+  "sealed_validation_read": false,
+  "validation_status": "development"
+}
