@@ -23,7 +23,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-DECISIONS_VERSION = "v7-owner-decisions-2026-09-06"
+DECISIONS_VERSION = "v7-owner-decisions-2026-09-06b"
 
 DECIDED_ON = "2026-09-06"
 
@@ -59,11 +59,21 @@ DECISIONS: dict[str, Decision] = {
         Decision(
             "D2",
             "What do the strength bands mean?",
-            "b",
-            "Absolute cut points on |z| * reliability, not population terciles. Final "
-            "cut points fitted against CALIBRATION_RESERVED.",
-            provisional=True,
-            needs_calibration_reserved=True,
+            "c",
+            "Drop the slight / moderate / pronounced bands entirely. A Finding "
+            "carries direction, score and a shrunk estimate with an interval, and "
+            "no adjective. CALIBRATION_RESERVED is not spent on this.",
+            carries_forward=(
+                "Revised from an earlier choice of absolute cut points, on "
+                "measurement. Over 4,983 player-Findings the best cut points that "
+                "keep all three bands populated leave 65.2% with a 95% interval "
+                "straddling a band boundary: a typical interval on |z| * reliability "
+                "is about 0.6 wide while three populated bands need cuts about 0.5 "
+                "apart. The interval is wider than the band, and because it is "
+                "dominated by within-player measurement error, more accounts cannot "
+                "narrow it. See "
+                "docs/evidence/v7-cut-point-calibration-dry-run-2026-09-06.md.",
+            ),
         ),
         Decision(
             "D3",
@@ -102,19 +112,25 @@ DECISIONS: dict[str, Decision] = {
             "a",
             "Ship The Lighthouse and The Closer. Both stay positive and shareable.",
             provisional=True,
-            needs_calibration_reserved=True,
             carries_forward=(
-                "The 98th-percentile cut is corpus-relative and is refreshed during calibration.",
+                "The 98th-percentile cut is corpus-relative. With both reserved "
+                "splits staying untouched it is fixed for the pilot and refreshed "
+                "from real pilot data, not from a reserved split.",
             ),
         ),
         Decision(
             "D7",
             "Minimum matches per arm for a recommendation",
             "a",
-            "Keep fifteen per arm for now; use CALIBRATION_RESERVED to decide whether "
-            "it should move.",
-            provisional=True,
-            needs_calibration_reserved=True,
+            "Keep fifteen per arm. Settled by the DISCOVERY sensitivity sweep; "
+            "CALIBRATION_RESERVED is not spent on this.",
+            carries_forward=(
+                "Sweeping the minimum from 10 to 30 moves median gap reliability "
+                "from 0.981966 to 0.982515 while coverage falls from 265 players to "
+                "258. The threshold does not bind anywhere in the range worth "
+                "considering, so 15 stands because the curve is flat, not because "
+                "15 was fitted.",
+            ),
         ),
         Decision(
             "D8",
@@ -138,13 +154,26 @@ DECISIONS: dict[str, Decision] = {
     )
 }
 
-#: Decisions whose values are not final until calibration lands.
+#: Decisions whose values are not final. After the 2026-09-06 update only the
+#: archetype special cut remains open, and it is refreshed from pilot data
+#: rather than from a reserved split.
 PROVISIONAL = tuple(key for key, d in DECISIONS.items() if d.provisional)
+
+#: Decisions still requiring a reserved split. Empty, and that is the point:
+#: the owner closed D2 and D7 on DISCOVERY evidence, so no remaining decision
+#: has a claim on CALIBRATION_RESERVED.
+NEEDS_RESERVED_SPLIT = tuple(
+    key for key, d in DECISIONS.items() if d.needs_calibration_reserved
+)
 
 #: Sensitivities and caveats the owner asked to be tracked rather than absorbed.
 CARRIED_FORWARD: dict[str, tuple[str, ...]] = {
     key: d.carries_forward for key, d in DECISIONS.items() if d.carries_forward
 }
+
+#: Neither reserved split is spent. The owner closed D2 and D7 without one and
+#: instructed that both stay untouched.
+CALIBRATION_RESERVED_SPENT = False
 
 #: Not a decision the owner delegated. Recorded as a constant so that any code
 #: path that would read the sealed split has something unambiguous to fail
@@ -153,10 +182,12 @@ SEALED_VALIDATION_APPROVED = False
 
 
 __all__ = [
+    "CALIBRATION_RESERVED_SPENT",
     "CARRIED_FORWARD",
     "DECIDED_ON",
     "DECISIONS",
     "DECISIONS_VERSION",
+    "NEEDS_RESERVED_SPLIT",
     "PROVISIONAL",
     "SEALED_VALIDATION_APPROVED",
     "Decision",

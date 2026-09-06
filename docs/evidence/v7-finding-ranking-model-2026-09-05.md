@@ -149,9 +149,16 @@ red-team already validated. What changed is the question being asked of them.
 
 Dropping the significance gate moves the burden onto presentation.
 
-1. **Report a strength band, not a verdict.** `score` is banded — *pronounced*,
-   *moderate*, *slight* — and the copy must match the band. A slight Finding may
-   not be phrased as a defining trait.
+1. ~~**Report a strength band, not a verdict.**~~ **Withdrawn 2026-09-06 (owner
+   decision D2).** The bands were measured and could not be assigned honestly:
+   over 4,983 player-Findings, the best cut points that keep all three bands
+   populated leave 65.2% with a 95% interval straddling a boundary, because a
+   typical interval on `|z| * r` is about 0.6 wide while three populated bands
+   need cuts about 0.5 apart. The interval is dominated by within-player
+   measurement error, so no cohort size narrows it. A Finding now carries its
+   direction, its score and its shrunk estimate with an interval, and no
+   adjective — which is rule 2 doing the work rule 1 was going to share.
+   See `docs/evidence/v7-cut-point-calibration-dry-run-2026-09-06.md`.
 2. **Report the interval, not just the point.** The shrunk estimate carries an
    interval derived from `r`. A Finding whose interval spans zero is still
    shown, but it is described as a tendency, never as a fact.
@@ -192,9 +199,12 @@ the result. That model is specified separately.
 ```text
 DECIDES: how a player's own patterns are ranked, and why reach is no longer
          the binding constraint
-DOES NOT DECIDE: which dimensions ship, the strength-band cut points, the copy,
-         or the final report composition
+DOES NOT DECIDE: which dimensions ship, the copy, or the final report
+         composition
 ```
 
-Band cut points are calibration and belong to a later phase, against the
-reserved split, not to this design.
+**Amended 2026-09-06.** This section previously deferred the strength-band cut
+points to calibration against the reserved split. There are no cut points to
+defer: the bands were withdrawn under owner decision D2, and no reserved split
+was spent to establish that — the dry run on DISCOVERY was sufficient and is
+recorded in `docs/evidence/v7-cut-point-calibration-dry-run-2026-09-06.md`.

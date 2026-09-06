@@ -15,7 +15,7 @@ Sources of truth for the shapes defined here:
 - ``docs/evidence/v7-report-narrative-and-data-requirements-2026-09-04.md``
   (section-by-section spec, section numbers referenced in docstrings below),
 - ``docs/evidence/v7-finding-ranking-model-2026-09-05.md`` (what a Finding
-  carries: z, reliability, score, direction, strength band, interval),
+  carries: z, reliability, score, direction, interval),
 - ``docs/evidence/v7-improvement-recommendation-model-2026-09-05.md`` (what
   the single section-5 recommendation carries).
 
@@ -63,14 +63,18 @@ Direction = Literal["positive", "negative", "zero"]
 section 2.1, `sign(z_pf)`). ``"zero"`` covers the exact-tie edge case; real
 Findings and recommendations are expected to land on positive or negative."""
 
-StrengthBand = Literal["pronounced", "moderate", "slight"]
-"""Finding strength band (`v7-finding-ranking-model` section 5.1). Final cut
-points are calibration work reserved for a later phase against the reserved
-split (see that document's section 8, "DOES NOT DECIDE: ... the
-strength-band cut points"). This contract only needs *some* fixed, internally
-consistent cut points so `validate()` has something to check; see
-``_expected_strength_band`` below for the placeholder values and treat them
-as provisional pending calibration."""
+# There is no ``StrengthBand``. Owner decision D2 (2026-09-06) dropped the
+# slight / moderate / pronounced bands entirely, on measurement rather than
+# taste: over 4,983 player-Findings, the best cut points that keep all three
+# bands populated leave 65.2% of Findings with a 95% interval straddling a band
+# boundary. A typical interval on ``|z| * reliability`` is about 0.6 wide while
+# three populated bands need cuts about 0.5 apart, so the interval is wider than
+# the band. Collecting more players cannot fix that -- the interval is dominated
+# by within-player measurement error -- so the adjective was dropped rather than
+# calibrated. A Finding carries its ``direction``, its ``score`` and its
+# ``estimate`` (a shrunk point estimate with an interval), which say everything
+# a band would have said and say it at the precision the data supports.
+# See docs/evidence/v7-cut-point-calibration-dry-run-2026-09-06.md.
 
 ReportSectionKey = Literal[
     "history",
@@ -97,27 +101,6 @@ FightStyleAxis = Literal["frontliner", "opportunist", "ghost"]
 ArchetypeModifier = Literal["metronome", "streaky"]
 
 _TOLERANCE = 1e-6
-
-
-#: Provisional cut points, used only as a *construction default*. They are
-#: deliberately NOT a validation rule: calibration will choose the real cut
-#: points against the reserved split, and a contract that hard-codes today's
-#: guess would reject every payload built with tomorrow's bands.
-_PROVISIONAL_BAND_CUTS = ((1.5, "pronounced"), (0.5, "moderate"))
-
-
-def default_strength_band(score: float) -> StrengthBand:
-    """Suggest a band for a score, pending calibration.
-
-    A convenience for building Findings before cut points are chosen. Nothing
-    validates against it; see ``ReportPayload.validate_report`` for the
-    invariant that *is* enforced - bands must be monotone in score.
-    """
-
-    for threshold, band in _PROVISIONAL_BAND_CUTS:
-        if score >= threshold:
-            return band  # type: ignore[return-value]
-    return "slight"
 
 
 # ---------------------------------------------------------------------------
@@ -226,8 +209,6 @@ class Finding(PublicV7Model):
     - ``reliability``: ``r_pf``, the dependence-corrected shrinkage weight in
       ``[0, 1]`` (section 2.2).
     - ``score``: ``score_pf = |z_pf| * r_pf`` (section 2.3).
-    - ``strength_band``: the presentation band derived from ``score``
-      (section 5.1).
     - ``estimate``: the shrunk point estimate with interval (section 5.2).
     - ``sample_size``: how many of the player's matches support this
       estimand.
@@ -242,7 +223,6 @@ class Finding(PublicV7Model):
     z: float
     reliability: float = Field(ge=0, le=1)
     score: float = Field(ge=0)
-    strength_band: StrengthBand
     estimate: PointEstimateWithInterval
     sample_size: int = Field(ge=1)
     player_facing_question: str = Field(min_length=1)
@@ -254,8 +234,8 @@ class Finding(PublicV7Model):
         This is the invariant worth enforcing. It is arithmetic, it holds
         whatever cut points calibration eventually picks, and it catches the
         error that actually matters: a Finding ranked by something other than
-        the model. The earlier band-versus-score check was dropped because it
-        pinned the contract to provisional cut points.
+        the model. It is now the only cross-field rule a Finding carries: the
+        band check went with the bands (owner decision D2).
         """
 
         expected = abs(self.z) * self.reliability
@@ -824,39 +804,6 @@ class ReportProvenance(PublicV7Model):
     generated_at: str = Field(min_length=1, description="ISO 8601 timestamp.")
 
 
-_BAND_ORDER: dict[str, int] = {"slight": 0, "moderate": 1, "pronounced": 2}
-
-
-def _assert_bands_monotone_in_score(payload: ReportPayload) -> None:
-    """A higher-scoring Finding may never carry a weaker band.
-
-    Calibration-independent: it constrains the *relationship* between bands and
-    scores without asserting where the cut points fall, so it survives any
-    choice calibration makes while still catching a mislabelled Finding.
-    """
-
-    findings = [
-        finding
-        for section in (
-            payload.what_is_good,
-            payload.what_is_costing_you,
-            payload.response_to_a_loss,
-        )
-        for finding in section.findings
-    ]
-    ordered = sorted(findings, key=lambda finding: finding.score)
-    for lower, higher in zip(ordered, ordered[1:], strict=False):
-        if higher.score - lower.score > _TOLERANCE and (
-            _BAND_ORDER[higher.strength_band] < _BAND_ORDER[lower.strength_band]
-        ):
-            raise ValueError(
-                f"strength bands are not monotone in score: {lower.dimension_key!r} "
-                f"scores {lower.score!r} with band {lower.strength_band!r}, but "
-                f"{higher.dimension_key!r} scores {higher.score!r} with the weaker "
-                f"band {higher.strength_band!r}"
-            )
-
-
 class ReportPayload(PublicV7Model):
     """The complete V7 report: all nine sections plus provenance."""
 
@@ -881,7 +828,6 @@ class ReportPayload(PublicV7Model):
                 "closing.improvement_dimension_key must match "
                 "what_to_improve.recommendation.dimension_key"
             )
-        _assert_bands_monotone_in_score(self)
         _assert_no_identifiers(self.model_dump(mode="json", by_alias=True))
         return self
 
@@ -897,7 +843,6 @@ __all__ = [
     "DeathProfile",
     "DeathTimingBand",
     "Direction",
-    "default_strength_band",
     "Finding",
     "FightStyleAxis",
     "FindingSectionKey",
@@ -920,7 +865,6 @@ __all__ = [
     "ResponseToALossSection",
     "ShareCardContrastStat",
     "ShareCardSection",
-    "StrengthBand",
     "SupportHeroGoodContrast",
     "TeamInWinsProjection",
     "TellingSignMinute",

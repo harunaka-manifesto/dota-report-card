@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import pytest
 from app.player_analysis_v7 import acquisition_policy as acq
+from app.player_analysis_v7 import report_contract
 
 from scripts.v7_research import archetype, ranking, recommendation
 from scripts.v7_research.corpus import (
@@ -23,8 +24,10 @@ from scripts.v7_research.corpus import (
     iter_players,
 )
 from scripts.v7_research.owner_decisions import (
+    CALIBRATION_RESERVED_SPENT,
     CARRIED_FORWARD,
     DECISIONS,
+    NEEDS_RESERVED_SPLIT,
     PROVISIONAL,
     SEALED_VALIDATION_APPROVED,
 )
@@ -41,10 +44,46 @@ def test_every_decision_names_a_choice_and_a_summary() -> None:
         assert decision.question.strip()
 
 
-def test_the_provisional_decisions_are_the_ones_awaiting_calibration() -> None:
-    assert set(PROVISIONAL) == {"D2", "D6", "D7"}
-    for key in PROVISIONAL:
-        assert DECISIONS[key].needs_calibration_reserved
+def test_nothing_still_needs_a_reserved_split() -> None:
+    """The owner closed D2 and D7 on DISCOVERY evidence. If a future decision
+    reintroduces a claim on CALIBRATION_RESERVED, that is a conversation to
+    have deliberately, not a flag someone flips."""
+
+    assert NEEDS_RESERVED_SPLIT == ()
+    assert CALIBRATION_RESERVED_SPENT is False
+
+
+def test_only_the_archetype_special_cut_is_still_provisional() -> None:
+    assert set(PROVISIONAL) == {"D6"}
+    assert not DECISIONS["D6"].needs_calibration_reserved
+
+
+def test_d2_drops_the_strength_bands() -> None:
+    assert DECISIONS["D2"].choice == "c"
+    assert not hasattr(report_contract, "StrengthBand")
+    assert not hasattr(report_contract, "default_strength_band")
+    assert "strength_band" not in report_contract.Finding.model_fields
+
+
+def test_d2_keeps_what_replaces_the_band() -> None:
+    """Dropping the adjective is only honest if the precise thing survives."""
+
+    fields = report_contract.Finding.model_fields
+    assert "direction" in fields
+    assert "score" in fields
+    assert "estimate" in fields
+
+
+def test_d2_carries_why_the_bands_were_dropped() -> None:
+    carried = " ".join(CARRIED_FORWARD["D2"])
+    assert "65.2%" in carried
+    assert "within-player" in carried
+
+
+def test_d7_is_settled_by_the_discovery_sweep() -> None:
+    carried = " ".join(CARRIED_FORWARD["D7"])
+    assert "0.981966" in carried
+    assert "0.982515" in carried
 
 
 # --------------------------------------------------------------------------
@@ -181,9 +220,10 @@ def test_d6_ships_both_specials() -> None:
     assert set(archetype.SPECIAL_LABELS.values()) == {"The Lighthouse", "The Closer"}
 
 
-def test_d6_special_cut_is_flagged_for_calibration() -> None:
-    assert DECISIONS["D6"].needs_calibration_reserved
-    assert "refreshed during" in " ".join(CARRIED_FORWARD["D6"])
+def test_d6_special_cut_is_refreshed_from_pilot_data_not_a_reserved_split() -> None:
+    assert DECISIONS["D6"].provisional
+    assert not DECISIONS["D6"].needs_calibration_reserved
+    assert "pilot data" in " ".join(CARRIED_FORWARD["D6"])
 
 
 # --------------------------------------------------------------------------
@@ -191,10 +231,11 @@ def test_d6_special_cut_is_flagged_for_calibration() -> None:
 # --------------------------------------------------------------------------
 
 
-def test_d7_minimum_per_arm_is_fifteen_and_marked_provisional() -> None:
+def test_d7_minimum_per_arm_is_fifteen_and_final() -> None:
     assert DECISIONS["D7"].choice == "a"
     assert recommendation.MIN_PER_ARM == 15
-    assert DECISIONS["D7"].provisional
+    assert not DECISIONS["D7"].provisional
+    assert not DECISIONS["D7"].needs_calibration_reserved
 
 
 # --------------------------------------------------------------------------

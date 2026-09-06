@@ -10,16 +10,22 @@ CALIBRATION_RESERVED TOUCHED: NO
 SEALED_VALIDATION TOUCHED: NO
 ```
 
-This closes the research phase. Nothing below spends a reserved split; the
-decisions that require one are collected in
-`docs/evidence/v7-owner-selection-packet-2026-09-06.md`.
+This closes the research phase. Nothing here spends a reserved split, and after
+the owner's decisions of 2026-09-06 nothing remaining requires one — see
+`docs/evidence/v7-owner-decisions-2026-09-06.md` for the outcomes and
+`docs/evidence/v7-cut-point-calibration-dry-run-2026-09-06.md` for why D2 and
+D7 closed without spending `CALIBRATION_RESERVED`.
+
+Re-verified after the owner's decisions landed: the archetype and
+recommendation artifacts still reproduce byte-identically, and the Finding
+pipeline was regenerated under the D1 gate.
 
 ## 1. Gates
 
 | gate | result |
 |---|---|
-| `pytest tests/unit` | 1,143 passed |
-| `mypy` | no issues in 220 source files |
+| `pytest tests/unit` | 1,176 passed |
+| `mypy` | no issues in 221 source files |
 | `ruff check` | clean |
 | `check_docs` | ok |
 
@@ -83,6 +89,8 @@ Carried forward, not resolved:
   reassuring, not designed.
 - **Archetype and Pass-2 Findings need parsed matches**, so research coverage is
   the 276-player Pass-2 subset.
-- **Every cut point in the product is provisional**: the 0.25 score line, the
-  strength bands, the 0.95 modal-sign screen, the 98th-percentile archetype
-  specials, and the 15-match-per-arm minimum. These are the packet's subject.
+- **Most cut points are now settled.** The 0.95 modal-sign screen (D3) and the
+  15-match-per-arm minimum (D7) are final; the strength bands (D2) were dropped
+  rather than calibrated. The 0.25 score line stands as the D1 gate. The
+  98th-percentile archetype special cut is the one provisional value left, and
+  it is refreshed from pilot data rather than from a reserved split.

@@ -82,7 +82,6 @@ def _finding(section: str, dimension_key: str = "post_loss_hero_switch") -> Find
         z=1.8,
         reliability=0.9,
         score=1.62,
-        strength_band="pronounced",
         estimate=PointEstimateWithInterval(point=0.4, interval_low=0.2, interval_high=0.6),
         sample_size=120,
         player_facing_question="How do you respond after a loss?",
@@ -258,8 +257,7 @@ def test_finding_rejects_a_score_that_is_not_the_shrunk_position() -> None:
             direction="positive",
             z=1.8,
             reliability=0.9,
-            score=0.5,  # should be 1.8 * 0.9 = 1.62
-            strength_band="moderate",
+            score=0.5,  # should be 1.8 * 0.9 = 1.62,
             estimate=PointEstimateWithInterval(point=0.4, interval_low=0.2, interval_high=0.6),
             sample_size=120,
             player_facing_question="q",
@@ -276,35 +274,11 @@ def test_a_negative_z_still_produces_a_positive_score() -> None:
         z=-1.8,
         reliability=0.9,
         score=1.62,
-        strength_band="pronounced",
         estimate=PointEstimateWithInterval(point=-0.4, interval_low=-0.6, interval_high=-0.2),
         sample_size=120,
         player_facing_question="q",
     )
     assert finding.score > 0
-
-
-def test_any_strength_band_is_accepted_for_a_given_score() -> None:
-    """The contract must not pin itself to provisional cut points.
-
-    Calibration chooses the real ones against the reserved split. A contract
-    that hard-coded today's guess would reject every payload built with
-    tomorrow's bands.
-    """
-
-    for band in ("slight", "moderate", "pronounced"):
-        Finding(
-            dimension_key="duration_tempo",
-            section="what_is_good",
-            direction="positive",
-            z=1.8,
-            reliability=0.9,
-            score=1.62,
-            strength_band=band,  # type: ignore[arg-type]
-            estimate=PointEstimateWithInterval(point=0.4, interval_low=0.2, interval_high=0.6),
-            sample_size=120,
-            player_facing_question="q",
-        )
 
 
 def test_finding_rejects_reliability_out_of_range() -> None:
@@ -316,7 +290,6 @@ def test_finding_rejects_reliability_out_of_range() -> None:
             z=1.8,
             reliability=1.4,
             score=1.62,
-            strength_band="pronounced",
             estimate=PointEstimateWithInterval(point=0.4, interval_low=0.2, interval_high=0.6),
             sample_size=120,
             player_facing_question="q",
@@ -497,59 +470,3 @@ def test_payload_round_trips_through_deepcopy() -> None:
     kwargs = deepcopy(_valid_payload_kwargs())
     ReportPayload(**kwargs)
     assert payload.provenance.corpus_digest == "a" * 64
-
-
-def test_payload_rejects_bands_that_are_not_monotone_in_score() -> None:
-    """A higher-scoring Finding may never carry a weaker band.
-
-    This is the calibration-independent replacement for the old per-Finding
-    band check: it constrains the relationship between bands and scores without
-    asserting where the cut points fall.
-    """
-
-    kwargs = _valid_payload_kwargs()
-    strong = _finding("what_is_good", dimension_key="duration_tempo").model_copy(
-        update={"z": 2.0, "reliability": 0.9, "score": 1.8, "strength_band": "slight"}
-    )
-    weak = _finding("what_is_good", dimension_key="hero_novelty").model_copy(
-        update={"z": 0.5, "reliability": 0.8, "score": 0.4, "strength_band": "pronounced"}
-    )
-    kwargs["what_is_good"] = kwargs["what_is_good"].model_copy(
-        update={"findings": [strong, weak]}
-    )
-    with pytest.raises(ValidationError, match="monotone"):
-        ReportPayload(**kwargs)
-
-
-def test_payload_accepts_bands_that_are_monotone_in_score() -> None:
-    kwargs = _valid_payload_kwargs()
-    strong = _finding("what_is_good", dimension_key="duration_tempo").model_copy(
-        update={"z": 2.0, "reliability": 0.9, "score": 1.8, "strength_band": "pronounced"}
-    )
-    weak = _finding("what_is_good", dimension_key="hero_novelty").model_copy(
-        update={"z": 0.5, "reliability": 0.8, "score": 0.4, "strength_band": "slight"}
-    )
-    kwargs["what_is_good"] = kwargs["what_is_good"].model_copy(
-        update={"findings": [strong, weak]}
-    )
-    assert ReportPayload(**kwargs) is not None
-
-
-def test_equal_scores_may_carry_different_bands() -> None:
-    """Monotonicity constrains ordering, not ties.
-
-    Two Findings with the same score sitting either side of a cut point is a
-    presentation choice, not a contract violation.
-    """
-
-    kwargs = _valid_payload_kwargs()
-    first = _finding("what_is_good", dimension_key="duration_tempo").model_copy(
-        update={"z": 1.0, "reliability": 0.5, "score": 0.5, "strength_band": "moderate"}
-    )
-    second = _finding("what_is_good", dimension_key="hero_novelty").model_copy(
-        update={"z": 1.0, "reliability": 0.5, "score": 0.5, "strength_band": "slight"}
-    )
-    kwargs["what_is_good"] = kwargs["what_is_good"].model_copy(
-        update={"findings": [first, second]}
-    )
-    assert ReportPayload(**kwargs) is not None
