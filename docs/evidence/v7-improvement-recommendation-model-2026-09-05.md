@@ -5,9 +5,17 @@ from the Finding ranking. This specifies it.
 
 ```text
 PHASE: V7_IMPROVEMENT_RECOMMENDATION_MODEL
-STATUS: DESIGN
+STATUS: DESIGN — AMENDED 2026-09-06 after the first run against the corpus
 NEW PROVIDER CALLS: 0
 ```
+
+> **Amended 2026-09-06.** Running this model over DISCOVERY falsified two
+> parts of it. Section 2's standardization by `tau_d` silences section 5
+> completely, and section 3's eligibility rule is not sufficient on its own.
+> Both corrections, with the measurements that forced them, are in
+> `docs/evidence/v7-recommendation-selection-2026-09-06.md`, and section 2 and
+> section 3 below carry the amended text. The rest of the model stands as
+> written.
 
 ## 1. Why it cannot reuse the Finding ranking
 
@@ -47,6 +55,34 @@ and weighted by reliability, on the same dependence-corrected definition:
 priority_pd = |g_pd| * r_pd * A_d
 ```
 
+**Amended: `tau_d` is the wrong denominator, and the corpus says so.**
+`tau_d` is the *between-player spread of gaps*. Measured consistently it is
+exactly zero on every dimension: for last hits at minute 10 the between-player
+variance of the gap is 3.19 against a dependence-inflated measurement variance
+of 5.55. Dividing by it makes every priority zero and ships no recommendation
+at all.
+
+The gaps themselves are not in doubt — the median player takes 2.4 fewer last
+hits by minute 10 in their losses, and 248 of 262 players have a negative gap.
+What is unmeasurable is how much players *differ* in it. Standardizing by
+`tau_d` therefore asks "is your gap unusual", which section 5 constraint 3
+forbids in as many words, and which is the same mistake the Finding model was
+already corrected for: if everybody's last hits drop in their losses, each
+player should still be told that theirs do.
+
+The denominator is instead `s_d`, the dimension's own pooled match-to-match
+residual spread — a unit conversion, identical for every player, which makes a
+2.4-last-hit gap and a 0.06-share gap comparable without ranking one player
+against another:
+
+```text
+g_pd = gap_pd / s_d
+r_pd = s_d^2 / (s_d^2 + SE_pd^2 * D_d)
+```
+
+`r_pd` keeps the same functional form and the same dependence correction, so
+constraint 1 still holds: a noisy gap cannot be promoted to advice.
+
 `A_d` is a fixed **actionability weight** in `[0, 1]`, assigned per dimension by
 design and never fitted to data. It encodes how directly a player can change the
 thing in their next game. Laning last hits at ten minutes is highly actionable;
@@ -64,6 +100,40 @@ they move. Net-worth lead at twenty minutes is not — it is a scoreboard.
 
 This is a design-time property of each dimension, recorded in the registry
 alongside `A_d`, and it is not negotiable at ranking time.
+
+**Amended: the upstream rule is necessary but not sufficient.** It asks
+whether a dimension is a behaviour the player emits. The *gap* estimand needs
+a second question the *level* estimand does not: is the measurement tracking
+the match result?
+
+`fight_conversion` passes the first and fails the second. Going to the tower
+after a won fight is genuinely the player's own decision, which is why it
+stays a legitimate Finding. But measured across a whole match, "you converted
+fights into towers less" in a game you lost is close to restating that you
+lost — and before the second rule existed it won 168 of 265 single slots while
+carrying the second-lowest actionability weight in the table.
+
+The second rule is measured, not judged. **A personal gap should vary in sign
+across people.** A gap that runs the same way for essentially everybody is not
+describing the player. The screen is the share of players carrying the modal
+sign, cut at 0.95, fixed before the shares were computed:
+
+| dimension | modal-sign share | verdict |
+|---|---:|---|
+| fight_conversion | 1.0000 | contaminated |
+| death_clustering | 0.9886 | contaminated |
+| last_hits_at_ten | 0.9466 | eligible |
+| spike_usage | 0.8415 | eligible |
+| lane_vs_jungle_share | 0.6868 | eligible |
+| first_real_item_time | 0.6566 | eligible |
+| deaths_alone_share | 0.6340 | eligible |
+| first_ward_time | 0.5800 | eligible |
+| vision_coverage | 0.5321 | eligible |
+
+The screen also overturned a hand-classification of my own: `spike_usage` had
+been excluded by the same verbal argument as `fight_conversion`, and 42 of 265
+players show the opposite sign, so it is describing players rather than
+results. The measurement settles it, not the argument.
 
 ## 4. What the recommendation carries
 
