@@ -15,7 +15,7 @@ deliberately makes no claim about sequence, screen order or story. Those are the
 owner's.
 
 Everything here is built from the current branch: the implementations in
-`scripts/v7_research/`, the report contract in
+`services/api/app/player_analysis_v7/research/`, the report contract in
 `services/api/app/player_analysis_v7/`, the owner decision record, and the
 measured evidence in `docs/evidence/`. Where documentation and code disagreed,
 the code won and the discrepancy is flagged in §0.2 rather than harmonised away.
@@ -168,7 +168,7 @@ convert a sample size into a confidence percentage.
 | **FE may claim** | "You went from Legend 2 to Legend 4 this year" as a fact |
 | **FE must not claim** | **Anything analytical.** Rank must never appear as an explanation, a cause, a comparison baseline, or an input to any Finding, recommendation or archetype |
 
-**This fence is enforced, not documented.** `scripts/v7_research/rank_fence.py`
+**This fence is enforced, not documented.** `services/api/app/player_analysis_v7/research/rank_fence.py`
 refuses any corpus row carrying a rank/MMR-shaped field at both doors into the
 analysis (`features.load_frames`, `pass2_tables.iter_pass2_players`), and a
 static scan fails the build if an analytical module references one. Values are
@@ -379,7 +379,7 @@ a unit conversion identical for every player, so a 2.4-last-hit gap and a
 265 of 276 players receive exactly one; **none receive zero**.
 
 Copy and verification strings are fixed in
-`scripts/v7_research/recommendation.py` and are the canonical wording:
+`services/api/app/player_analysis_v7/research/recommendation.py` and are the canonical wording:
 
 - `last_hits_at_ten` — "For five games, care about nothing but last hits until minute 10." / verified by `last_hits_per_minute` cumulated to minute 10
 - `deaths_alone_share` — "Do not cross the river without a teammate on screen."
@@ -744,7 +744,7 @@ This is a documented contract requirement, not built here.
 
 ## 10. Sources
 
-`scripts/v7_research/{ranking,recommendation,archetype,rank_fence,owner_decisions,pass2_observations,pass2_features,features,inference}.py`;
+`services/api/app/player_analysis_v7/research/{ranking,recommendation,archetype,rank_fence,owner_decisions,pass2_observations,pass2_features,features,inference}.py`;
 `scripts/{v7_finding_pipeline,v7_recommendation_selection,v7_archetype_axes,v7_calibrate_cut_points}.py`;
 `services/api/app/player_analysis_v7/{report_contract,acquisition_policy}.py`;
 `tests/unit/test_v7_{owner_decisions,rank_fence,report_contract,research_*}.py`;

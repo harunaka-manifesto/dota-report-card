@@ -32,7 +32,7 @@ FREEZE_ROOT_ENV = "V7_FREEZE_ROOT"
 #: Ledgering after the fact does not work: an aborted read leaves the data seen
 #: and the ledger clean, which is exactly the failure this control exists for.
 CANDIDATE_TEST_LEDGER = (
-    Path(__file__).resolve().parents[2] / "docs" / "evidence" / "v7-candidate-test-access-ledger.jsonl"
+    Path(__file__).resolve().parents[5] / "docs" / "evidence" / "v7-candidate-test-access-ledger.jsonl"
 )
 
 # Provider fields that must never reach a canonical research table or a derived

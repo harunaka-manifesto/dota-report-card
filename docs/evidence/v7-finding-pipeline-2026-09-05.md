@@ -14,7 +14,7 @@ CANDIDATE_TEST READ: NO — ledger byte-identical before and after
 Artifacts:
 
 - `scripts/v7_finding_pipeline.py` — the run
-- `scripts/v7_research/pass2_observations.py` — per-observation series for the
+- `services/api/app/player_analysis_v7/research/pass2_observations.py` — per-observation series for the
   eight Pass-2 dimensions
 - `docs/evidence/v7-finding-pipeline-2026-09-05.json` — aggregate-only output
 

@@ -5,7 +5,7 @@ Nothing in this module changes a frozen candidate. Each helper produces an
 during discovery can be tested rather than trusted, and every use is reported
 alongside the primary result.
 
-The frozen feature layer (``scripts.v7_research.features``) is never edited;
+The frozen feature layer (``app.player_analysis_v7.research.features``) is never edited;
 these helpers either build modified :class:`PlayerFrame` copies or temporarily
 override a declared modelling constant, which keeps the frozen feature version
 and the frozen registry digest meaningful.
@@ -17,8 +17,8 @@ import contextlib
 from collections.abc import Iterator, Sequence
 from typing import Any
 
-from scripts.v7_research import features as _features
-from scripts.v7_research.features import Opportunity, PlayerFrame
+from app.player_analysis_v7.research import features as _features
+from app.player_analysis_v7.research.features import Opportunity, PlayerFrame
 
 #: Draft modes in which the player does not choose their own hero. Any family
 #: whose estimand is about hero *choice* is contaminated by these rows.

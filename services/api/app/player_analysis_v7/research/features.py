@@ -2,7 +2,7 @@
 
 Every function here derives *opportunities* — the unit of observation for one
 candidate family — from the canonical corpus only, through
-``scripts.v7_research.tables`` semantics. Nothing here issues a provider call,
+``app.player_analysis_v7.research.tables`` semantics. Nothing here issues a provider call,
 reads a reserved split, or touches a forbidden provider surface.
 
 Design rules enforced in this module
@@ -33,9 +33,9 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
-from scripts.v7_research.corpus import DISCOVERY, CorpusPaths, iter_players
-from scripts.v7_research.rank_fence import assert_row_is_analysis_safe
-from scripts.v7_research.tables import (
+from app.player_analysis_v7.research.corpus import DISCOVERY, CorpusPaths, iter_players
+from app.player_analysis_v7.research.rank_fence import assert_row_is_analysis_safe
+from app.player_analysis_v7.research.tables import (
     SESSION_GAP_SECONDS,
     is_product_context,
     iter_sessions,
@@ -756,7 +756,7 @@ def own_lane_result(parsed: dict[str, Any]) -> str | None:
     """
 
     key = (parsed.get("lane_native"), parsed.get("is_radiant"))
-    field_name = _LANE_FIELD.get(key)
+    field_name = _LANE_FIELD.get(key)  # type: ignore[arg-type]
     if field_name is None:
         return None
     outcome = parsed.get(field_name)

@@ -19,7 +19,7 @@ IDENTIFIERS IN THIS DOCUMENT: none — aggregate statistics only
 ```
 
 Base SHA `5cad68c`, branch `v7/luna-e-red-team`. New checks live in
-`scripts/v7_research/redteam.py` with unit tests in
+`services/api/app/player_analysis_v7/research/redteam.py` with unit tests in
 `tests/unit/test_v7_research_redteam.py`.
 
 ## 0. Headline

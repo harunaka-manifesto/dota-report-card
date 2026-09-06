@@ -24,21 +24,21 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
-from scripts.v7_research import inference  # noqa: E402
-from scripts.v7_research.corpus import DISCOVERY  # noqa: E402
-from scripts.v7_research.pass2_features import group_rows_by_account  # noqa: E402
-from scripts.v7_research.pass2_observations import chronological  # noqa: E402
-from scripts.v7_research.pass2_tables import (  # noqa: E402
+from app.player_analysis_v7.research import inference  # noqa: E402
+from app.player_analysis_v7.research.corpus import DISCOVERY  # noqa: E402
+from app.player_analysis_v7.research.pass2_features import group_rows_by_account  # noqa: E402
+from app.player_analysis_v7.research.pass2_observations import chronological  # noqa: E402
+from app.player_analysis_v7.research.pass2_tables import (  # noqa: E402
     is_pass2_product_context,
     iter_pass2_players,
 )
-from scripts.v7_research.ranking import (  # noqa: E402
+from app.player_analysis_v7.research.ranking import (  # noqa: E402
     PopulationObservation,
     population_parameters,
 )
-from scripts.v7_research.recommendation import (  # noqa: E402
+from app.player_analysis_v7.research.recommendation import (  # noqa: E402
     DOWNSTREAM_EXCLUSIONS,
     MIN_PER_ARM,
     MODAL_SIGN_SHARE_LIMIT,

@@ -16,9 +16,9 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services" / "api"))
 
-from scripts.v7_research.corpus import (  # noqa: E402
+from app.player_analysis_v7.research.corpus import (  # noqa: E402
     RESERVED_SPLITS,
     CorpusPaths,
     corpus_paths,

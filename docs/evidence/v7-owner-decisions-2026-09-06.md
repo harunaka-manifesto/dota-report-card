@@ -10,7 +10,7 @@ SEALED_VALIDATION TOUCHED: NO
 
 The packet in `docs/evidence/v7-owner-selection-packet-2026-09-06.md` put nine
 decisions to the owner. This records what came back and where each one lives in
-code. The machine-readable copy is `scripts/v7_research/owner_decisions.py`,
+code. The machine-readable copy is `services/api/app/player_analysis_v7/research/owner_decisions.py`,
 and `tests/unit/test_v7_owner_decisions.py` holds every one of them in place —
 including the six that were "keep what is already there", because a behaviour
 that matches a decision by accident is one refactor away from violating it.

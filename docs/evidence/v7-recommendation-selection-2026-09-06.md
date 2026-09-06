@@ -8,7 +8,7 @@ CORPUS READ: YES — Pass-2 DISCOVERY only
 CANDIDATE_TEST READ: NO
 ```
 
-Artifacts: `scripts/v7_research/recommendation.py`,
+Artifacts: `services/api/app/player_analysis_v7/research/recommendation.py`,
 `scripts/v7_recommendation_selection.py`,
 `docs/evidence/v7-recommendation-selection-2026-09-06.json`.
 

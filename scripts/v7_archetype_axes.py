@@ -27,9 +27,9 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
-from scripts.v7_research.archetype import (  # noqa: E402
+from app.player_analysis_v7.research.archetype import (  # noqa: E402
     ARCHETYPE_VERSION,
     FIGHT_STYLE_LEVELS,
     GRID_LABELS,
@@ -42,15 +42,19 @@ from scripts.v7_research.archetype import (  # noqa: E402
     measure,
     population_cuts,
 )
-from scripts.v7_research.corpus import DISCOVERY, corpus_paths, manifest_digests  # noqa: E402
-from scripts.v7_research.features import load_frames  # noqa: E402
-from scripts.v7_research.pass2_features import (  # noqa: E402
+from app.player_analysis_v7.research.corpus import (  # noqa: E402
+    DISCOVERY,
+    corpus_paths,
+    manifest_digests,
+)
+from app.player_analysis_v7.research.features import load_frames  # noqa: E402
+from app.player_analysis_v7.research.pass2_features import (  # noqa: E402
     closer_vs_comeback,
     group_rows_by_account,
     vision_coverage,
 )
-from scripts.v7_research.pass2_observations import chronological  # noqa: E402
-from scripts.v7_research.pass2_tables import (  # noqa: E402
+from app.player_analysis_v7.research.pass2_observations import chronological  # noqa: E402
+from app.player_analysis_v7.research.pass2_tables import (  # noqa: E402
     is_pass2_product_context,
     iter_pass2_players,
 )

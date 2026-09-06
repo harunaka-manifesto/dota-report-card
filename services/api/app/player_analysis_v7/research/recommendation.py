@@ -33,11 +33,11 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from scripts.v7_research import inference
-from scripts.v7_research import pass2_tables as pt
-from scripts.v7_research import tables as pass1_tables
-from scripts.v7_research.features import Opportunity
-from scripts.v7_research.pass2_features import (
+from app.player_analysis_v7.research import inference
+from app.player_analysis_v7.research import pass2_tables as pt
+from app.player_analysis_v7.research import tables as pass1_tables
+from app.player_analysis_v7.research.features import Opportunity
+from app.player_analysis_v7.research.pass2_features import (
     DEATH_CLUSTER_WINDOW_SECONDS,
     _first_real_item_purchase_time,
     _item_vocabulary,
@@ -45,8 +45,8 @@ from scripts.v7_research.pass2_features import (
     _next_kill_or_assist_time,
     _observer_ward_events,
 )
-from scripts.v7_research.pass2_observations import _enemy_tower_fell_soon_after
-from scripts.v7_research.screen import encode, project_out_context
+from app.player_analysis_v7.research.pass2_observations import _enemy_tower_fell_soon_after
+from app.player_analysis_v7.research.screen import encode, project_out_context
 
 Row = dict[str, Any]
 

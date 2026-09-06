@@ -5,8 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
-from scripts.v7_research.pass2_tables import (
+from app.player_analysis_v7.research.pass2_tables import (
     FIGHT_KILL_THRESHOLD,
     PASS2_SPLIT,
     PASS2_TRAJECTORY_FIELDS,

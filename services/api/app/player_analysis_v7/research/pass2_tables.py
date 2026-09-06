@@ -17,7 +17,7 @@ numbers unchanged.
 
 Where Pass-1 semantics carry over unchanged (product-context gating, the
 match-level ``radiant_kills`` / ``dire_kills`` / ``radiant_networth_leads``
-grid), this module imports and reuses ``scripts.v7_research.tables`` rather
+grid), this module imports and reuses ``app.player_analysis_v7.research.tables`` rather
 than re-deriving or duplicating the rule.
 
 --------------------------------------------------------------------------
@@ -151,8 +151,8 @@ from collections.abc import Iterator, Mapping
 from pathlib import Path
 from typing import Any
 
-from scripts.v7_research import tables as pass1_tables
-from scripts.v7_research.rank_fence import assert_row_is_analysis_safe
+from app.player_analysis_v7.research import tables as pass1_tables
+from app.player_analysis_v7.research.rank_fence import assert_row_is_analysis_safe
 
 # Pass 2 collects DISCOVERY only (see
 # docs/evidence/v7-pass2-production-collection-2026-09-04.md §4). Mirrors

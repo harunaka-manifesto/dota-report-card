@@ -11,8 +11,7 @@ import statistics
 from typing import Any
 
 import pytest
-
-from scripts.v7_research.archetype import (
+from app.player_analysis_v7.research.archetype import (
     FIGHT_STYLE_LEVELS,
     GRID_LABELS,
     MIN_MATCHES,
@@ -31,6 +30,7 @@ from scripts.v7_research.archetype import (
     population_cuts,
     session_dispersion,
 )
+
 from tests.unit.test_v7_research_pass2_features import row
 
 

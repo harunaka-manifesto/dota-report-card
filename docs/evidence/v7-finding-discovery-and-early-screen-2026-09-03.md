@@ -70,8 +70,8 @@ appear in every table below.
 ## Method
 
 Opportunities are extracted per family by deterministic extractors
-(`scripts/v7_research/features.py`), then screened
-(`scripts/v7_research/screen.py`):
+(`services/api/app/player_analysis_v7/research/features.py`), then screened
+(`services/api/app/player_analysis_v7/research/screen.py`):
 
 - **Context adjustment** removes additive categorical effects — mode, patch,
   hero, duration bucket, side, lobby, and where available position, role and

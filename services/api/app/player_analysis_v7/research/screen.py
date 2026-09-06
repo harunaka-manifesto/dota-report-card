@@ -52,7 +52,7 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from scripts.v7_research.features import Opportunity, PlayerFrame, extract
+from app.player_analysis_v7.research.features import Opportunity, PlayerFrame, extract
 
 SCREEN_VERSION = "v7-luna-b-screen-1.0.0"
 

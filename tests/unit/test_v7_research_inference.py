@@ -6,8 +6,7 @@ import random
 from typing import Any
 
 import pytest
-
-from scripts.v7_research.corpus import (
+from app.player_analysis_v7.research.corpus import (
     CALIBRATION_RESERVED,
     CANDIDATE_TEST,
     DISCOVERY,
@@ -15,8 +14,8 @@ from scripts.v7_research.corpus import (
     ReservedSplitAccess,
     iter_players,
 )
-from scripts.v7_research.features import Opportunity, PlayerFrame, extract
-from scripts.v7_research.inference import (
+from app.player_analysis_v7.research.features import Opportunity, PlayerFrame, extract
+from app.player_analysis_v7.research.inference import (
     MIN_BLOCKS,
     FamilyMatrix,
     block_bounds,
@@ -34,7 +33,7 @@ from scripts.v7_research.inference import (
     student_t_quantile,
     student_t_two_sided_p,
 )
-from scripts.v7_research.variants import (
+from app.player_analysis_v7.research.variants import (
     session_gap_override,
     volume_capped,
     without_non_chosen_hero_modes,
@@ -259,7 +258,7 @@ def test_contrast_null_replicate_destroys_a_planted_effect() -> None:
 
 
 def test_circular_shift_preserves_the_arm_multiset_exactly() -> None:
-    from scripts.v7_research.inference import _circular_shift
+    from app.player_analysis_v7.research.inference import _circular_shift
 
     arms = [0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0]
     for offset in range(len(arms)):
@@ -344,7 +343,7 @@ def test_type_i_on_pure_noise_is_near_nominal_for_a_level_family() -> None:
 
 
 def test_type_i_verdict_flags_an_anticonservative_method() -> None:
-    from scripts.v7_research.inference import TypeIResult
+    from app.player_analysis_v7.research.inference import TypeIResult
 
     good = TypeIResult("x", 100, 5000, 0.051, 0.0104, 0.002, 0.001)
     bad = TypeIResult("x", 100, 5000, 0.148, 0.055, 0.004, 0.002)
@@ -541,7 +540,7 @@ def test_extractors_emit_opportunities_in_chronological_row_order() -> None:
 
 
 def test_session_gap_override_changes_session_structure_and_restores_it() -> None:
-    from scripts.v7_research import features
+    from app.player_analysis_v7.research import features
 
     frame = _frame(200)
     baseline = len(extract("post_loss_session_continuation", frame))
@@ -579,7 +578,7 @@ def test_non_chosen_hero_modes_are_removable() -> None:
 
 @pytest.mark.parametrize("split", [CALIBRATION_RESERVED, SEALED_VALIDATION])
 def test_inference_cannot_request_a_reserved_split(tmp_path: Any, split: str) -> None:
-    from scripts.v7_research.corpus import corpus_paths
+    from app.player_analysis_v7.research.corpus import corpus_paths
 
     (tmp_path / "canonical" / "history").mkdir(parents=True)
     paths = corpus_paths(tmp_path)
@@ -590,7 +589,7 @@ def test_inference_cannot_request_a_reserved_split(tmp_path: Any, split: str) ->
 
 
 def test_research_splits_remain_requestable(tmp_path: Any) -> None:
-    from scripts.v7_research.corpus import corpus_paths
+    from app.player_analysis_v7.research.corpus import corpus_paths
 
     (tmp_path / "canonical" / "history").mkdir(parents=True)
     paths = corpus_paths(tmp_path)
@@ -623,7 +622,7 @@ def test_family_matrix_player_views_are_consistent() -> None:
 
 
 def test_the_frozen_design_digest_is_stable_and_content_addressed() -> None:
-    from scripts.v7_research.inference import design_digest, design_payload
+    from app.player_analysis_v7.research.inference import design_digest, design_payload
 
     first = design_digest()
     assert first == design_digest()
@@ -651,7 +650,8 @@ def test_a_changed_design_is_refused_against_a_stale_freeze(tmp_path: Any) -> No
 def test_the_current_freeze_on_disk_still_matches_the_code() -> None:
     from pathlib import Path
 
-    from scripts.v7_research.inference import design_digest
+    from app.player_analysis_v7.research.inference import design_digest
+
     from scripts.v7_statistical_tournament import REPO_ROOT, _check_design
 
     frozen = Path(REPO_ROOT) / "docs" / "evidence" / "v7-inference-design-2026-09-03.json"
@@ -663,8 +663,9 @@ def test_the_current_freeze_on_disk_still_matches_the_code() -> None:
 
 
 def test_the_evaluated_set_is_exactly_the_frozen_twelve_plus_the_control() -> None:
+    from app.player_analysis_v7.research.registry import digest, registry_payload
+
     from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES
-    from scripts.v7_research.registry import digest, registry_payload
     from scripts.v7_statistical_tournament import EVALUATED, NEGATIVE_CONTROL
 
     assert len(FROZEN_SERIOUS_CANDIDATES) == 12

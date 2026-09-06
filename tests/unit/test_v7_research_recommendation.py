@@ -11,9 +11,8 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
-from scripts.v7_research import inference
-from scripts.v7_research.recommendation import (
+from app.player_analysis_v7.research import inference
+from app.player_analysis_v7.research.recommendation import (
     ARM_LOSS,
     ARM_WIN,
     DOWNSTREAM_EXCLUSIONS,
@@ -38,6 +37,7 @@ from scripts.v7_research.recommendation import (
     select,
     standardized_gap,
 )
+
 from tests.unit.test_v7_research_pass2_features import row
 
 

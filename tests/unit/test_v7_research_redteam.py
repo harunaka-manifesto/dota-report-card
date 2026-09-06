@@ -5,15 +5,15 @@ from __future__ import annotations
 import math
 
 import pytest
-
-from scripts.v7_qualification_ceiling import qualified_share
-from scripts.v7_research.redteam import (
+from app.player_analysis_v7.research.redteam import (
     bonferroni_level,
     disattenuated_agreement,
     expected_qualified_share,
     marginal_variance_ratio,
     qualified_share_at_ratio,
 )
+
+from scripts.v7_qualification_ceiling import qualified_share
 
 
 def test_the_closed_form_agrees_with_the_ceiling_scripts_own_implementation() -> None:

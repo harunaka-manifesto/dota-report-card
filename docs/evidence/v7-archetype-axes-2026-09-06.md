@@ -8,7 +8,7 @@ CORPUS READ: YES — DISCOVERY only
 CANDIDATE_TEST READ: NO
 ```
 
-Artifacts: `scripts/v7_research/archetype.py`,
+Artifacts: `services/api/app/player_analysis_v7/research/archetype.py`,
 `scripts/v7_archetype_axes.py`, `docs/evidence/v7-archetype-axes-2026-09-06.json`.
 
 The narrative document calls this section "for fun, not for science". That is

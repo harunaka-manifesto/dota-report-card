@@ -11,8 +11,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from app.player_analysis_v7.research import archetype, ranking, recommendation
+
 from scripts.v7_build_content_catalog import CATALOG_VERSION, build
-from scripts.v7_research import archetype, ranking, recommendation
 
 CATALOG_PATH = (
     Path(__file__).resolve().parents[2] / "docs" / "product" / "v7-content-catalog.json"

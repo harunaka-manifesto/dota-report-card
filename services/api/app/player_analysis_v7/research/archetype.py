@@ -38,8 +38,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from scripts.v7_research import pass2_tables as pt
-from scripts.v7_research import tables as pass1_tables
+from app.player_analysis_v7.research import pass2_tables as pt
+from app.player_analysis_v7.research import tables as pass1_tables
 
 Row = dict[str, Any]
 

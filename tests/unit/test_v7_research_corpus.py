@@ -4,8 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-
-from scripts.v7_research.corpus import (
+from app.player_analysis_v7.research.corpus import (
     CANDIDATE_TEST,
     DISCOVERY,
     CorpusError,

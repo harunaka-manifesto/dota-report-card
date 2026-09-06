@@ -143,7 +143,7 @@ carried forward as a known dependency for the statistical tournament.
 
 The canonical tables carry no rank, MMR, bracket, leaderboard, IMP, behaviour,
 smurf, award, proprietary prediction, or playback field. The gate is executable
-(`scripts/v7_research/corpus.py`, `tests/unit/test_v7_research_corpus.py`) and
+(`services/api/app/player_analysis_v7/research/corpus.py`, `tests/unit/test_v7_research_corpus.py`) and
 fails closed: research code cannot request `CALIBRATION_RESERVED` or
 `SEALED_VALIDATION` through the ordinary corpus reader at all, and a forbidden
 field name anywhere in a canonical document is reported rather than ignored.

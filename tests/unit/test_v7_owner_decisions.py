@@ -13,9 +13,8 @@ from __future__ import annotations
 import pytest
 from app.player_analysis_v7 import acquisition_policy as acq
 from app.player_analysis_v7 import report_contract
-
-from scripts.v7_research import archetype, ranking, recommendation
-from scripts.v7_research.corpus import (
+from app.player_analysis_v7.research import archetype, ranking, recommendation
+from app.player_analysis_v7.research.corpus import (
     CALIBRATION_RESERVED,
     RESERVED_SPLITS,
     SEALED_VALIDATION,
@@ -23,7 +22,7 @@ from scripts.v7_research.corpus import (
     ReservedSplitAccess,
     iter_players,
 )
-from scripts.v7_research.owner_decisions import (
+from app.player_analysis_v7.research.owner_decisions import (
     CALIBRATION_RESERVED_SPENT,
     CARRIED_FORWARD,
     DECISIONS,

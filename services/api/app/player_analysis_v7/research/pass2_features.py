@@ -5,7 +5,8 @@ dimension (`docs/evidence/v7-report-narrative-and-data-requirements-2026-09-04.m
 §2.10), each folding a player's own product-context rows into a single
 value (or a win/loss-style contrast) plus the observation count it rests
 on. It does not rank, z-score, or assess reliability — that is a separate
-worker's module (`scripts/v7_research/ranking.py`, not owned here).
+worker's module (`services/api/app/player_analysis_v7/research/ranking.py`, not
+owned here).
 
 Every semantics decision below defers to ``pass2_tables`` (alignment,
 orientation, event handling) or to a specific, cited piece of corpus
@@ -88,9 +89,9 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from scripts.v7_research import pass2_tables as pt
-from scripts.v7_research import tables as pass1_tables
-from services.api.app.stratz.item_vocabulary import (
+from app.player_analysis_v7.research import pass2_tables as pt
+from app.player_analysis_v7.research import tables as pass1_tables
+from app.stratz.item_vocabulary import (
     ItemInfo,
     is_real_item,
     load_item_vocabulary,

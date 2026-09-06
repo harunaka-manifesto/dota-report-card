@@ -39,10 +39,10 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from scripts.v7_research import pass2_tables as pt
-from scripts.v7_research import tables as pass1_tables
-from scripts.v7_research.features import Opportunity, base_ctx
-from scripts.v7_research.pass2_features import (
+from app.player_analysis_v7.research import pass2_tables as pt
+from app.player_analysis_v7.research import tables as pass1_tables
+from app.player_analysis_v7.research.features import Opportunity, base_ctx
+from app.player_analysis_v7.research.pass2_features import (
     _OUTCOME_FIELD_BY_MAP_LANE,
     DEATH_CLUSTER_WINDOW_SECONDS,
     LANE_TO_MAP_MINUTE,

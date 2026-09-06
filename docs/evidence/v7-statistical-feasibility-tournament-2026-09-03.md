@@ -47,7 +47,7 @@ The corpus is byte-identical to the one discovery used. Two digests appear
 above because two reasonable digests of the same manifest exist — the raw bytes
 on disk and a canonicalised re-serialisation — and the discovery and tournament
 scripts originally computed different ones. `manifest_digests()` in
-`scripts/v7_research/corpus.py` now emits both from a single shared helper, so
+`services/api/app/player_analysis_v7/research/corpus.py` now emits both from a single shared helper, so
 no future document can quote one digest and appear to contradict another. The
 JSON artefacts in this phase predate that change and carry the canonical digest
 only; they were **not** regenerated, because regenerating them would have spent

@@ -21,21 +21,21 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services" / "api"))
 
-from scripts.v7_research.corpus import (  # noqa: E402
+from app.player_analysis_v7.research.corpus import (  # noqa: E402
     DISCOVERY,
     corpus_paths,
     manifest_digests,
 )
-from scripts.v7_research.features import FEATURE_VERSION, load_frames  # noqa: E402
-from scripts.v7_research.inference import INFERENCE_VERSION  # noqa: E402
-from scripts.v7_research.registry import (  # noqa: E402
+from app.player_analysis_v7.research.features import FEATURE_VERSION, load_frames  # noqa: E402
+from app.player_analysis_v7.research.inference import INFERENCE_VERSION  # noqa: E402
+from app.player_analysis_v7.research.registry import (  # noqa: E402
     CANDIDATE_DEFINITION_VERSION,
     FAMILY_BY_NAME,
 )
-from scripts.v7_research.screen import spearman  # noqa: E402
-from scripts.v7_research.tournament import Denominators, evaluate  # noqa: E402
+from app.player_analysis_v7.research.screen import spearman  # noqa: E402
+from app.player_analysis_v7.research.tournament import Denominators, evaluate  # noqa: E402
 
 PORTFOLIO_VERSION = "v7-portfolio-analysis-1.0.0"
 

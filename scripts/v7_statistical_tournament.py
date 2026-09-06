@@ -39,49 +39,53 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+_API_ROOT = REPO_ROOT / "services" / "api"
+if str(_API_ROOT) not in sys.path:
+    sys.path.insert(0, str(_API_ROOT))
 
-from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
-from scripts.v7_research.corpus import (  # noqa: E402
+from app.player_analysis_v7.research.corpus import (  # noqa: E402
     CANDIDATE_TEST,
     DISCOVERY,
     corpus_paths,
     manifest_digests,
     read_json,
 )
-from scripts.v7_research.features import FEATURE_VERSION, load_frames  # noqa: E402
-from scripts.v7_research.inference import (  # noqa: E402
+from app.player_analysis_v7.research.features import FEATURE_VERSION, load_frames  # noqa: E402
+from app.player_analysis_v7.research.inference import (  # noqa: E402
     INFERENCE_VERSION,
     design_digest,
     design_payload,
 )
-from scripts.v7_research.registry import (  # noqa: E402
+from app.player_analysis_v7.research.registry import (  # noqa: E402
     CANDIDATE_DEFINITION_VERSION,
     FAMILY_BY_NAME,
     REGISTRY_VERSION,
     digest,
     registry_payload,
 )
-from scripts.v7_research.screen import DEFAULT_SEED, spearman  # noqa: E402
-from scripts.v7_research.tournament import (  # noqa: E402
+from app.player_analysis_v7.research.screen import DEFAULT_SEED, spearman  # noqa: E402
+from app.player_analysis_v7.research.tournament import (  # noqa: E402
     TOURNAMENT_VERSION,
     Denominators,
     agreement,
     collect,
     evaluate,
 )
-from scripts.v7_research.variants import (  # noqa: E402
+from app.player_analysis_v7.research.variants import (  # noqa: E402
     parsed_only,
     restrict_to_level,
     session_gap_override,
     volume_capped,
     without_non_chosen_hero_modes,
 )
-from scripts.v7_research.verdicts import (  # noqa: E402
+from app.player_analysis_v7.research.verdicts import (  # noqa: E402
     CONTROL_CHRONOLOGICAL_BAND,
     VERDICT_BY_FAMILY,
     VERDICT_VERSION,
     VERDICTS,
 )
+
+from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
 
 NEGATIVE_CONTROL = "side_sensitivity"
 EVALUATED = (*FROZEN_SERIOUS_CANDIDATES, NEGATIVE_CONTROL)

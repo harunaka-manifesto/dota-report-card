@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
-from scripts.v7_research.tables import (
+from app.player_analysis_v7.research.tables import (
     SESSION_GAP_SECONDS,
     expected_trajectory_length,
     has_role_context,

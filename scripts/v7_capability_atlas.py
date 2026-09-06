@@ -16,16 +16,16 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services" / "api"))
 
-from scripts.v7_research.corpus import (  # noqa: E402
+from app.player_analysis_v7.research.corpus import (  # noqa: E402
     CANDIDATE_TEST,
     DISCOVERY,
     corpus_paths,
     iter_players,
     read_json,
 )
-from scripts.v7_research.tables import (  # noqa: E402
+from app.player_analysis_v7.research.tables import (  # noqa: E402
     SESSION_GAP_SECONDS,
     expected_trajectory_length,
     has_role_context,

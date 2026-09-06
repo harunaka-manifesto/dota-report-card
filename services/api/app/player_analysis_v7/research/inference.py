@@ -15,7 +15,7 @@ Design, stated before any p-value is computed
 ---------------------------------------------
 
 **Unit of observation.** One *opportunity*, as emitted by
-``scripts.v7_research.features``. Every extractor emits opportunities in the
+``app.player_analysis_v7.research.features``. Every extractor emits opportunities in the
 chronological order of the player's own product-context matches; this module
 depends on that ordering and ``tests/unit/test_v7_research_inference.py``
 asserts it.
@@ -88,7 +88,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-from scripts.v7_research.screen import (
+from app.player_analysis_v7.research.screen import (
     Encoded,
     _mean,
     _pearson,

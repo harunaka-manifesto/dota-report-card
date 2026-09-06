@@ -36,39 +36,33 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
+sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
-from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
-from scripts.v7_finding_pipeline import (  # noqa: E402
-    DEPENDENCE_BATCH_LENGTHS,
-    NEGATIVE_CONTROL,
-    SECTION_BY_FAMILY,
-    fit_dimension,
-)
-from scripts.v7_research import inference  # noqa: E402
-from scripts.v7_research.corpus import (  # noqa: E402
+from app.player_analysis_v7.research import inference  # noqa: E402
+from app.player_analysis_v7.research.corpus import (  # noqa: E402
     DISCOVERY,
     SEALED_VALIDATION,
     corpus_paths,
 )
-from scripts.v7_research.features import load_frames  # noqa: E402
-from scripts.v7_research.owner_decisions import (  # noqa: E402
+from app.player_analysis_v7.research.features import load_frames  # noqa: E402
+from app.player_analysis_v7.research.owner_decisions import (  # noqa: E402
     DECISIONS_VERSION,
     SEALED_VALIDATION_APPROVED,
 )
-from scripts.v7_research.pass2_features import group_rows_by_account  # noqa: E402
-from scripts.v7_research.pass2_observations import (  # noqa: E402
+from app.player_analysis_v7.research.pass2_features import group_rows_by_account  # noqa: E402
+from app.player_analysis_v7.research.pass2_observations import (  # noqa: E402
     OBSERVATION_REGISTRY,
     chronological,
 )
-from scripts.v7_research.pass2_tables import (  # noqa: E402
+from app.player_analysis_v7.research.pass2_tables import (  # noqa: E402
     is_pass2_product_context,
     iter_pass2_players,
 )
-from scripts.v7_research.ranking import (  # noqa: E402
+from app.player_analysis_v7.research.ranking import (  # noqa: E402
     INTERVAL_Z,
     rank_player,
 )
-from scripts.v7_research.recommendation import (  # noqa: E402
+from app.player_analysis_v7.research.recommendation import (  # noqa: E402
     ARM_LOSS,
     ARM_WIN,
     build_personal_contrast_matrix,
@@ -79,8 +73,16 @@ from scripts.v7_research.recommendation import (  # noqa: E402
     priority,
     standardized_gap,
 )
-from scripts.v7_research.registry import FAMILY_BY_NAME  # noqa: E402
-from scripts.v7_research.tournament import collect  # noqa: E402
+from app.player_analysis_v7.research.registry import FAMILY_BY_NAME  # noqa: E402
+from app.player_analysis_v7.research.tournament import collect  # noqa: E402
+
+from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
+from scripts.v7_finding_pipeline import (  # noqa: E402
+    DEPENDENCE_BATCH_LENGTHS,
+    NEGATIVE_CONTROL,
+    SECTION_BY_FAMILY,
+    fit_dimension,
+)
 
 CALIBRATION_VERSION = "v7-cut-point-calibration-1.0.0"
 

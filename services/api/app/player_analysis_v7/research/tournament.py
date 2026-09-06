@@ -28,9 +28,9 @@ from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from scripts.v7_research import inference
-from scripts.v7_research.features import Opportunity, PlayerFrame, extract
-from scripts.v7_research.inference import (
+from app.player_analysis_v7.research import inference
+from app.player_analysis_v7.research.features import Opportunity, PlayerFrame, extract
+from app.player_analysis_v7.research.inference import (
     PROVISIONAL_ALPHA,
     block_config,
     build_matrix,
@@ -41,8 +41,8 @@ from scripts.v7_research.inference import (
     split_half_stability,
     variance_ratio_curve,
 )
-from scripts.v7_research.registry import Family
-from scripts.v7_research.screen import _mean, _pearson, eta_squared, quantile, spearman
+from app.player_analysis_v7.research.registry import Family
+from app.player_analysis_v7.research.screen import _mean, _pearson, eta_squared, quantile, spearman
 
 TOURNAMENT_VERSION = "v7-luna-c-tournament-1.0.0"
 

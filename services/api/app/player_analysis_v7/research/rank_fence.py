@@ -32,11 +32,11 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from scripts.v7_research.corpus import FORBIDDEN_FIELD_TOKENS, forbidden_fields_in
+from app.player_analysis_v7.research.corpus import FORBIDDEN_FIELD_TOKENS, forbidden_fields_in
 
 FENCE_VERSION = "v7-rank-fence-1.0.0"
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[5]
 
 
 class RankFenceViolation(RuntimeError):
@@ -100,31 +100,31 @@ def reset_shape_cache() -> None:
 #: the test below fails if one appears in the package and is not listed, so the
 #: list cannot silently fall behind.
 ANALYTICAL_MODULES: tuple[str, ...] = (
-    "scripts/v7_research/archetype.py",
-    "scripts/v7_research/features.py",
-    "scripts/v7_research/inference.py",
-    "scripts/v7_research/pass2_features.py",
-    "scripts/v7_research/pass2_observations.py",
-    "scripts/v7_research/pass2_tables.py",
-    "scripts/v7_research/ranking.py",
-    "scripts/v7_research/recommendation.py",
-    "scripts/v7_research/screen.py",
-    "scripts/v7_research/tables.py",
-    "scripts/v7_research/tournament.py",
+    "services/api/app/player_analysis_v7/research/archetype.py",
+    "services/api/app/player_analysis_v7/research/features.py",
+    "services/api/app/player_analysis_v7/research/inference.py",
+    "services/api/app/player_analysis_v7/research/pass2_features.py",
+    "services/api/app/player_analysis_v7/research/pass2_observations.py",
+    "services/api/app/player_analysis_v7/research/pass2_tables.py",
+    "services/api/app/player_analysis_v7/research/ranking.py",
+    "services/api/app/player_analysis_v7/research/recommendation.py",
+    "services/api/app/player_analysis_v7/research/screen.py",
+    "services/api/app/player_analysis_v7/research/tables.py",
+    "services/api/app/player_analysis_v7/research/tournament.py",
 )
 
 #: Modules in the research package that are not on the analysis path. Listed
 #: explicitly so that "not analytical" is a decision someone made rather than
 #: an omission.
 NON_ANALYTICAL_MODULES: tuple[str, ...] = (
-    "scripts/v7_research/__init__.py",
-    "scripts/v7_research/corpus.py",  # defines the forbidden tokens
-    "scripts/v7_research/rank_fence.py",  # this module
-    "scripts/v7_research/owner_decisions.py",  # a record; computes nothing
-    "scripts/v7_research/redteam.py",  # audits the others
-    "scripts/v7_research/registry.py",  # candidate definitions, prose only
-    "scripts/v7_research/variants.py",
-    "scripts/v7_research/verdicts.py",
+    "services/api/app/player_analysis_v7/research/__init__.py",
+    "services/api/app/player_analysis_v7/research/corpus.py",  # defines the forbidden tokens
+    "services/api/app/player_analysis_v7/research/rank_fence.py",  # this module
+    "services/api/app/player_analysis_v7/research/owner_decisions.py",  # a record; computes nothing
+    "services/api/app/player_analysis_v7/research/redteam.py",  # audits the others
+    "services/api/app/player_analysis_v7/research/registry.py",  # candidate definitions, prose only
+    "services/api/app/player_analysis_v7/research/variants.py",
+    "services/api/app/player_analysis_v7/research/verdicts.py",
 )
 
 #: A word-boundary pattern per forbidden token, so ``barracks`` does not trip
@@ -225,7 +225,9 @@ def unlisted_research_modules(root: Path | None = None) -> list[str]:
     known = set(ANALYTICAL_MODULES) | set(NON_ANALYTICAL_MODULES)
     present = {
         str(path.relative_to(base))
-        for path in sorted((base / "scripts" / "v7_research").glob("*.py"))
+        for path in sorted(
+            (base / "services" / "api" / "app" / "player_analysis_v7" / "research").glob("*.py")
+        )
     }
     return sorted(present - known)
 

@@ -4,8 +4,7 @@ import math
 import random
 
 import pytest
-
-from scripts.v7_research.ranking import (
+from app.player_analysis_v7.research.ranking import (
     RANKING_MODEL_VERSION,
     Interval,
     PlayerDimension,

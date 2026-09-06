@@ -18,16 +18,17 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+_API_ROOT = REPO_ROOT / "services" / "api"
+if str(_API_ROOT) not in sys.path:
+    sys.path.insert(0, str(_API_ROOT))
 
-from scripts.v7_research.corpus import (  # noqa: E402
+from app.player_analysis_v7.research.corpus import (  # noqa: E402
     DISCOVERY,
     corpus_paths,
     manifest_digests,
 )
-from scripts.v7_research.features import FEATURE_VERSION, load_frames  # noqa: E402
-from scripts.v7_research.registry import (  # noqa: E402
+from app.player_analysis_v7.research.features import FEATURE_VERSION, load_frames  # noqa: E402
+from app.player_analysis_v7.research.registry import (  # noqa: E402
     CANDIDATE_DEFINITION_VERSION,
     FAMILIES,
     FAMILY_BY_NAME,
@@ -35,7 +36,7 @@ from scripts.v7_research.registry import (  # noqa: E402
     digest,
     registry_payload,
 )
-from scripts.v7_research.screen import (  # noqa: E402
+from app.player_analysis_v7.research.screen import (  # noqa: E402
     DEFAULT_SEED,
     SCREEN_VERSION,
     effect_vectors,
