@@ -152,6 +152,7 @@ from pathlib import Path
 from typing import Any
 
 from scripts.v7_research import tables as pass1_tables
+from scripts.v7_research.rank_fence import assert_row_is_analysis_safe
 
 # Pass 2 collects DISCOVERY only (see
 # docs/evidence/v7-pass2-production-collection-2026-09-04.md §4). Mirrors
@@ -236,6 +237,7 @@ def iter_pass2_players(root: str | Path) -> Iterator[dict[str, Any]]:
             enriched = dict(row)
             enriched.setdefault("account_pseudonym", account_pseudonym)
             enriched.setdefault("source_position", source_position)
+            assert_row_is_analysis_safe(enriched, source=f"pass2 {path.name}")
             yield enriched
 
 

@@ -34,6 +34,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from scripts.v7_research.corpus import DISCOVERY, CorpusPaths, iter_players
+from scripts.v7_research.rank_fence import assert_row_is_analysis_safe
 from scripts.v7_research.tables import (
     SESSION_GAP_SECONDS,
     is_product_context,
@@ -115,7 +116,11 @@ def load_frames(
 
     frames: dict[str, PlayerFrame] = {}
     for document in iter_players(paths, "history", splits):
-        rows = [row for row in document["rows"] if is_product_context(row)]
+        rows = []
+        for row in document["rows"]:
+            assert_row_is_analysis_safe(row, source="pass1 history")
+            if is_product_context(row):
+                rows.append(row)
         frames[document["account_pseudonym"]] = PlayerFrame(
             pseudonym=document["account_pseudonym"],
             split=document["split"],
@@ -127,11 +132,12 @@ def load_frames(
             frame = frames.get(document["account_pseudonym"])
             if frame is None:
                 continue
-            frame.parsed = {
-                row["match_id"]: row
-                for row in document["rows"]
-                if row.get("radiant_networth_leads") is not None
-            }
+            parsed: dict[int, dict[str, Any]] = {}
+            for row in document["rows"]:
+                assert_row_is_analysis_safe(row, source="pass1 parsed")
+                if row.get("radiant_networth_leads") is not None:
+                    parsed[row["match_id"]] = row
+            frame.parsed = parsed
     return list(frames.values())
 
 
