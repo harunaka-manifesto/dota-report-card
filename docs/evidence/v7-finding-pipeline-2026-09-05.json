@@ -7,7 +7,7 @@
   },
   "candidate_definition_version": "v7-luna-b-candidates-1.0.0",
   "candidate_test_read": false,
-  "code_sha": "f719fd1f16d7be56b0354e4c5b58fc1c2c9d2062",
+  "code_sha": "49a80151f6a29bfe4c33dc7a87efc6cd3537bbbe",
   "corpus": {
     "run_manifest_canonical_sha256": "d45bf9a04d5c2c0c01c115347900eb1cd0e923d3f0570e368b8ce8d3848ec176",
     "run_manifest_file_sha256": "256676abc8254b6d1dd804a371ea1636469710fee57ca3ce8151dee25a4ed704"
@@ -990,6 +990,7 @@
     }
   },
   "feature_version": "v7-luna-b-features-1.0.0",
+  "finding_floor": 3,
   "finding_sections": [
     "what_is_good",
     "what_is_costing_you",
@@ -998,6 +999,9 @@
   "identities_included": false,
   "inference_version": "v7-luna-c-inference-1.0.0",
   "new_provider_calls": 0,
+  "owner_decisions_applied": [
+    "D1"
+  ],
   "pass2_feature_version": "v7-pass2-features-1",
   "pass2_observation_version": "v7-pass2-observations-1.0.0",
   "publication_thresholds_chosen": false,
@@ -1014,19 +1018,22 @@
       "4": 110,
       "5": 285
     },
-    "players_with_full_slate": 531,
+    "players_trimmed_to_the_floor": 50,
+    "players_under_the_floor_for_lack_of_dimensions": 8,
+    "players_with_full_slate": 400,
     "sections_covered_histogram": {
       "1": 6,
       "2": 17,
       "3": 520
     },
-    "share_with_full_slate": 0.977901,
+    "share_with_full_slate": 0.736648,
     "share_with_three_above_line": 0.88582,
     "size_histogram": {
       "1": 1,
       "2": 7,
-      "4": 4,
-      "5": 531
+      "3": 50,
+      "4": 85,
+      "5": 400
     },
     "top_dimension_counts": {
       "closer_vs_comeback": 31,

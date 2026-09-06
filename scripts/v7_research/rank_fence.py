@@ -120,6 +120,7 @@ NON_ANALYTICAL_MODULES: tuple[str, ...] = (
     "scripts/v7_research/__init__.py",
     "scripts/v7_research/corpus.py",  # defines the forbidden tokens
     "scripts/v7_research/rank_fence.py",  # this module
+    "scripts/v7_research/owner_decisions.py",  # a record; computes nothing
     "scripts/v7_research/redteam.py",  # audits the others
     "scripts/v7_research/registry.py",  # candidate definitions, prose only
     "scripts/v7_research/variants.py",

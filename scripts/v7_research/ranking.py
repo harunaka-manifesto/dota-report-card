@@ -44,6 +44,39 @@ RANKING_MODEL_VERSION = "v7-luna-f-ranking-1.0.0"
 INTERVAL_Z = 1.959964
 INTERVAL_COVERAGE = 0.95
 
+# ---------------------------------------------------------------------------
+# Owner-decided display policy (V7 owner selection packet, 2026-09-06)
+# ---------------------------------------------------------------------------
+
+#: How many Findings a report slate holds. (Report contract, section 2-4.)
+REPORT_SLOTS = 5
+
+#: Owner decision D1: a report always shows at least this many Findings,
+#: whatever their score. Below the floor a slate is never trimmed; above it,
+#: a slot must clear ``SCORE_LINE`` to be filled.
+#:
+#: The alternatives were to show five unconditionally, which pads the weakest
+#: slates with material that is technically the reader's strongest but not
+#: strongly measured, or to gate every slot, which leaves seven of 543
+#: DISCOVERY players with fewer than one Finding. The floor keeps a report
+#: from ever looking broken without dressing up slots four and five.
+FINDING_FLOOR = 3
+
+#: The score a Finding must clear to fill a slot above the floor.
+#:
+#: Provisional. This is the comparison scale the reliability table reports
+#: "share scoring above the line" against, not a threshold fitted to
+#: anything, and it is calibration work reserved for a later phase
+#: (owner decision D2 and D8).
+SCORE_LINE = 0.25
+
+#: The three sections that carry ranked Findings, in narrative order.
+FINDING_SECTIONS: tuple[str, ...] = (
+    "what_is_good",
+    "what_is_costing_you",
+    "response_to_a_loss",
+)
+
 _DIRECTION_POSITIVE = "positive"
 _DIRECTION_NEGATIVE = "negative"
 _DIRECTION_NEUTRAL = "neutral"
@@ -364,6 +397,61 @@ def select_stratified(
 # ---------------------------------------------------------------------------
 
 
+def apply_score_gate(
+    selected: Sequence[RankedFinding],
+    *,
+    sections: Sequence[str] = FINDING_SECTIONS,
+    floor: int = FINDING_FLOOR,
+    line: float = SCORE_LINE,
+) -> list[RankedFinding]:
+    """Owner decision D1: keep a floor unconditionally, gate the rest.
+
+    Three things are kept, in this order of priority:
+
+    1. **The top-scoring Finding of each section present.** ``select_stratified``
+       promotes these first so no report section renders empty, then re-sorts
+       everything by score — which means a section's sole representative can
+       land in slot four or five. Gating on score alone therefore undoes the
+       stratification. Measured on DISCOVERY, doing exactly that dropped the
+       players whose report covered all three sections from 520 to 290.
+    2. **Enough of the next-highest scores to reach ``floor``**, for a player
+       whose Findings do not span three sections.
+    3. **Anything above ``line``**, which is what fills slots four and five.
+
+    The result keeps ``selected``'s order, so the caller's ranking survives.
+    A slate at or under the floor is returned unchanged, so this can never
+    make a report shorter than the floor promises.
+    """
+
+    if floor < 0:
+        raise ValueError("floor must not be negative")
+    if len(selected) <= floor:
+        return list(selected)
+
+    protected: set[int] = set()
+
+    # 1. one per section, highest score first (selected is already ranked)
+    seen_sections: set[str] = set()
+    wanted = set(sections)
+    for index, finding in enumerate(selected):
+        if finding.section in wanted and finding.section not in seen_sections:
+            seen_sections.add(finding.section)
+            protected.add(index)
+
+    # 2. top up to the floor by rank
+    for index in range(len(selected)):
+        if len(protected) >= floor:
+            break
+        protected.add(index)
+
+    # 3. everything clearing the line
+    for index, finding in enumerate(selected):
+        if finding.score > line:
+            protected.add(index)
+
+    return [finding for index, finding in enumerate(selected) if index in protected]
+
+
 def population_parameters(observations: Sequence[PopulationObservation]) -> tuple[float, float]:
     """Method-of-moments ``(mu, tau)`` for one dimension, across players.
 
@@ -413,14 +501,19 @@ def population_parameters(observations: Sequence[PopulationObservation]) -> tupl
 
 
 __all__ = [
+    "FINDING_FLOOR",
+    "FINDING_SECTIONS",
     "INTERVAL_COVERAGE",
     "INTERVAL_Z",
     "RANKING_MODEL_VERSION",
+    "REPORT_SLOTS",
+    "SCORE_LINE",
     "Interval",
     "PlayerDimension",
     "PopulationObservation",
     "RankedFinding",
     "ShrunkEstimate",
+    "apply_score_gate",
     "direction_of",
     "population_parameters",
     "rank_player",

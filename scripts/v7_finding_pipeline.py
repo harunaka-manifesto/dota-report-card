@@ -75,9 +75,14 @@ from scripts.v7_research.pass2_tables import (  # noqa: E402
     iter_pass2_players,
 )
 from scripts.v7_research.ranking import (  # noqa: E402
+    FINDING_FLOOR,
+    FINDING_SECTIONS,
     RANKING_MODEL_VERSION,
+    REPORT_SLOTS,
+    SCORE_LINE,
     PlayerDimension,
     PopulationObservation,
+    apply_score_gate,
     population_parameters,
     rank_player,
     select_stratified,
@@ -102,19 +107,6 @@ NEGATIVE_CONTROL = "side_sensitivity"
 #: Pass-2 dimensions down the independence fallback, which overstates their
 #: reliability - the opposite of what a dependence correction is for.
 DEPENDENCE_BATCH_LENGTHS = (1, 5, 10, 25, 50, 100)
-
-#: The score line the ranking model uses to say a dimension carries enough
-#: signal to be worth showing. Not a publication threshold: it is the same
-#: comparison line the reliability table reports "share scoring > 0.25"
-#: against, carried here so the two documents are readable side by side.
-SCORE_LINE = 0.25
-
-#: How many Findings a report slate holds.
-REPORT_SLOTS = 5
-
-#: The three Finding-carrying sections, in narrative order. Stratified
-#: selection fills each section's top slot before filling by score.
-FINDING_SECTIONS = ("what_is_good", "what_is_costing_you", "response_to_a_loss")
 
 #: Which report section each Pass-1 family speaks to. This is a topical
 #: placement, not a verdict: direction decides whether a Finding reads as a
@@ -391,8 +383,13 @@ def assemble_slates(
             continue
         for pseudonym, dimension in dimensions.items():
             by_player.setdefault(pseudonym, []).append(dimension)
+    # Owner decision D1: select first, gate second. Selection decides which
+    # Findings matter, including promoting a weak one to keep a section from
+    # being empty; the gate then trims only the slots above the floor.
     return {
-        pseudonym: select_stratified(rank_player(dimensions), FINDING_SECTIONS, REPORT_SLOTS)
+        pseudonym: apply_score_gate(
+            select_stratified(rank_player(dimensions), FINDING_SECTIONS, REPORT_SLOTS)
+        )
         for pseudonym, dimensions in by_player.items()
     }
 
@@ -492,6 +489,8 @@ def main() -> int:
     top_dimension = Counter(slate[0].key for slate in slates.values() if slate)
     top_scores = [slate[0].score for slate in slates.values() if slate]
     players_with_full_slate = sum(1 for slate in slates.values() if len(slate) == REPORT_SLOTS)
+    players_at_the_floor = sum(1 for slate in slates.values() if len(slate) == FINDING_FLOOR)
+    players_below_the_floor = sum(1 for slate in slates.values() if len(slate) < FINDING_FLOOR)
     players_with_three_above = sum(players for count, players in above_line.items() if count >= 3)
 
     document: dict[str, Any] = {
@@ -504,6 +503,8 @@ def main() -> int:
         "publication_thresholds_chosen": False,
         "score_line": SCORE_LINE,
         "report_slots": REPORT_SLOTS,
+        "finding_floor": FINDING_FLOOR,
+        "owner_decisions_applied": ["D1"],
         "finding_sections": list(FINDING_SECTIONS),
         "corpus": manifest_digests(corpus_paths(args.corpus_root).root),
         "feature_version": FEATURE_VERSION,
@@ -523,6 +524,8 @@ def main() -> int:
             "sections_covered_histogram": {str(k): v for k, v in sorted(sections_covered.items())},
             "findings_above_line_histogram": {str(k): v for k, v in sorted(above_line.items())},
             "players_with_full_slate": players_with_full_slate,
+            "players_trimmed_to_the_floor": players_at_the_floor,
+            "players_under_the_floor_for_lack_of_dimensions": players_below_the_floor,
             "share_with_full_slate": round(players_with_full_slate / len(slates), 6)
             if slates
             else 0.0,
