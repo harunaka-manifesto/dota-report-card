@@ -17,6 +17,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from app.player_analysis_v7.research.durability import assert_durable_corpus_root
+
 DISCOVERY = "DISCOVERY"
 CANDIDATE_TEST = "CANDIDATE_TEST"
 CALIBRATION_RESERVED = "CALIBRATION_RESERVED"
@@ -117,7 +119,8 @@ def corpus_paths(root: str | os.PathLike[str] | None = None) -> CorpusPaths:
         raise CorpusError(
             f"corpus root not supplied; pass --corpus-root or set {CORPUS_ROOT_ENV}"
         )
-    return CorpusPaths(_require_dir(Path(raw_root).expanduser().resolve(), "corpus root"))
+    durable = assert_durable_corpus_root(raw_root, purpose="corpus loader root")
+    return CorpusPaths(_require_dir(durable, "corpus root"))
 
 
 def freeze_paths(root: str | os.PathLike[str] | None = None) -> Path:
@@ -126,7 +129,8 @@ def freeze_paths(root: str | os.PathLike[str] | None = None) -> Path:
         raise CorpusError(
             f"acquisition freeze root not supplied; pass --freeze-root or set {FREEZE_ROOT_ENV}"
         )
-    return _require_dir(Path(raw_root).expanduser().resolve(), "freeze root")
+    durable = assert_durable_corpus_root(raw_root, purpose="corpus freeze root")
+    return _require_dir(durable, "freeze root")
 
 
 def read_json(path: Path) -> Any:

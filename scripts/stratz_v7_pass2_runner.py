@@ -46,6 +46,9 @@ for _candidate in (str(ROOT), str(API_ROOT)):
     if _candidate not in sys.path:
         sys.path.insert(0, _candidate)
 
+from app.player_analysis_v7.research.durability import (  # noqa: E402
+    assert_durable_corpus_root,
+)
 from app.stratz.client import parse_rate_limit_headers  # noqa: E402
 from app.stratz.queries import GET_DEEP_MATCH_BATCH, GraphQLOperation  # noqa: E402
 
@@ -785,7 +788,13 @@ class Pass2Runner:
             )
         self.cohort = cohort
         self.pass1_dir = pass1_dir
-        self.output_dir = output_dir
+        # The state, ledger and raw directories all hang off this one
+        # path, so guarding it here covers the collector output root and
+        # the resume/checkpoint root together. It follows symlinks: the
+        # 2026-09-07 loss came through a durable-looking link.
+        self.output_dir = assert_durable_corpus_root(
+            output_dir, purpose="pass-2 collector output and resume/checkpoint root"
+        )
         self.token = token
         self.endpoint = endpoint
         self.network = network

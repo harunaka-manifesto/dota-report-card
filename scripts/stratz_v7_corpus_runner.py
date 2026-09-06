@@ -37,6 +37,9 @@ if str(ROOT) not in sys.path:
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
+from app.player_analysis_v7.research.durability import (  # noqa: E402
+    assert_durable_corpus_root,
+)
 from app.stratz.client import parse_rate_limit_headers  # noqa: E402
 from app.stratz.models import STRATZ_ENUM_VOCABULARY  # noqa: E402
 from app.stratz.queries import (  # noqa: E402
@@ -1279,7 +1282,13 @@ class CorpusRunner:
         if max_history_pages < 1:
             raise RunnerError("history page ceiling must be positive")
         self.cohort = cohort
-        self.output_dir = output_dir
+        # The state, ledger and raw directories all hang off this one
+        # path, so guarding it here covers the collector output root and
+        # the resume/checkpoint root together. It follows symlinks: the
+        # 2026-09-07 loss came through a durable-looking link.
+        self.output_dir = assert_durable_corpus_root(
+            output_dir, purpose="collector output and resume/checkpoint root"
+        )
         self.token = token
         self.endpoint = endpoint
         self.network = network

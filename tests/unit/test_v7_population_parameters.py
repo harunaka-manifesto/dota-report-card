@@ -194,3 +194,67 @@ def test_the_artifact_records_its_source_evidence_digests() -> None:
 
 def test_the_artifact_contains_no_corpus_identifiers() -> None:
     assert "v7p_" not in POPULATION_PARAMETERS_PATH.read_text(encoding="utf-8")
+
+
+# --------------------------------------------------------------------------
+# provenance must be explicit (owner requirement D)
+# --------------------------------------------------------------------------
+
+
+def test_the_artifact_says_it_was_not_refit_from_source() -> None:
+    """These parameters are a transcription of reviewed evidence. Describing
+    them as a fresh fit would claim a reproducibility the Pass-1 corpus loss
+    took away."""
+
+    p = params()
+    assert p.refit_from_source_corpus is False
+    assert "NOT REFIT FROM SOURCE CORPUS" in p.derivation_method
+
+
+def test_every_finding_dimension_carries_full_provenance() -> None:
+    p = params()
+    assert len(p.findings) == 21
+    for key, row in p.findings.items():
+        assert row.derivation_method == p.derivation_method, key
+        assert row.source_evidence_document, key
+        assert len(row.source_evidence_sha256) == 64, key
+        assert row.source_analytical_version, key
+        assert row.status in {"shipping", "withheld"}, key
+
+
+def test_every_recommendation_dimension_carries_full_provenance() -> None:
+    p = params()
+    assert len(p.recommendations) == 9
+    for key, row in p.recommendations.items():
+        assert row.derivation_method == p.derivation_method, key
+        assert len(row.source_evidence_sha256) == 64, key
+        assert row.source_analytical_version, key
+        assert row.status in {"eligible", "excluded"}, key
+
+
+def test_status_agrees_with_the_underlying_flag() -> None:
+    p = params()
+    for row in p.findings.values():
+        assert (row.status == "shipping") == row.ships
+    for row in p.recommendations.values():
+        assert (row.status == "eligible") == row.eligible
+
+
+def test_pass1_dimensions_are_marked_not_source_reproducible() -> None:
+    """The corpus that produced them no longer exists. The numbers stay
+    auditable; the claim of reproducibility does not."""
+
+    p = params()
+    pass1 = [row for row in p.findings.values() if row.source_pass == "pass1"]
+    assert pass1
+    for row in pass1:
+        assert row.source_reproducible is False, row.key
+        assert "permanently unavailable" in row.source_reproducibility_note
+
+
+def test_pass2_dimensions_remain_source_reproducible() -> None:
+    p = params()
+    pass2 = [row for row in p.findings.values() if row.source_pass == "pass2"]
+    assert pass2
+    for row in pass2:
+        assert row.source_reproducible is True, row.key

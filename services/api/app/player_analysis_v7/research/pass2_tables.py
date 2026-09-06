@@ -152,6 +152,7 @@ from pathlib import Path
 from typing import Any
 
 from app.player_analysis_v7.research import tables as pass1_tables
+from app.player_analysis_v7.research.durability import assert_durable_corpus_root
 from app.player_analysis_v7.research.rank_fence import assert_row_is_analysis_safe
 
 # Pass 2 collects DISCOVERY only (see
@@ -215,7 +216,10 @@ def iter_pass2_players(root: str | Path) -> Iterator[dict[str, Any]]:
     silently.
     """
 
-    root = Path(root)
+    # The Pass-2 canonical directory is a corpus loader root like any other,
+    # and it is reached by an explicit path rather than through corpus_paths,
+    # so the durability guard is applied here as well.
+    root = assert_durable_corpus_root(root, purpose="pass-2 corpus loader root")
     for path in sorted(root.glob("v7p_*.json")):
         with path.open(encoding="utf-8") as handle:
             document = json.load(handle)

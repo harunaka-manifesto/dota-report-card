@@ -47,10 +47,29 @@ Flagged, not silently fixed, per instruction.
 |---|---|---|
 | 1 | The report contract defines ten sections' worth of models, but **no producer exists for any of them** — `ReportPayload` is never constructed outside the contract file and its tests. | The contract is a *specification of shape*, agreed and validated. The *measured capability* lives in the research scripts. Assembly is the next phase's work, not a missing file. |
 | 2 | `docs/evidence/v7-report-narrative-and-data-requirements-2026-09-04.md` describes sections 1–9 as the report's structure, and several richly specified contrast models (`CoreHeroGoodContrast`, `SupportHeroGoodContrast`, `TellingSignMinute`, `TeamInWinsProjection`, `DeathProfile`) follow from it. None of these is computed anywhere. | These are Tier B. They are a design target the owner may keep, change or drop; the manifest does not treat the §1–9 layout as sacred, as instructed. |
+| 3a | The Pass-1 source corpus is gone, so the Pass-1 fits cannot be re-derived. | Recorded per dimension in the frozen parameters; see §0.3. |
 | 3 | The ranking-model document originally required a strength band and deferred its cut points to calibration. | Withdrawn under owner decision D2. The document is amended in place with the measurement that withdrew it. There is no band. See §3.6. |
 | 4 | `Recommendation.upstream_of_result` exists in the contract as an optional literal, and the implementation carries eligibility as two design-time booleans (`upstream`, `outcome_contaminated`) rather than one field. | The implementation is the truth. The contract field is a coarser summary of a two-rule test; see §4.5. |
 
-### 0.3 Validation status of everything below
+### 0.3 Provenance caveat on the Pass-1 dimensions
+
+The Pass-1 history corpus was lost on 2026-09-07
+(`docs/evidence/v7-corpus-loss-incident-2026-09-07.md`, CAUSE: UNATTRIBUTED).
+
+The twelve Pass-1 Finding families remain **auditable** — every figure is
+committed, digested and traceable to the evidence document that established it
+— and they are **no longer source-reproducible**, because the corpus that
+produced them no longer exists. They are marked `source_reproducible: false` in
+the frozen population parameters, one dimension at a time.
+
+Pass-2 is intact and fully reproducible: canonical re-derives from normalized,
+which re-derives from raw. That covers 8 of the 16 Finding dimensions, all 9
+recommendation dimensions, and the entire archetype.
+
+Nothing about the product changes. What changes is the claim that may be made
+about how a Pass-1 number could be rechecked.
+
+### 0.4 Validation status of everything below
 
 **Current:** intended V7 backend capability, measured on DISCOVERY development
 research data and approved by the owner on 2026-09-06.

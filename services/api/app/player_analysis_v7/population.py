@@ -59,6 +59,13 @@ class FindingParameters:
     ships: bool
     negative_control: bool
     reliability_is_upper_bound: bool
+    status: str
+    derivation_method: str
+    source_evidence_document: str
+    source_evidence_sha256: str
+    source_analytical_version: str
+    source_reproducible: bool
+    source_reproducibility_note: str
     withheld_reason: str | None = None
 
 
@@ -77,12 +84,19 @@ class RecommendationParameters:
     modal_sign_share: float
     eligible: bool
     outcome_contaminated: bool
+    status: str
+    derivation_method: str
+    source_evidence_document: str
+    source_evidence_sha256: str
+    source_analytical_version: str
 
 
 @dataclass(frozen=True)
 class PopulationParameters:
     schema_version: str
     fitted_on_split: str
+    derivation_method: str
+    refit_from_source_corpus: bool
     validation_status: str
     source_code_sha: str
     source_evidence: dict[str, Any]
@@ -148,6 +162,13 @@ def _parse(document: dict[str, Any]) -> PopulationParameters:
             ships=row["ships"],
             negative_control=row["negative_control"],
             reliability_is_upper_bound=row["reliability_is_upper_bound"],
+            status=row["status"],
+            derivation_method=row["derivation_method"],
+            source_evidence_document=row["source_evidence_document"],
+            source_evidence_sha256=row["source_evidence_sha256"],
+            source_analytical_version=row["source_analytical_version"],
+            source_reproducible=row["source_reproducible"],
+            source_reproducibility_note=row["source_reproducibility_note"],
             withheld_reason=row.get("withheld_reason"),
         )
         for key, row in document["finding_dimensions"].items()
@@ -160,6 +181,11 @@ def _parse(document: dict[str, Any]) -> PopulationParameters:
             modal_sign_share=row["modal_sign_share"],
             eligible=row["eligible"],
             outcome_contaminated=row["outcome_contaminated"],
+            status=row["status"],
+            derivation_method=row["derivation_method"],
+            source_evidence_document=row["source_evidence_document"],
+            source_evidence_sha256=row["source_evidence_sha256"],
+            source_analytical_version=row["source_analytical_version"],
         )
         for key, row in document["recommendation_dimensions"].items()
     }
@@ -173,6 +199,8 @@ def _parse(document: dict[str, Any]) -> PopulationParameters:
     return PopulationParameters(
         schema_version=document["schema_version"],
         fitted_on_split=document["fitted_on_split"],
+        derivation_method=document["derivation_method"],
+        refit_from_source_corpus=document["refit_from_source_corpus"],
         validation_status=document["validation_status"],
         source_code_sha=document["source_code_sha"],
         source_evidence=document["source_evidence"],

@@ -473,6 +473,14 @@ Everything here is **development capability**: measured on research data and
 approved by the owner. It is **not production-certified** — the final
 end-to-end validation has not been run.
 
+One provenance note, which affects what may be *said* rather than what may be
+*shown*: the source data behind some Finding dimensions was lost on 2026-09-07
+and cannot be re-collected as the same sample. Those figures remain audited and
+committed, and every atom in this catalog is unchanged. Do not describe any
+backend number as "independently re-derivable" or "reproducible from source" in
+user-facing copy — that was never a claim worth making to a player, and for
+part of the pool it is now untrue.
+
 Additionally, some atoms exist as agreed data *shapes* with no code producing
 them yet — notably the history statistics, hero-level contrasts and death
 profile referenced in earlier product drafts. Those are **not** in this catalog,

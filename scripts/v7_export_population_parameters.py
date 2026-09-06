@@ -54,6 +54,14 @@ from app.player_analysis_v7.research.recommendation import (  # noqa: E402
 
 POPULATION_PARAMETERS_VERSION = "v7-population-parameters-1.0.0"
 
+#: How these numbers came to be, stated on the artifact and on every entry in
+#: it. They are a *transcription* of the reviewed DISCOVERY evidence, not a
+#: fresh population fit, and the distinction is load-bearing: the Pass-1 source
+#: corpus no longer exists, so those fits cannot be re-derived from source
+#: (docs/evidence/v7-corpus-loss-incident-2026-09-07.md). Describing them as a
+#: fresh fit would claim a reproducibility the repository does not have.
+DERIVATION_METHOD = "DERIVED FROM COMMITTED DISCOVERY EVIDENCE — NOT REFIT FROM SOURCE CORPUS"
+
 EVIDENCE = REPO_ROOT / "docs" / "evidence"
 PIPELINE_EVIDENCE = EVIDENCE / "v7-finding-pipeline-2026-09-05.json"
 RECOMMENDATION_EVIDENCE = EVIDENCE / "v7-recommendation-selection-2026-09-06.json"
@@ -101,6 +109,8 @@ def build_finding_dimensions() -> dict[str, Any]:
     """
 
     pipeline = _read(PIPELINE_EVIDENCE)
+    source_document = str(PIPELINE_EVIDENCE.relative_to(REPO_ROOT))
+    source_sha = _digest(PIPELINE_EVIDENCE)
     out: dict[str, Any] = {}
     for key, row in sorted(pipeline["dimensions"].items()):
         tau = row.get("tau")
@@ -118,7 +128,26 @@ def build_finding_dimensions() -> dict[str, Any]:
             "source_pass": row["source"],
             "players_fitted": row["players"],
             "ships": ships,
+            "status": "shipping" if ships else "withheld",
             "negative_control": bool(row.get("negative_control")),
+            "derivation_method": DERIVATION_METHOD,
+            "source_evidence_document": source_document,
+            "source_evidence_sha256": source_sha,
+            "source_analytical_version": pipeline["ranking_model_version"],
+            "source_inference_version": pipeline["inference_version"],
+            "source_feature_version": (
+                pipeline["pass2_feature_version"]
+                if row["source"] == "pass2"
+                else pipeline["feature_version"]
+            ),
+            "source_reproducible": row["source"] == "pass2",
+            "source_reproducibility_note": (
+                "Pass-2 corpus intact; canonical is re-derivable from normalized."
+                if row["source"] == "pass2"
+                else "Pass-1 history corpus permanently unavailable "
+                "(docs/evidence/v7-corpus-loss-incident-2026-09-07.md); auditable "
+                "but not source-reproducible."
+            ),
         }
         if not ships:
             entry["withheld_reason"] = (
@@ -141,6 +170,8 @@ def build_recommendation_dimensions() -> dict[str, Any]:
     """
 
     evidence = _read(RECOMMENDATION_EVIDENCE)
+    source_document = str(RECOMMENDATION_EVIDENCE.relative_to(REPO_ROOT))
+    source_sha = _digest(RECOMMENDATION_EVIDENCE)
     out: dict[str, Any] = {}
     for key, row in sorted(evidence["dimensions"].items()):
         scale = row.get("dimension_scale")
@@ -151,7 +182,13 @@ def build_recommendation_dimensions() -> dict[str, Any]:
             "dependence_inflation": row["dependence_inflation"],
             "modal_sign_share": row["modal_sign_share"],
             "eligible": bool(row["eligible"]),
+            "status": "eligible" if row["eligible"] else "excluded",
             "outcome_contaminated": bool(row.get("outcome_contaminated")),
+            "derivation_method": DERIVATION_METHOD,
+            "source_evidence_document": source_document,
+            "source_evidence_sha256": source_sha,
+            "source_analytical_version": evidence["recommendation_version"],
+            "source_reproducible": True,
         }
     return out
 
@@ -187,6 +224,15 @@ def build_document() -> dict[str, Any]:
     return {
         "schema_version": POPULATION_PARAMETERS_VERSION,
         "fitted_on_split": "DISCOVERY",
+        "derivation_method": DERIVATION_METHOD,
+        "refit_from_source_corpus": False,
+        "provenance_note": (
+            "Every parameter is transcribed from a committed evidence document "
+            "and carries that document's path, SHA-256 and analytical version. "
+            "Pass-1 parameters are auditable but not source-reproducible: the "
+            "Pass-1 history corpus was lost on 2026-09-07 "
+            "(docs/evidence/v7-corpus-loss-incident-2026-09-07.md)."
+        ),
         "production_certified": False,
         "validation_status": "development",
         "source_code_sha": _git_sha(),

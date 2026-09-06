@@ -119,6 +119,7 @@ ANALYTICAL_MODULES: tuple[str, ...] = (
 NON_ANALYTICAL_MODULES: tuple[str, ...] = (
     "services/api/app/player_analysis_v7/research/__init__.py",
     "services/api/app/player_analysis_v7/research/corpus.py",  # defines the forbidden tokens
+    "services/api/app/player_analysis_v7/research/durability.py",  # storage guard, not analysis
     "services/api/app/player_analysis_v7/research/rank_fence.py",  # this module
     "services/api/app/player_analysis_v7/research/owner_decisions.py",  # a record; computes nothing
     "services/api/app/player_analysis_v7/research/redteam.py",  # audits the others
