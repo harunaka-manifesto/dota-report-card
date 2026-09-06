@@ -38,6 +38,12 @@ where = ["services/api"]
 [tool.setuptools.package-dir]
 "" = "services/api"
 
+# The frozen population parameters are data the runtime cannot start without,
+# so they must ship inside the installed package. Without this, packages.find
+# collects the modules and silently drops the .json beside them.
+[tool.setuptools.package-data]
+"app.player_analysis_v7" = ["data/*.json"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"
