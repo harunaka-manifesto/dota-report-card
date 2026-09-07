@@ -13,6 +13,10 @@ import json
 from typing import Any
 
 import pytest
+from app.analysis.source import MappingSource
+from app.api.routes import router
+from app.core.config import Settings
+from app.main import create_app
 from app.player_analysis_v7.capability_payload import (
     CAPABILITY_KEYS,
     V7_CAPABILITY_SCHEMA_VERSION,
@@ -25,6 +29,15 @@ from app.player_analysis_v7.capability_payload import (
     V7Provenance,
     availability_map,
 )
+from app.player_analysis_v7.descriptive import (
+    DescriptiveFacts,
+    HeroCast,
+    ReportScope,
+    TimeWindow,
+)
+from app.player_analysis_v7.display_semantics import build_display_semantics
+from app.player_analysis_v7.lifecycle import V7ReportLifecycle, analytical_identity
+from app.player_analysis_v7.public_projection import build_public_projection
 from app.player_analysis_v7.report_contract import (
     ArchetypeSection,
     Finding,
@@ -33,14 +46,22 @@ from app.player_analysis_v7.report_contract import (
     Recommendation,
     RecommendationObservation,
 )
+from app.storage.repository import InMemoryRepository
+from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
 
 def finding(key: str, section: str, z: float, reliability: float) -> Finding:
+    semantics = build_display_semantics().findings.get(key)
     return Finding(
         dimension_key=key,
         section=section,  # type: ignore[arg-type]
         direction="positive" if z >= 0 else "negative",
+        own_contrast_direction=(
+            "positive"
+            if semantics is not None and semantics.direction_source == "own_contrast_direction"
+            else None
+        ),
         z=z,
         reliability=reliability,
         score=abs(z) * reliability,
@@ -73,6 +94,10 @@ def provenance() -> V7Provenance:
         feature_version="v7-luna-b-features-1.0.0",
         inference_version="v7-luna-c-inference-1.0.0",
         owner_decisions_version="v7-owner-decisions-2026-09-06b",
+        descriptive_producer_version="v7-descriptive-facts-1.0.0",
+        display_semantics_version="v7-display-semantics-1.0.0",
+        public_projection_version="v7-public-projection-1.0.0",
+        reuse_status="generated",
     )
 
 
@@ -98,8 +123,27 @@ def archetype() -> ArchetypeSection:
 
 
 def payload(**overrides: Any) -> V7CapabilityPayload:
+    facts = DescriptiveFacts(
+        scope=ReportScope(
+            requested_window=TimeWindow(start=1756745426, end=1788281426),
+            observed_window=TimeWindow(start=1756745426, end=1788281426),
+            eligible_match_count=1180,
+            parsed_match_count=493,
+            acquired_match_count=1474,
+            acquisition_depth_limit=500,
+            coverage_status="complete",
+            coverage_boundary_reason="provider_reported_complete",
+            generated_at="2026-09-07T02:00:00Z",
+        ),
+        hero_cast=HeroCast(
+            heroes=[], missing_display_metadata_hero_ids=[], has_unique_most_played=False
+        ),
+    )
+    semantics = build_display_semantics()
     base: dict[str, Any] = {
         "metadata": metadata(),
+        "descriptive_facts": facts,
+        "display_semantics": semantics,
         "player_context": PlayerContext(
             dominant_mode="TURBO",
             rank_display=RankDisplay(
@@ -118,6 +162,16 @@ def payload(**overrides: Any) -> V7CapabilityPayload:
         "provenance": provenance(),
     }
     base.update(overrides)
+    base.setdefault(
+        "public_projection",
+        build_public_projection(
+            facts=base["descriptive_facts"],
+            semantics=base["display_semantics"],
+            findings=base["findings"],
+            archetype=base["archetype"],
+            dominant_mode=base["player_context"].dominant_mode,
+        ),
+    )
     return V7CapabilityPayload(**base)
 
 
@@ -294,8 +348,11 @@ def test_the_payload_is_json_safe() -> None:
 
 
 def test_an_internal_pseudonym_is_caught_at_the_payload_level() -> None:
+    leaky_finding = finding("vision_coverage", "what_is_good", 2.0, 0.9).model_copy(
+        update={"player_facing_question": "v7p_leak"}
+    )
     leaky = payload(
-        findings=[finding("v7p_leak", "what_is_good", 2.0, 0.9)],
+        findings=[leaky_finding],
     )
     with pytest.raises(ValueError, match="research pseudonym"):
         leaky.validate_payload()
@@ -309,5 +366,91 @@ def test_rank_display_survives_the_forbidden_field_scan() -> None:
     assert document["player_context"]["rank_display"]["start_rank_label"] == "Legend 3"
 
 
+def test_semantics_bind_all_shipping_dimensions_without_fake_unit_conversion() -> None:
+    semantics = build_display_semantics()
+    assert len(semantics.findings) == 16
+    assert len(semantics.recommendations) == 7
+    assert "decided-ahead" in semantics.findings["lead_retention"].exact_definition
+    assert "eighth item purchase" in semantics.findings["purchase_tempo"].exact_definition
+    assert (
+        semantics.findings["post_loss_requeue_latency"].numeric_conversion
+        == "omit_without_baseline"
+    )
+    assert semantics.findings["closer_vs_comeback"].direction_source == "own_contrast_direction"
+    note = semantics.recommendations["first_real_item_time"].measurement_note
+    assert note is not None and "not the first purchase" in note
+
+
+def test_population_direction_cannot_replace_own_contrast_direction() -> None:
+    contrast = finding("closer_vs_comeback", "response_to_a_loss", 2.0, 0.9).model_copy(
+        update={
+            "own_contrast_direction": "positive",
+            "estimate": PointEstimateWithInterval(point=-0.1, interval_low=-0.2, interval_high=0.0),
+        }
+    )
+    with pytest.raises(ValidationError, match="own contrast direction 'negative'"):
+        payload(findings=[contrast])
+
+
+def test_recommendation_copy_is_bound_to_the_registry() -> None:
+    rewritten = recommendation().model_copy(update={"recommendation_text": "Try to last-hit more."})
+    with pytest.raises(ValidationError, match="canonical registry"):
+        payload(recommendation=rewritten)
+
+
+def test_public_projection_never_contains_recommendation_or_private_provenance() -> None:
+    document = payload().public_projection.model_dump(mode="json")
+    assert document["selected_kind"] == "archetype"
+    assert document["dominant_mode"] == "TURBO"
+    assert "recommendation" not in json.dumps(document).lower()
+    assert "provenance" not in document
+
+
+def test_v7_lifecycle_coalesces_and_reuses_persisted_reports() -> None:
+    repository = InMemoryRepository()
+    lifecycle = V7ReportLifecycle(repository, versions={"analysis": "fixture-1"})
+    first, reused = lifecycle.locate_or_start(7, "fixture-player")
+    assert reused is False
+    joined, reused = lifecycle.locate_or_start(7, "fixture-player")
+    assert reused is True
+    assert joined.job_id == first.job_id
+    report_id = lifecycle.complete(first, payload())
+    reopened, reused = lifecycle.locate_or_start(7, "fixture-player")
+    assert reused is True
+    assert reopened.report_id == report_id
+    assert lifecycle.load(report_id) == payload()
+
+
+def test_analytical_identity_is_independent_of_mapping_order() -> None:
+    versions = {"features": "1", "inference": "1"}
+    assert analytical_identity(versions) == analytical_identity(
+        dict(reversed(list(versions.items())))
+    )
+
+
 def test_the_schema_version_is_pinned() -> None:
     assert payload().schema_version == V7_CAPABILITY_SCHEMA_VERSION
+
+
+def test_v7_persisted_report_route_is_typed_in_openapi() -> None:
+    route = next(item for item in router.routes if item.path == "/v1/v7/reports/{report_id}")
+    assert route.response_model is V7CapabilityPayload
+
+
+def test_v7_persisted_report_route_validates_and_sets_noindex() -> None:
+    repository = InMemoryRepository()
+    report_id = repository.save_report(
+        account_id=7,
+        data_cutoff=payload().metadata.window_end,
+        model_version="v7-fixture",
+        template_version=V7_CAPABILITY_SCHEMA_VERSION,
+        report=payload().model_dump(mode="json"),
+        evidence=[],
+    )
+    source = MappingSource(player={"profile": {"account_id": 7}}, matches=[], details={})
+    response = TestClient(
+        create_app(Settings(), source=source, repository=repository)
+    ).get(f"/v1/v7/reports/{report_id}")
+    assert response.status_code == 200
+    assert response.headers["x-robots-tag"] == "noindex, nofollow, noarchive"
+    assert response.json()["schema_version"] == V7_CAPABILITY_SCHEMA_VERSION

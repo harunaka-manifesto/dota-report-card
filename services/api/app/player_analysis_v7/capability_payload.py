@@ -24,6 +24,9 @@ from typing import Any, Literal
 from pydantic import Field, model_validator
 
 from app.player_analysis_v7.acquisition_policy import ACQUISITION_POLICY_VERSION
+from app.player_analysis_v7.descriptive import DescriptiveFacts
+from app.player_analysis_v7.display_semantics import DisplaySemantics
+from app.player_analysis_v7.public_projection import PublicProjection, build_public_projection
 from app.player_analysis_v7.report_contract import (
     ArchetypeSection,
     Finding,
@@ -38,8 +41,9 @@ from app.player_analysis_v7.research.ranking import (
     REPORT_SLOTS,
     SCORE_LINE,
 )
+from app.player_analysis_v7.research.recommendation import RECOMMENDATION_REGISTRY
 
-V7_CAPABILITY_SCHEMA_VERSION = "v7-capability-payload-1.0.0"
+V7_CAPABILITY_SCHEMA_VERSION = "v7-capability-payload-2.0.0"
 
 CapabilityKey = Literal[
     "findings",
@@ -240,26 +244,32 @@ class V7Provenance(PublicV7Model):
     inference_version: str = Field(min_length=1)
     acquisition_policy_version: str = Field(default=ACQUISITION_POLICY_VERSION, min_length=1)
     owner_decisions_version: str = Field(min_length=1)
+    report_contract_version: str = Field(default=V7_CAPABILITY_SCHEMA_VERSION, min_length=1)
+    descriptive_producer_version: str = Field(min_length=1)
+    display_semantics_version: str = Field(min_length=1)
+    public_projection_version: str = Field(min_length=1)
+    reuse_status: Literal["generated", "reused", "recomputed_from_stored_source"]
     validation_status: Literal["development", "sealed_validated"] = "development"
 
 
 class V7CapabilityPayload(PublicV7Model):
     """The complete V7 response.
 
-    ``supporting_facts`` is deliberately absent in this schema version. Nothing
-    in the backend computes history statistics, hero contrasts, death profiles
-    or telling-sign minutes today, and an empty bag would invite a design agent
-    to fill it. Adding one when a producer exists is an additive change.
+    Descriptive facts are typed separately from analytical Findings so a
+    frontend cannot mistake a calendar or hero count for statistical evidence.
     """
 
-    schema_version: Literal["v7-capability-payload-1.0.0"] = "v7-capability-payload-1.0.0"
+    schema_version: Literal["v7-capability-payload-2.0.0"] = "v7-capability-payload-2.0.0"
     metadata: ReportMetadata
+    descriptive_facts: DescriptiveFacts
+    display_semantics: DisplaySemantics
     player_context: PlayerContext
     findings: list[Finding] = Field(default_factory=list, max_length=REPORT_SLOTS)
     recommendation: Recommendation | None = None
     archetype: ArchetypeSection | None = None
     availability: dict[str, CapabilityAvailability]
     refusals: list[Refusal] = Field(default_factory=list)
+    public_projection: PublicProjection
     provenance: V7Provenance
 
     # -- individual invariants ------------------------------------------------
@@ -279,9 +289,7 @@ class V7CapabilityPayload(PublicV7Model):
 
     @model_validator(mode="after")
     def no_withheld_dimension_ships(self) -> V7CapabilityPayload:
-        leaked = sorted(
-            {f.dimension_key for f in self.findings} & WITHHELD_DIMENSIONS
-        )
+        leaked = sorted({f.dimension_key for f in self.findings} & WITHHELD_DIMENSIONS)
         if leaked:
             raise ValueError(
                 f"withheld dimension(s) {leaked} reached the payload. These estimate "
@@ -317,9 +325,7 @@ class V7CapabilityPayload(PublicV7Model):
 
     @model_validator(mode="after")
     def refusals_agree_with_availability(self) -> V7CapabilityPayload:
-        refused = {
-            key for key, entry in self.availability.items() if entry.status == "refused"
-        }
+        refused = {key for key, entry in self.availability.items() if entry.status == "refused"}
         listed = {refusal.capability for refusal in self.refusals}
         if refused != listed:
             raise ValueError(
@@ -412,6 +418,70 @@ class V7CapabilityPayload(PublicV7Model):
                 )
         return self
 
+    @model_validator(mode="after")
+    def semantic_bindings_are_canonical(self) -> V7CapabilityPayload:
+        for finding in self.findings:
+            semantics = self.display_semantics.findings.get(finding.dimension_key)
+            if semantics is None:
+                raise ValueError(f"finding {finding.dimension_key!r} has no display semantics")
+            if semantics.direction_source == "own_contrast_direction":
+                expected = (
+                    "positive"
+                    if finding.estimate.point > 0
+                    else "negative"
+                    if finding.estimate.point < 0
+                    else "zero"
+                )
+                if finding.own_contrast_direction != expected:
+                    raise ValueError(
+                        f"finding {finding.dimension_key!r} must carry own contrast "
+                        f"direction {expected!r}, independent of sign(z)"
+                    )
+        if self.recommendation is not None:
+            registered = RECOMMENDATION_REGISTRY.get(self.recommendation.dimension_key)
+            if registered is None or not registered.upstream or registered.outcome_contaminated:
+                raise ValueError("recommendation is not eligible under both registry rules")
+            if (
+                self.recommendation.recommendation_text != registered.recommendation
+                or self.recommendation.verification != registered.verification
+            ):
+                raise ValueError("recommendation copy must match the canonical registry exactly")
+        return self
+
+    @model_validator(mode="after")
+    def descriptive_and_public_views_agree(self) -> V7CapabilityPayload:
+        scope = self.descriptive_facts.scope
+        if self.metadata.matches_analysed != scope.eligible_match_count:
+            raise ValueError("metadata and descriptive eligible counts disagree")
+        if self.metadata.matches_with_event_detail != scope.parsed_match_count:
+            raise ValueError("metadata and descriptive parsed counts disagree")
+        expected = build_public_projection(
+            facts=self.descriptive_facts,
+            semantics=self.display_semantics,
+            findings=self.findings,
+            archetype=self.archetype,
+            dominant_mode=self.player_context.dominant_mode,
+        )
+        if self.public_projection != expected:
+            raise ValueError("public_projection is not the deterministic allowlisted projection")
+        versions = {
+            "schema_version": self.provenance.schema_version,
+            "report_contract_version": self.provenance.report_contract_version,
+            "descriptive_producer_version": self.provenance.descriptive_producer_version,
+            "display_semantics_version": self.provenance.display_semantics_version,
+            "public_projection_version": self.provenance.public_projection_version,
+        }
+        expected_versions = {
+            "schema_version": self.schema_version,
+            "report_contract_version": self.schema_version,
+            "descriptive_producer_version": self.descriptive_facts.version,
+            "display_semantics_version": self.display_semantics.version,
+            "public_projection_version": self.public_projection.version,
+        }
+        if versions != expected_versions:
+            raise ValueError("provenance versions disagree with the serialized capability payload")
+        return self
+
     # -- payload-level check --------------------------------------------------
 
     def validate_payload(self) -> V7CapabilityPayload:
@@ -453,8 +523,7 @@ def _assert_no_forbidden_field(node: Any, path: str = "") -> None:
                 for token in FORBIDDEN_FIELD_TOKENS:
                     if token in lowered:
                         raise ValueError(
-                            f"payload key {path + key!r} names the forbidden surface "
-                            f"{token!r}"
+                            f"payload key {path + key!r} names the forbidden surface {token!r}"
                         )
             _assert_no_forbidden_field(value, f"{path}{key}.")
     elif isinstance(node, list):

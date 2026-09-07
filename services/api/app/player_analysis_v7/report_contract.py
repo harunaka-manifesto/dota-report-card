@@ -220,6 +220,13 @@ class Finding(PublicV7Model):
     dimension_key: str = Field(min_length=1)
     section: FindingSectionKey
     direction: Direction
+    own_contrast_direction: Direction | None = Field(
+        default=None,
+        description=(
+            "Sign of the player's within-player treated-minus-control estimate. "
+            "Present for contrast dimensions; unlike direction, this is not sign(z)."
+        ),
+    )
     z: float
     reliability: float = Field(ge=0, le=1)
     score: float = Field(ge=0)
@@ -287,6 +294,13 @@ class Recommendation(PublicV7Model):
             "only a behaviour the player emits, never a result they receive, "
             "may be recommended. Fixed True; a dimension that fails this rule "
             "must not be represented as a Recommendation at all."
+        ),
+    )
+    outcome_contaminated: Literal[False] = Field(
+        default=False,
+        description=(
+            "Attests the recommendation registry's independent modal-sign rule. "
+            "A contaminated gap cannot be represented as a Recommendation."
         ),
     )
     observation: RecommendationObservation

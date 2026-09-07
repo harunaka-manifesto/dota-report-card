@@ -1,0 +1,48 @@
+{
+  "schema_version": "v7-master-plan-fixtures-1.0.0",
+  "synthetic": true,
+  "states": [
+    {
+      "name": "full-window-tied-heroes-qualifying-activity",
+      "coverage_status": "complete",
+      "eligible_match_count": 6,
+      "parsed_match_count": 6,
+      "heroes": [
+        {"hero_id": 1, "display_name": "Fixture Hero A", "matches": 3, "tied": true},
+        {"hero_id": 2, "display_name": "Fixture Hero B", "matches": 3, "tied": true}
+      ],
+      "activity_claim_status": "busiest",
+      "share_safe": true
+    },
+    {
+      "name": "truncated-recorded-only-missing-hero-metadata",
+      "coverage_status": "truncated",
+      "eligible_match_count": 6,
+      "parsed_match_count": 2,
+      "missing_display_metadata_hero_ids": [3],
+      "activity_claim_status": "recorded",
+      "share_safe": true
+    },
+    {
+      "name": "adjacent-month-leader-change",
+      "coverage_status": "complete",
+      "earlier": {"month": "2026-02", "hero_id": 1, "games": 10, "leader_count": 6},
+      "later": {"month": "2026-03", "hero_id": 2, "games": 10, "leader_count": 6},
+      "share_safe": true
+    },
+    {
+      "name": "completed-loss-run-private",
+      "loss_count": 3,
+      "followed_immediately_by_recorded_win": true,
+      "visibility": "private",
+      "share_safe": false
+    },
+    {
+      "name": "thin-and-unresolved-omissions",
+      "activity_memory": null,
+      "monthly_hero_contrast": null,
+      "completed_loss_run": null,
+      "share_safe": false
+    }
+  ]
+}

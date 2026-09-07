@@ -1,5 +1,25 @@
 # V7 backend capability manifest
 
+## 2026-09-07 runtime completion addendum
+
+The following former Tier-B/product-plan ingredients now have deterministic
+backend producers and are **factual descriptive derivations**, not statistical
+Findings: requested/observed report scope, eligible/parsed/acquired counts,
+coverage status, named hero cast with honest ties, UTC seven-day activity
+memory, qualifying adjacent-month hero contrast, completed private loss run,
+canonical display semantics, and an allowlisted public projection.
+
+They are exposed by `v7-capability-payload-2.0.0`. Persisted reads are typed at
+`GET /v1/v7/reports/{report_id}`, and repository reuse/coalescing is implemented
+by `V7ReportLifecycle`.
+
+End-to-end analytical generation is **not ready**. The frozen population
+artifact lacks the fitted context-projection effects required to transform a
+new player's opportunities onto the reviewed `mu`/`tau` scale. See
+`docs/evidence/v7-runtime-context-projection-blocker-2026-09-07.md`. Contract
+shape and deterministic producers must not be described as a working Finding,
+Recommendation, or Archetype runtime until that blocker is resolved.
+
 ```text
 PHASE: V7_BE_CAPABILITY_MANIFEST
 STATUS: inventory of measured, owner-approved development capability

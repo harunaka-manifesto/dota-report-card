@@ -1,8 +1,8 @@
 # V7 runtime capability payload — specification
 
 ```text
-STATUS: specification for implementation
-SCHEMA: v7-capability-payload-1.0.0
+STATUS: deterministic contract implemented; analytical generation blocked
+SCHEMA: v7-capability-payload-2.0.0
 ```
 
 The contract the V7 runtime returns. **Capability-oriented, not screen-oriented**:
@@ -37,13 +37,19 @@ plus, per mode stratum, the archetype cuts (`tempo_low`, `tempo_high`,
 
 Rules:
 
-1. The artifact is **generated, not hand-written**, from the same code paths the
-   research evidence came from. A test regenerates and diffs it.
+1. The artifact is **generated, not hand-written**, from committed reviewed
+   evidence. A test rebuilds and diffs it without the lost Pass-1 source corpus.
 2. Its version is part of provenance. A payload computed against different
    population parameters is not comparable to one computed against these.
 3. Changing it is an analysis-version change and invalidates persisted results.
 4. It is **never** refitted from live pilot users during the pilot — that would
    silently move everyone's baseline and make two reports incomparable.
+
+The current artifact does not include the fitted categorical context effects
+needed to residualize a new player's opportunities. `mu`, `tau`, and dependence
+inflation alone are insufficient. End-to-end analytical generation therefore
+fails closed pending the owner decision recorded in
+`docs/evidence/v7-runtime-context-projection-blocker-2026-09-07.md`.
 
 ## 2. Payload shape
 
@@ -53,22 +59,23 @@ Reuse the existing typed models where they already exist and are approved:
 
 ```text
 V7CapabilityPayload
-  schema_version : str            # "v7-capability-payload-1.0.0"
+  schema_version : str            # "v7-capability-payload-2.0.0"
   metadata       : ReportMetadata
+  descriptive_facts : DescriptiveFacts
+  display_semantics : DisplaySemantics
   player_context : PlayerContext
   findings       : list[Finding]           # 0..5, backend-selected and gated
   recommendation : Recommendation | None
   archetype      : ArchetypeSection | None
   availability   : dict[CapabilityKey, CapabilityAvailability]
   refusals       : list[Refusal]
+  public_projection : PublicProjection
   provenance     : V7Provenance
 ```
 
-**`supporting_facts` is deliberately absent in 1.0.0.** The conceptual shape in
-the phase brief includes it, but nothing in the backend computes history
-statistics, hero contrasts, death profiles or telling-sign minutes today. An
-empty bag would invite a design agent to fill it. When a producer exists, it is
-an additive schema change.
+V2 adds typed deterministic descriptive facts, canonical display semantics and
+a separately allowlisted public projection. It does not activate analytical
+generation; see the context-projection blocker evidence.
 
 ### ReportMetadata
 `generated_at` (ISO-8601 UTC), `window_days`, `window_start`, `window_end`

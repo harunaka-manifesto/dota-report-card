@@ -91,3 +91,25 @@ by the orchestrator from the integrated worktree before it is treated as done.
 W2 was verified this way: the rank fence, the content-catalog drift check and
 the absence of the old package were all re-run independently of the worker's
 report.
+
+## 2026-09-07 resumed completion state
+
+Recovered clean branch `v7/post-corpus-finding-research` at `8521b90`; no later
+worker commit or uncommitted worker edit existed. W3/W4 and corpus durability
+had landed. W5-W10 had not.
+
+Implemented the non-analytical assembly boundary, V2 capability contract,
+deterministic P0/P1 facts, canonical display/copy semantics, public projection,
+typed persisted-report read, and repository lifecycle reuse/coalescing. W5 is
+complete for assembly of precomputed analytics; W6 is partial (focused safe
+fixtures/tests); W7 is partial (typed persisted read, no generation route); W8
+is partial (assembled payload persistence/reopen and coalescing, but no source
+recompute pipeline); W9 remains pending; W10
+is complete with an explicit blocked status.
+
+End-to-end W5/W7 cannot honestly complete because the frozen population
+artifact omits fitted context-projection effects. The exact failure and owner
+decision are recorded in
+`docs/evidence/v7-runtime-context-projection-blocker-2026-09-07.md`. No
+single-player substitute, refit, provider call, or analytical-method change was
+made.

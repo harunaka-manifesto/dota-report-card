@@ -36,6 +36,10 @@ from app.ingestion.summary_history_contract import (
     normalize_canonical_summary_history,
 )
 from app.ingestion.summary_normalize import derive_player_won
+from app.player_analysis_v7.capability_payload import (
+    V7_CAPABILITY_SCHEMA_VERSION,
+    V7CapabilityPayload,
+)
 from app.share.service import (
     RENDERER_VERSION,
     V6_RENDERER_VERSION,
@@ -911,6 +915,24 @@ async def get_report(report_id: str, request: Request) -> Response:
         content=report,
         headers={"X-Robots-Tag": "noindex, nofollow, noarchive"},
     )
+
+
+@router.get("/v7/reports/{report_id}", response_model=V7CapabilityPayload)
+async def get_v7_report(
+    report_id: str, request: Request, response: Response
+) -> V7CapabilityPayload:
+    """Load a persisted V7 contract through a typed, fail-closed boundary."""
+
+    report = _service(request).repository.get_report(report_id)
+    if report is None or report.get("schema_version") != V7_CAPABILITY_SCHEMA_VERSION:
+        raise ReportNotFound("V7 report was not found")
+    document = dict(report)
+    document.pop("report_id", None)
+    metadata = dict(document.get("metadata") or {})
+    metadata.pop("expires_at", None)
+    document["metadata"] = metadata
+    response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+    return V7CapabilityPayload.model_validate(document).validate_payload()
 
 
 @router.get("/reports/{report_id}/evidence/{insight_id}")

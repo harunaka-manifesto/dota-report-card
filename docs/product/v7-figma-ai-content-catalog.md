@@ -1,5 +1,19 @@
 # V7 content catalog for design
 
+## Runtime addendum — 2026-09-07
+
+Frontend may now consume factual descriptive atoms for honest report scope and
+counts, named hero usage with tie state, UTC activity memory, qualifying
+adjacent-month hero leaders, and a private completed loss sequence. It must use
+the backend's `display_semantics` and `public_projection` rather than deriving
+units/directions or sanitizing the private report itself.
+
+These additions are descriptive, not new statistical Findings. End-to-end V7
+analytical generation remains blocked by the missing frozen context-projection
+effects documented in
+`docs/evidence/v7-runtime-context-projection-blocker-2026-09-07.md`; designs may
+use safe fixtures but must not imply that live analytical generation exists.
+
 **For a design agent working with the owner in Figma.** You do not need to read
 the statistics repository. This file is the complete set of ingredients the V7
 backend can supply, described as designable content atoms.
