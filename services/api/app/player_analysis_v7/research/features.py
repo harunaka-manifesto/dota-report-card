@@ -166,17 +166,61 @@ def duration_bucket(row: dict[str, Any]) -> str:
     return f"D{len(edges)}"
 
 
-def base_ctx(row: dict[str, Any]) -> list[tuple[str, str]]:
-    """Context factors available for *every* product-context row."""
+def _base_context_available(row: dict[str, Any], *, require_side: bool = True) -> bool:
+    """Whether the factors used by ``base_ctx`` have known meanings.
 
+    ``history_rows`` intentionally retains product-context matches whose
+    nullable result/side/hero fields are unknown so that chronology is not
+    rewritten.  A retained row is not automatically a valid observation,
+    though.  In particular, ``None`` must never become the string ``"None"``
+    or a falsey side must never become Dire.  Callers use this gate before
+    constructing an opportunity; it is deliberately a per-observation gate,
+    not a frame filter, so unrelated capabilities can continue.
+
+    ``duration_tempo`` does not condition on side and therefore asks for the
+    narrower ``require_side=False`` gate.  Its result arm is gated separately
+    by the extractor that actually uses it.
+    """
+
+    if mode_stratum(row) == "UNKNOWN":
+        return False
+    if row.get("lobby_type_native") in (None, "", "UNKNOWN"):
+        return False
+    if row.get("duration_seconds") is None:
+        return False
+    if row.get("hero_id") is None:
+        return False
+    if require_side and not isinstance(row.get("is_radiant"), bool):
+        return False
+    return True
+
+
+def base_ctx(row: dict[str, Any]) -> list[tuple[str, str]]:
+    """Build the frozen context shape without assigning meaning to unknowns.
+
+    ``None`` is represented by the explicit level ``"UNKNOWN"``.  Audited
+    extractors gate rows before emitting an opportunity; retaining the marker
+    here keeps direct callers from silently turning an unknown hero into a
+    known hero or an unknown side into Dire.
+    """
+
+    hero_id = row.get("hero_id")
+    is_radiant = row.get("is_radiant")
+    side = "R" if is_radiant is True else "D" if is_radiant is False else "UNKNOWN"
     return [
         ("mode", mode_stratum(row)),
         ("patch", str(row.get("game_version_id"))),
-        ("hero", str(row.get("hero_id"))),
+        ("hero", str(hero_id) if hero_id is not None else "UNKNOWN"),
         ("duration", duration_bucket(row)),
-        ("side", "R" if row.get("is_radiant") else "D"),
+        ("side", side),
         ("lobby", str(row.get("lobby_type_native"))),
     ]
+
+
+def _outcome_known(row: dict[str, Any]) -> bool:
+    """Whether a canonical match result is observed rather than unknown."""
+
+    return isinstance(row.get("is_victory"), bool)
 
 
 def role_ctx(row: dict[str, Any]) -> list[tuple[str, str]]:
@@ -224,11 +268,18 @@ def _transitions(frame: PlayerFrame) -> Iterator[tuple[dict[str, Any], dict[str,
 def post_loss_next_outcome(frame: PlayerFrame) -> list[Opportunity]:
     out = []
     for current, following in _transitions(frame):
-        arm = "loss" if not current["is_victory"] else "win"
+        if (
+            not _outcome_known(current)
+            or not _outcome_known(following)
+            or not _base_context_available(following)
+        ):
+            continue
+        ctx = base_ctx(following)
+        arm = "loss" if current["is_victory"] is False else "win"
         out.append(
             Opportunity(
-                value=1.0 if following["is_victory"] else 0.0,
-                ctx=tuple(base_ctx(following)),
+                value=1.0 if following["is_victory"] is True else 0.0,
+                ctx=tuple(ctx),
                 arm=arm,
             )
         )
@@ -238,12 +289,15 @@ def post_loss_next_outcome(frame: PlayerFrame) -> list[Opportunity]:
 def post_loss_requeue_latency(frame: PlayerFrame) -> list[Opportunity]:
     out = []
     for current, following in _transitions(frame):
+        if not _outcome_known(current) or not _base_context_available(current):
+            continue
+        ctx = base_ctx(current)
         gap = max(following["started_at"] - current["ended_at"], 1)
         out.append(
             Opportunity(
                 value=math.log(gap),
-                ctx=tuple(base_ctx(current)),
-                arm="loss" if not current["is_victory"] else "win",
+                ctx=tuple(ctx),
+                arm="loss" if current["is_victory"] is False else "win",
             )
         )
     return out
@@ -262,11 +316,14 @@ def post_loss_session_continuation(frame: PlayerFrame) -> list[Opportunity]:
                 # Right-censored: we cannot know whether they would have
                 # continued after the last observed match.
                 continue
+            if not _outcome_known(row) or not _base_context_available(row):
+                continue
+            ctx = base_ctx(row)
             out.append(
                 Opportunity(
                     value=1.0 if continued else 0.0,
-                    ctx=tuple(base_ctx(row) + [("hour", str(_hour_of_day(row) // 4))]),
-                    arm="loss" if not row["is_victory"] else "win",
+                    ctx=tuple(ctx + [("hour", str(_hour_of_day(row) // 4))]),
+                    arm="loss" if row["is_victory"] is False else "win",
                 )
             )
     return out
@@ -275,11 +332,19 @@ def post_loss_session_continuation(frame: PlayerFrame) -> list[Opportunity]:
 def post_loss_hero_switch(frame: PlayerFrame) -> list[Opportunity]:
     out = []
     for current, following in _transitions(frame):
+        if (
+            not _outcome_known(current)
+            or current.get("hero_id") is None
+            or following.get("hero_id") is None
+            or not _base_context_available(current)
+        ):
+            continue
+        ctx = base_ctx(current)
         out.append(
             Opportunity(
                 value=0.0 if following["hero_id"] == current["hero_id"] else 1.0,
-                ctx=tuple(base_ctx(current)),
-                arm="loss" if not current["is_victory"] else "win",
+                ctx=tuple(ctx),
+                arm="loss" if current["is_victory"] is False else "win",
             )
         )
     return out
@@ -288,11 +353,16 @@ def post_loss_hero_switch(frame: PlayerFrame) -> list[Opportunity]:
 def post_loss_mode_switch(frame: PlayerFrame) -> list[Opportunity]:
     out = []
     for current, following in _transitions(frame):
+        if not _outcome_known(current) or not _base_context_available(current):
+            continue
+        ctx = base_ctx(current)
+        if mode_stratum(following) == "UNKNOWN":
+            continue
         out.append(
             Opportunity(
                 value=0.0 if mode_stratum(following) == mode_stratum(current) else 1.0,
-                ctx=tuple(base_ctx(current)),
-                arm="loss" if not current["is_victory"] else "win",
+                ctx=tuple(ctx),
+                arm="loss" if current["is_victory"] is False else "win",
             )
         )
     return out
@@ -301,11 +371,14 @@ def post_loss_mode_switch(frame: PlayerFrame) -> list[Opportunity]:
 def post_loss_risk_shift(frame: PlayerFrame) -> list[Opportunity]:
     out = []
     for current, following in _transitions(frame):
+        if not _outcome_known(current) or not _base_context_available(following):
+            continue
+        ctx = base_ctx(following)
         out.append(
             Opportunity(
                 value=per_ten_minutes(following["deaths"], following),
-                ctx=tuple(base_ctx(following)),
-                arm="loss" if not current["is_victory"] else "win",
+                ctx=tuple(ctx),
+                arm="loss" if current["is_victory"] is False else "win",
             )
         )
     return out
@@ -472,11 +545,18 @@ def hero_novelty(frame: PlayerFrame) -> list[Opportunity]:
 
     last_seen: dict[int, int] = {}
     out = []
-    for index, row in enumerate(frame.rows):
-        if index < 30:
-            last_seen[row["hero_id"]] = row["started_at"]
+    observed_matches = 0
+    for row in frame.rows:
+        hero_id = row.get("hero_id")
+        if hero_id is None or not _base_context_available(row, require_side=False):
+            # Unknown hero IDs cannot be a hero identity, and must not consume
+            # the causal warm-up or become the key ``None`` in the memory.
             continue
-        previous = last_seen.get(row["hero_id"])
+        if observed_matches < 30:
+            last_seen[hero_id] = row["started_at"]
+            observed_matches += 1
+            continue
+        previous = last_seen.get(hero_id)
         novel = previous is None or row["started_at"] - previous > NOVELTY_DAYS * 86400
         out.append(
             Opportunity(
@@ -488,7 +568,8 @@ def hero_novelty(frame: PlayerFrame) -> list[Opportunity]:
                 ),
             )
         )
-        last_seen[row["hero_id"]] = row["started_at"]
+        last_seen[hero_id] = row["started_at"]
+        observed_matches += 1
     return out
 
 
@@ -496,19 +577,26 @@ def _comfort_arms(frame: PlayerFrame, warmup: int = 50) -> Iterator[tuple[str, d
     """Causal comfort-pool membership: counted from strictly prior matches."""
 
     counts: dict[int, int] = {}
-    for index, row in enumerate(frame.rows):
-        if index >= warmup:
+    observed_matches = 0
+    for row in frame.rows:
+        hero_id = row.get("hero_id")
+        if hero_id is None:
+            continue
+        if observed_matches >= warmup:
             ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
             pool = {hero for hero, _ in ranked[:COMFORT_POOL_SIZE]}
-            yield ("comfort" if row["hero_id"] in pool else "stretch"), row
-        counts[row["hero_id"]] = counts.get(row["hero_id"], 0) + 1
+            yield ("comfort" if hero_id in pool else "stretch"), row
+        counts[hero_id] = counts.get(hero_id, 0) + 1
+        observed_matches += 1
 
 
 def transfer_outcome(frame: PlayerFrame) -> list[Opportunity]:
-    return [
-        Opportunity(1.0 if row["is_victory"] else 0.0, tuple(base_ctx(row)), arm)
-        for arm, row in _comfort_arms(frame)
-    ]
+    out = []
+    for arm, row in _comfort_arms(frame):
+        if not _outcome_known(row):
+            continue
+        out.append(Opportunity(1.0 if row["is_victory"] is True else 0.0, tuple(base_ctx(row)), arm))
+    return out
 
 
 def transfer_activity(frame: PlayerFrame) -> list[Opportunity]:
@@ -556,19 +644,25 @@ def side_sensitivity(frame: PlayerFrame) -> list[Opportunity]:
 
 
 def duration_tempo(frame: PlayerFrame) -> list[Opportunity]:
-    return [
-        Opportunity(
-            math.log(max(row["duration_seconds"], 1)),
-            (
-                ("mode", mode_stratum(row)),
-                ("patch", str(row.get("game_version_id"))),
-                ("hero", str(row.get("hero_id"))),
-                ("lobby", str(row.get("lobby_type_native"))),
-                ("result", "W" if row["is_victory"] else "L"),
-            ),
+    out = []
+    for row in frame.rows:
+        if not _outcome_known(row):
+            continue
+        if not _base_context_available(row, require_side=False):
+            continue
+        out.append(
+            Opportunity(
+                math.log(max(row["duration_seconds"], 1)),
+                (
+                    ("mode", mode_stratum(row)),
+                    ("patch", str(row.get("game_version_id"))),
+                    ("hero", str(row["hero_id"])),
+                    ("lobby", str(row["lobby_type_native"])),
+                    ("result", "W" if row["is_victory"] is True else "L"),
+                ),
+            )
         )
-        for row in frame.rows
-    ]
+    return out
 
 
 # ---------------------------------------------------------------------------

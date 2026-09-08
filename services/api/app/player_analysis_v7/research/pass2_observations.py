@@ -72,6 +72,26 @@ def _self(row: Row) -> Mapping[str, Any] | None:
     return self_ if isinstance(self_, Mapping) else None
 
 
+def _pass2_context_available(row: Row) -> bool:
+    """Reject explicitly unavailable identity fields before projection.
+
+    The deep normalizer includes nullable ``hero_id`` and ``is_radiant`` keys.
+    A row that omits either key is equally unable to support the corresponding
+    context level, so it is unavailable rather than an ``UNKNOWN`` projection
+    level.
+    """
+
+    self_ = _self(row)
+    if self_ is None:
+        return False
+    if "hero_id" not in self_ or self_.get("hero_id") is None:
+        return False
+    side = self_.get("is_radiant")
+    if "is_radiant" not in self_ or not isinstance(side, bool):
+        return False
+    return True
+
+
 def pass2_ctx(row: Row) -> tuple[tuple[str, str], ...]:
     """Context factors for one Pass-2 row.
 
@@ -101,6 +121,8 @@ def pass2_ctx(row: Row) -> tuple[tuple[str, str], ...]:
 def deaths_alone_share(rows: Sequence[Row]) -> list[Opportunity]:
     out: list[Opportunity] = []
     for row in rows:
+        if not _pass2_context_available(row):
+            continue
         share = pt.deaths_alone_share(row)
         if share is None:
             continue
@@ -113,8 +135,12 @@ def deaths_alone_share(rows: Sequence[Row]) -> list[Opportunity]:
 # ---------------------------------------------------------------------------
 
 
-def _enemy_tower_fell_soon_after(row: Row, is_radiant: bool, fight_minute: int) -> bool:
-    tower_deaths = row.get("tower_deaths") or []
+def _enemy_tower_fell_soon_after(
+    row: Row, is_radiant: bool, fight_minute: int
+) -> bool | None:
+    tower_deaths = row.get("tower_deaths")
+    if tower_deaths is None:
+        return None
     window = {fight_minute + 1, fight_minute + 2}
     for event in tower_deaths:
         died_is_radiant = event.get("is_radiant")
@@ -131,6 +157,8 @@ def _enemy_tower_fell_soon_after(row: Row, is_radiant: bool, fight_minute: int) 
 def fight_conversion(rows: Sequence[Row]) -> list[Opportunity]:
     out: list[Opportunity] = []
     for row in rows:
+        if not _pass2_context_available(row):
+            continue
         self_ = _self(row)
         if self_ is None:
             continue
@@ -149,13 +177,16 @@ def fight_conversion(rows: Sequence[Row]) -> list[Opportunity]:
             continue
         own_kills, enemy_kills = pair
         ctx = pass2_ctx(row)
-        for minute in range(len(own_kills)):
-            own = own_kills[minute] or 0
-            enemy = enemy_kills[minute] if minute < len(enemy_kills) else 0
-            enemy = enemy or 0
+        for minute in range(min(len(own_kills), len(enemy_kills))):
+            own = own_kills[minute]
+            enemy = enemy_kills[minute]
+            if own is None or enemy is None:
+                continue
             if own < pt.FIGHT_KILL_THRESHOLD or enemy != 0:
                 continue
             converted = _enemy_tower_fell_soon_after(row, is_radiant, minute)
+            if converted is None:
+                continue
             out.append(Opportunity(1.0 if converted else 0.0, ctx))
     return out
 
@@ -169,6 +200,8 @@ def spike_usage(rows: Sequence[Row]) -> list[Opportunity]:
     vocabulary = _item_vocabulary()
     out: list[Opportunity] = []
     for row in rows:
+        if not _pass2_context_available(row):
+            continue
         purchase_time = _first_real_item_purchase_time(row, vocabulary)
         if purchase_time is None:
             continue
@@ -187,6 +220,8 @@ def spike_usage(rows: Sequence[Row]) -> list[Opportunity]:
 def death_clustering(rows: Sequence[Row]) -> list[Opportunity]:
     out: list[Opportunity] = []
     for row in rows:
+        if not _pass2_context_available(row):
+            continue
         self_ = _self(row)
         if self_ is None:
             continue
@@ -210,6 +245,8 @@ def death_clustering(rows: Sequence[Row]) -> list[Opportunity]:
 def lane_to_map(rows: Sequence[Row]) -> list[Opportunity]:
     out: list[Opportunity] = []
     for row in rows:
+        if not _pass2_context_available(row):
+            continue
         self_ = _self(row)
         if self_ is None:
             continue
@@ -246,6 +283,8 @@ def lane_to_map(rows: Sequence[Row]) -> list[Opportunity]:
 def closer_vs_comeback(rows: Sequence[Row]) -> list[Opportunity]:
     out: list[Opportunity] = []
     for row in rows:
+        if not _pass2_context_available(row):
+            continue
         self_ = _self(row)
         if self_ is None:
             continue
@@ -280,7 +319,11 @@ def vision_coverage(rows: Sequence[Row]) -> list[Opportunity]:
     ever_warded = False
     out: list[Opportunity] = []
     for row in rows:
+        if not _pass2_context_available(row):
+            continue
         observer_wards = _observer_ward_events(row)
+        if observer_wards is None:
+            continue
         if observer_wards:
             ever_warded = True
         coverage = _match_vision_coverage(row, observer_wards)
@@ -298,6 +341,8 @@ def vision_coverage(rows: Sequence[Row]) -> list[Opportunity]:
 def lane_vs_jungle_share(rows: Sequence[Row]) -> list[Opportunity]:
     out: list[Opportunity] = []
     for row in rows:
+        if not _pass2_context_available(row):
+            continue
         split = pt.lane_vs_jungle_gold(row)
         if split is None:
             continue

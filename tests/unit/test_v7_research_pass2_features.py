@@ -41,6 +41,7 @@ def row(**overrides: Any) -> dict[str, Any]:
         "top_lane_outcome_native": None,
         "account_pseudonym": "acct-1",
         "self": {
+            "hero_id": 1,
             "is_radiant": True,
             "is_victory": True,
             "leaver_status_native": "NONE",
@@ -172,6 +173,14 @@ def test_fight_conversion_requires_zero_enemy_kills_that_minute() -> None:
 
 def test_fight_conversion_below_minimum_support_is_none() -> None:
     data = [_fight_conversion_row(converts=True, match_id=i) for i in range(MIN_OBSERVATIONS - 1)]
+    assert fight_conversion(data) is None
+
+
+def test_fight_conversion_omits_matches_without_tower_evidence() -> None:
+    data = [
+        _fight_conversion_row(converts=True, match_id=i) | {"tower_deaths": None}
+        for i in range(MIN_OBSERVATIONS)
+    ]
     assert fight_conversion(data) is None
 
 
@@ -336,6 +345,19 @@ def test_lane_to_map_below_minimum_support_on_either_side_is_none() -> None:
     assert lane_to_map(data) is None
 
 
+def test_lane_vs_jungle_share_does_not_fill_missing_lane_gold_with_zero() -> None:
+    data = rows(
+        MIN_OBSERVATIONS,
+        self={
+            "farm_distribution": {
+                "creep_location": None,
+                "neutral_location": [{"gold": 100}],
+            }
+        },
+    )
+    assert lane_vs_jungle_share(data) is None
+
+
 # --------------------------------------------------------------------------
 # 6. closer_vs_comeback
 # --------------------------------------------------------------------------
@@ -406,6 +428,18 @@ def test_vision_coverage_ignores_sentry_wards() -> None:
         self={"events": {"wards": [{"time": 0, "type": 1}]}},  # sentry only
     )
     assert vision_coverage(data) is None
+
+
+def test_vision_coverage_omits_unavailable_ward_streams() -> None:
+    warded = rows(
+        MIN_OBSERVATIONS,
+        duration_seconds=600,
+        self={"events": {"wards": [{"time": 0, "type": 0}]}},
+    )
+    unavailable = row(match_id=999, self={"events": {"wards": None}})
+    result = vision_coverage([*warded, unavailable])
+    assert result is not None
+    assert result.primary.observations == MIN_OBSERVATIONS
 
 
 def test_vision_coverage_includes_zero_coverage_matches_once_player_has_warded() -> None:

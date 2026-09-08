@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import dataclasses
+
 from app.analysis.source import MappingSource
 from app.core.config import Settings
 from app.main import create_app
+from app.player_analysis_v7.runtime import history_rows
 from app.player_analysis_v7.service import DEEP_CACHE_ENDPOINT, V7RuntimeService
 from app.providers.base import (
     CanonicalProfile,
@@ -80,6 +83,18 @@ def _deep_row() -> dict[str, object]:
             "farm_distribution": None,
         },
     }
+
+
+def test_history_rows_retains_nullable_identity_without_coercion() -> None:
+    source = _history()
+    unknown = dataclasses.replace(source.matches[0], won=None, side=None, hero_id=None)
+    retained = history_rows(dataclasses.replace(source, matches=(unknown,)))
+
+    assert len(retained) == 1
+    assert retained[0]["is_victory"] is None
+    assert retained[0]["is_radiant"] is None
+    assert retained[0]["hero_id"] is None
+    assert "did_radiant_win" not in retained[0]
 
 
 class _Provider:

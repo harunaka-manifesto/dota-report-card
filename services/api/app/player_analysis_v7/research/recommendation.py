@@ -139,6 +139,8 @@ def first_real_item_time(row: Row) -> float | None:
 
 def first_ward_time(row: Row) -> float | None:
     wards = _observer_ward_events(row)
+    if wards is None:
+        return None
     times = [ward["time"] for ward in wards if ward.get("time") is not None]
     return float(min(times)) if times else None
 
@@ -205,13 +207,18 @@ def fight_conversion(row: Row) -> float | None:
         return None
     own_kills, enemy_kills = pair
     converted = total = 0
-    for minute in range(len(own_kills)):
-        own = own_kills[minute] or 0
-        enemy = enemy_kills[minute] if minute < len(enemy_kills) else 0
-        if own < pt.FIGHT_KILL_THRESHOLD or (enemy or 0) != 0:
+    for minute in range(min(len(own_kills), len(enemy_kills))):
+        own = own_kills[minute]
+        enemy = enemy_kills[minute]
+        if own is None or enemy is None:
+            continue
+        if own < pt.FIGHT_KILL_THRESHOLD or enemy != 0:
+            continue
+        tower_converted = _enemy_tower_fell_soon_after(row, is_radiant, minute)
+        if tower_converted is None:
             continue
         total += 1
-        if _enemy_tower_fell_soon_after(row, is_radiant, minute):
+        if tower_converted:
             converted += 1
     return converted / total if total else None
 

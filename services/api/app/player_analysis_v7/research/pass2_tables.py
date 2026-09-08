@@ -334,7 +334,7 @@ def team_lead_curve(row: dict[str, Any]) -> list[int] | None:
     return pass1_tables.player_networth_lead(adapter)
 
 
-def fight_minutes(row: dict[str, Any]) -> frozenset[int]:
+def fight_minutes(row: dict[str, Any]) -> frozenset[int] | None:
     """Minute indices where either team scored >= FIGHT_KILL_THRESHOLD kills.
 
     Uses the match-level ``radiant_kills`` / ``dire_kills`` arrays, which
@@ -342,23 +342,27 @@ def fight_minutes(row: dict[str, Any]) -> frozenset[int]:
     (``tables.minute_grid_length``), not the Pass-2-specific per-player
     grid from rule 1.
 
-    Fails closed if either kill array is missing: a fight-minute
-    computation with no kill data would silently mean "no fights anywhere,"
-    which is a different, false claim.
+    Returns ``None`` if either kill array is unavailable.  A fight-minute
+    computation with no kill data must not silently mean "no fights anywhere,"
+    which is a different, false claim.  Malformed non-list arrays still raise.
     """
 
     radiant = row.get("radiant_kills")
     dire = row.get("dire_kills")
     if radiant is None or dire is None:
-        raise ValueError(
-            "pass2 row is missing radiant_kills/dire_kills; cannot determine fight minutes"
-        )
-    length = pass1_tables.minute_grid_length(row)
-    fights = set()
+        return None
+    if not isinstance(radiant, list) or not isinstance(dire, list):
+        raise ValueError("pass2 row has malformed radiant_kills/dire_kills arrays")
+    # A shorter provider series has no value for the missing tail.  Do not
+    # pad it with zero kills: that would manufacture non-fight minutes.
+    length = min(pass1_tables.minute_grid_length(row), len(radiant), len(dire))
+    fights: set[int] = set()
     for index in range(length):
-        r = radiant[index] if index < len(radiant) else 0
-        d = dire[index] if index < len(dire) else 0
-        if (r or 0) >= FIGHT_KILL_THRESHOLD or (d or 0) >= FIGHT_KILL_THRESHOLD:
+        r = radiant[index]
+        d = dire[index]
+        if r is None or d is None:
+            continue
+        if r >= FIGHT_KILL_THRESHOLD or d >= FIGHT_KILL_THRESHOLD:
             fights.add(index)
     return frozenset(fights)
 
@@ -395,6 +399,8 @@ def deaths_alone_share(row: dict[str, Any]) -> float | None:
         return None
 
     fights = fight_minutes(row)
+    if fights is None:
+        return None
     length = pass1_tables.minute_grid_length(row)
     if length == 0:
         raise ValueError(
@@ -466,8 +472,17 @@ def lane_vs_jungle_gold(row: dict[str, Any]) -> tuple[int, int] | None:
         return None
     if not isinstance(farm, Mapping):
         raise ValueError("pass2 row has a malformed 'farm_distribution' block")
-    lane_gold = sum((bucket.get("gold") or 0) for bucket in (farm.get("creep_location") or []))
-    jungle_gold = sum((bucket.get("gold") or 0) for bucket in (farm.get("neutral_location") or []))
+    lane_buckets = farm.get("creep_location")
+    jungle_buckets = farm.get("neutral_location")
+    if lane_buckets is None or jungle_buckets is None:
+        return None
+    if not isinstance(lane_buckets, list) or not isinstance(jungle_buckets, list):
+        raise ValueError("pass2 farm distribution locations must be lists")
+    buckets = [*lane_buckets, *jungle_buckets]
+    if any(not isinstance(bucket, Mapping) or bucket.get("gold") is None for bucket in buckets):
+        return None
+    lane_gold = sum(bucket["gold"] for bucket in lane_buckets)
+    jungle_gold = sum(bucket["gold"] for bucket in jungle_buckets)
     return lane_gold, jungle_gold
 
 
@@ -478,6 +493,11 @@ def ward_events(row: dict[str, Any]) -> list[dict[str, Any]] | None:
     events = self_.get("events")
     if not isinstance(events, Mapping):
         return None
+    # Older persisted/test-shaped rows omitted the optional key entirely;
+    # retain their established observed-empty meaning.  Normalized provider
+    # rows always carry the key, so an explicit ``None`` remains unavailable.
+    if "wards" not in events:
+        return []
     wards = events.get("wards")
     if wards is None:
         return None

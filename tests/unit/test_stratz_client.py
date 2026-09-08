@@ -17,7 +17,14 @@ from app.core.errors import (
     StratzPartialResponse,
     StratzSchemaDrift,
 )
+from app.player_analysis_v7.research.archetype import fight_style_axes
+from app.player_analysis_v7.research.pass2_features import (
+    fight_conversion,
+    lane_vs_jungle_share,
+    vision_coverage,
+)
 from app.stratz.client import StratzClient, parse_rate_limit_headers
+from app.stratz.deep import normalize_deep_matches
 from app.stratz.queries import GET_DEEP_MATCH_BATCH, GET_PLAYER_PROFILE
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "stratz" / "get_player_history_page.json"
@@ -106,6 +113,25 @@ async def test_deep_batch_uses_reviewed_operation_and_canonical_shape() -> None:
     assert body["variables"] == {"steamAccountId": ACCOUNT_ID, "matchIds": [9]}
     assert rows[0]["self"]["events"]["death_events"] == [{"time": 200}]
     assert rows[0]["self"]["farm_distribution"]["creep_location"][0]["gold"] == 100
+
+
+def test_nullable_provider_shapes_remain_unavailable_through_feature_boundaries() -> None:
+    payload = {"player": {"matches": [_deep_match(9)]}}
+    match = payload["player"]["matches"][0]
+    stats = match["players"][0]["stats"]
+    stats["wards"] = None
+    stats["killEvents"] = None
+    stats["assistEvents"] = None
+    stats["deathEvents"] = None
+    stats["farmDistributionReport"]["creepLocation"] = None
+    match["towerDeaths"] = None
+
+    row = normalize_deep_matches(payload, requested_ids=[9])[0]
+    assert row["self"]["events"]["wards"] is None
+    assert vision_coverage([row]) is None
+    assert lane_vs_jungle_share([row]) is None
+    assert fight_conversion([row]) is None
+    assert fight_style_axes([row]) == (None, None)
 
 
 @pytest.mark.asyncio

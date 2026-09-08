@@ -133,10 +133,19 @@ def test_fight_minute_threshold_is_two_kills_by_either_side() -> None:
     assert fight_minutes(candidate) == frozenset({1, 2})
 
 
-def test_fight_minutes_fails_closed_without_kill_arrays() -> None:
+def test_fight_minutes_is_unavailable_without_kill_arrays() -> None:
     candidate = row(radiant_kills=None, dire_kills=None)
-    with pytest.raises(ValueError):
-        fight_minutes(candidate)
+    assert fight_minutes(candidate) is None
+
+
+def test_fight_minutes_does_not_pad_short_or_nullable_kill_arrays_with_zero() -> None:
+    candidate = row(
+        duration_seconds=180,
+        radiant_networth_leads=[0, 0, 0, 0],
+        radiant_kills=[0, None, 2],
+        dire_kills=[0, 0, 0],
+    )
+    assert fight_minutes(candidate) == frozenset({2})
 
 
 # --------------------------------------------------------------------------
@@ -183,6 +192,13 @@ def test_deaths_alone_share_fails_closed_on_missing_time() -> None:
     )
     with pytest.raises(ValueError):
         deaths_alone_share(candidate)
+
+
+def test_deaths_alone_share_is_unavailable_without_kill_arrays() -> None:
+    candidate = _row_with_deaths([180])
+    candidate["radiant_kills"] = None
+    candidate["dire_kills"] = None
+    assert deaths_alone_share(candidate) is None
 
 
 # --------------------------------------------------------------------------
@@ -246,6 +262,18 @@ def test_lane_vs_jungle_gold_is_none_when_farm_not_recorded() -> None:
     assert lane_vs_jungle_gold(candidate) is None
 
 
+def test_lane_vs_jungle_gold_is_none_when_one_component_is_unavailable() -> None:
+    candidate = row(
+        self={
+            "farm_distribution": {
+                "creep_location": None,
+                "neutral_location": [{"gold": 100}],
+            }
+        }
+    )
+    assert lane_vs_jungle_gold(candidate) is None
+
+
 # --------------------------------------------------------------------------
 # wards
 # --------------------------------------------------------------------------
@@ -262,6 +290,11 @@ def test_first_ward_time_picks_the_earliest() -> None:
 def test_first_ward_time_is_none_with_no_wards() -> None:
     candidate = row(self={"events": {"wards": []}})
     assert first_ward_time(candidate) is None
+
+
+def test_ward_events_distinguishes_omitted_legacy_empty_from_explicit_null() -> None:
+    assert ward_events(row(self={"events": {}})) == []
+    assert ward_events(row(self={"events": {"wards": None}})) is None
 
 
 # --------------------------------------------------------------------------

@@ -263,6 +263,31 @@ def test_hero_novelty_uses_a_warmup_and_a_thirty_day_memory() -> None:
     assert all(opportunity.value == 0.0 for opportunity in opportunities)
 
 
+def test_unknown_outcome_is_not_a_loss_or_a_zero_result() -> None:
+    unknown = row(0, is_victory=None)
+    known = row(1, is_victory=True)
+    assert dict(base_ctx(row(is_radiant=None)))["side"] == "UNKNOWN"
+    assert extract("duration_tempo", frame([unknown])) == []
+    assert post_loss_next_outcome(frame([unknown, known])) == []
+    assert post_loss_session_continuation(frame([unknown, known])) == []
+
+
+def test_unknown_hero_does_not_create_a_hero_switch_or_consume_novelty_warmup() -> None:
+    unknown = row(30, hero_id=None, is_victory=False)
+    following = row(31, hero_id=2)
+    assert post_loss_hero_switch(frame([unknown, following])) == []
+
+    rows = [row(index, hero_id=1) for index in range(30)]
+    rows.extend([row(30, hero_id=None), row(31, hero_id=1)])
+    assert len(hero_novelty(frame(rows))) == 1
+
+
+def test_unknown_hero_does_not_consume_the_transfer_warmup() -> None:
+    rows = [row(index, hero_id=1) for index in range(49)]
+    rows.extend([row(49, hero_id=None), row(50, hero_id=1)])
+    assert transfer_outcome(frame(rows)) == []
+
+
 # ---------------------------------------------------------------------------
 # parsed-side edge cases
 # ---------------------------------------------------------------------------

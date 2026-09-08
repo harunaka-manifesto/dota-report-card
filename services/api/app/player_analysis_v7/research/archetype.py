@@ -86,16 +86,21 @@ def _self(row: Row) -> Mapping[str, Any] | None:
     return self_ if isinstance(self_, Mapping) else None
 
 
-def _event_times(row: Row, *keys: str) -> list[int]:
+def _event_times(row: Row, *keys: str) -> list[int] | None:
     self_ = _self(row)
     if self_ is None:
-        return []
+        return None
     events = self_.get("events")
     if not isinstance(events, Mapping):
-        return []
+        return None
     times: list[int] = []
     for key in keys:
-        for event in events.get(key) or []:
+        # An omitted legacy key is treated as an empty stream.  An explicit
+        # null from the provider is different: the stream was unavailable.
+        stream = events.get(key)
+        if stream is None and key in events:
+            return None
+        for event in stream or []:
             time = event.get("time")
             if time is not None:
                 times.append(int(time))
@@ -164,11 +169,22 @@ def impact_centroid(rows: Sequence[Row]) -> float | None:
 def _fight_style_inputs(row: Row) -> tuple[float, float] | None:
     """``(participation, deaths per fight minute)`` for one match."""
 
+    self_ = _self(row)
+    events = self_.get("events") if self_ is not None else None
+    if not isinstance(events, Mapping) or any(
+        key not in events or events[key] is None
+        for key in ("kill_events", "assist_events", "death_events")
+    ):
+        return None
     fights = pt.fight_minutes(row)
     if not fights:
         return None
-    involved = {t // 60 for t in _event_times(row, "kill_events", "assist_events", "death_events")}
-    deaths = [t // 60 for t in _event_times(row, "death_events")]
+    event_times = _event_times(row, "kill_events", "assist_events", "death_events")
+    death_times = _event_times(row, "death_events")
+    if event_times is None or death_times is None:
+        return None
+    involved = {t // 60 for t in event_times}
+    deaths = [t // 60 for t in death_times]
     participation = len(fights & involved) / len(fights)
     deaths_in_fights = sum(1 for minute in deaths if minute in fights)
     return participation, deaths_in_fights / len(fights)
@@ -220,7 +236,11 @@ def session_dispersion(history_rows: Sequence[Row]) -> float | None:
             list(history_rows), pass1_tables.SESSION_GAP_SECONDS
         )
     ]
-    usable = [s for s in sessions if len(s) >= MIN_SESSION_MATCHES]
+    usable = [
+        [row for row in session if isinstance(row.get("is_victory"), bool)]
+        for session in sessions
+    ]
+    usable = [s for s in usable if len(s) >= MIN_SESSION_MATCHES]
     if len(usable) < MIN_SESSIONS:
         return None
 

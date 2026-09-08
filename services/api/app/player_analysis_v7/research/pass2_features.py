@@ -212,11 +212,19 @@ def deaths_alone_share(rows: Sequence[Row]) -> FeatureResult | None:
 # ---------------------------------------------------------------------------
 
 
-def _enemy_tower_fell_soon_after(row: Row, is_radiant: bool, fight_minute: int) -> bool:
+def _enemy_tower_fell_soon_after(
+    row: Row, is_radiant: bool, fight_minute: int
+) -> bool | None:
     """Whether a tower belonging to the *enemy* side died in the two
-    minutes following ``fight_minute`` (rule 3 ownership semantics)."""
+    minutes following ``fight_minute`` (rule 3 ownership semantics).
 
-    tower_deaths = row.get("tower_deaths") or []
+    ``None`` means tower evidence was unavailable; an empty list remains a
+    measured zero-conversion result.
+    """
+
+    tower_deaths = row.get("tower_deaths")
+    if tower_deaths is None:
+        return None
     window = {fight_minute + 1, fight_minute + 2}
     for event in tower_deaths:
         died_is_radiant = event.get("is_radiant")
@@ -264,14 +272,18 @@ def fight_conversion(rows: Sequence[Row]) -> FeatureResult | None:
         if pair is None:
             continue
         own_kills, enemy_kills = pair
-        for minute in range(len(own_kills)):
-            own = own_kills[minute] or 0
-            enemy = enemy_kills[minute] if minute < len(enemy_kills) else 0
-            enemy = enemy or 0
+        for minute in range(min(len(own_kills), len(enemy_kills))):
+            own = own_kills[minute]
+            enemy = enemy_kills[minute]
+            if own is None or enemy is None:
+                continue
             if own < pt.FIGHT_KILL_THRESHOLD or enemy != 0:
                 continue
+            tower_converted = _enemy_tower_fell_soon_after(row, is_radiant, minute)
+            if tower_converted is None:
+                continue
             total += 1
-            if _enemy_tower_fell_soon_after(row, is_radiant, minute):
+            if tower_converted:
                 converted += 1
 
     if total < MIN_OBSERVATIONS:
@@ -512,12 +524,18 @@ def closer_vs_comeback(rows: Sequence[Row]) -> FeatureResult | None:
 # ---------------------------------------------------------------------------
 
 
-def _observer_ward_events(row: Row) -> list[Mapping[str, Any]]:
-    wards = pt.ward_events(row) or []
+def _observer_ward_events(row: Row) -> list[Mapping[str, Any]] | None:
+    wards = pt.ward_events(row)
+    if wards is None:
+        return None
     return [ward for ward in wards if ward.get("type") == OBSERVER_WARD_TYPE]
 
 
-def _match_vision_coverage(row: Row, observer_wards: Sequence[Mapping[str, Any]]) -> float | None:
+def _match_vision_coverage(
+    row: Row, observer_wards: Sequence[Mapping[str, Any]] | None
+) -> float | None:
+    if observer_wards is None:
+        return None
     duration = row.get("duration_seconds")
     if duration is None:
         return None
@@ -556,6 +574,8 @@ def vision_coverage(rows: Sequence[Row]) -> FeatureResult | None:
     coverages: list[float] = []
     for row in rows:
         observer_wards = _observer_ward_events(row)
+        if observer_wards is None:
+            continue
         if observer_wards:
             ever_warded = True
         coverage = _match_vision_coverage(row, observer_wards)

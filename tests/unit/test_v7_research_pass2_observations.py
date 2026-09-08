@@ -38,7 +38,9 @@ from app.player_analysis_v7.research.pass2_observations import (
     chronological,
     closer_vs_comeback,
     deaths_alone_share,
+    fight_conversion,
     lane_to_map,
+    lane_vs_jungle_share,
     pass2_ctx,
     spike_usage,
     vision_coverage,
@@ -89,6 +91,15 @@ def test_pass2_ctx_carries_the_parsed_linked_factors() -> None:
     ctx = dict(pass2_ctx(row(self={"position_native": "POSITION_1", "lane_native": "SAFE_LANE"})))
     assert ctx["position"] == "POSITION_1"
     assert ctx["lane"] == "SAFE_LANE"
+
+
+def test_pass2_context_does_not_map_unknown_side_or_hero_to_known_levels() -> None:
+    ctx = dict(pass2_ctx(row(self={"hero_id": None, "is_radiant": None})))
+    assert ctx["hero"] == "UNKNOWN"
+    assert ctx["side"] == "UNKNOWN"
+    assert vision_coverage(
+        [row(self={"hero_id": None, "is_radiant": None, "events": {"wards": []}})]
+    ) == []
 
 
 def test_chronological_orders_oldest_first() -> None:
@@ -224,3 +235,35 @@ def test_vision_coverage_includes_zero_coverage_matches_once_the_player_wards() 
     assert len(series) == 4
     assert series[0].value > 0.0
     assert all(o.value == 0.0 for o in series[1:])
+
+
+def test_vision_coverage_omits_an_explicitly_unavailable_ward_stream() -> None:
+    warded = rows(
+        MIN_OBSERVATIONS,
+        self={"events": {"wards": [{"time": 60, "type": 0}]}},
+    )
+    unavailable = row(match_id=99, self={"events": {"wards": None}})
+    series = vision_coverage([*warded, unavailable])
+    assert len(series) == MIN_OBSERVATIONS
+
+
+def test_fight_conversion_omits_an_explicitly_unavailable_tower_stream() -> None:
+    candidate = row(
+        radiant_kills=[0, 0, 2] + [0] * 28,
+        dire_kills=[0] * 31,
+        tower_deaths=None,
+        self={"is_radiant": True},
+    )
+    assert fight_conversion([candidate]) == []
+
+
+def test_lane_vs_jungle_share_omits_a_missing_component() -> None:
+    candidate = row(
+        self={
+            "farm_distribution": {
+                "creep_location": None,
+                "neutral_location": [{"gold": 100}],
+            }
+        }
+    )
+    assert lane_vs_jungle_share([candidate]) == []

@@ -162,6 +162,33 @@ def test_fight_participation_is_zero_when_the_player_misses_every_fight() -> Non
     assert deaths == pytest.approx(0.0)
 
 
+def test_fight_style_refuses_unavailable_own_event_streams() -> None:
+    rows = [event_row(i, kills=[60], deaths=[]) for i in range(MIN_MATCHES)]
+    for candidate in rows:
+        candidate["self"]["events"] = {
+            "kill_events": None,
+            "assist_events": None,
+            "death_events": None,
+        }
+    assert fight_style_axes(rows) == (None, None)
+
+
+def test_impact_centroid_does_not_treat_a_missing_event_stream_as_empty() -> None:
+    rows = [
+        row(
+            match_id=i,
+            self={
+                "events": {
+                    "kill_events": [{"time": 900}],
+                    "assist_events": None,
+                }
+            },
+        )
+        for i in range(MIN_MATCHES)
+    ]
+    assert impact_centroid(rows) is None
+
+
 def test_session_dispersion_is_about_one_for_independent_sessions() -> None:
     """Alternating win/loss inside every session is as close to a coin flip
     as a fixture can be, so the ratio must land near 1, not near 0."""
