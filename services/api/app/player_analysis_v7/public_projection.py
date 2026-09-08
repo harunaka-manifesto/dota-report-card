@@ -68,29 +68,10 @@ def build_public_projection(
             dominant_mode=dominant_mode,
             window=window,
         )
-    for finding in findings:
-        display = semantics.findings.get(finding.dimension_key)
-        if display is None:
-            continue
-        if finding.section != "what_is_good":
-            continue
-        if display.direction_source == "own_contrast_direction":
-            direction = finding.own_contrast_direction
-            if direction is None:
-                continue
-        else:
-            direction = finding.direction
-        return PublicProjection(
-            selected_kind="favorable_finding",
-            finding=PublicFinding(
-                dimension_key=finding.dimension_key,
-                player_facing_question=finding.player_facing_question,
-                direction=direction,
-                display_unit=display.display_unit,
-                sample_size=finding.sample_size,
-            ),
-            window=window,
-        )
+    # Finding sections are topical, and no approved metric-level polarity
+    # policy exists yet. Do not guess that a section, z-score, or direction is
+    # favorable; retain the schema for historical payloads and use a safe
+    # descriptive fallback until that policy is explicitly approved.
     if facts.hero_cast.heroes:
         return PublicProjection(selected_kind="hero", hero=facts.hero_cast.heroes[0], window=window)
     if facts.activity_memory is not None:
