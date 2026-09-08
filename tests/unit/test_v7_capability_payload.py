@@ -87,7 +87,12 @@ def metadata() -> ReportMetadata:
 def provenance() -> V7Provenance:
     return V7Provenance(
         schema_version=V7_CAPABILITY_SCHEMA_VERSION,
-        population_parameters_version="v7-population-parameters-1.0.0",
+        population_parameters_version="v7-population-parameters-2.0.0",
+        population_parameters_sha256="1" * 64,
+        analytical_lineage_id="v7-new-lineage-test",
+        population_compatibility_id="v7-new-lineage-test-compatibility",
+        context_projection_version="v7-context-projection-2.0.0+test",
+        context_projection_sha256="2" * 64,
         ranking_model_version="v7-luna-f-ranking-1.0.0",
         recommendation_model_version="v7-improvement-recommendation-1.0.0",
         archetype_model_version="v7-archetype-axes-1.0.0",

@@ -197,9 +197,9 @@ def main() -> int:
     write(args.context_out, context)
 
     finding_dimensions = {}
-    for key in SHIPPING:
-        row = finding["dimensions"][key]
-        if not row["tau"] or row["tau"] <= 0:
+    for key, row in finding["dimensions"].items():
+        ships = key in SHIPPING
+        if ships and (not row["tau"] or row["tau"] <= 0):
             raise SystemExit(f"{key}: shipping dimension has no between-player spread")
         finding_dimensions[key] = {
             "mu": row["mu"],
@@ -211,9 +211,9 @@ def main() -> int:
             "section": row["section"],
             "source_pass": "PASS2" if row["source"] == "pass2" else "PASS1_NEW_LINEAGE",
             "players_fitted": row["players"],
-            "ships": True,
-            "status": "shipping",
-            "negative_control": False,
+            "ships": ships,
+            "status": "shipping" if ships else "withheld",
+            "negative_control": key == "side_sensitivity",
             "derivation_method": "NEW_LINEAGE_REFIT_FROM_DISCOVERY",
             "source_evidence_document": str(evidence_paths["finding_fit"].relative_to(REPO_ROOT)),
             "source_evidence_sha256": sha(evidence_paths["finding_fit"]),
@@ -221,6 +221,12 @@ def main() -> int:
             "source_reproducible": True,
             "source_reproducibility_note": "Bound to the completed new-lineage history, DISCOVERY-only surviving parsed overlay, and intact Pass-2 sources.",
         }
+        if not ships:
+            finding_dimensions[key]["withheld_reason"] = (
+                "negative control; deliberate placebo"
+                if key == "side_sensitivity"
+                else "withheld candidate"
+            )
     recommendation_dimensions = {}
     for key, row in recommendation["dimensions"].items():
         recommendation_dimensions[key] = {

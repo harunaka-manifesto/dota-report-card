@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 
 import pytest
+from app.player_analysis_v7.context_projection import artifact_digest
 from app.player_analysis_v7.population import (
     ARCHETYPE_CUT_KEYS,
     POPULATION_PARAMETERS_PATH,
@@ -23,10 +24,10 @@ from app.player_analysis_v7.research.archetype import MODE_STRATA
 from app.player_analysis_v7.research.recommendation import RECOMMENDATION_REGISTRY
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-PIPELINE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-finding-pipeline-2026-09-05.json"
-ARCHETYPE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-archetype-axes-2026-09-06.json"
+PIPELINE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-new-lineage-finding-fit-2026-09-08.json"
+ARCHETYPE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-new-lineage-archetype-fit-2026-09-08.json"
 RECOMMENDATION_EVIDENCE = (
-    REPO_ROOT / "docs" / "evidence" / "v7-recommendation-selection-2026-09-06.json"
+    REPO_ROOT / "docs" / "evidence" / "v7-new-lineage-recommendation-fit-2026-09-08.json"
 )
 
 
@@ -136,6 +137,7 @@ def test_malformed_json_raises(tmp_path) -> None:
 def test_a_stratum_missing_a_cut_is_rejected(tmp_path) -> None:
     document = json.loads(POPULATION_PARAMETERS_PATH.read_text(encoding="utf-8"))
     document["archetype_cuts"]["TURBO"].pop("tempo_low")
+    document["artifact_sha256"] = artifact_digest(document)
     broken = tmp_path / "broken.json"
     broken.write_text(json.dumps(document), encoding="utf-8")
     with pytest.raises(PopulationParametersError, match="missing cuts"):
@@ -201,14 +203,10 @@ def test_the_artifact_contains_no_corpus_identifiers() -> None:
 # --------------------------------------------------------------------------
 
 
-def test_the_artifact_says_it_was_not_refit_from_source() -> None:
-    """These parameters are a transcription of reviewed evidence. Describing
-    them as a fresh fit would claim a reproducibility the Pass-1 corpus loss
-    took away."""
-
+def test_the_artifact_records_the_new_lineage_refit() -> None:
     p = params()
-    assert p.refit_from_source_corpus is False
-    assert "NOT REFIT FROM SOURCE CORPUS" in p.derivation_method
+    assert p.refit_from_source_corpus is True
+    assert p.derivation_method == "NEW_LINEAGE_REFIT_FROM_DISCOVERY"
 
 
 def test_every_finding_dimension_carries_full_provenance() -> None:
@@ -240,21 +238,18 @@ def test_status_agrees_with_the_underlying_flag() -> None:
         assert (row.status == "eligible") == row.eligible
 
 
-def test_pass1_dimensions_are_marked_not_source_reproducible() -> None:
-    """The corpus that produced them no longer exists. The numbers stay
-    auditable; the claim of reproducibility does not."""
-
+def test_pass1_dimensions_are_bound_to_the_new_lineage_sources() -> None:
     p = params()
-    pass1 = [row for row in p.findings.values() if row.source_pass == "pass1"]
+    pass1 = [row for row in p.findings.values() if row.source_pass == "PASS1_NEW_LINEAGE"]
     assert pass1
     for row in pass1:
-        assert row.source_reproducible is False, row.key
-        assert "permanently unavailable" in row.source_reproducibility_note
+        assert row.source_reproducible is True, row.key
+        assert "completed new-lineage history" in row.source_reproducibility_note
 
 
 def test_pass2_dimensions_remain_source_reproducible() -> None:
     p = params()
-    pass2 = [row for row in p.findings.values() if row.source_pass == "pass2"]
+    pass2 = [row for row in p.findings.values() if row.source_pass == "PASS2"]
     assert pass2
     for row in pass2:
         assert row.source_reproducible is True, row.key

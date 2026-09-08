@@ -14,14 +14,26 @@ population mean and produce a confident-looking Finding out of nothing.
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from app.player_analysis_v7.context_projection import SHIPPING_FINDING_IDS, artifact_digest
+
 DATA_DIR = Path(__file__).resolve().parent / "data"
-POPULATION_PARAMETERS_VERSION = "v7-population-parameters-1.0.0"
+POPULATION_PARAMETERS_VERSION = "v7-population-parameters-2.0.0"
 POPULATION_PARAMETERS_PATH = DATA_DIR / f"population-parameters-{POPULATION_PARAMETERS_VERSION.rsplit('-', 1)[-1]}.json"
+WITHHELD_ANALYTICAL_IDS = frozenset(
+    {
+        "lane_recovery_participation",
+        "lane_to_map",
+        "side_sensitivity",
+        "transfer_activity",
+        "transfer_risk",
+    }
+)
 
 #: The six cuts every archetype stratum must supply.
 ARCHETYPE_CUT_KEYS = (
@@ -94,6 +106,12 @@ class RecommendationParameters:
 @dataclass(frozen=True)
 class PopulationParameters:
     schema_version: str
+    artifact_version: str
+    artifact_sha256: str
+    analytical_lineage_id: str
+    population_compatibility_id: str
+    context_projection_version: str
+    context_projection_sha256: str
     fitted_on_split: str
     derivation_method: str
     refit_from_source_corpus: bool
@@ -150,6 +168,11 @@ class PopulationParameters:
 
 
 def _parse(document: dict[str, Any]) -> PopulationParameters:
+    expected = SHIPPING_FINDING_IDS | WITHHELD_ANALYTICAL_IDS
+    if set(document.get("finding_dimensions", {})) != expected:
+        raise PopulationParametersError("population artifact must contain 16 shipping and 5 withheld dimensions")
+    if document.get("artifact_sha256") != artifact_digest(document):
+        raise PopulationParametersError("population artifact digest mismatch")
     findings = {
         key: FindingParameters(
             key=key,
@@ -196,8 +219,20 @@ def _parse(document: dict[str, Any]) -> PopulationParameters:
             raise PopulationParametersError(
                 f"archetype stratum {stratum!r} is missing cuts {missing!r}"
             )
+    for key, row in findings.items():
+        if not all(
+            math.isfinite(value)
+            for value in (row.mu, row.tau, row.dependence_inflation)
+        ) or (row.ships and row.tau <= 0) or row.tau < 0 or row.dependence_inflation < 1:
+            raise PopulationParametersError(f"{key}: invalid fitted population parameters")
     return PopulationParameters(
         schema_version=document["schema_version"],
+        artifact_version=document["artifact_version"],
+        artifact_sha256=document["artifact_sha256"],
+        analytical_lineage_id=document["analytical_lineage_id"],
+        population_compatibility_id=document["population_compatibility_id"],
+        context_projection_version=document["context_projection_version"],
+        context_projection_sha256=document["context_projection_sha256"],
         fitted_on_split=document["fitted_on_split"],
         derivation_method=document["derivation_method"],
         refit_from_source_corpus=document["refit_from_source_corpus"],

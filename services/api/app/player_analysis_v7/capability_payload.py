@@ -237,6 +237,11 @@ class V7Provenance(PublicV7Model):
 
     schema_version: str = Field(min_length=1)
     population_parameters_version: str = Field(min_length=1)
+    population_parameters_sha256: str = Field(min_length=64, max_length=64)
+    analytical_lineage_id: str = Field(min_length=1)
+    population_compatibility_id: str = Field(min_length=1)
+    context_projection_version: str = Field(min_length=1)
+    context_projection_sha256: str = Field(min_length=64, max_length=64)
     ranking_model_version: str = Field(min_length=1)
     recommendation_model_version: str = Field(min_length=1)
     archetype_model_version: str = Field(min_length=1)

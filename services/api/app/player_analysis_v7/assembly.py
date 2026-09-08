@@ -13,6 +13,10 @@ from app.player_analysis_v7.capability_payload import (
     V7Provenance,
     availability_map,
 )
+from app.player_analysis_v7.context_projection import (
+    assert_population_compatible,
+    load_context_projection,
+)
 from app.player_analysis_v7.descriptive import (
     DESCRIPTIVE_PRODUCER_VERSION,
     derive_descriptive_facts,
@@ -78,6 +82,16 @@ def assemble_v7_capability(
     ]
     availability = availability_map(available=available, refused=refused)
     population = load_population_parameters()
+    context_projection = load_context_projection()
+    assert_population_compatible(
+        context_projection,
+        {
+            "schema_version": population.schema_version,
+            "analytical_lineage_id": population.analytical_lineage_id,
+            "context_projection_sha256": population.context_projection_sha256,
+            "population_compatibility_id": population.population_compatibility_id,
+        },
+    )
     projection = build_public_projection(
         facts=facts,
         semantics=semantics,
@@ -111,6 +125,11 @@ def assemble_v7_capability(
         provenance=V7Provenance(
             schema_version=V7_CAPABILITY_SCHEMA_VERSION,
             population_parameters_version=POPULATION_PARAMETERS_VERSION,
+            population_parameters_sha256=population.artifact_sha256,
+            analytical_lineage_id=population.analytical_lineage_id,
+            population_compatibility_id=population.population_compatibility_id,
+            context_projection_version=context_projection.artifact_version,
+            context_projection_sha256=context_projection.artifact_sha256,
             ranking_model_version=population.model_versions["ranking"],
             recommendation_model_version=population.model_versions["recommendation"],
             archetype_model_version=population.model_versions["archetype"],
