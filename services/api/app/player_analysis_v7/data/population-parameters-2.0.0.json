@@ -18,9 +18,9 @@
       "tempo_low": 0.5494078609333056
     }
   },
-  "artifact_sha256": "fc0f3309536334ec0913e53dd84035b75b7ce7bb95cab2a52fe868f449256480",
+  "artifact_sha256": "73ce279ab29a42b23d1991a6a4f6b6a6e4831c7f01e422af64ed559055fa993f",
   "artifact_version": "v7-population-parameters-2.0.0+nl.20260908",
-  "context_projection_sha256": "0447f5c203707c54bb9be9c92bd5aed93e4c6d7d9c6c93732d36be277a1b8aba",
+  "context_projection_sha256": "b5584c462124198ca8b35c0e5936fe4f91912a80b81336aac542fc53b467c8db",
   "context_projection_version": "v7-context-projection-2.0.0+nl.20260908",
   "denominators": {
     "archetype_joinable_players": 276,
@@ -602,7 +602,7 @@
     "pass2_hash_manifest_sha256": "7a2e5f0d23b9f0430321ab33dca26e822b8858b2ba5431295ee0432bf8c4af69",
     "pass2_run_manifest_sha256": "237cbb0221cca87973ee5b598be000ccf494dab9f06db8bb5016fb7463e428be",
     "pass2_state_sha256": "f2b28f58968e433a5117132aced1f88d3f9734437f2a6e40c2c6a83e039e7c6a",
-    "source_tree_sha256": "107e64d8e0dffce367b339016fbaa26288e34395"
+    "source_tree_sha256": "27685d2695a59c5cdba575d58845431c63fddbcaa040c3dc5c3ed8afcca2fda2"
   },
   "source_evidence": {
     "archetype_fit": {

@@ -66,12 +66,18 @@ def write(path: Path, document: dict[str, Any]) -> None:
 
 
 def git_tree(source_sha: str) -> str:
-    return subprocess.run(
+    tree_oid = subprocess.run(
         ["git", "-C", str(REPO_ROOT), "rev-parse", f"{source_sha}^{{tree}}"],
         check=True,
         capture_output=True,
         text=True,
     ).stdout.strip()
+    tree = subprocess.run(
+        ["git", "-C", str(REPO_ROOT), "cat-file", "tree", tree_oid],
+        check=True,
+        capture_output=True,
+    ).stdout
+    return hashlib.sha256(tree).hexdigest()
 
 
 def projection_dimension(key: str, row: dict[str, Any]) -> dict[str, Any]:
