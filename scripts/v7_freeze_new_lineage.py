@@ -145,7 +145,7 @@ def main() -> int:
     if finding.get("split") != "DISCOVERY" or recommendation.get("split") != "DISCOVERY" or archetype.get("split") != "DISCOVERY":
         raise SystemExit("every fit input must be DISCOVERY")
 
-    evidence_dir = args.evidence_dir
+    evidence_dir = args.evidence_dir.resolve()
     evidence_paths = {
         "finding_fit": evidence_dir / "v7-new-lineage-finding-fit-2026-09-08.json",
         "recommendation_fit": evidence_dir / "v7-new-lineage-recommendation-fit-2026-09-08.json",
