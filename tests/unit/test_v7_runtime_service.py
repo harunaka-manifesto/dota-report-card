@@ -119,4 +119,4 @@ async def test_acquisition_to_persistence_and_api_with_frozen_runtime() -> None:
         f"/v1/v7/reports/{job.report_id}"
     )
     assert response.status_code == 200
-    assert response.json()["provenance"]["analytical_lineage_id"].startswith("v7-new-lineage")
+    assert response.json()["version"] == "v7-public-projection-1.0.0"

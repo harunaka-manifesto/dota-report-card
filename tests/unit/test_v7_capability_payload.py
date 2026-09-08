@@ -37,7 +37,7 @@ from app.player_analysis_v7.descriptive import (
 )
 from app.player_analysis_v7.display_semantics import build_display_semantics
 from app.player_analysis_v7.lifecycle import V7ReportLifecycle, analytical_identity
-from app.player_analysis_v7.public_projection import build_public_projection
+from app.player_analysis_v7.public_projection import PublicProjection, build_public_projection
 from app.player_analysis_v7.report_contract import (
     ArchetypeSection,
     Finding,
@@ -439,7 +439,7 @@ def test_the_schema_version_is_pinned() -> None:
 
 def test_v7_persisted_report_route_is_typed_in_openapi() -> None:
     route = next(item for item in router.routes if item.path == "/v1/v7/reports/{report_id}")
-    assert route.response_model is V7CapabilityPayload
+    assert route.response_model is PublicProjection
 
 
 def test_v7_persisted_report_route_validates_and_sets_noindex() -> None:
@@ -453,9 +453,63 @@ def test_v7_persisted_report_route_validates_and_sets_noindex() -> None:
         evidence=[],
     )
     source = MappingSource(player={"profile": {"account_id": 7}}, matches=[], details={})
-    response = TestClient(
-        create_app(Settings(), source=source, repository=repository)
-    ).get(f"/v1/v7/reports/{report_id}")
+    client = TestClient(create_app(Settings(), source=source, repository=repository))
+    response = client.get(f"/v1/v7/reports/{report_id}")
     assert response.status_code == 200
     assert response.headers["x-robots-tag"] == "noindex, nofollow, noarchive"
-    assert response.json()["schema_version"] == V7_CAPABILITY_SCHEMA_VERSION
+    assert response.json() == payload().public_projection.model_dump(mode="json")
+    for private_field in (
+        "recommendation",
+        "provenance",
+        "completed_loss_run",
+        "rank_display",
+        "account_id",
+        "match_id",
+        "session_id",
+        report_id,
+    ):
+        assert private_field not in response.text
+
+    authorized_header_is_not_an_owner_credential = client.get(
+        f"/v1/v7/reports/{report_id}",
+        headers={"Authorization": "Bearer owner-token"},
+    )
+    assert authorized_header_is_not_an_owner_credential.status_code == 200
+    assert authorized_header_is_not_an_owner_credential.json() == response.json()
+
+
+def test_generic_report_route_uses_the_same_v7_public_private_boundary() -> None:
+    report = payload()
+    repository = InMemoryRepository()
+    report_id = repository.save_report(
+        account_id=7,
+        data_cutoff=report.metadata.window_end,
+        model_version="v7-fixture",
+        template_version=report.schema_version,
+        report=report.model_dump(mode="json"),
+        evidence=[],
+    )
+    source = MappingSource(player={"profile": {"account_id": 7}}, matches=[], details={})
+    client = TestClient(create_app(Settings(), source=source, repository=repository))
+
+    public = client.get(f"/v1/reports/{report_id}")
+    assert public.status_code == 200
+    assert public.json() == report.public_projection.model_dump(mode="json")
+    for private_field in (
+        "recommendation",
+        "provenance",
+        "completed_loss_run",
+        "rank_display",
+        "account_id",
+        "match_id",
+        "session_id",
+        report_id,
+    ):
+        assert private_field not in public.text
+
+    authorized_header_is_not_an_owner_credential = client.get(
+        f"/v1/reports/{report_id}",
+        headers={"Authorization": "Bearer owner-token"},
+    )
+    assert authorized_header_is_not_an_owner_credential.status_code == 200
+    assert authorized_header_is_not_an_owner_credential.json() == public.json()

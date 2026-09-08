@@ -40,6 +40,7 @@ from app.player_analysis_v7.capability_payload import (
     V7_CAPABILITY_SCHEMA_VERSION,
     V7CapabilityPayload,
 )
+from app.player_analysis_v7.public_projection import PublicProjection
 from app.share.service import (
     RENDERER_VERSION,
     V6_RENDERER_VERSION,
@@ -98,6 +99,17 @@ def _session_or_error(repository: Any, session_id: str, authorization: str | Non
     except InteractionSessionUnauthorized:
         _interaction_error("INTERACTION_TOKEN_INVALID", 401, "The bearer token is invalid")
     return session, token
+
+
+def _v7_payload(report: Mapping[str, Any]) -> V7CapabilityPayload:
+    """Validate a stored V7 document before exposing its public projection."""
+
+    document = dict(report)
+    document.pop("report_id", None)
+    metadata = dict(document.get("metadata") or {})
+    metadata.pop("expires_at", None)
+    document["metadata"] = metadata
+    return V7CapabilityPayload.model_validate(document).validate_payload()
 
 
 def _session_response(session: Any) -> dict[str, Any]:
@@ -907,32 +919,39 @@ async def analysis_events(job_id: str, request: Request) -> StreamingResponse:
 
 
 @router.get("/reports/{report_id}")
-async def get_report(report_id: str, request: Request) -> Response:
+async def get_report(
+    report_id: str,
+    request: Request,
+) -> Response:
     report = _service(request).repository.get_report(report_id)
     if report is None:
         raise ReportNotFound("Report was not found")
+    if report.get("schema_version") == V7_CAPABILITY_SCHEMA_VERSION:
+        payload = _v7_payload(report)
+        return JSONResponse(
+            content=payload.public_projection.model_dump(mode="json"),
+            headers={"X-Robots-Tag": "noindex, nofollow, noarchive"},
+        )
     return JSONResponse(
         content=report,
         headers={"X-Robots-Tag": "noindex, nofollow, noarchive"},
     )
 
 
-@router.get("/v7/reports/{report_id}", response_model=V7CapabilityPayload)
+@router.get("/v7/reports/{report_id}", response_model=PublicProjection)
 async def get_v7_report(
-    report_id: str, request: Request, response: Response
-) -> V7CapabilityPayload:
-    """Load a persisted V7 contract through a typed, fail-closed boundary."""
+    report_id: str,
+    request: Request,
+    response: Response,
+) -> PublicProjection:
+    """Load only the allowlisted public view until owner auth is available."""
 
     report = _service(request).repository.get_report(report_id)
     if report is None or report.get("schema_version") != V7_CAPABILITY_SCHEMA_VERSION:
         raise ReportNotFound("V7 report was not found")
-    document = dict(report)
-    document.pop("report_id", None)
-    metadata = dict(document.get("metadata") or {})
-    metadata.pop("expires_at", None)
-    document["metadata"] = metadata
+    payload = _v7_payload(report)
     response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
-    return V7CapabilityPayload.model_validate(document).validate_payload()
+    return payload.public_projection
 
 
 @router.get("/reports/{report_id}/evidence/{insight_id}")
