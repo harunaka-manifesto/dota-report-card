@@ -1,0 +1,109 @@
+{
+  "schema_version": "v7-new-lineage-evidence-binding-1.0.0",
+  "analytical_lineage_id": "v7-new-lineage-2026-09-08",
+  "fit_split": "DISCOVERY",
+  "pass1": {
+    "kind": "NEW_LINEAGE",
+    "status": "COMPLETE",
+    "phase": "PASS1_HISTORY_NEW_LINEAGE_COMPLETE",
+    "selected_targets": 600,
+    "complete": 592,
+    "truncated": 8,
+    "unavailable": 0,
+    "failed": 0,
+    "pending": 0,
+    "canonical_documents": 600,
+    "canonical_rows": 381778,
+    "physical_attempts": 4147,
+    "window_start": 1756745426,
+    "window_end": 1788281426,
+    "window_days": 365,
+    "manifest_sha256": "de0b39d5b2af0d8e89a4bd5d54075f9abc0e355b102394061faa2ebf42b8c0f8",
+    "state_sha256": "d1f8903971be9cda69e175a133374b6aa87668cb2f74f3ca4ba638a9e651cdde",
+    "request_ledger_sha256": "d2f8227a1bc7a180863b844897e851813f4234a4549aca22574d4682266d9b33",
+    "canonical_tree_sha256": "4e2308e399b0f556407d14932b94d96b20f4a038a19c198a11a54798a6b99daf"
+  },
+  "pass1_parsed_overlay": {
+    "discovery_accounts": 58,
+    "canonical_rows": 26746,
+    "normalized_source_documents": 3360,
+    "normalized_tree_sha256": "484f70d76770f88a906f936bf7cdfed632e688ed44ed0351f58e2d20854757d1"
+  },
+  "pass2": {
+    "status": "COMPLETE",
+    "canonical_documents": 278,
+    "canonical_rows": 104982,
+    "analysis_eligible_accounts": 276,
+    "run_manifest_sha256": "237cbb0221cca87973ee5b598be000ccf494dab9f06db8bb5016fb7463e428be",
+    "state_sha256": "f2b28f58968e433a5117132aced1f88d3f9734437f2a6e40c2c6a83e039e7c6a",
+    "hash_manifest_sha256": "7a2e5f0d23b9f0430321ab33dca26e822b8858b2ba5431295ee0432bf8c4af69"
+  },
+  "context_projection_manifest": {
+    "schema_version": "v7-context-projection-2.0.0",
+    "artifact_version": "v7-context-projection-2.0.0+nl.20260908",
+    "artifact_self_digest": "b5584c462124198ca8b35c0e5936fe4f91912a80b81336aac542fc53b467c8db",
+    "file_sha256": "f985b56f517febb88657b6d28e87b212f668fc47443a550532852e4fbea4d004",
+    "finding_projections": 16,
+    "recommendation_projections": 9,
+    "estimator": "finite-sweep-additive-categorical-gauss-seidel",
+    "weighting": "equal_per_opportunity",
+    "interactions": []
+  },
+  "population_fit_manifest": {
+    "schema_version": "v7-population-parameters-2.0.0",
+    "artifact_version": "v7-population-parameters-2.0.0+nl.20260908",
+    "artifact_self_digest": "73ce279ab29a42b23d1991a6a4f6b6a6e4831c7f01e422af64ed559055fa993f",
+    "file_sha256": "ec3cecbb530fc0f23ab641050137685a08612540b18db8cb31a7d53f68de6087",
+    "population_compatibility_id": "v7-new-lineage-2026-09-08-context-population-1",
+    "shipping_findings": 16,
+    "withheld_findings": 5,
+    "finding_fit_evidence_sha256": "9391327adc241c1c2c6b7273ba6e470bc5279aa6bd712297f3f820c026ba1059"
+  },
+  "recommendation_scale_manifest": {
+    "eligible_instructions": 7,
+    "contaminated_exclusions": 2,
+    "players_with_candidate": 265,
+    "evidence_sha256": "64dc3bb5d7cdc05e4e233f5a2619dd992666a144c0dd1429b7902ff5b775b96f"
+  },
+  "archetype_cut_manifest": {
+    "normal_labels": 18,
+    "special_labels": 2,
+    "mode_strata": 2,
+    "joinable_players": 276,
+    "players_assigned": 262,
+    "evidence_sha256": "eef22b28af33b3f8837a60a41813a441534ed00ab774944abb50cc635efd91e9"
+  },
+  "runtime_parity": {
+    "dimensions": 16,
+    "tolerance": 1e-12,
+    "result": "PASS",
+    "evidence_sha256": "804a39198040f84386a51769b46203d6960950c5801e33693e42b4f496f38ca6"
+  },
+  "runtime_path": {
+    "history_provider": "stratz",
+    "deep_operation": "GetDeepMatchBatch:3.4.0",
+    "acquisition_depth": 500,
+    "deep_batch_size": 8,
+    "canonical_cache_endpoint": "/v7/stratz/deep-matches",
+    "runtime_version": "v7-analytical-runtime-1.0.0",
+    "persistence": "V7ReportLifecycle",
+    "api_read_boundary": "/v1/v7/reports/{report_id}",
+    "end_to_end_fake_provider_test": "PASS"
+  },
+  "qa": {
+    "v7_and_stratz_tests": "710 passed",
+    "full_repository_tests": "1343 passed, 3 skipped",
+    "ruff": "PASS",
+    "mypy": "PASS (252 source files)",
+    "sdist_wheel": "PASS"
+  },
+  "protected_splits": {
+    "CANDIDATE_TEST": "NOT_READ",
+    "CALIBRATION_RESERVED": "NOT_READ",
+    "SEALED_VALIDATION": "NOT_READ"
+  },
+  "provider_calls_after_completion": {
+    "stratz": 0,
+    "opendota": 0
+  }
+}

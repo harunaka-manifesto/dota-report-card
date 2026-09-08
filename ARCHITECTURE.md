@@ -1,5 +1,13 @@
 # Architecture
 
+## Maintained lineages
+
+V6.1 / OpenDota is the production, persisted-report, rollback, and
+reproducibility reference. V7 / STRATZ is staging-only development with a new
+provider-native analytical lineage. V5.2 and V6.0 surfaces remain only where
+current runtime wiring, compatibility, V6.1 lineage, rollback, or unique
+historical evidence requires them; they are not V7 Finding inputs.
+
 ~~~mermaid
 flowchart LR
     S[Summary history] --> N[Normalized rows]
@@ -39,13 +47,25 @@ qualification and expose a common evidence summary without demoting a
 qualified Pattern. Drift, Recovery, session curves, and Recovery actions share
 the versioned leave-group-out comparable-baseline resolver.
 
-## Additive generations
+## Additive generations and V7 boundary
 
-V5.2 remains the default contract. V6.0 is separately selected and validated.
-V6.1 is another immutable generation behind `FREE_DNA_V61_ENABLED`; it never
-changes a V6.0 snapshot or validator. V6.1 uses one physical history request,
-seven Elements, five family roots, a private typed signal graph, hierarchical
+The V5.2-compatible path remains available for current runtime and persisted
+report compatibility. V6.0 is separately selected and validated. V6.1 is
+another immutable generation behind `FREE_DNA_V61_ENABLED`; it never changes a
+V6.0 snapshot or validator. V6.1 uses one physical history request, seven
+Elements, five family roots, a private typed signal graph, hierarchical
 semantic outcomes, and at most three published findings. Its browser path
 renders server-owned identity, claims, interactions, and evidence.
+
+V7 follows a separate path:
+
+```text
+STRATZ raw/provider data → STRATZ-native normalization → V7 canonical data
+  → future V7 features → future V7 Findings → future V7 presentation
+```
+
+V7 does not reuse the V6.1 OpenDota assembler or estimator semantics merely to
+make providers interchangeable. Any V7 Finding is a new, versioned analytical
+release decision.
 
 See the [V6.1 feature graph](docs/architecture/free-dna-v6.1-feature-graph.md).

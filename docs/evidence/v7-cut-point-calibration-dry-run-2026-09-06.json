@@ -1,0 +1,374 @@
+{
+  "d2_strength_bands": {
+    "candidates": [
+      {
+        "all_bands_populated": true,
+        "ambiguous_share": 0.89986,
+        "moderate_at": 0.5,
+        "pronounced_at": 1.5,
+        "share_moderate": 0.374273,
+        "share_pronounced": 0.057797,
+        "share_slight": 0.567931
+      },
+      {
+        "all_bands_populated": true,
+        "ambiguous_share": 0.808348,
+        "moderate_at": 0.75,
+        "pronounced_at": 1.5,
+        "share_moderate": 0.214931,
+        "share_pronounced": 0.057797,
+        "share_slight": 0.727273
+      },
+      {
+        "all_bands_populated": true,
+        "ambiguous_share": 0.651615,
+        "moderate_at": 1.0,
+        "pronounced_at": 1.5,
+        "share_moderate": 0.102749,
+        "share_pronounced": 0.057797,
+        "share_slight": 0.839454
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.430865,
+        "moderate_at": 1.25,
+        "pronounced_at": 1.5,
+        "share_moderate": 0.039735,
+        "share_pronounced": 0.057797,
+        "share_slight": 0.902468
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.888822,
+        "moderate_at": 0.5,
+        "pronounced_at": 1.75,
+        "share_moderate": 0.397752,
+        "share_pronounced": 0.034317,
+        "share_slight": 0.567931
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.805539,
+        "moderate_at": 0.75,
+        "pronounced_at": 1.75,
+        "share_moderate": 0.238411,
+        "share_pronounced": 0.034317,
+        "share_slight": 0.727273
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.65282,
+        "moderate_at": 1.0,
+        "pronounced_at": 1.75,
+        "share_moderate": 0.126229,
+        "share_pronounced": 0.034317,
+        "share_slight": 0.839454
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.43528,
+        "moderate_at": 1.25,
+        "pronounced_at": 1.75,
+        "share_moderate": 0.063215,
+        "share_pronounced": 0.034317,
+        "share_slight": 0.902468
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.268914,
+        "moderate_at": 1.5,
+        "pronounced_at": 1.75,
+        "share_moderate": 0.02348,
+        "share_pronounced": 0.034317,
+        "share_slight": 0.942203
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.871764,
+        "moderate_at": 0.5,
+        "pronounced_at": 2.0,
+        "share_moderate": 0.410797,
+        "share_pronounced": 0.021272,
+        "share_slight": 0.567931
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.794702,
+        "moderate_at": 0.75,
+        "pronounced_at": 2.0,
+        "share_moderate": 0.251455,
+        "share_pronounced": 0.021272,
+        "share_slight": 0.727273
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.649207,
+        "moderate_at": 1.0,
+        "pronounced_at": 2.0,
+        "share_moderate": 0.139274,
+        "share_pronounced": 0.021272,
+        "share_slight": 0.839454
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.437086,
+        "moderate_at": 1.25,
+        "pronounced_at": 2.0,
+        "share_moderate": 0.076259,
+        "share_pronounced": 0.021272,
+        "share_slight": 0.902468
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.272928,
+        "moderate_at": 1.5,
+        "pronounced_at": 2.0,
+        "share_moderate": 0.036524,
+        "share_pronounced": 0.021272,
+        "share_slight": 0.942203
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.862733,
+        "moderate_at": 0.5,
+        "pronounced_at": 2.25,
+        "share_moderate": 0.418423,
+        "share_pronounced": 0.013646,
+        "share_slight": 0.567931
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.789484,
+        "moderate_at": 0.75,
+        "pronounced_at": 2.25,
+        "share_moderate": 0.259081,
+        "share_pronounced": 0.013646,
+        "share_slight": 0.727273
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.646398,
+        "moderate_at": 1.0,
+        "pronounced_at": 2.25,
+        "share_moderate": 0.146899,
+        "share_pronounced": 0.013646,
+        "share_slight": 0.839454
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.436283,
+        "moderate_at": 1.25,
+        "pronounced_at": 2.25,
+        "share_moderate": 0.083885,
+        "share_pronounced": 0.013646,
+        "share_slight": 0.902468
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.274935,
+        "moderate_at": 1.5,
+        "pronounced_at": 2.25,
+        "share_moderate": 0.04415,
+        "share_pronounced": 0.013646,
+        "share_slight": 0.942203
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.849288,
+        "moderate_at": 0.5,
+        "pronounced_at": 2.5,
+        "share_moderate": 0.421634,
+        "share_pronounced": 0.010435,
+        "share_slight": 0.567931
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.783865,
+        "moderate_at": 0.75,
+        "pronounced_at": 2.5,
+        "share_moderate": 0.262292,
+        "share_pronounced": 0.010435,
+        "share_slight": 0.727273
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.642785,
+        "moderate_at": 1.0,
+        "pronounced_at": 2.5,
+        "share_moderate": 0.15011,
+        "share_pronounced": 0.010435,
+        "share_slight": 0.839454
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.433875,
+        "moderate_at": 1.25,
+        "pronounced_at": 2.5,
+        "share_moderate": 0.087096,
+        "share_pronounced": 0.010435,
+        "share_slight": 0.902468
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.273731,
+        "moderate_at": 1.5,
+        "pronounced_at": 2.5,
+        "share_moderate": 0.047361,
+        "share_pronounced": 0.010435,
+        "share_slight": 0.942203
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.831226,
+        "moderate_at": 0.5,
+        "pronounced_at": 3.0,
+        "share_moderate": 0.427253,
+        "share_pronounced": 0.004816,
+        "share_slight": 0.567931
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.769617,
+        "moderate_at": 0.75,
+        "pronounced_at": 3.0,
+        "share_moderate": 0.267911,
+        "share_pronounced": 0.004816,
+        "share_slight": 0.727273
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.633955,
+        "moderate_at": 1.0,
+        "pronounced_at": 3.0,
+        "share_moderate": 0.155729,
+        "share_pronounced": 0.004816,
+        "share_slight": 0.839454
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.430263,
+        "moderate_at": 1.25,
+        "pronounced_at": 3.0,
+        "share_moderate": 0.092715,
+        "share_pronounced": 0.004816,
+        "share_slight": 0.902468
+      },
+      {
+        "all_bands_populated": false,
+        "ambiguous_share": 0.272928,
+        "moderate_at": 1.5,
+        "pronounced_at": 3.0,
+        "share_moderate": 0.05298,
+        "share_pronounced": 0.004816,
+        "share_slight": 0.942203
+      }
+    ],
+    "findings_scored": 4983,
+    "min_band_share": 0.05,
+    "proposed": {
+      "all_bands_populated": true,
+      "ambiguous_share": 0.651615,
+      "moderate_at": 1.0,
+      "pronounced_at": 1.5,
+      "share_moderate": 0.102749,
+      "share_pronounced": 0.057797,
+      "share_slight": 0.839454
+    }
+  },
+  "d7_support_minimum": {
+    "candidates": [
+      {
+        "gap_reliability": {
+          "median": 0.981966,
+          "n": 1839,
+          "p5": 0.894153,
+          "p95": 0.995057
+        },
+        "minimum_per_arm": 10,
+        "player_dimension_pairs_refused": 58,
+        "players_with_a_recommendation": 265,
+        "priority": {
+          "median": 0.07291,
+          "n": 1839,
+          "p5": 0.005592,
+          "p95": 0.277533
+        }
+      },
+      {
+        "gap_reliability": {
+          "median": 0.981934,
+          "n": 1837,
+          "p5": 0.894452,
+          "p95": 0.995068
+        },
+        "minimum_per_arm": 15,
+        "player_dimension_pairs_refused": 86,
+        "players_with_a_recommendation": 265,
+        "priority": {
+          "median": 0.072748,
+          "n": 1837,
+          "p5": 0.005669,
+          "p95": 0.277159
+        }
+      },
+      {
+        "gap_reliability": {
+          "median": 0.982237,
+          "n": 1814,
+          "p5": 0.901268,
+          "p95": 0.995091
+        },
+        "minimum_per_arm": 20,
+        "player_dimension_pairs_refused": 116,
+        "players_with_a_recommendation": 262,
+        "priority": {
+          "median": 0.072256,
+          "n": 1814,
+          "p5": 0.005709,
+          "p95": 0.270602
+        }
+      },
+      {
+        "gap_reliability": {
+          "median": 0.982367,
+          "n": 1801,
+          "p5": 0.906436,
+          "p95": 0.995097
+        },
+        "minimum_per_arm": 25,
+        "player_dimension_pairs_refused": 129,
+        "players_with_a_recommendation": 262,
+        "priority": {
+          "median": 0.072134,
+          "n": 1801,
+          "p5": 0.005715,
+          "p95": 0.269612
+        }
+      },
+      {
+        "gap_reliability": {
+          "median": 0.982515,
+          "n": 1778,
+          "p5": 0.913833,
+          "p95": 0.9951
+        },
+        "minimum_per_arm": 30,
+        "player_dimension_pairs_refused": 152,
+        "players_with_a_recommendation": 258,
+        "priority": {
+          "median": 0.072107,
+          "n": 1778,
+          "p5": 0.005774,
+          "p95": 0.266392
+        }
+      }
+    ]
+  },
+  "identities_included": false,
+  "is_dry_run_on_discovery": true,
+  "new_provider_calls": 0,
+  "owner_decisions_version": "v7-owner-decisions-2026-09-06",
+  "schema_version": "v7-cut-point-calibration-1.0.0",
+  "sealed_validation_read": false,
+  "split": "DISCOVERY"
+}

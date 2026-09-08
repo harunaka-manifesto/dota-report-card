@@ -18,6 +18,8 @@ Use the detailed manuals by task:
 - [Analytical Release Invariants](analytical-release-invariants.md) — the
   V6.1 analytical source SHA, frozen artifact bundle digest, identity
   separation, and the presentation/analytical boundary.
+- [Analytical Learnings and Gotchas](analytical-learnings-and-gotchas.md) —
+  mandatory statistical, provider, product, and release lessons for V7 work.
 
 Directory extensions apply to their subtree:
 

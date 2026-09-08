@@ -19,9 +19,10 @@ from app.analysis.deep_scan import (
     plan_deep_scan,
     plan_diagnostic_deep_scan,
 )
-from app.analysis.source import AnalysisSource
+from app.analysis.source import OpenDotaAnalysisSource
 from app.api.report_schemas import validate_free_dna_report
 from app.cohorts.selector import CohortSelection, select_narrowest_cohort
+from app.core.cache import payload_hash
 from app.core.config import FREE_HISTORY_WINDOW_DAYS, RECENCY_HALF_LIFE_DAYS, Settings, get_settings
 from app.core.errors import (
     AppError,
@@ -61,7 +62,6 @@ from app.ingestion.summary_normalize import (
     previous_year_window,
 )
 from app.insights.evaluator import InsightContext, evaluate_insights
-from app.opendota.cache import payload_hash
 from app.patterns.detector import detect_patterns
 from app.player_analysis_v6.artifacts import ArtifactValidationError, load_context_baseline_artifact
 from app.player_analysis_v6.calibration import load_threshold_artifact
@@ -75,7 +75,7 @@ from app.player_analysis_v61.artifacts import (
 from app.player_analysis_v61.story_selector import select_story_matches
 from app.player_analysis_v61.versions import MODEL_VERSION as V61_MODEL_VERSION
 from app.reports.assembly import assemble_player_dna_report, assemble_report
-from app.reports.dna_assembly import assemble_free_dna_report_v4
+from app.reports.dna_assembly import assemble_legacy_free_dna_report
 from app.reports.dna_assembly_v6 import assemble_free_dna_report_v6
 from app.reports.dna_assembly_v61 import assemble_free_dna_report_v61
 from app.storage.repository import AnalysisJob, InMemoryRepository
@@ -86,7 +86,7 @@ logger = logging.getLogger(__name__)
 class AnalysisService:
     def __init__(
         self,
-        source: AnalysisSource,
+        source: OpenDotaAnalysisSource,
         *,
         repository: Any | None = None,
         settings: Settings | None = None,
@@ -964,7 +964,7 @@ class AnalysisService:
         assembler = (
             assemble_free_dna_report_v6
             if self.settings.free_dna_v6_enabled
-            else assemble_free_dna_report_v4
+            else assemble_legacy_free_dna_report
         )
         report = assembler(
             account_id=identifier.account_id,

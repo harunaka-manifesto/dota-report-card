@@ -6,7 +6,7 @@ MYPY ?= uv run mypy
 PNPM ?= pnpm
 WEB_BIN ?= apps/web/node_modules/.bin
 
-.PHONY: install infra-up infra-down db-migrate dev lint typecheck test test-contract test-integration test-e2e test-live-smoke api-client taxonomy-validate dna-catalog dna-catalog-check copy-review-catalog copy-review-catalog-check docs-check hero-knowledge-refresh
+.PHONY: install infra-up infra-down db-migrate dev lint typecheck test test-v7-stratz test-contract test-integration test-e2e test-live-smoke api-client taxonomy-validate dna-catalog dna-catalog-check copy-review-catalog copy-review-catalog-check docs-check hero-knowledge-refresh
 
 install:
 	uv sync --extra dev
@@ -34,6 +34,9 @@ typecheck:
 
 test:
 	$(PYTEST) -q
+
+test-v7-stratz:
+	$(PYTEST) -q tests/unit/test_stratz_client.py tests/unit/test_stratz_normalize.py tests/unit/test_v7_provider_architecture.py
 
 test-contract:
 	$(PYTEST) -q tests/contract

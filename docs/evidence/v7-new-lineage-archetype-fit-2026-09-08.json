@@ -1,0 +1,135 @@
+{
+  "archetype_version": "v7-archetype-axes-1.0.0",
+  "archetypes_by_stratum": {
+    "STANDARD": 99,
+    "TURBO": 163
+  },
+  "axis_distributions": {
+    "deaths_per_fight_minute": {
+      "max": 0.619314,
+      "mean": 0.214555,
+      "min": 0.088642,
+      "n": 272,
+      "p25": 0.176683,
+      "p5": 0.135753,
+      "p50": 0.206977,
+      "p75": 0.236808,
+      "p95": 0.30075
+    },
+    "fight_participation": {
+      "max": 0.617445,
+      "mean": 0.477679,
+      "min": 0.329094,
+      "n": 272,
+      "p25": 0.432295,
+      "p5": 0.380898,
+      "p50": 0.482903,
+      "p75": 0.518386,
+      "p95": 0.571505
+    },
+    "impact_centroid": {
+      "max": 0.626696,
+      "mean": 0.557906,
+      "min": 0.119179,
+      "n": 272,
+      "p25": 0.549072,
+      "p5": 0.525508,
+      "p50": 0.562262,
+      "p75": 0.576721,
+      "p95": 0.597435
+    },
+    "session_dispersion": {
+      "max": 1.816036,
+      "mean": 0.991533,
+      "min": 0.377205,
+      "n": 262,
+      "p25": 0.891291,
+      "p5": 0.727446,
+      "p50": 0.976446,
+      "p75": 1.07592,
+      "p95": 1.307363
+    }
+  },
+  "axis_levels": {
+    "fight_style": {
+      "frontliner": 119,
+      "ghost": 84,
+      "opportunist": 59
+    },
+    "modifier": {
+      "metronome": 143,
+      "streaky": 119
+    },
+    "tempo": {
+      "early": 85,
+      "late": 89,
+      "mid": 88
+    }
+  },
+  "axis_without_support": {
+    "fight_participation": 4,
+    "impact_centroid": 4,
+    "no_dominant_mode_stratum": 4,
+    "session_dispersion": 14
+  },
+  "candidate_test_read": false,
+  "corpus": {},
+  "denominators": {
+    "joinable_players": 276,
+    "pass1_discovery_players": 600,
+    "pass2_discovery_players": 276,
+    "players_with_an_archetype": 262
+  },
+  "grid": {
+    "The Alarm Clock": 24,
+    "The Ambusher": 7,
+    "The Brawler": 18,
+    "The Closer's Apprentice": 4,
+    "The Early Bird": 8,
+    "The Engine Room": 24,
+    "The Last Word": 14,
+    "The Late Bloomer": 22,
+    "The Long Game": 13,
+    "The Opening Act": 22,
+    "The Overtime": 11,
+    "The Patient One": 19,
+    "The Pickpocket": 11,
+    "The Quiet Start": 11,
+    "The Slow Burn": 6,
+    "The Timekeeper": 13,
+    "The Understudy": 11,
+    "The Wildcard": 11
+  },
+  "grid_cells_occupied": 18,
+  "identities_included": false,
+  "largest_cell_share": 0.096386,
+  "new_provider_calls": 0,
+  "players_by_stratum": {
+    "STANDARD": 103,
+    "TURBO": 169
+  },
+  "population_cuts_by_stratum": {
+    "STANDARD": {
+      "closer_cut": 0.9537815126050421,
+      "deaths_median": 0.17651341783822194,
+      "lighthouse_cut": 0.6209784638448993,
+      "participation_low": 0.404968647699883,
+      "tempo_high": 0.5823742752570586,
+      "tempo_low": 0.5640177877455083
+    },
+    "TURBO": {
+      "closer_cut": 0.9154929577464789,
+      "deaths_median": 0.2238133547944416,
+      "lighthouse_cut": 0.7121305156496668,
+      "participation_low": 0.4915589721907485,
+      "tempo_high": 0.5639769693666078,
+      "tempo_low": 0.5494078609333056
+    }
+  },
+  "schema_version": "v7-archetype-axes-run-1.0.0",
+  "specials": {
+    "The Closer": 6,
+    "The Lighthouse": 7
+  },
+  "split": "DISCOVERY"
+}

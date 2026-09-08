@@ -1,6 +1,6 @@
-# Dota DNA v5.2 — Single Source of Truth
+# Dota DNA v5.2 — Historical Compatibility SSOT
 
-Status: canonical for the current Free Dota DNA product  
+Status: retained for V5.2 compatibility and runtime lineage; not a V7 analytical contract
 Effective date: 2026-08-22  
 Repository baseline reviewed: `3670c49` (`v5.2 sol+luna`)
 
@@ -461,8 +461,9 @@ The public version set is `free-dna-report-6.0.0`,
 `deep-diagnostics-2.0.0`, and `report-interactions-1.0.0`. The v6 validator
 rejects inferred position labels, rank/MMR-shaped artifacts, client-owned
 observations, and limited-history finding recommendations. See
-`dota-player-analysis-revision-implementation-plan.md` and the v6 statistics
-and Deep architecture notes for the complete additive contract.
+`free-dna-v6-statistics.md` and the Deep architecture notes for the complete
+additive contract. The original revision plan that first described it was
+removed once the work shipped; it remains in git history.
 
 ## 15. Additive V6.1 implementation path
 

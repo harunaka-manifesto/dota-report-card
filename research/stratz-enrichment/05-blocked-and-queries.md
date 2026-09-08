@@ -1,5 +1,10 @@
 # BLOCKED list and prepared operations
 
+> **Superseding operational note — 2026-09-01:** **AUTOMATED STRATZ ACCESS
+> BLOCKER = RESOLVED.** The access failures referenced by this research remain
+> historical evidence from 2026-08-27; direct server-side GraphQL access is now
+> available for the V7 provider foundation.
+
 Every empirical question this research could not answer, with the exact
 operation that would resolve it. Ordered by how much depends on the answer.
 

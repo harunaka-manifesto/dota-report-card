@@ -1,20 +1,24 @@
 # Dota Report Card
 
-An anonymous OpenDota player report built from one bounded summary-history read.
+The maintained release and reproducibility reference is Free DNA V6.1 on the
+OpenDota lineage. Its runtime, persisted reports, artifacts, and release gates
+remain explicit and independently versioned; an owner-authorized package is
+not the same thing as a production deployment.
 
-summary history → 18 Elements → 11 Patterns → Hero Portfolio → interactive story → Hero Mirror → share
+Forward development is V7 on the staging line. V7 uses STRATZ-native raw and
+normalized data, a new canonical analytical layer, and newly re-derived
+Findings. It does not preserve V6/V6.1 estimators merely to make the provider
+look interchangeable.
 
-An additive Free DNA v6 path is implemented behind `FREE_DNA_V6_ENABLED`:
-summary history → 7 Elements → 5 finding families → 9-beat story → interactions → Deep diagnostics.
-It remains disabled until measured synthetic and sealed-holdout gates, human
-review, checksum-linked promotion, and operator rollout authorization pass.
+```text
+V6.1 / OpenDota reference → persisted reports, rollback, reproducibility
+V7 / STRATZ staging       → provider foundation → future analytical rebuild
+older generations         → unsupported product targets
+```
 
-Free DNA V6.1 is a second additive, disabled-by-default generation behind
-`FREE_DNA_V61_ENABLED`. It preserves the V6.0 7/5 public ontology while adding
-a canonical one-physical-request contract, a typed 128-signal private graph,
-28 finite semantic outcomes, nested FDR, typed identity slots, and accessible
-relationship evidence. It currently has State A fixture/synthetic evidence
-only and is not authorized for public release.
+The retained V5.2-compatible OpenDota path and V6.0 implementation are kept
+only where current wiring, persisted compatibility, V6.1 lineage, or unique
+evidence still requires them.
 
 Free DNA describes observable match behavior. It does not infer motives,
 psychological states, grades, or replay-level causes.
@@ -70,17 +74,18 @@ Detailed references live in [docs/agent/](docs/agent/).
 The archive contains superseded material and is not the active implementation
 contract.
 
-The v6 implementation record is
-[dota-player-analysis-revision-implementation-plan.md](dota-player-analysis-revision-implementation-plan.md).
-Its statistical and Deep contracts are documented in
-[v6 statistics](docs/architecture/free-dna-v6-statistics.md) and
+The V6.0 implementation record is retained as V6.1 lineage evidence. Its
+statistical and Deep contracts are documented in
+[V6 statistics](docs/architecture/free-dna-v6-statistics.md) and
 [Deep diagnostics v2](docs/architecture/deep-diagnostics-v2.md). Build reviewed
 artifacts with `scripts/build_v6_calibration_artifacts.py`; do not place
 production artifacts in `tests/fixtures/v6`. The operator workflow is in the
-[v6 release and rollback runbook](docs/operations/free-dna-v6-release.md).
-The additive V6.1 status, compatibility matrix, and release boundary are in the
+[V6 release and rollback runbook](docs/operations/free-dna-v6-release.md). The
+V6.1 status, compatibility matrix, and release boundary are in the
 [V6.1 feature graph](docs/architecture/free-dna-v6.1-feature-graph.md) and
 [V6.1 release gates](docs/qa/free-dna-v6.1-release-gates.md).
+The V7 provider boundary is [documented here](docs/architecture/stratz-v7-provider-contract.md),
+and analytical agents must read the [learnings and gotchas manual](docs/agent/analytical-learnings-and-gotchas.md).
 
 ## Verification
 
@@ -88,6 +93,7 @@ The additive V6.1 status, compatibility matrix, and release boundary are in the
 make lint
 make typecheck
 make test
+make test-v7-stratz
 make dna-catalog-check
 make docs-check
 ~~~

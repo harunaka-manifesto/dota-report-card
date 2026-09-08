@@ -1,0 +1,3447 @@
+{
+  "schema_version": "stratz-item-vocabulary-1.0.0",
+  "fetched_at_utc": "2026-09-04T23:42:54.827144+00:00",
+  "operation_document_sha256": "eef216a1e0553b2ab2f247de6fbdbe6adf3aef62ec61f175ee999dad0ec01353",
+  "item_count": 573,
+  "items_with_cost": 560,
+  "items": [
+    {
+      "id": 1,
+      "name": "Blink Dagger",
+      "short_name": "blink",
+      "cost": 2250
+    },
+    {
+      "id": 2,
+      "name": "Blades of Attack",
+      "short_name": "blades_of_attack",
+      "cost": 450
+    },
+    {
+      "id": 3,
+      "name": "Broadsword",
+      "short_name": "broadsword",
+      "cost": 1000
+    },
+    {
+      "id": 4,
+      "name": "Chainmail",
+      "short_name": "chainmail",
+      "cost": 550
+    },
+    {
+      "id": 5,
+      "name": "Claymore",
+      "short_name": "claymore",
+      "cost": 1350
+    },
+    {
+      "id": 6,
+      "name": "Helm of Iron Will",
+      "short_name": "helm_of_iron_will",
+      "cost": 975
+    },
+    {
+      "id": 7,
+      "name": "Javelin",
+      "short_name": "javelin",
+      "cost": 900
+    },
+    {
+      "id": 8,
+      "name": "Mithril Hammer",
+      "short_name": "mithril_hammer",
+      "cost": 1600
+    },
+    {
+      "id": 9,
+      "name": "Platemail",
+      "short_name": "platemail",
+      "cost": 1400
+    },
+    {
+      "id": 10,
+      "name": "Quarterstaff",
+      "short_name": "quarterstaff",
+      "cost": 875
+    },
+    {
+      "id": 11,
+      "name": "Quelling Blade",
+      "short_name": "quelling_blade",
+      "cost": 100
+    },
+    {
+      "id": 12,
+      "name": "Ring of Protection",
+      "short_name": "ring_of_protection",
+      "cost": 175
+    },
+    {
+      "id": 13,
+      "name": "Gauntlets of Strength",
+      "short_name": "gauntlets",
+      "cost": 140
+    },
+    {
+      "id": 14,
+      "name": "Slippers of Agility",
+      "short_name": "slippers",
+      "cost": 140
+    },
+    {
+      "id": 15,
+      "name": "Mantle of Intelligence",
+      "short_name": "mantle",
+      "cost": 140
+    },
+    {
+      "id": 16,
+      "name": "Iron Branch",
+      "short_name": "branches",
+      "cost": 55
+    },
+    {
+      "id": 17,
+      "name": "Belt of Strength",
+      "short_name": "belt_of_strength",
+      "cost": 450
+    },
+    {
+      "id": 18,
+      "name": "Band of Elvenskin",
+      "short_name": "boots_of_elves",
+      "cost": 450
+    },
+    {
+      "id": 19,
+      "name": "Robe of the Magi",
+      "short_name": "robe",
+      "cost": 450
+    },
+    {
+      "id": 20,
+      "name": "Circlet",
+      "short_name": "circlet",
+      "cost": 155
+    },
+    {
+      "id": 21,
+      "name": "Ogre Axe",
+      "short_name": "ogre_axe",
+      "cost": 1000
+    },
+    {
+      "id": 22,
+      "name": "Blade of Alacrity",
+      "short_name": "blade_of_alacrity",
+      "cost": 1000
+    },
+    {
+      "id": 23,
+      "name": "Staff of Wizardry",
+      "short_name": "staff_of_wizardry",
+      "cost": 1000
+    },
+    {
+      "id": 24,
+      "name": "Ultimate Orb",
+      "short_name": "ultimate_orb",
+      "cost": 2800
+    },
+    {
+      "id": 25,
+      "name": "Gloves of Haste",
+      "short_name": "gloves",
+      "cost": 450
+    },
+    {
+      "id": 26,
+      "name": "Morbid Mask",
+      "short_name": "lifesteal",
+      "cost": 900
+    },
+    {
+      "id": 27,
+      "name": "Ring of Regen",
+      "short_name": "ring_of_regen",
+      "cost": 175
+    },
+    {
+      "id": 28,
+      "name": "Sage's Mask",
+      "short_name": "sobi_mask",
+      "cost": 175
+    },
+    {
+      "id": 29,
+      "name": "Boots of Speed",
+      "short_name": "boots",
+      "cost": 500
+    },
+    {
+      "id": 30,
+      "name": "Gem of True Sight",
+      "short_name": "gem",
+      "cost": 900
+    },
+    {
+      "id": 31,
+      "name": "Cloak",
+      "short_name": "cloak",
+      "cost": 800
+    },
+    {
+      "id": 32,
+      "name": "Talisman of Evasion",
+      "short_name": "talisman_of_evasion",
+      "cost": 1300
+    },
+    {
+      "id": 33,
+      "name": "Cheese",
+      "short_name": "cheese",
+      "cost": 1000
+    },
+    {
+      "id": 34,
+      "name": "Magic Stick",
+      "short_name": "magic_stick",
+      "cost": 200
+    },
+    {
+      "id": 35,
+      "name": "Magic Wand Recipe",
+      "short_name": "recipe_magic_wand",
+      "cost": 150
+    },
+    {
+      "id": 36,
+      "name": "Magic Wand",
+      "short_name": "magic_wand",
+      "cost": 460
+    },
+    {
+      "id": 37,
+      "name": "Ghost Scepter",
+      "short_name": "ghost",
+      "cost": 1500
+    },
+    {
+      "id": 38,
+      "name": "Clarity",
+      "short_name": "clarity",
+      "cost": 60
+    },
+    {
+      "id": 39,
+      "name": "Healing Salve",
+      "short_name": "flask",
+      "cost": 100
+    },
+    {
+      "id": 40,
+      "name": "Dust of Appearance",
+      "short_name": "dust",
+      "cost": 80
+    },
+    {
+      "id": 41,
+      "name": "Bottle",
+      "short_name": "bottle",
+      "cost": 675
+    },
+    {
+      "id": 42,
+      "name": "Observer Ward",
+      "short_name": "ward_observer",
+      "cost": 0
+    },
+    {
+      "id": 43,
+      "name": "Sentry Ward",
+      "short_name": "ward_sentry",
+      "cost": 50
+    },
+    {
+      "id": 44,
+      "name": "Tango",
+      "short_name": "tango",
+      "cost": 90
+    },
+    {
+      "id": 45,
+      "name": "Animal Courier",
+      "short_name": "courier",
+      "cost": 50
+    },
+    {
+      "id": 46,
+      "name": "Town Portal Scroll",
+      "short_name": "tpscroll",
+      "cost": 100
+    },
+    {
+      "id": 47,
+      "name": "Boots of Travel Recipe",
+      "short_name": "recipe_travel_boots",
+      "cost": 2000
+    },
+    {
+      "id": 48,
+      "name": "Boots of Travel",
+      "short_name": "travel_boots",
+      "cost": 2500
+    },
+    {
+      "id": 49,
+      "name": "",
+      "short_name": "recipe_phase_boots",
+      "cost": 0
+    },
+    {
+      "id": 50,
+      "name": "Phase Boots",
+      "short_name": "phase_boots",
+      "cost": 1500
+    },
+    {
+      "id": 51,
+      "name": "Demon Edge",
+      "short_name": "demon_edge",
+      "cost": 2200
+    },
+    {
+      "id": 52,
+      "name": "Eaglesong",
+      "short_name": "eagle",
+      "cost": 2800
+    },
+    {
+      "id": 53,
+      "name": "Reaver",
+      "short_name": "reaver",
+      "cost": 2800
+    },
+    {
+      "id": 54,
+      "name": "Sacred Relic",
+      "short_name": "relic",
+      "cost": 3400
+    },
+    {
+      "id": 55,
+      "name": "Hyperstone",
+      "short_name": "hyperstone",
+      "cost": 2000
+    },
+    {
+      "id": 56,
+      "name": "Ring of Health",
+      "short_name": "ring_of_health",
+      "cost": 700
+    },
+    {
+      "id": 57,
+      "name": "Void Stone",
+      "short_name": "void_stone",
+      "cost": 700
+    },
+    {
+      "id": 58,
+      "name": "Mystic Staff",
+      "short_name": "mystic_staff",
+      "cost": 2800
+    },
+    {
+      "id": 59,
+      "name": "Energy Booster",
+      "short_name": "energy_booster",
+      "cost": 800
+    },
+    {
+      "id": 60,
+      "name": "Point Booster",
+      "short_name": "point_booster",
+      "cost": 1200
+    },
+    {
+      "id": 61,
+      "name": "Vitality Booster",
+      "short_name": "vitality_booster",
+      "cost": 1000
+    },
+    {
+      "id": 62,
+      "name": "",
+      "short_name": "recipe_power_treads",
+      "cost": 0
+    },
+    {
+      "id": 63,
+      "name": "Power Treads",
+      "short_name": "power_treads",
+      "cost": 1400
+    },
+    {
+      "id": 64,
+      "name": "Hand of Midas Recipe",
+      "short_name": "recipe_hand_of_midas",
+      "cost": 1750
+    },
+    {
+      "id": 65,
+      "name": "Hand of Midas",
+      "short_name": "hand_of_midas",
+      "cost": 2200
+    },
+    {
+      "id": 66,
+      "name": "",
+      "short_name": "recipe_oblivion_staff",
+      "cost": 0
+    },
+    {
+      "id": 67,
+      "name": "Oblivion Staff",
+      "short_name": "oblivion_staff",
+      "cost": 1625
+    },
+    {
+      "id": 68,
+      "name": "",
+      "short_name": "recipe_pers",
+      "cost": 0
+    },
+    {
+      "id": 69,
+      "name": "Perseverance",
+      "short_name": "pers",
+      "cost": 1400
+    },
+    {
+      "id": 70,
+      "name": "",
+      "short_name": "recipe_poor_mans_shield",
+      "cost": 0
+    },
+    {
+      "id": 71,
+      "name": "Poor Man's Shield",
+      "short_name": "poor_mans_shield",
+      "cost": 0
+    },
+    {
+      "id": 72,
+      "name": "Bracer Recipe",
+      "short_name": "recipe_bracer",
+      "cost": 210
+    },
+    {
+      "id": 73,
+      "name": "Bracer",
+      "short_name": "bracer",
+      "cost": 505
+    },
+    {
+      "id": 74,
+      "name": "Wraith Band Recipe",
+      "short_name": "recipe_wraith_band",
+      "cost": 210
+    },
+    {
+      "id": 75,
+      "name": "Wraith Band",
+      "short_name": "wraith_band",
+      "cost": 505
+    },
+    {
+      "id": 76,
+      "name": "Null Talisman Recipe",
+      "short_name": "recipe_null_talisman",
+      "cost": 210
+    },
+    {
+      "id": 77,
+      "name": "Null Talisman",
+      "short_name": "null_talisman",
+      "cost": 505
+    },
+    {
+      "id": 78,
+      "name": "Mekansm Recipe",
+      "short_name": "recipe_mekansm",
+      "cost": 800
+    },
+    {
+      "id": 79,
+      "name": "Mekansm",
+      "short_name": "mekansm",
+      "cost": 1775
+    },
+    {
+      "id": 80,
+      "name": "Vladmir's Offering Recipe",
+      "short_name": "recipe_vladmir",
+      "cost": 0
+    },
+    {
+      "id": 81,
+      "name": "Vladmir's Offering",
+      "short_name": "vladmir",
+      "cost": 2200
+    },
+    {
+      "id": 84,
+      "name": "Flying Courier",
+      "short_name": "flying_courier",
+      "cost": null
+    },
+    {
+      "id": 85,
+      "name": "Buckler Recipe",
+      "short_name": "recipe_buckler",
+      "cost": 250
+    },
+    {
+      "id": 86,
+      "name": "Buckler",
+      "short_name": "buckler",
+      "cost": 425
+    },
+    {
+      "id": 87,
+      "name": "Ring of Basilius Recipe",
+      "short_name": "recipe_ring_of_basilius",
+      "cost": 250
+    },
+    {
+      "id": 88,
+      "name": "Ring of Basilius",
+      "short_name": "ring_of_basilius",
+      "cost": 425
+    },
+    {
+      "id": 89,
+      "name": "Pipe of Insight Recipe",
+      "short_name": "recipe_pipe",
+      "cost": 800
+    },
+    {
+      "id": 90,
+      "name": "Pipe of Insight",
+      "short_name": "pipe",
+      "cost": 3725
+    },
+    {
+      "id": 91,
+      "name": "Urn of Shadows Recipe",
+      "short_name": "recipe_urn_of_shadows",
+      "cost": 320
+    },
+    {
+      "id": 92,
+      "name": "Urn of Shadows",
+      "short_name": "urn_of_shadows",
+      "cost": 825
+    },
+    {
+      "id": 93,
+      "name": "Headdress Recipe",
+      "short_name": "recipe_headdress",
+      "cost": 250
+    },
+    {
+      "id": 94,
+      "name": "Headdress",
+      "short_name": "headdress",
+      "cost": 425
+    },
+    {
+      "id": 95,
+      "name": "Scythe of Vyse Recipe",
+      "short_name": "recipe_sheepstick",
+      "cost": 700
+    },
+    {
+      "id": 96,
+      "name": "Scythe of Vyse",
+      "short_name": "sheepstick",
+      "cost": 5200
+    },
+    {
+      "id": 97,
+      "name": "Orchid Malevolence Recipe",
+      "short_name": "recipe_orchid",
+      "cost": 450
+    },
+    {
+      "id": 98,
+      "name": "Orchid Malevolence",
+      "short_name": "orchid",
+      "cost": 3275
+    },
+    {
+      "id": 99,
+      "name": "Eul's Scepter Recipe",
+      "short_name": "recipe_cyclone",
+      "cost": 675
+    },
+    {
+      "id": 100,
+      "name": "Eul's Scepter of Divinity",
+      "short_name": "cyclone",
+      "cost": 2600
+    },
+    {
+      "id": 101,
+      "name": "Force Staff Recipe",
+      "short_name": "recipe_force_staff",
+      "cost": 950
+    },
+    {
+      "id": 102,
+      "name": "Force Staff",
+      "short_name": "force_staff",
+      "cost": 2200
+    },
+    {
+      "id": 103,
+      "name": "Dagon Recipe",
+      "short_name": "recipe_dagon",
+      "cost": 1150
+    },
+    {
+      "id": 104,
+      "name": "Dagon",
+      "short_name": "dagon",
+      "cost": 2800
+    },
+    {
+      "id": 105,
+      "name": "Necronomicon Recipe",
+      "short_name": "recipe_necronomicon",
+      "cost": 1250
+    },
+    {
+      "id": 106,
+      "name": "Necronomicon",
+      "short_name": "necronomicon",
+      "cost": 2050
+    },
+    {
+      "id": 107,
+      "name": "",
+      "short_name": "recipe_ultimate_scepter",
+      "cost": 0
+    },
+    {
+      "id": 108,
+      "name": "Aghanim's Scepter",
+      "short_name": "ultimate_scepter",
+      "cost": 4200
+    },
+    {
+      "id": 109,
+      "name": "Refresher Orb Recipe",
+      "short_name": "recipe_refresher",
+      "cost": 1600
+    },
+    {
+      "id": 110,
+      "name": "Refresher Orb",
+      "short_name": "refresher",
+      "cost": 5000
+    },
+    {
+      "id": 111,
+      "name": "Assault Cuirass Recipe",
+      "short_name": "recipe_assault",
+      "cost": 1300
+    },
+    {
+      "id": 112,
+      "name": "Assault Cuirass",
+      "short_name": "assault",
+      "cost": 5125
+    },
+    {
+      "id": 113,
+      "name": "Heart of Tarrasque Recipe",
+      "short_name": "recipe_heart",
+      "cost": 600
+    },
+    {
+      "id": 114,
+      "name": "Heart of Tarrasque",
+      "short_name": "heart",
+      "cost": 5100
+    },
+    {
+      "id": 115,
+      "name": "Black King Bar Recipe",
+      "short_name": "recipe_black_king_bar",
+      "cost": 1450
+    },
+    {
+      "id": 116,
+      "name": "Black King Bar",
+      "short_name": "black_king_bar",
+      "cost": 4050
+    },
+    {
+      "id": 117,
+      "name": "Aegis of the Immortal",
+      "short_name": "aegis",
+      "cost": 0
+    },
+    {
+      "id": 118,
+      "name": "Shiva's Guard Recipe",
+      "short_name": "recipe_shivas_guard",
+      "cost": 2050
+    },
+    {
+      "id": 119,
+      "name": "Shiva's Guard",
+      "short_name": "shivas_guard",
+      "cost": 5175
+    },
+    {
+      "id": 120,
+      "name": "Bloodstone Recipe",
+      "short_name": "recipe_bloodstone",
+      "cost": 0
+    },
+    {
+      "id": 121,
+      "name": "Bloodstone",
+      "short_name": "bloodstone",
+      "cost": 4350
+    },
+    {
+      "id": 122,
+      "name": "Linken's Sphere Recipe",
+      "short_name": "recipe_sphere",
+      "cost": 600
+    },
+    {
+      "id": 123,
+      "name": "Linken's Sphere",
+      "short_name": "sphere",
+      "cost": 4800
+    },
+    {
+      "id": 124,
+      "name": "",
+      "short_name": "recipe_vanguard",
+      "cost": 0
+    },
+    {
+      "id": 125,
+      "name": "Vanguard",
+      "short_name": "vanguard",
+      "cost": 1700
+    },
+    {
+      "id": 126,
+      "name": "Blade Mail Recipe",
+      "short_name": "recipe_blade_mail",
+      "cost": 750
+    },
+    {
+      "id": 127,
+      "name": "Blade Mail",
+      "short_name": "blade_mail",
+      "cost": 2300
+    },
+    {
+      "id": 128,
+      "name": "",
+      "short_name": "recipe_soul_booster",
+      "cost": 0
+    },
+    {
+      "id": 129,
+      "name": "Soul Booster",
+      "short_name": "soul_booster",
+      "cost": 3000
+    },
+    {
+      "id": 130,
+      "name": "",
+      "short_name": "recipe_hood_of_defiance",
+      "cost": 0
+    },
+    {
+      "id": 131,
+      "name": "Hood of Defiance",
+      "short_name": "hood_of_defiance",
+      "cost": 0
+    },
+    {
+      "id": 132,
+      "name": "Divine Rapier Recipe",
+      "short_name": "recipe_rapier",
+      "cost": 0
+    },
+    {
+      "id": 133,
+      "name": "Divine Rapier",
+      "short_name": "rapier",
+      "cost": 5600
+    },
+    {
+      "id": 134,
+      "name": "Monkey King Bar Recipe",
+      "short_name": "recipe_monkey_king_bar",
+      "cost": 600
+    },
+    {
+      "id": 135,
+      "name": "Monkey King Bar",
+      "short_name": "monkey_king_bar",
+      "cost": 4700
+    },
+    {
+      "id": 136,
+      "name": "Radiance Recipe",
+      "short_name": "recipe_radiance",
+      "cost": 0
+    },
+    {
+      "id": 137,
+      "name": "Radiance",
+      "short_name": "radiance",
+      "cost": 4700
+    },
+    {
+      "id": 138,
+      "name": "",
+      "short_name": "recipe_butterfly",
+      "cost": 0
+    },
+    {
+      "id": 139,
+      "name": "Butterfly",
+      "short_name": "butterfly",
+      "cost": 5450
+    },
+    {
+      "id": 140,
+      "name": "Daedalus Recipe",
+      "short_name": "recipe_greater_crit",
+      "cost": 900
+    },
+    {
+      "id": 141,
+      "name": "Daedalus",
+      "short_name": "greater_crit",
+      "cost": 5100
+    },
+    {
+      "id": 142,
+      "name": "Skull Basher Recipe",
+      "short_name": "recipe_basher",
+      "cost": 825
+    },
+    {
+      "id": 143,
+      "name": "Skull Basher",
+      "short_name": "basher",
+      "cost": 2875
+    },
+    {
+      "id": 144,
+      "name": "Battle Fury Recipe",
+      "short_name": "recipe_bfury",
+      "cost": 600
+    },
+    {
+      "id": 145,
+      "name": "Battle Fury",
+      "short_name": "bfury",
+      "cost": 3900
+    },
+    {
+      "id": 146,
+      "name": "Manta Style Recipe",
+      "short_name": "recipe_manta",
+      "cost": 1550
+    },
+    {
+      "id": 147,
+      "name": "Manta Style",
+      "short_name": "manta",
+      "cost": 4650
+    },
+    {
+      "id": 148,
+      "name": "Crystalys Recipe",
+      "short_name": "recipe_lesser_crit",
+      "cost": 200
+    },
+    {
+      "id": 149,
+      "name": "Crystalys",
+      "short_name": "lesser_crit",
+      "cost": 2000
+    },
+    {
+      "id": 150,
+      "name": "Armlet of Mordiggian Recipe",
+      "short_name": "recipe_armlet",
+      "cost": 625
+    },
+    {
+      "id": 151,
+      "name": "Armlet of Mordiggian",
+      "short_name": "armlet",
+      "cost": 2500
+    },
+    {
+      "id": 152,
+      "name": "Shadow Blade",
+      "short_name": "invis_sword",
+      "cost": 3250
+    },
+    {
+      "id": 153,
+      "name": "",
+      "short_name": "recipe_sange_and_yasha",
+      "cost": 0
+    },
+    {
+      "id": 154,
+      "name": "Sange and Yasha",
+      "short_name": "sange_and_yasha",
+      "cost": 4200
+    },
+    {
+      "id": 155,
+      "name": "Satanic Recipe",
+      "short_name": "recipe_satanic",
+      "cost": 0
+    },
+    {
+      "id": 156,
+      "name": "Satanic",
+      "short_name": "satanic",
+      "cost": 5050
+    },
+    {
+      "id": 157,
+      "name": "Mjollnir Recipe",
+      "short_name": "recipe_mjollnir",
+      "cost": 550
+    },
+    {
+      "id": 158,
+      "name": "Mjollnir",
+      "short_name": "mjollnir",
+      "cost": 5500
+    },
+    {
+      "id": 159,
+      "name": "Eye of Skadi Recipe",
+      "short_name": "recipe_skadi",
+      "cost": 0
+    },
+    {
+      "id": 160,
+      "name": "Eye of Skadi",
+      "short_name": "skadi",
+      "cost": 5900
+    },
+    {
+      "id": 161,
+      "name": "Sange Recipe",
+      "short_name": "recipe_sange",
+      "cost": 650
+    },
+    {
+      "id": 162,
+      "name": "Sange",
+      "short_name": "sange",
+      "cost": 2100
+    },
+    {
+      "id": 163,
+      "name": "Helm of the Dominator Recipe",
+      "short_name": "recipe_helm_of_the_dominator",
+      "cost": 1125
+    },
+    {
+      "id": 164,
+      "name": "Helm of the Dominator",
+      "short_name": "helm_of_the_dominator",
+      "cost": 2550
+    },
+    {
+      "id": 165,
+      "name": "Maelstrom Recipe",
+      "short_name": "recipe_maelstrom",
+      "cost": 0
+    },
+    {
+      "id": 166,
+      "name": "Maelstrom",
+      "short_name": "maelstrom",
+      "cost": 2950
+    },
+    {
+      "id": 167,
+      "name": "",
+      "short_name": "recipe_desolator",
+      "cost": 0
+    },
+    {
+      "id": 168,
+      "name": "Desolator",
+      "short_name": "desolator",
+      "cost": 3500
+    },
+    {
+      "id": 169,
+      "name": "Yasha Recipe",
+      "short_name": "recipe_yasha",
+      "cost": 650
+    },
+    {
+      "id": 170,
+      "name": "Yasha",
+      "short_name": "yasha",
+      "cost": 2100
+    },
+    {
+      "id": 171,
+      "name": "Mask of Madness Recipe",
+      "short_name": "recipe_mask_of_madness",
+      "cost": 0
+    },
+    {
+      "id": 172,
+      "name": "Mask of Madness",
+      "short_name": "mask_of_madness",
+      "cost": 1900
+    },
+    {
+      "id": 173,
+      "name": "Diffusal Blade Recipe",
+      "short_name": "recipe_diffusal_blade",
+      "cost": 1050
+    },
+    {
+      "id": 174,
+      "name": "Diffusal Blade",
+      "short_name": "diffusal_blade",
+      "cost": 2500
+    },
+    {
+      "id": 175,
+      "name": "Ethereal Blade Recipe",
+      "short_name": "recipe_ethereal_blade",
+      "cost": 900
+    },
+    {
+      "id": 176,
+      "name": "Ethereal Blade",
+      "short_name": "ethereal_blade",
+      "cost": 5200
+    },
+    {
+      "id": 177,
+      "name": "Soul Ring Recipe",
+      "short_name": "recipe_soul_ring",
+      "cost": 350
+    },
+    {
+      "id": 178,
+      "name": "Soul Ring",
+      "short_name": "soul_ring",
+      "cost": 805
+    },
+    {
+      "id": 179,
+      "name": "Arcane Boots Recipe",
+      "short_name": "recipe_arcane_boots",
+      "cost": 475
+    },
+    {
+      "id": 180,
+      "name": "Arcane Boots",
+      "short_name": "arcane_boots",
+      "cost": 1400
+    },
+    {
+      "id": 181,
+      "name": "Orb of Venom",
+      "short_name": "orb_of_venom",
+      "cost": 350
+    },
+    {
+      "id": 182,
+      "name": "Stout Shield",
+      "short_name": "stout_shield",
+      "cost": 100
+    },
+    {
+      "id": 183,
+      "name": "",
+      "short_name": "recipe_invis_sword",
+      "cost": 0
+    },
+    {
+      "id": 184,
+      "name": "Drum of Endurance Recipe",
+      "short_name": "recipe_ancient_janggo",
+      "cost": 500
+    },
+    {
+      "id": 185,
+      "name": "Drum of Endurance",
+      "short_name": "ancient_janggo",
+      "cost": 1625
+    },
+    {
+      "id": 186,
+      "name": "",
+      "short_name": "recipe_medallion_of_courage",
+      "cost": 0
+    },
+    {
+      "id": 187,
+      "name": "Medallion of Courage",
+      "short_name": "medallion_of_courage",
+      "cost": 1025
+    },
+    {
+      "id": 188,
+      "name": "Smoke of Deceit",
+      "short_name": "smoke_of_deceit",
+      "cost": 50
+    },
+    {
+      "id": 189,
+      "name": "Veil of Discord Recipe",
+      "short_name": "recipe_veil_of_discord",
+      "cost": 320
+    },
+    {
+      "id": 190,
+      "name": "Veil of Discord",
+      "short_name": "veil_of_discord",
+      "cost": 1725
+    },
+    {
+      "id": 191,
+      "name": "",
+      "short_name": "recipe_necronomicon_2",
+      "cost": 0
+    },
+    {
+      "id": 192,
+      "name": "",
+      "short_name": "recipe_necronomicon_3",
+      "cost": 0
+    },
+    {
+      "id": 193,
+      "name": "Necronomicon",
+      "short_name": "necronomicon_2",
+      "cost": 3300
+    },
+    {
+      "id": 194,
+      "name": "Necronomicon",
+      "short_name": "necronomicon_3",
+      "cost": 4550
+    },
+    {
+      "id": 195,
+      "name": "Recipe: Diffusal Blade (level 2)",
+      "short_name": "recipe_diffusal_blade_2",
+      "cost": null
+    },
+    {
+      "id": 196,
+      "name": "Diffusal Blade (level 2)",
+      "short_name": "diffusal_blade_2",
+      "cost": null
+    },
+    {
+      "id": 197,
+      "name": "",
+      "short_name": "recipe_dagon_2",
+      "cost": 0
+    },
+    {
+      "id": 198,
+      "name": "",
+      "short_name": "recipe_dagon_3",
+      "cost": 0
+    },
+    {
+      "id": 199,
+      "name": "",
+      "short_name": "recipe_dagon_4",
+      "cost": 0
+    },
+    {
+      "id": 200,
+      "name": "",
+      "short_name": "recipe_dagon_5",
+      "cost": 0
+    },
+    {
+      "id": 201,
+      "name": "Dagon",
+      "short_name": "dagon_2",
+      "cost": 3950
+    },
+    {
+      "id": 202,
+      "name": "Dagon",
+      "short_name": "dagon_3",
+      "cost": 5100
+    },
+    {
+      "id": 203,
+      "name": "Dagon",
+      "short_name": "dagon_4",
+      "cost": 6250
+    },
+    {
+      "id": 204,
+      "name": "Dagon",
+      "short_name": "dagon_5",
+      "cost": 7400
+    },
+    {
+      "id": 205,
+      "name": "Rod of Atos Recipe",
+      "short_name": "recipe_rod_of_atos",
+      "cost": 250
+    },
+    {
+      "id": 206,
+      "name": "Rod of Atos",
+      "short_name": "rod_of_atos",
+      "cost": 2250
+    },
+    {
+      "id": 207,
+      "name": "Abyssal Blade Recipe",
+      "short_name": "recipe_abyssal_blade",
+      "cost": 1275
+    },
+    {
+      "id": 208,
+      "name": "Abyssal Blade",
+      "short_name": "abyssal_blade",
+      "cost": 6250
+    },
+    {
+      "id": 209,
+      "name": "Heaven's Halberd Recipe",
+      "short_name": "recipe_heavens_halberd",
+      "cost": 450
+    },
+    {
+      "id": 210,
+      "name": "Heaven's Halberd",
+      "short_name": "heavens_halberd",
+      "cost": 2600
+    },
+    {
+      "id": 211,
+      "name": "",
+      "short_name": "recipe_ring_of_aquila",
+      "cost": 0
+    },
+    {
+      "id": 212,
+      "name": "Ring of Aquila",
+      "short_name": "ring_of_aquila",
+      "cost": 0
+    },
+    {
+      "id": 213,
+      "name": "Tranquil Boots Recipe",
+      "short_name": "recipe_tranquil_boots",
+      "cost": 0
+    },
+    {
+      "id": 214,
+      "name": "Tranquil Boots",
+      "short_name": "tranquil_boots",
+      "cost": 900
+    },
+    {
+      "id": 215,
+      "name": "Shadow Amulet",
+      "short_name": "shadow_amulet",
+      "cost": 900
+    },
+    {
+      "id": 216,
+      "name": "Enchanted Mango",
+      "short_name": "enchanted_mango",
+      "cost": 65
+    },
+    {
+      "id": 217,
+      "name": "",
+      "short_name": "recipe_ward_dispenser",
+      "cost": 0
+    },
+    {
+      "id": 218,
+      "name": "Observer and Sentry Wards",
+      "short_name": "ward_dispenser",
+      "cost": 50
+    },
+    {
+      "id": 219,
+      "name": "",
+      "short_name": "recipe_travel_boots_2",
+      "cost": 0
+    },
+    {
+      "id": 220,
+      "name": "Boots of Travel 2",
+      "short_name": "travel_boots_2",
+      "cost": 4500
+    },
+    {
+      "id": 221,
+      "name": "Lotus Orb Recipe",
+      "short_name": "recipe_lotus_orb",
+      "cost": 250
+    },
+    {
+      "id": 222,
+      "name": "Meteor Hammer Recipe",
+      "short_name": "recipe_meteor_hammer",
+      "cost": 300
+    },
+    {
+      "id": 223,
+      "name": "Meteor Hammer",
+      "short_name": "meteor_hammer",
+      "cost": 2850
+    },
+    {
+      "id": 224,
+      "name": "Nullifier Recipe",
+      "short_name": "recipe_nullifier",
+      "cost": 0
+    },
+    {
+      "id": 225,
+      "name": "Nullifier",
+      "short_name": "nullifier",
+      "cost": 4375
+    },
+    {
+      "id": 226,
+      "name": "Lotus Orb",
+      "short_name": "lotus_orb",
+      "cost": 3850
+    },
+    {
+      "id": 227,
+      "name": "Solar Crest Recipe",
+      "short_name": "recipe_solar_crest",
+      "cost": 500
+    },
+    {
+      "id": 228,
+      "name": "Octarine Core Recipe",
+      "short_name": "recipe_octarine_core",
+      "cost": 200
+    },
+    {
+      "id": 229,
+      "name": "Solar Crest",
+      "short_name": "solar_crest",
+      "cost": 2575
+    },
+    {
+      "id": 230,
+      "name": "Guardian Greaves Recipe",
+      "short_name": "recipe_guardian_greaves",
+      "cost": 1125
+    },
+    {
+      "id": 231,
+      "name": "Guardian Greaves",
+      "short_name": "guardian_greaves",
+      "cost": 4300
+    },
+    {
+      "id": 232,
+      "name": "Aether Lens",
+      "short_name": "aether_lens",
+      "cost": 2275
+    },
+    {
+      "id": 233,
+      "name": "Aether Lens Recipe",
+      "short_name": "recipe_aether_lens",
+      "cost": 775
+    },
+    {
+      "id": 234,
+      "name": "Dragon Lance Recipe",
+      "short_name": "recipe_dragon_lance",
+      "cost": 450
+    },
+    {
+      "id": 235,
+      "name": "Octarine Core",
+      "short_name": "octarine_core",
+      "cost": 4900
+    },
+    {
+      "id": 236,
+      "name": "Dragon Lance",
+      "short_name": "dragon_lance",
+      "cost": 1900
+    },
+    {
+      "id": 237,
+      "name": "Faerie Fire",
+      "short_name": "faerie_fire",
+      "cost": 65
+    },
+    {
+      "id": 238,
+      "name": "Iron Talon Recipe",
+      "short_name": "recipe_iron_talon",
+      "cost": 1
+    },
+    {
+      "id": 239,
+      "name": "Iron Talon",
+      "short_name": "iron_talon",
+      "cost": 0
+    },
+    {
+      "id": 240,
+      "name": "Orb of Blight",
+      "short_name": "blight_stone",
+      "cost": 300
+    },
+    {
+      "id": 241,
+      "name": "Tango (Shared)",
+      "short_name": "tango_single",
+      "cost": 30
+    },
+    {
+      "id": 242,
+      "name": "Crimson Guard",
+      "short_name": "crimson_guard",
+      "cost": 3725
+    },
+    {
+      "id": 243,
+      "name": "Crimson Guard Recipe",
+      "short_name": "recipe_crimson_guard",
+      "cost": 1050
+    },
+    {
+      "id": 244,
+      "name": "Wind Lace",
+      "short_name": "wind_lace",
+      "cost": 225
+    },
+    {
+      "id": 245,
+      "name": "Bloodthorn Recipe",
+      "short_name": "recipe_bloodthorn",
+      "cost": 450
+    },
+    {
+      "id": 246,
+      "name": "",
+      "short_name": "recipe_moon_shard",
+      "cost": 0
+    },
+    {
+      "id": 247,
+      "name": "Moon Shard",
+      "short_name": "moon_shard",
+      "cost": 4000
+    },
+    {
+      "id": 248,
+      "name": "Silver Edge Recipe",
+      "short_name": "recipe_silver_edge",
+      "cost": 250
+    },
+    {
+      "id": 249,
+      "name": "Silver Edge",
+      "short_name": "silver_edge",
+      "cost": 5700
+    },
+    {
+      "id": 250,
+      "name": "Bloodthorn",
+      "short_name": "bloodthorn",
+      "cost": 6625
+    },
+    {
+      "id": 251,
+      "name": "",
+      "short_name": "recipe_echo_sabre",
+      "cost": 0
+    },
+    {
+      "id": 252,
+      "name": "Echo Sabre",
+      "short_name": "echo_sabre",
+      "cost": 2700
+    },
+    {
+      "id": 253,
+      "name": "Glimmer Cape Recipe",
+      "short_name": "recipe_glimmer_cape",
+      "cost": 450
+    },
+    {
+      "id": 254,
+      "name": "Glimmer Cape",
+      "short_name": "glimmer_cape",
+      "cost": 2150
+    },
+    {
+      "id": 255,
+      "name": "Aeon Disk Recipe",
+      "short_name": "recipe_aeon_disk",
+      "cost": 1200
+    },
+    {
+      "id": 256,
+      "name": "Aeon Disk",
+      "short_name": "aeon_disk",
+      "cost": 3000
+    },
+    {
+      "id": 257,
+      "name": "Tome of Knowledge",
+      "short_name": "tome_of_knowledge",
+      "cost": 75
+    },
+    {
+      "id": 258,
+      "name": "Kaya Recipe",
+      "short_name": "recipe_kaya",
+      "cost": 650
+    },
+    {
+      "id": 259,
+      "name": "Kaya",
+      "short_name": "kaya",
+      "cost": 2100
+    },
+    {
+      "id": 260,
+      "name": "Refresher Shard",
+      "short_name": "refresher_shard",
+      "cost": 1000
+    },
+    {
+      "id": 261,
+      "name": "Crown",
+      "short_name": "crown",
+      "cost": 450
+    },
+    {
+      "id": 262,
+      "name": "Hurricane Pike Recipe",
+      "short_name": "recipe_hurricane_pike",
+      "cost": 350
+    },
+    {
+      "id": 263,
+      "name": "Hurricane Pike",
+      "short_name": "hurricane_pike",
+      "cost": 4450
+    },
+    {
+      "id": 265,
+      "name": "Infused Raindrops",
+      "short_name": "infused_raindrop",
+      "cost": 225
+    },
+    {
+      "id": 266,
+      "name": "Spirit Vessel Recipe",
+      "short_name": "recipe_spirit_vessel",
+      "cost": 900
+    },
+    {
+      "id": 267,
+      "name": "Spirit Vessel",
+      "short_name": "spirit_vessel",
+      "cost": 2725
+    },
+    {
+      "id": 268,
+      "name": "Holy Locket Recipe",
+      "short_name": "recipe_holy_locket",
+      "cost": 1340
+    },
+    {
+      "id": 269,
+      "name": "Holy Locket",
+      "short_name": "holy_locket",
+      "cost": 2250
+    },
+    {
+      "id": 270,
+      "name": "Aghanim's Blessing Recipe",
+      "short_name": "recipe_ultimate_scepter_2",
+      "cost": 1600
+    },
+    {
+      "id": 271,
+      "name": "Aghanim's Blessing",
+      "short_name": "ultimate_scepter_2",
+      "cost": 5800
+    },
+    {
+      "id": 272,
+      "name": "Kaya and Sange Recipe",
+      "short_name": "recipe_kaya_and_sange",
+      "cost": 0
+    },
+    {
+      "id": 273,
+      "name": "Kaya and Sange",
+      "short_name": "kaya_and_sange",
+      "cost": 4200
+    },
+    {
+      "id": 274,
+      "name": "Yasha and Kaya Recipe",
+      "short_name": "recipe_yasha_and_kaya",
+      "cost": 0
+    },
+    {
+      "id": 275,
+      "name": "Trident Recipe",
+      "short_name": "recipe_trident",
+      "cost": 1
+    },
+    {
+      "id": 276,
+      "name": "",
+      "short_name": "combo_breaker",
+      "cost": 0
+    },
+    {
+      "id": 277,
+      "name": "Yasha and Kaya",
+      "short_name": "yasha_and_kaya",
+      "cost": 4200
+    },
+    {
+      "id": 279,
+      "name": "Ring of Tarrasque",
+      "short_name": "ring_of_tarrasque",
+      "cost": 1700
+    },
+    {
+      "id": 286,
+      "name": "Flying Courier",
+      "short_name": "flying_courier",
+      "cost": 100
+    },
+    {
+      "id": 287,
+      "name": "Keen Optic",
+      "short_name": "keen_optic",
+      "cost": 0
+    },
+    {
+      "id": 288,
+      "name": "Grove Bow",
+      "short_name": "grove_bow",
+      "cost": 0
+    },
+    {
+      "id": 289,
+      "name": "Quickening Charm",
+      "short_name": "quickening_charm",
+      "cost": 0
+    },
+    {
+      "id": 290,
+      "name": "Philosopher's Stone",
+      "short_name": "philosophers_stone",
+      "cost": 0
+    },
+    {
+      "id": 291,
+      "name": "Force Boots",
+      "short_name": "force_boots",
+      "cost": 0
+    },
+    {
+      "id": 292,
+      "name": "Stygian Desolator",
+      "short_name": "desolator_2",
+      "cost": 0
+    },
+    {
+      "id": 293,
+      "name": "Phoenix Ash",
+      "short_name": "phoenix_ash",
+      "cost": 0
+    },
+    {
+      "id": 294,
+      "name": "Seer Stone",
+      "short_name": "seer_stone",
+      "cost": 0
+    },
+    {
+      "id": 295,
+      "name": "",
+      "short_name": "greater_mango",
+      "cost": 0
+    },
+    {
+      "id": 297,
+      "name": "Vampire Fangs",
+      "short_name": "vampire_fangs",
+      "cost": 0
+    },
+    {
+      "id": 298,
+      "name": "Craggy Coat",
+      "short_name": "craggy_coat",
+      "cost": 0
+    },
+    {
+      "id": 299,
+      "name": "Greater Faerie Fire",
+      "short_name": "greater_faerie_fire",
+      "cost": 0
+    },
+    {
+      "id": 300,
+      "name": "Timeless Relic",
+      "short_name": "timeless_relic",
+      "cost": 0
+    },
+    {
+      "id": 301,
+      "name": "Mirror Shield",
+      "short_name": "mirror_shield",
+      "cost": 0
+    },
+    {
+      "id": 302,
+      "name": "Elixir",
+      "short_name": "elixer",
+      "cost": 0
+    },
+    {
+      "id": 303,
+      "name": "Ironwood Tree Recipe",
+      "short_name": "recipe_ironwood_tree",
+      "cost": null
+    },
+    {
+      "id": 304,
+      "name": "Ironwood Tree",
+      "short_name": "ironwood_tree",
+      "cost": 0
+    },
+    {
+      "id": 305,
+      "name": "Royal Jelly",
+      "short_name": "royal_jelly",
+      "cost": 0
+    },
+    {
+      "id": 306,
+      "name": "Pupil's Gift",
+      "short_name": "pupils_gift",
+      "cost": 0
+    },
+    {
+      "id": 307,
+      "name": "Tome of Aghanim",
+      "short_name": "tome_of_aghanim",
+      "cost": 0
+    },
+    {
+      "id": 308,
+      "name": "Repair Kit",
+      "short_name": "repair_kit",
+      "cost": 0
+    },
+    {
+      "id": 309,
+      "name": "Mind Breaker",
+      "short_name": "mind_breaker",
+      "cost": 0
+    },
+    {
+      "id": 310,
+      "name": "Third Eye",
+      "short_name": "third_eye",
+      "cost": 0
+    },
+    {
+      "id": 311,
+      "name": "Spell Prism",
+      "short_name": "spell_prism",
+      "cost": 0
+    },
+    {
+      "id": 312,
+      "name": "",
+      "short_name": "horizon",
+      "cost": 0
+    },
+    {
+      "id": 313,
+      "name": "Fusion Rune",
+      "short_name": "fusion_rune",
+      "cost": 0
+    },
+    {
+      "id": 317,
+      "name": "Recipe: Fallen Sky",
+      "short_name": "recipe_fallen_sky",
+      "cost": 0
+    },
+    {
+      "id": 325,
+      "name": "Prince's Knife",
+      "short_name": "princes_knife",
+      "cost": 0
+    },
+    {
+      "id": 326,
+      "name": "Spider Legs",
+      "short_name": "spider_legs",
+      "cost": 0
+    },
+    {
+      "id": 327,
+      "name": "Helm of the Undying",
+      "short_name": "helm_of_the_undying",
+      "cost": 0
+    },
+    {
+      "id": 328,
+      "name": "Mango Tree",
+      "short_name": "mango_tree",
+      "cost": 0
+    },
+    {
+      "id": 329,
+      "name": "Vambrace Recipe",
+      "short_name": "recipe_vambrace",
+      "cost": null
+    },
+    {
+      "id": 330,
+      "name": "Witless Shako",
+      "short_name": "witless_shako",
+      "cost": 0
+    },
+    {
+      "id": 331,
+      "name": "Vambrace",
+      "short_name": "vambrace",
+      "cost": 0
+    },
+    {
+      "id": 334,
+      "name": "Imp Claw",
+      "short_name": "imp_claw",
+      "cost": 0
+    },
+    {
+      "id": 335,
+      "name": "Flicker",
+      "short_name": "flicker",
+      "cost": 0
+    },
+    {
+      "id": 336,
+      "name": "Telescope",
+      "short_name": "spy_gadget",
+      "cost": 0
+    },
+    {
+      "id": 349,
+      "name": "Arcane Ring",
+      "short_name": "arcane_ring",
+      "cost": 0
+    },
+    {
+      "id": 354,
+      "name": "Ocean Heart",
+      "short_name": "ocean_heart",
+      "cost": 0
+    },
+    {
+      "id": 355,
+      "name": "Broom Handle",
+      "short_name": "broom_handle",
+      "cost": 0
+    },
+    {
+      "id": 356,
+      "name": "Trusty Shovel",
+      "short_name": "trusty_shovel",
+      "cost": 0
+    },
+    {
+      "id": 357,
+      "name": "Nether Shawl",
+      "short_name": "nether_shawl",
+      "cost": 0
+    },
+    {
+      "id": 358,
+      "name": "Dragon Scale",
+      "short_name": "dragon_scale",
+      "cost": 0
+    },
+    {
+      "id": 359,
+      "name": "Essence Ring",
+      "short_name": "essence_ring",
+      "cost": 0
+    },
+    {
+      "id": 360,
+      "name": "Clumsy Net",
+      "short_name": "clumsy_net",
+      "cost": 0
+    },
+    {
+      "id": 361,
+      "name": "Enchanted Quiver",
+      "short_name": "enchanted_quiver",
+      "cost": 0
+    },
+    {
+      "id": 362,
+      "name": "Ninja Gear",
+      "short_name": "ninja_gear",
+      "cost": 0
+    },
+    {
+      "id": 363,
+      "name": "Illusionist's Cape",
+      "short_name": "illusionsts_cape",
+      "cost": 0
+    },
+    {
+      "id": 364,
+      "name": "Havoc Hammer",
+      "short_name": "havoc_hammer",
+      "cost": 0
+    },
+    {
+      "id": 365,
+      "name": "Magic Lamp",
+      "short_name": "panic_button",
+      "cost": 0
+    },
+    {
+      "id": 366,
+      "name": "Apex",
+      "short_name": "apex",
+      "cost": 0
+    },
+    {
+      "id": 367,
+      "name": "Ballista",
+      "short_name": "ballista",
+      "cost": 0
+    },
+    {
+      "id": 368,
+      "name": "Woodland Striders",
+      "short_name": "woodland_striders",
+      "cost": 0
+    },
+    {
+      "id": 369,
+      "name": "Trident",
+      "short_name": "trident",
+      "cost": 6301
+    },
+    {
+      "id": 370,
+      "name": "Book of the Dead",
+      "short_name": "demonicon",
+      "cost": 0
+    },
+    {
+      "id": 371,
+      "name": "Fallen Sky",
+      "short_name": "fallen_sky",
+      "cost": 0
+    },
+    {
+      "id": 372,
+      "name": "Pirate Hat",
+      "short_name": "pirate_hat",
+      "cost": 0
+    },
+    {
+      "id": 373,
+      "name": "",
+      "short_name": "dimensional_doorway",
+      "cost": 0
+    },
+    {
+      "id": 374,
+      "name": "Ex Machina",
+      "short_name": "ex_machina",
+      "cost": 0
+    },
+    {
+      "id": 375,
+      "name": "Faded Broach",
+      "short_name": "faded_broach",
+      "cost": 0
+    },
+    {
+      "id": 376,
+      "name": "Paladin Sword",
+      "short_name": "paladin_sword",
+      "cost": 0
+    },
+    {
+      "id": 377,
+      "name": "Minotaur Horn",
+      "short_name": "minotaur_horn",
+      "cost": 0
+    },
+    {
+      "id": 378,
+      "name": "Orb of Destruction",
+      "short_name": "orb_of_destruction",
+      "cost": 0
+    },
+    {
+      "id": 379,
+      "name": "The Leveller",
+      "short_name": "the_leveller",
+      "cost": 0
+    },
+    {
+      "id": 381,
+      "name": "Titan Sliver",
+      "short_name": "titan_sliver",
+      "cost": 0
+    },
+    {
+      "id": 473,
+      "name": "Voodoo Mask",
+      "short_name": "voodoo_mask",
+      "cost": 650
+    },
+    {
+      "id": 485,
+      "name": "Blitz Knuckles",
+      "short_name": "blitz_knuckles",
+      "cost": 1000
+    },
+    {
+      "id": 533,
+      "name": "Witch Blade Recipe",
+      "short_name": "recipe_witch_blade",
+      "cost": 250
+    },
+    {
+      "id": 534,
+      "name": "Witch Blade",
+      "short_name": "witch_blade",
+      "cost": 2775
+    },
+    {
+      "id": 565,
+      "name": "Chipped Vest",
+      "short_name": "chipped_vest",
+      "cost": 0
+    },
+    {
+      "id": 566,
+      "name": "",
+      "short_name": "wizard_glass",
+      "cost": 0
+    },
+    {
+      "id": 569,
+      "name": "Orb of Corrosion",
+      "short_name": "orb_of_corrosion",
+      "cost": 1050
+    },
+    {
+      "id": 570,
+      "name": "",
+      "short_name": "gloves_of_travel",
+      "cost": 0
+    },
+    {
+      "id": 571,
+      "name": "Trickster Cloak",
+      "short_name": "trickster_cloak",
+      "cost": 0
+    },
+    {
+      "id": 573,
+      "name": "Elven Tunic",
+      "short_name": "elven_tunic",
+      "cost": 0
+    },
+    {
+      "id": 574,
+      "name": "Cloak of Flames",
+      "short_name": "cloak_of_flames",
+      "cost": 0
+    },
+    {
+      "id": 575,
+      "name": "",
+      "short_name": "venom_gland",
+      "cost": 0
+    },
+    {
+      "id": 576,
+      "name": "",
+      "short_name": "gladiator_helm",
+      "cost": 0
+    },
+    {
+      "id": 577,
+      "name": "Possessed Mask",
+      "short_name": "possessed_mask",
+      "cost": 0
+    },
+    {
+      "id": 578,
+      "name": "",
+      "short_name": "ancient_perseverance",
+      "cost": 0
+    },
+    {
+      "id": 582,
+      "name": "",
+      "short_name": "oakheart",
+      "cost": 0
+    },
+    {
+      "id": 585,
+      "name": "Stormcrafter",
+      "short_name": "stormcrafter",
+      "cost": 0
+    },
+    {
+      "id": 588,
+      "name": "",
+      "short_name": "overflowing_elixir",
+      "cost": 0
+    },
+    {
+      "id": 589,
+      "name": "Fairy's Trinket",
+      "short_name": "mysterious_hat",
+      "cost": 0
+    },
+    {
+      "id": 593,
+      "name": "Fluffy Hat",
+      "short_name": "fluffy_hat",
+      "cost": 250
+    },
+    {
+      "id": 596,
+      "name": "Falcon Blade",
+      "short_name": "falcon_blade",
+      "cost": 1125
+    },
+    {
+      "id": 597,
+      "name": "Mage Slayer Recipe",
+      "short_name": "recipe_mage_slayer",
+      "cost": 0
+    },
+    {
+      "id": 598,
+      "name": "Mage Slayer",
+      "short_name": "mage_slayer",
+      "cost": 2800
+    },
+    {
+      "id": 599,
+      "name": "Falcon Blade Recipe",
+      "short_name": "recipe_falcon_blade",
+      "cost": 250
+    },
+    {
+      "id": 600,
+      "name": "Overwhelming Blink",
+      "short_name": "overwhelming_blink",
+      "cost": 6800
+    },
+    {
+      "id": 603,
+      "name": "Swift Blink",
+      "short_name": "swift_blink",
+      "cost": 6800
+    },
+    {
+      "id": 604,
+      "name": "Arcane Blink",
+      "short_name": "arcane_blink",
+      "cost": 6800
+    },
+    {
+      "id": 606,
+      "name": "Arcane Blink Recipe",
+      "short_name": "recipe_arcane_blink",
+      "cost": 1750
+    },
+    {
+      "id": 607,
+      "name": "Swift Blink Recipe",
+      "short_name": "recipe_swift_blink",
+      "cost": 1750
+    },
+    {
+      "id": 608,
+      "name": "Overwhelming Blink Recipe",
+      "short_name": "recipe_overwhelming_blink",
+      "cost": 1750
+    },
+    {
+      "id": 609,
+      "name": "Aghanim's Shard",
+      "short_name": "aghanims_shard",
+      "cost": 1400
+    },
+    {
+      "id": 610,
+      "name": "Wind Waker",
+      "short_name": "wind_waker",
+      "cost": 6800
+    },
+    {
+      "id": 612,
+      "name": "Wind Waker Recipe",
+      "short_name": "recipe_wind_waker",
+      "cost": 1400
+    },
+    {
+      "id": 633,
+      "name": "Helm of the Overlord Recipe",
+      "short_name": "recipe_helm_of_the_overlord",
+      "cost": 300
+    },
+    {
+      "id": 635,
+      "name": "Helm of the Overlord",
+      "short_name": "helm_of_the_overlord",
+      "cost": 5650
+    },
+    {
+      "id": 637,
+      "name": "",
+      "short_name": "star_mace",
+      "cost": 0
+    },
+    {
+      "id": 638,
+      "name": "Penta-Edged Sword",
+      "short_name": "penta_edged_sword",
+      "cost": 0
+    },
+    {
+      "id": 640,
+      "name": "Orb of Corrosion Recipe",
+      "short_name": "recipe_orb_of_corrosion",
+      "cost": 0
+    },
+    {
+      "id": 653,
+      "name": "",
+      "short_name": "recipe_grandmasters_glaive",
+      "cost": 0
+    },
+    {
+      "id": 655,
+      "name": "",
+      "short_name": "grandmasters_glaive",
+      "cost": 5000
+    },
+    {
+      "id": 674,
+      "name": "",
+      "short_name": "warhammer",
+      "cost": 0
+    },
+    {
+      "id": 675,
+      "name": "Psychic Headband",
+      "short_name": "psychic_headband",
+      "cost": 0
+    },
+    {
+      "id": 676,
+      "name": "Ceremonial Robe",
+      "short_name": "ceremonial_robe",
+      "cost": 0
+    },
+    {
+      "id": 677,
+      "name": "Book of Shadows",
+      "short_name": "book_of_shadows",
+      "cost": 0
+    },
+    {
+      "id": 678,
+      "name": "Giant's Ring",
+      "short_name": "giants_ring",
+      "cost": 0
+    },
+    {
+      "id": 679,
+      "name": "Shadow of Vengeance",
+      "short_name": "vengeances_shadow",
+      "cost": 0
+    },
+    {
+      "id": 680,
+      "name": "Bullwhip",
+      "short_name": "bullwhip",
+      "cost": 0
+    },
+    {
+      "id": 686,
+      "name": "Quicksilver Amulet",
+      "short_name": "quicksilver_amulet",
+      "cost": 0
+    },
+    {
+      "id": 691,
+      "name": "Eternal Shroud Recipe",
+      "short_name": "recipe_eternal_shroud",
+      "cost": 900
+    },
+    {
+      "id": 692,
+      "name": "Eternal Shroud",
+      "short_name": "eternal_shroud",
+      "cost": 3700
+    },
+    {
+      "id": 725,
+      "name": "Aghanim's Shard - Consumable",
+      "short_name": "aghanims_shard_roshan",
+      "cost": 1400
+    },
+    {
+      "id": 727,
+      "name": "Aghanim's Blessing - Roshan",
+      "short_name": "ultimate_scepter_roshan",
+      "cost": 5800
+    },
+    {
+      "id": 731,
+      "name": "",
+      "short_name": "satchel",
+      "cost": 0
+    },
+    {
+      "id": 824,
+      "name": "",
+      "short_name": "assassins_dagger",
+      "cost": 0
+    },
+    {
+      "id": 825,
+      "name": "Ascetic's Cap",
+      "short_name": "ascetic_cap",
+      "cost": 0
+    },
+    {
+      "id": 826,
+      "name": "",
+      "short_name": "sample_picker",
+      "cost": 0
+    },
+    {
+      "id": 827,
+      "name": "",
+      "short_name": "icarus_wings",
+      "cost": 0
+    },
+    {
+      "id": 828,
+      "name": "Brigand's Blade",
+      "short_name": "misericorde",
+      "cost": 0
+    },
+    {
+      "id": 829,
+      "name": "Arcanist's Armor",
+      "short_name": "force_field",
+      "cost": 0
+    },
+    {
+      "id": 833,
+      "name": "Bruiser's Maul Recipe",
+      "short_name": "recipe_tenderizer",
+      "cost": null
+    },
+    {
+      "id": 834,
+      "name": "Blast Rig",
+      "short_name": "black_powder_bag",
+      "cost": 0
+    },
+    {
+      "id": 835,
+      "name": "Fae Grenade",
+      "short_name": "paintball",
+      "cost": 0
+    },
+    {
+      "id": 836,
+      "name": "",
+      "short_name": "light_robes",
+      "cost": 0
+    },
+    {
+      "id": 837,
+      "name": "Witchbane",
+      "short_name": "heavy_blade",
+      "cost": 0
+    },
+    {
+      "id": 838,
+      "name": "Pig Pole",
+      "short_name": "unstable_wand",
+      "cost": 0
+    },
+    {
+      "id": 839,
+      "name": "",
+      "short_name": "fortitude_ring",
+      "cost": 0
+    },
+    {
+      "id": 840,
+      "name": "Tumbler's Toy",
+      "short_name": "pogo_stick",
+      "cost": 0
+    },
+    {
+      "id": 849,
+      "name": "",
+      "short_name": "mechanical_arm",
+      "cost": 0
+    },
+    {
+      "id": 859,
+      "name": "Voidwalker Scythe Recipe",
+      "short_name": "recipe_voidwalker_scythe",
+      "cost": null
+    },
+    {
+      "id": 904,
+      "name": "Voidwalker Scythe",
+      "short_name": "voidwalker_scythe",
+      "cost": null
+    },
+    {
+      "id": 906,
+      "name": "Bruiser's Maul",
+      "short_name": "tenderizer",
+      "cost": null
+    },
+    {
+      "id": 907,
+      "name": "",
+      "short_name": "recipe_wraith_pact",
+      "cost": 400
+    },
+    {
+      "id": 908,
+      "name": "Wraith Pact",
+      "short_name": "wraith_pact",
+      "cost": 3800
+    },
+    {
+      "id": 910,
+      "name": "Revenant's Brooch Recipe",
+      "short_name": "recipe_revenants_brooch",
+      "cost": 650
+    },
+    {
+      "id": 911,
+      "name": "Revenant's Brooch",
+      "short_name": "revenants_brooch",
+      "cost": 3300
+    },
+    {
+      "id": 928,
+      "name": "\u0000",
+      "short_name": "recipe_eagle_eye",
+      "cost": null
+    },
+    {
+      "id": 929,
+      "name": "Eagle Eye",
+      "short_name": "eagle_eye",
+      "cost": null
+    },
+    {
+      "id": 930,
+      "name": "Boots of Bearing Recipe",
+      "short_name": "recipe_boots_of_bearing",
+      "cost": 0
+    },
+    {
+      "id": 931,
+      "name": "Boots of Bearing",
+      "short_name": "boots_of_bearing",
+      "cost": 4225
+    },
+    {
+      "id": 938,
+      "name": "",
+      "short_name": "slime_vial",
+      "cost": 0
+    },
+    {
+      "id": 939,
+      "name": "Harpoon",
+      "short_name": "harpoon",
+      "cost": 4700
+    },
+    {
+      "id": 940,
+      "name": "Wand of the Brine",
+      "short_name": "wand_of_the_brine",
+      "cost": 0
+    },
+    {
+      "id": 945,
+      "name": "Seeds of Serenity",
+      "short_name": "seeds_of_serenity",
+      "cost": 0
+    },
+    {
+      "id": 946,
+      "name": "Lance of Pursuit",
+      "short_name": "lance_of_pursuit",
+      "cost": 0
+    },
+    {
+      "id": 947,
+      "name": "Occult Bracelet",
+      "short_name": "occult_bracelet",
+      "cost": 0
+    },
+    {
+      "id": 948,
+      "name": "",
+      "short_name": "tome_of_omniscience",
+      "cost": 0
+    },
+    {
+      "id": 949,
+      "name": "Ogre Seal Totem",
+      "short_name": "ogre_seal_totem",
+      "cost": 0
+    },
+    {
+      "id": 950,
+      "name": "Defiant Shell",
+      "short_name": "defiant_shell",
+      "cost": 0
+    },
+    {
+      "id": 964,
+      "name": "Diffusal Blade",
+      "short_name": "diffusal_blade_2",
+      "cost": null
+    },
+    {
+      "id": 965,
+      "name": "\u0000",
+      "short_name": "recipe_diffusal_blade_2",
+      "cost": null
+    },
+    {
+      "id": 968,
+      "name": "",
+      "short_name": "arcane_scout",
+      "cost": 0
+    },
+    {
+      "id": 969,
+      "name": "",
+      "short_name": "barricade",
+      "cost": 0
+    },
+    {
+      "id": 990,
+      "name": "Eye of the Vizier",
+      "short_name": "eye_of_the_vizier",
+      "cost": 0
+    },
+    {
+      "id": 998,
+      "name": "",
+      "short_name": "manacles_of_power",
+      "cost": 0
+    },
+    {
+      "id": 1000,
+      "name": "",
+      "short_name": "bottomless_chalice",
+      "cost": 0
+    },
+    {
+      "id": 1017,
+      "name": "",
+      "short_name": "wand_of_sanctitude",
+      "cost": 0
+    },
+    {
+      "id": 1021,
+      "name": "River Vial: Chrome",
+      "short_name": "river_painter",
+      "cost": 0
+    },
+    {
+      "id": 1022,
+      "name": "River Vial: Dry",
+      "short_name": "river_painter2",
+      "cost": 0
+    },
+    {
+      "id": 1023,
+      "name": "River Vial: Slime",
+      "short_name": "river_painter3",
+      "cost": 0
+    },
+    {
+      "id": 1024,
+      "name": "River Vial: Oil",
+      "short_name": "river_painter4",
+      "cost": 0
+    },
+    {
+      "id": 1025,
+      "name": "River Vial: Electrified",
+      "short_name": "river_painter5",
+      "cost": 0
+    },
+    {
+      "id": 1026,
+      "name": "River Vial: Potion",
+      "short_name": "river_painter6",
+      "cost": 0
+    },
+    {
+      "id": 1027,
+      "name": "River Vial: Blood",
+      "short_name": "river_painter7",
+      "cost": 0
+    },
+    {
+      "id": 1028,
+      "name": "Tombstone",
+      "short_name": "mutation_tombstone",
+      "cost": 0
+    },
+    {
+      "id": 1029,
+      "name": "",
+      "short_name": "super_blink",
+      "cost": 0
+    },
+    {
+      "id": 1030,
+      "name": "Pocket Tower",
+      "short_name": "pocket_tower",
+      "cost": 0
+    },
+    {
+      "id": 1032,
+      "name": "Pocket Roshan",
+      "short_name": "pocket_roshan",
+      "cost": 1000
+    },
+    {
+      "id": 1076,
+      "name": "Specialist's Array",
+      "short_name": "specialists_array",
+      "cost": 2650
+    },
+    {
+      "id": 1077,
+      "name": "Dagger of Ristul",
+      "short_name": "dagger_of_ristul",
+      "cost": 0
+    },
+    {
+      "id": 1090,
+      "name": "Mercy & Grace",
+      "short_name": "muertas_gun",
+      "cost": 0
+    },
+    {
+      "id": 1091,
+      "name": "",
+      "short_name": "samurai_tabi",
+      "cost": 5250
+    },
+    {
+      "id": 1092,
+      "name": "",
+      "short_name": "recipe_hermes_sandals",
+      "cost": 500
+    },
+    {
+      "id": 1093,
+      "name": "",
+      "short_name": "hermes_sandals",
+      "cost": 4800
+    },
+    {
+      "id": 1094,
+      "name": "",
+      "short_name": "recipe_lunar_crest",
+      "cost": 250
+    },
+    {
+      "id": 1095,
+      "name": "Lunar Crest",
+      "short_name": "lunar_crest",
+      "cost": 2275
+    },
+    {
+      "id": 1096,
+      "name": "Disperser Recipe",
+      "short_name": "recipe_disperser",
+      "cost": 800
+    },
+    {
+      "id": 1097,
+      "name": "Disperser",
+      "short_name": "disperser",
+      "cost": 6100
+    },
+    {
+      "id": 1098,
+      "name": "",
+      "short_name": "recipe_samurai_tabi",
+      "cost": 1100
+    },
+    {
+      "id": 1099,
+      "name": "",
+      "short_name": "recipe_witches_switch",
+      "cost": 625
+    },
+    {
+      "id": 1100,
+      "name": "",
+      "short_name": "witches_switch",
+      "cost": 1900
+    },
+    {
+      "id": 1101,
+      "name": "Harpoon Recipe",
+      "short_name": "recipe_harpoon",
+      "cost": 1000
+    },
+    {
+      "id": 1106,
+      "name": "Phylactery Recipe",
+      "short_name": "recipe_phylactery",
+      "cost": 200
+    },
+    {
+      "id": 1107,
+      "name": "Phylactery",
+      "short_name": "phylactery",
+      "cost": 2600
+    },
+    {
+      "id": 1122,
+      "name": "Diadem",
+      "short_name": "diadem",
+      "cost": 1000
+    },
+    {
+      "id": 1123,
+      "name": "Blood Grenade",
+      "short_name": "blood_grenade",
+      "cost": 50
+    },
+    {
+      "id": 1124,
+      "name": "Spark of Courage",
+      "short_name": "spark_of_courage",
+      "cost": 0
+    },
+    {
+      "id": 1125,
+      "name": "Cornucopia",
+      "short_name": "cornucopia",
+      "cost": 1200
+    },
+    {
+      "id": 1127,
+      "name": "Pavise Recipe",
+      "short_name": "recipe_pavise",
+      "cost": 175
+    },
+    {
+      "id": 1128,
+      "name": "Pavise",
+      "short_name": "pavise",
+      "cost": 1400
+    },
+    {
+      "id": 1154,
+      "name": "Block of Cheese",
+      "short_name": "royale_with_cheese",
+      "cost": 2
+    },
+    {
+      "id": 1156,
+      "name": "Ancient Guardian",
+      "short_name": "ancient_guardian",
+      "cost": 0
+    },
+    {
+      "id": 1157,
+      "name": "Safety Bubble",
+      "short_name": "safety_bubble",
+      "cost": 0
+    },
+    {
+      "id": 1158,
+      "name": "Whisper of the Dread",
+      "short_name": "whisper_of_the_dread",
+      "cost": 0
+    },
+    {
+      "id": 1159,
+      "name": "Nemesis Curse",
+      "short_name": "nemesis_curse",
+      "cost": 0
+    },
+    {
+      "id": 1160,
+      "name": "Aviana's Feather",
+      "short_name": "avianas_feather",
+      "cost": 0
+    },
+    {
+      "id": 1161,
+      "name": "Unwavering Condition",
+      "short_name": "unwavering_condition",
+      "cost": 0
+    },
+    {
+      "id": 1164,
+      "name": "",
+      "short_name": "aetherial_halo",
+      "cost": 5900
+    },
+    {
+      "id": 1167,
+      "name": "Light Collector",
+      "short_name": "light_collector",
+      "cost": 0
+    },
+    {
+      "id": 1168,
+      "name": "Rattlecage",
+      "short_name": "rattlecage",
+      "cost": 0
+    },
+    {
+      "id": 1440,
+      "name": "Black Grimoire",
+      "short_name": "black_grimoire",
+      "cost": 0
+    },
+    {
+      "id": 1441,
+      "name": "Gris-Gris",
+      "short_name": "grisgris",
+      "cost": 0
+    },
+    {
+      "id": 1466,
+      "name": "Gleipnir",
+      "short_name": "gungir",
+      "cost": 4550
+    },
+    {
+      "id": 1565,
+      "name": "Gleipnir Recipe",
+      "short_name": "recipe_gungir",
+      "cost": 1100
+    },
+    {
+      "id": 1575,
+      "name": "Orb of Frost",
+      "short_name": "orb_of_frost",
+      "cost": 300
+    },
+    {
+      "id": 1576,
+      "name": "Vast",
+      "short_name": "enhancement_vast",
+      "cost": 0
+    },
+    {
+      "id": 1577,
+      "name": "Quickened",
+      "short_name": "enhancement_quickened",
+      "cost": 0
+    },
+    {
+      "id": 1578,
+      "name": "Accursed",
+      "short_name": "cursed_circlet",
+      "cost": 0
+    },
+    {
+      "id": 1579,
+      "name": "Restorative",
+      "short_name": "ogre_heart",
+      "cost": 0
+    },
+    {
+      "id": 1580,
+      "name": "Elusive",
+      "short_name": "neutral_tabi",
+      "cost": 0
+    },
+    {
+      "id": 1581,
+      "name": "Audacious",
+      "short_name": "enhancement_audacious",
+      "cost": 0
+    },
+    {
+      "id": 1582,
+      "name": "",
+      "short_name": "hellbear_totem",
+      "cost": 0
+    },
+    {
+      "id": 1583,
+      "name": "Mystical",
+      "short_name": "enhancement_mystical",
+      "cost": 0
+    },
+    {
+      "id": 1584,
+      "name": "Alert",
+      "short_name": "enhancement_alert",
+      "cost": 0
+    },
+    {
+      "id": 1585,
+      "name": "Brawny",
+      "short_name": "enhancement_brawny",
+      "cost": 0
+    },
+    {
+      "id": 1586,
+      "name": "Tough",
+      "short_name": "enhancement_tough",
+      "cost": 0
+    },
+    {
+      "id": 1587,
+      "name": "Feverish",
+      "short_name": "enhancement_feverish",
+      "cost": 0
+    },
+    {
+      "id": 1588,
+      "name": "Fleetfooted",
+      "short_name": "enhancement_fleetfooted",
+      "cost": 0
+    },
+    {
+      "id": 1589,
+      "name": "Crude",
+      "short_name": "enhancement_crude",
+      "cost": 0
+    },
+    {
+      "id": 1590,
+      "name": "Boundless",
+      "short_name": "enhancement_boundless",
+      "cost": 0
+    },
+    {
+      "id": 1591,
+      "name": "Wise",
+      "short_name": "enhancement_wise",
+      "cost": 0
+    },
+    {
+      "id": 1592,
+      "name": "Timeless",
+      "short_name": "enhancement_timeless",
+      "cost": 0
+    },
+    {
+      "id": 1593,
+      "name": "Greedy",
+      "short_name": "enhancement_greedy",
+      "cost": 0
+    },
+    {
+      "id": 1594,
+      "name": "Vampiric",
+      "short_name": "enhancement_vampiric",
+      "cost": 0
+    },
+    {
+      "id": 1595,
+      "name": "Keen-eyed",
+      "short_name": "enhancement_keen_eyed",
+      "cost": 0
+    },
+    {
+      "id": 1596,
+      "name": "Evolved",
+      "short_name": "enhancement_evolved",
+      "cost": 0
+    },
+    {
+      "id": 1597,
+      "name": "Titanic",
+      "short_name": "enhancement_titanic",
+      "cost": 0
+    },
+    {
+      "id": 1598,
+      "name": "Unrelenting Eye",
+      "short_name": "unrelenting_eye",
+      "cost": 0
+    },
+    {
+      "id": 1599,
+      "name": "Mana Draught",
+      "short_name": "mana_draught",
+      "cost": 0
+    },
+    {
+      "id": 1600,
+      "name": "Ripper's Lash",
+      "short_name": "rippers_lash",
+      "cost": 0
+    },
+    {
+      "id": 1601,
+      "name": "Crippling Crossbow",
+      "short_name": "crippling_crossbow",
+      "cost": 0
+    },
+    {
+      "id": 1602,
+      "name": "Gale Guard",
+      "short_name": "gale_guard",
+      "cost": 0
+    },
+    {
+      "id": 1603,
+      "name": "Gunpowder Gauntlet",
+      "short_name": "gunpowder_gauntlets",
+      "cost": 0
+    },
+    {
+      "id": 1604,
+      "name": "Searing Signet",
+      "short_name": "searing_signet",
+      "cost": 0
+    },
+    {
+      "id": 1605,
+      "name": "Serrated Shiv",
+      "short_name": "serrated_shiv",
+      "cost": 0
+    },
+    {
+      "id": 1606,
+      "name": "Pollywog Charm",
+      "short_name": "polliwog_charm",
+      "cost": 0
+    },
+    {
+      "id": 1607,
+      "name": "Magnifying Monocle",
+      "short_name": "magnifying_monocle",
+      "cost": 0
+    },
+    {
+      "id": 1608,
+      "name": "Pyrrhic Cloak",
+      "short_name": "pyrrhic_cloak",
+      "cost": 0
+    },
+    {
+      "id": 1609,
+      "name": "Madstone Bundle",
+      "short_name": "madstone_bundle",
+      "cost": 0
+    },
+    {
+      "id": 1610,
+      "name": "",
+      "short_name": "miniboss_minion_summoner",
+      "cost": 0
+    },
+    {
+      "id": 1636,
+      "name": "Crystal Raindrop",
+      "short_name": "crystal_raindrop",
+      "cost": 0
+    },
+    {
+      "id": 1637,
+      "name": "Kobold Cup",
+      "short_name": "kobold_cup",
+      "cost": 0
+    },
+    {
+      "id": 1638,
+      "name": "Dormant Curio",
+      "short_name": "dormant_curio",
+      "cost": 0
+    },
+    {
+      "id": 1639,
+      "name": "Sister's Shroud",
+      "short_name": "sisters_shroud",
+      "cost": 0
+    },
+    {
+      "id": 1640,
+      "name": "Jidi Pollen Bag",
+      "short_name": "jidi_pollen_bag",
+      "cost": 0
+    },
+    {
+      "id": 1641,
+      "name": "Outworld Staff",
+      "short_name": "outworld_staff",
+      "cost": 0
+    },
+    {
+      "id": 1642,
+      "name": "Dezun Bloodrite",
+      "short_name": "dezun_bloodrite",
+      "cost": 0
+    },
+    {
+      "id": 1643,
+      "name": "Giant's Maul",
+      "short_name": "giant_maul",
+      "cost": 0
+    },
+    {
+      "id": 1644,
+      "name": "Divine Regalia",
+      "short_name": "divine_regalia",
+      "cost": 0
+    },
+    {
+      "id": 1645,
+      "name": "Disgraced Regalia",
+      "short_name": "divine_regalia_broken",
+      "cost": 0
+    },
+    {
+      "id": 1646,
+      "name": "Circlet of the Flayed Twins",
+      "short_name": "circlet_of_the_flayed_twins",
+      "cost": 0
+    },
+    {
+      "id": 1647,
+      "name": "Fierce",
+      "short_name": "enhancement_fierce",
+      "cost": 0
+    },
+    {
+      "id": 1648,
+      "name": "Dominant",
+      "short_name": "enhancement_dominant",
+      "cost": 0
+    },
+    {
+      "id": 1649,
+      "name": "Restorative",
+      "short_name": "enhancement_restorative",
+      "cost": 0
+    },
+    {
+      "id": 1650,
+      "name": "Thick",
+      "short_name": "enhancement_thick",
+      "cost": 0
+    },
+    {
+      "id": 1651,
+      "name": "Unleashed",
+      "short_name": "enhancement_curious",
+      "cost": 0
+    },
+    {
+      "id": 1652,
+      "name": "Bag of Gold",
+      "short_name": "furion_gold_bag",
+      "cost": 0
+    },
+    {
+      "id": 1715,
+      "name": "",
+      "short_name": "recipe_specialists_array",
+      "cost": 650
+    },
+    {
+      "id": 1716,
+      "name": "Weighted Dice",
+      "short_name": "weighted_dice",
+      "cost": 0
+    },
+    {
+      "id": 1717,
+      "name": "Ash Legion Shield",
+      "short_name": "ash_legion_shield",
+      "cost": 0
+    },
+    {
+      "id": 1718,
+      "name": "Riftshadow Prism",
+      "short_name": "riftshadow_prism",
+      "cost": 0
+    },
+    {
+      "id": 1719,
+      "name": "Metamorphic Mandible",
+      "short_name": "metamorphic_mandible",
+      "cost": 0
+    },
+    {
+      "id": 1720,
+      "name": "Idol of Scree'Auk",
+      "short_name": "idol_of_screeauk",
+      "cost": 0
+    },
+    {
+      "id": 1721,
+      "name": "Flayer's Bota",
+      "short_name": "flayers_bota",
+      "cost": 0
+    },
+    {
+      "id": 1801,
+      "name": "",
+      "short_name": "caster_rapier",
+      "cost": 5600
+    },
+    {
+      "id": 1802,
+      "name": "Tiara of Selemene",
+      "short_name": "tiara_of_selemene",
+      "cost": 1700
+    },
+    {
+      "id": 1803,
+      "name": "Doubloon",
+      "short_name": "doubloon",
+      "cost": 0
+    },
+    {
+      "id": 1804,
+      "name": "Roshan's Banner",
+      "short_name": "roshans_banner",
+      "cost": 0
+    },
+    {
+      "id": 1805,
+      "name": "Parasma Recipe",
+      "short_name": "recipe_devastator",
+      "cost": 400
+    },
+    {
+      "id": 1806,
+      "name": "Parasma",
+      "short_name": "devastator",
+      "cost": 5975
+    },
+    {
+      "id": 1807,
+      "name": "Khanda Recipe",
+      "short_name": "recipe_angels_demise",
+      "cost": 0
+    },
+    {
+      "id": 1808,
+      "name": "Khanda",
+      "short_name": "angels_demise",
+      "cost": 5600
+    },
+    {
+      "id": 2091,
+      "name": "Tier 1 Token",
+      "short_name": "tier1_token",
+      "cost": 0
+    },
+    {
+      "id": 2092,
+      "name": "Tier 2 Token",
+      "short_name": "tier2_token",
+      "cost": 0
+    },
+    {
+      "id": 2093,
+      "name": "Tier 3 Token",
+      "short_name": "tier3_token",
+      "cost": 0
+    },
+    {
+      "id": 2094,
+      "name": "Tier 4 Token",
+      "short_name": "tier4_token",
+      "cost": 0
+    },
+    {
+      "id": 2095,
+      "name": "Tier 5 Token",
+      "short_name": "tier5_token",
+      "cost": 0
+    },
+    {
+      "id": 2096,
+      "name": "Vindicator's Axe",
+      "short_name": "vindicators_axe",
+      "cost": 0
+    },
+    {
+      "id": 2097,
+      "name": "Duelist Gloves",
+      "short_name": "duelist_gloves",
+      "cost": 0
+    },
+    {
+      "id": 2098,
+      "name": "",
+      "short_name": "horizons_equilibrium",
+      "cost": 0
+    },
+    {
+      "id": 2099,
+      "name": "",
+      "short_name": "blighted_spirit",
+      "cost": 0
+    },
+    {
+      "id": 2190,
+      "name": "Dandelion Amulet",
+      "short_name": "dandelion_amulet",
+      "cost": 0
+    },
+    {
+      "id": 2191,
+      "name": "",
+      "short_name": "turtle_shell",
+      "cost": 0
+    },
+    {
+      "id": 2192,
+      "name": "Martyr's Plate",
+      "short_name": "martyrs_plate",
+      "cost": 0
+    },
+    {
+      "id": 2193,
+      "name": "Gossamer Cape",
+      "short_name": "gossamer_cape",
+      "cost": 0
+    },
+    {
+      "id": 4204,
+      "name": "Healing Lotus",
+      "short_name": "famango",
+      "cost": 0
+    },
+    {
+      "id": 4205,
+      "name": "Great Healing Lotus",
+      "short_name": "great_famango",
+      "cost": 0
+    },
+    {
+      "id": 4206,
+      "name": "Greater Healing Lotus",
+      "short_name": "greater_famango",
+      "cost": 0
+    },
+    {
+      "id": 4207,
+      "name": "",
+      "short_name": "recipe_great_famango",
+      "cost": 0
+    },
+    {
+      "id": 4208,
+      "name": "",
+      "short_name": "recipe_greater_famango",
+      "cost": 0
+    },
+    {
+      "id": 4300,
+      "name": "Beloved Memory",
+      "short_name": "ofrenda",
+      "cost": 0
+    },
+    {
+      "id": 4301,
+      "name": "Scrying Shovel",
+      "short_name": "ofrenda_shovel",
+      "cost": 0
+    },
+    {
+      "id": 4302,
+      "name": "Forebearer's Fortune",
+      "short_name": "ofrenda_pledge",
+      "cost": 0
+    }
+  ]
+}

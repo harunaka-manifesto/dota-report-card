@@ -5,6 +5,11 @@ Read /AGENTS.md first. These instructions extend the root rules for services/api
 These rules apply to FastAPI routes, report assembly, public schemas,
 analytical services, storage, workers, and backend release work.
 
+Before designing or changing a Finding, read the repository's
+[analytical learnings and gotchas](../../docs/agent/analytical-learnings-and-gotchas.md).
+V7 work must remain STRATZ-native and must not inherit V6/V6.1 analytical
+meaning without a new, explicitly versioned release decision.
+
 ## Classify every report assembly change
 
 Every report assembly change MUST classify itself as exactly one of:

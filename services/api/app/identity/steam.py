@@ -10,7 +10,7 @@ import httpx
 from app.core.errors import InvalidPlayerIdentifier, SteamIdentityUnavailable
 
 if TYPE_CHECKING:
-    from app.opendota.cache import CacheBackend
+    from app.core.cache import CacheBackend
 
 STEAM64_OFFSET = 76561197960265728
 STEAM_VANITY_CACHE_SECONDS = 30 * 24 * 60 * 60

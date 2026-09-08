@@ -1,0 +1,33 @@
+{
+  "schema_version": "v7-population-parameters-2.0.0",
+  "artifact_version": "FILL_AFTER_COMPLETE",
+  "artifact_sha256": "FILL_AFTER_COMPLETE",
+  "analytical_lineage_id": "FILL_AFTER_COMPLETE",
+  "population_compatibility_id": "FILL_AFTER_COMPLETE",
+  "context_projection_version": "FILL_AFTER_COMPLETE",
+  "context_projection_sha256": "FILL_AFTER_COMPLETE",
+  "fitted_on_split": "DISCOVERY",
+  "source_code_sha": "FILL_AFTER_COMPLETE",
+  "source_digests": {
+    "pass1_complete_manifest_sha256": "FILL_AFTER_COMPLETE",
+    "pass2_run_manifest_sha256": "237cbb0221cca87973ee5b598be000ccf494dab9f06db8bb5016fb7463e428be",
+    "context_projection_sha256": "FILL_AFTER_COMPLETE"
+  },
+  "model_versions": {
+    "features": "FILL_AFTER_COMPLETE",
+    "inference": "v7-luna-c-inference-1.0.0",
+    "ranking": "v7-luna-f-ranking-1.0.0",
+    "recommendation": "v7-improvement-recommendation-1.0.0",
+    "archetype": "v7-archetype-axes-1.0.0",
+    "owner_decisions": "FILL_AFTER_COMPLETE"
+  },
+  "finding_dimensions": "FILL_ALL_16_WITH_MU_TAU_D_SUPPORT_AND_PROVENANCE",
+  "recommendation_dimensions": "FILL_ALL_9_WITH_SCALE_D_SIGN_AND_ELIGIBILITY",
+  "archetype_cuts": "FILL_STANDARD_AND_TURBO",
+  "protected_splits": {
+    "CANDIDATE_TEST": "NOT_READ",
+    "CALIBRATION_RESERVED": "NOT_READ",
+    "SEALED_VALIDATION": "NOT_READ"
+  },
+  "validation_status": "development"
+}

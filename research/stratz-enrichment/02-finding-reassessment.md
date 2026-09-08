@@ -52,12 +52,11 @@ eligibility flag fails on `missing_role_hint`, and `lane_context` is `None` —
 so matches fall through the baseline hierarchy to the `overall` cell. The
 misclassification is **latent**, not active.
 
-**The trap this creates for the sibling migration document:** mapping STRATZ
+**The trap this creates for a compatibility-shim migration:** mapping STRATZ
 `lane` onto `ROLE_HINTS` at 93% coverage *activates* a broken vocabulary at
-scale. A provider swap that preserves V6.1's meaning must either keep lane dark
-or adopt `position`/`role` — and adopting `position`/`role` is a new lineage,
-not parity. **`01-luna-max-provider-migration.md` must not do this.** This is
-the one cross-document warning in this research.
+scale. A V7 provider path must preserve `position`, `role`, and `lane`
+independently; adopting their semantics for a Finding is a new lineage, not
+parity. This is the one cross-document warning in this research.
 
 ### 0.2 The 128-feature catalog is a shape, not a design
 
