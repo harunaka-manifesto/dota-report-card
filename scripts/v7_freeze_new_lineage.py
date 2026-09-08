@@ -21,6 +21,7 @@ sys.path.insert(0, str(REPO_ROOT / "services/api"))
 from app.player_analysis_v7.context_projection import (  # noqa: E402
     CONTEXT_PROJECTION_SCHEMA_VERSION,
     FINDING_FACTOR_ORDER,
+    RECOMMENDATION_FACTOR_ORDER,
     SHIPPING_FINDING_IDS,
     artifact_digest,
 )
@@ -118,6 +119,37 @@ def projection_dimension(key: str, row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def recommendation_projection(key: str, row: dict[str, Any]) -> dict[str, Any]:
+    projection = row["context_projection"]
+    if projection["factor_order"] != list(RECOMMENDATION_FACTOR_ORDER):
+        raise SystemExit(f"{key}: Recommendation context factor order mismatch")
+    factors = []
+    coefficient_order: list[dict[str, str]] = []
+    for factor in RECOMMENDATION_FACTOR_ORDER:
+        vocabulary = projection["categorical_vocabularies"][factor]
+        coefficients = projection["coefficients"][factor]
+        coefficient_order.extend({"factor": factor, "level": level} for level in vocabulary)
+        factors.append(
+            {
+                "name": factor,
+                "categorical_vocabulary": vocabulary,
+                "reference_level": None,
+                "coefficients": coefficients,
+                "unseen_level_behavior": {"strategy": "refuse"},
+            }
+        )
+    return {
+        "recommendation_id": key,
+        "source_pass": "PASS2",
+        "context_feature_schema": "v7-improvement-recommendation-1.0.0",
+        "factor_order": list(RECOMMENDATION_FACTOR_ORDER),
+        "coefficient_order": coefficient_order,
+        "intercept": projection["intercept"],
+        "factors": factors,
+        "validation": {"opportunities": row["opportunities"], "players": row["players_with_a_gap"], "runtime_parity_tolerance": 1e-12},
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--finding", type=Path, required=True)
@@ -191,6 +223,10 @@ def main() -> int:
             "provider_calls": {"fit_phase_stratz_calls": 0, "fit_phase_opendota_calls": 0},
             "dimensions": {
                 key: projection_dimension(key, finding["dimensions"][key]) for key in SHIPPING
+            },
+            "recommendation_dimensions": {
+                key: recommendation_projection(key, row)
+                for key, row in recommendation["dimensions"].items()
             },
         }
     )

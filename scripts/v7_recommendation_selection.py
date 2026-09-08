@@ -214,6 +214,25 @@ def main() -> int:
             "gap": _describe(gaps),
             "reliability": _describe(reliabilities),
             "priority": _describe(priorities),
+            "context_projection": {
+                "factor_order": list(matrix.encoded.factors),
+                "categorical_vocabularies": {
+                    factor: list(levels)
+                    for factor, levels in zip(
+                        matrix.encoded.factors, matrix.encoded.level_names, strict=True
+                    )
+                },
+                "intercept": matrix.context_fit.intercept,
+                "coefficients": {
+                    factor: dict(zip(levels, coefficients, strict=True))
+                    for factor, levels, coefficients in zip(
+                        matrix.encoded.factors,
+                        matrix.encoded.level_names,
+                        matrix.context_fit.coefficients,
+                        strict=True,
+                    )
+                },
+            },
         }
         print(
             f"{key:24s} players={len(results):>4d} scale={scale:.4f} "

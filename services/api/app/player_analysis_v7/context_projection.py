@@ -58,6 +58,20 @@ FINDING_FACTOR_ORDER: dict[str, tuple[str, ...]] = {
     "fight_conversion": PASS2,
 }
 SHIPPING_FINDING_IDS = frozenset(FINDING_FACTOR_ORDER)
+RECOMMENDATION_FACTOR_ORDER = ("mode", "patch", "hero", "position", "role", "lane")
+RECOMMENDATION_IDS = frozenset(
+    {
+        "death_clustering",
+        "deaths_alone_share",
+        "fight_conversion",
+        "first_real_item_time",
+        "first_ward_time",
+        "lane_vs_jungle_share",
+        "last_hits_at_ten",
+        "spike_usage",
+        "vision_coverage",
+    }
+)
 
 
 class ContextProjectionError(RuntimeError):
@@ -122,6 +136,7 @@ class ContextProjectionArtifact:
     estimator_version: str
     source_digests: Mapping[str, str]
     dimensions: Mapping[str, FindingProjection]
+    recommendation_dimensions: Mapping[str, FindingProjection]
 
     def finding(self, finding_id: str) -> FindingProjection:
         try:
@@ -138,6 +153,14 @@ class ContextProjectionArtifact:
             "context_projection_sha256": self.artifact_sha256,
             "population_compatibility_id": self.population_compatibility_id,
         }
+
+    def recommendation(self, recommendation_id: str) -> FindingProjection:
+        try:
+            return self.recommendation_dimensions[recommendation_id]
+        except KeyError:
+            raise ContextProjectionError(
+                f"no frozen context projection for Recommendation {recommendation_id!r}"
+            ) from None
 
 
 def artifact_digest(document: Mapping[str, Any]) -> str:
@@ -211,10 +234,16 @@ def _parse_factor(raw: Any, *, finding_id: str, expected_name: str) -> FactorPro
     return FactorProjection(name, vocabulary, coefficients, str(strategy), fallback)
 
 
-def _parse_dimension(finding_id: str, raw: Any) -> FindingProjection:
-    if not isinstance(raw, Mapping) or raw.get("finding_id") != finding_id:
-        raise ContextProjectionError(f"{finding_id}: malformed Finding projection")
-    expected = FINDING_FACTOR_ORDER[finding_id]
+def _parse_dimension(
+    finding_id: str,
+    raw: Any,
+    *,
+    expected: tuple[str, ...] | None = None,
+    id_field: str = "finding_id",
+) -> FindingProjection:
+    if not isinstance(raw, Mapping) or raw.get(id_field) != finding_id:
+        raise ContextProjectionError(f"{finding_id}: malformed context projection")
+    expected = expected or FINDING_FACTOR_ORDER[finding_id]
     factor_order = raw.get("factor_order")
     if factor_order != list(expected):
         raise ContextProjectionError(
@@ -282,6 +311,18 @@ def parse_context_projection(document: Mapping[str, Any]) -> ContextProjectionAr
         finding_id: _parse_dimension(finding_id, dimensions_raw[finding_id])
         for finding_id in FINDING_FACTOR_ORDER
     }
+    recommendations_raw = document.get("recommendation_dimensions")
+    if not isinstance(recommendations_raw, Mapping) or set(recommendations_raw) != RECOMMENDATION_IDS:
+        raise ContextProjectionError("artifact must contain exactly the 9 Recommendation projections")
+    recommendations = {
+        key: _parse_dimension(
+            key,
+            recommendations_raw[key],
+            expected=RECOMMENDATION_FACTOR_ORDER,
+            id_field="recommendation_id",
+        )
+        for key in sorted(RECOMMENDATION_IDS)
+    }
     return ContextProjectionArtifact(
         schema_version=CONTEXT_PROJECTION_SCHEMA_VERSION,
         artifact_version=_text(document.get("artifact_version"), "artifact_version"),
@@ -298,6 +339,7 @@ def parse_context_projection(document: Mapping[str, Any]) -> ContextProjectionAr
         estimator_version=_text(estimator.get("version"), "estimator.version"),
         source_digests=dict(source_digests),
         dimensions=dimensions,
+        recommendation_dimensions=recommendations,
     )
 
 
@@ -347,6 +389,8 @@ __all__ = [
     "CONTEXT_PROJECTION_SCHEMA_VERSION",
     "COMPATIBLE_POPULATION_SCHEMA_VERSION",
     "FINDING_FACTOR_ORDER",
+    "RECOMMENDATION_FACTOR_ORDER",
+    "RECOMMENDATION_IDS",
     "SHIPPING_FINDING_IDS",
     "ContextProjectionArtifact",
     "ContextProjectionError",

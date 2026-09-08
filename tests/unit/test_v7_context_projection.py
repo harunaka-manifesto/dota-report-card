@@ -10,6 +10,8 @@ from app.player_analysis_v7.context_projection import (
     COMPATIBLE_POPULATION_SCHEMA_VERSION,
     CONTEXT_PROJECTION_SCHEMA_VERSION,
     FINDING_FACTOR_ORDER,
+    RECOMMENDATION_FACTOR_ORDER,
+    RECOMMENDATION_IDS,
     ContextProjectionError,
     artifact_digest,
     assert_population_compatible,
@@ -60,6 +62,22 @@ def _document() -> dict[str, object]:
             "intercept": 0.0,
             "factors": factors,
         }
+    recommendations = {}
+    for key in RECOMMENDATION_IDS:
+        factors = [_factor(name) for name in RECOMMENDATION_FACTOR_ORDER]
+        recommendations[key] = {
+            "recommendation_id": key,
+            "source_pass": "PASS2",
+            "context_feature_schema": "synthetic-recommendation-1",
+            "factor_order": list(RECOMMENDATION_FACTOR_ORDER),
+            "coefficient_order": [
+                {"factor": factor["name"], "level": level}
+                for factor in factors
+                for level in factor["categorical_vocabulary"]
+            ],
+            "intercept": 0.0,
+            "factors": factors,
+        }
     document: dict[str, object] = {
         "schema_version": CONTEXT_PROJECTION_SCHEMA_VERSION,
         "artifact_version": "v7-context-projection-synthetic-test",
@@ -84,6 +102,7 @@ def _document() -> dict[str, object]:
             "source_tree_sha256": "5" * 64,
         },
         "dimensions": dimensions,
+        "recommendation_dimensions": recommendations,
     }
     document["artifact_sha256"] = artifact_digest(document)
     return document
