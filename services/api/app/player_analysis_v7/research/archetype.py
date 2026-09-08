@@ -301,14 +301,12 @@ class PopulationCuts:
 
     def as_dict(self) -> dict[str, Any]:
         return {
-            "tempo_low": round(self.tempo_low, 6),
-            "tempo_high": round(self.tempo_high, 6),
-            "participation_low": round(self.participation_low, 6),
-            "deaths_median": round(self.deaths_median, 6),
-            "lighthouse_cut": (
-                round(self.lighthouse_cut, 6) if self.lighthouse_cut is not None else None
-            ),
-            "closer_cut": round(self.closer_cut, 6) if self.closer_cut is not None else None,
+            "tempo_low": self.tempo_low,
+            "tempo_high": self.tempo_high,
+            "participation_low": self.participation_low,
+            "deaths_median": self.deaths_median,
+            "lighthouse_cut": self.lighthouse_cut,
+            "closer_cut": self.closer_cut,
         }
 
 

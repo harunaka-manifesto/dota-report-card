@@ -201,14 +201,14 @@ def main() -> int:
             "upstream_rationale": dimension.upstream_rationale,
             "verification": dimension.verification,
             "eligible": eligible,
-            "modal_sign_share": round(sign_share, 6),
+            "modal_sign_share": sign_share,
             "outcome_contaminated": contaminated,
             "players_with_a_gap": len(results),
             "players_without_a_denominator": without_denominator,
             "opportunities": len(matrix.residual),
-            "dimension_scale": round(scale, 6),
-            "between_player_tau_unused": round(tau, 6),
-            "dependence_inflation": round(dependence, 6),
+            "dimension_scale": scale,
+            "between_player_tau_unused": tau,
+            "dependence_inflation": dependence,
             "dependence_batch_length": batch_length,
             "dependence_measured": measured,
             "gap": _describe(gaps),
@@ -223,10 +223,10 @@ def main() -> int:
             flush=True,
         )
 
-    chosen = Counter()
-    runner_up = Counter()
+    chosen: Counter[str] = Counter()
+    runner_up: Counter[str] = Counter()
     chosen_priorities: list[float] = []
-    candidate_counts = Counter()
+    candidate_counts: Counter[int] = Counter()
     players_with_no_recommendation = 0
     for scored in scored_by_player.values():
         candidate_counts[len(scored)] += 1

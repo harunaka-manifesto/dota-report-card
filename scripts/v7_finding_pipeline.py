@@ -273,15 +273,15 @@ def fit_dimension(
         "section": section,
         "players": len(dimensions),
         "opportunities": len(matrix.residual),
-        "projection_drift": round(matrix.projection_drift, 6),
-        "mu": round(mu, 6),
-        "tau": round(tau, 6),
-        "dependence_inflation": round(dependence, 6),
+        "projection_drift": matrix.projection_drift,
+        "mu": mu,
+        "tau": tau,
+        "dependence_inflation": dependence,
         "dependence_inflation_measured": dependence_measured,
         "dependence_batch_length": batch_length,
-        "dependence_inflation_raw": round(raw, 6) if raw == raw else None,
+        "dependence_inflation_raw": raw if raw == raw else None,
         "dependence_curve": {
-            str(b): round(curve[b], 6)
+            str(b): curve[b]
             for b in DEPENDENCE_BATCH_LENGTHS
             if curve.get(b, float("nan")) == curve.get(b)
         },
