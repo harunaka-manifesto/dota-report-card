@@ -220,6 +220,8 @@ def iter_pass2_players(root: str | Path) -> Iterator[dict[str, Any]]:
     # and it is reached by an explicit path rather than through corpus_paths,
     # so the durability guard is applied here as well.
     root = assert_durable_corpus_root(root, purpose="pass-2 corpus loader root")
+    if (root / "canonical").is_dir():
+        root = root / "canonical"
     for path in sorted(root.glob("v7p_*.json")):
         with path.open(encoding="utf-8") as handle:
             document = json.load(handle)

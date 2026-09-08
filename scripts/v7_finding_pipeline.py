@@ -498,7 +498,7 @@ def main() -> int:
         required=True,
         help="DISCOVERY-only canonical parsed overlay for the Pass-1 identities",
     )
-    parser.add_argument("--pass2-root", required=True, help="Pass-2 canonical root")
+    parser.add_argument("--pass2-root", required=True, help="Pass-2 corpus or canonical root")
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
