@@ -5,7 +5,7 @@ import dataclasses
 from app.analysis.source import MappingSource
 from app.core.config import Settings
 from app.main import create_app
-from app.player_analysis_v7.runtime import history_rows
+from app.player_analysis_v7.runtime import analyze_v7, history_rows
 from app.player_analysis_v7.service import DEEP_CACHE_ENDPOINT, V7RuntimeService
 from app.providers.base import (
     CanonicalProfile,
@@ -95,6 +95,68 @@ def test_history_rows_retains_nullable_identity_without_coercion() -> None:
     assert retained[0]["is_radiant"] is None
     assert retained[0]["hero_id"] is None
     assert "did_radiant_win" not in retained[0]
+
+
+def test_nullable_deep_evidence_refuses_affected_paths_not_whole_report() -> None:
+    source = _history()
+    base = _deep_row()
+    cases = []
+
+    duration_row = dict(base)
+    duration_row.update(
+        duration_seconds=None,
+        radiant_kills=[0] * 21,
+        dire_kills=[0] * 21,
+        radiant_networth_leads=[0] * 21,
+    )
+    cases.append(duration_row)
+
+    lead_row = dict(base)
+    lead_row.update(
+        duration_seconds=1200,
+        radiant_kills=[0] * 21,
+        dire_kills=[0] * 21,
+        radiant_networth_leads=[None] * 21,
+    )
+    cases.append(lead_row)
+
+    death_row = dict(base)
+    death_row.update(
+        duration_seconds=1200,
+        radiant_kills=[0] * 21,
+        dire_kills=[0] * 21,
+        radiant_networth_leads=[0] * 21,
+    )
+    death_row["self"] = {
+        **base["self"],  # type: ignore[index]
+        "events": {**base["self"]["events"], "death_events": [{"time": None}]},  # type: ignore[index]
+    }
+    cases.append(death_row)
+
+    for row in cases:
+        payload = analyze_v7(
+            history=source,
+            deep_rows=[row],
+            hero_metadata={1: {"display_name": "Anti-Mage"}},
+            generated_at="2026-09-08T00:00:00+00:00",
+        )
+        assert payload.metadata.matches_total == 1
+        assert payload.metadata.matches_analysed == 1
+
+
+def test_unseen_deep_context_refuses_affected_findings_and_keeps_report_readable() -> None:
+    row = _deep_row()
+    row["game_version_id"] = "NEW_PATCH"
+    payload = analyze_v7(
+        history=_history(),
+        deep_rows=[row],
+        hero_metadata={1: {"display_name": "Anti-Mage"}},
+        generated_at="2026-09-08T00:00:00+00:00",
+    )
+
+    assert payload.findings == []
+    assert payload.metadata.matches_total == 1
+    assert payload.public_projection.selected_kind == "hero"
 
 
 class _Provider:

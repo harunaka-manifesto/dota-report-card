@@ -78,6 +78,14 @@ class ContextProjectionError(RuntimeError):
     """The projection is absent, malformed, incompatible, or unsupported."""
 
 
+class UnsupportedContextLevel(ContextProjectionError):
+    """A valid player observation has a level not fitted by the artifact.
+
+    This is a per-observation/per-dimension refusal.  Structural artifact
+    failures continue to use ``ContextProjectionError`` and remain fatal.
+    """
+
+
 @dataclass(frozen=True)
 class FactorProjection:
     name: str
@@ -91,7 +99,7 @@ class FactorProjection:
             return self.coefficients[level]
         if self.unseen_strategy == "map_to_level" and self.unseen_level is not None:
             return self.coefficients[self.unseen_level]
-        raise ContextProjectionError(
+        raise UnsupportedContextLevel(
             f"unsupported level {level!r} for context factor {self.name!r}"
         )
 
@@ -394,6 +402,7 @@ __all__ = [
     "SHIPPING_FINDING_IDS",
     "ContextProjectionArtifact",
     "ContextProjectionError",
+    "UnsupportedContextLevel",
     "artifact_digest",
     "assert_population_compatible",
     "load_context_projection",

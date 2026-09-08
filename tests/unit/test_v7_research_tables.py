@@ -58,6 +58,15 @@ def test_minute_grid_clips_a_short_trajectory() -> None:
     assert minute_grid_length(candidate) == 3
 
 
+def test_minute_grid_is_unavailable_without_duration_or_with_a_null_slot() -> None:
+    assert minute_grid_length(
+        row(duration_seconds=None, radiant_networth_leads=[0, 1, 2])
+    ) == 0
+    assert minute_grid_length(
+        row(duration_seconds=180, radiant_networth_leads=[0, None, 2])
+    ) == 0
+
+
 def test_networth_lead_is_flipped_for_a_dire_player() -> None:
     trajectory = [0, 500, -250]
     radiant = row(duration_seconds=180, is_radiant=True, radiant_networth_leads=trajectory)
@@ -69,6 +78,15 @@ def test_networth_lead_is_flipped_for_a_dire_player() -> None:
 def test_networth_lead_fails_closed_without_a_known_side() -> None:
     candidate = row(duration_seconds=180, is_radiant=None, radiant_networth_leads=[0, 1, 2])
     assert player_networth_lead(candidate) is None
+
+
+def test_networth_lead_is_unavailable_for_nullable_evidence() -> None:
+    assert player_networth_lead(
+        row(duration_seconds=None, radiant_networth_leads=[0, 1, 2])
+    ) is None
+    assert player_networth_lead(
+        row(duration_seconds=180, radiant_networth_leads=[0, None, 2])
+    ) is None
 
 
 def test_team_kill_trajectories_follow_the_player_side() -> None:

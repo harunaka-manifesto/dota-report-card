@@ -12,6 +12,7 @@ from typing import Any, cast
 from app.player_analysis_v7.assembly import assemble_v7_capability
 from app.player_analysis_v7.context_projection import (
     SHIPPING_FINDING_IDS,
+    UnsupportedContextLevel,
     assert_population_compatible,
     load_context_projection,
 )
@@ -144,10 +145,15 @@ def _estimate(
         if recommendation_projection
         else artifact.finding(finding_id)
     )
-    residuals = [
-        projection.residual(value=o.value, context=dict(o.ctx), arm=o.arm)
-        for o in opportunities
-    ]
+    try:
+        residuals = [
+            projection.residual(value=o.value, context=dict(o.ctx), arm=o.arm)
+            for o in opportunities
+        ]
+    except UnsupportedContextLevel:
+        # An unseen player level refuses this dimension.  Do not map it to a
+        # zero effect or hide artifact validation failures under this branch.
+        return None
     armed = treated is not None and control is not None
     arms = [1 if o.arm == treated else 0 if o.arm == control else -1 for o in opportunities]
     return inference.player_inference(
@@ -256,7 +262,10 @@ def _recommendation(
         if not recommendation.has_denominator(series):
             continue
         projection = artifact.recommendation(key)
-        residuals = [projection.residual(o.value, dict(o.ctx)) for o in series]
+        try:
+            residuals = [projection.residual(o.value, dict(o.ctx)) for o in series]
+        except UnsupportedContextLevel:
+            continue
         result = _estimate(
             key,
             series,

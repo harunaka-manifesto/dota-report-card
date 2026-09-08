@@ -56,9 +56,16 @@ def minute_grid_length(row: dict[str, Any]) -> int:
     """Number of trustworthy minute slots for ``row``'s trajectories."""
 
     trajectory = row.get("radiant_networth_leads")
-    if not trajectory:
+    duration = row.get("duration_seconds")
+    if not trajectory or duration is None:
         return 0
-    return min(len(trajectory), expected_trajectory_length(row["duration_seconds"]))
+    limit = expected_trajectory_length(duration)
+    # A nullable slot is not an observed zero.  The lead curve is a single
+    # derived series, so a hole in the usable grid makes the whole row
+    # unavailable to consumers that need minute alignment.
+    if any(value is None for value in trajectory[:limit]):
+        return 0
+    return min(len(trajectory), limit)
 
 
 def player_networth_lead(row: dict[str, Any]) -> list[int] | None:
@@ -73,6 +80,8 @@ def player_networth_lead(row: dict[str, Any]) -> list[int] | None:
     if trajectory is None:
         return None
     length = minute_grid_length(row)
+    if length == 0:
+        return None
     oriented = trajectory[:length]
     if row.get("is_radiant") is True:
         return list(oriented)
@@ -89,6 +98,8 @@ def team_kill_trajectories(row: dict[str, Any]) -> tuple[list[int], list[int]] |
     if radiant is None or dire is None:
         return None
     length = minute_grid_length(row)
+    if length == 0:
+        return None
     if row.get("is_radiant") is True:
         return list(radiant[:length]), list(dire[:length])
     if row.get("is_radiant") is False:

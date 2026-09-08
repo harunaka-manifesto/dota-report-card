@@ -13,6 +13,7 @@ from app.player_analysis_v7.context_projection import (
     RECOMMENDATION_FACTOR_ORDER,
     RECOMMENDATION_IDS,
     ContextProjectionError,
+    UnsupportedContextLevel,
     artifact_digest,
     assert_population_compatible,
     load_context_projection,
@@ -157,7 +158,7 @@ def test_unseen_level_refuses_unless_artifact_names_a_fitted_fallback() -> None:
     refusing = parse_context_projection(_document()).finding("vision_coverage")
     context = {name: "KNOWN" for name in FINDING_FACTOR_ORDER["vision_coverage"]}
     context["mode"] = "UNSEEN"
-    with pytest.raises(ContextProjectionError, match="unsupported level"):
+    with pytest.raises(UnsupportedContextLevel, match="unsupported level"):
         refusing.residual(3.0, context)
     with pytest.raises(ContextProjectionError, match="unsupported context factor"):
         refusing.residual(3.0, context | {"role": "CORE"})

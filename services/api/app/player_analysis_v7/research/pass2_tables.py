@@ -280,7 +280,7 @@ def trajectory(row: dict[str, Any], name: str) -> list[int | None] | None:
         raise ValueError(f"pass2 trajectory {name!r} is not a list")
     duration = row.get("duration_seconds")
     if duration is None:
-        raise ValueError("pass2 row is missing duration_seconds")
+        return None
     max_len = pass1_tables.expected_trajectory_length(duration)
     return list(array[:max_len])
 
@@ -356,6 +356,8 @@ def fight_minutes(row: dict[str, Any]) -> frozenset[int] | None:
     # A shorter provider series has no value for the missing tail.  Do not
     # pad it with zero kills: that would manufacture non-fight minutes.
     length = min(pass1_tables.minute_grid_length(row), len(radiant), len(dire))
+    if length == 0:
+        return None
     fights: set[int] = set()
     for index in range(length):
         r = radiant[index]
@@ -403,15 +405,13 @@ def deaths_alone_share(row: dict[str, Any]) -> float | None:
         return None
     length = pass1_tables.minute_grid_length(row)
     if length == 0:
-        raise ValueError(
-            "pass2 row has recorded deaths but no trajectory grid to place them on"
-        )
+        return None
 
     alone = 0
     for event in death_events:
         time = event.get("time")
         if time is None:
-            raise ValueError("death event is missing 'time'")
+            return None
         minute = max(0, time // 60)
         minute = min(minute, length - 1)
         if minute not in fights:

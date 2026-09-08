@@ -4,7 +4,11 @@ import math
 from typing import Any
 
 import pytest
-from app.player_analysis_v7.context_projection import load_context_projection
+from app.player_analysis_v7 import runtime
+from app.player_analysis_v7.context_projection import (
+    ContextProjectionError,
+    load_context_projection,
+)
 from app.player_analysis_v7.population import load_population_parameters
 from app.player_analysis_v7.research import inference, recommendation, screen
 from app.player_analysis_v7.research.features import Opportunity
@@ -73,6 +77,36 @@ def test_every_finding_runtime_projection_matches_direct_frozen_math(monkeypatch
         assert actual is not None and expected is not None
         assert math.isclose(actual.delta, expected.delta, abs_tol=1e-12)
         assert math.isclose(actual.standard_error, expected.standard_error, abs_tol=1e-12)
+
+
+def test_unseen_player_context_refuses_only_that_dimension() -> None:
+    rows, treated, control = _series("vision_coverage")
+    unknown = rows[0]
+    unknown_context = tuple(
+        (name, "NEW_PATCH") if name == "patch" else (name, value)
+        for name, value in unknown.ctx
+    )
+
+    assert (
+        _estimate(
+            "vision_coverage",
+            [Opportunity(unknown.value, unknown_context, unknown.arm)],
+            treated=treated,
+            control=control,
+        )
+        is None
+    )
+    assert _estimate("vision_coverage", rows, treated=treated, control=control) is not None
+
+
+def test_frozen_artifact_failures_remain_fatal(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        runtime,
+        "load_context_projection",
+        lambda: (_ for _ in ()).throw(ContextProjectionError("artifact invalid")),
+    )
+    with pytest.raises(ContextProjectionError, match="artifact invalid"):
+        _estimate("vision_coverage", [], treated=None, control=None)
 
 
 def test_every_eligible_recommendation_uses_its_frozen_projection() -> None:

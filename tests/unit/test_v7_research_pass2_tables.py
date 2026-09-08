@@ -78,6 +78,14 @@ def test_trajectory_returns_none_when_absent() -> None:
     assert trajectory(candidate, "gold_per_minute") is None
 
 
+def test_trajectory_returns_none_without_duration() -> None:
+    candidate = row(
+        duration_seconds=None,
+        self={"trajectories": {"gold_per_minute": [1, 2, 3]}},
+    )
+    assert trajectory(candidate, "gold_per_minute") is None
+
+
 def test_trajectory_rejects_level_and_quarantined_fields() -> None:
     candidate = row()
     with pytest.raises(ValueError):
@@ -115,6 +123,15 @@ def test_team_lead_curve_is_flipped_for_a_dire_player() -> None:
 def test_team_lead_curve_fails_closed_without_a_known_side() -> None:
     candidate = row(duration_seconds=180, radiant_networth_leads=[0, 1], self={"is_radiant": None})
     assert team_lead_curve(candidate) is None
+
+
+def test_team_lead_curve_is_unavailable_for_nullable_grid_evidence() -> None:
+    assert team_lead_curve(
+        row(duration_seconds=None, radiant_networth_leads=[0, 1, 2])
+    ) is None
+    assert team_lead_curve(
+        row(duration_seconds=180, radiant_networth_leads=[0, None, 2])
+    ) is None
 
 
 # --------------------------------------------------------------------------
@@ -182,7 +199,7 @@ def test_deaths_alone_share_mixed() -> None:
     assert deaths_alone_share(_row_with_deaths([65, 200])) == pytest.approx(0.5)
 
 
-def test_deaths_alone_share_fails_closed_on_missing_time() -> None:
+def test_deaths_alone_share_is_unavailable_on_missing_time() -> None:
     candidate = row(
         duration_seconds=240,
         radiant_networth_leads=[0, 0, 0, 0, 0],
@@ -190,8 +207,7 @@ def test_deaths_alone_share_fails_closed_on_missing_time() -> None:
         dire_kills=[0, 0, 0, 0, 0],
         self={"events": {"death_events": [{"time": None}]}},
     )
-    with pytest.raises(ValueError):
-        deaths_alone_share(candidate)
+    assert deaths_alone_share(candidate) is None
 
 
 def test_deaths_alone_share_is_unavailable_without_kill_arrays() -> None:
