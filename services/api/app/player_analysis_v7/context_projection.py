@@ -24,9 +24,10 @@ CONTEXT_PROJECTION_PATH = (
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 REQUIRED_SOURCE_DIGEST_KEYS = frozenset(
     {
-        "pass1_run_manifest_sha256",
+        "pass1_complete_manifest_sha256",
         "pass1_state_sha256",
-        "pass1_hash_manifest_sha256",
+        "pass1_canonical_tree_sha256",
+        "pass1_parsed_overlay_manifest_sha256",
         "pass2_run_manifest_sha256",
         "source_tree_sha256",
     }

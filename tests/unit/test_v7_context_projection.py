@@ -76,9 +76,10 @@ def _document() -> dict[str, object]:
             "reference_policy": "none_finite_sweep_parameterization",
         },
         "source_digests": {
-            "pass1_run_manifest_sha256": "1" * 64,
+            "pass1_complete_manifest_sha256": "1" * 64,
             "pass1_state_sha256": "2" * 64,
-            "pass1_hash_manifest_sha256": "3" * 64,
+            "pass1_canonical_tree_sha256": "3" * 64,
+            "pass1_parsed_overlay_manifest_sha256": "6" * 64,
             "pass2_run_manifest_sha256": "4" * 64,
             "source_tree_sha256": "5" * 64,
         },
