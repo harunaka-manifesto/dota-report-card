@@ -79,6 +79,24 @@
     "result": "PASS",
     "evidence_sha256": "804a39198040f84386a51769b46203d6960950c5801e33693e42b4f496f38ca6"
   },
+  "runtime_path": {
+    "history_provider": "stratz",
+    "deep_operation": "GetDeepMatchBatch:3.4.0",
+    "acquisition_depth": 500,
+    "deep_batch_size": 8,
+    "canonical_cache_endpoint": "/v7/stratz/deep-matches",
+    "runtime_version": "v7-analytical-runtime-1.0.0",
+    "persistence": "V7ReportLifecycle",
+    "api_read_boundary": "/v1/v7/reports/{report_id}",
+    "end_to_end_fake_provider_test": "PASS"
+  },
+  "qa": {
+    "v7_and_stratz_tests": "710 passed",
+    "full_repository_tests": "1343 passed, 3 skipped",
+    "ruff": "PASS",
+    "mypy": "PASS (252 source files)",
+    "sdist_wheel": "PASS"
+  },
   "protected_splits": {
     "CANDIDATE_TEST": "NOT_READ",
     "CALIBRATION_RESERVED": "NOT_READ",
