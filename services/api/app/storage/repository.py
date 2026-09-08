@@ -990,14 +990,15 @@ class SqlAlchemyRepository:
             if record is None:
                 return None
             job = self._job_from_record(record)
+            report = self.get_report(job.report_id) if job.report_id else None
+            if job.report_id and report is None:
+                return None
             if raw_history_hash is not None and job.report_id:
-                report = self.get_report(job.report_id)
                 stored_hash = ((report or {}).get("metadata") or {}).get("raw_history_hash")
                 if stored_hash != raw_history_hash:
                     return None
             if identity_fingerprint is not None and job.report_id:
-                report = self.get_report(job.report_id) or {}
-                if _report_identity_fingerprint(report) != identity_fingerprint:
+                if _report_identity_fingerprint(report or {}) != identity_fingerprint:
                     return None
             if max_age_seconds is not None:
                 age = (datetime.now(UTC) - job.updated_at).total_seconds()
