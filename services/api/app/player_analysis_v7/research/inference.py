@@ -89,12 +89,13 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.player_analysis_v7.research.screen import (
+    ContextProjectionFit,
     Encoded,
     _mean,
     _pearson,
     _variance,
     encode,
-    project_out_context,
+    fit_context_projection,
     quantile,
     stable_seed,
 )
@@ -370,6 +371,7 @@ class FamilyMatrix:
     """Residualised, per-player, chronologically ordered view of one family."""
 
     encoded: Encoded
+    context_fit: ContextProjectionFit
     residual: list[float]
     projection_drift: float
     arm_family: bool
@@ -414,7 +416,8 @@ def build_matrix(
             filtered.append((pseudonym, kept))
         per_player = filtered
     encoded = encode(per_player, include_arm_as_factor=arm_family)
-    residual, drift = project_out_context(encoded)
+    context_fit = fit_context_projection(encoded)
+    residual = list(context_fit.residual)
     order: dict[str, list[int]] = {}
     for index, pid in enumerate(encoded.player):
         order.setdefault(encoded.player_names[pid], []).append(index)
@@ -430,8 +433,9 @@ def build_matrix(
     )
     return FamilyMatrix(
         encoded=encoded,
-        residual=list(residual),
-        projection_drift=drift,
+        context_fit=context_fit,
+        residual=residual,
+        projection_drift=context_fit.drift,
         arm_family=arm_family,
         treated_code=treated_code,
         control_code=control_code,

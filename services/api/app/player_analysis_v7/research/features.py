@@ -107,6 +107,7 @@ def load_frames(
     paths: CorpusPaths,
     splits: frozenset[str] = frozenset({DISCOVERY}),
     with_parsed: bool = True,
+    parsed_paths: CorpusPaths | None = None,
 ) -> list[PlayerFrame]:
     """Load product-context frames for ``splits``.
 
@@ -128,7 +129,7 @@ def load_frames(
             rows=order_by_time(rows),
         )
     if with_parsed:
-        for document in iter_players(paths, "parsed", splits):
+        for document in iter_players(parsed_paths or paths, "parsed", splits):
             frame = frames.get(document["account_pseudonym"])
             if frame is None:
                 continue

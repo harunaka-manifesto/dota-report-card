@@ -291,6 +291,33 @@ def fit_dimension(
         "share_scoring_above_line": round(
             sum(1 for s in scores if s > SCORE_LINE) / len(scores), 6
         ),
+        "context_projection": {
+            "factor_order": list(matrix.encoded.factors),
+            "categorical_vocabularies": {
+                factor: list(levels)
+                for factor, levels in zip(
+                    matrix.encoded.factors, matrix.encoded.level_names, strict=True
+                )
+            },
+            "intercept": matrix.context_fit.intercept,
+            "coefficients": {
+                factor: {
+                    level: coefficient
+                    for level, coefficient in zip(levels, coefficients, strict=True)
+                }
+                for factor, levels, coefficients in zip(
+                    matrix.encoded.factors,
+                    matrix.encoded.level_names,
+                    matrix.context_fit.coefficients,
+                    strict=True,
+                )
+            },
+            "sweeps": 10,
+            "weighting": "equal_per_opportunity",
+            "interactions": [],
+            "player_factor": False,
+            "reference_policy": "none_finite_sweep_parameterization",
+        },
     }
     return dimensions, summary
 
@@ -302,9 +329,15 @@ def fit_dimension(
 
 def fit_pass1(
     corpus_root: str,
+    parsed_root: str,
 ) -> tuple[dict[str, dict[str, PlayerDimension]], dict[str, Any], int]:
     paths = corpus_paths(corpus_root)
-    frames = load_frames(paths, frozenset({DISCOVERY}), with_parsed=True)
+    frames = load_frames(
+        paths,
+        frozenset({DISCOVERY}),
+        with_parsed=True,
+        parsed_paths=corpus_paths(parsed_root),
+    )
     per_dimension: dict[str, dict[str, PlayerDimension]] = {}
     summaries: dict[str, Any] = {}
     for name in (*FROZEN_SERIOUS_CANDIDATES, NEGATIVE_CONTROL):
@@ -460,13 +493,20 @@ def check_candidate_test_untouched(before: str, after: str) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus-root", required=True, help="Pass-1 corpus root")
+    parser.add_argument(
+        "--pass1-parsed-root",
+        required=True,
+        help="DISCOVERY-only canonical parsed overlay for the Pass-1 identities",
+    )
     parser.add_argument("--pass2-root", required=True, help="Pass-2 canonical root")
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
     ledger_before = _ledger_digest()
 
-    pass1, pass1_summaries, pass1_players = fit_pass1(args.corpus_root)
+    pass1, pass1_summaries, pass1_players = fit_pass1(
+        args.corpus_root, args.pass1_parsed_root
+    )
     pass2, pass2_summaries, pass2_players = fit_pass2(args.pass2_root)
 
     ledger_after = _ledger_digest()

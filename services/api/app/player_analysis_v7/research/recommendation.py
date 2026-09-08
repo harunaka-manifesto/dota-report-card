@@ -46,7 +46,7 @@ from app.player_analysis_v7.research.pass2_features import (
     _observer_ward_events,
 )
 from app.player_analysis_v7.research.pass2_observations import _enemy_tower_fell_soon_after
-from app.player_analysis_v7.research.screen import encode, project_out_context
+from app.player_analysis_v7.research.screen import encode, fit_context_projection
 
 Row = dict[str, Any]
 
@@ -493,14 +493,16 @@ def build_personal_contrast_matrix(
     """
 
     encoded = encode(per_player, include_arm_as_factor=False)
-    residual, drift = project_out_context(encoded)
+    context_fit = fit_context_projection(encoded)
+    residual = list(context_fit.residual)
     order: dict[str, list[int]] = {}
     for index, pid in enumerate(encoded.player):
         order.setdefault(encoded.player_names[pid], []).append(index)
     return inference.FamilyMatrix(
         encoded=encoded,
-        residual=list(residual),
-        projection_drift=drift,
+        context_fit=context_fit,
+        residual=residual,
+        projection_drift=context_fit.drift,
         arm_family=True,
         treated_code=encoded.arm_names.index(ARM_LOSS) if ARM_LOSS in encoded.arm_names else None,
         control_code=encoded.arm_names.index(ARM_WIN) if ARM_WIN in encoded.arm_names else None,
