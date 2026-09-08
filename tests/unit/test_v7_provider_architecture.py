@@ -45,6 +45,7 @@ def test_stratz_provider_is_explicit_and_does_not_replace_legacy_analysis_source
     app = create_app(settings, source=FixtureOpenDotaSource("tests/fixtures/opendota"))
     assert app.state.data_provider == "stratz"
     assert isinstance(app.state.v7_provider, StratzProvider)
+    assert app.state.v7_runtime_service.provider is app.state.v7_provider
     assert app.state.analysis_service.source.__class__ is FixtureOpenDotaSource
 
 

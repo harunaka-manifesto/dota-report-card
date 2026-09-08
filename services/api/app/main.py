@@ -23,6 +23,7 @@ from app.features.models import MatchFeature
 from app.identity.steam import SteamWebResolver
 from app.opendota.client import OpenDotaClient
 from app.opendota.parse_client import OpenDotaParseClient
+from app.player_analysis_v7.service import V7RuntimeService
 from app.providers import build_v7_provider
 from app.storage.repository import InMemoryRepository, SqlAlchemyRepository
 
@@ -48,8 +49,8 @@ def create_app(
         )
     if settings.app_env == "production" and isinstance(source, FixtureOpenDotaSource):
         raise ValueError("fixture OpenDota source is not allowed in production")
-    # V7 has its own provider seam; the existing AnalysisService remains the
-    # OpenDota/V6.1 runtime until a V7 assembler is introduced.
+    # V7 has its own provider and frozen analytical runtime; V6.1 remains on
+    # the existing AnalysisService until the product switches entry points.
     v7_provider = build_v7_provider(settings)
     if repository is None:
         repository = (
@@ -81,6 +82,9 @@ def create_app(
         cohort_population=cohort_population,
         identity_resolver=identity_resolver,
         parse_transport=parse_transport,
+    )
+    v7_runtime_service = (
+        V7RuntimeService(v7_provider, repository) if v7_provider is not None else None
     )
     def app_readiness() -> dict[str, Any]:
         return _readiness_payload(settings, repository, service)
@@ -126,6 +130,7 @@ def create_app(
     )
     app.state.analysis_service = service
     app.state.v7_provider = v7_provider
+    app.state.v7_runtime_service = v7_runtime_service
     app.state.data_provider = settings.data_provider
     app.state.settings = settings
     app.state.readiness = app_readiness
