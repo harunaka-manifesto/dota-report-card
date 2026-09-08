@@ -1,7 +1,7 @@
 """Provider selection for the isolated V7 path.
 
 The existing analysis service intentionally keeps its OpenDota source seam.
-Only a future V7 assembler should consume the provider returned here.
+``V7RuntimeService`` consumes the provider returned here.
 """
 
 from __future__ import annotations

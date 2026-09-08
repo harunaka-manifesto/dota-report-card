@@ -151,11 +151,12 @@ ranking. No causal language in any backend-supplied string.
 
 ## 6. Assembler contract
 
-`app.player_analysis_v7.assembly.assemble_capability_payload(...)` orchestrates
-and **computes nothing**. It calls the canonical research implementations for
-inference, ranking, selection, the D1 gate, recommendation selection and
-archetype assignment, and it loads population parameters from the frozen
-artifact.
+`app.player_analysis_v7.runtime.analyze_v7(...)` orchestrates the canonical
+research implementations for inference, ranking, selection, the D1 gate,
+Recommendation selection and Archetype assignment. It then passes those
+computed outputs to `app.player_analysis_v7.assembly.assemble_v7_capability(...)`,
+which **computes no analytics** and only assembles, validates and stamps the
+capability payload against the frozen artifacts.
 
 Any statistical expression appearing in the assembler is a defect. The test for
 this is mechanical: the assembler module may not contain arithmetic on

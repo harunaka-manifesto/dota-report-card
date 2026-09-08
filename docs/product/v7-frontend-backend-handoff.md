@@ -1,6 +1,6 @@
 # V7 frontend/backend handoff
 
-Status: **backend contract usable; end-to-end analytical generation blocked**.
+Status: **backend analytical runtime and contract usable; public generation entry point not yet exposed**.
 Story and UI decisions live in `V7 Master Experience Plan v1.md`. This document
 only defines the backend boundary.
 
@@ -13,9 +13,10 @@ only defines the backend boundary.
 - Display semantics: `v7-display-semantics-1.0.0`.
 - Public projection: `v7-public-projection-1.0.0`.
 
-The generation endpoint is intentionally absent until the analytical blocker
-in `docs/evidence/v7-runtime-context-projection-blocker-2026-09-07.md` is
-resolved. The typed read rejects non-V7 persisted documents.
+`app.player_analysis_v7.service.V7RuntimeService` implements acquisition through
+persistence and is attached when the STRATZ provider is selected. A public
+generation endpoint is intentionally deferred to product integration. The typed
+read rejects non-V7 persisted documents.
 
 ## Contract use
 
