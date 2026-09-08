@@ -458,8 +458,13 @@ class V7CapabilityPayload(PublicV7Model):
         scope = self.descriptive_facts.scope
         if self.metadata.matches_analysed != scope.eligible_match_count:
             raise ValueError("metadata and descriptive eligible counts disagree")
-        if self.metadata.matches_with_event_detail != scope.parsed_match_count:
-            raise ValueError("metadata and descriptive parsed counts disagree")
+        expected_event_detail_count = (
+            scope.acquired_event_detail_match_count
+            if scope.acquired_event_detail_match_count is not None
+            else scope.parsed_match_count
+        )
+        if self.metadata.matches_with_event_detail != expected_event_detail_count:
+            raise ValueError("metadata and descriptive event-detail counts disagree")
         expected = build_public_projection(
             facts=self.descriptive_facts,
             semantics=self.display_semantics,
@@ -499,9 +504,21 @@ class V7CapabilityPayload(PublicV7Model):
         """
 
         document = self.model_dump(mode="json")
+        _assert_finite_numbers(document)
         _assert_no_internal_identifiers(document)
         _assert_no_forbidden_field(document)
         return self
+
+
+def _assert_finite_numbers(node: Any, path: str = "payload") -> None:
+    if isinstance(node, float):
+        _reject_non_finite(node, path)
+    elif isinstance(node, dict):
+        for key, value in node.items():
+            _assert_finite_numbers(value, f"{path}.{key}")
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            _assert_finite_numbers(value, f"{path}[{index}]")
 
 
 def _assert_no_internal_identifiers(document: Any) -> None:

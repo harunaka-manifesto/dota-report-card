@@ -38,6 +38,9 @@ class ReportScope(PublicV7Model):
     eligible_match_count: int = Field(ge=0)
     parsed_match_count: int = Field(ge=0)
     acquired_match_count: int = Field(ge=0)
+    # Optional for compatibility: old persisted payloads used parsed history
+    # flags as the event-detail count and therefore cannot be relabelled.
+    acquired_event_detail_match_count: int | None = Field(default=None, ge=0)
     acquisition_depth_limit: int = Field(ge=1)
     coverage_status: Literal["complete", "truncated"]
     coverage_boundary_reason: Literal["provider_reported_complete", "provider_or_depth_limit"]
@@ -49,6 +52,11 @@ class ReportScope(PublicV7Model):
             raise ValueError("parsed count exceeds eligible count")
         if self.eligible_match_count > self.acquired_match_count:
             raise ValueError("eligible count exceeds acquired count")
+        if self.acquired_event_detail_match_count is not None:
+            if self.acquired_event_detail_match_count > self.eligible_match_count:
+                raise ValueError("acquired event-detail count exceeds eligible count")
+            if self.acquired_event_detail_match_count > self.acquisition_depth_limit:
+                raise ValueError("acquired event-detail count exceeds acquisition depth")
         return self
 
 
@@ -150,6 +158,7 @@ def derive_descriptive_facts(
     generated_at: str,
     acquisition_depth_limit: int = 500,
     known_gap_after_match_ids: Sequence[int] = (),
+    acquired_event_detail_match_count: int | None = None,
 ) -> DescriptiveFacts:
     eligible = [match for match in history.matches if _eligible(match)]
     timestamps = [match.started_at for match in eligible if match.started_at is not None]
@@ -164,6 +173,7 @@ def derive_descriptive_facts(
         eligible_match_count=len(eligible),
         parsed_match_count=sum(match.is_parsed for match in eligible),
         acquired_match_count=len(history.matches),
+        acquired_event_detail_match_count=acquired_event_detail_match_count,
         acquisition_depth_limit=acquisition_depth_limit,
         coverage_status="complete" if complete else "truncated",
         coverage_boundary_reason=(

@@ -41,6 +41,7 @@ resolves to a specific Steam account.
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Mapping
 from typing import Literal
@@ -58,6 +59,11 @@ class PublicV7Model(BaseModel):
     """Frozen, extra-forbidding base model, matching ``PublicV6Model``."""
 
     model_config = ConfigDict(extra="forbid", frozen=True, populate_by_name=True)
+
+    @model_validator(mode="after")
+    def numeric_values_are_finite(self) -> PublicV7Model:
+        _assert_finite_numbers(self.model_dump(mode="python"), self.__class__.__name__)
+        return self
 
 
 Direction = Literal["positive", "negative", "zero"]
@@ -103,6 +109,20 @@ FightStyleAxis = Literal["frontliner", "opportunist", "ghost"]
 ArchetypeModifier = Literal["metronome", "streaky"]
 
 _TOLERANCE = 1e-6
+
+
+def _assert_finite_numbers(value: object, path: str = "model") -> None:
+    """Reject non-finite numeric values at the typed report boundary."""
+
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError(f"{path} must be finite, got {value!r}")
+    elif isinstance(value, Mapping):
+        for key, nested in value.items():
+            _assert_finite_numbers(nested, f"{path}.{key}")
+    elif isinstance(value, (list, tuple)):
+        for index, nested in enumerate(value):
+            _assert_finite_numbers(nested, f"{path}[{index}]")
 
 
 # ---------------------------------------------------------------------------
@@ -320,6 +340,22 @@ class Recommendation(PublicV7Model):
     reliability: float = Field(ge=0, le=1)
     actionability_weight: float = Field(ge=0, le=1)
     priority_score: float = Field(ge=0, description="priority_pd = |g_pd| * r_pd * A_d")
+
+    @model_validator(mode="after")
+    def direction_matches_gap(self) -> Recommendation:
+        expected = (
+            "positive"
+            if self.observation.gap > 0
+            else "negative"
+            if self.observation.gap < 0
+            else "zero"
+        )
+        if self.direction != expected:
+            raise ValueError(
+                f"recommendation direction {self.direction!r} must match "
+                f"the gap sign {expected!r}"
+            )
+        return self
 
 
 # ---------------------------------------------------------------------------

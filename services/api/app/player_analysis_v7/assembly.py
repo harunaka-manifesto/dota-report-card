@@ -55,6 +55,7 @@ def assemble_v7_capability(
     refused: dict[str, str],
     feature_version: str,
     inference_version: str,
+    acquired_event_detail_match_count: int | None = None,
     reuse_status: str = "generated",
 ) -> V7CapabilityPayload:
     """Assemble already-computed analytics with deterministic history facts.
@@ -67,6 +68,7 @@ def assemble_v7_capability(
         history,
         hero_metadata,
         generated_at=generated_at,
+        acquired_event_detail_match_count=acquired_event_detail_match_count,
     )
     semantics = build_display_semantics()
     available = [
@@ -107,7 +109,11 @@ def assemble_v7_capability(
             window_end=history.window.end_timestamp,
             matches_total=len(history.matches),
             matches_analysed=facts.scope.eligible_match_count,
-            matches_with_event_detail=facts.scope.parsed_match_count,
+            matches_with_event_detail=(
+                facts.scope.acquired_event_detail_match_count
+                if facts.scope.acquired_event_detail_match_count is not None
+                else facts.scope.parsed_match_count
+            ),
             acquisition_depth=facts.scope.acquisition_depth_limit,
         ),
         descriptive_facts=facts,

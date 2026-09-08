@@ -418,6 +418,7 @@ def analyze_v7(
         refused=refused,
         feature_version=f"{FEATURE_VERSION}+{OBSERVATION_VERSION}",
         inference_version=RUNTIME_VERSION,
+        acquired_event_detail_match_count=len(deep_evidence),
     )
 
 
