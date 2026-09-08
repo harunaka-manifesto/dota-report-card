@@ -38,12 +38,11 @@ the difference from 278 canonical documents is eligibility, not missing data.
 The surviving rows feed the unchanged `pass2_observations` opportunity builders,
 the same categorical projection, blocked-means inference, dependence curve,
 population calculation, and ranking functions used by the reviewed Finding
-pipeline. A prior read-only parity run reproduced every committed Pass-2
+pipeline. A read-only NEW-LINEAGE fit reproduced every committed Pass-2
 Finding summary field (`players`, `opportunities`, projection drift, `mu`,
 `tau`, `D`, and dependence batch length) for all eight Pass-2 pipeline
-dimensions at normal floating-point expectations. That run was recovery
-validation, not tuning; this pre-fit phase did not rerun population estimation.
+dimensions at normal floating-point expectations. The 2.0.0 bundle rebinds
+those values without tuning.
 
-Pass-2 is therefore suitable as the immutable Pass-2 input to the post-COMPLETE
-new-lineage fit. It must not be recollected, rewritten, or silently joined to a
-different identity set.
+Pass-2 is the immutable Pass-2 input to the completed NEW-LINEAGE fit. It was
+not recollected or rewritten.

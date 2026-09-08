@@ -1,7 +1,7 @@
 # V7 runtime capability payload — specification
 
 ```text
-STATUS: deterministic contract implemented; analytical generation blocked
+STATUS: NEW-LINEAGE analytical generation implemented
 SCHEMA: v7-capability-payload-2.0.0
 ```
 
@@ -45,11 +45,11 @@ Rules:
 4. It is **never** refitted from live pilot users during the pilot — that would
    silently move everyone's baseline and make two reports incomparable.
 
-The current artifact does not include the fitted categorical context effects
-needed to residualize a new player's opportunities. `mu`, `tau`, and dependence
-inflation alone are insufficient. End-to-end analytical generation therefore
-fails closed pending the owner decision recorded in
-`docs/evidence/v7-runtime-context-projection-blocker-2026-09-07.md`.
+The NEW-LINEAGE bundle includes the dimension-specific fitted categorical
+context effects needed to residualize a new player's opportunities. Runtime
+loads `context-projection-2.0.0.json`, verifies its self-digest and compatibility
+identity against `population-parameters-2.0.0.json`, then applies it through
+`player_analysis_v7.runtime`; no runtime fit or raw-value fallback exists.
 
 ## 2. Payload shape
 
@@ -73,9 +73,9 @@ V7CapabilityPayload
   provenance     : V7Provenance
 ```
 
-V2 adds typed deterministic descriptive facts, canonical display semantics and
-a separately allowlisted public projection. It does not activate analytical
-generation; see the context-projection blocker evidence.
+V2 adds typed deterministic descriptive facts, canonical display semantics,
+a separately allowlisted public projection, and the frozen NEW-LINEAGE
+analytical runtime.
 
 ### ReportMetadata
 `generated_at` (ISO-8601 UTC), `window_days`, `window_start`, `window_end`

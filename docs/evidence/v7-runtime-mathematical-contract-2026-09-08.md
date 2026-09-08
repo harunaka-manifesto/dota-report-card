@@ -80,9 +80,8 @@ reproduction is proved and rebound explicitly.
 All Pass-1 rows are product-context history rows: supported mode, ordinary
 matchmaking lobby, clean leaver state, and a joined parsed row where marked.
 All Pass-2 rows are the surviving DISCOVERY deep-match corpus and pass its
-product-context gate. Context level vocabularies are empirical and therefore
-remain blocked until completion; the factor families themselves are frozen
-below.
+product-context gate. Context level vocabularies are empirical and are frozen
+in `context-projection-2.0.0.json`; the factor families are frozen below.
 
 | Finding | Y and observation unit | Eligible population / support | Context in order | Arms | Source | Rec. | Arch. |
 |---|---|---|---|---|---|---|---|
@@ -124,8 +123,7 @@ unit scale is the sample SD of all context residuals. Reliability is
 `abs(gap/scale)*reliability*actionability`. The chosen instruction must match
 the registry exactly and uses associational wording only. Design-time upstream
 checks remain fixed. Outcome-contamination and sign-agreement measurements,
-context coefficients, scale, and `D` must be verified/rebound in the new
-lineage; no recommendation value was computed in this phase.
+context coefficients, scale, and `D` are rebound in the NEW-LINEAGE artifacts.
 
 ## Archetype contract
 
@@ -141,14 +139,13 @@ fight-minute participation and deaths per fight minute. The session modifier
 is observed between-session win-rate variance divided by its binomial expected
 variance, needs >=8 sessions of >=3 matches, and uses the fixed semantic cut
 1.0. Population tempo terciles, participation lower tercile, deaths median,
-and both special quantile cuts require new-lineage regeneration because the
-joinable population changes. No archetype cut was derived here.
+and both special quantile cuts are regenerated from the 276-player joinable
+NEW-LINEAGE population and frozen per mode stratum.
 
-## Unresolved until the corpus is complete
+## Resolution
 
-- Actual level vocabularies, counts, reference-free coefficient vectors, and
-  whether every factor has adequate support.
-- New-lineage context intercepts/corrections and convergence diagnostics.
-- New `mu`, `tau`, `D`, Recommendation scales/contamination measurements, and
-  Archetype population cuts.
-- New-to-historical drift results and any resulting owner decision.
+All empirical objects are resolved in the signed context and population
+artifacts. Every shipping Finding was estimable in the safe real runtime parity
+sample. Recommendation scales/contamination and Archetype cuts are frozen in
+the same compatibility lineage. Historical drift is classified separately in
+`v7-new-lineage-historical-drift-2026-09-08.md`.
