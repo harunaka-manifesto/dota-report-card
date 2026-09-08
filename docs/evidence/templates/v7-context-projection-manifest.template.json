@@ -1,0 +1,61 @@
+{
+  "schema_version": "v7-context-projection-2.0.0",
+  "artifact_version": "FILL_AFTER_COMPLETE",
+  "artifact_sha256": "FILL_AFTER_COMPLETE",
+  "analytical_lineage_id": "FILL_AFTER_COMPLETE",
+  "population_compatibility_id": "FILL_AFTER_COMPLETE",
+  "feature_schema_version": "FILL_AFTER_COMPLETE",
+  "estimator": {
+    "algorithm": "finite-sweep-additive-categorical-gauss-seidel",
+    "version": "v7-luna-b-screen-1.0.0",
+    "sweeps": 10,
+    "weighting": "equal_per_opportunity",
+    "interactions": [],
+    "player_factor": false,
+    "reference_policy": "none_finite_sweep_parameterization"
+  },
+  "source_digests": {
+    "pass1_run_manifest_sha256": "FILL_AFTER_COMPLETE",
+    "pass1_state_sha256": "FILL_AFTER_COMPLETE",
+    "pass1_hash_manifest_sha256": "FILL_AFTER_COMPLETE",
+    "pass2_run_manifest_sha256": "237cbb0221cca87973ee5b598be000ccf494dab9f06db8bb5016fb7463e428be",
+    "source_tree_sha256": "FILL_AFTER_COMPLETE"
+  },
+  "protected_splits": {
+    "CANDIDATE_TEST": "NOT_READ",
+    "CALIBRATION_RESERVED": "NOT_READ",
+    "SEALED_VALIDATION": "NOT_READ"
+  },
+  "provider_calls": {
+    "recollection_calls": "COPY_FROM_FINAL_COMPLETE_MANIFEST",
+    "fit_phase_stratz_calls": 0,
+    "fit_phase_opendota_calls": 0
+  },
+  "dimensions": {
+    "FILL_ALL_16_FINDING_IDS": {
+      "finding_id": "FILL_FINDING_ID",
+      "source_pass": "PASS1_HISTORY_NEW_LINEAGE_OR_PASS2",
+      "context_feature_schema": "FILL_VERSION",
+      "factor_order": ["FILL_IN_EXACT_ORDER"],
+      "coefficient_order": [
+        {"factor": "FILL_FACTOR", "level": "FILL_LEVEL"}
+      ],
+      "intercept": "FILL_FINITE_NUMBER",
+      "factors": [
+        {
+          "name": "FILL_FACTOR",
+          "categorical_vocabulary": ["FILL_FITTED_LEVELS"],
+          "reference_level": null,
+          "coefficients": {"FILL_LEVEL": "FILL_FINITE_NUMBER"},
+          "unseen_level_behavior": {"strategy": "refuse"}
+        }
+      ],
+      "validation": {
+        "opportunities": "FILL_AFTER_COMPLETE",
+        "players": "FILL_AFTER_COMPLETE",
+        "projection_drift": "FILL_AFTER_COMPLETE",
+        "runtime_max_abs_error": "FILL_AFTER_PARITY"
+      }
+    }
+  }
+}

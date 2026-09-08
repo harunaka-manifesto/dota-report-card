@@ -116,6 +116,7 @@ class Encoded:
     factors: list[str]
     codes: list[list[int]]
     levels: list[int]
+    level_names: list[list[str]]
     player_names: list[str]
     arm_names: list[str]
 
@@ -189,22 +190,43 @@ def encode(
         factors=factor_names,
         codes=codes,
         levels=[len(mapping) for mapping in level_maps],
+        level_names=[list(mapping) for mapping in level_maps],
         player_names=player_names,
         arm_names=arm_names,
     )
 
 
-def project_out_context(encoded: Encoded, sweeps: int = PROJECTION_SWEEPS) -> tuple[list[float], float]:
-    """Remove additive categorical context effects; return residuals and drift.
+@dataclass(frozen=True)
+class ContextProjectionFit:
+    """Sufficient runtime representation of the finite-sweep projection."""
 
-    ``drift`` is the largest absolute group-mean correction applied in the last
-    sweep, relative to the residual standard deviation — a convergence
-    diagnostic, reported rather than assumed.
+    intercept: float
+    coefficients: tuple[tuple[float, ...], ...]
+    residual: tuple[float, ...]
+    drift: float
+
+
+def fit_context_projection(
+    encoded: Encoded, sweeps: int = PROJECTION_SWEEPS
+) -> ContextProjectionFit:
+    """Fit the existing projection while retaining its applied corrections.
+
+    The coefficient for a level is the sum of the corrections removed from
+    that level across the fixed Gauss-Seidel sweeps. Applying ``intercept +
+    sum(coefficients)`` therefore reproduces the research residual exactly.
+    ``drift`` is the largest absolute group-mean correction applied in the
+    last sweep relative to the residual standard deviation.
     """
+
+    if not encoded.value:
+        raise ValueError("cannot fit a context projection without observations")
+    if sweeps < 1:
+        raise ValueError("context projection needs at least one sweep")
 
     residual = list(encoded.value)
     grand = _mean(residual)
     residual = [value - grand for value in residual]
+    coefficients = [[0.0] * level_count for level_count in encoded.levels]
     last_drift = 0.0
     for sweep in range(sweeps):
         last_drift = 0.0
@@ -221,6 +243,8 @@ def project_out_context(encoded: Encoded, sweeps: int = PROJECTION_SWEEPS) -> tu
                 (totals[level] / counts[level]) if counts[level] else 0.0
                 for level in range(level_count)
             ]
+            for level, mean in enumerate(means):
+                coefficients[position][level] += mean
             for level in range(level_count):
                 if counts[level]:
                     last_drift = max(last_drift, abs(means[level]))
@@ -228,7 +252,19 @@ def project_out_context(encoded: Encoded, sweeps: int = PROJECTION_SWEEPS) -> tu
                 residual[index] -= means[code]
         del sweep
     spread = math.sqrt(_variance(residual)) if len(residual) > 1 else 0.0
-    return residual, (last_drift / spread if spread else 0.0)
+    return ContextProjectionFit(
+        intercept=grand,
+        coefficients=tuple(tuple(row) for row in coefficients),
+        residual=tuple(residual),
+        drift=last_drift / spread if spread else 0.0,
+    )
+
+
+def project_out_context(encoded: Encoded, sweeps: int = PROJECTION_SWEEPS) -> tuple[list[float], float]:
+    """Remove additive categorical context effects; return residuals and drift."""
+
+    fit = fit_context_projection(encoded, sweeps)
+    return list(fit.residual), fit.drift
 
 
 def eta_squared(codes: Sequence[int], level_count: int, values: Sequence[float]) -> float:
@@ -693,11 +729,13 @@ __all__ = [
     "PROJECTION_SWEEPS",
     "SCREEN_VERSION",
     "Encoded",
+    "ContextProjectionFit",
     "PlayerEffect",
     "ScreenResult",
     "effect_vectors",
     "encode",
     "eta_squared",
+    "fit_context_projection",
     "player_effects",
     "project_out_context",
     "quantile",
