@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import math
+from typing import Any
 
 import pytest
 from app.player_analysis_v7.context_projection import load_context_projection
+from app.player_analysis_v7.population import load_population_parameters
 from app.player_analysis_v7.research import inference, recommendation, screen
 from app.player_analysis_v7.research.features import Opportunity
 from app.player_analysis_v7.research.pass2_observations import OBSERVATION_REGISTRY
 from app.player_analysis_v7.research.registry import FAMILY_BY_NAME
-from app.player_analysis_v7.runtime import _estimate, parsed_rows
+from app.player_analysis_v7.runtime import _estimate, _recommendation, parsed_rows
 
 
 def _series(key: str, *, recommendation_projection: bool = False) -> tuple[list[Opportunity], str | None, str | None]:
@@ -29,6 +31,23 @@ def _series(key: str, *, recommendation_projection: bool = False) -> tuple[list[
         for index in range(80)
     ]
     return rows, treated, control
+
+
+def _warded_row(match_id: int, *, won: bool) -> dict[str, Any]:
+    return {
+        "match_id": match_id,
+        "game_mode_native": "ALL_PICK_RANKED",
+        "game_version_id": 180,
+        "self": {
+            "is_victory": won,
+            "hero_id": 86,
+            "position_native": "POSITION_2",
+            "role_native": "CORE",
+            "lane_native": "MID_LANE",
+            "is_radiant": True,
+            "events": {"wards": [{"time": 0 if won else 300, "type": 0}]},
+        },
+    }
 
 
 def test_every_finding_runtime_projection_matches_direct_frozen_math(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -68,6 +87,36 @@ def test_every_eligible_recommendation_uses_its_frozen_projection() -> None:
             recommendation_projection=True,
         ) is not None
         assert artifact.recommendation(key).finding_id == key
+
+
+def test_recommendation_requires_effective_support_after_block_exclusion() -> None:
+    rows: list[dict[str, Any]] = []
+    for index in range(8):
+        rows.extend(
+            [
+                _warded_row(index * 4, won=True),
+                _warded_row(index * 4 + 1, won=False),
+                _warded_row(index * 4 + 2, won=False),
+                _warded_row(index * 4 + 3, won=False),
+            ]
+        )
+    rows.extend(_warded_row(32 + index, won=True) for index in range(48))
+
+    series = recommendation.opportunities(
+        rows, recommendation.RECOMMENDATION_REGISTRY["first_ward_time"]
+    )
+    result = _estimate(
+        "first_ward_time",
+        series,
+        treated=recommendation.ARM_LOSS,
+        control=recommendation.ARM_WIN,
+        recommendation_projection=True,
+    )
+
+    assert recommendation.has_denominator(series)
+    assert result is not None
+    assert (result.n_control, result.n_treated) == (8, 24)
+    assert _recommendation(rows, load_population_parameters()) is None
 
 
 def test_pass2_rows_adapt_to_pass1_parsed_feature_shape() -> None:

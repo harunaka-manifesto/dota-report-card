@@ -215,6 +215,27 @@ def test_a_payload_with_every_optional_capability_refused_validates() -> None:
     assert result.validate_payload() is not None
 
 
+@pytest.mark.parametrize(
+    ("sample_wins", "sample_losses", "valid"),
+    [(14, 15, False), (15, 14, False), (15, 15, True)],
+)
+def test_persisted_recommendation_requires_fifteen_effective_observations_per_arm(
+    sample_wins: int, sample_losses: int, valid: bool
+) -> None:
+    document = payload().model_dump_json()
+    persisted = json.loads(document)
+    persisted["recommendation"]["sample_wins"] = sample_wins
+    persisted["recommendation"]["sample_losses"] = sample_losses
+
+    if valid:
+        loaded = V7CapabilityPayload.model_validate(persisted).validate_payload()
+        assert loaded.recommendation is not None
+        assert (loaded.recommendation.sample_wins, loaded.recommendation.sample_losses) == (15, 15)
+    else:
+        with pytest.raises(ValidationError, match="greater than or equal to 15"):
+            V7CapabilityPayload.model_validate(persisted)
+
+
 # --------------------------------------------------------------------------
 # invariants
 # --------------------------------------------------------------------------

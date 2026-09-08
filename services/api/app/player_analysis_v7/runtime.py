@@ -266,6 +266,11 @@ def _recommendation(
         )
         if result is None:
             continue
+        if (
+            result.n_control < recommendation.MIN_PER_ARM
+            or result.n_treated < recommendation.MIN_PER_ARM
+        ):
+            continue
         fitted = population.recommendation(key)
         if not fitted.eligible or fitted.outcome_contaminated:
             raise V7RuntimeError(f"{key}: Recommendation artifact contradicts registry")

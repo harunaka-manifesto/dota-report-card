@@ -47,6 +47,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from app.player_analysis_v7.research.recommendation import MIN_PER_ARM
+
 # ---------------------------------------------------------------------------
 # Base model and shared vocabularies
 # ---------------------------------------------------------------------------
@@ -313,8 +315,8 @@ class Recommendation(PublicV7Model):
         description="The exact measurement, from fields already collected, that will "
         "confirm or refute this next time (recommendation-model section 4).",
     )
-    sample_wins: int = Field(ge=1)
-    sample_losses: int = Field(ge=1)
+    sample_wins: int = Field(ge=MIN_PER_ARM)
+    sample_losses: int = Field(ge=MIN_PER_ARM)
     reliability: float = Field(ge=0, le=1)
     actionability_weight: float = Field(ge=0, le=1)
     priority_score: float = Field(ge=0, description="priority_pd = |g_pd| * r_pd * A_d")
