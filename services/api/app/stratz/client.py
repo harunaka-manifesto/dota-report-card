@@ -40,6 +40,7 @@ from app.providers.base import (
     provider_cache_key,
 )
 
+from .deep import normalize_deep_matches
 from .models import (
     StratzHistory,
     StratzHistoryPage,
@@ -48,6 +49,7 @@ from .models import (
     StratzPlayerProfile,
 )
 from .queries import (
+    GET_DEEP_MATCH_BATCH,
     GET_MATCH_CORE,
     GET_PLAYER_HISTORY_PAGE,
     GET_PLAYER_PROFILE,
@@ -364,6 +366,30 @@ class StratzClient:
         if account_id is not None and match.player_for(account_id) is None:
             raise StratzUnavailable("STRATZ match does not contain the requested player")
         return match
+
+    async def get_deep_matches(
+        self,
+        account_id: int,
+        match_ids: list[int] | tuple[int, ...],
+    ) -> list[dict[str, Any]]:
+        """Fetch one reviewed V7 deep batch and normalize it fail-closed."""
+
+        account_id = _positive_id(account_id, "account ID")
+        requested = tuple(dict.fromkeys(_positive_id(value, "match ID") for value in match_ids))
+        if not 1 <= len(requested) <= 8:
+            raise ValueError("deep match batch must contain 1 to 8 unique match IDs")
+        data = await self._graphql(
+            GET_DEEP_MATCH_BATCH,
+            {"steamAccountId": account_id, "matchIds": list(requested)},
+            cache_key=stratz_cache_key(
+                "deep",
+                account_id,
+                GET_DEEP_MATCH_BATCH.version,
+                ",".join(str(value) for value in requested),
+            ),
+            cache_ttl=None,
+        )
+        return normalize_deep_matches(data, requested_ids=requested)
 
     async def _graphql(
         self,

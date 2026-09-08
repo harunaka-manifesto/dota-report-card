@@ -18,7 +18,7 @@ from app.core.errors import (
     StratzSchemaDrift,
 )
 from app.stratz.client import StratzClient, parse_rate_limit_headers
-from app.stratz.queries import GET_PLAYER_PROFILE
+from app.stratz.queries import GET_DEEP_MATCH_BATCH, GET_PLAYER_PROFILE
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "stratz" / "get_player_history_page.json"
 ACCOUNT_ID = 123456789
@@ -42,8 +42,83 @@ async def _no_sleep(_delay: float) -> None:
     return None
 
 
+def _deep_match(match_id: int) -> dict[str, Any]:
+    return {
+        "id": match_id,
+        "didRadiantWin": True,
+        "durationSeconds": 1800,
+        "startDateTime": 2_000_000_000,
+        "endDateTime": 2_000_001_800,
+        "gameMode": "ALL_PICK_RANKED",
+        "lobbyType": "RANKED",
+        "gameVersionId": 180,
+        "radiantKills": [0, 2],
+        "direKills": [0, 0],
+        "radiantNetworthLeads": [0, 100],
+        "bottomLaneOutcome": "RADIANT_VICTORY",
+        "midLaneOutcome": "TIE",
+        "topLaneOutcome": "DIRE_VICTORY",
+        "towerDeaths": [{"time": 120, "isRadiant": False, "npcId": 1, "attacker": 2}],
+        "players": [
+            {
+                "isRadiant": True,
+                "isVictory": True,
+                "heroId": 1,
+                "position": "POSITION_1",
+                "role": "CORE",
+                "lane": "SAFE_LANE",
+                "leaverStatus": "NONE",
+                "stats": {
+                    "networthPerMinute": [600, 750],
+                    "killEvents": [{"time": 100}],
+                    "deathEvents": [{"time": 200}],
+                    "assistEvents": [{"time": 110}],
+                    "itemPurchases": [{"time": 300, "itemId": 50}],
+                    "wards": [{"time": 60, "type": 0, "positionX": 1, "positionY": 2}],
+                    "farmDistributionReport": {
+                        "creepLocation": [{"id": 1, "count": 3, "gold": 100, "xp": 90}],
+                        "neutralLocation": [],
+                    },
+                },
+            }
+        ],
+    }
+
+
 def _json_response(payload: Any, *, status_code: int = 200, headers: dict[str, str] | None = None) -> httpx.Response:
     return httpx.Response(status_code, json=payload, headers=headers)
+
+
+@pytest.mark.asyncio
+async def test_deep_batch_uses_reviewed_operation_and_canonical_shape() -> None:
+    requests: list[httpx.Request] = []
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return _json_response({"data": {"player": {"matches": [_deep_match(9)]}}})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        client = StratzClient(_settings(), http_client=http, sleep=_no_sleep)
+        rows = await client.get_deep_matches(ACCOUNT_ID, [9])
+
+    body = json.loads(requests[0].content)
+    assert body["operationName"] == GET_DEEP_MATCH_BATCH.name
+    assert body["variables"] == {"steamAccountId": ACCOUNT_ID, "matchIds": [9]}
+    assert rows[0]["self"]["events"]["death_events"] == [{"time": 200}]
+    assert rows[0]["self"]["farm_distribution"]["creep_location"][0]["gold"] == 100
+
+
+@pytest.mark.asyncio
+async def test_deep_batch_refuses_unrequested_match_and_invalid_batch() -> None:
+    async def handler(_request: httpx.Request) -> httpx.Response:
+        return _json_response({"data": {"player": {"matches": [_deep_match(10)]}}})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        client = StratzClient(_settings(), http_client=http, sleep=_no_sleep)
+        with pytest.raises(StratzSchemaDrift, match="unrequested"):
+            await client.get_deep_matches(ACCOUNT_ID, [9])
+        with pytest.raises(ValueError, match="1 to 8"):
+            await client.get_deep_matches(ACCOUNT_ID, [])
 
 
 @pytest.mark.asyncio

@@ -38,6 +38,7 @@ from .normalize import (
     normalize_stratz_profile,
 )
 from .queries import (
+    GET_DEEP_MATCH_BATCH,
     GET_MATCH_CORE,
     GET_PARSED_ACQUISITION_BATCH,
     GET_PARSED_MATCH_CORE,
@@ -101,8 +102,14 @@ class StratzProvider:
         match = await self.client.get_match_core(match_id, account_id=account_id)
         return normalize_stratz_match(match, account_id=account_id)
 
+    async def fetch_deep_matches(
+        self, account_id: int, match_ids: list[int] | tuple[int, ...]
+    ) -> list[dict[str, Any]]:
+        return await self.client.get_deep_matches(account_id, match_ids)
+
 
 __all__ = [
+    "GET_DEEP_MATCH_BATCH",
     "GET_MATCH_CORE",
     "GET_PARSED_ACQUISITION_BATCH",
     "GET_PARSED_MATCH_CORE",
