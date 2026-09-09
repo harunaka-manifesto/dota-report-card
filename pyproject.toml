@@ -43,6 +43,8 @@ where = ["services/api"]
 # collects the modules and silently drops the .json beside them.
 [tool.setuptools.package-data]
 "app.player_analysis_v7" = ["data/*.json"]
+"app.stratz" = ["*.json"]
+"app.heroes" = ["data/*.json", "data/*/*.json"]
 
 [tool.ruff]
 line-length = 100
