@@ -31,6 +31,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from math import isfinite
 from typing import Any
 
 from app.player_analysis_v7.research import inference
@@ -612,6 +613,21 @@ def priority(standardized: float, reliability: float, actionability: float) -> f
     return abs(standardized) * reliability * actionability
 
 
+def gap_supports_action(gap: float, dimension: RecommendationDimension) -> bool:
+    """Return whether a personal gap supports the dimension's fixed advice.
+
+    The gap is ``loss - win``.  A positive gap therefore means the measured
+    quantity is higher in losses; that supports a corrective instruction only
+    when higher values are explicitly marked as worse.  A negative gap is the
+    corresponding support for dimensions where higher values are better.
+    Exact zero carries no direction and is refused conservatively.
+    """
+
+    if not isfinite(gap) or gap == 0.0:
+        return False
+    return (gap > 0.0) == dimension.higher_is_worse
+
+
 def select(
     scored: Sequence[ScoredRecommendation],
 ) -> tuple[ScoredRecommendation | None, list[ScoredRecommendation]]:
@@ -645,6 +661,7 @@ __all__ = [
     "dimension_scale",
     "eligible_dimensions",
     "gap_reliability",
+    "gap_supports_action",
     "has_denominator",
     "modal_sign_share",
     "opportunities",

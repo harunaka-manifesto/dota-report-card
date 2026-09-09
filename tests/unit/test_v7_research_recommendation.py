@@ -27,6 +27,7 @@ from app.player_analysis_v7.research.recommendation import (
     eligible_dimensions,
     first_ward_time,
     gap_reliability,
+    gap_supports_action,
     has_denominator,
     last_hits_at_ten,
     modal_sign_share,
@@ -297,6 +298,26 @@ def test_priority_is_the_product_of_all_three_terms() -> None:
 
 def test_priority_of_an_unactionable_dimension_is_zero() -> None:
     assert priority(10.0, 1.0, 0.0) == 0.0
+
+
+@pytest.mark.parametrize(
+    ("key", "gap", "expected"),
+    [
+        ("first_ward_time", 1.0, True),
+        ("first_ward_time", -1.0, False),
+        ("last_hits_at_ten", -1.0, True),
+        ("last_hits_at_ten", 1.0, False),
+        ("first_ward_time", 0.0, False),
+    ],
+)
+def test_gap_supports_only_the_registry_action_polarity(
+    key: str, gap: float, expected: bool
+) -> None:
+    assert gap_supports_action(gap, RECOMMENDATION_REGISTRY[key]) is expected
+
+
+def test_non_finite_gap_does_not_support_action() -> None:
+    assert gap_supports_action(float("nan"), RECOMMENDATION_REGISTRY["first_ward_time"]) is False
 
 
 # --------------------------------------------------------------------------

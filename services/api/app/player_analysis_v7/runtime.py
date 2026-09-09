@@ -285,6 +285,8 @@ def _recommendation(
         fitted = population.recommendation(key)
         if not fitted.eligible or fitted.outcome_contaminated:
             raise V7RuntimeError(f"{key}: Recommendation artifact contradicts registry")
+        if not recommendation.gap_supports_action(result.delta, dimension):
+            continue
         standardized = recommendation.standardized_gap(result.delta, fitted.dimension_scale)
         reliability = recommendation.gap_reliability(
             result.standard_error, fitted.dimension_scale, fitted.dependence_inflation

@@ -153,6 +153,38 @@ def test_recommendation_requires_effective_support_after_block_exclusion() -> No
     assert _recommendation(rows, load_population_parameters()) is None
 
 
+@pytest.mark.parametrize(
+    ("win_time", "loss_time", "expected_available", "expected_gap"),
+    [(300, 0, False, -300.0), (0, 300, True, 300.0), (0, 0, False, 0.0)],
+)
+def test_recommendation_requires_gap_to_support_fixed_instruction(
+    win_time: int,
+    loss_time: int,
+    expected_available: bool,
+    expected_gap: float,
+) -> None:
+    rows: list[dict[str, Any]] = []
+    for index in range(20):
+        rows.extend(
+            [
+                _warded_row(index * 4, won=True),
+                _warded_row(index * 4 + 1, won=False),
+                _warded_row(index * 4 + 2, won=False),
+                _warded_row(index * 4 + 3, won=False),
+            ]
+        )
+        rows[-4]["self"]["events"]["wards"][0]["time"] = win_time
+        for row in rows[-3:]:
+            row["self"]["events"]["wards"][0]["time"] = loss_time
+
+    result = _recommendation(rows, load_population_parameters())
+
+    assert (result is not None) is expected_available
+    if result is not None:
+        assert result.dimension_key == "first_ward_time"
+        assert result.observation.gap == pytest.approx(expected_gap)
+
+
 def test_pass2_rows_adapt_to_pass1_parsed_feature_shape() -> None:
     rows = parsed_rows(
         [
