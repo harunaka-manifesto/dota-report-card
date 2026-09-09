@@ -23,9 +23,12 @@ from app.player_analysis_v7.research.pass2_features import (
     lane_vs_jungle_share,
     vision_coverage,
 )
+from app.player_analysis_v7.runtime import analyze_v7
 from app.stratz.client import StratzClient, parse_rate_limit_headers
 from app.stratz.deep import normalize_deep_matches
 from app.stratz.queries import GET_DEEP_MATCH_BATCH, GET_PLAYER_PROFILE
+
+from tests.unit.test_v7_runtime_service import _history
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "stratz" / "get_player_history_page.json"
 ACCOUNT_ID = 123456789
@@ -132,6 +135,22 @@ def test_nullable_provider_shapes_remain_unavailable_through_feature_boundaries(
     assert lane_vs_jungle_share([row]) is None
     assert fight_conversion([row]) is None
     assert fight_style_axes([row]) == (None, None)
+
+
+def test_normalized_nullable_duration_does_not_abort_the_runtime() -> None:
+    payload = {"player": {"matches": [_deep_match(9)]}}
+    payload["player"]["matches"][0]["durationSeconds"] = None
+
+    row = normalize_deep_matches(payload, requested_ids=[9])[0]
+    report = analyze_v7(
+        history=_history(),
+        deep_rows=[row],
+        hero_metadata={1: {"display_name": "Anti-Mage"}},
+        generated_at="2026-09-08T00:00:00Z",
+    )
+
+    assert report.metadata.matches_total == 1
+    assert report.metadata.matches_analysed == 1
 
 
 @pytest.mark.asyncio
