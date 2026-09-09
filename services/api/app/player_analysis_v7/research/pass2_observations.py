@@ -84,6 +84,8 @@ def _pass2_context_available(row: Row) -> bool:
     self_ = _self(row)
     if self_ is None:
         return False
+    if row.get("duration_seconds") is None:
+        return False
     if "hero_id" not in self_ or self_.get("hero_id") is None:
         return False
     side = self_.get("is_radiant")
