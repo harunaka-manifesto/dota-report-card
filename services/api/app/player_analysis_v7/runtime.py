@@ -63,6 +63,8 @@ PASS2_PLAYER_QUESTIONS = {
     "deaths_alone_share": "How many of your deaths happen in minutes without team kill activity?",
     "fight_conversion": "Turning won fights into towers",
     "lane_vs_jungle_share": "Farming the jungle versus the lane",
+    "post_loss_requeue_latency": "After a loss, how long until your next recorded game?",
+    "purchase_tempo": "How far into a game are you when you make your eighth purchase?",
     "spike_usage": "Using your item window",
     "vision_coverage": "How much of each match has one of your observer wards active?",
 }
@@ -228,9 +230,9 @@ def _public_finding(row: RankedFinding) -> Finding:
         ),
         sample_size=row.sample_size,
         player_facing_question=(
-            FAMILY_BY_NAME[row.key].player_question
-            if row.key in FAMILY_BY_NAME
-            else PASS2_PLAYER_QUESTIONS[row.key]
+            PASS2_PLAYER_QUESTIONS[row.key]
+            if row.key in PASS2_PLAYER_QUESTIONS
+            else FAMILY_BY_NAME[row.key].player_question
         ),
     )
 
