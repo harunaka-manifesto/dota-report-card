@@ -4,9 +4,9 @@
 
 - Confirmed bugs fixed: 11 of 11 (`BUG-001` through `BUG-011`).
 - Remaining confirmed bugs: none found by the audited synthetic reproductions.
-- Probable bugs: `PROB-001` confirmed and fixed; `PROB-002` reproduced but requires an owner policy decision.
-- Owner decisions required: define whether opposite-sign Recommendations are refused or explicitly framed as unproven experiments; define a canonical owner credential before any private V7 read endpoint is exposed.
-- FE integration recommendation: **YES WITH CAVEATS**. The allowlisted public projection is safe for real-player reads. Private Recommendation/provenance reads remain intentionally unavailable, and Recommendation presentation must not imply sign-consistent advice until `PROB-002` is decided.
+- Probable bugs: `PROB-001` and `PROB-002` confirmed and fixed.
+- Owner decisions required: define a canonical owner credential before any private V7 read endpoint is exposed.
+- FE integration recommendation: **YES WITH CAVEATS**. The allowlisted public projection is safe for real-player reads. Private Recommendation/provenance reads remain intentionally unavailable.
 
 The pass changed evidence eligibility, validation, failure isolation, access control, copy, and packaging. It did not change frozen analytical methodology or artifacts. STRATZ calls: 0. OpenDota calls: 0. Protected split access: none.
 
@@ -26,6 +26,7 @@ The pass changed evidence eligibility, validation, failure isolation, access con
 | Nullable transport hardening test | BUG-004 | `338a437` | STRATZ client test | Accepted as a failing regression that reopened BUG-004. |
 | Nullable duration follow-up | BUG-004 | `9cc1daa` | Pass-2 observation validity gate | Accepted; closes normalized provider-to-runtime crash. |
 | Frozen registry correction | BUG-007 | `2b78531` | Registry restore; runtime copy override | Accepted; restores the frozen candidate-registry digest without reverting corrected public copy. |
+| Recommendation action polarity | PROB-002 | `ed84e5e` | Recommendation policy helper, runtime eligibility, focused tests | Accepted after owner decision; eligibility only, with ranking and instructions unchanged. |
 
 Two Wave 5 workers hit the usage limit after leaving useful work. Sol reviewed the committed BUG-008 change and completed/committed the bounded BUG-007 work. No worker commit was squashed.
 
@@ -142,8 +143,10 @@ Two Wave 5 workers hit the usage limit after leaving useful work. Sol reviewed t
 ### PROB-002 — Opposite gap with fixed instruction
 
 - Investigation result: reproduced with 20 wins/60 losses of effective support. Losses warded 300 seconds earlier than wins, producing gap `-300`, direction `negative`, reliability `1.0`, yet the instruction remained “Place your first ward before the horn.”
-- Action: no behavior change. Absolute-gap ranking and canonical instructions are frozen in this pass.
-- Remaining decision: **OWNER_DECISION_REQUIRED**. Choose either (1) refuse sign-inconsistent advice using an explicit per-dimension action-polarity policy, or (2) retain absolute-gap selection and explicitly frame every instruction as an unproven experiment. Do not silently reverse instructions.
+- Owner decision: refuse sign-inconsistent Recommendations because experiment framing would require clearer product copy.
+- Action: added an eligibility predicate using the existing per-dimension `higher_is_worse` policy. Positive loss-minus-win gaps are eligible only when higher is worse; negative gaps are eligible only when higher is better; zero and non-finite gaps are refused. Absolute-gap ranking, scales, fitted gaps, and canonical instructions remain unchanged.
+- Result: the reproduced `-300` first-ward gap is refused; the sign-consistent `+300` case remains eligible.
+- Remaining decision: none for Recommendation polarity.
 
 ## Analytical Safety
 
@@ -189,7 +192,7 @@ All commands were run offline from `v7/backend-bugfix-pass-1`.
 
 | Check | Command | Result |
 |---|---|---|
-| Full repository | `PYTHONDONTWRITEBYTECODE=1 .venv/bin/pytest -q -p no:cacheprovider` | **1388 passed, 3 skipped**, 2 deprecation warnings, 170.14s |
+| Full repository | `PYTHONDONTWRITEBYTECODE=1 .venv/bin/pytest -q -p no:cacheprovider` | **1397 passed, 3 skipped**, 2 deprecation warnings, 169.86s |
 | V7/provider suite | `PYTHONDONTWRITEBYTECODE=1 .venv/bin/pytest -q -p no:cacheprovider tests/unit/test_v7_*.py tests/unit/test_stratz_client.py tests/unit/test_stratz_normalize.py tests/unit/test_stratz_item_vocabulary.py` | **608 passed**, 1 warning |
 | Original trigger rerun | Explicit 30-node pytest selection covering BUG-001..011 | **30 passed**, 1 warning |
 | Ruff | `.venv/bin/ruff check --no-cache services/api tests scripts/smoke_test_v7_package.py scripts/v7_build_content_catalog.py` | PASS |
@@ -219,7 +222,6 @@ An exploratory Ruff command that included every file under `scripts/` found two 
 
 ## Remaining Risks
 
-- `PROB-002` remains a concrete product-policy ambiguity. FE should not present Recommendation direction as evidence that the fixed instruction is sign-consistent.
 - Private Recommendation/provenance retrieval has no owner-authenticated endpoint. This is an intentional privacy-safe limitation, not authorization by obscurity.
 - Two deprecation warnings remain: Starlette's current TestClient/httpx integration and Alembic's legacy `prepend_sys_path` parsing.
 
@@ -230,4 +232,4 @@ An exploratory Ruff command that included every file under `scripts/` found two 
 - provider recollection required: NO
 - protected split access required: NO
 
-The safe integration surface is the allowlisted public projection. Private Recommendation/provenance integration waits for owner authentication and the `PROB-002` product decision.
+The safe integration surface is the allowlisted public projection. Private Recommendation/provenance integration waits for owner authentication.
