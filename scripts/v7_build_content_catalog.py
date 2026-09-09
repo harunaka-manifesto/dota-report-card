@@ -51,12 +51,12 @@ ARCHETYPE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-archetype-axes-2026-0
 #: put one. Keys are validated against the live registries below, so a renamed
 #: dimension fails the build rather than silently losing its concept.
 DISPLAY_CONCEPT: dict[str, str] = {
-    "vision_coverage": "How much of the map your wards keep lit",
+    "vision_coverage": "How much of each match has one of your observer wards active?",
     "duration_tempo": "Whether your games run long or short",
     "death_clustering": "Dying again soon after you died",
     "lane_vs_jungle_share": "Farming the jungle versus the lane",
-    "purchase_tempo": "When your build comes online",
-    "deaths_alone_share": "Dying away from your team",
+    "purchase_tempo": "How far into a game are you when you make your eighth purchase?",
+    "deaths_alone_share": "How many of your deaths happen in minutes without team kill activity?",
     "spike_usage": "Using your item window",
     "position_flexibility": "Switching roles between games",
     "fight_timing_centroid": "When in a game you show up",
@@ -65,7 +65,7 @@ DISPLAY_CONCEPT: dict[str, str] = {
     "post_loss_session_continuation": "Playing on after a loss",
     "lead_retention": "Holding a lead",
     "post_loss_hero_switch": "Changing hero after a loss",
-    "post_loss_requeue_latency": "How fast you requeue after a loss",
+    "post_loss_requeue_latency": "After a loss, how long until your next recorded game?",
     "fight_conversion": "Turning won fights into towers",
     "last_hits_at_ten": "Last hits by minute 10",
     "first_real_item_time": "When your first real item lands",

@@ -60,11 +60,11 @@ RUNTIME_VERSION = "v7-analytical-runtime-1.0.0"
 PASS2_PLAYER_QUESTIONS = {
     "closer_vs_comeback": "Closing out leads versus coming back",
     "death_clustering": "Dying again soon after you died",
-    "deaths_alone_share": "Dying away from your team",
+    "deaths_alone_share": "How many of your deaths happen in minutes without team kill activity?",
     "fight_conversion": "Turning won fights into towers",
     "lane_vs_jungle_share": "Farming the jungle versus the lane",
     "spike_usage": "Using your item window",
-    "vision_coverage": "How much of the map your wards keep lit",
+    "vision_coverage": "How much of each match has one of your observer wards active?",
 }
 
 

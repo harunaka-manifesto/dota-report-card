@@ -93,6 +93,25 @@ def test_canonical_recommendation_copy_is_carried_verbatim() -> None:
         assert row["canonical_verification_text"] == source.verification
 
 
+def test_finding_questions_match_their_measured_semantics() -> None:
+    questions = {
+        row["id"]: row["display_concept"]
+        for row in _committed()["findings"]["shipping_dimensions"]
+    }
+    assert questions["vision_coverage"] == (
+        "How much of each match has one of your observer wards active?"
+    )
+    assert questions["deaths_alone_share"] == (
+        "How many of your deaths happen in minutes without team kill activity?"
+    )
+    assert questions["purchase_tempo"] == (
+        "How far into a game are you when you make your eighth purchase?"
+    )
+    assert questions["post_loss_requeue_latency"] == (
+        "After a loss, how long until your next recorded game?"
+    )
+
+
 def test_archetype_catalog_carries_all_twenty_labels() -> None:
     catalog = _committed()["archetype"]
     assert len(catalog["grid_labels"]) == 18
