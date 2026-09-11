@@ -26,7 +26,11 @@ from app.player_analysis_v7.research.pass2_features import (
 from app.player_analysis_v7.runtime import analyze_v7
 from app.stratz.client import StratzClient, parse_rate_limit_headers
 from app.stratz.deep import normalize_deep_matches
-from app.stratz.queries import GET_DEEP_MATCH_BATCH, GET_PLAYER_PROFILE
+from app.stratz.queries import (
+    GET_DEEP_MATCH_BATCH,
+    GET_PLAYER_PROFILE,
+    GET_ROLE_METRIC_MATCH_BATCH,
+)
 
 from tests.unit.test_v7_runtime_service import _history
 
@@ -116,6 +120,24 @@ async def test_deep_batch_uses_reviewed_operation_and_canonical_shape() -> None:
     assert body["variables"] == {"steamAccountId": ACCOUNT_ID, "matchIds": [9]}
     assert rows[0]["self"]["events"]["death_events"] == [{"time": 200}]
     assert rows[0]["self"]["farm_distribution"]["creep_location"][0]["gold"] == 100
+
+
+@pytest.mark.asyncio
+async def test_role_metric_batch_uses_separate_progression_operation() -> None:
+    requests: list[httpx.Request] = []
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return _json_response({"data": {"player": {"matches": [_deep_match(9)]}}})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        client = StratzClient(_settings(), http_client=http, sleep=_no_sleep)
+        rows = await client.get_role_metric_matches(ACCOUNT_ID, [9])
+
+    body = json.loads(requests[0].content)
+    assert body["operationName"] == GET_ROLE_METRIC_MATCH_BATCH.name
+    assert body["variables"] == {"steamAccountId": ACCOUNT_ID, "matchIds": [9]}
+    assert rows[0]["match_id"] == 9
 
 
 def test_nullable_provider_shapes_remain_unavailable_through_feature_boundaries() -> None:

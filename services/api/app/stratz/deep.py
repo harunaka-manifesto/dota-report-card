@@ -114,6 +114,58 @@ def _farm(stats: Mapping[str, Any], path: str) -> dict[str, Any] | None:
     }
 
 
+def _all_players(value: Any, path: str) -> list[dict[str, Any]] | None:
+    if value is None:
+        return None
+    rows: list[dict[str, Any]] = []
+    for index, raw in enumerate(_sequence(value, path)):
+        player = _mapping(raw, f"{path}[{index}]")
+        stats_raw = player.get("stats")
+        stats = (
+            _mapping(stats_raw, f"{path}[{index}].stats")
+            if stats_raw is not None
+            else None
+        )
+        rows.append(
+            {
+                "player_slot": _int(player.get("playerSlot"), f"{path}[{index}].playerSlot"),
+                "is_radiant": _bool(player.get("isRadiant"), f"{path}[{index}].isRadiant"),
+                "is_victory": _bool(player.get("isVictory"), f"{path}[{index}].isVictory"),
+                "hero_id": _int(player.get("heroId"), f"{path}[{index}].heroId"),
+                "position_native": _str(player.get("position"), f"{path}[{index}].position"),
+                "role_native": _str(player.get("role"), f"{path}[{index}].role"),
+                "lane_native": _str(player.get("lane"), f"{path}[{index}].lane"),
+                "kills": _int(player.get("kills"), f"{path}[{index}].kills"),
+                "deaths": _int(player.get("deaths"), f"{path}[{index}].deaths"),
+                "assists": _int(player.get("assists"), f"{path}[{index}].assists"),
+                "num_last_hits": _int(
+                    player.get("numLastHits"), f"{path}[{index}].numLastHits"
+                ),
+                "num_denies": _int(player.get("numDenies"), f"{path}[{index}].numDenies"),
+                "gold_per_minute": _int(
+                    player.get("goldPerMinute"), f"{path}[{index}].goldPerMinute"
+                ),
+                "experience_per_minute": _int(
+                    player.get("experiencePerMinute"), f"{path}[{index}].experiencePerMinute"
+                ),
+                "networth": _int(player.get("networth"), f"{path}[{index}].networth"),
+                "hero_damage": _int(player.get("heroDamage"), f"{path}[{index}].heroDamage"),
+                "tower_damage": _int(player.get("towerDamage"), f"{path}[{index}].towerDamage"),
+                "hero_healing": _int(player.get("heroHealing"), f"{path}[{index}].heroHealing"),
+                "kill_events": (
+                    _events(
+                        stats.get("killEvents"),
+                        ("time",),
+                        f"{path}[{index}].stats.killEvents",
+                    )
+                    if stats is not None
+                    else None
+                ),
+            }
+        )
+    return rows
+
+
 def normalize_deep_matches(
     data: Mapping[str, Any], *, requested_ids: Sequence[int]
 ) -> list[dict[str, Any]]:
@@ -172,7 +224,9 @@ def normalize_deep_matches(
                     ("time", "isRadiant", "npcId", "attacker"),
                     f"{path}.towerDeaths",
                 ),
+                "all_players": _all_players(match.get("allPlayers"), f"{path}.allPlayers"),
                 "self": {
+                    "player_slot": _int(own.get("playerSlot"), f"{path}.p.playerSlot"),
                     "is_radiant": _bool(own.get("isRadiant"), f"{path}.p.isRadiant"),
                     "is_victory": _bool(own.get("isVictory"), f"{path}.p.isVictory"),
                     "hero_id": _int(own.get("heroId"), f"{path}.p.heroId"),
@@ -182,11 +236,20 @@ def normalize_deep_matches(
                     "leaver_status_native": _str(
                         own.get("leaverStatus"), f"{path}.p.leaverStatus"
                     ),
+                    "kills": _int(own.get("kills"), f"{path}.p.kills"),
+                    "assists": _int(own.get("assists"), f"{path}.p.assists"),
+                    "hero_healing": _int(own.get("heroHealing"), f"{path}.p.heroHealing"),
+                    "tower_damage": _int(own.get("towerDamage"), f"{path}.p.towerDamage"),
                     "trajectories": {
                         _snake(field): _series(stats.get(field), f"{path}.stats.{field}")
                         for field in _TRAJECTORIES
                     },
                     "events": events,
+                    "tower_damage_report": _events(
+                        stats.get("towerDamageReport"),
+                        ("npcId", "damage"),
+                        f"{path}.stats.towerDamageReport",
+                    ),
                     "farm_distribution": _farm(stats, f"{path}.stats"),
                 },
             }
