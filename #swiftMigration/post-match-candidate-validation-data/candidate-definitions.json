@@ -1,0 +1,1132 @@
+{
+ "thresholds": {
+  "STANDARD": {
+   "core": {
+    "e50": 340,
+    "e25": 161,
+    "l25": 345,
+    "l50": 738,
+    "l75": 1288,
+    "l90": 1831,
+    "l95": 2254,
+    "cs50": 12,
+    "laneset90": 2260
+   },
+   "support": {
+    "e50": 212,
+    "e25": 99,
+    "l25": 193,
+    "l50": 415,
+    "l75": 701,
+    "l90": 1070,
+    "l95": 1239,
+    "cs50": 4,
+    "laneset90": 2303
+   },
+   "lvl6_90": {
+    "carry": 176,
+    "mid": 111,
+    "offlane": 176
+   },
+   "opp": {
+    "1": [
+     "opp_cs_late",
+     60,
+     29,
+     64
+    ],
+    "2": [
+     "opp_cs_late",
+     63,
+     30,
+     70
+    ],
+    "3": [
+     "opp_cs_late",
+     53,
+     23,
+     57
+    ],
+    "4": [
+     "opp_nw_late",
+     2762,
+     1612,
+     3010
+    ],
+    "5": [
+     "opp_nw_late",
+     2667,
+     1541,
+     2858
+    ]
+   },
+   "turn75": 0.14733322324966974,
+   "turn90": 0.17424469039784624,
+   "turn95": 0.18692729215773957,
+   "flip_x": 2000,
+   "flip75": 7932,
+   "flip50": 5163,
+   "comeback75": 6180,
+   "comeback90": 12263,
+   "comeback95": 19526,
+   "stall_lead": 8271,
+   "stacks75": 5,
+   "stacks90": 7,
+   "stacks95": 9,
+   "stackdiff90": 4,
+   "obs90": 24,
+   "obs95": 27,
+   "obs10": 12,
+   "obs_killed90": 9,
+   "obs_share75": 0.37037037037037035,
+   "smokes75": 6,
+   "smokes90": 7,
+   "smokes95": 8,
+   "fast10": 18,
+   "fast5": 17,
+   "topshare90": 0.3138167564919157,
+   "topshare95": 0.3274268972899882,
+   "jungle90": 0.42952731737262123,
+   "jungle95": 0.47292280117782615,
+   "enemy_item": {
+    "item_black_king_bar": [
+     1377,
+     1288,
+     695
+    ],
+    "item_blink": [
+     640,
+     593,
+     607
+    ],
+    "item_radiance": [
+     877,
+     826,
+     267
+    ],
+    "item_hand_of_midas": [
+     412,
+     364,
+     127
+    ],
+    "item_manta": [
+     1006,
+     936,
+     481
+    ],
+    "item_desolator": [
+     937,
+     838,
+     184
+    ],
+    "item_bfury": [
+     774,
+     721,
+     220
+    ],
+    "item_maelstrom": [
+     719,
+     669,
+     267
+    ],
+    "item_ultimate_scepter": [
+     1076,
+     965,
+     605
+    ],
+    "item_orchid": [
+     815,
+     761,
+     203
+    ]
+   },
+   "race75": 815,
+   "race90": 1321,
+   "hold_min": 10,
+   "rate": {
+    "item_black_king_bar": [
+     1.6736401673640169,
+     3.8961038961038956,
+     527
+    ],
+    "item_blink": [
+     6.934306569343066,
+     18.00766283524904,
+     1169
+    ],
+    "item_glimmer_cape": [
+     3.076923076923077,
+     9.615384615384615,
+     318
+    ],
+    "item_force_staff": [
+     3.088803088803089,
+     9.254498714652957,
+     186
+    ],
+    "item_lotus_orb": [
+     3.6649214659685865,
+     10.752688172043012,
+     85
+    ],
+    "item_manta": [
+     2.6143790849673203,
+     9.589041095890412,
+     335
+    ],
+    "item_satanic": [
+     1.305057096247961,
+     4.456824512534819,
+     60
+    ],
+    "item_pipe": [
+     2.531645569620253,
+     5.625,
+     77
+    ],
+    "item_guardian_greaves": [
+     2.5157232704402515,
+     6.875,
+     95
+    ],
+    "item_solar_crest": [
+     3.0701754385964914,
+     11.29032258064516,
+     33
+    ],
+    "item_shivas_guard": [
+     3.6893203883495147,
+     10.919540229885058,
+     69
+    ],
+    "item_blade_mail": [
+     2.910958904109589,
+     7.772020725388601,
+     257
+    ],
+    "item_harpoon": [
+     2.8037383177570097,
+     8.677685950413224,
+     77
+    ],
+    "item_sheepstick": [
+     2.3952095808383236,
+     7.9470198675496695,
+     53
+    ],
+    "item_abyssal_blade": [
+     1.075268817204301,
+     4.809619238476954,
+     32
+    ]
+   },
+   "cluster10": 1286
+  },
+  "TURBO": {
+   "core": {
+    "e50": 669,
+    "e25": 328,
+    "l25": 733,
+    "l50": 1538,
+    "l75": 2572,
+    "l90": 3829,
+    "l95": 4449,
+    "cs50": 11,
+    "laneset90": 4869
+   },
+   "support": {
+    "e50": 418,
+    "e25": 194,
+    "l25": 458,
+    "l50": 993,
+    "l75": 1624,
+    "l90": 2377,
+    "l95": 2838,
+    "cs50": 5,
+    "laneset90": 4838
+   },
+   "lvl6_90": {
+    "carry": 115,
+    "mid": 65,
+    "offlane": 115
+   },
+   "opp": {
+    "1": [
+     "opp_cs_late",
+     48,
+     17,
+     53
+    ],
+    "2": [
+     "opp_cs_late",
+     48,
+     19,
+     53
+    ],
+    "3": [
+     "opp_cs_late",
+     39,
+     14,
+     42
+    ],
+    "4": [
+     "opp_nw_late",
+     5820,
+     3022,
+     6361
+    ],
+    "5": [
+     "opp_nw_late",
+     5508,
+     2932,
+     6084
+    ]
+   },
+   "turn75": 0.15407912083859607,
+   "turn90": 0.18967799309246583,
+   "turn95": 0.2048613792570855,
+   "flip_x": 3000,
+   "flip75": 14181,
+   "flip50": 8401,
+   "comeback75": 8990,
+   "comeback90": 18332,
+   "comeback95": 23701,
+   "stall_lead": 11432,
+   "stacks75": 2,
+   "stacks90": 3,
+   "stacks95": 4,
+   "stackdiff90": 2,
+   "obs90": 15,
+   "obs95": 16,
+   "obs10": 6,
+   "obs_killed90": 5,
+   "obs_share75": 0.4,
+   "smokes75": 3,
+   "smokes90": 4,
+   "smokes95": 5,
+   "fast10": 12,
+   "fast5": 12,
+   "topshare90": 0.3145069260345161,
+   "topshare95": 0.33115733009463083,
+   "jungle90": 0.46102150537634407,
+   "jungle95": 0.5202380952380953,
+   "enemy_item": {
+    "item_black_king_bar": [
+     696,
+     639,
+     550
+    ],
+    "item_blink": [
+     299,
+     267,
+     454
+    ],
+    "item_radiance": [
+     415,
+     391,
+     164
+    ],
+    "item_hand_of_midas": [
+     200,
+     172,
+     63
+    ],
+    "item_manta": [
+     504,
+     462,
+     324
+    ],
+    "item_desolator": [
+     405,
+     389,
+     235
+    ],
+    "item_bfury": [
+     382,
+     348,
+     171
+    ],
+    "item_maelstrom": [
+     335,
+     307,
+     273
+    ],
+    "item_ultimate_scepter": [
+     486,
+     445,
+     475
+    ],
+    "item_orchid": [
+     405,
+     363,
+     217
+    ]
+   },
+   "race75": 560,
+   "race90": 867,
+   "hold_min": 6,
+   "rate": {
+    "item_black_king_bar": [
+     1.973684210526316,
+     4.294478527607362,
+     289
+    ],
+    "item_blink": [
+     6.854838709677419,
+     15.714285714285714,
+     503
+    ],
+    "item_glimmer_cape": [
+     3.4482758620689653,
+     10.909090909090908,
+     81
+    ],
+    "item_force_staff": [
+     2.923976608187134,
+     8.450704225352112,
+     31
+    ],
+    "item_lotus_orb": [
+     5.056179775280899,
+     11.475409836065573,
+     36
+    ],
+    "item_manta": [
+     3.418803418803419,
+     8.996539792387544,
+     148
+    ],
+    "item_satanic": [
+     1.639344262295082,
+     5.113636363636363,
+     57
+    ],
+    "item_pipe": [
+     2.766798418972332,
+     5.612244897959183,
+     34
+    ],
+    "item_guardian_greaves": [
+     3.53356890459364,
+     7.929515418502203,
+     44
+    ],
+    "item_shivas_guard": [
+     3.5714285714285716,
+     10.0,
+     35
+    ],
+    "item_blade_mail": [
+     3.4482758620689657,
+     8.0,
+     153
+    ],
+    "item_harpoon": [
+     2.484472049689441,
+     8.379888268156426,
+     54
+    ],
+    "item_sheepstick": [
+     4.040404040404041,
+     11.320754716981131,
+     41
+    ],
+    "item_abyssal_blade": [
+     2.5510204081632653,
+     5.74712643678161,
+     39
+    ]
+   },
+   "cluster10": 516
+  }
+ },
+ "candidates": {
+  "L1_LANE_LEAD_PATH": {
+   "candidate_id": "L1_LANE_LEAD_PATH",
+   "family": "lane",
+   "name": "Lane net-worth path vs counterpart",
+   "question_answered": "How did my lane go against the player I actually laned with?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "lane_path",
+   "why_player_cares": "Separates 'I had a bad lane' from impressions; names the opponent and shows early vs lane-end state."
+  },
+  "L2_LANE_SUSTAINED_FLIP": {
+   "candidate_id": "L2_LANE_SUSTAINED_FLIP",
+   "family": "lane",
+   "name": "Sustained lane lead flip minute",
+   "question_answered": "When exactly did my lane turn?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "lane_path",
+   "why_player_cares": "Pinpoints the minute a lane changed hands."
+  },
+  "L3_CS_NW_SPLIT": {
+   "candidate_id": "L3_CS_NW_SPLIT",
+   "family": "lane",
+   "name": "CS vs net-worth disagreement",
+   "question_answered": "Was my lane net worth from farm or from kills/deaths?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "core",
+   "redundancy_group": "lane_path",
+   "why_player_cares": "Reframes a lane: behind in last hits but ahead in gold (or the reverse)."
+  },
+  "L4_LEVEL6_RACE": {
+   "candidate_id": "L4_LEVEL6_RACE",
+   "family": "lane",
+   "name": "Level-6 race vs counterpart",
+   "question_answered": "Who reached level 6 first, and by how much?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "core",
+   "redundancy_group": "lane_xp",
+   "why_player_cares": "Level 6 is a felt power moment; the gap is rarely known."
+  },
+  "L5_COUNTERPART_EXTREME_START": {
+   "candidate_id": "L5_COUNTERPART_EXTREME_START",
+   "family": "lane",
+   "name": "Unusually strong/weak lane counterpart",
+   "question_answered": "Was the player I laned against unusually strong or weak?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": "bucket+role",
+   "role_scope": "all",
+   "redundancy_group": "lane_opp",
+   "why_player_cares": "Contextualises a bad lane: the opponent had an exceptional start."
+  },
+  "L6_OWN_LANE_VS_USUAL": {
+   "candidate_id": "L6_OWN_LANE_VS_USUAL",
+   "family": "lane",
+   "name": "Lane result vs your usual",
+   "question_answered": "Was this lane unusually good or bad for me in this role?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": "bucket+role",
+   "role_scope": "all",
+   "redundancy_group": "lane_path",
+   "why_player_cares": "Personal: 'your worst lane in 30 Mid games'."
+  },
+  "L7_LANE_DEATH_TRADE": {
+   "candidate_id": "L7_LANE_DEATH_TRADE",
+   "family": "lane",
+   "name": "Lopsided lane deaths",
+   "question_answered": "Were there many more deaths on one side of my lane?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "lane_path",
+   "why_player_cares": "Explains a lane gap in felt terms."
+  },
+  "L8_SUPPORT_LANE_PAIR": {
+   "candidate_id": "L8_SUPPORT_LANE_PAIR",
+   "family": "lane",
+   "name": "Support lane pair net worth",
+   "question_answered": "How did my whole 2v2 lane do?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "support",
+   "redundancy_group": "lane_path",
+   "why_player_cares": "Supports' own NW is a poor lane indicator; the pair's is better."
+  },
+  "T1_TURN_WINDOW": {
+   "candidate_id": "T1_TURN_WINDOW",
+   "family": "turning",
+   "name": "Largest relative swing after laning",
+   "question_answered": "When did the game change most?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "turn",
+   "why_player_cares": "Gives the match a single 'this is when it changed' moment, with what fell in it."
+  },
+  "T2_LEAD_FLIP": {
+   "candidate_id": "T2_LEAD_FLIP",
+   "family": "turning",
+   "name": "Sustained team-lead flip after laning",
+   "question_answered": "Did the game change hands, and how big were the leads on each side?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "turn",
+   "why_player_cares": "'You led by 9k, then trailed by 11k' is a memorable story."
+  },
+  "T3_COMEBACK_OR_LOST_LEAD": {
+   "candidate_id": "T3_COMEBACK_OR_LOST_LEAD",
+   "family": "turning",
+   "name": "Won from far behind / lost from far ahead",
+   "question_answered": "Was this a comeback or a lost lead?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "turn_outcome",
+   "why_player_cares": "Outcome-anchored; player remembers the result but not the size."
+  },
+  "T4_STALLED_ADVANTAGE": {
+   "candidate_id": "T4_STALLED_ADVANTAGE",
+   "family": "turning",
+   "name": "Big lead with few structures taken",
+   "question_answered": "Were we ahead for a long time without taking buildings?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "turn_conversion",
+   "why_player_cares": "Names a match pattern players feel but can't quantify."
+  },
+  "T5_CLASH_TO_STRUCTURES": {
+   "candidate_id": "T5_CLASH_TO_STRUCTURES",
+   "family": "turning",
+   "name": "Lopsided clash followed by structures",
+   "question_answered": "What fell right after a lopsided clash?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "turn_conversion",
+   "why_player_cares": "Concrete sequence; 'after the 27:30 clash, 4 buildings fell in 80s'."
+  },
+  "T6_STRUCTURES_WHILE_DEAD": {
+   "candidate_id": "T6_STRUCTURES_WHILE_DEAD",
+   "family": "turning",
+   "name": "Structures lost during one of your deaths",
+   "question_answered": "What did my team lose while I was dead?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "turn_dead",
+   "why_player_cares": "Personal; players rarely realise how much fell during one death timer."
+  },
+  "T7_OBJECTIVE_HEAVY_TURN": {
+   "candidate_id": "T7_OBJECTIVE_HEAVY_TURN",
+   "family": "turning",
+   "name": "Turn window with many structures",
+   "question_answered": "Did the turning window also include buildings falling?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "turn",
+   "why_player_cares": "Combination: swing + buildings."
+  },
+  "T8_DEATH_HEAVY_TURN": {
+   "candidate_id": "T8_DEATH_HEAVY_TURN",
+   "family": "turning",
+   "name": "Turn window with lopsided deaths",
+   "question_answered": "Was the turn a string of deaths on one side?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "turn",
+   "why_player_cares": "Combination: swing + death margin."
+  },
+  "T9_TORMENTOR_IN_TURN": {
+   "candidate_id": "T9_TORMENTOR_IN_TURN",
+   "family": "turning",
+   "name": "Tormentor fell inside the turn window",
+   "question_answered": "Did a Tormentor fall during the turn?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "turn",
+   "why_player_cares": "Adds a boss event to the turn."
+  },
+  "H1_ENEMY_STACKING": {
+   "candidate_id": "H1_ENEMY_STACKING",
+   "family": "hidden",
+   "name": "Enemy stacking edge",
+   "question_answered": "Did the enemy do stacking work we didn't?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": "bucket",
+   "role_scope": "all",
+   "redundancy_group": "hidden_jungle",
+   "why_player_cares": "Invisible jungle investment."
+  },
+  "H2_ENEMY_VISION": {
+   "candidate_id": "H2_ENEMY_VISION",
+   "family": "hidden",
+   "name": "Enemy ward volume / our wards cleared",
+   "question_answered": "Was the enemy's warding or dewarding unusual?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": "bucket",
+   "role_scope": "all",
+   "redundancy_group": "hidden_vision",
+   "why_player_cares": "Vision war volume is invisible in-game."
+  },
+  "H3_ENEMY_SMOKES": {
+   "candidate_id": "H3_ENEMY_SMOKES",
+   "family": "hidden",
+   "name": "Enemy smoke volume",
+   "question_answered": "How often did the enemy move invisibly under Smoke?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": "bucket",
+   "role_scope": "all",
+   "redundancy_group": "hidden_smoke",
+   "why_player_cares": "Smoke is invisible by design."
+  },
+  "H4_SMOKE_TO_KILLS": {
+   "candidate_id": "H4_SMOKE_TO_KILLS",
+   "family": "hidden",
+   "name": "Enemy smokes followed by kills",
+   "question_answered": "Did their smokes turn into kills?",
+   "unit": "team",
+   "playback_required": true,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "hidden_smoke",
+   "why_player_cares": "Connects invisible movement to felt deaths (sequence only)."
+  },
+  "H5_ENEMY_BOSS_CONTROL": {
+   "candidate_id": "H5_ENEMY_BOSS_CONTROL",
+   "family": "hidden",
+   "name": "Enemy took every Roshan/Tormentor",
+   "question_answered": "Did the enemy take bosses we never contested?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": "bucket",
+   "role_scope": "all",
+   "redundancy_group": "hidden_objectives",
+   "why_player_cares": "Roshan kills are often unseen by the other team."
+  },
+  "H6_ENEMY_FAST_CORE": {
+   "candidate_id": "H6_ENEMY_FAST_CORE",
+   "family": "hidden",
+   "name": "Enemy hero reached NW goal unusually early",
+   "question_answered": "Did an enemy get rich unusually fast?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": "bucket",
+   "role_scope": "all",
+   "redundancy_group": "hidden_economy",
+   "why_player_cares": "Explains why the enemy suddenly felt unkillable."
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "candidate_id": "H7_ENEMY_ECONOMY_CONCENTRATION",
+   "family": "hidden",
+   "name": "Enemy economy concentrated in one hero",
+   "question_answered": "Was the enemy's gold funnelled into one hero?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "hidden_economy",
+   "why_player_cares": "Resource allocation is not visible in-game."
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE": {
+   "candidate_id": "H8_ENEMY_JUNGLE_RELIANCE",
+   "family": "hidden",
+   "name": "Enemy richest core farmed mostly jungle",
+   "question_answered": "Did their richest core farm away from lanes?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "hidden_jungle",
+   "why_player_cares": "Where enemy gold came from is invisible."
+  },
+  "H9_SHORT_LIVED_OBSERVERS": {
+   "candidate_id": "H9_SHORT_LIVED_OBSERVERS",
+   "family": "hidden",
+   "name": "Our observers destroyed within 90s",
+   "question_answered": "Were our wards found almost immediately?",
+   "unit": "team",
+   "playback_required": true,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "hidden_vision",
+   "why_player_cares": "Ward-level fate is invisible to the placer."
+  },
+  "H10_HIDDEN_ACTIVITY_STACK": {
+   "candidate_id": "H10_HIDDEN_ACTIVITY_STACK",
+   "family": "hidden",
+   "name": "Several hidden enemy activities in one match",
+   "question_answered": "Was the enemy doing several unseen things?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "hidden_combo",
+   "why_player_cares": "Combination headline."
+  },
+  "I1_UNUSED_ACTIVE_ITEM": {
+   "candidate_id": "I1_UNUSED_ACTIVE_ITEM",
+   "family": "items",
+   "name": "Active item held to the end, never activated",
+   "question_answered": "Did I use the tools I bought?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "item_use",
+   "why_player_cares": "Direct execution fact."
+  },
+  "I2_ACTIVATION_RATE_EXTREME": {
+   "candidate_id": "I2_ACTIVATION_RATE_EXTREME",
+   "family": "items",
+   "name": "Unusually low/high activation rate of a held active item",
+   "question_answered": "Did I use my key active item unusually rarely or often?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "item_use",
+   "why_player_cares": "'Held BKB 27 min, activated once' vs 'activated Glimmer 14 times'."
+  },
+  "I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "candidate_id": "I3_ENEMY_EARLY_SPIKE_ITEM",
+   "family": "items",
+   "name": "Enemy core key item unusually early",
+   "question_answered": "Did an enemy core hit a key item unusually early?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": "bucket",
+   "role_scope": "all",
+   "redundancy_group": "item_enemy_spike",
+   "why_player_cares": "Early BKB/Blink/Radiance changes fights; players feel it but don't know it was unusual."
+  },
+  "I4_LANE_ITEM_RACE": {
+   "candidate_id": "I4_LANE_ITEM_RACE",
+   "family": "items",
+   "name": "Same key item race vs lane counterpart",
+   "question_answered": "Did my lane opponent get the same key item much earlier/later?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "core",
+   "redundancy_group": "item_race",
+   "why_player_cares": "Directly comparable timing between two lane rivals."
+  },
+  "I5_ENEMY_SPIKE_CLUSTER": {
+   "candidate_id": "I5_ENEMY_SPIKE_CLUSTER",
+   "family": "items",
+   "name": "Enemy cores' big items clustered early",
+   "question_answered": "Did several enemy cores complete big items at nearly the same time, unusually early?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "item_enemy_spike",
+   "why_player_cares": "A coordinated power spike window."
+  },
+  "I6_SPIKE_BEFORE_TURN": {
+   "candidate_id": "I6_SPIKE_BEFORE_TURN",
+   "family": "items",
+   "name": "Enemy big item shortly before adverse turn window",
+   "question_answered": "Did an enemy spike land right before the game turned against us?",
+   "unit": "team",
+   "playback_required": false,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "item_enemy_spike",
+   "why_player_cares": "Temporal combination: item + turn."
+  },
+  "I7_FIRST_ACTIVATION_DELAY": {
+   "candidate_id": "I7_FIRST_ACTIVATION_DELAY",
+   "family": "items",
+   "name": "Long delay before first activation",
+   "question_answered": "How long did I hold a key active item before first using it?",
+   "unit": "viewpoint",
+   "playback_required": true,
+   "history_scope": null,
+   "role_scope": "all",
+   "redundancy_group": "item_use",
+   "why_player_cares": "Timing of first use is invisible."
+  },
+  "I8_OWN_ITEM_TIMING_VS_HISTORY": {
+   "candidate_id": "I8_OWN_ITEM_TIMING_VS_HISTORY",
+   "family": "items",
+   "name": "Own key item timing vs your usual",
+   "question_answered": "Was my key item unusually early or late for me?",
+   "unit": "viewpoint",
+   "playback_required": false,
+   "history_scope": "bucket+item",
+   "role_scope": "all",
+   "redundancy_group": "item_own_timing",
+   "why_player_cares": "Personal timing context."
+  }
+ },
+ "history": {
+  "L5_COUNTERPART_EXTREME_START": {
+   "scope": "bucket+role",
+   "evaluated": 788,
+   "avail10_pct": 47.8,
+   "avail20_pct": 23.2,
+   "steady_avail10_pct": 70.6,
+   "record_fire_pct_of_available": 5.8,
+   "record_and_population_pct_of_available": 4.0
+  },
+  "L6_OWN_LANE_VS_USUAL": {
+   "scope": "bucket+role",
+   "evaluated": 788,
+   "avail10_pct": 47.8,
+   "avail20_pct": 23.2,
+   "steady_avail10_pct": 70.6,
+   "record_fire_pct_of_available": 9.0,
+   "record_and_population_pct_of_available": 9.0
+  },
+  "H1_ENEMY_STACKING": {
+   "scope": "bucket",
+   "evaluated": 794,
+   "avail10_pct": 80.7,
+   "avail20_pct": 66.9,
+   "steady_avail10_pct": 93.0,
+   "record_fire_pct_of_available": 3.3,
+   "record_and_population_pct_of_available": 2.7
+  },
+  "H2_ENEMY_VISION": {
+   "scope": "bucket",
+   "evaluated": 794,
+   "avail10_pct": 80.7,
+   "avail20_pct": 66.9,
+   "steady_avail10_pct": 93.0,
+   "record_fire_pct_of_available": 2.5,
+   "record_and_population_pct_of_available": 2.5
+  },
+  "H3_ENEMY_SMOKES": {
+   "scope": "bucket",
+   "evaluated": 794,
+   "avail10_pct": 80.7,
+   "avail20_pct": 66.9,
+   "steady_avail10_pct": 93.0,
+   "record_fire_pct_of_available": 2.0,
+   "record_and_population_pct_of_available": 1.4
+  },
+  "H6_ENEMY_FAST_CORE": {
+   "scope": "bucket",
+   "evaluated": 777,
+   "avail10_pct": 80.3,
+   "avail20_pct": 66.4,
+   "steady_avail10_pct": 92.7,
+   "record_fire_pct_of_available": 2.2,
+   "record_and_population_pct_of_available": 1.9
+  },
+  "I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "scope": "bucket",
+   "evaluated": 566,
+   "avail10_pct": 75.3,
+   "avail20_pct": 57.4,
+   "steady_avail10_pct": 91.7,
+   "record_fire_pct_of_available": 4.0,
+   "record_and_population_pct_of_available": 3.1
+  },
+  "I8_OWN_ITEM_TIMING_VS_HISTORY": {
+   "scope": "bucket+item",
+   "evaluated_item_purchases": 1403,
+   "avail5_pct": 72.1,
+   "avail10_pct": 56.4,
+   "record_early_pct_of_available": 4.8,
+   "record_late_pct_of_available": 5.2
+  }
+ },
+ "primitives_version": "pmi-primitives-1.0.0",
+ "clash_version": "clash-heuristic-1.0.0 (chain<=20s, centroid<=30 units, >=3 deaths)",
+ "checkpoints": {
+  "STANDARD": {
+   "early": 5,
+   "late": 10,
+   "lane_end": 12,
+   "econ": 20,
+   "stack": 20,
+   "swing_w": 8,
+   "nw_goal": 10000
+  },
+  "TURBO": {
+   "early": 4,
+   "late": 8,
+   "lane_end": 9,
+   "econ": 12,
+   "stack": 15,
+   "swing_w": 5,
+   "nw_goal": 15000
+  }
+ },
+ "curated_items": {
+  "key": [
+   "item_black_king_bar",
+   "item_blink",
+   "item_ultimate_scepter",
+   "item_manta",
+   "item_desolator",
+   "item_maelstrom",
+   "item_mjollnir",
+   "item_bfury",
+   "item_radiance",
+   "item_hand_of_midas",
+   "item_force_staff",
+   "item_glimmer_cape",
+   "item_sphere",
+   "item_cyclone",
+   "item_orchid",
+   "item_bloodthorn",
+   "item_diffusal_blade",
+   "item_echo_sabre",
+   "item_armlet",
+   "item_invis_sword",
+   "item_silver_edge",
+   "item_butterfly",
+   "item_greater_crit",
+   "item_satanic",
+   "item_skadi",
+   "item_heart",
+   "item_assault",
+   "item_refresher",
+   "item_sheepstick",
+   "item_shivas_guard",
+   "item_pipe",
+   "item_crimson_guard",
+   "item_lotus_orb",
+   "item_aether_lens",
+   "item_mekansm",
+   "item_guardian_greaves",
+   "item_vladmir",
+   "item_sange_and_yasha",
+   "item_kaya_and_sange",
+   "item_yasha_and_kaya",
+   "item_harpoon",
+   "item_nullifier",
+   "item_abyssal_blade",
+   "item_octarine_core",
+   "item_mask_of_madness",
+   "item_basher",
+   "item_monkey_king_bar",
+   "item_hurricane_pike",
+   "item_wind_waker",
+   "item_gungir",
+   "item_disperser",
+   "item_heavens_halberd",
+   "item_rod_of_atos",
+   "item_blade_mail",
+   "item_spirit_vessel",
+   "item_solar_crest",
+   "item_ethereal_blade",
+   "item_bloodstone",
+   "item_aeon_disk",
+   "item_overwhelming_blink",
+   "item_swift_blink",
+   "item_arcane_blink"
+  ],
+  "active": [
+   "item_black_king_bar",
+   "item_blink",
+   "item_overwhelming_blink",
+   "item_swift_blink",
+   "item_arcane_blink",
+   "item_force_staff",
+   "item_hurricane_pike",
+   "item_glimmer_cape",
+   "item_lotus_orb",
+   "item_satanic",
+   "item_manta",
+   "item_cyclone",
+   "item_wind_waker",
+   "item_shivas_guard",
+   "item_pipe",
+   "item_crimson_guard",
+   "item_solar_crest",
+   "item_mekansm",
+   "item_guardian_greaves",
+   "item_invis_sword",
+   "item_silver_edge",
+   "item_nullifier",
+   "item_orchid",
+   "item_bloodthorn",
+   "item_sheepstick",
+   "item_abyssal_blade",
+   "item_refresher",
+   "item_mjollnir",
+   "item_diffusal_blade",
+   "item_harpoon",
+   "item_heavens_halberd",
+   "item_rod_of_atos",
+   "item_gungir",
+   "item_disperser",
+   "item_ethereal_blade",
+   "item_blade_mail",
+   "item_spirit_vessel",
+   "item_hand_of_midas",
+   "item_mask_of_madness",
+   "item_bloodstone",
+   "item_ghost",
+   "item_medallion_of_courage",
+   "item_veil_of_discord",
+   "item_holy_locket",
+   "item_boots_of_bearing",
+   "item_meteor_hammer",
+   "item_helm_of_the_overlord",
+   "item_helm_of_the_dominator"
+  ],
+  "spike": [
+   "item_black_king_bar",
+   "item_blink",
+   "item_radiance",
+   "item_hand_of_midas",
+   "item_manta",
+   "item_desolator",
+   "item_bfury",
+   "item_maelstrom",
+   "item_ultimate_scepter",
+   "item_orchid"
+  ],
+  "rate": [
+   "item_black_king_bar",
+   "item_blink",
+   "item_glimmer_cape",
+   "item_force_staff",
+   "item_lotus_orb",
+   "item_manta",
+   "item_satanic",
+   "item_pipe",
+   "item_crimson_guard",
+   "item_guardian_greaves",
+   "item_solar_crest",
+   "item_shivas_guard",
+   "item_blade_mail",
+   "item_harpoon",
+   "item_sheepstick",
+   "item_abyssal_blade"
+  ]
+ },
+ "corpus": {
+  "eligible_matches": 886,
+  "viewpoints": 8860,
+  "team_units": 1772,
+  "excluded": {
+   "no_stats": 61,
+   "leaver": 56,
+   "short": 2,
+   "mode": 8
+  },
+  "standard_matches": 484,
+  "turbo_matches": 402,
+  "with_reports": 822,
+  "with_playback": 97,
+  "history_sequences": {
+   "acct0": 96,
+   "acct1": 95,
+   "acct2": 90,
+   "acct3": 86,
+   "acct4": 95,
+   "acct5": 82,
+   "acct6": 94,
+   "acct7": 91,
+   "acct8": 65
+  }
+ }
+}

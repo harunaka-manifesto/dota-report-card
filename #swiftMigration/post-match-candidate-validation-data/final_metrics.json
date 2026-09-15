@@ -1,0 +1,412 @@
+{
+ "I4r": {
+  "STANDARD": {
+   "eligible_pct_of_core": 14.8,
+   "gap_p75": 485,
+   "gap_p90": 672,
+   "tuned_pct_of_eligible": 10.2,
+   "tuned_pct_of_core": 1.5,
+   "items": [
+    [
+     "item_blink",
+     24
+    ],
+    [
+     "item_ultimate_scepter",
+     8
+    ],
+    [
+     "item_manta",
+     4
+    ],
+    [
+     "item_orchid",
+     2
+    ],
+    [
+     "item_blade_mail",
+     2
+    ],
+    [
+     "item_force_staff",
+     2
+    ]
+   ],
+   "examples": [
+    "carry Marci vs Undying: ultimate_scepter you 32:16 vs 16:45",
+    "carry Terrorblade vs Anti-Mage: manta you 16:46 vs 28:32",
+    "offlane Undying vs Marci: ultimate_scepter you 16:45 vs 32:16",
+    "mid Keeper of the Light vs Earthshaker: ultimate_scepter you 31:38 vs 18:40",
+    "offlane Wraith King vs Legion Commander: blink you 23:07 vs 11:43"
+   ]
+  },
+  "TURBO": {
+   "eligible_pct_of_core": 17.3,
+   "gap_p75": 267,
+   "gap_p90": 407,
+   "tuned_pct_of_eligible": 10.1,
+   "tuned_pct_of_core": 1.7,
+   "items": [
+    [
+     "item_blink",
+     20
+    ],
+    [
+     "item_ultimate_scepter",
+     8
+    ],
+    [
+     "item_black_king_bar",
+     4
+    ],
+    [
+     "item_echo_sabre",
+     2
+    ],
+    [
+     "item_yasha_and_kaya",
+     2
+    ],
+    [
+     "item_desolator",
+     2
+    ]
+   ],
+   "examples": [
+    "carry Sven vs Lion: blink you 12:49 vs 3:57",
+    "mid Witch Doctor vs Dark Willow: ultimate_scepter you 19:52 vs 8:22",
+    "offlane Juggernaut vs Anti-Mage: manta you 8:24 vs 15:24",
+    "mid Tinker vs Batrider: blink you 4:44 vs 12:28",
+    "carry Windranger vs Death Prophet: black_king_bar you 11:48 vs 19:00"
+   ]
+  }
+ },
+ "H2r": {
+  "STANDARD": {
+   "obs_rate_p10": 3.32,
+   "obs_rate_p50": 4.23,
+   "obs_rate_p90": 4.69,
+   "cleared_pct": 10.1,
+   "light_pct": 10.2,
+   "cleared_examples": [
+    "34m: they destroyed 9 of your team's 11 observers",
+    "32m: they destroyed 7 of your team's 13 observers",
+    "43m: they destroyed 9 of your team's 19 observers",
+    "36m: they destroyed 9 of your team's 16 observers"
+   ],
+   "light_examples": [
+    "40m: enemy placed 11 observers (2.7/10m); yours 11",
+    "44m: enemy placed 7 observers (1.6/10m); yours 15",
+    "44m: enemy placed 5 observers (1.1/10m); yours 21",
+    "46m: enemy placed 9 observers (2.0/10m); yours 20"
+   ]
+  },
+  "TURBO": {
+   "obs_rate_p10": 2.66,
+   "obs_rate_p50": 4.03,
+   "obs_rate_p90": 4.82,
+   "cleared_pct": 9.2,
+   "light_pct": 10.1,
+   "cleared_examples": [
+    "33m: they destroyed 7 of your team's 13 observers",
+    "25m: they destroyed 7 of your team's 11 observers",
+    "29m: they destroyed 7 of your team's 11 observers",
+    "23m: they destroyed 6 of your team's 9 observers"
+   ],
+   "light_examples": [
+    "22m: enemy placed 5 observers (2.3/10m); yours 7",
+    "18m: enemy placed 2 observers (1.1/10m); yours 8",
+    "22m: enemy placed 5 observers (2.3/10m); yours 9",
+    "17m: enemy placed 4 observers (2.3/10m); yours 6"
+   ]
+  }
+ },
+ "H3r": {
+  "STANDARD": {
+   "rate_p90": 1.6,
+   "pct": 6.0
+  },
+  "TURBO": {
+   "rate_p90": 1.65,
+   "pct": 8.0
+  }
+ },
+ "H1f": {
+  "STANDARD": {
+   "5": 13.5,
+   "6": 10.7,
+   "7": 8.7,
+   "8": 6.3
+  },
+  "TURBO": {
+   "5": 1.5,
+   "6": 0.9,
+   "7": 0.5,
+   "8": 0.1
+  }
+ },
+ "feeding": {
+  "matches": 18,
+  "total": 886,
+  "L1_LANE_LEAD_PATH": {
+   "tuned_all": 10.94,
+   "tuned_no_feed": 10.99
+  },
+  "L3_CS_NW_SPLIT": {
+   "tuned_all": 2.3,
+   "tuned_no_feed": 2.19
+  },
+  "L7_LANE_DEATH_TRADE": {
+   "tuned_all": 17.06,
+   "tuned_no_feed": 16.78
+  }
+ },
+ "pool_coverage": {
+  "lane": {
+   "pct": 24.8,
+   "std": 24.7,
+   "turbo": 24.9,
+   "roles": {
+    "carry": 26.2,
+    "mid": 27.5,
+    "offlane": 25.2,
+    "support": 22.5
+   }
+  },
+  "turning": {
+   "pct": 31.5,
+   "std": 31.6,
+   "turbo": 31.3,
+   "roles": {
+    "carry": 32.5,
+    "mid": 31.9,
+    "offlane": 32.1,
+    "support": 30.4
+   }
+  },
+  "hidden": {
+   "pct": 30.9,
+   "std": 31.9,
+   "turbo": 29.7,
+   "roles": {
+    "carry": 30.9,
+    "mid": 30.9,
+    "offlane": 30.9,
+    "support": 30.9
+   }
+  },
+  "items": {
+   "pct": 17.9,
+   "std": 18.3,
+   "turbo": 17.4,
+   "roles": {
+    "carry": 17.9,
+    "mid": 17.9,
+    "offlane": 17.9,
+    "support": 17.9
+   }
+  },
+  "families_with_any": {
+   "0": 2806,
+   "1": 3353,
+   "2": 1889,
+   "3": 544,
+   "4": 88
+  }
+ },
+ "cofire_pairs": {
+  "L1_LANE_LEAD_PATH & L5_COUNTERPART_EXTREME_START": {
+   "n_a": 956,
+   "n_b": 920,
+   "both": 259,
+   "p_b_given_a": 0.27,
+   "p_a_given_b": 0.28
+  },
+  "L1_LANE_LEAD_PATH & L7_LANE_DEATH_TRADE": {
+   "n_a": 956,
+   "n_b": 1490,
+   "both": 402,
+   "p_b_given_a": 0.42,
+   "p_a_given_b": 0.27
+  },
+  "L1_LANE_LEAD_PATH & L3_CS_NW_SPLIT": {
+   "n_a": 956,
+   "n_b": 122,
+   "both": 8,
+   "p_b_given_a": 0.01,
+   "p_a_given_b": 0.07
+  },
+  "L1_LANE_LEAD_PATH & L4_LEVEL6_RACE": {
+   "n_a": 956,
+   "n_b": 542,
+   "both": 200,
+   "p_b_given_a": 0.21,
+   "p_a_given_b": 0.37
+  },
+  "L1_LANE_LEAD_PATH & L2_LANE_SUSTAINED_FLIP": {
+   "n_a": 956,
+   "n_b": 68,
+   "both": 24,
+   "p_b_given_a": 0.03,
+   "p_a_given_b": 0.35
+  },
+  "L1_LANE_LEAD_PATH & L8_SUPPORT_LANE_PAIR": {
+   "n_a": 956,
+   "n_b": 326,
+   "both": 120,
+   "p_b_given_a": 0.13,
+   "p_a_given_b": 0.37
+  },
+  "L5_COUNTERPART_EXTREME_START & L4_LEVEL6_RACE": {
+   "n_a": 920,
+   "n_b": 542,
+   "both": 70,
+   "p_b_given_a": 0.08,
+   "p_a_given_b": 0.13
+  },
+  "T1_TURN_WINDOW & T2_LEAD_FLIP": {
+   "n_a": 900,
+   "n_b": 940,
+   "both": 60,
+   "p_b_given_a": 0.07,
+   "p_a_given_b": 0.06
+  },
+  "T1_TURN_WINDOW & T3_COMEBACK_OR_LOST_LEAD": {
+   "n_a": 900,
+   "n_b": 900,
+   "both": 40,
+   "p_b_given_a": 0.04,
+   "p_a_given_b": 0.04
+  },
+  "T2_LEAD_FLIP & T3_COMEBACK_OR_LOST_LEAD": {
+   "n_a": 940,
+   "n_b": 900,
+   "both": 480,
+   "p_b_given_a": 0.51,
+   "p_a_given_b": 0.53
+  },
+  "T1_TURN_WINDOW & T5_CLASH_TO_STRUCTURES": {
+   "n_a": 900,
+   "n_b": 3140,
+   "both": 370,
+   "p_b_given_a": 0.41,
+   "p_a_given_b": 0.12
+  },
+  "T1_TURN_WINDOW & T6_STRUCTURES_WHILE_DEAD": {
+   "n_a": 900,
+   "n_b": 917,
+   "both": 46,
+   "p_b_given_a": 0.05,
+   "p_a_given_b": 0.05
+  },
+  "T1_TURN_WINDOW & T7_OBJECTIVE_HEAVY_TURN": {
+   "n_a": 900,
+   "n_b": 890,
+   "both": 890,
+   "p_b_given_a": 0.99,
+   "p_a_given_b": 1.0
+  },
+  "T1_TURN_WINDOW & T8_DEATH_HEAVY_TURN": {
+   "n_a": 900,
+   "n_b": 880,
+   "both": 880,
+   "p_b_given_a": 0.98,
+   "p_a_given_b": 1.0
+  },
+  "T5_CLASH_TO_STRUCTURES & T6_STRUCTURES_WHILE_DEAD": {
+   "n_a": 3140,
+   "n_b": 917,
+   "both": 705,
+   "p_b_given_a": 0.22,
+   "p_a_given_b": 0.77
+  },
+  "H1_ENEMY_STACKING & H8_ENEMY_JUNGLE_RELIANCE": {
+   "n_a": 720,
+   "n_b": 790,
+   "both": 100,
+   "p_b_given_a": 0.14,
+   "p_a_given_b": 0.13
+  },
+  "H6_ENEMY_FAST_CORE & H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "n_a": 800,
+   "n_b": 510,
+   "both": 265,
+   "p_b_given_a": 0.33,
+   "p_a_given_b": 0.52
+  },
+  "H6_ENEMY_FAST_CORE & I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "n_a": 800,
+   "n_b": 1600,
+   "both": 325,
+   "p_b_given_a": 0.41,
+   "p_a_given_b": 0.2
+  },
+  "H3_ENEMY_SMOKES & H4_SMOKE_TO_KILLS": {
+   "n_a": 960,
+   "n_b": 85,
+   "both": 10,
+   "p_b_given_a": 0.01,
+   "p_a_given_b": 0.12
+  },
+  "H2_ENEMY_VISION & H9_SHORT_LIVED_OBSERVERS": {
+   "n_a": 1810,
+   "n_b": 25,
+   "both": 25,
+   "p_b_given_a": 0.01,
+   "p_a_given_b": 1.0
+  },
+  "H5_ENEMY_BOSS_CONTROL & T3_COMEBACK_OR_LOST_LEAD": {
+   "n_a": 730,
+   "n_b": 900,
+   "both": 140,
+   "p_b_given_a": 0.19,
+   "p_a_given_b": 0.16
+  },
+  "I1_UNUSED_ACTIVE_ITEM & I2_ACTIVATION_RATE_EXTREME": {
+   "n_a": 158,
+   "n_b": 327,
+   "both": 9,
+   "p_b_given_a": 0.06,
+   "p_a_given_b": 0.03
+  },
+  "I3_ENEMY_EARLY_SPIKE_ITEM & I5_ENEMY_SPIKE_CLUSTER": {
+   "n_a": 1600,
+   "n_b": 725,
+   "both": 225,
+   "p_b_given_a": 0.14,
+   "p_a_given_b": 0.31
+  },
+  "I6_SPIKE_BEFORE_TURN & T1_TURN_WINDOW": {
+   "n_a": 315,
+   "n_b": 900,
+   "both": 315,
+   "p_b_given_a": 1.0,
+   "p_a_given_b": 0.35
+  },
+  "H6_ENEMY_FAST_CORE & T1_TURN_WINDOW": {
+   "n_a": 800,
+   "n_b": 900,
+   "both": 125,
+   "p_b_given_a": 0.16,
+   "p_a_given_b": 0.14
+  },
+  "L5_COUNTERPART_EXTREME_START & H6_ENEMY_FAST_CORE": {
+   "n_a": 920,
+   "n_b": 800,
+   "both": 163,
+   "p_b_given_a": 0.18,
+   "p_a_given_b": 0.2
+  },
+  "I4_LANE_ITEM_RACE & L1_LANE_LEAD_PATH": {
+   "n_a": 308,
+   "n_b": 956,
+   "both": 26,
+   "p_b_given_a": 0.08,
+   "p_a_given_b": 0.03
+  }
+ },
+ "L1_behind_with_L5_strong": [
+  243,
+  436
+ ]
+}

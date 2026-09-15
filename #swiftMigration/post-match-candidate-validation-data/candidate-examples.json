@@ -1,0 +1,3839 @@
+{
+ "examples": {
+  "L1_LANE_LEAD_PATH": {
+   "extreme": [
+    "TUR mid Kez (W, 32m) :: [DOMINATED] +2328 @4:00 \u2192 +11039 @8:00 vs Drow Ranger (P2); CS 44-18, deaths 1-5",
+    "TUR mid Drow Ranger (L, 32m) :: [CRUSHED] -2328 @4:00 \u2192 -11039 @8:00 vs Kez (P2); CS 18-44, deaths 5-1",
+    "TUR mid Lina (W, 20m) :: [DOMINATED] +2474 @4:00 \u2192 +11917 @8:00 vs Sniper (P2); CS 51-17, deaths 0-4",
+    "TUR mid Sniper (L, 20m) :: [CRUSHED] -2474 @4:00 \u2192 -11917 @8:00 vs Lina (P2); CS 17-51, deaths 4-0"
+   ],
+   "borderline": [
+    "STA support Pangolier (W, 49m) :: [LOST_LEAD] +319 @5:00 \u2192 -415 @10:00 vs Marci (P5); CS 11-13, deaths 1-1",
+    "STA support Marci (L, 49m) :: [RECOVERED] -319 @5:00 \u2192 +415 @10:00 vs Pangolier (P4); CS 13-11, deaths 1-1",
+    "STA support Hoodwink (L, 40m) :: [LOST_LEAD] +288 @5:00 \u2192 -420 @10:00 vs Invoker (P4); CS 7-2, deaths 1-1",
+    "STA support Invoker (W, 40m) :: [RECOVERED] -288 @5:00 \u2192 +420 @10:00 vs Hoodwink (P5); CS 2-7, deaths 1-1"
+   ],
+   "random_standard": [
+    "STA offlane Mars (L, 28m) :: [CRUSHED] -1088 @5:00 \u2192 -2742 @10:00 vs Phantom Assassin (P1); CS 19-54, deaths 2-0",
+    "STA carry Necrophos (W, 26m) :: [DOMINATED] +599 @5:00 \u2192 +2314 @10:00 vs Wraith King (P3); CS 75-25, deaths 0-1",
+    "STA mid Leshrac (L, 39m) :: [CRUSHED] -406 @5:00 \u2192 -1867 @10:00 vs Viper (P2); CS 38-57, deaths 2-0",
+    "STA mid Invoker (L, 22m) :: [CRUSHED] -874 @5:00 \u2192 -2684 @10:00 vs Sniper (P2); CS 20-66, deaths 3-1"
+   ],
+   "random_turbo": [
+    "TUR support Nature's Prophet (W, 21m) :: [DOMINATED] +584 @4:00 \u2192 +3009 @8:00 vs Anti-Mage (P5); CS 21-13, deaths 1-3",
+    "TUR mid Invoker (L, 15m) :: [RECOVERED] -932 @4:00 \u2192 +1553 @8:00 vs Necrophos (P2); CS 39-36, deaths 1-2",
+    "TUR offlane Pudge (L, 16m) :: [CRUSHED] -2074 @4:00 \u2192 -4231 @8:00 vs Phantom Assassin (P1); CS 12-37, deaths 7-1",
+    "TUR support Sniper (W, 25m) :: [DOMINATED] +1803 @4:00 \u2192 +3235 @8:00 vs Snapfire (P5); CS 11-7, deaths 0-3"
+   ],
+   "raw_not_tuned": [
+    "STA support Ogre Magi (L, 32m) :: [MODERATE_BEHIND] -506 @5:00 \u2192 -1018 @10:00 vs Lina (P4); CS 5-16, deaths 0-0",
+    "STA mid Pangolier (L, 40m) :: [DEAD_EVEN] +79 @5:00 \u2192 +162 @10:00 vs Invoker (P2); CS 58-42, deaths 1-1",
+    "TUR offlane Viper (L, 23m) :: [MODERATE_AHEAD] +1382 @4:00 \u2192 +3124 @8:00 vs Lifestealer (P1); CS 28-30, deaths 1-2"
+   ]
+  },
+  "L2_LANE_SUSTAINED_FLIP": {
+   "extreme": [
+    "TUR offlane Nyx Assassin (L, 28m) :: [FLIP_TO_BEHIND] +1755 (min 3\u20136) \u2192 -1733 from min 7 vs Phantom Lancer",
+    "TUR carry Phantom Lancer (W, 28m) :: [FLIP_TO_AHEAD] -1755 (min 3\u20136) \u2192 +1733 from min 7 vs Nyx Assassin",
+    "TUR support Shadow Shaman (W, 24m) :: [FLIP_TO_BEHIND] +600 (min 1\u20133) \u2192 -3039 from min 4 vs Venomancer",
+    "TUR support Venomancer (L, 24m) :: [FLIP_TO_AHEAD] -600 (min 1\u20133) \u2192 +3039 from min 4 vs Shadow Shaman"
+   ],
+   "borderline": [
+    "STA support Nature's Prophet (W, 41m) :: [FLIP_TO_AHEAD] -355 (min 3\u20135) \u2192 +467 from min 10 vs Dazzle",
+    "STA support Dazzle (L, 41m) :: [FLIP_TO_BEHIND] +355 (min 3\u20135) \u2192 -467 from min 10 vs Nature's Prophet",
+    "STA support Hoodwink (L, 40m) :: [FLIP_TO_BEHIND] +337 (min 4\u20136) \u2192 -619 from min 9 vs Invoker",
+    "STA support Invoker (W, 40m) :: [FLIP_TO_AHEAD] -337 (min 4\u20136) \u2192 +619 from min 9 vs Hoodwink"
+   ],
+   "random_standard": [
+    "STA support Rubick (L, 32m) :: [FLIP_TO_BEHIND] +432 (min 7\u20139) \u2192 -740 from min 10 vs Undying",
+    "STA offlane Necrophos (L, 35m) :: [FLIP_TO_AHEAD] -414 (min 2\u20134) \u2192 +1086 from min 6 vs Slark",
+    "STA support Centaur Warrunner (L, 40m) :: [FLIP_TO_AHEAD] -399 (min 1\u20133) \u2192 +896 from min 10 vs Vengeful Spirit",
+    "STA support Vengeful Spirit (W, 40m) :: [FLIP_TO_BEHIND] +399 (min 1\u20133) \u2192 -896 from min 10 vs Centaur Warrunner"
+   ],
+   "random_turbo": [
+    "TUR support Venomancer (L, 24m) :: [FLIP_TO_AHEAD] -600 (min 1\u20133) \u2192 +3039 from min 4 vs Shadow Shaman",
+    "TUR offlane Nyx Assassin (L, 28m) :: [FLIP_TO_BEHIND] +1755 (min 3\u20136) \u2192 -1733 from min 7 vs Phantom Lancer",
+    "TUR carry Phantom Lancer (W, 28m) :: [FLIP_TO_AHEAD] -1755 (min 3\u20136) \u2192 +1733 from min 7 vs Nyx Assassin",
+    "TUR support Sniper (L, 22m) :: [FLIP_TO_BEHIND] +821 (min 2\u20134) \u2192 -1000 from min 6 vs Weaver"
+   ],
+   "raw_not_tuned": [
+    "STA mid Lina (W, 47m) :: [FLIP_TO_BEHIND] +851 (min 5\u20137) \u2192 -674 from min 10 vs Ogre Magi",
+    "TUR offlane Death Prophet (L, 31m) :: [FLIP_TO_AHEAD] -1642 (min 4\u20136) \u2192 +1056 from min 7 vs Anti-Mage",
+    "STA carry Anti-Mage (W, 49m) :: [FLIP_TO_BEHIND] +542 (min 4\u20136) \u2192 -526 from min 10 vs Night Stalker"
+   ]
+  },
+  "L3_CS_NW_SPLIT": {
+   "extreme": [
+    "STA mid Rubick (W, 28m) :: [CS_BEHIND_GOLD_AHEAD] CS -37, NW +656 @10:00 vs Meepo | kill+assist gold 400 vs 0, deaths 0 vs 1",
+    "STA mid Meepo (L, 28m) :: [CS_AHEAD_GOLD_BEHIND] CS +37, NW -656 @10:00 vs Rubick | kill+assist gold 0 vs 400, deaths 1 vs 0",
+    "TUR mid Invoker (W, 22m) :: [CS_BEHIND_GOLD_AHEAD] CS -40, NW +751 @8:00 vs Tinker | kill+assist gold 1290 vs 0, deaths 0 vs 6",
+    "TUR mid Tinker (L, 22m) :: [CS_AHEAD_GOLD_BEHIND] CS +40, NW -751 @8:00 vs Invoker | kill+assist gold 0 vs 1290, deaths 6 vs 0"
+   ],
+   "borderline": [
+    "TUR carry Alchemist (W, 20m) :: [CS_AHEAD_GOLD_BEHIND] CS +11, NW -3993 @8:00 vs Zeus | kill+assist gold 454 vs 1692, deaths 3 vs 1",
+    "TUR offlane Zeus (L, 20m) :: [CS_BEHIND_GOLD_AHEAD] CS -11, NW +3993 @8:00 vs Alchemist | kill+assist gold 1692 vs 454, deaths 1 vs 3",
+    "TUR carry Night Stalker (W, 33m) :: [CS_BEHIND_GOLD_AHEAD] CS -11, NW +743 @8:00 vs Gyrocopter | kill+assist gold 714 vs 492, deaths 1 vs 2",
+    "TUR offlane Gyrocopter (L, 33m) :: [CS_AHEAD_GOLD_BEHIND] CS +11, NW -743 @8:00 vs Night Stalker | kill+assist gold 492 vs 714, deaths 2 vs 1"
+   ],
+   "random_standard": [
+    "STA offlane Axe (L, 47m) :: [CS_BEHIND_GOLD_AHEAD] CS -21, NW +449 @10:00 vs Slark | kill+assist gold 446 vs 316, deaths 1 vs 0",
+    "STA mid Tinker (W, 40m) :: [CS_AHEAD_GOLD_BEHIND] CS +17, NW -433 @10:00 vs Lina | kill+assist gold 0 vs 157, deaths 10 vs 0",
+    "STA mid Tinker (W, 31m) :: [CS_AHEAD_GOLD_BEHIND] CS +32, NW -691 @10:00 vs Ogre Magi | kill+assist gold 0 vs 454, deaths 9 vs 0",
+    "STA carry Phantom Assassin (L, 62m) :: [CS_AHEAD_GOLD_BEHIND] CS +14, NW -423 @10:00 vs Dawnbreaker | kill+assist gold 0 vs 398, deaths 2 vs 0"
+   ],
+   "random_turbo": [
+    "TUR offlane Pudge (L, 18m) :: [CS_BEHIND_GOLD_AHEAD] CS -14, NW +978 @8:00 vs Riki | kill+assist gold 1960 vs 812, deaths 3 vs 1",
+    "TUR mid Necrophos (W, 28m) :: [CS_AHEAD_GOLD_BEHIND] CS +17, NW -4084 @8:00 vs Razor | kill+assist gold 0 vs 2518, deaths 2 vs 0",
+    "TUR offlane Gyrocopter (L, 33m) :: [CS_AHEAD_GOLD_BEHIND] CS +11, NW -743 @8:00 vs Night Stalker | kill+assist gold 492 vs 714, deaths 2 vs 1",
+    "TUR mid Pudge (W, 22m) :: [CS_AHEAD_GOLD_BEHIND] CS +12, NW -2637 @8:00 vs Skywrath Mage | kill+assist gold 204 vs 2550, deaths 3 vs 2"
+   ],
+   "raw_not_tuned": [
+    "STA mid Techies (W, 51m) :: [CS_BEHIND_GOLD_AHEAD] CS -8, NW +218 @10:00 vs Lina | kill+assist gold 575 vs 181, deaths 1 vs 2",
+    "TUR carry Juggernaut (W, 20m) :: [CS_AHEAD_GOLD_BEHIND] CS +5, NW -103 @8:00 vs Underlord | kill+assist gold 346 vs 810, deaths 2 vs 1",
+    "TUR carry Lina (L, 25m) :: [CS_AHEAD_GOLD_BEHIND] CS +7, NW -3962 @8:00 vs Necrophos | kill+assist gold 314 vs 3184, deaths 5 vs 1"
+   ]
+  },
+  "L4_LEVEL6_RACE": {
+   "extreme": [
+    "STA offlane Doom (W, 31m) :: [USER_FIRST] L6 you 8:43 vs Slark 14:18 (\u0394335s; role p90 176s)",
+    "STA carry Slark (L, 31m) :: [OPP_FIRST] L6 you 14:18 vs Doom 8:43 (\u0394335s; role p90 176s)",
+    "STA offlane Legion Commander (L, 49m) :: [OPP_FIRST] L6 you 13:22 vs Shadow Fiend 7:08 (\u0394374s; role p90 176s)",
+    "STA carry Shadow Fiend (W, 49m) :: [USER_FIRST] L6 you 7:08 vs Legion Commander 13:22 (\u0394374s; role p90 176s)"
+   ],
+   "borderline": [
+    "TUR mid Shadow Fiend (W, 18m) :: [USER_FIRST] L6 you 2:21 vs Invoker 3:26 (\u039465s; role p90 65s)",
+    "TUR mid Invoker (L, 18m) :: [OPP_FIRST] L6 you 3:26 vs Shadow Fiend 2:21 (\u039465s; role p90 65s)",
+    "TUR mid Arc Warden (W, 28m) :: [USER_FIRST] L6 you 2:50 vs Slark 3:55 (\u039465s; role p90 65s)",
+    "TUR mid Slark (L, 28m) :: [OPP_FIRST] L6 you 3:55 vs Arc Warden 2:50 (\u039465s; role p90 65s)"
+   ],
+   "random_standard": [
+    "STA mid Kez (W, 29m) :: [USER_FIRST] L6 you 4:56 vs Tinker 7:55 (\u0394179s; role p90 111s)",
+    "STA mid Skywrath Mage (L, 45m) :: [USER_FIRST] L6 you 5:18 vs Zeus 7:09 (\u0394111s; role p90 111s)",
+    "STA mid Clinkz (W, 47m) :: [OPP_FIRST] L6 you 6:19 vs Sniper 4:27 (\u0394112s; role p90 111s)",
+    "STA offlane Ancient Apparition (L, 52m) :: [OPP_FIRST] L6 you 11:48 vs Riki 7:42 (\u0394246s; role p90 176s)"
+   ],
+   "random_turbo": [
+    "TUR offlane Leshrac (L, 18m) :: [OPP_FIRST] L6 you 5:32 vs Drow Ranger 3:37 (\u0394115s; role p90 115s)",
+    "TUR carry Phantom Assassin (L, 19m) :: [OPP_FIRST] L6 you 6:12 vs Sven 4:17 (\u0394115s; role p90 115s)",
+    "TUR offlane Mirana (L, 26m) :: [OPP_FIRST] L6 you 5:53 vs Razor 3:19 (\u0394154s; role p90 115s)",
+    "TUR mid Slark (W, 33m) :: [OPP_FIRST] L6 you 4:36 vs Shadow Fiend 2:33 (\u0394123s; role p90 65s)"
+   ],
+   "raw_not_tuned": [
+    "STA offlane Centaur Warrunner (W, 60m) :: [USER_FIRST] L6 you 8:42 vs Faceless Void 10:23 (\u0394101s; role p90 176s)",
+    "TUR mid Earthshaker (W, 48m) :: [OPP_FIRST] L6 you 3:25 vs Shadow Fiend 2:26 (\u039459s; role p90 65s)",
+    "TUR offlane Pudge (W, 38m) :: [USER_FIRST] L6 you 3:06 vs Witch Doctor 4:50 (\u0394104s; role p90 115s)"
+   ]
+  },
+  "L5_COUNTERPART_EXTREME_START": {
+   "extreme": [
+    "TUR support Ancient Apparition (W, 28m) :: [STRONG] Doom (P4) opp_nw_late=8475 @8:00 (bucket p90 for P4: 5820)",
+    "TUR support Lion (W, 19m) :: [STRONG] Earthshaker (P5) opp_nw_late=8582 @8:00 (bucket p90 for P5: 5508)",
+    "TUR support Earth Spirit (W, 21m) :: [STRONG] Spirit Breaker (P5) opp_nw_late=8868 @8:00 (bucket p90 for P5: 5508)",
+    "TUR support Venomancer (L, 34m) :: [STRONG] Zeus (P4) opp_nw_late=9110 @8:00 (bucket p90 for P4: 5820)"
+   ],
+   "borderline": [
+    "TUR carry Wraith King (W, 64m) :: [STRONG] Mirana (P3) opp_cs_late=39 @8:00 (bucket p90 for P3: 39)",
+    "TUR carry Troll Warlord (W, 38m) :: [STRONG] Underlord (P3) opp_cs_late=39 @8:00 (bucket p90 for P3: 39)",
+    "TUR carry Warlock (L, 27m) :: [STRONG] Centaur Warrunner (P3) opp_cs_late=39 @8:00 (bucket p90 for P3: 39)",
+    "TUR carry Weaver (L, 21m) :: [STRONG] Pudge (P3) opp_cs_late=39 @8:00 (bucket p90 for P3: 39)"
+   ],
+   "random_standard": [
+    "STA mid Necrophos (L, 41m) :: [STRONG] Keeper of the Light (P2) opp_cs_late=66 @10:00 (bucket p90 for P2: 63)",
+    "STA support Grimstroke (L, 39m) :: [STRONG] Witch Doctor (P5) opp_nw_late=3487 @10:00 (bucket p90 for P5: 2667)",
+    "STA support Necrophos (L, 23m) :: [STRONG] Crystal Maiden (P5) opp_nw_late=2960 @10:00 (bucket p90 for P5: 2667)",
+    "STA carry Spectre (W, 31m) :: [STRONG] Underlord (P3) opp_cs_late=55 @10:00 (bucket p90 for P3: 53)"
+   ],
+   "random_turbo": [
+    "TUR support Pudge (W, 22m) :: [STRONG] Phantom Lancer (P4) opp_nw_late=6230 @8:00 (bucket p90 for P4: 5820)",
+    "TUR support Rubick (L, 30m) :: [STRONG] Drow Ranger (P5) opp_nw_late=6276 @8:00 (bucket p90 for P5: 5508)",
+    "TUR offlane Pudge (L, 25m) :: [STRONG] Naga Siren (P1) opp_cs_late=51 @8:00 (bucket p90 for P1: 48)",
+    "TUR mid Abaddon (L, 27m) :: [STRONG] Lina (P2) opp_cs_late=48 @8:00 (bucket p90 for P2: 48)"
+   ],
+   "raw_not_tuned": [
+    "TUR support Dazzle (W, 23m) :: [WEAK] Crystal Maiden (P4) opp_nw_late=2889 @8:00 (bucket p90 for P4: 5820)",
+    "STA support Pudge (W, 60m) :: [WEAK] Ogre Magi (P4) opp_nw_late=1485 @10:00 (bucket p90 for P4: 2762)",
+    "TUR offlane Huskar (L, 20m) :: [WEAK] Zeus (P1) opp_cs_late=12 @8:00 (bucket p90 for P1: 48)"
+   ]
+  },
+  "L6_OWN_LANE_VS_USUAL": {},
+  "L7_LANE_DEATH_TRADE": {
+   "extreme": [
+    "STA mid Lina (W, 46m) :: [OPP_DIED_MORE] deaths before 10:00 you 0 vs Tinker 18",
+    "STA mid Tinker (L, 46m) :: [USER_DIED_MORE] deaths before 10:00 you 18 vs Lina 0",
+    "TUR support Tinker (L, 19m) :: [USER_DIED_MORE] deaths before 8:00 you 25 vs Pudge 1",
+    "TUR support Pudge (W, 19m) :: [OPP_DIED_MORE] deaths before 8:00 you 1 vs Tinker 25"
+   ],
+   "borderline": [
+    "STA mid Arc Warden (L, 59m) :: [OPP_DIED_MORE] deaths before 10:00 you 0 vs Storm Spirit 3",
+    "STA carry Slark (L, 59m) :: [USER_DIED_MORE] deaths before 10:00 you 3 vs Razor 0",
+    "STA mid Storm Spirit (W, 59m) :: [USER_DIED_MORE] deaths before 10:00 you 3 vs Arc Warden 0",
+    "STA offlane Razor (W, 59m) :: [OPP_DIED_MORE] deaths before 10:00 you 0 vs Slark 3"
+   ],
+   "random_standard": [
+    "STA carry Juggernaut (W, 62m) :: [OPP_DIED_MORE] deaths before 10:00 you 0 vs Legion Commander 3",
+    "STA support Nature's Prophet (L, 47m) :: [USER_DIED_MORE] deaths before 10:00 you 5 vs Spirit Breaker 2",
+    "STA mid Techies (W, 28m) :: [OPP_DIED_MORE] deaths before 10:00 you 0 vs Sniper 5",
+    "STA mid Tinker (L, 46m) :: [USER_DIED_MORE] deaths before 10:00 you 18 vs Lina 0"
+   ],
+   "random_turbo": [
+    "TUR support Rubick (L, 26m) :: [OPP_DIED_MORE] deaths before 8:00 you 1 vs Phantom Assassin 4",
+    "TUR support Phantom Lancer (W, 33m) :: [OPP_DIED_MORE] deaths before 8:00 you 0 vs Vengeful Spirit 5",
+    "TUR offlane Spirit Breaker (L, 28m) :: [USER_DIED_MORE] deaths before 8:00 you 5 vs Bloodseeker 0",
+    "TUR support Bounty Hunter (W, 28m) :: [OPP_DIED_MORE] deaths before 8:00 you 1 vs Lion 4"
+   ],
+   "raw_not_tuned": [
+    "STA carry Vengeful Spirit (W, 33m) :: [USER_DIED_MORE] deaths before 10:00 you 2 vs Centaur Warrunner 0",
+    "TUR support Skywrath Mage (L, 33m) :: [OPP_DIED_MORE] deaths before 8:00 you 1 vs Techies 3",
+    "STA support Lina (L, 36m) :: [OPP_DIED_MORE] deaths before 10:00 you 2 vs Snapfire 4"
+   ]
+  },
+  "L8_SUPPORT_LANE_PAIR": {
+   "extreme": [
+    "TUR support Venomancer (L, 36m) :: [PAIR] your lane pair +8450 NW @8:00 vs their pair",
+    "TUR support Crystal Maiden (W, 36m) :: [PAIR] your lane pair -8450 NW @8:00 vs their pair",
+    "TUR support Snapfire (L, 30m) :: [PAIR] your lane pair +10142 NW @8:00 vs their pair",
+    "TUR support Pangolier (W, 30m) :: [PAIR] your lane pair -10142 NW @8:00 vs their pair"
+   ],
+   "borderline": [
+    "STA support Winter Wyvern (W, 69m) :: [PAIR] your lane pair +2303 NW @10:00 vs their pair",
+    "STA support Shadow Shaman (L, 69m) :: [PAIR] your lane pair -2303 NW @10:00 vs their pair",
+    "STA support Undying (L, 43m) :: [PAIR] your lane pair +2314 NW @10:00 vs their pair",
+    "STA support Shadow Shaman (W, 43m) :: [PAIR] your lane pair -2314 NW @10:00 vs their pair"
+   ],
+   "random_standard": [
+    "STA support Pudge (L, 40m) :: [PAIR] your lane pair +2320 NW @10:00 vs their pair",
+    "STA support Axe (L, 46m) :: [PAIR] your lane pair -2428 NW @10:00 vs their pair",
+    "STA support Disruptor (W, 37m) :: [PAIR] your lane pair +2611 NW @10:00 vs their pair",
+    "STA support Winter Wyvern (W, 69m) :: [PAIR] your lane pair +2303 NW @10:00 vs their pair"
+   ],
+   "random_turbo": [
+    "TUR support Silencer (L, 16m) :: [PAIR] your lane pair -6432 NW @8:00 vs their pair",
+    "TUR support Winter Wyvern (L, 18m) :: [PAIR] your lane pair -6563 NW @8:00 vs their pair",
+    "TUR support Pudge (L, 19m) :: [PAIR] your lane pair -7623 NW @8:00 vs their pair",
+    "TUR support Shadow Shaman (W, 35m) :: [PAIR] your lane pair -4963 NW @8:00 vs their pair"
+   ],
+   "raw_not_tuned": [
+    "TUR support Tiny (W, 39m) :: [PAIR] your lane pair +4217 NW @8:00 vs their pair",
+    "STA support Snapfire (L, 53m) :: [PAIR] your lane pair +1433 NW @10:00 vs their pair",
+    "STA support Rubick (L, 89m) :: [PAIR] your lane pair +1415 NW @10:00 vs their pair"
+   ]
+  },
+  "T1_TURN_WINDOW": {
+   "extreme": [
+    "TUR support Grimstroke (L, 15m) :: [DEFICIT_DEEPENED] 10:00\u201315:00 lead -21432 \u2192 -60230 (\u039438798, 33% of all NW) | structures fell (losing side) 11, death margin 16",
+    "TUR offlane Treant Protector (W, 15m) :: [LEAD_EXTENDED] 10:00\u201315:00 lead +21432 \u2192 +60230 (\u039438798, 33% of all NW) | structures fell (losing side) 11, death margin 16",
+    "STA support Invoker (L, 41m) :: [FLIPPED_AGAINST] 28:00\u201336:00 lead +25895 \u2192 -48138 (\u039474033, 62% of all NW) | structures fell (losing side) 5, death margin 3",
+    "STA mid Queen of Pain (W, 41m) :: [FLIPPED_FOR] 28:00\u201336:00 lead -25895 \u2192 +48138 (\u039474033, 62% of all NW) | structures fell (losing side) 5, death margin 3"
+   ],
+   "borderline": [
+    "STA mid Tusk (W, 27m) :: [LEAD_EXTENDED] 14:00\u201322:00 lead +8454 \u2192 +22434 (\u039413980, 17% of all NW) | structures fell (losing side) 7, death margin 12",
+    "STA support Largo (L, 27m) :: [DEFICIT_DEEPENED] 14:00\u201322:00 lead -8454 \u2192 -22434 (\u039413980, 17% of all NW) | structures fell (losing side) 7, death margin 12",
+    "STA offlane Tidehunter (L, 32m) :: [DEFICIT_DEEPENED] 24:00\u201332:00 lead -13151 \u2192 -34894 (\u039421743, 17% of all NW) | structures fell (losing side) 10, death margin 14",
+    "STA offlane Necrophos (W, 32m) :: [LEAD_EXTENDED] 24:00\u201332:00 lead +13151 \u2192 +34894 (\u039421743, 17% of all NW) | structures fell (losing side) 10, death margin 14"
+   ],
+   "random_standard": [
+    "STA carry Phantom Lancer (W, 26m) :: [LEAD_EXTENDED] 18:00\u201326:00 lead +9891 \u2192 +29338 (\u039419447, 19% of all NW) | structures fell (losing side) 14, death margin 9",
+    "STA offlane Necrophos (L, 30m) :: [DEFICIT_DEEPENED] 22:00\u201330:00 lead -13688 \u2192 -35594 (\u039421906, 19% of all NW) | structures fell (losing side) 13, death margin 12",
+    "STA carry Chaos Knight (W, 29m) :: [SWUNG_FOR] 21:00\u201329:00 lead -198 \u2192 +24465 (\u039424663, 19% of all NW) | structures fell (losing side) 14, death margin 14",
+    "STA offlane Tidehunter (L, 31m) :: [DEFICIT_DEEPENED] 22:00\u201330:00 lead -6122 \u2192 -29183 (\u039423061, 18% of all NW) | structures fell (losing side) 11, death margin 13"
+   ],
+   "random_turbo": [
+    "TUR support Shadow Shaman (L, 20m) :: [DEFICIT_DEEPENED] 15:00\u201320:00 lead -14566 \u2192 -50059 (\u039435493, 20% of all NW) | structures fell (losing side) 13, death margin 10",
+    "TUR offlane Mars (W, 25m) :: [FLIPPED_FOR] 19:00\u201324:00 lead -15375 \u2192 +36906 (\u039452281, 20% of all NW) | structures fell (losing side) 11, death margin 11",
+    "TUR support Magnus (W, 18m) :: [LEAD_EXTENDED] 13:00\u201318:00 lead +2727 \u2192 +35386 (\u039432659, 19% of all NW) | structures fell (losing side) 8, death margin 14",
+    "TUR offlane Mars (L, 22m) :: [DEFICIT_DEEPENED] 17:00\u201322:00 lead -9657 \u2192 -46470 (\u039436813, 19% of all NW) | structures fell (losing side) 10, death margin 12"
+   ],
+   "raw_not_tuned": [
+    "STA support Clockwerk (W, 39m) :: [LEAD_EXTENDED] 30:00\u201338:00 lead +3073 \u2192 +28056 (\u039424983, 15% of all NW) | structures fell (losing side) 13, death margin 13",
+    "STA offlane Weaver (L, 28m) :: [DEFICIT_DEEPENED] 14:00\u201322:00 lead -6142 \u2192 -17953 (\u039411811, 16% of all NW) | structures fell (losing side) 4, death margin 14",
+    "TUR carry Spectre (L, 34m) :: [FLIPPED_AGAINST] 28:00\u201333:00 lead +14466 \u2192 -37882 (\u039452348, 16% of all NW) | structures fell (losing side) 5, death margin 7"
+   ]
+  },
+  "T2_LEAD_FLIP": {
+   "extreme": [
+    "STA support Invoker (L, 41m) :: [GAME_FLIPPED_AGAINST] peak +31006 (4:00\u201329:00) \u2192 -48138 (30:00\u201341:00); flips in match 1",
+    "STA mid Queen of Pain (W, 41m) :: [GAME_FLIPPED_FOR] peak -31006 (4:00\u201329:00) \u2192 +48138 (30:00\u201341:00); flips in match 1",
+    "TUR mid Windranger (W, 64m) :: [GAME_FLIPPED_AGAINST] peak +45009 (56:00\u201358:00) \u2192 -73708 (59:00\u201364:00); flips in match 4",
+    "TUR carry Necrophos (L, 64m) :: [GAME_FLIPPED_FOR] peak -45009 (56:00\u201358:00) \u2192 +73708 (59:00\u201364:00); flips in match 4"
+   ],
+   "borderline": [
+    "STA support Zeus (W, 45m) :: [GAME_FLIPPED_FOR] peak -7932 (26:00\u201334:00) \u2192 +15690 (36:00\u201345:00); flips in match 2",
+    "STA support Hoodwink (L, 45m) :: [GAME_FLIPPED_AGAINST] peak +7932 (26:00\u201334:00) \u2192 -15690 (36:00\u201345:00); flips in match 2",
+    "STA support Rubick (L, 89m) :: [GAME_FLIPPED_AGAINST] peak +10029 (25:00\u201344:00) \u2192 -8061 (50:00\u201360:00); flips in match 2",
+    "STA mid Broodmother (W, 89m) :: [GAME_FLIPPED_AGAINST] peak +8061 (50:00\u201360:00) \u2192 -13326 (62:00\u201371:00); flips in match 2"
+   ],
+   "random_standard": [
+    "STA support Lion (W, 44m) :: [GAME_FLIPPED_FOR] peak -14469 (12:00\u201340:00) \u2192 +16992 (41:00\u201344:00); flips in match 1",
+    "STA support Vengeful Spirit (L, 47m) :: [GAME_FLIPPED_AGAINST] peak +10228 (4:00\u201331:00) \u2192 -20692 (33:00\u201347:00); flips in match 1",
+    "STA carry Spectre (W, 49m) :: [GAME_FLIPPED_FOR] peak -10007 (18:00\u201332:00) \u2192 +31035 (44:00\u201349:00); flips in match 1",
+    "STA support Jakiro (L, 59m) :: [GAME_FLIPPED_AGAINST] peak +12082 (40:00\u201350:00) \u2192 -20436 (52:00\u201359:00); flips in match 1"
+   ],
+   "random_turbo": [
+    "TUR support Earthshaker (W, 29m) :: [GAME_FLIPPED_FOR] peak -16143 (6:00\u201320:00) \u2192 +51284 (23:00\u201329:00); flips in match 1",
+    "TUR carry Naga Siren (W, 32m) :: [GAME_FLIPPED_FOR] peak -17133 (13:00\u201323:00) \u2192 +32154 (28:00\u201332:00); flips in match 1",
+    "TUR mid Nature's Prophet (W, 46m) :: [GAME_FLIPPED_FOR] peak -27508 (14:00\u201341:00) \u2192 +46580 (42:00\u201346:00); flips in match 1",
+    "TUR mid Vengeful Spirit (W, 40m) :: [GAME_FLIPPED_FOR] peak -15165 (18:00\u201326:00) \u2192 +40410 (28:00\u201340:00); flips in match 1"
+   ],
+   "raw_not_tuned": [
+    "TUR offlane Vengeful Spirit (L, 33m) :: [GAME_FLIPPED_AGAINST] peak +2384 (10:00\u201312:00) \u2192 -11990 (13:00\u201321:00); flips in match 1",
+    "STA mid Earthshaker (W, 46m) :: [GAME_FLIPPED_FOR] peak -3856 (22:00\u201324:00) \u2192 +22941 (30:00\u201346:00); flips in match 2",
+    "STA offlane Sand King (W, 75m) :: [GAME_FLIPPED_FOR] peak -26559 (7:00\u201351:00) \u2192 +6452 (53:00\u201355:00); flips in match 1"
+   ]
+  },
+  "T3_COMEBACK_OR_LOST_LEAD": {
+   "extreme": [
+    "TUR mid Windranger (W, 64m) :: [COMEBACK_WIN] trailed by 73708 at worst/best",
+    "TUR carry Necrophos (L, 64m) :: [LOST_FROM_AHEAD] led by 73708 at worst/best",
+    "TUR support Pudge (W, 40m) :: [COMEBACK_WIN] trailed by 83220 at worst/best",
+    "TUR support Spirit Breaker (L, 40m) :: [LOST_FROM_AHEAD] led by 83220 at worst/best"
+   ],
+   "borderline": [
+    "STA offlane Timbersaw (L, 50m) :: [LOST_FROM_AHEAD] led by 12263 at worst/best",
+    "STA support Dark Seer (W, 50m) :: [COMEBACK_WIN] trailed by 12263 at worst/best",
+    "STA carry Luna (W, 44m) :: [COMEBACK_WIN] trailed by 13095 at worst/best",
+    "STA support Tinker (L, 44m) :: [LOST_FROM_AHEAD] led by 13095 at worst/best"
+   ],
+   "random_standard": [
+    "STA carry Faceless Void (L, 46m) :: [LOST_FROM_AHEAD] led by 30990 at worst/best",
+    "STA support Rubick (L, 53m) :: [LOST_FROM_AHEAD] led by 18107 at worst/best",
+    "STA support Rubick (W, 86m) :: [COMEBACK_WIN] trailed by 15385 at worst/best",
+    "STA support Omniknight (L, 47m) :: [LOST_FROM_AHEAD] led by 17035 at worst/best"
+   ],
+   "random_turbo": [
+    "TUR support Windranger (L, 42m) :: [LOST_FROM_AHEAD] led by 33458 at worst/best",
+    "TUR support Rubick (L, 32m) :: [LOST_FROM_AHEAD] led by 22803 at worst/best",
+    "TUR support Drow Ranger (L, 31m) :: [LOST_FROM_AHEAD] led by 21842 at worst/best",
+    "TUR support Silencer (L, 27m) :: [LOST_FROM_AHEAD] led by 20146 at worst/best"
+   ],
+   "raw_not_tuned": [
+    "TUR support Lion (W, 29m) :: [COMEBACK_WIN] trailed by 11328 at worst/best",
+    "STA mid Invoker (W, 42m) :: [COMEBACK_WIN] trailed by 9701 at worst/best",
+    "STA mid Shadow Fiend (W, 61m) :: [COMEBACK_WIN] trailed by 6222 at worst/best"
+   ]
+  },
+  "T4_STALLED_ADVANTAGE": {
+   "extreme": [
+    "STA support Windranger (L, 41m) :: [STALLED_ADVANTAGE] lead \u22658271 for 15 min (18:00\u201332:00, peak +13634); enemy structures taken 2",
+    "STA mid Lion (W, 59m) :: [STALLED_ADVANTAGE] lead \u22658271 for 18 min (40:00\u201357:00, peak +14222); enemy structures taken 0",
+    "STA support Marci (W, 59m) :: [STALLED_ADVANTAGE] lead \u22658271 for 18 min (29:00\u201346:00, peak +15421); enemy structures taken 2",
+    "STA mid Shadow Fiend (W, 73m) :: [STALLED_ADVANTAGE] lead \u22658271 for 20 min (54:00\u201373:00, peak +44388); enemy structures taken 2"
+   ],
+   "borderline": [
+    "TUR carry Necrophos (L, 64m) :: [STALLED_ADVANTAGE] lead \u226511432 for 6 min (59:00\u201364:00, peak +73708); enemy structures taken 2",
+    "TUR support Kez (W, 26m) :: [STALLED_ADVANTAGE] lead \u226511432 for 6 min (16:00\u201321:00, peak +17130); enemy structures taken 1",
+    "TUR mid Storm Spirit (L, 35m) :: [STALLED_ADVANTAGE] lead \u226511432 for 6 min (28:00\u201333:00, peak +14952); enemy structures taken 0",
+    "TUR carry Alchemist (L, 32m) :: [STALLED_ADVANTAGE] lead \u226511432 for 6 min (17:00\u201322:00, peak +14208); enemy structures taken 2"
+   ],
+   "random_standard": [
+    "STA mid Snapfire (W, 46m) :: [STALLED_ADVANTAGE] lead \u22658271 for 10 min (21:00\u201330:00, peak +12128); enemy structures taken 0",
+    "STA support Shadow Demon (L, 72m) :: [STALLED_ADVANTAGE] lead \u22658271 for 15 min (53:00\u201367:00, peak +23645); enemy structures taken 2",
+    "STA support Marci (W, 59m) :: [STALLED_ADVANTAGE] lead \u22658271 for 18 min (29:00\u201346:00, peak +15421); enemy structures taken 2",
+    "STA support Earthshaker (L, 44m) :: [STALLED_ADVANTAGE] lead \u22658271 for 10 min (22:00\u201331:00, peak +15529); enemy structures taken 1"
+   ],
+   "random_turbo": [
+    "TUR carry Luna (W, 34m) :: [STALLED_ADVANTAGE] lead \u226511432 for 10 min (11:00\u201320:00, peak +25463); enemy structures taken 2",
+    "TUR support Windranger (L, 42m) :: [STALLED_ADVANTAGE] lead \u226511432 for 7 min (15:00\u201321:00, peak +18530); enemy structures taken 1",
+    "TUR mid Storm Spirit (L, 35m) :: [STALLED_ADVANTAGE] lead \u226511432 for 6 min (28:00\u201333:00, peak +14952); enemy structures taken 0",
+    "TUR carry Necrophos (L, 64m) :: [STALLED_ADVANTAGE] lead \u226511432 for 6 min (59:00\u201364:00, peak +73708); enemy structures taken 2"
+   ]
+  },
+  "T5_CLASH_TO_STRUCTURES": {
+   "extreme": [
+    "TUR offlane Razor (L, 26m) :: [WE_LOST_STRUCTURES] clash 18:33\u201318:48 deaths R4/D0 \u2192 9 structures within 42s",
+    "TUR carry Anti-Mage (W, 26m) :: [WE_TOOK_STRUCTURES] clash 18:33\u201318:48 deaths R4/D0 \u2192 9 structures within 42s",
+    "TUR support Nyx Assassin (L, 27m) :: [WE_LOST_STRUCTURES] clash 22:32\u201323:07 deaths R4/D1 \u2192 11 structures within 82s",
+    "TUR support Ancient Apparition (W, 27m) :: [WE_TOOK_STRUCTURES] clash 22:32\u201323:07 deaths R4/D1 \u2192 11 structures within 82s"
+   ],
+   "borderline": [
+    "STA offlane Slardar (L, 22m) :: [WE_LOST_STRUCTURES] clash 18:09\u201318:30 deaths R4/D0 \u2192 4 structures within 65s",
+    "STA support Vengeful Spirit (W, 22m) :: [WE_TOOK_STRUCTURES] clash 18:09\u201318:30 deaths R4/D0 \u2192 4 structures within 65s",
+    "STA support Lina (W, 34m) :: [WE_TOOK_STRUCTURES] clash 30:20\u201330:42 deaths R0/D4 \u2192 4 structures within 77s",
+    "STA support Dazzle (L, 34m) :: [WE_LOST_STRUCTURES] clash 30:20\u201330:42 deaths R0/D4 \u2192 4 structures within 77s"
+   ],
+   "random_standard": [
+    "STA offlane Viper (L, 53m) :: [WE_LOST_STRUCTURES] clash 48:50\u201348:54 deaths R3/D0 \u2192 8 structures within 87s",
+    "STA support Keeper of the Light (W, 32m) :: [WE_TOOK_STRUCTURES] clash 29:05\u201329:26 deaths R1/D4 \u2192 5 structures within 85s",
+    "STA carry Bloodseeker (W, 33m) :: [WE_TOOK_STRUCTURES] clash 28:10\u201328:40 deaths R2/D4 \u2192 4 structures within 73s",
+    "STA offlane Earthshaker (W, 95m) :: [WE_TOOK_STRUCTURES] clash 37:43\u201338:10 deaths R1/D3 \u2192 5 structures within 70s"
+   ],
+   "random_turbo": [
+    "TUR support Puck (L, 33m) :: [WE_LOST_STRUCTURES] clash 21:54\u201322:21 deaths R5/D1 \u2192 7 structures within 62s",
+    "TUR support Necrophos (L, 21m) :: [WE_LOST_STRUCTURES] clash 15:40\u201316:17 deaths R1/D4 \u2192 5 structures within 89s",
+    "TUR carry Juggernaut (W, 36m) :: [WE_TOOK_STRUCTURES] clash 27:29\u201327:55 deaths R4/D1 \u2192 6 structures within 77s",
+    "TUR offlane Mars (L, 22m) :: [WE_LOST_STRUCTURES] clash 17:00\u201317:24 deaths R0/D5 \u2192 4 structures within 87s"
+   ],
+   "raw_not_tuned": [
+    "STA mid Shadow Fiend (W, 25m) :: [WE_TOOK_STRUCTURES] clash 20:47\u201321:03 deaths R4/D1 \u2192 3 structures within 43s",
+    "STA support Enigma (W, 62m) :: [WE_LOST_STRUCTURES] clash 44:11\u201344:18 deaths R3/D0 \u2192 3 structures within 37s",
+    "STA offlane Lina (L, 42m) :: [WE_LOST_STRUCTURES] clash 36:17\u201336:38 deaths R1/D4 \u2192 3 structures within 24s"
+   ]
+  },
+  "T6_STRUCTURES_WHILE_DEAD": {
+   "extreme": [
+    "TUR support Disruptor (L, 26m) :: [STRUCTURES_WHILE_DEAD] died 18:48, dead 67s, 9 towers/barracks lost meanwhile",
+    "TUR mid Primal Beast (L, 27m) :: [STRUCTURES_WHILE_DEAD] died 22:50, dead 100s, 9 towers/barracks lost meanwhile",
+    "TUR support Disruptor (L, 27m) :: [STRUCTURES_WHILE_DEAD] died 23:07, dead 89s, 9 towers/barracks lost meanwhile",
+    "STA mid Silencer (L, 37m) :: [STRUCTURES_WHILE_DEAD] died 33:20, dead 71s, 10 towers/barracks lost meanwhile"
+   ],
+   "borderline": [
+    "STA support Dark Willow (W, 57m) :: [STRUCTURES_WHILE_DEAD] died 45:05, dead 85s, 4 towers/barracks lost meanwhile",
+    "STA carry Juggernaut (W, 57m) :: [STRUCTURES_WHILE_DEAD] died 44:33, dead 100s, 4 towers/barracks lost meanwhile",
+    "STA mid Storm Spirit (W, 59m) :: [STRUCTURES_WHILE_DEAD] died 41:52, dead 95s, 4 towers/barracks lost meanwhile",
+    "STA support Spirit Breaker (W, 59m) :: [STRUCTURES_WHILE_DEAD] died 42:09, dead 80s, 4 towers/barracks lost meanwhile"
+   ],
+   "random_standard": [
+    "STA offlane Necrophos (L, 49m) :: [STRUCTURES_WHILE_DEAD] died 43:48, dead 100s, 4 towers/barracks lost meanwhile",
+    "STA carry Lifestealer (L, 58m) :: [STRUCTURES_WHILE_DEAD] died 53:26, dead 125s, 5 towers/barracks lost meanwhile",
+    "STA carry Juggernaut (L, 64m) :: [STRUCTURES_WHILE_DEAD] died 49:52, dead 100s, 5 towers/barracks lost meanwhile",
+    "STA carry Wraith King (W, 61m) :: [STRUCTURES_WHILE_DEAD] died 53:10, dead 95s, 5 towers/barracks lost meanwhile"
+   ],
+   "random_turbo": [
+    "TUR offlane Earthshaker (L, 31m) :: [STRUCTURES_WHILE_DEAD] died 26:48, dead 75s, 6 towers/barracks lost meanwhile",
+    "TUR mid Ogre Magi (L, 23m) :: [STRUCTURES_WHILE_DEAD] died 18:59, dead 64s, 4 towers/barracks lost meanwhile",
+    "TUR support Lich (L, 28m) :: [STRUCTURES_WHILE_DEAD] died 22:23, dead 75s, 6 towers/barracks lost meanwhile",
+    "TUR carry Undying (L, 33m) :: [STRUCTURES_WHILE_DEAD] died 18:54, dead 63s, 4 towers/barracks lost meanwhile"
+   ],
+   "raw_not_tuned": [
+    "STA carry Phantom Lancer (L, 39m) :: [STRUCTURES_WHILE_DEAD] died 32:35, dead 70s, 3 towers/barracks lost meanwhile",
+    "TUR offlane Centaur Warrunner (L, 23m) :: [STRUCTURES_WHILE_DEAD] died 20:04, dead 52s, 3 towers/barracks lost meanwhile",
+    "TUR carry Windranger (L, 25m) :: [STRUCTURES_WHILE_DEAD] died 16:19, dead 48s, 3 towers/barracks lost meanwhile"
+   ]
+  },
+  "T7_OBJECTIVE_HEAVY_TURN": {
+   "extreme": [
+    "STA carry Lifestealer (L, 29m) :: [SWUNG_AGAINST] 21:00\u201329:00 lead +198 \u2192 -24465 (\u039424663, 19% of all NW) | structures fell (losing side) 14, death margin 14",
+    "STA carry Chaos Knight (W, 29m) :: [SWUNG_FOR] 21:00\u201329:00 lead -198 \u2192 +24465 (\u039424663, 19% of all NW) | structures fell (losing side) 14, death margin 14",
+    "STA support Jakiro (L, 26m) :: [DEFICIT_DEEPENED] 18:00\u201326:00 lead -9891 \u2192 -29338 (\u039419447, 19% of all NW) | structures fell (losing side) 14, death margin 9",
+    "STA carry Phantom Lancer (W, 26m) :: [LEAD_EXTENDED] 18:00\u201326:00 lead +9891 \u2192 +29338 (\u039419447, 19% of all NW) | structures fell (losing side) 14, death margin 9"
+   ],
+   "borderline": [
+    "STA offlane Tidehunter (W, 79m) :: [FLIPPED_FOR] 69:00\u201377:00 lead -41990 \u2192 +21448 (\u039463438, 18% of all NW) | structures fell (losing side) 3, death margin 6",
+    "STA mid Sniper (L, 79m) :: [FLIPPED_AGAINST] 69:00\u201377:00 lead +41990 \u2192 -21448 (\u039463438, 18% of all NW) | structures fell (losing side) 3, death margin 6",
+    "TUR support Nature's Prophet (L, 25m) :: [DEFICIT_DEEPENED] 11:00\u201316:00 lead -4627 \u2192 -29130 (\u039424503, 20% of all NW) | structures fell (losing side) 3, death margin 12",
+    "TUR support Ogre Magi (W, 25m) :: [LEAD_EXTENDED] 11:00\u201316:00 lead +4627 \u2192 +29130 (\u039424503, 20% of all NW) | structures fell (losing side) 3, death margin 12"
+   ],
+   "random_standard": [
+    "STA offlane Techies (L, 33m) :: [DEFICIT_DEEPENED] 25:00\u201333:00 lead -9000 \u2192 -32789 (\u039423789, 18% of all NW) | structures fell (losing side) 12, death margin 11",
+    "STA support Hoodwink (W, 31m) :: [LEAD_EXTENDED] 18:00\u201326:00 lead +13453 \u2192 +38155 (\u039424702, 23% of all NW) | structures fell (losing side) 10, death margin 33",
+    "STA offlane Viper (L, 21m) :: [DEFICIT_DEEPENED] 12:00\u201320:00 lead -6770 \u2192 -19916 (\u039413146, 18% of all NW) | structures fell (losing side) 7, death margin 12",
+    "STA support Lich (L, 33m) :: [DEFICIT_DEEPENED] 23:00\u201331:00 lead -1908 \u2192 -25751 (\u039423843, 19% of all NW) | structures fell (losing side) 9, death margin 17"
+   ],
+   "random_turbo": [
+    "TUR support Riki (W, 25m) :: [LEAD_EXTENDED] 14:00\u201319:00 lead +16390 \u2192 +49384 (\u039432994, 20% of all NW) | structures fell (losing side) 4, death margin 12",
+    "TUR carry Gyrocopter (L, 24m) :: [DEFICIT_DEEPENED] 19:00\u201324:00 lead -2907 \u2192 -49702 (\u039446795, 20% of all NW) | structures fell (losing side) 10, death margin 13",
+    "TUR support Phoenix (W, 25m) :: [LEAD_EXTENDED] 17:00\u201322:00 lead +14185 \u2192 +52713 (\u039438528, 19% of all NW) | structures fell (losing side) 12, death margin 12",
+    "TUR carry Troll Warlord (W, 23m) :: [LEAD_EXTENDED] 18:00\u201323:00 lead +3272 \u2192 +45716 (\u039442444, 20% of all NW) | structures fell (losing side) 9, death margin 14"
+   ],
+   "raw_not_tuned": [
+    "TUR mid Sniper (L, 32m) :: [DEFICIT_DEEPENED] 10:00\u201315:00 lead -1273 \u2192 -20827 (\u039419554, 16% of all NW) | structures fell (losing side) 4, death margin 14",
+    "STA support Weaver (W, 25m) :: [LEAD_EXTENDED] 12:00\u201320:00 lead +8243 \u2192 +19970 (\u039411727, 15% of all NW) | structures fell (losing side) 7, death margin 16",
+    "STA carry Sven (W, 39m) :: [LEAD_EXTENDED] 24:00\u201332:00 lead +6700 \u2192 +26140 (\u039419440, 15% of all NW) | structures fell (losing side) 7, death margin 13"
+   ]
+  },
+  "T8_DEATH_HEAVY_TURN": {
+   "extreme": [
+    "STA mid Tinker (L, 29m) :: [DEFICIT_DEEPENED] 20:00\u201328:00 lead -6754 \u2192 -29544 (\u039422790, 18% of all NW) | structures fell (losing side) 11, death margin 29",
+    "STA offlane Wraith King (W, 29m) :: [LEAD_EXTENDED] 20:00\u201328:00 lead +6754 \u2192 +29544 (\u039422790, 18% of all NW) | structures fell (losing side) 11, death margin 29",
+    "STA carry Dragon Knight (L, 31m) :: [DEFICIT_DEEPENED] 18:00\u201326:00 lead -13453 \u2192 -38155 (\u039424702, 23% of all NW) | structures fell (losing side) 10, death margin 33",
+    "STA support Hoodwink (W, 31m) :: [LEAD_EXTENDED] 18:00\u201326:00 lead +13453 \u2192 +38155 (\u039424702, 23% of all NW) | structures fell (losing side) 10, death margin 33"
+   ],
+   "borderline": [
+    "STA support Shadow Shaman (W, 23m) :: [LEAD_EXTENDED] 14:00\u201322:00 lead +11984 \u2192 +28179 (\u039416195, 20% of all NW) | structures fell (losing side) 12, death margin 6",
+    "STA carry Gyrocopter (L, 23m) :: [DEFICIT_DEEPENED] 14:00\u201322:00 lead -11984 \u2192 -28179 (\u039416195, 20% of all NW) | structures fell (losing side) 12, death margin 6",
+    "STA offlane Tidehunter (W, 79m) :: [FLIPPED_FOR] 69:00\u201377:00 lead -41990 \u2192 +21448 (\u039463438, 18% of all NW) | structures fell (losing side) 3, death margin 6",
+    "STA mid Sniper (L, 79m) :: [FLIPPED_AGAINST] 69:00\u201377:00 lead +41990 \u2192 -21448 (\u039463438, 18% of all NW) | structures fell (losing side) 3, death margin 6"
+   ],
+   "random_standard": [
+    "STA offlane Necrophos (L, 30m) :: [DEFICIT_DEEPENED] 22:00\u201330:00 lead -13688 \u2192 -35594 (\u039421906, 19% of all NW) | structures fell (losing side) 13, death margin 12",
+    "STA offlane Legion Commander (L, 22m) :: [DEFICIT_DEEPENED] 13:00\u201321:00 lead -4431 \u2192 -19719 (\u039415288, 20% of all NW) | structures fell (losing side) 9, death margin 10",
+    "STA support Skywrath Mage (L, 38m) :: [SWUNG_AGAINST] 12:00\u201320:00 lead +1404 \u2192 -11826 (\u039413230, 18% of all NW) | structures fell (losing side) 3, death margin 11",
+    "STA mid Tusk (W, 27m) :: [LEAD_EXTENDED] 14:00\u201322:00 lead +8454 \u2192 +22434 (\u039413980, 17% of all NW) | structures fell (losing side) 7, death margin 12"
+   ],
+   "random_turbo": [
+    "TUR carry Slark (L, 23m) :: [DEFICIT_DEEPENED] 14:00\u201319:00 lead -1011 \u2192 -44456 (\u039443445, 24% of all NW) | structures fell (losing side) 12, death margin 12",
+    "TUR mid Nyx Assassin (W, 16m) :: [LEAD_EXTENDED] 10:00\u201315:00 lead +16268 \u2192 +40726 (\u039424458, 21% of all NW) | structures fell (losing side) 11, death margin 7",
+    "TUR support Ogre Magi (W, 25m) :: [LEAD_EXTENDED] 11:00\u201316:00 lead +4627 \u2192 +29130 (\u039424503, 20% of all NW) | structures fell (losing side) 3, death margin 12",
+    "TUR carry Shadow Shaman (L, 19m) :: [DEFICIT_DEEPENED] 13:00\u201318:00 lead -6576 \u2192 -42011 (\u039435435, 21% of all NW) | structures fell (losing side) 7, death margin 13"
+   ],
+   "raw_not_tuned": [
+    "STA mid Shadow Fiend (W, 25m) :: [LEAD_EXTENDED] 17:00\u201325:00 lead +9153 \u2192 +23747 (\u039414594, 15% of all NW) | structures fell (losing side) 10, death margin 14",
+    "STA support Shadow Shaman (W, 32m) :: [LEAD_EXTENDED] 21:00\u201329:00 lead +5159 \u2192 +22889 (\u039417730, 16% of all NW) | structures fell (losing side) 9, death margin 22",
+    "TUR mid Phoenix (W, 21m) :: [LEAD_EXTENDED] 12:00\u201317:00 lead +7230 \u2192 +32476 (\u039425246, 19% of all NW) | structures fell (losing side) 10, death margin 11"
+   ]
+  },
+  "T9_TORMENTOR_IN_TURN": {
+   "extreme": [
+    "STA support Lich (L, 33m) :: [DEFICIT_DEEPENED] 23:00\u201331:00 lead -1908 \u2192 -25751 (\u039423843, 19% of all NW) | structures fell (losing side) 9, death margin 17 | tormentor at ['24:37']",
+    "STA support Undying (W, 33m) :: [LEAD_EXTENDED] 23:00\u201331:00 lead +1908 \u2192 +25751 (\u039423843, 19% of all NW) | structures fell (losing side) 9, death margin 17 | tormentor at ['24:37']",
+    "STA support Ogre Magi (W, 31m) :: [LEAD_EXTENDED] 22:00\u201330:00 lead +6122 \u2192 +29183 (\u039423061, 18% of all NW) | structures fell (losing side) 11, death margin 13 | tormentor at ['24:45']",
+    "STA offlane Tidehunter (L, 31m) :: [DEFICIT_DEEPENED] 22:00\u201330:00 lead -6122 \u2192 -29183 (\u039423061, 18% of all NW) | structures fell (losing side) 11, death margin 13 | tormentor at ['24:45']"
+   ],
+   "borderline": [
+    "STA support Lion (L, 30m) :: [DEFICIT_DEEPENED] 18:00\u201326:00 lead -12897 \u2192 -30846 (\u039417949, 18% of all NW) | structures fell (losing side) 6, death margin 15 | tormentor at ['23:34']",
+    "STA support Winter Wyvern (W, 30m) :: [LEAD_EXTENDED] 18:00\u201326:00 lead +12897 \u2192 +30846 (\u039417949, 18% of all NW) | structures fell (losing side) 6, death margin 15 | tormentor at ['23:34']",
+    "STA carry Slark (L, 31m) :: [DEFICIT_DEEPENED] 21:00\u201329:00 lead -2344 \u2192 -29051 (\u039426707, 22% of all NW) | structures fell (losing side) 11, death margin 11 | tormentor at ['22:43']",
+    "STA support Phoenix (W, 31m) :: [LEAD_EXTENDED] 21:00\u201329:00 lead +2344 \u2192 +29051 (\u039426707, 22% of all NW) | structures fell (losing side) 11, death margin 11 | tormentor at ['22:43']"
+   ],
+   "random_standard": [
+    "STA carry Slark (L, 31m) :: [DEFICIT_DEEPENED] 21:00\u201329:00 lead -2344 \u2192 -29051 (\u039426707, 22% of all NW) | structures fell (losing side) 11, death margin 11 | tormentor at ['22:43']",
+    "STA support Lich (L, 33m) :: [DEFICIT_DEEPENED] 23:00\u201331:00 lead -1908 \u2192 -25751 (\u039423843, 19% of all NW) | structures fell (losing side) 9, death margin 17 | tormentor at ['24:37']",
+    "STA offlane Tidehunter (L, 31m) :: [DEFICIT_DEEPENED] 22:00\u201330:00 lead -6122 \u2192 -29183 (\u039423061, 18% of all NW) | structures fell (losing side) 11, death margin 13 | tormentor at ['24:45']",
+    "STA support Phoenix (W, 31m) :: [LEAD_EXTENDED] 21:00\u201329:00 lead +2344 \u2192 +29051 (\u039426707, 22% of all NW) | structures fell (losing side) 11, death margin 11 | tormentor at ['22:43']"
+   ],
+   "random_turbo": [],
+   "raw_not_tuned": [
+    "STA offlane Bristleback (W, 32m) :: [LEAD_EXTENDED] 15:00\u201323:00 lead +4487 \u2192 +16759 (\u039412272, 17% of all NW) | structures fell (losing side) 5, death margin 9 | tormentor at ['20:53']",
+    "STA mid Arc Warden (L, 35m) :: [DEFICIT_DEEPENED] 16:00\u201324:00 lead -5222 \u2192 -13686 (\u03948464, 9% of all NW) | structures fell (losing side) 3, death margin 7 | tormentor at ['23:49']",
+    "STA support Lich (L, 49m) :: [DEFICIT_ERASED] 23:00\u201331:00 lead -9862 \u2192 -1354 (\u03948508, 7% of all NW) | structures fell (losing side) 2, death margin 6 | tormentor at ['25:33']"
+   ]
+  },
+  "H1_ENEMY_STACKING": {
+   "extreme": [
+    "STA support Pudge (W, 54m) :: [ENEMY_STACKED_MORE] enemy 18 vs your team 4 camps stacked by 20:00",
+    "STA offlane Marci (L, 34m) :: [ENEMY_STACKED_MORE] enemy 18 vs your team 10 camps stacked by 20:00",
+    "STA support Rubick (L, 44m) :: [ENEMY_STACKED_MORE] enemy 19 vs your team 3 camps stacked by 20:00",
+    "STA support Pudge (L, 46m) :: [ENEMY_STACKED_MORE] enemy 21 vs your team 1 camps stacked by 20:00"
+   ],
+   "borderline": [
+    "TUR mid Shadow Fiend (L, 33m) :: [ENEMY_STACKED_MORE] enemy 3 vs your team 1 camps stacked by 15:00",
+    "TUR support Nyx Assassin (W, 29m) :: [ENEMY_STACKED_MORE] enemy 3 vs your team 0 camps stacked by 15:00",
+    "TUR mid Enchantress (W, 17m) :: [ENEMY_STACKED_MORE] enemy 3 vs your team 1 camps stacked by 15:00",
+    "TUR carry Drow Ranger (W, 18m) :: [ENEMY_STACKED_MORE] enemy 3 vs your team 1 camps stacked by 15:00"
+   ],
+   "random_standard": [
+    "STA offlane Legion Commander (L, 41m) :: [ENEMY_STACKED_MORE] enemy 9 vs your team 1 camps stacked by 20:00",
+    "STA support Rubick (W, 57m) :: [ENEMY_STACKED_MORE] enemy 7 vs your team 2 camps stacked by 20:00",
+    "STA offlane Tidehunter (L, 32m) :: [ENEMY_STACKED_MORE] enemy 9 vs your team 1 camps stacked by 20:00",
+    "STA support Nyx Assassin (L, 51m) :: [ENEMY_STACKED_MORE] enemy 13 vs your team 5 camps stacked by 20:00"
+   ],
+   "random_turbo": [
+    "TUR carry Phantom Assassin (L, 23m) :: [ENEMY_STACKED_MORE] enemy 3 vs your team 0 camps stacked by 15:00",
+    "TUR carry Phantom Assassin (W, 23m) :: [ENEMY_STACKED_MORE] enemy 4 vs your team 1 camps stacked by 15:00",
+    "TUR carry Juggernaut (L, 25m) :: [ENEMY_STACKED_MORE] enemy 4 vs your team 0 camps stacked by 15:00",
+    "TUR mid Tinker (W, 23m) :: [ENEMY_STACKED_MORE] enemy 5 vs your team 2 camps stacked by 15:00"
+   ],
+   "raw_not_tuned": [
+    "TUR support Vengeful Spirit (L, 22m) :: [ENEMY_STACKED_MORE] enemy 2 vs your team 1 camps stacked by 15:00",
+    "STA support Earthshaker (L, 62m) :: [ENEMY_STACKED_MORE] enemy 5 vs your team 4 camps stacked by 20:00",
+    "TUR mid Necrophos (W, 36m) :: [ENEMY_STACKED_MORE] enemy 2 vs your team 0 camps stacked by 15:00"
+   ]
+  },
+  "H2_ENEMY_VISION": {
+   "extreme": [
+    "STA carry Drow Ranger (W, 90m) :: [HEAVY_ENEMY_VISION] enemy placed 38 observers (yours 40); destroyed 9 of yours (22%); you destroyed 3",
+    "STA carry Kez (L, 86m) :: [HEAVY_ENEMY_VISION] enemy placed 38 observers (yours 34); destroyed 6 of yours (18%); you destroyed 3",
+    "STA offlane Earthshaker (L, 90m) :: [HEAVY_ENEMY_VISION] enemy placed 40 observers (yours 38); destroyed 3 of yours (8%); you destroyed 9",
+    "STA carry Tiny (L, 96m) :: [HEAVY_ENEMY_VISION] enemy placed 42 observers (yours 29); destroyed 7 of yours (24%); you destroyed 8"
+   ],
+   "borderline": [
+    "TUR support Phoenix (W, 25m) :: [OUR_VISION_CLEARED] enemy placed 4 observers (yours 12); destroyed 5 of yours (42%); you destroyed 4",
+    "TUR support Ogre Magi (W, 19m) :: [OUR_VISION_CLEARED] enemy placed 7 observers (yours 10); destroyed 5 of yours (50%); you destroyed 0",
+    "TUR support Kunkka (L, 21m) :: [OUR_VISION_CLEARED] enemy placed 8 observers (yours 8); destroyed 6 of yours (75%); you destroyed 3",
+    "TUR carry Abaddon (W, 23m) :: [OUR_VISION_CLEARED] enemy placed 8 observers (yours 11); destroyed 6 of yours (55%); you destroyed 4"
+   ],
+   "random_standard": [
+    "STA support Dark Seer (W, 50m) :: [OUR_VISION_CLEARED] enemy placed 21 observers (yours 21); destroyed 9 of yours (43%); you destroyed 3",
+    "STA support Lich (L, 49m) :: [HEAVY_ENEMY_VISION] enemy placed 24 observers (yours 20); destroyed 7 of yours (35%); you destroyed 7",
+    "STA offlane Dragon Knight (W, 60m) :: [HEAVY_ENEMY_VISION] enemy placed 25 observers (yours 26); destroyed 4 of yours (15%); you destroyed 4",
+    "STA support Bane (W, 69m) :: [HEAVY_ENEMY_VISION] enemy placed 31 observers (yours 30); destroyed 6 of yours (20%); you destroyed 7"
+   ],
+   "random_turbo": [
+    "TUR support Puck (L, 27m) :: [OUR_VISION_CLEARED] enemy placed 13 observers (yours 12); destroyed 5 of yours (42%); you destroyed 2",
+    "TUR support Puck (L, 33m) :: [OUR_VISION_CLEARED] enemy placed 13 observers (yours 12); destroyed 5 of yours (42%); you destroyed 0",
+    "TUR carry Luna (W, 34m) :: [OUR_VISION_CLEARED] enemy placed 14 observers (yours 10); destroyed 8 of yours (80%); you destroyed 3",
+    "TUR support Rubick (L, 25m) :: [OUR_VISION_CLEARED] enemy placed 11 observers (yours 11); destroyed 7 of yours (64%); you destroyed 6"
+   ],
+   "raw_not_tuned": [
+    "TUR carry Anti-Mage (L, 28m) :: [None] enemy placed 11 observers (yours 13); destroyed 5 of yours (38%); you destroyed 3",
+    "TUR carry Ursa (W, 32m) :: [None] enemy placed 13 observers (yours 14); destroyed 5 of yours (36%); you destroyed 5",
+    "TUR support Shadow Shaman (W, 35m) :: [None] enemy placed 13 observers (yours 16); destroyed 5 of yours (31%); you destroyed 4"
+   ]
+  },
+  "H3_ENEMY_SMOKES": {
+   "extreme": [
+    "STA support Warlock (L, 76m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 11 times (your team 3)",
+    "STA mid Storm Spirit (W, 72m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 11 times (your team 6)",
+    "STA offlane Dawnbreaker (W, 64m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 11 times (your team 8)",
+    "STA offlane Tidehunter (W, 79m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 12 times (your team 0)"
+   ],
+   "borderline": [
+    "TUR support Ogre Magi (L, 32m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 4 times (your team 1)",
+    "TUR carry Naga Siren (W, 30m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 4 times (your team 2)",
+    "TUR mid Lina (L, 21m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 4 times (your team 1)",
+    "TUR support Warlock (W, 19m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 4 times (your team 0)"
+   ],
+   "random_standard": [
+    "STA support Mirana (W, 46m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 7 times (your team 4)",
+    "STA support Zeus (W, 51m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 8 times (your team 2)",
+    "STA support Undying (W, 40m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 7 times (your team 2)",
+    "STA offlane Dawnbreaker (W, 64m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 11 times (your team 8)"
+   ],
+   "random_turbo": [
+    "TUR carry Faceless Void (W, 21m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 4 times (your team 1)",
+    "TUR carry Phantom Assassin (L, 31m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 4 times (your team 0)",
+    "TUR mid Underlord (W, 25m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 4 times (your team 0)",
+    "TUR support Spirit Breaker (L, 40m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 7 times (your team 3)"
+   ],
+   "raw_not_tuned": [
+    "STA mid Arc Warden (W, 36m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 6 times (your team 6)",
+    "STA carry Pudge (L, 47m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 6 times (your team 7)",
+    "TUR support Spirit Breaker (W, 32m) :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 3 times (your team 0)"
+   ]
+  },
+  "H4_SMOKE_TO_KILLS": {
+   "extreme": [
+    "STA carry Lina (L, 80m) :: [SMOKES_INTO_KILLS] 7 of 12 enemy smokes were followed by an enemy kill within 60s",
+    "STA support Shadow Demon (L, 72m) :: [SMOKES_INTO_KILLS] 8 of 11 enemy smokes were followed by an enemy kill within 60s",
+    "STA carry Terrorblade (W, 72m) :: [SMOKES_INTO_KILLS] 8 of 11 enemy smokes were followed by an enemy kill within 60s",
+    "STA mid Invoker (W, 80m) :: [SMOKES_INTO_KILLS] 9 of 12 enemy smokes were followed by an enemy kill within 60s"
+   ],
+   "borderline": [
+    "TUR support Silencer (W, 42m) :: [SMOKES_INTO_KILLS] 3 of 5 enemy smokes were followed by an enemy kill within 60s",
+    "TUR support Windranger (L, 42m) :: [SMOKES_INTO_KILLS] 3 of 4 enemy smokes were followed by an enemy kill within 60s",
+    "TUR mid Bane (W, 35m) :: [SMOKES_INTO_KILLS] 3 of 3 enemy smokes were followed by an enemy kill within 60s",
+    "TUR mid Lina (L, 21m) :: [SMOKES_INTO_KILLS] 3 of 4 enemy smokes were followed by an enemy kill within 60s"
+   ],
+   "random_standard": [
+    "STA mid Ember Spirit (L, 53m) :: [SMOKES_INTO_KILLS] 6 of 9 enemy smokes were followed by an enemy kill within 60s",
+    "STA support Witch Doctor (W, 43m) :: [SMOKES_INTO_KILLS] 5 of 6 enemy smokes were followed by an enemy kill within 60s",
+    "STA support Ringmaster (W, 36m) :: [SMOKES_INTO_KILLS] 3 of 4 enemy smokes were followed by an enemy kill within 60s",
+    "STA mid Invoker (L, 36m) :: [SMOKES_INTO_KILLS] 5 of 6 enemy smokes were followed by an enemy kill within 60s"
+   ],
+   "random_turbo": [
+    "TUR mid Bane (W, 35m) :: [SMOKES_INTO_KILLS] 3 of 3 enemy smokes were followed by an enemy kill within 60s",
+    "TUR support Windranger (L, 42m) :: [SMOKES_INTO_KILLS] 3 of 4 enemy smokes were followed by an enemy kill within 60s",
+    "TUR mid Sniper (W, 21m) :: [SMOKES_INTO_KILLS] 3 of 4 enemy smokes were followed by an enemy kill within 60s",
+    "TUR support Silencer (W, 42m) :: [SMOKES_INTO_KILLS] 3 of 5 enemy smokes were followed by an enemy kill within 60s"
+   ],
+   "raw_not_tuned": [
+    "STA support Winter Wyvern (L, 53m) :: [SMOKES_INTO_KILLS] 4 of 9 enemy smokes were followed by an enemy kill within 60s",
+    "TUR mid Rubick (L, 21m) :: [SMOKES_INTO_KILLS] 2 of 5 enemy smokes were followed by an enemy kill within 60s",
+    "TUR carry Medusa (W, 30m) :: [SMOKES_INTO_KILLS] 2 of 3 enemy smokes were followed by an enemy kill within 60s"
+   ]
+  },
+  "H5_ENEMY_BOSS_CONTROL": {
+   "extreme": [
+    "TUR support Lich (W, 49m) :: [BOSSES] enemy Roshan 4 vs yours 0; Tormentor 0 vs 0",
+    "STA carry Lina (L, 80m) :: [BOSSES] enemy Roshan 5 vs yours 0; Tormentor 0 vs 0",
+    "STA mid Void Spirit (L, 50m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 3 vs 0",
+    "STA support Rubick (W, 86m) :: [BOSSES] enemy Roshan 4 vs yours 0; Tormentor 2 vs 0"
+   ],
+   "borderline": [
+    "STA mid Storm Spirit (W, 58m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 0 vs 0",
+    "STA support Shadow Shaman (L, 49m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 0 vs 0",
+    "STA support Skywrath Mage (L, 42m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 0 vs 0",
+    "STA support Tinker (L, 44m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 0 vs 0"
+   ],
+   "random_standard": [
+    "STA support Visage (L, 46m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 1 vs 0",
+    "STA carry Lone Druid (L, 49m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 1 vs 0",
+    "STA support Tinker (L, 44m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 0 vs 0",
+    "STA offlane Viper (L, 53m) :: [BOSSES] enemy Roshan 1 vs yours 0; Tormentor 3 vs 0"
+   ],
+   "random_turbo": [
+    "TUR support Spirit Breaker (L, 29m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 0 vs 0",
+    "TUR carry Juggernaut (L, 31m) :: [BOSSES] enemy Roshan 2 vs yours 0; Tormentor 0 vs 0",
+    "TUR support Lich (W, 49m) :: [BOSSES] enemy Roshan 4 vs yours 0; Tormentor 0 vs 0",
+    "TUR carry Juggernaut (W, 36m) :: [BOSSES] enemy Roshan 3 vs yours 0; Tormentor 0 vs 0"
+   ],
+   "raw_not_tuned": [
+    "TUR offlane Pudge (L, 21m) :: [BOSSES] enemy Roshan 1 vs yours 0; Tormentor 0 vs 0",
+    "STA offlane Underlord (L, 39m) :: [BOSSES] enemy Roshan 1 vs yours 0; Tormentor 0 vs 0",
+    "STA mid Rubick (L, 47m) :: [BOSSES] enemy Roshan 1 vs yours 0; Tormentor 1 vs 0"
+   ]
+  },
+  "H6_ENEMY_FAST_CORE": {
+   "extreme": [
+    "TUR support Rubick (L, 20m) :: [ENEMY_EARLY_RICH] Lone Druid (P2) reached 15000 NW at 10:00; your team's first at 18:00",
+    "TUR support Shadow Shaman (L, 18m) :: [ENEMY_EARLY_RICH] Arc Warden (P2) reached 15000 NW at 9:00; your team's first at 12:00",
+    "TUR support Leshrac (L, 32m) :: [ENEMY_EARLY_RICH] Kez (P2) reached 15000 NW at 8:00; your team's first at 12:00",
+    "TUR support Lion (L, 20m) :: [ENEMY_EARLY_RICH] Lina (P2) reached 15000 NW at 8:00; your team's first at 17:00"
+   ],
+   "borderline": [
+    "STA offlane Razor (W, 59m) :: [ENEMY_EARLY_RICH] Arc Warden (P2) reached 10000 NW at 18:00; your team's first at 24:00",
+    "STA offlane Slardar (L, 22m) :: [ENEMY_EARLY_RICH] Dawnbreaker (P3) reached 10000 NW at 18:00; your team's first at None:00",
+    "STA support Hoodwink (L, 71m) :: [ENEMY_EARLY_RICH] Viper (P3) reached 10000 NW at 18:00; your team's first at 25:00",
+    "STA offlane Tidehunter (W, 68m) :: [ENEMY_EARLY_RICH] Earth Spirit (P3) reached 10000 NW at 18:00; your team's first at 23:00"
+   ],
+   "random_standard": [
+    "STA offlane Legion Commander (L, 22m) :: [ENEMY_EARLY_RICH] Death Prophet (P2) reached 10000 NW at 18:00; your team's first at 22:00",
+    "STA mid Sniper (L, 28m) :: [ENEMY_EARLY_RICH] Death Prophet (P3) reached 10000 NW at 16:00; your team's first at None:00",
+    "STA offlane Spirit Breaker (L, 45m) :: [ENEMY_EARLY_RICH] Lina (P2) reached 10000 NW at 18:00; your team's first at 21:00",
+    "STA support Witch Doctor (L, 30m) :: [ENEMY_EARLY_RICH] Faceless Void (P1) reached 10000 NW at 17:00; your team's first at 23:00"
+   ],
+   "random_turbo": [
+    "TUR support Silencer (L, 18m) :: [ENEMY_EARLY_RICH] Drow Ranger (P1) reached 15000 NW at 12:00; your team's first at 15:00",
+    "TUR support Lion (L, 20m) :: [ENEMY_EARLY_RICH] Lina (P2) reached 15000 NW at 8:00; your team's first at 17:00",
+    "TUR offlane Morphling (L, 15m) :: [ENEMY_EARLY_RICH] Troll Warlord (P1) reached 15000 NW at 12:00; your team's first at None:00",
+    "TUR support Zeus (L, 20m) :: [ENEMY_EARLY_RICH] Slark (P3) reached 15000 NW at 12:00; your team's first at 15:00"
+   ],
+   "raw_not_tuned": [
+    "STA carry Troll Warlord (L, 40m) :: [ENEMY_EARLY_RICH] Underlord (P3) reached 10000 NW at 17:00; your team's first at 19:00",
+    "TUR support Broodmother (L, 19m) :: [ENEMY_EARLY_RICH] Tinker (P2) reached 15000 NW at 12:00; your team's first at 14:00",
+    "STA carry Lifestealer (L, 29m) :: [ENEMY_EARLY_RICH] Chaos Knight (P1) reached 10000 NW at 17:00; your team's first at 19:00"
+   ]
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "extreme": [
+    "STA support Windranger (L, 41m) :: [ENEMY_ONE_HERO_ECONOMY] Luna held 40% of enemy NW at 20:00 (your top hero 32%)",
+    "STA carry Tiny (L, 72m) :: [ENEMY_ONE_HERO_ECONOMY] Storm Spirit held 42% of enemy NW at 20:00 (your top hero 28%)",
+    "STA carry Juggernaut (W, 39m) :: [ENEMY_ONE_HERO_ECONOMY] Lina held 42% of enemy NW at 20:00 (your top hero 29%)",
+    "TUR support Leshrac (L, 32m) :: [ENEMY_ONE_HERO_ECONOMY] Kez held 43% of enemy NW at 12:00 (your top hero 36%)"
+   ],
+   "borderline": [
+    "TUR support Disruptor (L, 17m) :: [ENEMY_ONE_HERO_ECONOMY] Phantom Assassin held 31% of enemy NW at 12:00 (your top hero 25%)",
+    "TUR support Phantom Assassin (W, 33m) :: [ENEMY_ONE_HERO_ECONOMY] Necrophos held 31% of enemy NW at 12:00 (your top hero 22%)",
+    "TUR mid Storm Spirit (L, 22m) :: [ENEMY_ONE_HERO_ECONOMY] Ursa held 32% of enemy NW at 12:00 (your top hero 25%)",
+    "TUR support Witch Doctor (W, 24m) :: [ENEMY_ONE_HERO_ECONOMY] Dark Seer held 32% of enemy NW at 12:00 (your top hero 26%)"
+   ],
+   "random_standard": [
+    "STA support Zeus (W, 53m) :: [ENEMY_ONE_HERO_ECONOMY] Luna held 33% of enemy NW at 20:00 (your top hero 24%)",
+    "STA carry Ursa (L, 42m) :: [ENEMY_ONE_HERO_ECONOMY] Lone Druid held 33% of enemy NW at 20:00 (your top hero 27%)",
+    "STA carry Juggernaut (L, 55m) :: [ENEMY_ONE_HERO_ECONOMY] Drow Ranger held 32% of enemy NW at 20:00 (your top hero 27%)",
+    "STA offlane Doom (L, 50m) :: [ENEMY_ONE_HERO_ECONOMY] Keeper of the Light held 34% of enemy NW at 20:00 (your top hero 27%)"
+   ],
+   "random_turbo": [
+    "TUR support Lion (W, 29m) :: [ENEMY_ONE_HERO_ECONOMY] Queen of Pain held 35% of enemy NW at 12:00 (your top hero 29%)",
+    "TUR mid Zeus (W, 35m) :: [ENEMY_ONE_HERO_ECONOMY] Lina held 35% of enemy NW at 12:00 (your top hero 26%)",
+    "TUR support Skywrath Mage (L, 24m) :: [ENEMY_ONE_HERO_ECONOMY] Treant Protector held 32% of enemy NW at 12:00 (your top hero 27%)",
+    "TUR support Riki (W, 25m) :: [ENEMY_ONE_HERO_ECONOMY] Tiny held 34% of enemy NW at 12:00 (your top hero 28%)"
+   ],
+   "raw_not_tuned": [
+    "STA carry Faceless Void (W, 41m) :: [ENEMY_ONE_HERO_ECONOMY] Beastmaster held 32% of enemy NW at 20:00 (your top hero 28%)",
+    "STA offlane Underlord (W, 40m) :: [ENEMY_ONE_HERO_ECONOMY] Pangolier held 32% of enemy NW at 20:00 (your top hero 28%)",
+    "STA offlane Timbersaw (L, 48m) :: [ENEMY_ONE_HERO_ECONOMY] Keeper of the Light held 32% of enemy NW at 20:00 (your top hero 29%)"
+   ]
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE": {
+   "extreme": [
+    "TUR support Rubick (L, 32m) :: [ENEMY_CORE_JUNGLE] Anti-Mage: 68% of creep gold from neutral/ancient camps (partial farm report)",
+    "STA offlane Earth Spirit (W, 49m) :: [ENEMY_CORE_JUNGLE] Shadow Fiend: 68% of creep gold from neutral/ancient camps (partial farm report)",
+    "TUR carry Nature's Prophet (L, 21m) :: [ENEMY_CORE_JUNGLE] Ogre Magi: 70% of creep gold from neutral/ancient camps (partial farm report)",
+    "TUR offlane Treant Protector (W, 15m) :: [ENEMY_CORE_JUNGLE] Axe: 72% of creep gold from neutral/ancient camps (partial farm report)"
+   ],
+   "borderline": [
+    "STA mid Drow Ranger (L, 46m) :: [ENEMY_CORE_JUNGLE] Spirit Breaker: 45% of creep gold from neutral/ancient camps (partial farm report)",
+    "STA mid Windranger (L, 35m) :: [ENEMY_CORE_JUNGLE] Sniper: 45% of creep gold from neutral/ancient camps (partial farm report)",
+    "STA support Ringmaster (W, 35m) :: [ENEMY_CORE_JUNGLE] Phantom Lancer: 45% of creep gold from neutral/ancient camps (partial farm report)",
+    "STA support Treant Protector (L, 41m) :: [ENEMY_CORE_JUNGLE] Storm Spirit: 45% of creep gold from neutral/ancient camps (partial farm report)"
+   ],
+   "random_standard": [
+    "STA mid Lina (W, 45m) :: [ENEMY_CORE_JUNGLE] Luna: 59% of creep gold from neutral/ancient camps (partial farm report)",
+    "STA mid Windranger (L, 35m) :: [ENEMY_CORE_JUNGLE] Sniper: 45% of creep gold from neutral/ancient camps (partial farm report)",
+    "STA offlane Largo (L, 45m) :: [ENEMY_CORE_JUNGLE] Chaos Knight: 47% of creep gold from neutral/ancient camps (partial farm report)",
+    "STA support Keeper of the Light (W, 32m) :: [ENEMY_CORE_JUNGLE] Phantom Assassin: 48% of creep gold from neutral/ancient camps (partial farm report)"
+   ],
+   "random_turbo": [
+    "TUR mid Earthshaker (L, 33m) :: [ENEMY_CORE_JUNGLE] Zeus: 52% of creep gold from neutral/ancient camps (partial farm report)",
+    "TUR offlane Skywrath Mage (L, 53m) :: [ENEMY_CORE_JUNGLE] Zeus: 49% of creep gold from neutral/ancient camps (partial farm report)",
+    "TUR carry Nature's Prophet (L, 21m) :: [ENEMY_CORE_JUNGLE] Ogre Magi: 70% of creep gold from neutral/ancient camps (partial farm report)",
+    "TUR support Lich (W, 49m) :: [ENEMY_CORE_JUNGLE] Silencer: 59% of creep gold from neutral/ancient camps (partial farm report)"
+   ],
+   "raw_not_tuned": [
+    "STA mid Arc Warden (W, 45m) :: [ENEMY_CORE_JUNGLE] Anti-Mage: 43% of creep gold from neutral/ancient camps (partial farm report)",
+    "STA support Zeus (L, 46m) :: [ENEMY_CORE_JUNGLE] Tinker: 43% of creep gold from neutral/ancient camps (partial farm report)",
+    "STA carry Phantom Assassin (W, 39m) :: [ENEMY_CORE_JUNGLE] Phantom Lancer: 45% of creep gold from neutral/ancient camps (partial farm report)"
+   ]
+  },
+  "H9_SHORT_LIVED_OBSERVERS": {
+   "extreme": [
+    "TUR offlane Underlord (L, 38m) :: [OBSERVERS_KILLED_FAST] 5 of 16 observers destroyed within 90s",
+    "STA support Winter Wyvern (L, 53m) :: [OBSERVERS_KILLED_FAST] 6 of 23 observers destroyed within 90s",
+    "STA carry Lina (L, 80m) :: [OBSERVERS_KILLED_FAST] 9 of 33 observers destroyed within 90s",
+    "STA mid Invoker (W, 80m) :: [OBSERVERS_KILLED_FAST] 12 of 34 observers destroyed within 90s"
+   ],
+   "borderline": [
+    "TUR mid Sniper (W, 21m) :: [OBSERVERS_KILLED_FAST] 4 of 9 observers destroyed within 90s",
+    "TUR offlane Underlord (L, 38m) :: [OBSERVERS_KILLED_FAST] 5 of 16 observers destroyed within 90s",
+    "STA support Winter Wyvern (L, 53m) :: [OBSERVERS_KILLED_FAST] 6 of 23 observers destroyed within 90s",
+    "STA carry Lina (L, 80m) :: [OBSERVERS_KILLED_FAST] 9 of 33 observers destroyed within 90s"
+   ],
+   "random_standard": [
+    "STA support Winter Wyvern (L, 53m) :: [OBSERVERS_KILLED_FAST] 6 of 23 observers destroyed within 90s",
+    "STA carry Lina (L, 80m) :: [OBSERVERS_KILLED_FAST] 9 of 33 observers destroyed within 90s",
+    "STA mid Invoker (W, 80m) :: [OBSERVERS_KILLED_FAST] 12 of 34 observers destroyed within 90s"
+   ],
+   "random_turbo": [
+    "TUR offlane Underlord (L, 38m) :: [OBSERVERS_KILLED_FAST] 5 of 16 observers destroyed within 90s",
+    "TUR mid Sniper (W, 21m) :: [OBSERVERS_KILLED_FAST] 4 of 9 observers destroyed within 90s"
+   ],
+   "raw_not_tuned": [
+    "STA carry Drow Ranger (W, 53m) :: [OBSERVERS_KILLED_FAST] 4 of 21 observers destroyed within 90s",
+    "STA offlane Underlord (L, 43m) :: [OBSERVERS_KILLED_FAST] 3 of 20 observers destroyed within 90s",
+    "STA support Ancient Apparition (L, 59m) :: [OBSERVERS_KILLED_FAST] 6 of 27 observers destroyed within 90s"
+   ]
+  },
+  "H10_HIDDEN_ACTIVITY_STACK": {
+   "extreme": [
+    "TUR support Lich (W, 49m) :: [HIDDEN_STACK] ['vision', 'bosses', 'jungle']",
+    "STA carry Drow Ranger (L, 40m) :: [HIDDEN_STACK] ['vision', 'bosses', 'jungle']",
+    "STA mid Void Spirit (L, 50m) :: [HIDDEN_STACK] ['stacks', 'smokes', 'bosses', 'jungle']",
+    "TUR support Tidehunter (L, 41m) :: [HIDDEN_STACK] ['vision', 'smokes', 'bosses', 'jungle']"
+   ],
+   "borderline": [
+    "STA offlane Earth Spirit (W, 49m) :: [HIDDEN_STACK] ['smokes', 'jungle']",
+    "STA support Lich (L, 48m) :: [HIDDEN_STACK] ['vision', 'smokes']",
+    "STA offlane Earth Spirit (L, 68m) :: [HIDDEN_STACK] ['stacks', 'vision']",
+    "STA support Tinker (L, 44m) :: [HIDDEN_STACK] ['bosses', 'jungle']"
+   ],
+   "random_standard": [
+    "STA carry Phantom Assassin (L, 95m) :: [HIDDEN_STACK] ['vision', 'jungle']",
+    "STA offlane Bristleback (W, 60m) :: [HIDDEN_STACK] ['vision', 'bosses']",
+    "STA support Zeus (W, 40m) :: [HIDDEN_STACK] ['stacks', 'smokes']",
+    "STA carry Anti-Mage (L, 47m) :: [HIDDEN_STACK] ['stacks', 'bosses', 'jungle']"
+   ],
+   "random_turbo": [
+    "TUR support Nyx Assassin (L, 27m) :: [HIDDEN_STACK] ['vision', 'bosses']",
+    "TUR carry Pudge (L, 27m) :: [HIDDEN_STACK] ['vision', 'smokes']",
+    "TUR mid Faceless Void (L, 39m) :: [HIDDEN_STACK] ['vision', 'jungle']",
+    "TUR support Keeper of the Light (W, 24m) :: [HIDDEN_STACK] ['smokes', 'jungle']"
+   ]
+  },
+  "I1_UNUSED_ACTIVE_ITEM": {
+   "extreme": [
+    "STA support Lina (L, 79m) :: [NEVER_ACTIVATED] item_mjollnir bought 40:29, in inventory at end (39.4 min), uses 0",
+    "STA mid Venomancer (W, 59m) :: [NEVER_ACTIVATED] item_cyclone bought 16:46, in inventory at end (43.2 min), uses 0",
+    "STA carry Arc Warden (L, 69m) :: [NEVER_ACTIVATED] item_mjollnir bought 26:04, in inventory at end (43.5 min), uses 0",
+    "STA mid Lina (W, 62m) :: [NEVER_ACTIVATED] item_mjollnir bought 17:50, in inventory at end (45.1 min), uses 0"
+   ],
+   "borderline": [
+    "TUR carry Chaos Knight (L, 26m) :: [NEVER_ACTIVATED] item_manta bought 20:13, in inventory at end (6.0 min), uses 0",
+    "TUR support Lion (L, 35m) :: [NEVER_ACTIVATED] item_satanic bought 29:31, in inventory at end (6.0 min), uses 0",
+    "TUR support Lich (L, 17m) :: [NEVER_ACTIVATED] item_cyclone bought 11:04, in inventory at end (6.0 min), uses 0",
+    "TUR carry Troll Warlord (L, 24m) :: [NEVER_ACTIVATED] item_diffusal_blade bought 18:35, in inventory at end (6.1 min), uses 0"
+   ],
+   "random_standard": [
+    "STA support Winter Wyvern (L, 53m) :: [NEVER_ACTIVATED] item_holy_locket bought 39:08, in inventory at end (14.8 min), uses 0",
+    "STA carry Muerta (L, 64m) :: [NEVER_ACTIVATED] item_satanic bought 53:42, in inventory at end (10.4 min), uses 0",
+    "STA offlane Snapfire (L, 45m) :: [NEVER_ACTIVATED] item_bloodstone bought 35:43, in inventory at end (10.2 min), uses 0",
+    "STA carry Nature's Prophet (W, 30m) :: [NEVER_ACTIVATED] item_mjollnir bought 18:04, in inventory at end (12.2 min), uses 0"
+   ],
+   "random_turbo": [
+    "TUR support Lina (L, 38m) :: [NEVER_ACTIVATED] item_mjollnir bought 27:10, in inventory at end (11.3 min), uses 0",
+    "TUR mid Sniper (W, 24m) :: [NEVER_ACTIVATED] item_mjollnir bought 16:10, in inventory at end (8.2 min), uses 0",
+    "TUR carry Alchemist (W, 26m) :: [NEVER_ACTIVATED] item_black_king_bar bought 19:45, in inventory at end (6.6 min), uses 0",
+    "TUR mid Sniper (W, 24m) :: [NEVER_ACTIVATED] item_mjollnir bought 7:43, in inventory at end (16.5 min), uses 0"
+   ],
+   "raw_not_tuned": [
+    "STA offlane Viper (L, 33m) :: ",
+    "STA support Warlock (W, 46m) :: ",
+    "TUR support Warlock (W, 28m) :: "
+   ]
+  },
+  "I2_ACTIVATION_RATE_EXTREME": {
+   "extreme": [
+    "STA mid Tinker (W, 51m) :: [HIGH_USE] item_blink held 39.2 min (bought 12:14), activated 105x (26.79/10min)",
+    "STA mid Tinker (W, 40m) :: [HIGH_USE] item_blink held 29.0 min (bought 11:03), activated 79x (27.24/10min)",
+    "STA mid Tinker (W, 45m) :: [HIGH_USE] item_blink held 34.2 min (bought 11:34), activated 101x (29.53/10min)",
+    "STA mid Tinker (W, 38m) :: [HIGH_USE] item_blink held 25.8 min (bought 12:42), activated 91x (35.27/10min)"
+   ],
+   "borderline": [
+    "STA carry Drow Ranger (W, 90m) :: [LOW_USE] item_black_king_bar held 28.6 min (bought 61:45), activated 0x (0.00/10min)",
+    "TUR carry Lone Druid (W, 45m) :: [LOW_USE] item_black_king_bar held 21.1 min (bought 24:22), activated 0x (0.00/10min)",
+    "TUR support Ogre Magi (L, 38m) :: [LOW_USE] item_glimmer_cape held 17.8 min (bought 20:26), activated 0x (0.00/10min)",
+    "STA mid Void Spirit (W, 53m) :: [LOW_USE] item_manta held 19.9 min (bought 33:49), activated 0x (0.00/10min)"
+   ],
+   "random_standard": [
+    "STA support Silencer (L, 48m) :: [HIGH_USE] item_force_staff held 29.3 min (bought 18:53), activated 29x (9.90/10min)",
+    "STA offlane Snapfire (L, 49m) :: [LOW_USE] item_black_king_bar held 16.6 min (bought 32:24), activated 1x (0.60/10min)",
+    "STA offlane Wraith King (W, 54m) :: [HIGH_USE] item_blink held 31.4 min (bought 23:07), activated 59x (18.79/10min)",
+    "STA carry Templar Assassin (W, 35m) :: [HIGH_USE] item_blink held 17.5 min (bought 18:16), activated 34x (19.43/10min)"
+   ],
+   "random_turbo": [
+    "TUR support Tiny (W, 35m) :: [HIGH_USE] item_black_king_bar held 15.4 min (bought 20:27), activated 7x (4.55/10min)",
+    "TUR offlane Juggernaut (W, 25m) :: [HIGH_USE] item_manta held 16.0 min (bought 9:50), activated 17x (10.62/10min)",
+    "TUR mid Invoker (W, 33m) :: [HIGH_USE] item_sheepstick held 16.2 min (bought 17:13), activated 20x (12.35/10min)",
+    "TUR mid Jakiro (L, 29m) :: [HIGH_USE] item_force_staff held 21.3 min (bought 8:12), activated 18x (8.45/10min)"
+   ]
+  },
+  "I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "extreme": [
+    "STA support Tiny (W, 44m) :: [ENEMY_EARLY_ITEM] Kunkka (P2) black_king_bar at 17:36 (core p5 21:28, p10 22:57)",
+    "STA mid Storm Spirit (L, 24m) :: [ENEMY_EARLY_ITEM] Dawnbreaker (P3) black_king_bar at 17:31 (core p5 21:28, p10 22:57)",
+    "STA mid Arc Warden (L, 41m) :: [ENEMY_EARLY_ITEM] Storm Spirit (P2) black_king_bar at 17:04 (core p5 21:28, p10 22:57)",
+    "STA carry Spectre (L, 49m) :: [ENEMY_EARLY_ITEM] Primal Beast (P3) black_king_bar at 15:46 (core p5 21:28, p10 22:57)"
+   ],
+   "borderline": [
+    "TUR carry Nature's Prophet (W, 40m) :: [ENEMY_EARLY_ITEM] Legion Commander (P2) blink at 4:27 (core p5 4:27, p10 4:59)",
+    "TUR offlane Slardar (L, 21m) :: [ENEMY_EARLY_ITEM] Phantom Assassin (P1) desolator at 6:29 (core p5 6:29, p10 6:45)",
+    "TUR support Mirana (L, 19m) :: [ENEMY_EARLY_ITEM] Legion Commander (P3) black_king_bar at 10:39 (core p5 10:39, p10 11:36)",
+    "TUR offlane Queen of Pain (L, 30m) :: [ENEMY_EARLY_ITEM] Clinkz (P3) desolator at 6:29 (core p5 6:29, p10 6:45)"
+   ],
+   "random_standard": [
+    "STA carry Nature's Prophet (L, 33m) :: [ENEMY_EARLY_ITEM] Storm Spirit (P2) orchid at 12:17 (core p5 12:41, p10 13:35)",
+    "STA carry Spectre (L, 54m) :: [ENEMY_EARLY_ITEM] Centaur Warrunner (P3) blink at 9:52 (core p5 9:53, p10 10:40)",
+    "STA mid Arc Warden (W, 37m) :: [ENEMY_EARLY_ITEM] Earthshaker (P2) blink at 9:10 (core p5 9:53, p10 10:40)",
+    "STA offlane Legion Commander (W, 46m) :: [ENEMY_EARLY_ITEM] Nyx Assassin (P3) ultimate_scepter at 14:58 (core p5 16:05, p10 17:56)"
+   ],
+   "random_turbo": [
+    "TUR offlane Slardar (W, 24m) :: [ENEMY_EARLY_ITEM] Lion (P3) blink at 3:57 (core p5 4:27, p10 4:59)",
+    "TUR mid Viper (L, 16m) :: [ENEMY_EARLY_ITEM] Lina (P2) maelstrom at 4:56 (core p5 5:07, p10 5:35)",
+    "TUR carry Chaos Knight (L, 30m) :: [ENEMY_EARLY_ITEM] Phantom Assassin (P1) desolator at 6:19 (core p5 6:29, p10 6:45)",
+    "TUR offlane Tinker (L, 23m) :: [ENEMY_EARLY_ITEM] Sand King (P2) blink at 3:11 (core p5 4:27, p10 4:59)"
+   ],
+   "raw_not_tuned": [
+    "STA support Earthshaker (L, 46m) :: [ENEMY_EARLY_ITEM] Io (P2) ultimate_scepter at 17:18 (core p5 16:05, p10 17:56)",
+    "TUR support Shadow Shaman (W, 24m) :: [ENEMY_EARLY_ITEM] Juggernaut (P1) bfury at 5:57 (core p5 5:48, p10 6:22)",
+    "STA mid Kunkka (W, 38m) :: [ENEMY_EARLY_ITEM] Razor (P1) black_king_bar at 22:40 (core p5 21:28, p10 22:57)"
+   ]
+  },
+  "I4_LANE_ITEM_RACE": {
+   "extreme": [
+    "STA mid Arc Warden (L, 73m) :: [ITEM_RACE] blink: you 64:15 vs Shadow Fiend 9:09 (\u039455:06)",
+    "STA mid Shadow Fiend (W, 73m) :: [ITEM_RACE] blink: you 9:09 vs Arc Warden 64:15 (\u039455:06)",
+    "STA offlane Axe (W, 96m) :: [ITEM_RACE] blink: you 11:14 vs Tiny 90:18 (\u039479:04)",
+    "STA carry Tiny (L, 96m) :: [ITEM_RACE] blink: you 90:18 vs Axe 11:14 (\u039479:04)"
+   ],
+   "borderline": [
+    "TUR mid Sniper (W, 24m) :: [ITEM_RACE] ultimate_scepter: you 8:22 vs Meepo 22:55 (\u039414:33)",
+    "TUR mid Meepo (L, 24m) :: [ITEM_RACE] ultimate_scepter: you 22:55 vs Sniper 8:22 (\u039414:33)",
+    "TUR offlane Mirana (L, 26m) :: [ITEM_RACE] ultimate_scepter: you 8:45 vs Razor 23:20 (\u039414:35)",
+    "TUR carry Razor (W, 26m) :: [ITEM_RACE] ultimate_scepter: you 23:20 vs Mirana 8:45 (\u039414:35)"
+   ],
+   "random_standard": [
+    "STA mid Zeus (L, 72m) :: [ITEM_RACE] cyclone: you 25:06 vs Storm Spirit 55:27 (\u039430:21)",
+    "STA offlane Slardar (W, 73m) :: [ITEM_RACE] ultimate_scepter: you 63:58 vs Lifestealer 29:13 (\u039434:45)",
+    "STA mid Invoker (L, 66m) :: [ITEM_RACE] ultimate_scepter: you 52:29 vs Pudge 14:51 (\u039437:38)",
+    "STA carry Juggernaut (L, 40m) :: [ITEM_RACE] blink: you 35:13 vs Axe 13:00 (\u039422:13)"
+   ],
+   "random_turbo": [
+    "TUR carry Faceless Void (L, 30m) :: [ITEM_RACE] ultimate_scepter: you 28:42 vs Sand King 11:21 (\u039417:21)",
+    "TUR mid Slark (L, 28m) :: [ITEM_RACE] ultimate_scepter: you 8:47 vs Arc Warden 28:04 (\u039419:17)",
+    "TUR carry Slark (W, 34m) :: [ITEM_RACE] ultimate_scepter: you 11:27 vs Techies 27:09 (\u039415:42)",
+    "TUR offlane Doom (L, 29m) :: [ITEM_RACE] blink: you 6:37 vs Morphling 25:11 (\u039418:34)"
+   ],
+   "raw_not_tuned": [
+    "TUR carry Chaos Knight (L, 25m) :: [ITEM_RACE] heart: you 11:22 vs Pudge 22:12 (\u039410:50)",
+    "TUR offlane Dragon Knight (L, 45m) :: [ITEM_RACE] black_king_bar: you 10:08 vs Lone Druid 24:22 (\u039414:14)",
+    "TUR offlane Pudge (W, 33m) :: [ITEM_RACE] blink: you 5:05 vs Juggernaut 17:54 (\u039412:49)"
+   ]
+  },
+  "I5_ENEMY_SPIKE_CLUSTER": {
+   "extreme": [
+    "TUR support Omniknight (L, 17m) :: [SPIKE_CLUSTER] from 5:54: Undying guardian_greaves 5:54; Undying ultimate_scepter 9:37; Enchantress hurricane_pike 9:47",
+    "TUR mid Skywrath Mage (L, 20m) :: [SPIKE_CLUSTER] from 5:53: Pudge ultimate_scepter 5:53; Bristleback ultimate_scepter 9:17; Drow Ranger manta 9:50",
+    "TUR offlane Largo (L, 30m) :: [SPIKE_CLUSTER] from 5:45: Necrophos radiance 5:45; Razor manta 7:06; Lone Druid ultimate_scepter 9:06",
+    "TUR support Dawnbreaker (W, 21m) :: [SPIKE_CLUSTER] from 5:34: Sniper ultimate_scepter 5:34; Nature's Prophet bloodthorn 7:27; Abaddon radiance 9:19"
+   ],
+   "borderline": [
+    "STA offlane Legion Commander (L, 28m) :: [SPIKE_CLUSTER] from 21:26: Rubick yasha_and_kaya 21:26; Rubick ultimate_scepter 24:47; Faceless Void ultimate_scepter 24:56",
+    "STA offlane Pangolier (W, 49m) :: [SPIKE_CLUSTER] from 21:26: Lina ultimate_scepter 21:26; Phantom Lancer ultimate_scepter 22:59; Lina yasha_and_kaya 23:40",
+    "STA support Nature's Prophet (L, 39m) :: [SPIKE_CLUSTER] from 21:25: Phantom Assassin manta 21:25; Shadow Fiend shivas_guard 22:13; Slardar harpoon 22:44",
+    "STA offlane Slark (L, 34m) :: [SPIKE_CLUSTER] from 21:25: Magnus yasha_and_kaya 21:25; Spectre manta 21:47; Queen of Pain kaya_and_sange 22:12"
+   ],
+   "random_standard": [
+    "STA support Lion (L, 30m) :: [SPIKE_CLUSTER] from 20:45: Death Prophet ultimate_scepter 20:45; Invoker ultimate_scepter 22:41; Faceless Void manta 23:50",
+    "STA mid Kunkka (L, 39m) :: [SPIKE_CLUSTER] from 17:58: Windranger mjollnir 17:58; Death Prophet kaya_and_sange 19:09; Lina ultimate_scepter 20:15; Lina yasha_and_kaya 21:30",
+    "STA carry Dragon Knight (L, 31m) :: [SPIKE_CLUSTER] from 21:11: Anti-Mage manta 21:11; Mars black_king_bar 22:23; Void Spirit octarine_core 24:06",
+    "STA offlane Legion Commander (L, 43m) :: [SPIKE_CLUSTER] from 17:28: Necrophos radiance 17:28; Primal Beast black_king_bar 19:54; Tiny silver_edge 20:11"
+   ],
+   "random_turbo": [
+    "TUR offlane Largo (L, 30m) :: [SPIKE_CLUSTER] from 5:45: Necrophos radiance 5:45; Razor manta 7:06; Lone Druid ultimate_scepter 9:06",
+    "TUR mid Razor (L, 21m) :: [SPIKE_CLUSTER] from 7:31: Pudge ultimate_scepter 7:31; Underlord ultimate_scepter 8:48; Morphling manta 10:12; Pudge black_king_bar 11:15",
+    "TUR carry Phantom Assassin (L, 20m) :: [SPIKE_CLUSTER] from 8:03: Razor sange_and_yasha 8:03; Centaur Warrunner heart 8:12; Lifestealer radiance 9:39; Razor black_king_bar 11:11",
+    "TUR carry Lone Druid (L, 29m) :: [SPIKE_CLUSTER] from 7:41: Dark Seer guardian_greaves 7:41; Lina ultimate_scepter 10:12; Anti-Mage manta 11:25"
+   ],
+   "raw_not_tuned": [
+    "TUR support Techies (L, 21m) :: [SPIKE_CLUSTER] from 13:26: Sniper mjollnir 13:26; Sven greater_crit 13:38; Sven ultimate_scepter 14:58; Lina greater_crit 15:20; Sven harpoon 15:36; Sniper greater_crit 17:10",
+    "STA support Silencer (W, 39m) :: [SPIKE_CLUSTER] from 29:30: Dragon Knight black_king_bar 29:30; Kez ultimate_scepter 32:09; Arc Warden black_king_bar 33:09",
+    "STA carry Windranger (L, 54m) :: [SPIKE_CLUSTER] from 41:29: Void Spirit black_king_bar 41:29; Juggernaut abyssal_blade 42:58; Bristleback sange_and_yasha 44:30"
+   ]
+  },
+  "I6_SPIKE_BEFORE_TURN": {
+   "extreme": [
+    "TUR support Vengeful Spirit (L, 18m) :: [DEFICIT_DEEPENED] 13:00\u201318:00 lead -2727 \u2192 -35386 (\u039432659, 19% of all NW) | structures fell (losing side) 8, death margin 14 | enemy items [('Shadow Fiend', 'black_king_bar', '11:36'), ('Razor', 'kaya_and_sange', '11:58'), ('Bristleback', 'heart', '13:28'), ('Razor', 'black_king_bar', '13:58')]",
+    "TUR support Tiny (L, 25m) :: [DEFICIT_DEEPENED] 14:00\u201319:00 lead -16390 \u2192 -49384 (\u039432994, 20% of all NW) | structures fell (losing side) 4, death margin 12 | enemy items [('Hoodwink', 'sphere', '11:27'), ('Ursa', 'sange_and_yasha', '12:31'), ('Hoodwink', 'monkey_king_bar', '14:38'), ('Kunkka', 'assault', '14:56')]",
+    "TUR support Drow Ranger (L, 19m) :: [DEFICIT_DEEPENED] 14:00\u201319:00 lead -17823 \u2192 -51821 (\u039433998, 21% of all NW) | structures fell (losing side) 13, death margin 9 | enemy items [('Anti-Mage', 'manta', '11:05'), ('Queen of Pain', 'ultimate_scepter', '12:01'), ('Queen of Pain', 'kaya_and_sange', '14:03'), ('Anti-Mage', 'abyssal_blade', '14:38'), ('Snapfire', 'satanic', '14:53')]",
+    "TUR support Treant Protector (L, 20m) :: [DEFICIT_DEEPENED] 15:00\u201320:00 lead -13569 \u2192 -47099 (\u039433530, 20% of all NW) | structures fell (losing side) 11, death margin 8 | enemy items [('Windranger', 'nullifier', '12:16'), ('Drow Ranger', 'manta', '12:48'), ('Juggernaut', 'ultimate_scepter', '13:12'), ('Windranger', 'satanic', '14:46'), ('Drow Ranger', 'hurricane_pike', '15:33')]"
+   ],
+   "borderline": [
+    "STA support Dazzle (L, 34m) :: [DEFICIT_DEEPENED] 26:00\u201334:00 lead -13907 \u2192 -39792 (\u039425885, 21% of all NW) | structures fell (losing side) 13, death margin 14 | enemy items [('Zeus', 'ultimate_scepter', '24:58')]",
+    "STA offlane Necrophos (L, 30m) :: [DEFICIT_DEEPENED] 22:00\u201330:00 lead -13688 \u2192 -35594 (\u039421906, 19% of all NW) | structures fell (losing side) 13, death margin 12 | enemy items [('Tidehunter', 'guardian_greaves', '19:15')]",
+    "TUR carry Phantom Lancer (L, 17m) :: [DEFICIT_DEEPENED] 12:00\u201317:00 lead -15023 \u2192 -52253 (\u039437230, 24% of all NW) | structures fell (losing side) 10, death margin 15 | enemy items [('Juggernaut', 'manta', '12:05')]",
+    "TUR support Nature's Prophet (L, 25m) :: [DEFICIT_DEEPENED] 11:00\u201316:00 lead -4627 \u2192 -29130 (\u039424503, 20% of all NW) | structures fell (losing side) 3, death margin 12 | enemy items [('Meepo', 'sange_and_yasha', '9:11')]"
+   ],
+   "random_standard": [
+    "STA offlane Tidehunter (L, 32m) :: [DEFICIT_DEEPENED] 24:00\u201332:00 lead -13151 \u2192 -34894 (\u039421743, 17% of all NW) | structures fell (losing side) 10, death margin 14 | enemy items [('Lifestealer', 'sange_and_yasha', '21:50')]",
+    "STA support Crystal Maiden (L, 29m) :: [DEFICIT_DEEPENED] 20:00\u201328:00 lead -11177 \u2192 -38741 (\u039427564, 27% of all NW) | structures fell (losing side) 13, death margin 21 | enemy items [('Phantom Lancer', 'ultimate_scepter', '20:11')]",
+    "STA carry Invoker (L, 41m) :: [DEFICIT_DEEPENED] 30:00\u201338:00 lead -10175 \u2192 -40396 (\u039430221, 19% of all NW) | structures fell (losing side) 12, death margin 16 | enemy items [('Beastmaster', 'kaya_and_sange', '30:50')]",
+    "STA support Nature's Prophet (L, 29m) :: [DEFICIT_DEEPENED] 21:00\u201329:00 lead -6227 \u2192 -27640 (\u039421413, 18% of all NW) | structures fell (losing side) 5, death margin 17 | enemy items [('Earthshaker', 'ultimate_scepter', '20:05'), ('Ursa', 'black_king_bar', '21:19')]"
+   ],
+   "random_turbo": [
+    "TUR support Witch Doctor (L, 16m) :: [DEFICIT_DEEPENED] 10:00\u201315:00 lead -16268 \u2192 -40726 (\u039424458, 21% of all NW) | structures fell (losing side) 11, death margin 7 | enemy items [('Sniper', 'hurricane_pike', '9:01'), ('Zeus', 'ultimate_scepter', '9:25')]",
+    "TUR carry Phantom Lancer (L, 17m) :: [DEFICIT_DEEPENED] 12:00\u201317:00 lead -15023 \u2192 -52253 (\u039437230, 24% of all NW) | structures fell (losing side) 10, death margin 15 | enemy items [('Juggernaut', 'manta', '12:05')]",
+    "TUR offlane Zeus (L, 21m) :: [DEFICIT_DEEPENED] 12:00\u201317:00 lead -6290 \u2192 -35318 (\u039429028, 23% of all NW) | structures fell (losing side) 8, death margin 10 | enemy items [('Queen of Pain', 'bloodthorn', '11:46')]",
+    "TUR offlane Centaur Warrunner (L, 34m) :: [FLIPPED_AGAINST] 10:00\u201315:00 lead +3734 \u2192 -18247 (\u039421981, 20% of all NW) | structures fell (losing side) 3, death margin 13 | enemy items [('Wraith King', 'harpoon', '9:48'), ('Zeus', 'ultimate_scepter', '10:04')]"
+   ]
+  },
+  "I7_FIRST_ACTIVATION_DELAY": {
+   "extreme": [
+    "STA carry Windranger (L, 62m) :: [DELAYED_FIRST_USE] item_satanic bought 44:10, first used 52:30",
+    "STA carry Drow Ranger (W, 53m) :: [DELAYED_FIRST_USE] item_manta bought 17:47, first used 28:01",
+    "STA carry Lina (L, 80m) :: [DELAYED_FIRST_USE] item_satanic bought 54:26, first used 65:38",
+    "STA offlane Necrophos (W, 80m) :: [DELAYED_FIRST_USE] item_black_king_bar bought 36:44, first used 53:06"
+   ],
+   "borderline": [
+    "TUR support Shadow Shaman (L, 30m) :: [DELAYED_FIRST_USE] item_black_king_bar bought 16:59, first used 24:14",
+    "STA offlane Wraith King (W, 62m) :: [DELAYED_FIRST_USE] item_black_king_bar bought 43:50, first used 51:11",
+    "TUR offlane Underlord (L, 38m) :: [DELAYED_FIRST_USE] item_lotus_orb bought 20:22, first used 28:17",
+    "STA carry Windranger (L, 62m) :: [DELAYED_FIRST_USE] item_satanic bought 44:10, first used 52:30"
+   ],
+   "random_standard": [
+    "STA carry Windranger (L, 62m) :: [DELAYED_FIRST_USE] item_satanic bought 44:10, first used 52:30",
+    "STA offlane Wraith King (W, 62m) :: [DELAYED_FIRST_USE] item_black_king_bar bought 43:50, first used 51:11",
+    "STA carry Lina (L, 80m) :: [DELAYED_FIRST_USE] item_satanic bought 54:26, first used 65:38",
+    "STA offlane Necrophos (W, 80m) :: [DELAYED_FIRST_USE] item_black_king_bar bought 36:44, first used 53:06"
+   ],
+   "random_turbo": [
+    "TUR offlane Underlord (L, 38m) :: [DELAYED_FIRST_USE] item_lotus_orb bought 20:22, first used 28:17",
+    "TUR support Shadow Shaman (L, 30m) :: [DELAYED_FIRST_USE] item_black_king_bar bought 16:59, first used 24:14"
+   ],
+   "raw_not_tuned": [
+    "TUR support Shadow Shaman (W, 35m) :: [DELAYED_FIRST_USE] item_black_king_bar bought 29:43, first used 32:56",
+    "STA support Witch Doctor (W, 43m) :: [DELAYED_FIRST_USE] item_blink bought 15:11, first used 19:19",
+    "TUR mid Phoenix (W, 21m) :: [DELAYED_FIRST_USE] item_black_king_bar bought 14:31, first used 20:33"
+   ]
+  },
+  "I8_OWN_ITEM_TIMING_VS_HISTORY": {}
+ },
+ "history_examples": {
+  "L5_COUNTERPART_EXTREME_START": [
+   "acct0 STA mid Earthshaker: 61 vs prior n=10 median 42.0 range [21,60] :: [None] Legion Commander (P2) opp_cs_late=61 @10:00 (bucket p90 for P2: 63)",
+   "acct0 STA mid Earthshaker: 65 vs prior n=11 median 45 range [21,61] :: [STRONG] Meepo (P2) opp_cs_late=65 @10:00 (bucket p90 for P2: 63)",
+   "acct0 STA support Witch Doctor: 3298 vs prior n=11 median 1937 range [1420,2654] :: [STRONG] Mirana (P4) opp_nw_late=3298 @10:00 (bucket p90 for P4: 2762)",
+   "acct0 STA mid Lina: 72 vs prior n=45 median 45 range [21,65] :: [STRONG] Tinker (P2) opp_cs_late=72 @10:00 (bucket p90 for P2: 63)",
+   "acct1 STA mid Zeus: 60 vs prior n=11 median 43 range [16,53] :: [None] Kunkka (P2) opp_cs_late=60 @10:00 (bucket p90 for P2: 63)",
+   "acct1 STA carry Spectre: 55 vs prior n=26 median 41.0 range [24,53] :: [STRONG] Underlord (P3) opp_cs_late=55 @10:00 (bucket p90 for P3: 53)",
+   "acct2 STA mid Storm Spirit: 70 vs prior n=10 median 51.5 range [32,67] :: [STRONG] Lina (P2) opp_cs_late=70 @10:00 (bucket p90 for P2: 63)",
+   "acct2 STA mid Invoker: 88 vs prior n=18 median 53.5 range [32,70] :: [STRONG] Beastmaster (P2) opp_cs_late=88 @10:00 (bucket p90 for P2: 63)"
+  ],
+  "L6_OWN_LANE_VS_USUAL": [
+   "acct0 STA mid Earthshaker: -2165 vs prior n=18 median 345.0 range [-1008,1889] :: lane NW diff -2165 vs Necrophos",
+   "acct0 STA support Witch Doctor: -1203 vs prior n=11 median -95 range [-993,1113] :: lane NW diff -1203 vs Mirana",
+   "acct0 STA offlane Death Prophet: 2282 vs prior n=11 median -259 range [-1756,1717] :: lane NW diff 2282 vs Drow Ranger",
+   "acct1 STA support Venomancer: -1119 vs prior n=14 median -75.5 range [-1106,1099] :: lane NW diff -1119 vs Windranger",
+   "acct1 STA mid Zeus: -1909 vs prior n=10 median -535.0 range [-1427,1211] :: lane NW diff -1909 vs Arc Warden",
+   "acct1 STA support Venomancer: -1185 vs prior n=25 median -74 range [-1119,1099] :: lane NW diff -1185 vs Witch Doctor",
+   "acct1 STA support Venomancer: -1229 vs prior n=36 median -61.0 range [-1185,1099] :: lane NW diff -1229 vs Wraith King",
+   "acct1 STA offlane Venomancer: -2663 vs prior n=10 median -280.0 range [-1464,621] :: lane NW diff -2663 vs Bloodseeker"
+  ],
+  "H1_ENEMY_STACKING": [
+   "acct0 STA carry Juggernaut: 8 vs prior n=11 median 3 range [0,7] :: [ENEMY_STACKED_MORE] enemy 8 vs your team 5 camps stacked by 20:00",
+   "acct0 STA mid Death Prophet: 9 vs prior n=28 median 4.0 range [0,8] :: [ENEMY_STACKED_MORE] enemy 9 vs your team 2 camps stacked by 20:00",
+   "acct0 STA support Pudge: 11 vs prior n=43 median 4 range [0,9] :: [ENEMY_STACKED_MORE] enemy 11 vs your team 4 camps stacked by 20:00",
+   "acct0 STA offlane Death Prophet: 15 vs prior n=82 median 4.0 range [0,11] :: [ENEMY_STACKED_MORE] enemy 15 vs your team 6 camps stacked by 20:00",
+   "acct0 STA support Shadow Shaman: 18 vs prior n=84 median 4.0 range [0,15] :: [ENEMY_STACKED_MORE] enemy 18 vs your team 10 camps stacked by 20:00",
+   "acct1 STA mid Zeus: 7 vs prior n=10 median 3.0 range [1,6] :: [ENEMY_STACKED_MORE] enemy 7 vs your team 0 camps stacked by 20:00",
+   "acct1 STA support Venomancer: 9 vs prior n=19 median 2 range [0,7] :: [ENEMY_STACKED_MORE] enemy 9 vs your team 0 camps stacked by 20:00",
+   "acct2 STA mid Invoker: 11 vs prior n=12 median 3.0 range [0,10] :: [ENEMY_STACKED_MORE] enemy 11 vs your team 5 camps stacked by 20:00"
+  ],
+  "H2_ENEMY_VISION": [
+   "acct0 STA carry Juggernaut: 28 vs prior n=12 median 18.5 range [9,26] :: [HEAVY_ENEMY_VISION] enemy placed 28 observers (yours 26); destroyed 9 of yours (35%); you destroyed 8",
+   "acct0 STA support Earthshaker: 33 vs prior n=57 median 17 range [9,28] :: [HEAVY_ENEMY_VISION+OUR_VISION_CLEARED] enemy placed 33 observers (yours 35); destroyed 19 of yours (54%); you destroyed 13",
+   "acct1 STA offlane Spirit Breaker: 31 vs prior n=35 median 19 range [11,26] :: [HEAVY_ENEMY_VISION] enemy placed 31 observers (yours 28); destroyed 7 of yours (25%); you destroyed 10",
+   "acct2 STA mid Storm Spirit: 31 vs prior n=14 median 17.0 range [9,21] :: [HEAVY_ENEMY_VISION] enemy placed 31 observers (yours 33); destroyed 7 of yours (21%); you destroyed 13",
+   "acct2 STA carry Faceless Void: 32 vs prior n=74 median 17.0 range [9,31] :: [HEAVY_ENEMY_VISION] enemy placed 32 observers (yours 32); destroyed 11 of yours (34%); you destroyed 11",
+   "acct3 STA carry Faceless Void: 33 vs prior n=51 median 16 range [9,30] :: [HEAVY_ENEMY_VISION+OUR_VISION_CLEARED] enemy placed 33 observers (yours 31); destroyed 15 of yours (48%); you destroyed 4",
+   "acct4 TUR offlane Zeus: 17 vs prior n=15 median 10 range [5,15] :: [HEAVY_ENEMY_VISION] enemy placed 17 observers (yours 19); destroyed 5 of yours (26%); you destroyed 6",
+   "acct4 TUR support Hoodwink: 20 vs prior n=43 median 11 range [4,17] :: [HEAVY_ENEMY_VISION+OUR_VISION_CLEARED] enemy placed 20 observers (yours 16); destroyed 10 of yours (62%); you destroyed 2"
+  ],
+  "H3_ENEMY_SMOKES": [
+   "acct0 STA carry Juggernaut: 10 vs prior n=12 median 4.0 range [0,7] :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 10 times (your team 7)",
+   "acct0 STA support Earthshaker: 12 vs prior n=57 median 5 range [0,10] :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 12 times (your team 12)",
+   "acct2 STA mid Storm Spirit: 11 vs prior n=14 median 4.5 range [0,7] :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 11 times (your team 6)",
+   "acct3 STA support Nature's Prophet: 5 vs prior n=22 median 2.0 range [0,4] :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 5 times (your team 0)",
+   "acct3 STA mid Void Spirit: 7 vs prior n=34 median 1.5 range [0,5] :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 7 times (your team 0)",
+   "acct3 TUR offlane Wraith King: 4 vs prior n=10 median 0.5 range [0,3] :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 4 times (your team 0)",
+   "acct4 STA mid Hoodwink: 11 vs prior n=19 median 4 range [0,8] :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 11 times (your team 11)",
+   "acct5 TUR offlane Legion Commander: 5 vs prior n=13 median 1 range [0,3] :: [ENEMY_SMOKE_HEAVY] enemy used Smoke 5 times (your team 1)"
+  ],
+  "H6_ENEMY_FAST_CORE": [
+   "acct0 STA mid Earthshaker: 18 vs prior n=34 median 21.0 range [19,26] :: [ENEMY_EARLY_RICH] Necrophos (P2) reached 10000 NW at 18:00; your team's first at 26:00",
+   "acct0 STA support Shadow Shaman: 17 vs prior n=68 median 21.0 range [18,26] :: [ENEMY_EARLY_RICH] Bristleback (P3) reached 10000 NW at 17:00; your team's first at 23:00",
+   "acct1 STA mid Zeus: 19 vs prior n=10 median 24.0 range [21,26] :: [ENEMY_EARLY_RICH] Sniper (P1) reached 10000 NW at 19:00; your team's first at 25:00",
+   "acct1 STA support Abaddon: 18 vs prior n=55 median 22 range [19,28] :: [ENEMY_EARLY_RICH] Wraith King (P1) reached 10000 NW at 18:00; your team's first at 20:00",
+   "acct2 STA mid Invoker: 16 vs prior n=12 median 20.5 range [17,25] :: [ENEMY_EARLY_RICH] Alchemist (P2) reached 10000 NW at 16:00; your team's first at 19:00",
+   "acct2 STA carry Juggernaut: 15 vs prior n=73 median 20 range [16,26] :: [ENEMY_EARLY_RICH] Shadow Fiend (P1) reached 10000 NW at 15:00; your team's first at 20:00",
+   "acct3 STA carry Terrorblade: 15 vs prior n=55 median 21 range [16,29] :: [ENEMY_EARLY_RICH] Kez (P2) reached 10000 NW at 15:00; your team's first at 20:00",
+   "acct4 TUR support Hoodwink: 11 vs prior n=38 median 14.0 range [12,18] :: [ENEMY_EARLY_RICH] Ogre Magi (P5) reached 15000 NW at 11:00; your team's first at 17:00"
+  ],
+  "I3_ENEMY_EARLY_SPIKE_ITEM": [
+   "acct0 STA support Earthshaker: 1352 vs prior n=13 median 1743 range [1594,2629] :: [ENEMY_EARLY_ITEM] Monkey King (P1) black_king_bar at 22:32 (core p5 21:28, p10 22:57)",
+   "acct0 STA carry Slark: 1256 vs prior n=35 median 1728 range [1352,2629] :: [ENEMY_EARLY_ITEM] Phantom Assassin (P1) black_king_bar at 20:56 (core p5 21:28, p10 22:57)",
+   "acct0 STA support Witch Doctor: 1118 vs prior n=39 median 1691 range [1256,2629] :: [ENEMY_EARLY_ITEM] Sven (P1) black_king_bar at 18:38 (core p5 21:28, p10 22:57)",
+   "acct1 STA offlane Spirit Breaker: 1118 vs prior n=16 median 2027.5 range [1412,3003] :: [ENEMY_EARLY_ITEM] Primal Beast (P2) black_king_bar at 18:38 (core p5 21:28, p10 22:57)",
+   "acct2 STA mid Invoker: 1194 vs prior n=17 median 1709 range [1241,2054] :: [ENEMY_EARLY_ITEM] Primal Beast (P2) black_king_bar at 19:54 (core p5 21:28, p10 22:57)",
+   "acct2 STA mid Invoker: 1145 vs prior n=22 median 1692.5 range [1194,2054] :: [ENEMY_EARLY_ITEM] Beastmaster (P2) ultimate_scepter at 12:29 (core p5 16:05, p10 17:56)",
+   "acct3 STA mid Tinker: 1317 vs prior n=17 median 1780 range [1343,2666] :: [ENEMY_EARLY_ITEM] Shadow Fiend (P2) black_king_bar at 21:57 (core p5 21:28, p10 22:57)",
+   "acct3 STA mid Tinker: 1297 vs prior n=25 median 1780 range [1317,2666] :: [ENEMY_EARLY_ITEM] Axe (P3) black_king_bar at 21:37 (core p5 21:28, p10 22:57)"
+  ],
+  "I8_OWN_ITEM_TIMING_VS_HISTORY": [
+   "acct0 STA Earthshaker item_blink: 9:54 vs prior n=15 best 9:57 median 17:25",
+   "acct0 STA Death Prophet item_ultimate_scepter: 16:08 vs prior n=24 best 19:03 median 26:37",
+   "acct0 STA Death Prophet item_ultimate_scepter: 16:05 vs prior n=43 best 16:08 median 24:21",
+   "acct0 STA Death Prophet item_black_king_bar: 23:58 vs prior n=28 best 25:12 median 30:59",
+   "acct1 STA Spectre item_hand_of_midas: 12:21 vs prior n=10 best 13:15 median 15:17",
+   "acct2 STA Alchemist item_blink: 6:54 vs prior n=16 best 12:29 median 28:24",
+   "acct2 STA Pudge item_ultimate_scepter: 16:19 vs prior n=25 best 20:05 median 30:40",
+   "acct2 STA Magnus item_black_king_bar: 24:58 vs prior n=11 best 25:41 median 30:18"
+  ]
+ },
+ "diagnostics": {
+  "I6_hit_vs_control": [
+   63,
+   17,
+   90
+  ],
+  "T1_shapes_all_windows": {
+   "STANDARD": {
+    "DEFICIT_DEEPENED": 43,
+    "LEAD_EXTENDED": 43,
+    "FLIPPED_FOR": 4,
+    "FLIPPED_AGAINST": 4,
+    "SWUNG_AGAINST": 2,
+    "SWUNG_FOR": 2
+   },
+   "TURBO": {
+    "LEAD_EXTENDED": 33,
+    "DEFICIT_DEEPENED": 33,
+    "FLIPPED_FOR": 6,
+    "FLIPPED_AGAINST": 6,
+    "SWUNG_FOR": 2,
+    "SWUNG_AGAINST": 2
+   }
+  },
+  "T1_tuned_start_minute_p50": {
+   "STANDARD": 21,
+   "TURBO": 14
+  },
+  "L1_shapes": {
+   "STANDARD_core": {
+    "SMALL_GAP": 39.9,
+    "MODERATE_AHEAD": 19.8,
+    "MODERATE_BEHIND": 19.8,
+    "DEAD_EVEN": 10.1,
+    "CRUSHED": 4.6,
+    "DOMINATED": 4.6,
+    "PULLED_AWAY": 0.4,
+    "FELL_BEHIND": 0.4,
+    "LOST_LEAD": 0.2,
+    "RECOVERED": 0.2
+   },
+   "STANDARD_support": {
+    "SMALL_GAP": 41.0,
+    "MODERATE_BEHIND": 19.2,
+    "MODERATE_AHEAD": 19.2,
+    "DEAD_EVEN": 9.0,
+    "CRUSHED": 4.3,
+    "DOMINATED": 4.3,
+    "LOST_LEAD": 0.8,
+    "RECOVERED": 0.8,
+    "FELL_BEHIND": 0.7,
+    "PULLED_AWAY": 0.7
+   },
+   "TURBO_core": {
+    "SMALL_GAP": 39.4,
+    "MODERATE_BEHIND": 19.8,
+    "MODERATE_AHEAD": 19.8,
+    "DEAD_EVEN": 10.6,
+    "DOMINATED": 4.7,
+    "CRUSHED": 4.7,
+    "FELL_BEHIND": 0.4,
+    "PULLED_AWAY": 0.4,
+    "LOST_LEAD": 0.2,
+    "RECOVERED": 0.2
+   },
+   "TURBO_support": {
+    "SMALL_GAP": 41.8,
+    "MODERATE_BEHIND": 19.1,
+    "MODERATE_AHEAD": 19.1,
+    "DEAD_EVEN": 8.1,
+    "CRUSHED": 3.9,
+    "DOMINATED": 3.9,
+    "FELL_BEHIND": 1.1,
+    "PULLED_AWAY": 1.1,
+    "LOST_LEAD": 1.0,
+    "RECOVERED": 1.0
+   }
+  }
+ },
+ "family_distribution": {
+  "lane": {
+   "0": 5814,
+   "1": 2042,
+   "2": 684,
+   "3": 266,
+   "4": 54
+  },
+  "turning": {
+   "0": 4271,
+   "1": 2303,
+   "2": 1051,
+   "3": 730,
+   "4": 505
+  },
+  "hidden": {
+   "0": 4370,
+   "1": 2945,
+   "2": 455,
+   "3": 835,
+   "4": 255
+  },
+  "items": {
+   "0": 5992,
+   "1": 2354,
+   "2": 457,
+   "3": 56,
+   "4": 1
+  }
+ },
+ "families_with_any": {
+  "0": 1152,
+  "1": 2794,
+  "2": 2923,
+  "3": 1611,
+  "4": 380
+ },
+ "cofire": {
+  "L1_LANE_LEAD_PATH|L2_LANE_SUSTAINED_FLIP": {
+   "both": 24,
+   "p_both_given_smaller": 0.35,
+   "lift": 3.27
+  },
+  "L1_LANE_LEAD_PATH|L3_CS_NW_SPLIT": {
+   "both": 8,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.61
+  },
+  "L1_LANE_LEAD_PATH|L4_LEVEL6_RACE": {
+   "both": 200,
+   "p_both_given_smaller": 0.37,
+   "lift": 3.42
+  },
+  "L1_LANE_LEAD_PATH|L5_COUNTERPART_EXTREME_START": {
+   "both": 259,
+   "p_both_given_smaller": 0.28,
+   "lift": 2.61
+  },
+  "L1_LANE_LEAD_PATH|L7_LANE_DEATH_TRADE": {
+   "both": 402,
+   "p_both_given_smaller": 0.42,
+   "lift": 2.5
+  },
+  "L1_LANE_LEAD_PATH|L8_SUPPORT_LANE_PAIR": {
+   "both": 120,
+   "p_both_given_smaller": 0.37,
+   "lift": 3.41
+  },
+  "L1_LANE_LEAD_PATH|T1_TURN_WINDOW": {
+   "both": 104,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.07
+  },
+  "L1_LANE_LEAD_PATH|T2_LEAD_FLIP": {
+   "both": 116,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.14
+  },
+  "L1_LANE_LEAD_PATH|T3_COMEBACK_OR_LOST_LEAD": {
+   "both": 106,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.09
+  },
+  "L1_LANE_LEAD_PATH|T4_STALLED_ADVANTAGE": {
+   "both": 21,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.34
+  },
+  "L1_LANE_LEAD_PATH|T5_CLASH_TO_STRUCTURES": {
+   "both": 342,
+   "p_both_given_smaller": 0.36,
+   "lift": 1.01
+  },
+  "L1_LANE_LEAD_PATH|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 87,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.88
+  },
+  "L1_LANE_LEAD_PATH|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 100,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.04
+  },
+  "L1_LANE_LEAD_PATH|T8_DEATH_HEAVY_TURN": {
+   "both": 100,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.05
+  },
+  "L1_LANE_LEAD_PATH|T9_TORMENTOR_IN_TURN": {
+   "both": 6,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.11
+  },
+  "L1_LANE_LEAD_PATH|H1_ENEMY_STACKING": {
+   "both": 101,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.3
+  },
+  "L1_LANE_LEAD_PATH|H2_ENEMY_VISION": {
+   "both": 164,
+   "p_both_given_smaller": 0.17,
+   "lift": 0.84
+  },
+  "L1_LANE_LEAD_PATH|H3_ENEMY_SMOKES": {
+   "both": 91,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.88
+  },
+  "L1_LANE_LEAD_PATH|H4_SMOKE_TO_KILLS": {
+   "both": 10,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.09
+  },
+  "L1_LANE_LEAD_PATH|H5_ENEMY_BOSS_CONTROL": {
+   "both": 70,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.89
+  },
+  "L1_LANE_LEAD_PATH|H6_ENEMY_FAST_CORE": {
+   "both": 144,
+   "p_both_given_smaller": 0.18,
+   "lift": 1.67
+  },
+  "L1_LANE_LEAD_PATH|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 85,
+   "p_both_given_smaller": 0.17,
+   "lift": 1.54
+  },
+  "L1_LANE_LEAD_PATH|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 72,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.84
+  },
+  "L1_LANE_LEAD_PATH|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 6,
+   "p_both_given_smaller": 0.24,
+   "lift": 2.22
+  },
+  "L1_LANE_LEAD_PATH|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 97,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.89
+  },
+  "L1_LANE_LEAD_PATH|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 17,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.0
+  },
+  "L1_LANE_LEAD_PATH|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 28,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.79
+  },
+  "L1_LANE_LEAD_PATH|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 238,
+   "p_both_given_smaller": 0.25,
+   "lift": 1.38
+  },
+  "L1_LANE_LEAD_PATH|I4_LANE_ITEM_RACE": {
+   "both": 26,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.78
+  },
+  "L1_LANE_LEAD_PATH|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 93,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.19
+  },
+  "L1_LANE_LEAD_PATH|I6_SPIKE_BEFORE_TURN": {
+   "both": 30,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.88
+  },
+  "L1_LANE_LEAD_PATH|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 3,
+   "p_both_given_smaller": 0.43,
+   "lift": 3.97
+  },
+  "L2_LANE_SUSTAINED_FLIP|L3_CS_NW_SPLIT": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L2_LANE_SUSTAINED_FLIP|L4_LEVEL6_RACE": {
+   "both": 2,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.48
+  },
+  "L2_LANE_SUSTAINED_FLIP|L5_COUNTERPART_EXTREME_START": {
+   "both": 12,
+   "p_both_given_smaller": 0.18,
+   "lift": 1.7
+  },
+  "L2_LANE_SUSTAINED_FLIP|L7_LANE_DEATH_TRADE": {
+   "both": 4,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.35
+  },
+  "L2_LANE_SUSTAINED_FLIP|L8_SUPPORT_LANE_PAIR": {
+   "both": 4,
+   "p_both_given_smaller": 0.06,
+   "lift": 1.6
+  },
+  "L2_LANE_SUSTAINED_FLIP|T1_TURN_WINDOW": {
+   "both": 8,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.16
+  },
+  "L2_LANE_SUSTAINED_FLIP|T2_LEAD_FLIP": {
+   "both": 4,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.55
+  },
+  "L2_LANE_SUSTAINED_FLIP|T3_COMEBACK_OR_LOST_LEAD": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L2_LANE_SUSTAINED_FLIP|T4_STALLED_ADVANTAGE": {
+   "both": 1,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.9
+  },
+  "L2_LANE_SUSTAINED_FLIP|T5_CLASH_TO_STRUCTURES": {
+   "both": 22,
+   "p_both_given_smaller": 0.32,
+   "lift": 0.91
+  },
+  "L2_LANE_SUSTAINED_FLIP|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 6,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.85
+  },
+  "L2_LANE_SUSTAINED_FLIP|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 4,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.59
+  },
+  "L2_LANE_SUSTAINED_FLIP|T8_DEATH_HEAVY_TURN": {
+   "both": 8,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.18
+  },
+  "L2_LANE_SUSTAINED_FLIP|T9_TORMENTOR_IN_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L2_LANE_SUSTAINED_FLIP|H1_ENEMY_STACKING": {
+   "both": 3,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.54
+  },
+  "L2_LANE_SUSTAINED_FLIP|H2_ENEMY_VISION": {
+   "both": 10,
+   "p_both_given_smaller": 0.15,
+   "lift": 0.72
+  },
+  "L2_LANE_SUSTAINED_FLIP|H3_ENEMY_SMOKES": {
+   "both": 9,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.22
+  },
+  "L2_LANE_SUSTAINED_FLIP|H4_SMOKE_TO_KILLS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L2_LANE_SUSTAINED_FLIP|H5_ENEMY_BOSS_CONTROL": {
+   "both": 4,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.71
+  },
+  "L2_LANE_SUSTAINED_FLIP|H6_ENEMY_FAST_CORE": {
+   "both": 2,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.33
+  },
+  "L2_LANE_SUSTAINED_FLIP|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 2,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.51
+  },
+  "L2_LANE_SUSTAINED_FLIP|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 7,
+   "p_both_given_smaller": 0.1,
+   "lift": 1.15
+  },
+  "L2_LANE_SUSTAINED_FLIP|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L2_LANE_SUSTAINED_FLIP|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 6,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.77
+  },
+  "L2_LANE_SUSTAINED_FLIP|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L2_LANE_SUSTAINED_FLIP|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 1,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.4
+  },
+  "L2_LANE_SUSTAINED_FLIP|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 8,
+   "p_both_given_smaller": 0.12,
+   "lift": 0.65
+  },
+  "L2_LANE_SUSTAINED_FLIP|I4_LANE_ITEM_RACE": {
+   "both": 4,
+   "p_both_given_smaller": 0.06,
+   "lift": 1.69
+  },
+  "L2_LANE_SUSTAINED_FLIP|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 6,
+   "p_both_given_smaller": 0.09,
+   "lift": 1.08
+  },
+  "L2_LANE_SUSTAINED_FLIP|I6_SPIKE_BEFORE_TURN": {
+   "both": 2,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.83
+  },
+  "L2_LANE_SUSTAINED_FLIP|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L3_CS_NW_SPLIT|L4_LEVEL6_RACE": {
+   "both": 8,
+   "p_both_given_smaller": 0.07,
+   "lift": 1.07
+  },
+  "L3_CS_NW_SPLIT|L5_COUNTERPART_EXTREME_START": {
+   "both": 24,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.89
+  },
+  "L3_CS_NW_SPLIT|L7_LANE_DEATH_TRADE": {
+   "both": 36,
+   "p_both_given_smaller": 0.3,
+   "lift": 1.75
+  },
+  "L3_CS_NW_SPLIT|L8_SUPPORT_LANE_PAIR": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L3_CS_NW_SPLIT|T1_TURN_WINDOW": {
+   "both": 6,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.48
+  },
+  "L3_CS_NW_SPLIT|T2_LEAD_FLIP": {
+   "both": 22,
+   "p_both_given_smaller": 0.18,
+   "lift": 1.7
+  },
+  "L3_CS_NW_SPLIT|T3_COMEBACK_OR_LOST_LEAD": {
+   "both": 18,
+   "p_both_given_smaller": 0.15,
+   "lift": 1.45
+  },
+  "L3_CS_NW_SPLIT|T4_STALLED_ADVANTAGE": {
+   "both": 1,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.5
+  },
+  "L3_CS_NW_SPLIT|T5_CLASH_TO_STRUCTURES": {
+   "both": 60,
+   "p_both_given_smaller": 0.49,
+   "lift": 1.39
+  },
+  "L3_CS_NW_SPLIT|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 14,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.11
+  },
+  "L3_CS_NW_SPLIT|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 6,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.49
+  },
+  "L3_CS_NW_SPLIT|T8_DEATH_HEAVY_TURN": {
+   "both": 6,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.5
+  },
+  "L3_CS_NW_SPLIT|T9_TORMENTOR_IN_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L3_CS_NW_SPLIT|H1_ENEMY_STACKING": {
+   "both": 18,
+   "p_both_given_smaller": 0.15,
+   "lift": 1.82
+  },
+  "L3_CS_NW_SPLIT|H2_ENEMY_VISION": {
+   "both": 24,
+   "p_both_given_smaller": 0.2,
+   "lift": 0.96
+  },
+  "L3_CS_NW_SPLIT|H3_ENEMY_SMOKES": {
+   "both": 14,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.06
+  },
+  "L3_CS_NW_SPLIT|H4_SMOKE_TO_KILLS": {
+   "both": 1,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.85
+  },
+  "L3_CS_NW_SPLIT|H5_ENEMY_BOSS_CONTROL": {
+   "both": 10,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.99
+  },
+  "L3_CS_NW_SPLIT|H6_ENEMY_FAST_CORE": {
+   "both": 8,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.73
+  },
+  "L3_CS_NW_SPLIT|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 3,
+   "p_both_given_smaller": 0.02,
+   "lift": 0.43
+  },
+  "L3_CS_NW_SPLIT|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 17,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.56
+  },
+  "L3_CS_NW_SPLIT|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L3_CS_NW_SPLIT|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 18,
+   "p_both_given_smaller": 0.15,
+   "lift": 1.29
+  },
+  "L3_CS_NW_SPLIT|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 6,
+   "p_both_given_smaller": 0.05,
+   "lift": 2.76
+  },
+  "L3_CS_NW_SPLIT|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 9,
+   "p_both_given_smaller": 0.07,
+   "lift": 2.0
+  },
+  "L3_CS_NW_SPLIT|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 27,
+   "p_both_given_smaller": 0.22,
+   "lift": 1.23
+  },
+  "L3_CS_NW_SPLIT|I4_LANE_ITEM_RACE": {
+   "both": 10,
+   "p_both_given_smaller": 0.08,
+   "lift": 2.36
+  },
+  "L3_CS_NW_SPLIT|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 12,
+   "p_both_given_smaller": 0.1,
+   "lift": 1.2
+  },
+  "L3_CS_NW_SPLIT|I6_SPIKE_BEFORE_TURN": {
+   "both": 1,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.23
+  },
+  "L3_CS_NW_SPLIT|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L4_LEVEL6_RACE|L5_COUNTERPART_EXTREME_START": {
+   "both": 70,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.24
+  },
+  "L4_LEVEL6_RACE|L7_LANE_DEATH_TRADE": {
+   "both": 220,
+   "p_both_given_smaller": 0.41,
+   "lift": 2.41
+  },
+  "L4_LEVEL6_RACE|L8_SUPPORT_LANE_PAIR": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L4_LEVEL6_RACE|T1_TURN_WINDOW": {
+   "both": 58,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.05
+  },
+  "L4_LEVEL6_RACE|T2_LEAD_FLIP": {
+   "both": 60,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.04
+  },
+  "L4_LEVEL6_RACE|T3_COMEBACK_OR_LOST_LEAD": {
+   "both": 62,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.13
+  },
+  "L4_LEVEL6_RACE|T4_STALLED_ADVANTAGE": {
+   "both": 11,
+   "p_both_given_smaller": 0.08,
+   "lift": 1.24
+  },
+  "L4_LEVEL6_RACE|T5_CLASH_TO_STRUCTURES": {
+   "both": 202,
+   "p_both_given_smaller": 0.37,
+   "lift": 1.05
+  },
+  "L4_LEVEL6_RACE|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 58,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.03
+  },
+  "L4_LEVEL6_RACE|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 56,
+   "p_both_given_smaller": 0.1,
+   "lift": 1.03
+  },
+  "L4_LEVEL6_RACE|T8_DEATH_HEAVY_TURN": {
+   "both": 56,
+   "p_both_given_smaller": 0.1,
+   "lift": 1.04
+  },
+  "L4_LEVEL6_RACE|T9_TORMENTOR_IN_TURN": {
+   "both": 6,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.96
+  },
+  "L4_LEVEL6_RACE|H1_ENEMY_STACKING": {
+   "both": 36,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.82
+  },
+  "L4_LEVEL6_RACE|H2_ENEMY_VISION": {
+   "both": 119,
+   "p_both_given_smaller": 0.22,
+   "lift": 1.07
+  },
+  "L4_LEVEL6_RACE|H3_ENEMY_SMOKES": {
+   "both": 58,
+   "p_both_given_smaller": 0.11,
+   "lift": 0.99
+  },
+  "L4_LEVEL6_RACE|H4_SMOKE_TO_KILLS": {
+   "both": 4,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.77
+  },
+  "L4_LEVEL6_RACE|H5_ENEMY_BOSS_CONTROL": {
+   "both": 48,
+   "p_both_given_smaller": 0.09,
+   "lift": 1.07
+  },
+  "L4_LEVEL6_RACE|H6_ENEMY_FAST_CORE": {
+   "both": 77,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.57
+  },
+  "L4_LEVEL6_RACE|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 56,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.79
+  },
+  "L4_LEVEL6_RACE|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 57,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.18
+  },
+  "L4_LEVEL6_RACE|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 1,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.65
+  },
+  "L4_LEVEL6_RACE|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 63,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.01
+  },
+  "L4_LEVEL6_RACE|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 8,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.83
+  },
+  "L4_LEVEL6_RACE|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 14,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.7
+  },
+  "L4_LEVEL6_RACE|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 109,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.11
+  },
+  "L4_LEVEL6_RACE|I4_LANE_ITEM_RACE": {
+   "both": 40,
+   "p_both_given_smaller": 0.13,
+   "lift": 2.12
+  },
+  "L4_LEVEL6_RACE|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 57,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.29
+  },
+  "L4_LEVEL6_RACE|I6_SPIKE_BEFORE_TURN": {
+   "both": 16,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.83
+  },
+  "L4_LEVEL6_RACE|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 1,
+   "p_both_given_smaller": 0.14,
+   "lift": 2.34
+  },
+  "L5_COUNTERPART_EXTREME_START|L7_LANE_DEATH_TRADE": {
+   "both": 191,
+   "p_both_given_smaller": 0.21,
+   "lift": 1.23
+  },
+  "L5_COUNTERPART_EXTREME_START|L8_SUPPORT_LANE_PAIR": {
+   "both": 70,
+   "p_both_given_smaller": 0.21,
+   "lift": 2.07
+  },
+  "L5_COUNTERPART_EXTREME_START|T1_TURN_WINDOW": {
+   "both": 89,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.95
+  },
+  "L5_COUNTERPART_EXTREME_START|T2_LEAD_FLIP": {
+   "both": 101,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.03
+  },
+  "L5_COUNTERPART_EXTREME_START|T3_COMEBACK_OR_LOST_LEAD": {
+   "both": 109,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.17
+  },
+  "L5_COUNTERPART_EXTREME_START|T4_STALLED_ADVANTAGE": {
+   "both": 9,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.6
+  },
+  "L5_COUNTERPART_EXTREME_START|T5_CLASH_TO_STRUCTURES": {
+   "both": 327,
+   "p_both_given_smaller": 0.36,
+   "lift": 1.0
+  },
+  "L5_COUNTERPART_EXTREME_START|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 107,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.12
+  },
+  "L5_COUNTERPART_EXTREME_START|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 88,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.95
+  },
+  "L5_COUNTERPART_EXTREME_START|T8_DEATH_HEAVY_TURN": {
+   "both": 83,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.91
+  },
+  "L5_COUNTERPART_EXTREME_START|T9_TORMENTOR_IN_TURN": {
+   "both": 4,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.77
+  },
+  "L5_COUNTERPART_EXTREME_START|H1_ENEMY_STACKING": {
+   "both": 109,
+   "p_both_given_smaller": 0.15,
+   "lift": 1.46
+  },
+  "L5_COUNTERPART_EXTREME_START|H2_ENEMY_VISION": {
+   "both": 211,
+   "p_both_given_smaller": 0.23,
+   "lift": 1.12
+  },
+  "L5_COUNTERPART_EXTREME_START|H3_ENEMY_SMOKES": {
+   "both": 90,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.9
+  },
+  "L5_COUNTERPART_EXTREME_START|H4_SMOKE_TO_KILLS": {
+   "both": 8,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.91
+  },
+  "L5_COUNTERPART_EXTREME_START|H5_ENEMY_BOSS_CONTROL": {
+   "both": 79,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.04
+  },
+  "L5_COUNTERPART_EXTREME_START|H6_ENEMY_FAST_CORE": {
+   "both": 163,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.96
+  },
+  "L5_COUNTERPART_EXTREME_START|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 67,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.27
+  },
+  "L5_COUNTERPART_EXTREME_START|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 89,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.08
+  },
+  "L5_COUNTERPART_EXTREME_START|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 4,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.54
+  },
+  "L5_COUNTERPART_EXTREME_START|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 121,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.15
+  },
+  "L5_COUNTERPART_EXTREME_START|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 18,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.1
+  },
+  "L5_COUNTERPART_EXTREME_START|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 40,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.18
+  },
+  "L5_COUNTERPART_EXTREME_START|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 243,
+   "p_both_given_smaller": 0.26,
+   "lift": 1.46
+  },
+  "L5_COUNTERPART_EXTREME_START|I4_LANE_ITEM_RACE": {
+   "both": 32,
+   "p_both_given_smaller": 0.1,
+   "lift": 1.0
+  },
+  "L5_COUNTERPART_EXTREME_START|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 105,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.39
+  },
+  "L5_COUNTERPART_EXTREME_START|I6_SPIKE_BEFORE_TURN": {
+   "both": 35,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.07
+  },
+  "L5_COUNTERPART_EXTREME_START|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 1,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.38
+  },
+  "L7_LANE_DEATH_TRADE|L8_SUPPORT_LANE_PAIR": {
+   "both": 152,
+   "p_both_given_smaller": 0.47,
+   "lift": 2.77
+  },
+  "L7_LANE_DEATH_TRADE|T1_TURN_WINDOW": {
+   "both": 180,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.19
+  },
+  "L7_LANE_DEATH_TRADE|T2_LEAD_FLIP": {
+   "both": 172,
+   "p_both_given_smaller": 0.18,
+   "lift": 1.09
+  },
+  "L7_LANE_DEATH_TRADE|T3_COMEBACK_OR_LOST_LEAD": {
+   "both": 154,
+   "p_both_given_smaller": 0.17,
+   "lift": 1.02
+  },
+  "L7_LANE_DEATH_TRADE|T4_STALLED_ADVANTAGE": {
+   "both": 20,
+   "p_both_given_smaller": 0.14,
+   "lift": 0.82
+  },
+  "L7_LANE_DEATH_TRADE|T5_CLASH_TO_STRUCTURES": {
+   "both": 490,
+   "p_both_given_smaller": 0.33,
+   "lift": 0.93
+  },
+  "L7_LANE_DEATH_TRADE|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 136,
+   "p_both_given_smaller": 0.15,
+   "lift": 0.88
+  },
+  "L7_LANE_DEATH_TRADE|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 178,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.19
+  },
+  "L7_LANE_DEATH_TRADE|T8_DEATH_HEAVY_TURN": {
+   "both": 178,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.2
+  },
+  "L7_LANE_DEATH_TRADE|T9_TORMENTOR_IN_TURN": {
+   "both": 10,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.19
+  },
+  "L7_LANE_DEATH_TRADE|H1_ENEMY_STACKING": {
+   "both": 121,
+   "p_both_given_smaller": 0.17,
+   "lift": 1.0
+  },
+  "L7_LANE_DEATH_TRADE|H2_ENEMY_VISION": {
+   "both": 295,
+   "p_both_given_smaller": 0.2,
+   "lift": 0.97
+  },
+  "L7_LANE_DEATH_TRADE|H3_ENEMY_SMOKES": {
+   "both": 139,
+   "p_both_given_smaller": 0.14,
+   "lift": 0.86
+  },
+  "L7_LANE_DEATH_TRADE|H4_SMOKE_TO_KILLS": {
+   "both": 13,
+   "p_both_given_smaller": 0.15,
+   "lift": 0.91
+  },
+  "L7_LANE_DEATH_TRADE|H5_ENEMY_BOSS_CONTROL": {
+   "both": 116,
+   "p_both_given_smaller": 0.16,
+   "lift": 0.94
+  },
+  "L7_LANE_DEATH_TRADE|H6_ENEMY_FAST_CORE": {
+   "both": 174,
+   "p_both_given_smaller": 0.22,
+   "lift": 1.29
+  },
+  "L7_LANE_DEATH_TRADE|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 88,
+   "p_both_given_smaller": 0.17,
+   "lift": 1.03
+  },
+  "L7_LANE_DEATH_TRADE|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 129,
+   "p_both_given_smaller": 0.16,
+   "lift": 0.97
+  },
+  "L7_LANE_DEATH_TRADE|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 3,
+   "p_both_given_smaller": 0.12,
+   "lift": 0.71
+  },
+  "L7_LANE_DEATH_TRADE|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 151,
+   "p_both_given_smaller": 0.15,
+   "lift": 0.88
+  },
+  "L7_LANE_DEATH_TRADE|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 26,
+   "p_both_given_smaller": 0.16,
+   "lift": 0.98
+  },
+  "L7_LANE_DEATH_TRADE|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 59,
+   "p_both_given_smaller": 0.18,
+   "lift": 1.07
+  },
+  "L7_LANE_DEATH_TRADE|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 310,
+   "p_both_given_smaller": 0.21,
+   "lift": 1.15
+  },
+  "L7_LANE_DEATH_TRADE|I4_LANE_ITEM_RACE": {
+   "both": 44,
+   "p_both_given_smaller": 0.14,
+   "lift": 0.85
+  },
+  "L7_LANE_DEATH_TRADE|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 140,
+   "p_both_given_smaller": 0.19,
+   "lift": 1.15
+  },
+  "L7_LANE_DEATH_TRADE|I6_SPIKE_BEFORE_TURN": {
+   "both": 65,
+   "p_both_given_smaller": 0.21,
+   "lift": 1.23
+  },
+  "L7_LANE_DEATH_TRADE|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 3,
+   "p_both_given_smaller": 0.43,
+   "lift": 2.55
+  },
+  "L8_SUPPORT_LANE_PAIR|T1_TURN_WINDOW": {
+   "both": 42,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.27
+  },
+  "L8_SUPPORT_LANE_PAIR|T2_LEAD_FLIP": {
+   "both": 36,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.04
+  },
+  "L8_SUPPORT_LANE_PAIR|T3_COMEBACK_OR_LOST_LEAD": {
+   "both": 38,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.15
+  },
+  "L8_SUPPORT_LANE_PAIR|T4_STALLED_ADVANTAGE": {
+   "both": 9,
+   "p_both_given_smaller": 0.06,
+   "lift": 1.69
+  },
+  "L8_SUPPORT_LANE_PAIR|T5_CLASH_TO_STRUCTURES": {
+   "both": 128,
+   "p_both_given_smaller": 0.39,
+   "lift": 1.11
+  },
+  "L8_SUPPORT_LANE_PAIR|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 30,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.89
+  },
+  "L8_SUPPORT_LANE_PAIR|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 40,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.22
+  },
+  "L8_SUPPORT_LANE_PAIR|T8_DEATH_HEAVY_TURN": {
+   "both": 42,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.3
+  },
+  "L8_SUPPORT_LANE_PAIR|T9_TORMENTOR_IN_TURN": {
+   "both": 4,
+   "p_both_given_smaller": 0.08,
+   "lift": 2.17
+  },
+  "L8_SUPPORT_LANE_PAIR|H1_ENEMY_STACKING": {
+   "both": 35,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.32
+  },
+  "L8_SUPPORT_LANE_PAIR|H2_ENEMY_VISION": {
+   "both": 61,
+   "p_both_given_smaller": 0.19,
+   "lift": 0.92
+  },
+  "L8_SUPPORT_LANE_PAIR|H3_ENEMY_SMOKES": {
+   "both": 27,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.76
+  },
+  "L8_SUPPORT_LANE_PAIR|H4_SMOKE_TO_KILLS": {
+   "both": 3,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.96
+  },
+  "L8_SUPPORT_LANE_PAIR|H5_ENEMY_BOSS_CONTROL": {
+   "both": 24,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.89
+  },
+  "L8_SUPPORT_LANE_PAIR|H6_ENEMY_FAST_CORE": {
+   "both": 53,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.8
+  },
+  "L8_SUPPORT_LANE_PAIR|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 30,
+   "p_both_given_smaller": 0.09,
+   "lift": 1.6
+  },
+  "L8_SUPPORT_LANE_PAIR|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 19,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.65
+  },
+  "L8_SUPPORT_LANE_PAIR|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L8_SUPPORT_LANE_PAIR|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 31,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.83
+  },
+  "L8_SUPPORT_LANE_PAIR|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 3,
+   "p_both_given_smaller": 0.02,
+   "lift": 0.52
+  },
+  "L8_SUPPORT_LANE_PAIR|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 9,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.75
+  },
+  "L8_SUPPORT_LANE_PAIR|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 83,
+   "p_both_given_smaller": 0.25,
+   "lift": 1.41
+  },
+  "L8_SUPPORT_LANE_PAIR|I4_LANE_ITEM_RACE": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "L8_SUPPORT_LANE_PAIR|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 23,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.86
+  },
+  "L8_SUPPORT_LANE_PAIR|I6_SPIKE_BEFORE_TURN": {
+   "both": 11,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.95
+  },
+  "L8_SUPPORT_LANE_PAIR|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T1_TURN_WINDOW|T2_LEAD_FLIP": {
+   "both": 60,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.63
+  },
+  "T1_TURN_WINDOW|T3_COMEBACK_OR_LOST_LEAD": {
+   "both": 40,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.44
+  },
+  "T1_TURN_WINDOW|T4_STALLED_ADVANTAGE": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T1_TURN_WINDOW|T5_CLASH_TO_STRUCTURES": {
+   "both": 370,
+   "p_both_given_smaller": 0.41,
+   "lift": 1.16
+  },
+  "T1_TURN_WINDOW|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 46,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.49
+  },
+  "T1_TURN_WINDOW|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 890,
+   "p_both_given_smaller": 1.0,
+   "lift": 9.84
+  },
+  "T1_TURN_WINDOW|T8_DEATH_HEAVY_TURN": {
+   "both": 880,
+   "p_both_given_smaller": 1.0,
+   "lift": 9.84
+  },
+  "T1_TURN_WINDOW|T9_TORMENTOR_IN_TURN": {
+   "both": 50,
+   "p_both_given_smaller": 1.0,
+   "lift": 9.84
+  },
+  "T1_TURN_WINDOW|H1_ENEMY_STACKING": {
+   "both": 85,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.16
+  },
+  "T1_TURN_WINDOW|H2_ENEMY_VISION": {
+   "both": 40,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.22
+  },
+  "T1_TURN_WINDOW|H3_ENEMY_SMOKES": {
+   "both": 45,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.46
+  },
+  "T1_TURN_WINDOW|H4_SMOKE_TO_KILLS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T1_TURN_WINDOW|H5_ENEMY_BOSS_CONTROL": {
+   "both": 10,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.13
+  },
+  "T1_TURN_WINDOW|H6_ENEMY_FAST_CORE": {
+   "both": 125,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.54
+  },
+  "T1_TURN_WINDOW|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 35,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.68
+  },
+  "T1_TURN_WINDOW|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 70,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.87
+  },
+  "T1_TURN_WINDOW|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T1_TURN_WINDOW|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 40,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.39
+  },
+  "T1_TURN_WINDOW|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 11,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.69
+  },
+  "T1_TURN_WINDOW|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 11,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.33
+  },
+  "T1_TURN_WINDOW|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 180,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.11
+  },
+  "T1_TURN_WINDOW|I4_LANE_ITEM_RACE": {
+   "both": 8,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.26
+  },
+  "T1_TURN_WINDOW|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 115,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.56
+  },
+  "T1_TURN_WINDOW|I6_SPIKE_BEFORE_TURN": {
+   "both": 315,
+   "p_both_given_smaller": 1.0,
+   "lift": 9.84
+  },
+  "T1_TURN_WINDOW|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T2_LEAD_FLIP|T3_COMEBACK_OR_LOST_LEAD": {
+   "both": 480,
+   "p_both_given_smaller": 0.53,
+   "lift": 5.03
+  },
+  "T2_LEAD_FLIP|T4_STALLED_ADVANTAGE": {
+   "both": 45,
+   "p_both_given_smaller": 0.31,
+   "lift": 2.93
+  },
+  "T2_LEAD_FLIP|T5_CLASH_TO_STRUCTURES": {
+   "both": 430,
+   "p_both_given_smaller": 0.46,
+   "lift": 1.29
+  },
+  "T2_LEAD_FLIP|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 175,
+   "p_both_given_smaller": 0.19,
+   "lift": 1.8
+  },
+  "T2_LEAD_FLIP|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 60,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.64
+  },
+  "T2_LEAD_FLIP|T8_DEATH_HEAVY_TURN": {
+   "both": 50,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.54
+  },
+  "T2_LEAD_FLIP|T9_TORMENTOR_IN_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T2_LEAD_FLIP|H1_ENEMY_STACKING": {
+   "both": 80,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.05
+  },
+  "T2_LEAD_FLIP|H2_ENEMY_VISION": {
+   "both": 425,
+   "p_both_given_smaller": 0.45,
+   "lift": 2.21
+  },
+  "T2_LEAD_FLIP|H3_ENEMY_SMOKES": {
+   "both": 150,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.47
+  },
+  "T2_LEAD_FLIP|H4_SMOKE_TO_KILLS": {
+   "both": 20,
+   "p_both_given_smaller": 0.24,
+   "lift": 2.22
+  },
+  "T2_LEAD_FLIP|H5_ENEMY_BOSS_CONTROL": {
+   "both": 130,
+   "p_both_given_smaller": 0.18,
+   "lift": 1.68
+  },
+  "T2_LEAD_FLIP|H6_ENEMY_FAST_CORE": {
+   "both": 95,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.12
+  },
+  "T2_LEAD_FLIP|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 50,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.92
+  },
+  "T2_LEAD_FLIP|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 85,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.01
+  },
+  "T2_LEAD_FLIP|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 10,
+   "p_both_given_smaller": 0.4,
+   "lift": 3.77
+  },
+  "T2_LEAD_FLIP|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 235,
+   "p_both_given_smaller": 0.25,
+   "lift": 2.18
+  },
+  "T2_LEAD_FLIP|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 23,
+   "p_both_given_smaller": 0.15,
+   "lift": 1.37
+  },
+  "T2_LEAD_FLIP|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 41,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.18
+  },
+  "T2_LEAD_FLIP|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 185,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.09
+  },
+  "T2_LEAD_FLIP|I4_LANE_ITEM_RACE": {
+   "both": 90,
+   "p_both_given_smaller": 0.29,
+   "lift": 2.75
+  },
+  "T2_LEAD_FLIP|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 85,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.11
+  },
+  "T2_LEAD_FLIP|I6_SPIKE_BEFORE_TURN": {
+   "both": 30,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.9
+  },
+  "T2_LEAD_FLIP|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 4,
+   "p_both_given_smaller": 0.57,
+   "lift": 5.39
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|T4_STALLED_ADVANTAGE": {
+   "both": 85,
+   "p_both_given_smaller": 0.59,
+   "lift": 5.77
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|T5_CLASH_TO_STRUCTURES": {
+   "both": 370,
+   "p_both_given_smaller": 0.41,
+   "lift": 1.16
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 195,
+   "p_both_given_smaller": 0.22,
+   "lift": 2.09
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 40,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.44
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|T8_DEATH_HEAVY_TURN": {
+   "both": 30,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.34
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|T9_TORMENTOR_IN_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H1_ENEMY_STACKING": {
+   "both": 65,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.89
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H2_ENEMY_VISION": {
+   "both": 480,
+   "p_both_given_smaller": 0.53,
+   "lift": 2.61
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H3_ENEMY_SMOKES": {
+   "both": 145,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.49
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H4_SMOKE_TO_KILLS": {
+   "both": 40,
+   "p_both_given_smaller": 0.47,
+   "lift": 4.63
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H5_ENEMY_BOSS_CONTROL": {
+   "both": 140,
+   "p_both_given_smaller": 0.19,
+   "lift": 1.89
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H6_ENEMY_FAST_CORE": {
+   "both": 105,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.29
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 60,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.16
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 90,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.12
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 10,
+   "p_both_given_smaller": 0.4,
+   "lift": 3.94
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 245,
+   "p_both_given_smaller": 0.27,
+   "lift": 2.38
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 22,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.37
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 49,
+   "p_both_given_smaller": 0.15,
+   "lift": 1.48
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 175,
+   "p_both_given_smaller": 0.19,
+   "lift": 1.08
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|I4_LANE_ITEM_RACE": {
+   "both": 98,
+   "p_both_given_smaller": 0.32,
+   "lift": 3.13
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 75,
+   "p_both_given_smaller": 0.1,
+   "lift": 1.02
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|I6_SPIKE_BEFORE_TURN": {
+   "both": 15,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.47
+  },
+  "T3_COMEBACK_OR_LOST_LEAD|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 4,
+   "p_both_given_smaller": 0.57,
+   "lift": 5.63
+  },
+  "T4_STALLED_ADVANTAGE|T5_CLASH_TO_STRUCTURES": {
+   "both": 55,
+   "p_both_given_smaller": 0.38,
+   "lift": 1.07
+  },
+  "T4_STALLED_ADVANTAGE|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 20,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.33
+  },
+  "T4_STALLED_ADVANTAGE|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T4_STALLED_ADVANTAGE|T8_DEATH_HEAVY_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T4_STALLED_ADVANTAGE|T9_TORMENTOR_IN_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T4_STALLED_ADVANTAGE|H1_ENEMY_STACKING": {
+   "both": 10,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.85
+  },
+  "T4_STALLED_ADVANTAGE|H2_ENEMY_VISION": {
+   "both": 85,
+   "p_both_given_smaller": 0.59,
+   "lift": 2.87
+  },
+  "T4_STALLED_ADVANTAGE|H3_ENEMY_SMOKES": {
+   "both": 15,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.95
+  },
+  "T4_STALLED_ADVANTAGE|H4_SMOKE_TO_KILLS": {
+   "both": 10,
+   "p_both_given_smaller": 0.12,
+   "lift": 7.19
+  },
+  "T4_STALLED_ADVANTAGE|H5_ENEMY_BOSS_CONTROL": {
+   "both": 5,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.42
+  },
+  "T4_STALLED_ADVANTAGE|H6_ENEMY_FAST_CORE": {
+   "both": 20,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.53
+  },
+  "T4_STALLED_ADVANTAGE|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 25,
+   "p_both_given_smaller": 0.17,
+   "lift": 3.0
+  },
+  "T4_STALLED_ADVANTAGE|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 10,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.77
+  },
+  "T4_STALLED_ADVANTAGE|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T4_STALLED_ADVANTAGE|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 20,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.2
+  },
+  "T4_STALLED_ADVANTAGE|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 3,
+   "p_both_given_smaller": 0.02,
+   "lift": 1.16
+  },
+  "T4_STALLED_ADVANTAGE|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 9,
+   "p_both_given_smaller": 0.06,
+   "lift": 1.68
+  },
+  "T4_STALLED_ADVANTAGE|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 25,
+   "p_both_given_smaller": 0.17,
+   "lift": 0.95
+  },
+  "T4_STALLED_ADVANTAGE|I4_LANE_ITEM_RACE": {
+   "both": 12,
+   "p_both_given_smaller": 0.08,
+   "lift": 2.38
+  },
+  "T4_STALLED_ADVANTAGE|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 10,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.84
+  },
+  "T4_STALLED_ADVANTAGE|I6_SPIKE_BEFORE_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T4_STALLED_ADVANTAGE|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T5_CLASH_TO_STRUCTURES|T6_STRUCTURES_WHILE_DEAD": {
+   "both": 705,
+   "p_both_given_smaller": 0.77,
+   "lift": 2.17
+  },
+  "T5_CLASH_TO_STRUCTURES|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 370,
+   "p_both_given_smaller": 0.42,
+   "lift": 1.17
+  },
+  "T5_CLASH_TO_STRUCTURES|T8_DEATH_HEAVY_TURN": {
+   "both": 360,
+   "p_both_given_smaller": 0.41,
+   "lift": 1.15
+  },
+  "T5_CLASH_TO_STRUCTURES|T9_TORMENTOR_IN_TURN": {
+   "both": 20,
+   "p_both_given_smaller": 0.4,
+   "lift": 1.13
+  },
+  "T5_CLASH_TO_STRUCTURES|H1_ENEMY_STACKING": {
+   "both": 250,
+   "p_both_given_smaller": 0.35,
+   "lift": 0.98
+  },
+  "T5_CLASH_TO_STRUCTURES|H2_ENEMY_VISION": {
+   "both": 710,
+   "p_both_given_smaller": 0.39,
+   "lift": 1.11
+  },
+  "T5_CLASH_TO_STRUCTURES|H3_ENEMY_SMOKES": {
+   "both": 410,
+   "p_both_given_smaller": 0.43,
+   "lift": 1.21
+  },
+  "T5_CLASH_TO_STRUCTURES|H4_SMOKE_TO_KILLS": {
+   "both": 20,
+   "p_both_given_smaller": 0.24,
+   "lift": 0.66
+  },
+  "T5_CLASH_TO_STRUCTURES|H5_ENEMY_BOSS_CONTROL": {
+   "both": 310,
+   "p_both_given_smaller": 0.42,
+   "lift": 1.2
+  },
+  "T5_CLASH_TO_STRUCTURES|H6_ENEMY_FAST_CORE": {
+   "both": 265,
+   "p_both_given_smaller": 0.33,
+   "lift": 0.93
+  },
+  "T5_CLASH_TO_STRUCTURES|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 165,
+   "p_both_given_smaller": 0.32,
+   "lift": 0.91
+  },
+  "T5_CLASH_TO_STRUCTURES|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 275,
+   "p_both_given_smaller": 0.35,
+   "lift": 0.98
+  },
+  "T5_CLASH_TO_STRUCTURES|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 5,
+   "p_both_given_smaller": 0.2,
+   "lift": 0.56
+  },
+  "T5_CLASH_TO_STRUCTURES|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 420,
+   "p_both_given_smaller": 0.41,
+   "lift": 1.17
+  },
+  "T5_CLASH_TO_STRUCTURES|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 66,
+   "p_both_given_smaller": 0.42,
+   "lift": 1.18
+  },
+  "T5_CLASH_TO_STRUCTURES|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 137,
+   "p_both_given_smaller": 0.42,
+   "lift": 1.18
+  },
+  "T5_CLASH_TO_STRUCTURES|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 550,
+   "p_both_given_smaller": 0.34,
+   "lift": 0.97
+  },
+  "T5_CLASH_TO_STRUCTURES|I4_LANE_ITEM_RACE": {
+   "both": 154,
+   "p_both_given_smaller": 0.5,
+   "lift": 1.41
+  },
+  "T5_CLASH_TO_STRUCTURES|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 225,
+   "p_both_given_smaller": 0.31,
+   "lift": 0.88
+  },
+  "T5_CLASH_TO_STRUCTURES|I6_SPIKE_BEFORE_TURN": {
+   "both": 140,
+   "p_both_given_smaller": 0.44,
+   "lift": 1.25
+  },
+  "T5_CLASH_TO_STRUCTURES|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 1,
+   "p_both_given_smaller": 0.14,
+   "lift": 0.4
+  },
+  "T6_STRUCTURES_WHILE_DEAD|T7_OBJECTIVE_HEAVY_TURN": {
+   "both": 46,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.5
+  },
+  "T6_STRUCTURES_WHILE_DEAD|T8_DEATH_HEAVY_TURN": {
+   "both": 44,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.48
+  },
+  "T6_STRUCTURES_WHILE_DEAD|T9_TORMENTOR_IN_TURN": {
+   "both": 1,
+   "p_both_given_smaller": 0.02,
+   "lift": 0.19
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H1_ENEMY_STACKING": {
+   "both": 79,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.06
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H2_ENEMY_VISION": {
+   "both": 309,
+   "p_both_given_smaller": 0.34,
+   "lift": 1.65
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H3_ENEMY_SMOKES": {
+   "both": 143,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.44
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H4_SMOKE_TO_KILLS": {
+   "both": 4,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.45
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H5_ENEMY_BOSS_CONTROL": {
+   "both": 190,
+   "p_both_given_smaller": 0.26,
+   "lift": 2.51
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H6_ENEMY_FAST_CORE": {
+   "both": 77,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.93
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 55,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.04
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 73,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.89
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T6_STRUCTURES_WHILE_DEAD|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 215,
+   "p_both_given_smaller": 0.23,
+   "lift": 2.05
+  },
+  "T6_STRUCTURES_WHILE_DEAD|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 15,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.92
+  },
+  "T6_STRUCTURES_WHILE_DEAD|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 41,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.21
+  },
+  "T6_STRUCTURES_WHILE_DEAD|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 146,
+   "p_both_given_smaller": 0.16,
+   "lift": 0.88
+  },
+  "T6_STRUCTURES_WHILE_DEAD|I4_LANE_ITEM_RACE": {
+   "both": 52,
+   "p_both_given_smaller": 0.17,
+   "lift": 1.63
+  },
+  "T6_STRUCTURES_WHILE_DEAD|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 80,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.07
+  },
+  "T6_STRUCTURES_WHILE_DEAD|I6_SPIKE_BEFORE_TURN": {
+   "both": 38,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.17
+  },
+  "T6_STRUCTURES_WHILE_DEAD|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 1,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.38
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|T8_DEATH_HEAVY_TURN": {
+   "both": 870,
+   "p_both_given_smaller": 0.99,
+   "lift": 9.84
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|T9_TORMENTOR_IN_TURN": {
+   "both": 50,
+   "p_both_given_smaller": 1.0,
+   "lift": 9.96
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H1_ENEMY_STACKING": {
+   "both": 85,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.18
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H2_ENEMY_VISION": {
+   "both": 40,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.22
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H3_ENEMY_SMOKES": {
+   "both": 45,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.47
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H4_SMOKE_TO_KILLS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H5_ENEMY_BOSS_CONTROL": {
+   "both": 10,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.14
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H6_ENEMY_FAST_CORE": {
+   "both": 125,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.56
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 35,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.68
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 70,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.88
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 40,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.39
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 11,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.69
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 11,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.33
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 180,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.12
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|I4_LANE_ITEM_RACE": {
+   "both": 8,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.26
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 115,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.58
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|I6_SPIKE_BEFORE_TURN": {
+   "both": 315,
+   "p_both_given_smaller": 1.0,
+   "lift": 9.96
+  },
+  "T7_OBJECTIVE_HEAVY_TURN|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T8_DEATH_HEAVY_TURN|T9_TORMENTOR_IN_TURN": {
+   "both": 50,
+   "p_both_given_smaller": 1.0,
+   "lift": 10.07
+  },
+  "T8_DEATH_HEAVY_TURN|H1_ENEMY_STACKING": {
+   "both": 80,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.12
+  },
+  "T8_DEATH_HEAVY_TURN|H2_ENEMY_VISION": {
+   "both": 40,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.22
+  },
+  "T8_DEATH_HEAVY_TURN|H3_ENEMY_SMOKES": {
+   "both": 45,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.47
+  },
+  "T8_DEATH_HEAVY_TURN|H4_SMOKE_TO_KILLS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T8_DEATH_HEAVY_TURN|H5_ENEMY_BOSS_CONTROL": {
+   "both": 10,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.14
+  },
+  "T8_DEATH_HEAVY_TURN|H6_ENEMY_FAST_CORE": {
+   "both": 115,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.45
+  },
+  "T8_DEATH_HEAVY_TURN|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 35,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.69
+  },
+  "T8_DEATH_HEAVY_TURN|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 60,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.76
+  },
+  "T8_DEATH_HEAVY_TURN|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T8_DEATH_HEAVY_TURN|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 35,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.35
+  },
+  "T8_DEATH_HEAVY_TURN|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 11,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.7
+  },
+  "T8_DEATH_HEAVY_TURN|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 11,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.34
+  },
+  "T8_DEATH_HEAVY_TURN|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 175,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.1
+  },
+  "T8_DEATH_HEAVY_TURN|I4_LANE_ITEM_RACE": {
+   "both": 8,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.26
+  },
+  "T8_DEATH_HEAVY_TURN|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 115,
+   "p_both_given_smaller": 0.16,
+   "lift": 1.6
+  },
+  "T8_DEATH_HEAVY_TURN|I6_SPIKE_BEFORE_TURN": {
+   "both": 305,
+   "p_both_given_smaller": 0.97,
+   "lift": 9.75
+  },
+  "T8_DEATH_HEAVY_TURN|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|H1_ENEMY_STACKING": {
+   "both": 10,
+   "p_both_given_smaller": 0.2,
+   "lift": 2.46
+  },
+  "T9_TORMENTOR_IN_TURN|H2_ENEMY_VISION": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|H3_ENEMY_SMOKES": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|H4_SMOKE_TO_KILLS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|H5_ENEMY_BOSS_CONTROL": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|H6_ENEMY_FAST_CORE": {
+   "both": 10,
+   "p_both_given_smaller": 0.2,
+   "lift": 2.21
+  },
+  "T9_TORMENTOR_IN_TURN|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 1,
+   "p_both_given_smaller": 0.02,
+   "lift": 0.54
+  },
+  "T9_TORMENTOR_IN_TURN|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 10,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.11
+  },
+  "T9_TORMENTOR_IN_TURN|I4_LANE_ITEM_RACE": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "T9_TORMENTOR_IN_TURN|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 10,
+   "p_both_given_smaller": 0.2,
+   "lift": 2.44
+  },
+  "T9_TORMENTOR_IN_TURN|I6_SPIKE_BEFORE_TURN": {
+   "both": 25,
+   "p_both_given_smaller": 0.5,
+   "lift": 14.06
+  },
+  "T9_TORMENTOR_IN_TURN|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H1_ENEMY_STACKING|H2_ENEMY_VISION": {
+   "both": 105,
+   "p_both_given_smaller": 0.15,
+   "lift": 0.71
+  },
+  "H1_ENEMY_STACKING|H3_ENEMY_SMOKES": {
+   "both": 100,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.28
+  },
+  "H1_ENEMY_STACKING|H4_SMOKE_TO_KILLS": {
+   "both": 5,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.72
+  },
+  "H1_ENEMY_STACKING|H5_ENEMY_BOSS_CONTROL": {
+   "both": 55,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.93
+  },
+  "H1_ENEMY_STACKING|H6_ENEMY_FAST_CORE": {
+   "both": 85,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.31
+  },
+  "H1_ENEMY_STACKING|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 35,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.84
+  },
+  "H1_ENEMY_STACKING|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 100,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.56
+  },
+  "H1_ENEMY_STACKING|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 5,
+   "p_both_given_smaller": 0.2,
+   "lift": 2.46
+  },
+  "H1_ENEMY_STACKING|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 320,
+   "p_both_given_smaller": 0.44,
+   "lift": 3.88
+  },
+  "H1_ENEMY_STACKING|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 13,
+   "p_both_given_smaller": 0.08,
+   "lift": 1.01
+  },
+  "H1_ENEMY_STACKING|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 30,
+   "p_both_given_smaller": 0.09,
+   "lift": 1.13
+  },
+  "H1_ENEMY_STACKING|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 180,
+   "p_both_given_smaller": 0.25,
+   "lift": 1.38
+  },
+  "H1_ENEMY_STACKING|I4_LANE_ITEM_RACE": {
+   "both": 20,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.8
+  },
+  "H1_ENEMY_STACKING|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 90,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.53
+  },
+  "H1_ENEMY_STACKING|I6_SPIKE_BEFORE_TURN": {
+   "both": 35,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.37
+  },
+  "H1_ENEMY_STACKING|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 1,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.76
+  },
+  "H2_ENEMY_VISION|H3_ENEMY_SMOKES": {
+   "both": 320,
+   "p_both_given_smaller": 0.33,
+   "lift": 1.63
+  },
+  "H2_ENEMY_VISION|H4_SMOKE_TO_KILLS": {
+   "both": 45,
+   "p_both_given_smaller": 0.53,
+   "lift": 2.59
+  },
+  "H2_ENEMY_VISION|H5_ENEMY_BOSS_CONTROL": {
+   "both": 230,
+   "p_both_given_smaller": 0.32,
+   "lift": 1.54
+  },
+  "H2_ENEMY_VISION|H6_ENEMY_FAST_CORE": {
+   "both": 120,
+   "p_both_given_smaller": 0.15,
+   "lift": 0.73
+  },
+  "H2_ENEMY_VISION|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 85,
+   "p_both_given_smaller": 0.17,
+   "lift": 0.82
+  },
+  "H2_ENEMY_VISION|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 125,
+   "p_both_given_smaller": 0.16,
+   "lift": 0.77
+  },
+  "H2_ENEMY_VISION|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 25,
+   "p_both_given_smaller": 1.0,
+   "lift": 4.9
+  },
+  "H2_ENEMY_VISION|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 665,
+   "p_both_given_smaller": 0.66,
+   "lift": 3.21
+  },
+  "H2_ENEMY_VISION|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 47,
+   "p_both_given_smaller": 0.3,
+   "lift": 1.46
+  },
+  "H2_ENEMY_VISION|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 100,
+   "p_both_given_smaller": 0.31,
+   "lift": 1.5
+  },
+  "H2_ENEMY_VISION|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 330,
+   "p_both_given_smaller": 0.21,
+   "lift": 1.01
+  },
+  "H2_ENEMY_VISION|I4_LANE_ITEM_RACE": {
+   "both": 169,
+   "p_both_given_smaller": 0.55,
+   "lift": 2.69
+  },
+  "H2_ENEMY_VISION|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 95,
+   "p_both_given_smaller": 0.13,
+   "lift": 0.64
+  },
+  "H2_ENEMY_VISION|I6_SPIKE_BEFORE_TURN": {
+   "both": 5,
+   "p_both_given_smaller": 0.02,
+   "lift": 0.08
+  },
+  "H2_ENEMY_VISION|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 6,
+   "p_both_given_smaller": 0.86,
+   "lift": 4.2
+  },
+  "H3_ENEMY_SMOKES|H4_SMOKE_TO_KILLS": {
+   "both": 10,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.09
+  },
+  "H3_ENEMY_SMOKES|H5_ENEMY_BOSS_CONTROL": {
+   "both": 135,
+   "p_both_given_smaller": 0.18,
+   "lift": 1.71
+  },
+  "H3_ENEMY_SMOKES|H6_ENEMY_FAST_CORE": {
+   "both": 55,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.63
+  },
+  "H3_ENEMY_SMOKES|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 50,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.9
+  },
+  "H3_ENEMY_SMOKES|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 60,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.7
+  },
+  "H3_ENEMY_SMOKES|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H3_ENEMY_SMOKES|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 515,
+   "p_both_given_smaller": 0.54,
+   "lift": 4.68
+  },
+  "H3_ENEMY_SMOKES|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 22,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.29
+  },
+  "H3_ENEMY_SMOKES|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 50,
+   "p_both_given_smaller": 0.15,
+   "lift": 1.41
+  },
+  "H3_ENEMY_SMOKES|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 160,
+   "p_both_given_smaller": 0.17,
+   "lift": 0.92
+  },
+  "H3_ENEMY_SMOKES|I4_LANE_ITEM_RACE": {
+   "both": 53,
+   "p_both_given_smaller": 0.17,
+   "lift": 1.59
+  },
+  "H3_ENEMY_SMOKES|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 40,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.51
+  },
+  "H3_ENEMY_SMOKES|I6_SPIKE_BEFORE_TURN": {
+   "both": 25,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.73
+  },
+  "H3_ENEMY_SMOKES|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H4_SMOKE_TO_KILLS|H5_ENEMY_BOSS_CONTROL": {
+   "both": 10,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.43
+  },
+  "H4_SMOKE_TO_KILLS|H6_ENEMY_FAST_CORE": {
+   "both": 10,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.3
+  },
+  "H4_SMOKE_TO_KILLS|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 10,
+   "p_both_given_smaller": 0.12,
+   "lift": 2.04
+  },
+  "H4_SMOKE_TO_KILLS|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 20,
+   "p_both_given_smaller": 0.24,
+   "lift": 2.64
+  },
+  "H4_SMOKE_TO_KILLS|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 15,
+   "p_both_given_smaller": 0.6,
+   "lift": 62.54
+  },
+  "H4_SMOKE_TO_KILLS|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 20,
+   "p_both_given_smaller": 0.24,
+   "lift": 2.05
+  },
+  "H4_SMOKE_TO_KILLS|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 3,
+   "p_both_given_smaller": 0.04,
+   "lift": 1.98
+  },
+  "H4_SMOKE_TO_KILLS|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 6,
+   "p_both_given_smaller": 0.07,
+   "lift": 1.91
+  },
+  "H4_SMOKE_TO_KILLS|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 10,
+   "p_both_given_smaller": 0.12,
+   "lift": 0.65
+  },
+  "H4_SMOKE_TO_KILLS|I4_LANE_ITEM_RACE": {
+   "both": 6,
+   "p_both_given_smaller": 0.07,
+   "lift": 2.03
+  },
+  "H4_SMOKE_TO_KILLS|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 5,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.72
+  },
+  "H4_SMOKE_TO_KILLS|I6_SPIKE_BEFORE_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H4_SMOKE_TO_KILLS|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 3,
+   "p_both_given_smaller": 0.43,
+   "lift": 44.67
+  },
+  "H5_ENEMY_BOSS_CONTROL|H6_ENEMY_FAST_CORE": {
+   "both": 80,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.21
+  },
+  "H5_ENEMY_BOSS_CONTROL|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 50,
+   "p_both_given_smaller": 0.1,
+   "lift": 1.19
+  },
+  "H5_ENEMY_BOSS_CONTROL|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 85,
+   "p_both_given_smaller": 0.12,
+   "lift": 1.31
+  },
+  "H5_ENEMY_BOSS_CONTROL|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 5,
+   "p_both_given_smaller": 0.2,
+   "lift": 2.43
+  },
+  "H5_ENEMY_BOSS_CONTROL|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 375,
+   "p_both_given_smaller": 0.51,
+   "lift": 4.48
+  },
+  "H5_ENEMY_BOSS_CONTROL|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 12,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.92
+  },
+  "H5_ENEMY_BOSS_CONTROL|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 30,
+   "p_both_given_smaller": 0.09,
+   "lift": 1.11
+  },
+  "H5_ENEMY_BOSS_CONTROL|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 145,
+   "p_both_given_smaller": 0.2,
+   "lift": 1.1
+  },
+  "H5_ENEMY_BOSS_CONTROL|I4_LANE_ITEM_RACE": {
+   "both": 52,
+   "p_both_given_smaller": 0.17,
+   "lift": 2.05
+  },
+  "H5_ENEMY_BOSS_CONTROL|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 80,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.34
+  },
+  "H5_ENEMY_BOSS_CONTROL|I6_SPIKE_BEFORE_TURN": {
+   "both": 10,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.39
+  },
+  "H5_ENEMY_BOSS_CONTROL|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 2,
+   "p_both_given_smaller": 0.29,
+   "lift": 3.47
+  },
+  "H6_ENEMY_FAST_CORE|H7_ENEMY_ECONOMY_CONCENTRATION": {
+   "both": 265,
+   "p_both_given_smaller": 0.52,
+   "lift": 5.75
+  },
+  "H6_ENEMY_FAST_CORE|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 70,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.98
+  },
+  "H6_ENEMY_FAST_CORE|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H6_ENEMY_FAST_CORE|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 90,
+   "p_both_given_smaller": 0.11,
+   "lift": 0.98
+  },
+  "H6_ENEMY_FAST_CORE|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 9,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.63
+  },
+  "H6_ENEMY_FAST_CORE|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 18,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.61
+  },
+  "H6_ENEMY_FAST_CORE|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 325,
+   "p_both_given_smaller": 0.41,
+   "lift": 2.25
+  },
+  "H6_ENEMY_FAST_CORE|I4_LANE_ITEM_RACE": {
+   "both": 22,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.79
+  },
+  "H6_ENEMY_FAST_CORE|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 185,
+   "p_both_given_smaller": 0.26,
+   "lift": 2.83
+  },
+  "H6_ENEMY_FAST_CORE|I6_SPIKE_BEFORE_TURN": {
+   "both": 45,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.58
+  },
+  "H6_ENEMY_FAST_CORE|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|H8_ENEMY_JUNGLE_RELIANCE": {
+   "both": 35,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.77
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 45,
+   "p_both_given_smaller": 0.09,
+   "lift": 0.77
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 7,
+   "p_both_given_smaller": 0.04,
+   "lift": 0.77
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 19,
+   "p_both_given_smaller": 0.06,
+   "lift": 1.01
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 170,
+   "p_both_given_smaller": 0.33,
+   "lift": 1.85
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|I4_LANE_ITEM_RACE": {
+   "both": 18,
+   "p_both_given_smaller": 0.06,
+   "lift": 1.02
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 70,
+   "p_both_given_smaller": 0.14,
+   "lift": 1.68
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|I6_SPIKE_BEFORE_TURN": {
+   "both": 10,
+   "p_both_given_smaller": 0.03,
+   "lift": 0.55
+  },
+  "H7_ENEMY_ECONOMY_CONCENTRATION|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE|H9_SHORT_LIVED_OBSERVERS": {
+   "both": 5,
+   "p_both_given_smaller": 0.2,
+   "lift": 2.24
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 300,
+   "p_both_given_smaller": 0.38,
+   "lift": 3.31
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 18,
+   "p_both_given_smaller": 0.11,
+   "lift": 1.28
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 22,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.75
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 140,
+   "p_both_given_smaller": 0.18,
+   "lift": 0.98
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE|I4_LANE_ITEM_RACE": {
+   "both": 26,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.95
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 50,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.77
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE|I6_SPIKE_BEFORE_TURN": {
+   "both": 15,
+   "p_both_given_smaller": 0.05,
+   "lift": 0.53
+  },
+  "H8_ENEMY_JUNGLE_RELIANCE|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H9_SHORT_LIVED_OBSERVERS|H10_HIDDEN_ACTIVITY_STACK": {
+   "both": 15,
+   "p_both_given_smaller": 0.6,
+   "lift": 5.24
+  },
+  "H9_SHORT_LIVED_OBSERVERS|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 2,
+   "p_both_given_smaller": 0.08,
+   "lift": 4.49
+  },
+  "H9_SHORT_LIVED_OBSERVERS|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 1,
+   "p_both_given_smaller": 0.04,
+   "lift": 1.08
+  },
+  "H9_SHORT_LIVED_OBSERVERS|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H9_SHORT_LIVED_OBSERVERS|I4_LANE_ITEM_RACE": {
+   "both": 2,
+   "p_both_given_smaller": 0.08,
+   "lift": 2.3
+  },
+  "H9_SHORT_LIVED_OBSERVERS|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H9_SHORT_LIVED_OBSERVERS|I6_SPIKE_BEFORE_TURN": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "H9_SHORT_LIVED_OBSERVERS|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 3,
+   "p_both_given_smaller": 0.43,
+   "lift": 151.89
+  },
+  "H10_HIDDEN_ACTIVITY_STACK|I1_UNUSED_ACTIVE_ITEM": {
+   "both": 23,
+   "p_both_given_smaller": 0.15,
+   "lift": 1.27
+  },
+  "H10_HIDDEN_ACTIVITY_STACK|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 43,
+   "p_both_given_smaller": 0.13,
+   "lift": 1.15
+  },
+  "H10_HIDDEN_ACTIVITY_STACK|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 225,
+   "p_both_given_smaller": 0.22,
+   "lift": 1.23
+  },
+  "H10_HIDDEN_ACTIVITY_STACK|I4_LANE_ITEM_RACE": {
+   "both": 88,
+   "p_both_given_smaller": 0.29,
+   "lift": 2.49
+  },
+  "H10_HIDDEN_ACTIVITY_STACK|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 75,
+   "p_both_given_smaller": 0.1,
+   "lift": 0.9
+  },
+  "H10_HIDDEN_ACTIVITY_STACK|I6_SPIKE_BEFORE_TURN": {
+   "both": 5,
+   "p_both_given_smaller": 0.02,
+   "lift": 0.14
+  },
+  "H10_HIDDEN_ACTIVITY_STACK|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 3,
+   "p_both_given_smaller": 0.43,
+   "lift": 3.74
+  },
+  "I1_UNUSED_ACTIVE_ITEM|I2_ACTIVATION_RATE_EXTREME": {
+   "both": 9,
+   "p_both_given_smaller": 0.06,
+   "lift": 1.54
+  },
+  "I1_UNUSED_ACTIVE_ITEM|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 30,
+   "p_both_given_smaller": 0.19,
+   "lift": 1.05
+  },
+  "I1_UNUSED_ACTIVE_ITEM|I4_LANE_ITEM_RACE": {
+   "both": 14,
+   "p_both_given_smaller": 0.09,
+   "lift": 2.55
+  },
+  "I1_UNUSED_ACTIVE_ITEM|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 12,
+   "p_both_given_smaller": 0.08,
+   "lift": 0.93
+  },
+  "I1_UNUSED_ACTIVE_ITEM|I6_SPIKE_BEFORE_TURN": {
+   "both": 2,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.36
+  },
+  "I1_UNUSED_ACTIVE_ITEM|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "I2_ACTIVATION_RATE_EXTREME|I3_ENEMY_EARLY_SPIKE_ITEM": {
+   "both": 70,
+   "p_both_given_smaller": 0.21,
+   "lift": 1.19
+  },
+  "I2_ACTIVATION_RATE_EXTREME|I4_LANE_ITEM_RACE": {
+   "both": 24,
+   "p_both_given_smaller": 0.08,
+   "lift": 2.11
+  },
+  "I2_ACTIVATION_RATE_EXTREME|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 22,
+   "p_both_given_smaller": 0.07,
+   "lift": 0.82
+  },
+  "I2_ACTIVATION_RATE_EXTREME|I6_SPIKE_BEFORE_TURN": {
+   "both": 2,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.17
+  },
+  "I2_ACTIVATION_RATE_EXTREME|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "I3_ENEMY_EARLY_SPIKE_ITEM|I4_LANE_ITEM_RACE": {
+   "both": 58,
+   "p_both_given_smaller": 0.19,
+   "lift": 1.04
+  },
+  "I3_ENEMY_EARLY_SPIKE_ITEM|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 225,
+   "p_both_given_smaller": 0.31,
+   "lift": 1.72
+  },
+  "I3_ENEMY_EARLY_SPIKE_ITEM|I6_SPIKE_BEFORE_TURN": {
+   "both": 75,
+   "p_both_given_smaller": 0.24,
+   "lift": 1.32
+  },
+  "I3_ENEMY_EARLY_SPIKE_ITEM|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "I4_LANE_ITEM_RACE|I5_ENEMY_SPIKE_CLUSTER": {
+   "both": 20,
+   "p_both_given_smaller": 0.06,
+   "lift": 0.79
+  },
+  "I4_LANE_ITEM_RACE|I6_SPIKE_BEFORE_TURN": {
+   "both": 3,
+   "p_both_given_smaller": 0.01,
+   "lift": 0.27
+  },
+  "I4_LANE_ITEM_RACE|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "I5_ENEMY_SPIKE_CLUSTER|I6_SPIKE_BEFORE_TURN": {
+   "both": 65,
+   "p_both_given_smaller": 0.21,
+   "lift": 2.52
+  },
+  "I5_ENEMY_SPIKE_CLUSTER|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  },
+  "I6_SPIKE_BEFORE_TURN|I7_FIRST_ACTIVATION_DELAY": {
+   "both": 0,
+   "p_both_given_smaller": 0.0,
+   "lift": 0.0
+  }
+ }
+}

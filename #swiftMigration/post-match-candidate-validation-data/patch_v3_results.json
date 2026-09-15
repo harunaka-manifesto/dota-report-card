@@ -1,0 +1,80 @@
+{
+ "feeding_matches": [
+  18,
+  886
+ ],
+ "STANDARD": {
+  "obs_rate90": 4.6856696602889505,
+  "obs_rate95": 4.761904761904762,
+  "smoke_rate90": 1.603053435114504,
+  "smoke_rate95": 1.6911994989038521,
+  "killed_rate90": 1.9308125502815772,
+  "corr_duration": {
+   "obs_count": 0.87,
+   "obs_rate": 0.01,
+   "smoke_count": 0.31,
+   "smoke_rate": -0.01,
+   "stacks_count": -0.02
+  },
+  "H2r_heavy_pct": 10.1,
+  "H2r_cleared_pct": 10.1,
+  "H2r_union_pct": 17.9,
+  "H2r_heavy_duration_p50": 38.95,
+  "all_duration_p50": 42.56666666666667,
+  "H3r_pct": 6.0,
+  "H3r_duration_p50": 41.78333333333333,
+  "examples_heavy": [
+   "43m enemy obs 20 (rate 4.7/10m), own 20, destroyed ours 6",
+   "34m enemy obs 16 (rate 4.7/10m), own 9, destroyed ours 4",
+   "28m enemy obs 14 (rate 5.0/10m), own 14, destroyed ours 4",
+   "34m enemy obs 16 (rate 4.7/10m), own 12, destroyed ours 3"
+  ],
+  "examples_smoke": [
+   "38m enemy smokes 7 (1.8/10m) own 4",
+   "32m enemy smokes 6 (1.9/10m) own 1",
+   "41m enemy smokes 7 (1.7/10m) own 2",
+   "41m enemy smokes 7 (1.7/10m) own 2"
+  ],
+  "support_counterpart_same_lane_2v2_pct": 99.6,
+  "L7_rate_all": 15.4,
+  "L7_rate_no_feed": 14.9
+ },
+ "TURBO": {
+  "obs_rate90": 4.823151125401929,
+  "obs_rate95": 4.958677685950414,
+  "smoke_rate90": 1.6472203157172272,
+  "smoke_rate95": 1.8633540372670807,
+  "killed_rate90": 2.0905923344947737,
+  "corr_duration": {
+   "obs_count": 0.75,
+   "obs_rate": -0.03,
+   "smoke_count": 0.22,
+   "smoke_rate": -0.04,
+   "stacks_count": 0.01
+  },
+  "H2r_heavy_pct": 10.1,
+  "H2r_cleared_pct": 9.2,
+  "H2r_union_pct": 17.5,
+  "H2r_heavy_duration_p50": 22.316666666666666,
+  "all_duration_p50": 25.316666666666666,
+  "H3r_pct": 8.0,
+  "H3r_duration_p50": 23.35,
+  "H1_turbo_floor5_pct": 2.2,
+  "H1_turbo_floor4_pct": 4.2,
+  "examples_heavy": [
+   "20m enemy obs 10 (rate 5.1/10m), own 7, destroyed ours 4",
+   "27m enemy obs 13 (rate 4.9/10m), own 13, destroyed ours 4",
+   "17m enemy obs 9 (rate 5.3/10m), own 8, destroyed ours 3",
+   "16m enemy obs 8 (rate 5.0/10m), own 6, destroyed ours 5"
+  ],
+  "examples_smoke": [
+   "28m enemy smokes 5 (1.8/10m) own 0",
+   "30m enemy smokes 5 (1.7/10m) own 2",
+   "28m enemy smokes 5 (1.8/10m) own 0",
+   "29m enemy smokes 5 (1.7/10m) own 0"
+  ],
+  "support_counterpart_same_lane_2v2_pct": 98.0,
+  "L7_rate_all": 19.0,
+  "L7_rate_no_feed": 19.0
+ }
+}

@@ -1,0 +1,333 @@
+{
+ "status": "RECOMMENDATION FOR PRODUCT REVIEW \u2014 NOT YET SSOT",
+ "version": "tier-b-match-shape-research-2.0",
+ "generated": "2026-09-15",
+ "inputs": [
+  "players[].stats.networthPerMinute (all 10 players)",
+  "towerDeaths (time, npcId, isRadiant = owner)",
+  "durationSeconds",
+  "gameMode/lobbyType",
+  "didRadiantWin (context only, never used for detection)"
+ ],
+ "normalization": "L(t) = team NW(t) - enemy NW(t); R(t) = L(t) / (team NW(t) + enemy NW(t)) at t:00",
+ "smoothing": "centered 3-minute median of R, computed on R truncated at the window end (no post-window leakage)",
+ "window": {
+  "start_minute": {
+   "STANDARD": 10,
+   "TURBO": 8
+  },
+  "end": "floor((duration - 3 min) / 60)",
+  "min_window_minutes": 9,
+  "below_minimum": "SHORT_WINDOW (no shape)"
+ },
+ "phase_bins": {
+  "edges": {
+   "STANDARD": [
+    20,
+    30,
+    40
+   ],
+   "TURBO": [
+    14,
+    20,
+    26
+   ]
+  },
+  "meaning": "thresholds are looked up by absolute minute bin; bin k = number of edges <= minute"
+ },
+ "band_percentiles": {
+  "close": "p50 of |R| (dev, same mode, same phase bin)",
+  "meaningful_edge": "p70",
+  "strong_edge": "p90"
+ },
+ "thresholds": {
+  "STANDARD|phase_bin_0": {
+   "C": 0.0637,
+   "E": 0.0943,
+   "S": 0.1563
+  },
+  "STANDARD|phase_bin_1": {
+   "C": 0.0653,
+   "E": 0.1032,
+   "S": 0.1803
+  },
+  "STANDARD|phase_bin_2": {
+   "C": 0.0568,
+   "E": 0.0914,
+   "S": 0.1429
+  },
+  "STANDARD|phase_bin_3": {
+   "C": 0.0409,
+   "E": 0.0641,
+   "S": 0.1073
+  },
+  "TURBO|phase_bin_0": {
+   "C": 0.0649,
+   "E": 0.1008,
+   "S": 0.1638
+  },
+  "TURBO|phase_bin_1": {
+   "C": 0.0657,
+   "E": 0.0994,
+   "S": 0.1687
+  },
+  "TURBO|phase_bin_2": {
+   "C": 0.0522,
+   "E": 0.0798,
+   "S": 0.131
+  },
+  "TURBO|phase_bin_3": {
+   "C": 0.0407,
+   "E": 0.0635,
+   "S": 0.1054
+  }
+ },
+ "sustained_run_minutes": 3,
+ "hysteresis": "none (tested; no stability gain)",
+ "shapes": [
+  {
+   "id": "EVEN_THEN_SEPARATED",
+   "internal": "ETS",
+   "direction": "FOR/AGAINST",
+   "rule": "Path 1 (thirds): first third >= 65% CLOSE minutes; the first sustained edge of side s starts at >= 30% of the window; no sustained edge of either side before it; final third >= 60% inside side-s sustained runs; no side(-s) sustained run after separation. Path 2 (transition): the first sustained run of the window belongs to s and starts at >= max(30% of window, 3 min); >= 65% CLOSE before it; >= 60% of the minutes after it inside s runs; >= 3 minutes after it; no -s sustained run.",
+   "slots": [
+    "direction",
+    "separation_minute",
+    "gap_before_max_gold (window start .. separation-3)",
+    "lead_at_separation",
+    "lead_at_window_end",
+    "close_share_before",
+    "edge_share_after",
+    "net_structures_after"
+   ]
+  },
+  {
+   "id": "LEAD_ERODED",
+   "internal": "LE (s=+1)",
+   "rule": "A sustained +edge run starts in the first 2/3 of the window; no sustained -edge run anywhere; relative erosion (peak R in first 2/3 minus median R of last 3 window minutes) / peak >= 50%; gold erosion from the gold peak in the first 2/3 >= 50%; gold peak >= 5,000 (Standard) / 8,000 (Turbo).",
+   "slots": [
+    "gold_peak",
+    "gold_peak_minute",
+    "gold_at_window_end (median of last 3)",
+    "relative_erosion"
+   ]
+  },
+  {
+   "id": "DEFICIT_RECOVERED",
+   "internal": "DR (s=-1)",
+   "rule": "Exact mirror of LEAD_ERODED for the opponent's lead.",
+   "slots": [
+    "enemy_gold_peak",
+    "enemy_gold_peak_minute",
+    "enemy_gold_at_window_end"
+   ]
+  },
+  {
+   "id": "ONE_SIDED",
+   "internal": "OS",
+   "rule": "Side s owns >= 70% of window minutes inside sustained edge runs; first s run starts within the first 33%; no -s sustained run; and (strong edge >= 3 consecutive minutes or s gains >= 3 net structures). Structure clause is non-binding in practice.",
+   "display": "never as Tier B (97% BORING in review)"
+  },
+  {
+   "id": "STEADY_EDGE",
+   "internal": "SE",
+   "rule": "Path 1: s owns >= 50% of window minutes inside sustained runs, first-half and second-half medians of R both favour s, no -s sustained run. Path 2 (lean): s ahead (R>0) in >= 80% of window minutes, median(s*R) >= median CLOSE threshold, both half-medians favour s, no -s sustained run.",
+   "slots": [
+    "direction",
+    "ahead_share",
+    "largest_lead_gold",
+    "largest_lead_minute"
+   ]
+  },
+  {
+   "id": "LEAD_SWAPPED",
+   "internal": "SWAP",
+   "rule": "Sustained runs of both sides inside the window (not part of the original six; required for exhaustive labels; ~2% of matches, 0.3% of Tier-A-empty; mostly covered by Tier A T2/T3).",
+   "slots": [
+    "first_run",
+    "last_run"
+   ]
+  },
+  {
+   "id": "CLOSE_THROUGHOUT",
+   "internal": "CT",
+   "rule": "Positive rule: no sustained edge run of either side; CLOSE share >= 60% of window minutes; the largest gap held for 3 straight minutes (either direction) < 7,500 gold.",
+   "slots": [
+    "max_3min_gap_gold",
+    "latest_close_minute",
+    "close_share"
+   ]
+  },
+  {
+   "id": "UNCLEAR",
+   "internal": "fallback",
+   "rule": "Everything else. Never displayed."
+  }
+ ],
+ "priority": [
+  "EVEN_THEN_SEPARATED",
+  "LEAD_ERODED",
+  "DEFICIT_RECOVERED",
+  "ONE_SIDED",
+  "STEADY_EDGE",
+  "LEAD_SWAPPED",
+  "CLOSE_THROUGHOUT",
+  "UNCLEAR"
+ ],
+ "mirror_rule": "label(opponent view) = mirror(label): LE<->DR, *_FOR<->*_AGAINST, CT<->CT, UNCLEAR<->UNCLEAR",
+ "shape_confidence": "share of 34 deterministic perturbations (percentiles +-5, run +-1, shares +-5pp, erosion +-10pp, start +-1/2, end exclusion +-1/2, CT close share +-5pp, lean share +-5pp, CT gold +-1000, LE gold floor +-1000) that return the same label",
+ "modifiers": {
+  "kept": {
+   "NO_STRUCTURE_CONVERSION": "a sustained edge run of >= 8 (Standard) / 5 (Turbo) minutes with 0 net towers/barracks for the leader (enrichment text only)",
+   "STRUCTURE_COUNTERTREND": "during the leader's sustained edge minutes the trailing side destroyed >= 2 more towers/barracks (enrichment text only; 0.7% of matches)"
+  },
+  "rejected": {
+   "STRUCTURE_ALIGNED": "97% of ONE_SIDED/STEADY_EDGE and 90% of EVEN_THEN_SEPARATED: restates the shape",
+   "STRUCTURE_BURST": "87% of matches (3 in 5 min); end-game pushes"
+  }
+ },
+ "moderate_signals": {
+  "C_LANE_NW_CS": "core; lane-end NW gap and CS gap both beyond p75 (ahead) or p25 (behind) of the SAME position pairing (dev), same direction, |NW gap| >= 500",
+  "X_LANE_VS_OTHER_LANES": "user's map lane is the only lane of three with that sign at the lane checkpoint; |own lane gap| >= p50 of lane gaps; both other lanes >= p25",
+  "C_SPIKE_RICH_ITEM": "an enemy hero reaches the NW goal (Std 10k / Turbo 15k) at <= p25 timing and >= 3 min before your team's first, AND the same hero's spike item is <= p25 timing for that item; connector ordered by time ('bought X at t and reached ...' / '..., then bought X at t')",
+  "RICH_MOD": "enemy fastest to NW goal <= p25 timing and >= 3 min before your team's first",
+  "STACK_MOD": "Standard only; enemy stacks by 20:00 >= p75, stack edge >= p75 and >= 4",
+  "SMOKE_MOD": "enemy smokes per 10 min >= p75 and enemy smokes >= own + 4",
+  "OBSCLEAR_MOD": "own observers >= 8; enemy destroyed-observer rate >= p75; share destroyed >= 45%; >= 4 destroyed",
+  "X_HIDDEN_MULTI": ">= 2 of STACK_MOD / OBSCLEAR_MOD / SMOKE_MOD / RICH_MOD",
+  "C_ECON_STACK_RICH": "STACK_MOD and RICH_MOD",
+  "rejected": {
+   "BOSS_MOD": "enemy Roshan >= 1 vs 0: 100% BORING, 9.3x loss-skewed in Tier-A-empty",
+   "ITEM_EARLY_MOD": "any enemy core spike item <= p25: fires 63% (multiple comparisons); component only",
+   "LANE_NW_MODERATE": "superseded by C_LANE_NW_CS",
+   "C_VISION_CLEARED_LOW_SURVIVAL": "82% BORING; same metric counted twice"
+  }
+ },
+ "score": {
+  "formula": "TierBScore = (35*SignalStrength + 25*ExplanatoryStructure + 20*PlayerRelevance + 15*Corroboration + 5*HistoryContext) * Reliability",
+  "signal_strength": "signals: clip((percentile - 50)/40); ETS: clip((|median R after separation| - CLOSE)/(STRONG - CLOSE)); LE/DR: clip((peak R - CLOSE)/(STRONG - CLOSE)) * min(1, erosion); SE: edge-share or lean-share scaled; CT: 0.5*close-share scaled + 0.5 if still close within 2 min of window end",
+  "explanatory_structure": {
+   "ETS": 1.0,
+   "LE": 1.0,
+   "DR": 1.0,
+   "SWAP": 1.0,
+   "CT": 0.6,
+   "SE": 0.4,
+   "OS": 0.2,
+   "C_SPIKE_RICH_ITEM": 1.0,
+   "X_HIDDEN_MULTI": 0.8,
+   "C_ECON_STACK_RICH": 0.8,
+   "X_LANE_VS_OTHER_LANES": 0.8,
+   "C_LANE_NW_CS": 0.6,
+   "single_hidden_signal": 0.5
+  },
+  "player_relevance": {
+   "user_lane": 0.9,
+   "counterpart": 0.75,
+   "team": 0.5
+  },
+  "corroboration": "1.0 for independent-metric composites, 0.5 for C_LANE_NW_CS (NW and CS dependent) and shape + NO_STRUCTURE_CONVERSION/COUNTERTREND, else 0",
+  "history_context": "0 in this research (no Tier-B history signals validated)",
+  "reliability": "shape_confidence for shapes; 1.0 raw facts; 0.9 lane counterpart; 0.85 lane-vs-lanes",
+  "recommended_cutoff": 45.0,
+  "display_exclusions": [
+   "BOSS_MOD",
+   "C_VISION_CLEARED_LOW_SURVIVAL",
+   "ITEM_EARLY_MOD",
+   "LANE_NW_MODERATE",
+   "SHAPE_OS",
+   "SHAPE_SHORT_WINDOW",
+   "SHAPE_UNCLEAR"
+  ]
+ },
+ "perturbation_variants": [
+  "close_p-5",
+  "close_p+5",
+  "edge_p-5",
+  "edge_p+5",
+  "strong_p-5",
+  "strong_p+5",
+  "run-1",
+  "run+1",
+  "os_share-0.05",
+  "os_share+0.05",
+  "se_share-0.05",
+  "se_share+0.05",
+  "ets_close-0.05",
+  "ets_close+0.05",
+  "ets_final-0.05",
+  "ets_final+0.05",
+  "erosion-0.10",
+  "erosion+0.10",
+  "start-2",
+  "start-1",
+  "start+1",
+  "start+2",
+  "end-2",
+  "end-1",
+  "end+1",
+  "end+2",
+  "ct_close-0.05",
+  "ct_close+0.05",
+  "se_lean-0.05",
+  "se_lean+0.05",
+  "ct_gold-1000",
+  "ct_gold+1000",
+  "le_gold_floor-1000",
+  "le_gold_floor+1000"
+ ],
+ "rule_parameters": {
+  "smooth": "med3",
+  "start": {
+   "STANDARD": 10,
+   "TURBO": 8
+  },
+  "start_shift": 0,
+  "end_excl": 3,
+  "min_window": 9,
+  "close_p": 50,
+  "edge_p": 70,
+  "strong_p": 90,
+  "stay_p": null,
+  "run": 3,
+  "phase_bands": true,
+  "ets": "both",
+  "ets_close": 0.65,
+  "ets_sep": 0.3,
+  "ets_final": 0.6,
+  "ets_clean": true,
+  "erosion": 0.5,
+  "ref": "peak",
+  "late_k": 3,
+  "le_start_frac": 0.6666666666666666,
+  "le_below_edge": false,
+  "le_gold_confirm": true,
+  "os_share": 0.7,
+  "os_first": 0.33,
+  "os_struct": 3,
+  "os_strong_min": 3,
+  "os_mode": "strong_or_struct",
+  "se_share": 0.5,
+  "ct_close": 0.6,
+  "priority": [
+   "ETS",
+   "LE",
+   "DR",
+   "OS",
+   "SE",
+   "SWAP",
+   "CT"
+  ],
+  "fallback": "UNCLEAR",
+  "se_lean": 0.8,
+  "ct_gold": {
+   "STANDARD": 7500,
+   "TURBO": 7500
+  },
+  "le_ref_gold": true,
+  "le_gold_floor": {
+   "STANDARD": 5000,
+   "TURBO": 8000
+  }
+ }
+}

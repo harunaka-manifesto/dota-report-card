@@ -1,0 +1,1452 @@
+{
+ "v1 (sign-agnostic gap)": {
+  "dev_all_variants": {
+   "dist": {
+    "ETS": 10.2,
+    "LE": 5.9,
+    "DR": 3.5,
+    "OS": 17.3,
+    "SE": 5.4,
+    "SWAP": 1.6,
+    "CT": 30.5,
+    "UNCLEAR": 19.6,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.941,
+   "stable": 71.5,
+   "unstable": 0.3,
+   "per_shape": {
+    "ETS": {
+     "n": 62,
+     "conf": 0.938
+    },
+    "LE": {
+     "n": 36,
+     "conf": 0.943
+    },
+    "DR": {
+     "n": 21,
+     "conf": 0.935
+    },
+    "OS": {
+     "n": 105,
+     "conf": 0.958
+    },
+    "SE": {
+     "n": 33,
+     "conf": 0.86
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 185,
+     "conf": 0.96
+    },
+    "UNCLEAR": {
+     "n": 119,
+     "conf": 0.919
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "dev_core_variants": {
+   "dist": {
+    "ETS": 10.2,
+    "LE": 5.9,
+    "DR": 3.5,
+    "OS": 17.3,
+    "SE": 5.4,
+    "SWAP": 1.6,
+    "CT": 30.5,
+    "UNCLEAR": 19.6,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.941,
+   "stable": 71.5,
+   "unstable": 0.3,
+   "per_shape": {
+    "ETS": {
+     "n": 62,
+     "conf": 0.938
+    },
+    "LE": {
+     "n": 36,
+     "conf": 0.943
+    },
+    "DR": {
+     "n": 21,
+     "conf": 0.935
+    },
+    "OS": {
+     "n": 105,
+     "conf": 0.958
+    },
+    "SE": {
+     "n": 33,
+     "conf": 0.86
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 185,
+     "conf": 0.96
+    },
+    "UNCLEAR": {
+     "n": 119,
+     "conf": 0.919
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "holdout_all_variants": {
+   "dist": {
+    "ETS": 14.6,
+    "LE": 4.6,
+    "DR": 5.7,
+    "OS": 16.1,
+    "SE": 6.5,
+    "SWAP": 2.7,
+    "CT": 28.7,
+    "UNCLEAR": 19.5,
+    "SHORT_WINDOW": 1.5
+   },
+   "mean_conf": 0.941,
+   "stable": 71.6,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 38,
+     "conf": 0.926
+    },
+    "LE": {
+     "n": 12,
+     "conf": 0.949
+    },
+    "DR": {
+     "n": 15,
+     "conf": 0.945
+    },
+    "OS": {
+     "n": 42,
+     "conf": 0.961
+    },
+    "SE": {
+     "n": 17,
+     "conf": 0.866
+    },
+    "SWAP": {
+     "n": 7,
+     "conf": 0.918
+    },
+    "CT": {
+     "n": 75,
+     "conf": 0.976
+    },
+    "UNCLEAR": {
+     "n": 51,
+     "conf": 0.915
+    },
+    "SHORT_WINDOW": {
+     "n": 4,
+     "conf": 0.911
+    }
+   }
+  },
+  "mirror_mismatch": 0,
+  "T3_label_mix": {
+   "CT": 34,
+   "UNCLEAR": 28,
+   "DR": 21,
+   "LE": 21,
+   "SWAP": 16,
+   "SE": 4,
+   "ETS": 4,
+   "OS": 2
+  },
+  "T3_contradicted": 7.7
+ },
+ "+ets_both": {
+  "dev_all_variants": {
+   "dist": {
+    "ETS": 13.3,
+    "LE": 5.9,
+    "DR": 3.5,
+    "OS": 17.3,
+    "SE": 6.1,
+    "SWAP": 1.6,
+    "CT": 30.5,
+    "UNCLEAR": 15.8,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.94,
+   "stable": 70.7,
+   "unstable": 0.3,
+   "per_shape": {
+    "ETS": {
+     "n": 81,
+     "conf": 0.935
+    },
+    "LE": {
+     "n": 36,
+     "conf": 0.937
+    },
+    "DR": {
+     "n": 21,
+     "conf": 0.935
+    },
+    "OS": {
+     "n": 105,
+     "conf": 0.958
+    },
+    "SE": {
+     "n": 37,
+     "conf": 0.87
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 185,
+     "conf": 0.96
+    },
+    "UNCLEAR": {
+     "n": 96,
+     "conf": 0.914
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "dev_core_variants": {
+   "dist": {
+    "ETS": 13.3,
+    "LE": 5.9,
+    "DR": 3.5,
+    "OS": 17.3,
+    "SE": 6.1,
+    "SWAP": 1.6,
+    "CT": 30.5,
+    "UNCLEAR": 15.8,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.94,
+   "stable": 70.7,
+   "unstable": 0.3,
+   "per_shape": {
+    "ETS": {
+     "n": 81,
+     "conf": 0.935
+    },
+    "LE": {
+     "n": 36,
+     "conf": 0.937
+    },
+    "DR": {
+     "n": 21,
+     "conf": 0.935
+    },
+    "OS": {
+     "n": 105,
+     "conf": 0.958
+    },
+    "SE": {
+     "n": 37,
+     "conf": 0.87
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 185,
+     "conf": 0.96
+    },
+    "UNCLEAR": {
+     "n": 96,
+     "conf": 0.914
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "holdout_all_variants": {
+   "dist": {
+    "ETS": 14.9,
+    "LE": 4.2,
+    "DR": 5.7,
+    "OS": 16.1,
+    "SE": 6.9,
+    "SWAP": 2.7,
+    "CT": 28.7,
+    "UNCLEAR": 19.2,
+    "SHORT_WINDOW": 1.5
+   },
+   "mean_conf": 0.941,
+   "stable": 71.6,
+   "unstable": 0.8,
+   "per_shape": {
+    "ETS": {
+     "n": 39,
+     "conf": 0.937
+    },
+    "LE": {
+     "n": 11,
+     "conf": 0.955
+    },
+    "DR": {
+     "n": 15,
+     "conf": 0.945
+    },
+    "OS": {
+     "n": 42,
+     "conf": 0.961
+    },
+    "SE": {
+     "n": 18,
+     "conf": 0.873
+    },
+    "SWAP": {
+     "n": 7,
+     "conf": 0.918
+    },
+    "CT": {
+     "n": 75,
+     "conf": 0.976
+    },
+    "UNCLEAR": {
+     "n": 50,
+     "conf": 0.901
+    },
+    "SHORT_WINDOW": {
+     "n": 4,
+     "conf": 0.911
+    }
+   }
+  },
+  "mirror_mismatch": 0,
+  "T3_label_mix": {
+   "CT": 34,
+   "UNCLEAR": 26,
+   "DR": 21,
+   "LE": 21,
+   "SWAP": 16,
+   "ETS": 6,
+   "SE": 4,
+   "OS": 2
+  },
+  "T3_contradicted": 9.2
+ },
+ "+se_lean": {
+  "dev_all_variants": {
+   "dist": {
+    "ETS": 10.2,
+    "LE": 5.9,
+    "DR": 3.5,
+    "OS": 17.3,
+    "SE": 16.0,
+    "SWAP": 1.6,
+    "CT": 28.7,
+    "UNCLEAR": 10.9,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.949,
+   "stable": 82.7,
+   "unstable": 0.2,
+   "per_shape": {
+    "ETS": {
+     "n": 62,
+     "conf": 0.942
+    },
+    "LE": {
+     "n": 36,
+     "conf": 0.947
+    },
+    "DR": {
+     "n": 21,
+     "conf": 0.94
+    },
+    "OS": {
+     "n": 105,
+     "conf": 0.961
+    },
+    "SE": {
+     "n": 97,
+     "conf": 0.956
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.983
+    },
+    "CT": {
+     "n": 174,
+     "conf": 0.964
+    },
+    "UNCLEAR": {
+     "n": 66,
+     "conf": 0.901
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.931
+    }
+   }
+  },
+  "dev_core_variants": {
+   "dist": {
+    "ETS": 10.2,
+    "LE": 5.9,
+    "DR": 3.5,
+    "OS": 17.3,
+    "SE": 16.0,
+    "SWAP": 1.6,
+    "CT": 28.7,
+    "UNCLEAR": 10.9,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.946,
+   "stable": 74.3,
+   "unstable": 0.3,
+   "per_shape": {
+    "ETS": {
+     "n": 62,
+     "conf": 0.938
+    },
+    "LE": {
+     "n": 36,
+     "conf": 0.943
+    },
+    "DR": {
+     "n": 21,
+     "conf": 0.935
+    },
+    "OS": {
+     "n": 105,
+     "conf": 0.958
+    },
+    "SE": {
+     "n": 97,
+     "conf": 0.953
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 174,
+     "conf": 0.961
+    },
+    "UNCLEAR": {
+     "n": 66,
+     "conf": 0.893
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "holdout_all_variants": {
+   "dist": {
+    "ETS": 14.6,
+    "LE": 4.6,
+    "DR": 5.7,
+    "OS": 16.1,
+    "SE": 18.0,
+    "SWAP": 2.7,
+    "CT": 26.8,
+    "UNCLEAR": 10.0,
+    "SHORT_WINDOW": 1.5
+   },
+   "mean_conf": 0.948,
+   "stable": 82.0,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 38,
+     "conf": 0.931
+    },
+    "LE": {
+     "n": 12,
+     "conf": 0.953
+    },
+    "DR": {
+     "n": 15,
+     "conf": 0.949
+    },
+    "OS": {
+     "n": 42,
+     "conf": 0.963
+    },
+    "SE": {
+     "n": 47,
+     "conf": 0.938
+    },
+    "SWAP": {
+     "n": 7,
+     "conf": 0.924
+    },
+    "CT": {
+     "n": 70,
+     "conf": 0.979
+    },
+    "UNCLEAR": {
+     "n": 26,
+     "conf": 0.895
+    },
+    "SHORT_WINDOW": {
+     "n": 4,
+     "conf": 0.917
+    }
+   }
+  },
+  "mirror_mismatch": 0,
+  "T3_label_mix": {
+   "CT": 34,
+   "DR": 21,
+   "LE": 21,
+   "SE": 18,
+   "SWAP": 16,
+   "UNCLEAR": 14,
+   "ETS": 4,
+   "OS": 2
+  },
+  "T3_contradicted": 18.5
+ },
+ "+ct_guard": {
+  "dev_all_variants": {
+   "dist": {
+    "ETS": 10.2,
+    "LE": 5.9,
+    "DR": 3.5,
+    "OS": 17.3,
+    "SE": 5.4,
+    "SWAP": 1.6,
+    "CT": 13.2,
+    "UNCLEAR": 36.9,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.945,
+   "stable": 79.9,
+   "unstable": 0.2,
+   "per_shape": {
+    "ETS": {
+     "n": 62,
+     "conf": 0.942
+    },
+    "LE": {
+     "n": 36,
+     "conf": 0.947
+    },
+    "DR": {
+     "n": 21,
+     "conf": 0.94
+    },
+    "OS": {
+     "n": 105,
+     "conf": 0.961
+    },
+    "SE": {
+     "n": 33,
+     "conf": 0.87
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.983
+    },
+    "CT": {
+     "n": 80,
+     "conf": 0.932
+    },
+    "UNCLEAR": {
+     "n": 224,
+     "conf": 0.956
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.931
+    }
+   }
+  },
+  "dev_core_variants": {
+   "dist": {
+    "ETS": 10.2,
+    "LE": 5.9,
+    "DR": 3.5,
+    "OS": 17.3,
+    "SE": 5.4,
+    "SWAP": 1.6,
+    "CT": 13.2,
+    "UNCLEAR": 36.9,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.942,
+   "stable": 72.8,
+   "unstable": 0.3,
+   "per_shape": {
+    "ETS": {
+     "n": 62,
+     "conf": 0.938
+    },
+    "LE": {
+     "n": 36,
+     "conf": 0.943
+    },
+    "DR": {
+     "n": 21,
+     "conf": 0.935
+    },
+    "OS": {
+     "n": 105,
+     "conf": 0.958
+    },
+    "SE": {
+     "n": 33,
+     "conf": 0.86
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 80,
+     "conf": 0.929
+    },
+    "UNCLEAR": {
+     "n": 224,
+     "conf": 0.952
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "holdout_all_variants": {
+   "dist": {
+    "ETS": 14.6,
+    "LE": 4.6,
+    "DR": 5.7,
+    "OS": 16.1,
+    "SE": 6.5,
+    "SWAP": 2.7,
+    "CT": 13.8,
+    "UNCLEAR": 34.5,
+    "SHORT_WINDOW": 1.5
+   },
+   "mean_conf": 0.943,
+   "stable": 82.8,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 38,
+     "conf": 0.931
+    },
+    "LE": {
+     "n": 12,
+     "conf": 0.953
+    },
+    "DR": {
+     "n": 15,
+     "conf": 0.949
+    },
+    "OS": {
+     "n": 42,
+     "conf": 0.963
+    },
+    "SE": {
+     "n": 17,
+     "conf": 0.875
+    },
+    "SWAP": {
+     "n": 7,
+     "conf": 0.924
+    },
+    "CT": {
+     "n": 36,
+     "conf": 0.939
+    },
+    "UNCLEAR": {
+     "n": 90,
+     "conf": 0.952
+    },
+    "SHORT_WINDOW": {
+     "n": 4,
+     "conf": 0.917
+    }
+   }
+  },
+  "mirror_mismatch": 0,
+  "T3_label_mix": {
+   "UNCLEAR": 56,
+   "DR": 21,
+   "LE": 21,
+   "SWAP": 16,
+   "CT": 6,
+   "SE": 4,
+   "ETS": 4,
+   "OS": 2
+  },
+  "T3_contradicted": 7.7
+ },
+ "+le_gold_ref_floor": {
+  "dev_all_variants": {
+   "dist": {
+    "ETS": 10.2,
+    "LE": 6.1,
+    "DR": 4.4,
+    "OS": 17.1,
+    "SE": 5.1,
+    "SWAP": 1.6,
+    "CT": 30.5,
+    "UNCLEAR": 18.9,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.945,
+   "stable": 80.4,
+   "unstable": 0.2,
+   "per_shape": {
+    "ETS": {
+     "n": 62,
+     "conf": 0.942
+    },
+    "LE": {
+     "n": 37,
+     "conf": 0.956
+    },
+    "DR": {
+     "n": 27,
+     "conf": 0.949
+    },
+    "OS": {
+     "n": 104,
+     "conf": 0.962
+    },
+    "SE": {
+     "n": 31,
+     "conf": 0.866
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.983
+    },
+    "CT": {
+     "n": 185,
+     "conf": 0.963
+    },
+    "UNCLEAR": {
+     "n": 115,
+     "conf": 0.922
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.931
+    }
+   }
+  },
+  "dev_core_variants": {
+   "dist": {
+    "ETS": 10.2,
+    "LE": 6.1,
+    "DR": 4.4,
+    "OS": 17.1,
+    "SE": 5.1,
+    "SWAP": 1.6,
+    "CT": 30.5,
+    "UNCLEAR": 18.9,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.942,
+   "stable": 72.0,
+   "unstable": 0.3,
+   "per_shape": {
+    "ETS": {
+     "n": 62,
+     "conf": 0.938
+    },
+    "LE": {
+     "n": 37,
+     "conf": 0.953
+    },
+    "DR": {
+     "n": 27,
+     "conf": 0.946
+    },
+    "OS": {
+     "n": 104,
+     "conf": 0.959
+    },
+    "SE": {
+     "n": 31,
+     "conf": 0.856
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 185,
+     "conf": 0.96
+    },
+    "UNCLEAR": {
+     "n": 115,
+     "conf": 0.917
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "holdout_all_variants": {
+   "dist": {
+    "ETS": 14.6,
+    "LE": 4.6,
+    "DR": 7.3,
+    "OS": 15.7,
+    "SE": 6.1,
+    "SWAP": 2.7,
+    "CT": 28.7,
+    "UNCLEAR": 18.8,
+    "SHORT_WINDOW": 1.5
+   },
+   "mean_conf": 0.946,
+   "stable": 82.4,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 38,
+     "conf": 0.931
+    },
+    "LE": {
+     "n": 12,
+     "conf": 0.958
+    },
+    "DR": {
+     "n": 19,
+     "conf": 0.949
+    },
+    "OS": {
+     "n": 41,
+     "conf": 0.964
+    },
+    "SE": {
+     "n": 16,
+     "conf": 0.871
+    },
+    "SWAP": {
+     "n": 7,
+     "conf": 0.924
+    },
+    "CT": {
+     "n": 75,
+     "conf": 0.977
+    },
+    "UNCLEAR": {
+     "n": 49,
+     "conf": 0.92
+    },
+    "SHORT_WINDOW": {
+     "n": 4,
+     "conf": 0.917
+    }
+   }
+  },
+  "mirror_mismatch": 0,
+  "T3_label_mix": {
+   "CT": 34,
+   "DR": 25,
+   "LE": 25,
+   "UNCLEAR": 24,
+   "SWAP": 16,
+   "ETS": 4,
+   "SE": 2
+  },
+  "T3_contradicted": 4.6
+ },
+ "v2_all": {
+  "dev_all_variants": {
+   "dist": {
+    "ETS": 13.3,
+    "LE": 6.1,
+    "DR": 4.4,
+    "OS": 17.1,
+    "SE": 17.3,
+    "SWAP": 1.6,
+    "CT": 13.2,
+    "UNCLEAR": 20.9,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.951,
+   "stable": 80.4,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 81,
+     "conf": 0.947
+    },
+    "LE": {
+     "n": 37,
+     "conf": 0.955
+    },
+    "DR": {
+     "n": 27,
+     "conf": 0.955
+    },
+    "OS": {
+     "n": 104,
+     "conf": 0.966
+    },
+    "SE": {
+     "n": 105,
+     "conf": 0.964
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.985
+    },
+    "CT": {
+     "n": 80,
+     "conf": 0.94
+    },
+    "UNCLEAR": {
+     "n": 127,
+     "conf": 0.934
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.94
+    }
+   }
+  },
+  "dev_core_variants": {
+   "dist": {
+    "ETS": 13.3,
+    "LE": 6.1,
+    "DR": 4.4,
+    "OS": 17.1,
+    "SE": 17.3,
+    "SWAP": 1.6,
+    "CT": 13.2,
+    "UNCLEAR": 20.9,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.941,
+   "stable": 71.8,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 81,
+     "conf": 0.935
+    },
+    "LE": {
+     "n": 37,
+     "conf": 0.946
+    },
+    "DR": {
+     "n": 27,
+     "conf": 0.946
+    },
+    "OS": {
+     "n": 104,
+     "conf": 0.959
+    },
+    "SE": {
+     "n": 105,
+     "conf": 0.958
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 80,
+     "conf": 0.929
+    },
+    "UNCLEAR": {
+     "n": 127,
+     "conf": 0.921
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "holdout_all_variants": {
+   "dist": {
+    "ETS": 14.9,
+    "LE": 4.2,
+    "DR": 7.3,
+    "OS": 15.7,
+    "SE": 19.9,
+    "SWAP": 2.7,
+    "CT": 13.8,
+    "UNCLEAR": 19.9,
+    "SHORT_WINDOW": 1.5
+   },
+   "mean_conf": 0.947,
+   "stable": 78.5,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 39,
+     "conf": 0.948
+    },
+    "LE": {
+     "n": 11,
+     "conf": 0.968
+    },
+    "DR": {
+     "n": 19,
+     "conf": 0.955
+    },
+    "OS": {
+     "n": 41,
+     "conf": 0.968
+    },
+    "SE": {
+     "n": 52,
+     "conf": 0.951
+    },
+    "SWAP": {
+     "n": 7,
+     "conf": 0.933
+    },
+    "CT": {
+     "n": 36,
+     "conf": 0.946
+    },
+    "UNCLEAR": {
+     "n": 52,
+     "conf": 0.925
+    },
+    "SHORT_WINDOW": {
+     "n": 4,
+     "conf": 0.926
+    }
+   }
+  },
+  "mirror_mismatch": 0,
+  "T3_label_mix": {
+   "UNCLEAR": 36,
+   "DR": 25,
+   "LE": 25,
+   "SE": 16,
+   "SWAP": 16,
+   "CT": 6,
+   "ETS": 6
+  },
+  "T3_contradicted": 16.9
+ },
+ "v2_all_se_lean_0.75": {
+  "dev_all_variants": {
+   "dist": {
+    "ETS": 13.3,
+    "LE": 6.1,
+    "DR": 4.4,
+    "OS": 17.1,
+    "SE": 17.5,
+    "SWAP": 1.6,
+    "CT": 13.2,
+    "UNCLEAR": 20.8,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.951,
+   "stable": 79.9,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 81,
+     "conf": 0.947
+    },
+    "LE": {
+     "n": 37,
+     "conf": 0.955
+    },
+    "DR": {
+     "n": 27,
+     "conf": 0.955
+    },
+    "OS": {
+     "n": 104,
+     "conf": 0.966
+    },
+    "SE": {
+     "n": 106,
+     "conf": 0.965
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.985
+    },
+    "CT": {
+     "n": 80,
+     "conf": 0.94
+    },
+    "UNCLEAR": {
+     "n": 126,
+     "conf": 0.933
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.94
+    }
+   }
+  },
+  "dev_core_variants": {
+   "dist": {
+    "ETS": 13.3,
+    "LE": 6.1,
+    "DR": 4.4,
+    "OS": 17.1,
+    "SE": 17.5,
+    "SWAP": 1.6,
+    "CT": 13.2,
+    "UNCLEAR": 20.8,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.94,
+   "stable": 71.5,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 81,
+     "conf": 0.935
+    },
+    "LE": {
+     "n": 37,
+     "conf": 0.946
+    },
+    "DR": {
+     "n": 27,
+     "conf": 0.946
+    },
+    "OS": {
+     "n": 104,
+     "conf": 0.959
+    },
+    "SE": {
+     "n": 106,
+     "conf": 0.958
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 80,
+     "conf": 0.929
+    },
+    "UNCLEAR": {
+     "n": 126,
+     "conf": 0.919
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "holdout_all_variants": {
+   "dist": {
+    "ETS": 14.9,
+    "LE": 4.2,
+    "DR": 7.3,
+    "OS": 15.7,
+    "SE": 20.7,
+    "SWAP": 2.7,
+    "CT": 13.8,
+    "UNCLEAR": 19.2,
+    "SHORT_WINDOW": 1.5
+   },
+   "mean_conf": 0.947,
+   "stable": 78.5,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 39,
+     "conf": 0.948
+    },
+    "LE": {
+     "n": 11,
+     "conf": 0.968
+    },
+    "DR": {
+     "n": 19,
+     "conf": 0.955
+    },
+    "OS": {
+     "n": 41,
+     "conf": 0.968
+    },
+    "SE": {
+     "n": 54,
+     "conf": 0.946
+    },
+    "SWAP": {
+     "n": 7,
+     "conf": 0.933
+    },
+    "CT": {
+     "n": 36,
+     "conf": 0.946
+    },
+    "UNCLEAR": {
+     "n": 50,
+     "conf": 0.928
+    },
+    "SHORT_WINDOW": {
+     "n": 4,
+     "conf": 0.926
+    }
+   }
+  },
+  "mirror_mismatch": 0,
+  "T3_label_mix": {
+   "UNCLEAR": 36,
+   "DR": 25,
+   "LE": 25,
+   "SE": 16,
+   "SWAP": 16,
+   "CT": 6,
+   "ETS": 6
+  },
+  "T3_contradicted": 16.9
+ },
+ "v2_all_ct_gold_6500": {
+  "dev_all_variants": {
+   "dist": {
+    "ETS": 13.3,
+    "LE": 6.1,
+    "DR": 4.4,
+    "OS": 17.1,
+    "SE": 17.3,
+    "SWAP": 1.6,
+    "CT": 9.6,
+    "UNCLEAR": 24.5,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.951,
+   "stable": 82.0,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 81,
+     "conf": 0.947
+    },
+    "LE": {
+     "n": 37,
+     "conf": 0.955
+    },
+    "DR": {
+     "n": 27,
+     "conf": 0.955
+    },
+    "OS": {
+     "n": 104,
+     "conf": 0.966
+    },
+    "SE": {
+     "n": 105,
+     "conf": 0.964
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.985
+    },
+    "CT": {
+     "n": 58,
+     "conf": 0.935
+    },
+    "UNCLEAR": {
+     "n": 149,
+     "conf": 0.94
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.94
+    }
+   }
+  },
+  "dev_core_variants": {
+   "dist": {
+    "ETS": 13.3,
+    "LE": 6.1,
+    "DR": 4.4,
+    "OS": 17.1,
+    "SE": 17.3,
+    "SWAP": 1.6,
+    "CT": 9.6,
+    "UNCLEAR": 24.5,
+    "SHORT_WINDOW": 5.9
+   },
+   "mean_conf": 0.941,
+   "stable": 71.7,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 81,
+     "conf": 0.935
+    },
+    "LE": {
+     "n": 37,
+     "conf": 0.946
+    },
+    "DR": {
+     "n": 27,
+     "conf": 0.946
+    },
+    "OS": {
+     "n": 104,
+     "conf": 0.959
+    },
+    "SE": {
+     "n": 105,
+     "conf": 0.958
+    },
+    "SWAP": {
+     "n": 10,
+     "conf": 0.982
+    },
+    "CT": {
+     "n": 58,
+     "conf": 0.922
+    },
+    "UNCLEAR": {
+     "n": 149,
+     "conf": 0.928
+    },
+    "SHORT_WINDOW": {
+     "n": 36,
+     "conf": 0.927
+    }
+   }
+  },
+  "holdout_all_variants": {
+   "dist": {
+    "ETS": 14.9,
+    "LE": 4.2,
+    "DR": 7.3,
+    "OS": 15.7,
+    "SE": 19.9,
+    "SWAP": 2.7,
+    "CT": 10.7,
+    "UNCLEAR": 23.0,
+    "SHORT_WINDOW": 1.5
+   },
+   "mean_conf": 0.948,
+   "stable": 78.2,
+   "unstable": 0.0,
+   "per_shape": {
+    "ETS": {
+     "n": 39,
+     "conf": 0.948
+    },
+    "LE": {
+     "n": 11,
+     "conf": 0.968
+    },
+    "DR": {
+     "n": 19,
+     "conf": 0.955
+    },
+    "OS": {
+     "n": 41,
+     "conf": 0.968
+    },
+    "SE": {
+     "n": 52,
+     "conf": 0.951
+    },
+    "SWAP": {
+     "n": 7,
+     "conf": 0.933
+    },
+    "CT": {
+     "n": 28,
+     "conf": 0.938
+    },
+    "UNCLEAR": {
+     "n": 60,
+     "conf": 0.935
+    },
+    "SHORT_WINDOW": {
+     "n": 4,
+     "conf": 0.926
+    }
+   }
+  },
+  "mirror_mismatch": 0,
+  "T3_label_mix": {
+   "UNCLEAR": 40,
+   "DR": 25,
+   "LE": 25,
+   "SE": 16,
+   "SWAP": 16,
+   "ETS": 6,
+   "CT": 2
+  },
+  "T3_contradicted": 16.9
+ },
+ "v1_to_v2_transitions_dev": [
+  [
+   "CT->UNCLEAR",
+   94
+  ],
+  [
+   "UNCLEAR->SE",
+   51
+  ],
+  [
+   "UNCLEAR->ETS",
+   34
+  ],
+  [
+   "ETS->SE",
+   12
+  ],
+  [
+   "CT->SE",
+   11
+  ],
+  [
+   "UNCLEAR->DR",
+   3
+  ],
+  [
+   "ETS->UNCLEAR",
+   3
+  ],
+  [
+   "SE->DR",
+   2
+  ],
+  [
+   "UNCLEAR->LE",
+   2
+  ],
+  [
+   "OS->DR",
+   1
+  ],
+  [
+   "LE->UNCLEAR",
+   1
+  ]
+ ]
+}

@@ -8,6 +8,16 @@ Corpus read: Pass-2 `DISCOVERY` and Pass-1 new-lineage history `DISCOVERY` only
 `CANDIDATE_TEST`, `CALIBRATION_RESERVED`, `SEALED_VALIDATION`: not read
 Identifiers in this document: none (aggregate statistics only)
 
+> **Correction, 2026-09-14 (same day):** a bounded 10-call STRATZ probe showed
+> that full parsed `stats` for **all ten players** (camp stacks, wards, dewards,
+> farm source, per-minute economy, death/kill events with killer, position, and
+> time dead) are available in 8-match batches without a complexity error. The
+> statements below that other players are opaque, that enemy stacking/vision is
+> impossible, that time dead and positions are unavailable, and that ten-player
+> stats exceeded the complexity ceiling are **superseded** by
+> [Ten-Player Match Intelligence V1](ten-player-match-intelligence-v1.md). They
+> are corrected inline where marked.
+
 This document does not change any locked rule. Where it touches metric
 definitions, baselines, Personal Bests, eligibility, or lifecycle, the
 [Role Metrics & Personal Baselines V1](role-metrics-and-baselines-v1.md) and
@@ -35,11 +45,13 @@ Seven measured facts decide the verdict:
    purchases, ability/talent timings, and lane-versus-jungle farm source, with
    93.6% of Pass-2 rows passing a progression-like eligibility gate and 96.7%
    carrying a 10:00 checkpoint.
-2. **Other players are almost opaque.** The other nine players exist only as
-   final-scoreboard scalars. There is no enemy camp-stack series, no enemy
-   ward data, no enemy farm source, and no positions for anyone. *"The enemy
-   support stacked and fed their cores"* is **impossible today**, not merely
-   risky.
+2. **Other players are opaque in the current corpus — but not at the provider.**
+   *(Corrected.)* Existing queries collect only final scoreboard scalars for the
+   other nine players. STRATZ serves their full parsed `stats` (stacks, wards,
+   dewards, farm source, per-minute economy, death/kill detail) in 8-match
+   batches; see [Ten-Player Match Intelligence V1](ten-player-match-intelligence-v1.md).
+   Enemy stacking and vision become facts after collection and validation;
+   *"…and fed their cores"* remains a hypothesis at best.
 3. **The team timeline is solid.** The oriented team net-worth lead curve
    (89.8% of eligible matches reach 20:00 with it), per-minute team kills, and
    tower deaths with timestamps and verified ownership semantics make *"when
@@ -193,18 +205,19 @@ checkpoint metric ships.
 |---|---|
 | For all ten players: `playerSlot`, `isRadiant`, `isVictory`, `heroId`, `position`, `role`, `lane`, K/D/A, last hits, denies, GPM, XPM, final net worth, hero damage, tower damage, hero healing | Any per-minute series, any event stream, camp stacks, wards, dewards, farm source, item timings, level timings, deaths timing, positions |
 
-The provider rejected a query requesting full `stats` for all ten players at
-complexity 6,159,595 against a 310,000 ceiling. A narrow ten-player selection
-(`allPlayers.stats.killEvents {time}`) did fit at batch size 8 in the
-candidate-branch probe. Narrow additions such as ten-player `campStack` are
-therefore *plausible* but **unmeasured**.
+*(Corrected.)* The 6,159,595 complexity rejection quoted in earlier documents
+was a full schema introspection query, not a ten-player stats query. The
+2026-09-14 probe fetched full ten-player `stats` for 8 matches in one request
+(HTTP 200, no complexity error). Only match-level `playbackData` is limited
+(one uncached match per request, fresh matches only). See
+[Ten-Player Match Intelligence V1](ten-player-match-intelligence-v1.md).
 
 #### Position / map / location
 
-**None usable.** `stats.locationReport` has no time field and returned no data
-in the probe; playback is a prohibited surface (~4.6 MB per match for positions
-alone). Ward `positionX/Y` exists for the tracked player only, with an
-unverified grid.
+*(Corrected.)* No movement data: `stats.locationReport` has no time field and
+playback movement is prohibited (~4.6 MB per match). But `stats.deathEvents`,
+`killEvents`, `assistEvents`, and `wards` carry `positionX/Y` for every player
+(not collected today); the coordinate grid is unvalidated.
 
 #### Role classifier output
 
@@ -358,11 +371,13 @@ after the window closed. Only 68.7% of all sessions were fully parsed.
 
 **D. Impossible with current data**
 
-- anything about enemy or allied stacking, warding, farm source, item timing,
-  or level timing;
-- map control, positioning, rotations, where anyone died, who killed whom;
-- Roshan and Aegis timing (not collected; playback Roshan events unreliable);
-- time spent dead (no respawn intervals);
+- *(Corrected: enemy/allied stacking, warding, dewarding, farm source, item and
+  level timing, who killed whom, where deaths happened, and time dead are
+  collectable — see the ten-player document; they are D only for the current
+  corpus.)*
+- map control, positioning, rotations, movement;
+- Roshan and Aegis timing (playback Roshan events came back empty again; a
+  fresh-only gold-reason lead exists);
 - stuns/disables/control (no attributable duration field);
 - teamfight composition, initiation, smokes, decision quality, communication;
 - the emotional state of the player (tilt, frustration, fatigue).
@@ -589,9 +604,9 @@ Metrics: Carry CS @10, Offlane net worth @10, Mid level-6 time, deaths before
 
 | Candidate | Reason |
 |---|---|
-| Enemy/allied stacking accelerated their cores | No ten-player stack series, no ten-player farm source (D) |
-| Map control / vision war / "where you died" | No positions; playback prohibited; `locationReport` unusable (D) |
-| Time dead | No respawn intervals (SSOT already DEFERRED) (D) |
+| Enemy/allied stacking *accelerated* their cores | The causal link stays rejected. *(Corrected: the stack and farm-source facts are collectable — see ten-player document.)* |
+| Map control / vision war | No movement; what anyone saw is unobservable. *(Corrected: ward placement/removal per team and death positions are collectable.)* |
+| Time dead | *(Corrected: `deathEvents.timeDead` exists; moves to "blocked on collection + validation".)* |
 | Control / stuns | No attributable duration (SSOT UNSUPPORTED) (D) |
 | Roshan / Aegis stories | Not collected; playback Roshan events unreliable (D) |
 | Fatigue / deterioration across session | Measured null; unpowered (§5) |
@@ -1173,7 +1188,7 @@ dead, stun/control, Roshan timing, other players' timelines, decision quality.
 | Ongoing per active player | ~1 history call per app open + ~1 deep call per 8 new matches → typically 2–3 requests per play day |
 | Raw storage | ~14 KB/match uncompressed ⇒ ~7 MB for a 500-match backfill; ~10–15 MB per heavy player-year before compression |
 | Compute | Per-match metrics and detectors: milliseconds; session recompute: tens of matches; weekly trends: 40 values per identity |
-| Expensive additions | Full ten-player `stats` is infeasible (complexity 6.16 M vs 310 k). Playback (~4.6 MB/match positions only) is prohibited and cost-prohibitive |
+| Expensive additions | *(Corrected: full ten-player `stats` is feasible — ~110 KB/match with rich events, 8 matches per request.)* Match playback is one match per request and fresh-only; the movement stream (~4.6 MB/match) stays prohibited |
 | Cheap additions | Narrow ten-player fields shown to fit (kill events); SSOT query extras |
 | LLM | Optional; ≤1 KB of validated slots per recap; no raw payloads; template fallback keeps cost at zero |
 | Offline work | MMD table, detector validation on corpus, periodic trend backfills |
@@ -1371,8 +1386,9 @@ The product must be comfortable saying "nothing notable" often.
 - fatigue, tilt, resilience, improvement-within-session stories;
 - composite performance scores or "you played well" verdicts;
 - teammate comparisons;
-- enemy-behaviour stories (stacking, vision) until ten-player fields are
-  collected and even then only as facts;
+- enemy-behaviour stories (stacking, vision) before the ten-player validation
+  corpus runs — then only as facts and opponent-history observations (see
+  [Ten-Player Match Intelligence V1](ten-player-match-intelligence-v1.md));
 - trend detection before users have 40 role-scoped games;
 - new STRATZ collection for V1.
 
