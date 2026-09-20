@@ -1,0 +1,422 @@
+{
+ "CLOSE_MOST_OF_GAME": {
+  "round1": {
+   "G": 13,
+   "A": 9,
+   "M": 3,
+   "B": 5
+  },
+  "round1_still_firing_v3": {
+   "G": 13,
+   "A": 6
+  },
+  "round1_removed_by_guard": {
+   "A": 3,
+   "M": 3,
+   "B": 5
+  },
+  "holdout_v2": {
+   "G": 11,
+   "A": 8,
+   "B": 0,
+   "M": 1
+  },
+  "holdout2_v3": {
+   "G": 9,
+   "A": 3,
+   "B": 0,
+   "M": 0
+  },
+  "holdout3_v3": {
+   "G": 7,
+   "A": 5,
+   "B": 0,
+   "M": 0
+  }
+ },
+ "COMEBACK_WIN": {
+  "round1": {
+   "G": 23,
+   "A": 6,
+   "M": 1
+  },
+  "round1_still_firing_v3": {
+   "G": 23,
+   "A": 6
+  },
+  "round1_removed_by_guard": {
+   "M": 1
+  },
+  "holdout_v2": {
+   "G": 15,
+   "A": 5,
+   "B": 0,
+   "M": 0
+  },
+  "holdout2_v3": null,
+  "holdout3_v3": null
+ },
+ "DEFICIT_RECOVERED": {
+  "round1": {
+   "A": 21,
+   "G": 6,
+   "B": 3
+  },
+  "round1_still_firing_v3": {
+   "A": 9,
+   "G": 4
+  },
+  "round1_removed_by_guard": {
+   "A": 12,
+   "G": 2,
+   "B": 3
+  },
+  "holdout_v2": {
+   "G": 6,
+   "A": 11,
+   "B": 1,
+   "M": 2
+  },
+  "holdout2_v3": {
+   "G": 2,
+   "A": 4,
+   "B": 2,
+   "M": 1
+  },
+  "holdout3_v3": {
+   "G": 7,
+   "A": 5,
+   "B": 0,
+   "M": 0
+  }
+ },
+ "ENEMY_EARLY_ITEM": {
+  "round1": {
+   "A": 9,
+   "B": 20,
+   "M": 1
+  },
+  "round1_still_firing_v3": {
+   "A": 5
+  },
+  "round1_removed_by_guard": {
+   "A": 4,
+   "B": 20,
+   "M": 1
+  },
+  "holdout_v2": {
+   "G": 7,
+   "A": 13,
+   "B": 0,
+   "M": 0
+  },
+  "holdout2_v3": null,
+  "holdout3_v3": null
+ },
+ "ENEMY_EARLY_RICH": {
+  "round1": {
+   "A": 18,
+   "G": 9,
+   "B": 3
+  },
+  "round1_still_firing_v3": {
+   "A": 16,
+   "G": 9
+  },
+  "round1_removed_by_guard": {
+   "A": 2,
+   "B": 3
+  },
+  "holdout_v2": {
+   "G": 7,
+   "A": 11,
+   "B": 2,
+   "M": 0
+  },
+  "holdout2_v3": {
+   "G": 9,
+   "A": 3,
+   "B": 0,
+   "M": 0
+  },
+  "holdout3_v3": null
+ },
+ "ENEMY_SMOKE_VOLUME": {
+  "round1": {
+   "G": 6,
+   "B": 11,
+   "A": 13
+  },
+  "round1_still_firing_v3": {
+   "G": 6,
+   "A": 2
+  },
+  "round1_removed_by_guard": {
+   "B": 11,
+   "A": 11
+  },
+  "holdout_v2": {
+   "G": 5,
+   "A": 10,
+   "B": 5,
+   "M": 0
+  },
+  "holdout2_v3": null,
+  "holdout3_v3": null
+ },
+ "ENEMY_STACKING": {
+  "round1": {
+   "A": 15,
+   "G": 12,
+   "B": 3
+  },
+  "round1_still_firing_v3": {
+   "A": 15,
+   "G": 12,
+   "B": 3
+  },
+  "round1_removed_by_guard": {},
+  "holdout_v2": {
+   "G": 7,
+   "A": 12,
+   "B": 1,
+   "M": 0
+  },
+  "holdout2_v3": null,
+  "holdout3_v3": null
+ },
+ "EVEN_THEN_SEPARATED": {
+  "round1": {
+   "G": 6,
+   "A": 7,
+   "B": 9,
+   "M": 8
+  },
+  "round1_still_firing_v3": {
+   "G": 6,
+   "A": 5,
+   "B": 1
+  },
+  "round1_removed_by_guard": {
+   "B": 8,
+   "M": 8,
+   "A": 2
+  },
+  "holdout_v2": {
+   "G": 6,
+   "A": 6,
+   "B": 3,
+   "M": 5
+  },
+  "holdout2_v3": {
+   "G": 11,
+   "A": 1,
+   "B": 0,
+   "M": 0
+  },
+  "holdout3_v3": {
+   "G": 9,
+   "A": 3,
+   "B": 0,
+   "M": 0
+  }
+ },
+ "LANE_DRAMATIC": {
+  "round1": {
+   "B": 25,
+   "A": 4,
+   "M": 1
+  },
+  "round1_still_firing_v3": {},
+  "round1_removed_by_guard": {
+   "B": 25,
+   "A": 4,
+   "M": 1
+  },
+  "holdout_v2": null,
+  "holdout2_v3": null,
+  "holdout3_v3": null
+ },
+ "LATE_REVERSAL": {
+  "round1": {
+   "G": 11,
+   "A": 5
+  },
+  "round1_still_firing_v3": {
+   "G": 11,
+   "A": 5
+  },
+  "round1_removed_by_guard": {},
+  "holdout_v2": {
+   "G": 3,
+   "A": 1,
+   "B": 0,
+   "M": 0
+  },
+  "holdout2_v3": null,
+  "holdout3_v3": {
+   "G": 9,
+   "A": 3,
+   "B": 0,
+   "M": 0
+  }
+ },
+ "LEAD_ERODED": {
+  "round1": {
+   "M": 13,
+   "A": 10,
+   "G": 4,
+   "B": 3
+  },
+  "round1_still_firing_v3": {
+   "A": 7,
+   "G": 3
+  },
+  "round1_removed_by_guard": {
+   "M": 13,
+   "B": 3,
+   "A": 3,
+   "G": 1
+  },
+  "holdout_v2": {
+   "G": 10,
+   "A": 9,
+   "B": 0,
+   "M": 1
+  },
+  "holdout2_v3": {
+   "G": 3,
+   "A": 4,
+   "B": 4,
+   "M": 0
+  },
+  "holdout3_v3": {
+   "G": 6,
+   "A": 6,
+   "B": 0,
+   "M": 0
+  }
+ },
+ "LEAD_FLIP": {
+  "round1": {
+   "G": 16,
+   "A": 11,
+   "M": 2,
+   "B": 1
+  },
+  "round1_still_firing_v3": {
+   "G": 8,
+   "A": 8,
+   "M": 2
+  },
+  "round1_removed_by_guard": {
+   "A": 3,
+   "G": 8,
+   "B": 1
+  },
+  "holdout_v2": {
+   "G": 10,
+   "A": 10,
+   "B": 0,
+   "M": 0
+  },
+  "holdout2_v3": null,
+  "holdout3_v3": null
+ },
+ "LOST_FROM_AHEAD": {
+  "round1": {
+   "A": 8,
+   "G": 22
+  },
+  "round1_still_firing_v3": {
+   "A": 8,
+   "G": 22
+  },
+  "round1_removed_by_guard": {},
+  "holdout_v2": {
+   "G": 14,
+   "A": 6,
+   "B": 0,
+   "M": 0
+  },
+  "holdout2_v3": null,
+  "holdout3_v3": null
+ },
+ "OWN_ITEM_VS_HISTORY": {
+  "round1": {},
+  "round1_still_firing_v3": {},
+  "round1_removed_by_guard": {},
+  "holdout_v2": null,
+  "holdout2_v3": null,
+  "holdout3_v3": {
+   "G": 10,
+   "A": 2,
+   "B": 0,
+   "M": 0
+  }
+ },
+ "OWN_LANE_VS_USUAL": {
+  "round1": {},
+  "round1_still_firing_v3": {},
+  "round1_removed_by_guard": {},
+  "holdout_v2": null,
+  "holdout2_v3": null,
+  "holdout3_v3": {
+   "G": 5,
+   "A": 7,
+   "B": 0,
+   "M": 0
+  }
+ },
+ "VISION_QUICK_CLEARS": {
+  "round1": {
+   "A": 14,
+   "G": 12,
+   "B": 4
+  },
+  "round1_still_firing_v3": {
+   "A": 12,
+   "G": 12
+  },
+  "round1_removed_by_guard": {
+   "B": 4,
+   "A": 2
+  },
+  "holdout_v2": {
+   "G": 8,
+   "A": 12,
+   "B": 0,
+   "M": 0
+  },
+  "holdout2_v3": null,
+  "holdout3_v3": null
+ },
+ "VISION_REGION_SWEEP": {
+  "round1": {
+   "A": 12,
+   "G": 7,
+   "B": 11
+  },
+  "round1_still_firing_v3": {
+   "A": 7,
+   "G": 7
+  },
+  "round1_removed_by_guard": {
+   "B": 11,
+   "A": 5
+  },
+  "holdout_v2": {
+   "G": 5,
+   "A": 11,
+   "B": 4,
+   "M": 0
+  },
+  "holdout2_v3": {
+   "G": 3,
+   "A": 9,
+   "B": 0,
+   "M": 0
+  },
+  "holdout3_v3": null
+ }
+}

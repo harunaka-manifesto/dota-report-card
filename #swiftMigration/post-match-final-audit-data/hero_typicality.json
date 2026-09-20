@@ -1,0 +1,38 @@
+{
+ "all p5 fires": {
+  "fires": 4359,
+  "with_hero_ref": 4216,
+  "share_early_for_hero_p10": 0.871,
+  "share_typical_for_hero_gt_p25": 0.029
+ },
+ "margin>=10%": {
+  "fires": 1658,
+  "with_hero_ref": 1599,
+  "share_early_for_hero_p10": 0.941,
+  "share_typical_for_hero_gt_p25": 0.006
+ },
+ "no midas/aghs": {
+  "fires": 3605,
+  "with_hero_ref": 3494,
+  "share_early_for_hero_p10": 0.876,
+  "share_typical_for_hero_gt_p25": 0.02
+ },
+ "no midas/aghs & margin>=10%": {
+  "fires": 1361,
+  "with_hero_ref": 1311,
+  "share_early_for_hero_p10": 0.961,
+  "share_typical_for_hero_gt_p25": 0.004
+ },
+ "BKB/Blink/Manta only": {
+  "fires": 2186,
+  "with_hero_ref": 2159,
+  "share_early_for_hero_p10": 0.863,
+  "share_typical_for_hero_gt_p25": 0.032
+ },
+ "BKB/Blink/Manta & margin>=10%": {
+  "fires": 857,
+  "with_hero_ref": 845,
+  "share_early_for_hero_p10": 0.94,
+  "share_typical_for_hero_gt_p25": 0.006
+ }
+}

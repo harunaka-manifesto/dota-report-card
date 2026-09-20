@@ -1,0 +1,124 @@
+{
+ "_note": "Holdout-2 (fresh, guard set v3). Indices refer to :K<i> in holdout2_sheet.txt.",
+ "EVEN_THEN_SEPARATED": {
+  "G": [
+   0,
+   1,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11
+  ],
+  "A": [
+   2
+  ],
+  "B": [],
+  "M": []
+ },
+ "LEAD_ERODED": {
+  "G": [
+   0,
+   2,
+   5
+  ],
+  "A": [
+   1,
+   7,
+   9,
+   10
+  ],
+  "B": [
+   3,
+   4,
+   6,
+   8
+  ],
+  "M": [],
+  "notes": "B = Turbo peaks at minute 10-13 (lane-phase lead)"
+ },
+ "DEFICIT_RECOVERED": {
+  "G": [
+   3,
+   6
+  ],
+  "A": [
+   0,
+   2,
+   7,
+   8
+  ],
+  "B": [
+   1,
+   5
+  ],
+  "M": [
+   4
+  ],
+  "notes": "M: 15.1k->9.0k called recovered; B: Turbo lane-phase peaks"
+ },
+ "CLOSE_MOST_OF_GAME": {
+  "G": [
+   0,
+   1,
+   3,
+   4,
+   6,
+   7,
+   8,
+   9,
+   10
+  ],
+  "A": [
+   2,
+   5,
+   11
+  ],
+  "B": [],
+  "M": []
+ },
+ "VISION_REGION_SWEEP": {
+  "G": [
+   2,
+   4,
+   6
+  ],
+  "A": [
+   0,
+   1,
+   3,
+   5,
+   7,
+   8,
+   9,
+   10,
+   11
+  ],
+  "B": [],
+  "M": []
+ },
+ "ENEMY_EARLY_RICH": {
+  "G": [
+   0,
+   2,
+   3,
+   4,
+   6,
+   7,
+   9,
+   10,
+   11
+  ],
+  "A": [
+   1,
+   5,
+   8
+  ],
+  "B": [],
+  "M": []
+ }
+}

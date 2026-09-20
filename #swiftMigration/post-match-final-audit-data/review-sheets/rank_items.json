@@ -1,0 +1,4522 @@
+[
+{
+"i": 0,
+"src": "C",
+"key": [
+"8975757879",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.519,
+"exc": 0.519,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "EVEN_THEN_SEPARATED",
+"tier": "B",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 1,
+"src": "C",
+"key": [
+"8965006124",
+"0"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.298,
+"exc": 1.696,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 2,
+"lvl": 1.279,
+"exc": 1.427,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 2,
+"src": "C",
+"key": [
+"8992585756",
+"3"
+],
+"cards": [
+{
+"label": "a",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "LEAD_ERODED",
+"tier": "B",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 3,
+"src": "C",
+"key": [
+"8470406188",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 2,
+"lvl": 1.2058823529411762,
+"exc": 1.2058823529411762,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.22,
+"exc": 0.22,
+"side": "enemy",
+"family": "power"
+}
+]
+},
+{
+"i": 4,
+"src": "C",
+"key": [
+"8926436395",
+"130"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 5,
+"src": "C",
+"key": [
+"8923313857",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.554,
+"exc": 0.554,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 6,
+"src": "C",
+"key": [
+"8992629362",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 7,
+"src": "C",
+"key": [
+"8933097862",
+"130"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.698,
+"exc": 0.698,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "EVEN_THEN_SEPARATED",
+"tier": "B",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 8,
+"src": "C",
+"key": [
+"8901362686",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 0.23571428571428563,
+"exc": 0.23571428571428563,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 9,
+"src": "C",
+"key": [
+"8886064426",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 3,
+"lvl": 2.65,
+"exc": 3.0,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 10,
+"src": "C",
+"key": [
+"8801634754",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.25,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 11,
+"src": "C",
+"key": [
+"8975351187",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.174,
+"exc": 0.174,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 0.9326086956521736,
+"exc": 0.9326086956521736,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 12,
+"src": "C",
+"key": [
+"8944335051",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.188,
+"exc": 0.188,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.134,
+"exc": 1.312,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 13,
+"src": "C",
+"key": [
+"8967179398",
+"130"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.25,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.345,
+"exc": 0.345,
+"side": "enemy",
+"family": "power"
+}
+]
+},
+{
+"i": 14,
+"src": "C",
+"key": [
+"8797945071",
+"3"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 15,
+"src": "C",
+"key": [
+"8909710714",
+"0"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.467,
+"exc": 1.654,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 3,
+"lvl": 2.5,
+"exc": 2.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 16,
+"src": "C",
+"key": [
+"8949319895",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 17,
+"src": "C",
+"key": [
+"8973874731",
+"132"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.999,
+"exc": 3.0,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.208,
+"exc": 1.319,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 18,
+"src": "C",
+"key": [
+"8944550161",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "EVEN_THEN_SEPARATED",
+"tier": "B",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 19,
+"src": "C",
+"key": [
+"8946184560",
+"129"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.471,
+"exc": 0.471,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 2,
+"lvl": 1.0371562882349155,
+"exc": 1.0371562882349155,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 20,
+"src": "C",
+"key": [
+"8823778936",
+"0"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.179,
+"exc": 0.179,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 1,
+"lvl": 0.99,
+"exc": 0.99,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 21,
+"src": "C",
+"key": [
+"8909109655",
+"130"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.345,
+"exc": 0.345,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.094,
+"exc": 1.147,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 22,
+"src": "C",
+"key": [
+"8921682622",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.339,
+"exc": 1.474,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.082,
+"exc": 0.082,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 23,
+"src": "C",
+"key": [
+"8802556337",
+"2"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 1.6500000000000001,
+"exc": 1.6500000000000001,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 24,
+"src": "C",
+"key": [
+"8975957541",
+"129"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.484,
+"exc": 0.484,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.256,
+"exc": 1.464,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 25,
+"src": "C",
+"key": [
+"8970285337",
+"1"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "EVEN_THEN_SEPARATED",
+"tier": "B",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 26,
+"src": "C",
+"key": [
+"8923313857",
+"132"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.554,
+"exc": 0.554,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 27,
+"src": "C",
+"key": [
+"8901306022",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 28,
+"src": "C",
+"key": [
+"8882522202",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.509,
+"exc": 0.509,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "LEAD_ERODED",
+"tier": "B",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 29,
+"src": "C",
+"key": [
+"8904596136",
+"129"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.393,
+"exc": 0.393,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.574,
+"exc": 1.803,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "c",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.218,
+"exc": 0.218,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 30,
+"src": "C",
+"key": [
+"8761498269",
+"3"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.192,
+"exc": 0.192,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.04,
+"exc": 0.04,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 31,
+"src": "C",
+"key": [
+"8974982183",
+"132"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.544,
+"exc": 0.544,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 1,
+"lvl": 0.17134277134277132,
+"exc": 0.17134277134277132,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 32,
+"src": "C",
+"key": [
+"8934704147",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 33,
+"src": "C",
+"key": [
+"8951878992",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.464,
+"exc": 0.464,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.634,
+"exc": 1.887,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "c",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 34,
+"src": "C",
+"key": [
+"8904830242",
+"3"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.038,
+"exc": 0.038,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 3,
+"lvl": 2.075,
+"exc": 2.648,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 35,
+"src": "C",
+"key": [
+"8443192266",
+"132"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.834,
+"exc": 0.834,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.542,
+"exc": 0.542,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 36,
+"src": "C",
+"key": [
+"8969456035",
+"132"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 3,
+"lvl": 2.929,
+"exc": 3.0,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 3,
+"lvl": 2.001,
+"exc": 2.534,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 37,
+"src": "C",
+"key": [
+"8915191783",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.75,
+"exc": 2.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 38,
+"src": "C",
+"key": [
+"8981875842",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.623,
+"exc": 2.13,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.083,
+"exc": 1.117,
+"side": "enemy",
+"family": "power"
+}
+]
+},
+{
+"i": 39,
+"src": "C",
+"key": [
+"8983273883",
+"1"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.663,
+"exc": 0.663,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.306,
+"exc": 1.477,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 40,
+"src": "C",
+"key": [
+"8904786798",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.688,
+"exc": 0.688,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.312,
+"exc": 0.312,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 41,
+"src": "C",
+"key": [
+"8904830242",
+"130"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 3,
+"lvl": 2.075,
+"exc": 2.648,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.038,
+"exc": 0.038,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 42,
+"src": "C",
+"key": [
+"8947959271",
+"129"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.503,
+"exc": 0.503,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 0.6346153846153846,
+"exc": 0.6346153846153846,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 43,
+"src": "C",
+"key": [
+"8992639298",
+"129"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LEAD_ERODED",
+"tier": "B",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.143,
+"exc": 0.143,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 44,
+"src": "C",
+"key": [
+"8931426899",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.607,
+"exc": 0.607,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 45,
+"src": "C",
+"key": [
+"8770729814",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 46,
+"src": "C",
+"key": [
+"8992637577",
+"2"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 3,
+"lvl": 2.744,
+"exc": 3.0,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 47,
+"src": "C",
+"key": [
+"8988572992",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 48,
+"src": "C",
+"key": [
+"8824371776",
+"130"
+],
+"cards": [
+{
+"label": "a",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 49,
+"src": "C",
+"key": [
+"8882522202",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.509,
+"exc": 0.509,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 50,
+"src": "C",
+"key": [
+"8935742134",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 0.9166666666666663,
+"exc": 0.9166666666666663,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 51,
+"src": "C",
+"key": [
+"8971203099",
+"1"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 3,
+"lvl": 2.529,
+"exc": 3.0,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 3,
+"lvl": 2.321,
+"exc": 3.0,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 52,
+"src": "C",
+"key": [
+"8923281764",
+"2"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.906,
+"exc": 0.906,
+"side": "enemy",
+"family": "power"
+}
+]
+},
+{
+"i": 53,
+"src": "C",
+"key": [
+"8992585756",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.353,
+"exc": 0.353,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "c",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 54,
+"src": "C",
+"key": [
+"8939106894",
+"129"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.329,
+"exc": 0.329,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.983,
+"exc": 0.983,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "d",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 55,
+"src": "C",
+"key": [
+"8694179411",
+"3"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.023,
+"exc": 0.023,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 0.8735294117647058,
+"exc": 0.8735294117647058,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "d",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.397,
+"exc": 0.397,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 56,
+"src": "C",
+"key": [
+"8967682035",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "d",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.443,
+"exc": 1.679,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 57,
+"src": "C",
+"key": [
+"8829989290",
+"0"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 0.7290697674418604,
+"exc": 0.7290697674418604,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "d",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.19,
+"exc": 0.19,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 58,
+"src": "C",
+"key": [
+"8950992259",
+"130"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.415,
+"exc": 0.415,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 2,
+"lvl": 1.03757225433526,
+"exc": 1.03757225433526,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "d",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 59,
+"src": "C",
+"key": [
+"8914761162",
+"0"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.288,
+"exc": 1.441,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "d",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 60,
+"src": "C",
+"key": [
+"8975958401",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 3,
+"lvl": 2.5,
+"exc": 2.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.36,
+"exc": 1.553,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "d",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 61,
+"src": "C",
+"key": [
+"8977085147",
+"132"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.463,
+"exc": 1.841,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 3,
+"lvl": 2.092,
+"exc": 2.7,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.473,
+"exc": 0.473,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "d",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 62,
+"src": "C",
+"key": [
+"8920231884",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.531,
+"exc": 1.827,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "d",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 63,
+"src": "C",
+"key": [
+"8904596136",
+"3"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.393,
+"exc": 0.393,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.218,
+"exc": 0.218,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "d",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 64,
+"src": "C",
+"key": [
+"8992639298",
+"1"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "d",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.143,
+"exc": 0.143,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 65,
+"src": "C",
+"key": [
+"8965006124",
+"131"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.279,
+"exc": 1.427,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "d",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.298,
+"exc": 1.696,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 66,
+"src": "C",
+"key": [
+"8463834875",
+"132"
+],
+"cards": [
+{
+"label": "a",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "LEAD_ERODED",
+"tier": "B",
+"band": 1,
+"lvl": 0.99,
+"exc": 0.99,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "d",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.119,
+"exc": 0.119,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 67,
+"src": "C",
+"key": [
+"8824924316",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.443,
+"exc": 0.443,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.221,
+"exc": 0.221,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "d",
+"cid": "VISION_REGION_SWEEP",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 68,
+"src": "C",
+"key": [
+"8974982183",
+"4"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_ERODED",
+"tier": "B",
+"band": 1,
+"lvl": 0.17134277134277132,
+"exc": 0.17134277134277132,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.544,
+"exc": 0.544,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "d",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 69,
+"src": "C",
+"key": [
+"8617186017",
+"128"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.552,
+"exc": 1.773,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "c",
+"cid": "VISION_QUICK_CLEARS",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "d",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 70,
+"src": "L",
+"key": [
+"h15",
+"8966494586"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 2,
+"lvl": 1.6400000000000001,
+"exc": 1.0,
+"side": "personal",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "LEAD_ERODED",
+"tier": "B",
+"band": 2,
+"lvl": 1.5732625813077714,
+"exc": 1.5732625813077714,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 71,
+"src": "L",
+"key": [
+"h13",
+"8959691178"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.128,
+"exc": 0.128,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 72,
+"src": "L",
+"key": [
+"h12",
+"8942852569"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.96,
+"exc": 1.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "EVEN_THEN_SEPARATED",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 73,
+"src": "L",
+"key": [
+"h15",
+"8502302612"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.78,
+"exc": 1.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 74,
+"src": "L",
+"key": [
+"h29",
+"8906238570"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 1,
+"lvl": 0.68,
+"exc": 0.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.104,
+"exc": 0.104,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 3,
+"lvl": 2.602,
+"exc": 3.0,
+"side": "enemy",
+"family": "power"
+}
+]
+},
+{
+"i": 75,
+"src": "L",
+"key": [
+"h11",
+"8972257313"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.99,
+"exc": 1.0,
+"side": "personal",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 76,
+"src": "L",
+"key": [
+"h01",
+"8930970017"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.0,
+"side": "personal",
+"family": "lane"
+},
+{
+"label": "c",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.338,
+"exc": 0.338,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 77,
+"src": "L",
+"key": [
+"h04",
+"8908132212"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "personal",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 2,
+"lvl": 1.99,
+"exc": 1.0,
+"side": "personal",
+"family": "lane"
+}
+]
+},
+{
+"i": 78,
+"src": "L",
+"key": [
+"h11",
+"8952728553"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.25,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+}
+]
+},
+{
+"i": 79,
+"src": "L",
+"key": [
+"h09",
+"8992642320"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 3,
+"lvl": 2.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.99,
+"exc": 1.0,
+"side": "personal",
+"family": "power"
+}
+]
+},
+{
+"i": 80,
+"src": "L",
+"key": [
+"h23",
+"8115481688"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 3,
+"lvl": 2.75,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 81,
+"src": "L",
+"key": [
+"h27",
+"8854804319"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 3,
+"lvl": 2.527,
+"exc": 3.0,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.73,
+"exc": 2.022,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "d",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+}
+]
+},
+{
+"i": 82,
+"src": "L",
+"key": [
+"h07",
+"8962142873"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.94,
+"exc": 1.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 83,
+"src": "L",
+"key": [
+"h17",
+"8967662740"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 1,
+"lvl": 0.4,
+"exc": 0.0,
+"side": "personal",
+"family": "power"
+}
+]
+},
+{
+"i": 84,
+"src": "L",
+"key": [
+"h24",
+"8991632294"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "c",
+"cid": "EVEN_THEN_SEPARATED",
+"tier": "B",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 85,
+"src": "L",
+"key": [
+"h27",
+"8885860112"
+],
+"cards": [
+{
+"label": "a",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 0.8250000000000001,
+"exc": 0.8250000000000001,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+}
+]
+},
+{
+"i": 86,
+"src": "L",
+"key": [
+"h17",
+"8972557859"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.865,
+"exc": 0.865,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 3,
+"lvl": 2.398,
+"exc": 2.958,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "c",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "d",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 87,
+"src": "L",
+"key": [
+"h11",
+"8964075626"
+],
+"cards": [
+{
+"label": "a",
+"cid": "EVEN_THEN_SEPARATED",
+"tier": "B",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 2,
+"lvl": 1.99,
+"exc": 1.0,
+"side": "personal",
+"family": "lane"
+}
+]
+},
+{
+"i": 88,
+"src": "L",
+"key": [
+"h28",
+"8591226844"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 2,
+"lvl": 1.54,
+"exc": 1.0,
+"side": "personal",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 89,
+"src": "L",
+"key": [
+"h13",
+"8969441458"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.03,
+"exc": 0.03,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "personal",
+"family": "lane"
+}
+]
+},
+{
+"i": 90,
+"src": "L",
+"key": [
+"h01",
+"8929016911"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 1,
+"lvl": 0.62,
+"exc": 0.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 91,
+"src": "L",
+"key": [
+"h11",
+"8924153708"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 3,
+"lvl": 2.326,
+"exc": 2.857,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.8,
+"exc": 1.0,
+"side": "personal",
+"family": "power"
+},
+{
+"label": "c",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 2,
+"lvl": 1.5,
+"exc": 1.5,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 92,
+"src": "L",
+"key": [
+"h09",
+"8909129892"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.991,
+"exc": 0.991,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 1,
+"lvl": 0.27267345989598746,
+"exc": 0.27267345989598746,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 93,
+"src": "L",
+"key": [
+"h27",
+"8761091456"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.746,
+"exc": 2.045,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.52,
+"exc": 1.0,
+"side": "personal",
+"family": "power"
+}
+]
+},
+{
+"i": 94,
+"src": "L",
+"key": [
+"h22",
+"8951202157"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.152,
+"exc": 0.152,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.106,
+"exc": 1.248,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+}
+]
+},
+{
+"i": 95,
+"src": "L",
+"key": [
+"h19",
+"8843212690"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.54,
+"exc": 1.0,
+"side": "enemy",
+"family": "lane"
+}
+]
+},
+{
+"i": 96,
+"src": "L",
+"key": [
+"h17",
+"8836258203"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.314,
+"exc": 1.733,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.424,
+"exc": 0.424,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 2,
+"lvl": 1.99,
+"exc": 1.0,
+"side": "personal",
+"family": "lane"
+}
+]
+},
+{
+"i": 97,
+"src": "L",
+"key": [
+"h09",
+"8988239999"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "personal",
+"family": "lane"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.982,
+"exc": 0.982,
+"side": "enemy",
+"family": "power"
+}
+]
+},
+{
+"i": 98,
+"src": "L",
+"key": [
+"h22",
+"8986601672"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.27,
+"exc": 0.27,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.58,
+"exc": 1.0,
+"side": "personal",
+"family": "power"
+}
+]
+},
+{
+"i": 99,
+"src": "L",
+"key": [
+"h13",
+"8964904821"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.99,
+"exc": 1.0,
+"side": "personal",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.53,
+"exc": 0.53,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 100,
+"src": "L",
+"key": [
+"h19",
+"8992676439"
+],
+"cards": [
+{
+"label": "a",
+"cid": "EVEN_THEN_SEPARATED",
+"tier": "B",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+}
+]
+},
+{
+"i": 101,
+"src": "L",
+"key": [
+"h21",
+"8901978026"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "personal",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.247,
+"exc": 0.247,
+"side": "enemy",
+"family": "power"
+}
+]
+},
+{
+"i": 102,
+"src": "L",
+"key": [
+"h12",
+"8873748803"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "personal",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.46,
+"exc": 1.0,
+"side": "personal",
+"family": "power"
+}
+]
+},
+{
+"i": 103,
+"src": "L",
+"key": [
+"h22",
+"8891992649"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 2,
+"lvl": 1.4,
+"exc": 1.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "c",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 1,
+"lvl": 0.4,
+"exc": 0.0,
+"side": "personal",
+"family": "lane"
+},
+{
+"label": "d",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 2,
+"lvl": 1.1645959058099633,
+"exc": 1.1645959058099633,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "e",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "f",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.028,
+"exc": 1.043,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 104,
+"src": "L",
+"key": [
+"h28",
+"8600876537"
+],
+"cards": [
+{
+"label": "a",
+"cid": "CLOSE_MOST_OF_GAME",
+"tier": "B",
+"band": 1,
+"lvl": 1.6500000000000001,
+"exc": 1.6500000000000001,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "OPP_START_VS_HISTORY",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "enemy",
+"family": "lane"
+},
+{
+"label": "c",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 3,
+"lvl": 3.0,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 105,
+"src": "L",
+"key": [
+"h00",
+"8875345871"
+],
+"cards": [
+{
+"label": "a",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "personal",
+"family": "lane"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 3,
+"lvl": 2.5,
+"exc": 3.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 106,
+"src": "L",
+"key": [
+"h23",
+"8043273106"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 3,
+"lvl": 2.5,
+"exc": 2.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "OWN_LANE_VS_USUAL",
+"tier": "A",
+"band": 3,
+"lvl": 2.99,
+"exc": 2.0,
+"side": "personal",
+"family": "lane"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 3,
+"lvl": 2.039,
+"exc": 2.455,
+"side": "enemy",
+"family": "power"
+}
+]
+},
+{
+"i": 107,
+"src": "L",
+"key": [
+"h22",
+"8975181735"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 3,
+"lvl": 2.871,
+"exc": 3.0,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "OWN_ITEM_VS_HISTORY",
+"tier": "A",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.0,
+"side": "personal",
+"family": "power"
+},
+{
+"label": "d",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.918,
+"exc": 0.918,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "e",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 108,
+"src": "L",
+"key": [
+"h01",
+"8926093409"
+],
+"cards": [
+{
+"label": "a",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 3,
+"lvl": 2.0,
+"exc": 2.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 109,
+"src": "L",
+"key": [
+"h09",
+"8792979159"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 3,
+"lvl": 2.002,
+"exc": 2.818,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.5,
+"exc": 2.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 110,
+"src": "L",
+"key": [
+"h13",
+"8735069259"
+],
+"cards": [
+{
+"label": "a",
+"cid": "EVEN_THEN_SEPARATED",
+"tier": "B",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.302,
+"exc": 0.302,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 111,
+"src": "L",
+"key": [
+"h00",
+"8824042707"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.507,
+"exc": 0.507,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.179,
+"exc": 0.179,
+"side": "match",
+"family": "lead"
+}
+]
+},
+{
+"i": 112,
+"src": "L",
+"key": [
+"h13",
+"8745927038"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.73,
+"exc": 2.022,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 2,
+"lvl": 1.148,
+"exc": 1.227,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 113,
+"src": "L",
+"key": [
+"h00",
+"8984104497"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.117,
+"exc": 1.182,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.379,
+"exc": 0.379,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 114,
+"src": "L",
+"key": [
+"h29",
+"8971363174"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.776,
+"exc": 0.776,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 1,
+"lvl": 0.034,
+"exc": 0.034,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 1,
+"lvl": 0.996,
+"exc": 0.996,
+"side": "enemy",
+"family": "power"
+}
+]
+},
+{
+"i": 115,
+"src": "L",
+"key": [
+"h01",
+"8946626130"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_SMOKE_VOLUME",
+"tier": "A",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 116,
+"src": "L",
+"key": [
+"h12",
+"8674034264"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.88,
+"exc": 0.88,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LATE_REVERSAL",
+"tier": "B",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "match",
+"family": "shape"
+},
+{
+"label": "c",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 1,
+"lvl": 0.4442114319513899,
+"exc": 0.4442114319513899,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 117,
+"src": "L",
+"key": [
+"h08",
+"8891675523"
+],
+"cards": [
+{
+"label": "a",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.208,
+"exc": 0.208,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 2,
+"lvl": 1.0,
+"exc": 1.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "c",
+"cid": "DEFICIT_RECOVERED",
+"tier": "B",
+"band": 2,
+"lvl": 1.99,
+"exc": 1.99,
+"side": "match",
+"family": "shape"
+}
+]
+},
+{
+"i": 118,
+"src": "L",
+"key": [
+"h19",
+"8938093191"
+],
+"cards": [
+{
+"label": "a",
+"cid": "ENEMY_STACKING",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+},
+{
+"label": "b",
+"cid": "COMEBACK_WIN",
+"tier": "A",
+"band": 1,
+"lvl": 0.78,
+"exc": 0.78,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.5,
+"exc": 0.5,
+"side": "enemy",
+"family": "hidden"
+}
+]
+},
+{
+"i": 119,
+"src": "L",
+"key": [
+"h27",
+"8735915150"
+],
+"cards": [
+{
+"label": "a",
+"cid": "LEAD_FLIP",
+"tier": "A",
+"band": 2,
+"lvl": 1.102,
+"exc": 1.159,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "b",
+"cid": "LOST_FROM_AHEAD",
+"tier": "A",
+"band": 1,
+"lvl": 0.357,
+"exc": 0.357,
+"side": "match",
+"family": "lead"
+},
+{
+"label": "c",
+"cid": "ENEMY_EARLY_ITEM",
+"tier": "A",
+"band": 2,
+"lvl": 1.835,
+"exc": 2.169,
+"side": "enemy",
+"family": "power"
+},
+{
+"label": "d",
+"cid": "ENEMY_EARLY_RICH",
+"tier": "A",
+"band": 1,
+"lvl": 0.0,
+"exc": 0.0,
+"side": "enemy",
+"family": "hidden"
+}
+]
+}
+]

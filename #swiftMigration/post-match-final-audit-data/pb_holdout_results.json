@@ -1,0 +1,239 @@
+{
+ "vision": {
+  "units": 66,
+  "matches": 33,
+  "placed_stats": 933,
+  "placed_pb": 915,
+  "kills_stats": 281,
+  "kills_truth": 273,
+  "identity_precision": {
+   "A": 0.99,
+   "C": 1.0
+  },
+  "overall_precision": 0.991,
+  "coverage": {
+   "A": 0.758,
+   "C": 0.032,
+   "None": 0.21
+  },
+  "region_correct": 0.991,
+  "quick_class_agree": 0.995,
+  "quick_count_mean_abs_err": 0.41,
+  "rules": {
+   "quick|truth=False|est=False": 61,
+   "quick|truth=True|est=False": 2,
+   "quick|truth=True|est=True": 3,
+   "sweep|truth=False|est=False": 62,
+   "sweep|truth=True|est=False": 1,
+   "sweep|truth=True|est=True": 3
+  },
+  "bucket": {
+   "STANDARD": 40,
+   "TURBO": 26
+  }
+ },
+ "smoke": {
+  "val": {
+   "units": 66,
+   "count_match": 66,
+   "no_item_events": 72
+  },
+  "units": 66,
+  "with3": 35,
+  "fires": 15,
+  "fires_h3": 3,
+  "h3_units": 5,
+  "fired_k_vs_expected": [
+   62,
+   38.2
+  ],
+  "suppressed_ge3_k_vs_expected": [
+   47,
+   49.7
+  ],
+  "smokes_followed": 0.676,
+  "base_rate": 0.556,
+  "fired_units": [
+   {
+    "mid": 9001225244,
+    "side": true,
+    "bucket": "STANDARD",
+    "n": 5,
+    "k": 5,
+    "f": 4,
+    "fire": true,
+    "exp": 4.4,
+    "base": 0.88,
+    "h3": true
+   },
+   {
+    "mid": 9000978024,
+    "side": false,
+    "bucket": "STANDARD",
+    "n": 4,
+    "k": 3,
+    "f": 2,
+    "fire": true,
+    "exp": 1.5,
+    "base": 0.37,
+    "h3": false
+   },
+   {
+    "mid": 9000977848,
+    "side": false,
+    "bucket": "STANDARD",
+    "n": 10,
+    "k": 7,
+    "f": 2,
+    "fire": true,
+    "exp": 5.2,
+    "base": 0.52,
+    "h3": true
+   },
+   {
+    "mid": 9000923834,
+    "side": true,
+    "bucket": "STANDARD",
+    "n": 6,
+    "k": 6,
+    "f": 3,
+    "fire": true,
+    "exp": 1.9,
+    "base": 0.31,
+    "h3": true
+   },
+   {
+    "mid": 9000718069,
+    "side": false,
+    "bucket": "STANDARD",
+    "n": 4,
+    "k": 4,
+    "f": 2,
+    "fire": true,
+    "exp": 1.2,
+    "base": 0.29,
+    "h3": false
+   },
+   {
+    "mid": 8999556799,
+    "side": false,
+    "bucket": "STANDARD",
+    "n": 6,
+    "k": 5,
+    "f": 4,
+    "fire": true,
+    "exp": 2.6,
+    "base": 0.43,
+    "h3": false
+   },
+   {
+    "mid": 8999461984,
+    "side": true,
+    "bucket": "STANDARD",
+    "n": 3,
+    "k": 3,
+    "f": 3,
+    "fire": true,
+    "exp": 2.5,
+    "base": 0.84,
+    "h3": false
+   },
+   {
+    "mid": 8996205104,
+    "side": true,
+    "bucket": "STANDARD",
+    "n": 5,
+    "k": 5,
+    "f": 2,
+    "fire": true,
+    "exp": 3.2,
+    "base": 0.64,
+    "h3": false
+   },
+   {
+    "mid": 8996205104,
+    "side": false,
+    "bucket": "STANDARD",
+    "n": 4,
+    "k": 3,
+    "f": 2,
+    "fire": true,
+    "exp": 1.9,
+    "base": 0.49,
+    "h3": false
+   },
+   {
+    "mid": 8996170907,
+    "side": false,
+    "bucket": "STANDARD",
+    "n": 4,
+    "k": 3,
+    "f": 2,
+    "fire": true,
+    "exp": 2.2,
+    "base": 0.55,
+    "h3": false
+   },
+   {
+    "mid": 9000966897,
+    "side": true,
+    "bucket": "TURBO",
+    "n": 4,
+    "k": 4,
+    "f": 2,
+    "fire": true,
+    "exp": 2.7,
+    "base": 0.67,
+    "h3": false
+   },
+   {
+    "mid": 8996347889,
+    "side": true,
+    "bucket": "TURBO",
+    "n": 3,
+    "k": 3,
+    "f": 3,
+    "fire": true,
+    "exp": 1.4,
+    "base": 0.47,
+    "h3": false
+   },
+   {
+    "mid": 8996286072,
+    "side": false,
+    "bucket": "TURBO",
+    "n": 4,
+    "k": 4,
+    "f": 3,
+    "fire": true,
+    "exp": 2.9,
+    "base": 0.71,
+    "h3": false
+   },
+   {
+    "mid": 8996284507,
+    "side": false,
+    "bucket": "TURBO",
+    "n": 3,
+    "k": 3,
+    "f": 3,
+    "fire": true,
+    "exp": 2.6,
+    "base": 0.88,
+    "h3": false
+   },
+   {
+    "mid": 8993047292,
+    "side": true,
+    "bucket": "TURBO",
+    "n": 4,
+    "k": 4,
+    "f": 4,
+    "fire": true,
+    "exp": 2.0,
+    "base": 0.49,
+    "h3": false
+   }
+  ]
+ }
+}

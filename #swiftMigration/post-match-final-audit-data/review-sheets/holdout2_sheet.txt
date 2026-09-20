@@ -1,0 +1,150 @@
+
+######## EVEN_THEN_SEPARATED (fresh pool 12)
+EVEN_THEN_SEPARATED:K0 b2 | STA carry(P1) Weaver WIN 55m | lead 5:+1k 10:-1k 15:+1k 20:+4k 25:-2k 30:-1k 35:-4k 40:-3k 45:+6k 50:+17k 55:+28k | end(55):+28k
+    [ETS_FOR] until 45:00 the gap never exceeded 7.2k; from 48:00 your team held a sustained lead: 14.9k at 48:00, 18.4k at 52:00; result W (55m) +counter: trailing side destroyed 2 more structures during 5 lead minutes
+EVEN_THEN_SEPARATED:K1 b1 | STA mid(P2) Necrophos WIN 34m | lead 5:+0k 10:+2k 15:-0k 20:+4k 25:+13k 30:+16k | end(34):+28k
+    [ETS_FOR] until 20:00 the gap never exceeded 4.6k; from 23:00 your team held a sustained lead: 7.8k at 23:00, 13.9k at 31:00; result W (34m) 
+EVEN_THEN_SEPARATED:K2 b1 | STA mid(P2) Void Spirit LOSS 41m | lead 5:-1k 10:+0k 15:-2k 20:-11k 25:-12k 30:-11k 35:-16k 40:-19k | end(41):-24k
+    [ETS_AGAINST] until 16:00 the gap never exceeded 3.0k; from 19:00 enemy held a sustained lead: 8.3k at 19:00, 17.8k at 38:00; result L (41m) 
+EVEN_THEN_SEPARATED:K3 b1 | STA support(P5) Crystal Maiden LOSS 39m | lead 5:-0k 10:-2k 15:-3k 20:-4k 25:-12k 30:-20k 35:-34k | end(39):-45k
+    [ETS_AGAINST] until 21:00 the gap never exceeded 6.3k; from 24:00 enemy held a sustained lead: 11.2k at 24:00, 37.8k at 36:00; result L (39m) 
+EVEN_THEN_SEPARATED:K4 b1 | STA support(P4) Earth Spirit LOSS 33m | lead 5:-1k 10:-0k 15:-1k 20:+2k 25:-9k 30:-16k | end(33):-33k
+    [ETS_AGAINST] until 23:00 the gap never exceeded 4.2k; from 26:00 enemy held a sustained lead: 11.4k at 26:00, 15.8k at 30:00; result L (33m) 
+EVEN_THEN_SEPARATED:K5 b2 | STA carry(P1) Monkey King LOSS 38m | lead 5:+0k 10:+2k 15:+5k 20:+3k 25:-2k 30:-6k 35:-18k | end(38):-34k
+    [ETS_AGAINST] until 30:00 the gap never exceeded 6.1k; from 33:00 enemy held a sustained lead: 11.7k at 33:00, 17.8k at 35:00; result L (38m) 
+EVEN_THEN_SEPARATED:K6 b1 | STA mid(P2) Sniper LOSS 48m | lead 5:-1k 10:-2k 15:+0k 20:-2k 25:-5k 30:-16k 35:-15k 40:-24k 45:-22k | end(48):-20k
+    [ETS_AGAINST] until 26:00 the gap never exceeded 5.9k; from 29:00 enemy held a sustained lead: 13.0k at 29:00, 21.6k at 45:00; result L (48m) 
+EVEN_THEN_SEPARATED:K7 b1 | STA carry(P1) Sven WIN 35m | lead 5:-1k 10:-2k 15:-3k 20:+3k 25:+4k 30:+12k 35:+24k | end(35):+24k
+    [ETS_FOR] until 26:00 the gap never exceeded 4.9k; from 29:00 your team held a sustained lead: 11.4k at 29:00, 13.7k at 32:00; result W (35m) 
+EVEN_THEN_SEPARATED:K8 b1 | STA carry(P1) Phantom Assassin LOSS 40m | lead 5:-0k 10:+1k 15:+2k 20:-1k 25:-4k 30:-11k 35:-18k 40:-40k | end(40):-40k
+    [ETS_AGAINST] until 26:00 the gap never exceeded 5.5k; from 29:00 enemy held a sustained lead: 10.3k at 29:00, 24.2k at 37:00; result L (40m) 
+EVEN_THEN_SEPARATED:K9 b2 | STA offlane(P3) Bristleback LOSS 54m | lead 5:-0k 10:-1k 15:-1k 20:+1k 25:-0k 30:-4k 35:-8k 40:-15k 45:-22k 50:-20k | end(54):-37k
+    [ETS_AGAINST] until 34:00 the gap never exceeded 6.9k; from 37:00 enemy held a sustained lead: 18.0k at 37:00, 21.1k at 51:00; result L (54m) 
+EVEN_THEN_SEPARATED:K10 b2 | STA support(P4) Undying LOSS 40m | lead 5:-0k 10:-1k 15:-0k 20:+1k 25:+2k 30:-3k 35:-20k 40:-38k | end(40):-38k
+    [ETS_AGAINST] until 30:00 the gap never exceeded 3.6k; from 33:00 enemy held a sustained lead: 16.5k at 33:00, 25.2k at 37:00; result L (40m) 
+EVEN_THEN_SEPARATED:K11 b2 | STA carry(P1) Templar Assassin LOSS 46m | lead 5:-1k 10:+1k 15:-1k 20:-2k 25:-3k 30:-1k 35:-4k 40:-12k 45:-25k | end(46):-28k
+    [ETS_AGAINST] until 37:00 the gap never exceeded 6.9k; from 40:00 enemy held a sustained lead: 12.3k at 40:00, 18.3k at 43:00; result L (46m) 
+
+######## LEAD_ERODED (fresh pool 11)
+LEAD_ERODED:K0 b1 | TUR support(P4) Zeus WIN 36m | lead 5:+6k 10:+12k 15:+22k 20:+28k 25:+19k 30:+23k 35:+13k | end(36):+12k
+    [LEAD_ERODED] your team's lead peaked 33.4k at 22:00 and was 7.5k at 33:00; result W (36m); final-minute lead +11.7k 
+LEAD_ERODED:K1 b1 | TUR mid(P2) Monkey King LOSS 27m | lead 5:+5k 10:+7k 15:+12k 20:+7k 25:-4k | end(27):-7k
+    [LEAD_ERODED] your team's lead peaked 16.4k at 14:00 and was gone (-5.4k for your side) at 24:00; result L (27m); final-minute lead -7.2k 
+LEAD_ERODED:K2 b3 | TUR support(P4) Invoker WIN 35m | lead 5:-1k 10:+1k 15:+3k 20:+19k 25:+14k 30:-1k 35:-0k | end(35):-0k
+    [LEAD_ERODED] your team's lead peaked 25.9k at 22:00 and was 1.1k at 32:00; result W (35m); final-minute lead -0.1k 
+LEAD_ERODED:K3 b1 | TUR carry(P1) Keeper of the Light LOSS 29m | lead 5:+1k 10:+15k 15:+8k 20:+12k 25:+5k | end(29):-11k
+    [LEAD_ERODED] your team's lead peaked 15.1k at 10:00 and was 9.0k at 26:00; result L (29m); final-minute lead -10.6k 
+LEAD_ERODED:K4 b1 | TUR support(P5) Hoodwink LOSS 21m | lead 5:+6k 10:+14k 15:+2k 20:-16k | end(21):-24k
+    [LEAD_ERODED] your team's lead peaked 14.2k at 10:00 and was 2.7k at 18:00; result L (21m); final-minute lead -23.8k 
+LEAD_ERODED:K5 b3 | TUR support(P5) Templar Assassin WIN 37m | lead 5:+1k 10:+11k 15:+20k 20:+22k 25:+12k 30:+1k 35:+3k | end(37):+31k
+    [LEAD_ERODED] your team's lead peaked 32.9k at 18:00 and was 2.7k at 34:00; result W (37m); final-minute lead +30.8k 
+LEAD_ERODED:K6 b1 | TUR support(P5) Io LOSS 23m | lead 5:-2k 10:+7k 15:+12k 20:+5k | end(23):-15k
+    [LEAD_ERODED] your team's lead peaked 12.5k at 13:00 and was 4.7k at 20:00; result L (23m); final-minute lead -14.7k +noconv: your team led 8:00–14:00 with no net structure change
+LEAD_ERODED:K7 b1 | TUR carry(P1) Medusa WIN 27m | lead 5:+5k 10:+7k 15:+6k 20:+4k 25:+7k | end(27):+27k
+    [LEAD_ERODED] your team's lead peaked 13.2k at 12:00 and was 1.4k at 24:00; result W (27m); final-minute lead +27.4k 
+LEAD_ERODED:K8 b1 | TUR mid(P2) Dark Willow LOSS 32m | lead 5:+2k 10:+9k 15:-5k 20:-9k 25:-6k 30:-19k | end(32):-40k
+    [LEAD_ERODED] your team's lead peaked 10.7k at 11:00 and was gone (-2.3k for your side) at 29:00; result L (32m); final-minute lead -39.6k 
+LEAD_ERODED:K9 b1 | TUR support(P5) Pudge LOSS 23m | lead 5:+1k 10:+10k 15:+12k 20:-2k | end(23):-41k
+    [LEAD_ERODED] your team's lead peaked 14.9k at 16:00 and was gone (-2.1k for your side) at 20:00; result L (23m); final-minute lead -41.1k +noconv: your team led 8:00–12:00 with no net structure change
+LEAD_ERODED:K10 b3 | TUR support(P4) Puck LOSS 53m | lead 5:-0k 10:+0k 15:+1k 20:+14k 25:+14k 30:-11k 35:-15k 40:-4k 45:+51k 50:-8k | end(53):-4k
+    [LEAD_ERODED] your team's lead peaked 28.7k at 22:00 and was gone (-8.1k for your side) at 50:00; result L (53m); final-minute lead -4.0k 
+
+######## DEFICIT_RECOVERED (fresh pool 9)
+DEFICIT_RECOVERED:K0 b1 | TUR offlane(P3) Wraith King LOSS 22m | lead 5:-3k 10:-6k 15:-11k 20:-2k | end(22):-24k
+    [DEFICIT_RECOVERED] enemy's lead peaked 13.6k at 13:00 and was gone (+7.6k for your side) at 19:00; result L (22m); final-minute lead -24.5k 
+DEFICIT_RECOVERED:K1 b1 | TUR offlane(P3) Puck WIN 24m | lead 5:-6k 10:-13k 15:-9k 20:-3k | end(24):+28k
+    [DEFICIT_RECOVERED] enemy's lead peaked 14.6k at 13:00 and was gone (+2.5k for your side) at 21:00; result W (24m); final-minute lead +28.3k +noconv: enemy led 8:00–13:00 with no net structure change
+DEFICIT_RECOVERED:K2 b1 | TUR offlane(P3) Vengeful Spirit WIN 23m | lead 5:+2k 10:-7k 15:-12k 20:-5k | end(23):+15k
+    [DEFICIT_RECOVERED] enemy's lead peaked 12.5k at 13:00 and was 4.7k at 20:00; result W (23m); final-minute lead +14.7k +noconv: enemy led 8:00–14:00 with no net structure change
+DEFICIT_RECOVERED:K3 b1 | TUR mid(P2) Weaver WIN 31m | lead 5:+1k 10:+0k 15:-10k 20:-16k 25:-12k 30:+18k | end(31):+27k
+    [DEFICIT_RECOVERED] enemy's lead peaked 19.4k at 18:00 and was gone (+3.9k for your side) at 28:00; result W (31m); final-minute lead +27.1k 
+DEFICIT_RECOVERED:K4 b1 | TUR support(P4) Ogre Magi WIN 29m | lead 5:-1k 10:-15k 15:-8k 20:-12k 25:-5k | end(29):+11k
+    [DEFICIT_RECOVERED] enemy's lead peaked 15.1k at 10:00 and was 9.0k at 26:00; result W (29m); final-minute lead +10.6k 
+DEFICIT_RECOVERED:K5 b1 | TUR offlane(P3) Sand King WIN 32m | lead 5:-2k 10:-9k 15:+5k 20:+9k 25:+6k 30:+19k | end(32):+40k
+    [DEFICIT_RECOVERED] enemy's lead peaked 10.7k at 11:00 and was gone (+2.3k for your side) at 29:00; result W (32m); final-minute lead +39.6k 
+DEFICIT_RECOVERED:K6 b3 | TUR support(P5) Io LOSS 35m | lead 5:+1k 10:-1k 15:-3k 20:-19k 25:-14k 30:+1k 35:+0k | end(35):+0k
+    [DEFICIT_RECOVERED] enemy's lead peaked 25.9k at 22:00 and was 1.1k at 32:00; result L (35m); final-minute lead +0.1k 
+DEFICIT_RECOVERED:K7 b1 | TUR support(P5) Rubick WIN 26m | lead 5:-2k 10:-5k 15:-14k 20:+4k 25:+19k | end(26):+35k
+    [DEFICIT_RECOVERED] enemy's lead peaked 13.9k at 15:00 and was 0.6k at 23:00; result W (26m); final-minute lead +34.9k 
+DEFICIT_RECOVERED:K8 b1 | TUR mid(P2) Tinker LOSS 44m | lead 5:-1k 10:-7k 15:-14k 20:+10k 25:+2k 30:+9k 35:-1k 40:+3k | end(44):+9k
+    [DEFICIT_RECOVERED] enemy's lead peaked 14.1k at 15:00 and was gone (+2.9k for your side) at 41:00; result L (44m); final-minute lead +9.4k 
+
+######## CLOSE_MOST_OF_GAME (fresh pool 32)
+CLOSE_MOST_OF_GAME:K0 b1 | STA mid(P2) Invoker LOSS 34m | lead 5:-0k 10:+1k 15:-2k 20:-2k 25:-4k 30:-7k | end(34):-27k
+    [CLOSE_MOST] 10:00–31:00 close 91% of minutes; gap never held above 6.3k for 3 min; latest close 29:00 (window 22m, match 34m) 
+CLOSE_MOST_OF_GAME:K1 b2 | STA offlane(P3) Kunkka WIN 55m | lead 5:-1k 10:-1k 15:-4k 20:-9k 25:-3k 30:-6k 35:-2k 40:-4k 45:-7k 50:+3k 55:+11k | end(55):+11k
+    [CLOSE_MOST] 10:00–52:00 close 86% of minutes; gap never held above 7.3k for 3 min; latest close 52:00 (window 43m, match 55m) 
+CLOSE_MOST_OF_GAME:K2 b2 | TUR support(P4) Witch Doctor LOSS 26m | lead 5:-1k 10:-3k 15:-3k 20:+2k 25:-19k | end(26):-25k
+    [CLOSE_MOST] 8:00–23:00 close 94% of minutes; gap never held above 3.2k for 3 min; latest close 23:00 (window 16m, match 26m) 
+CLOSE_MOST_OF_GAME:K3 b2 | STA support(P5) Lion LOSS 53m | lead 5:-1k 10:-1k 15:-3k 20:+2k 25:+4k 30:-3k 35:-5k 40:-5k 45:-6k 50:-4k | end(53):-19k
+    [CLOSE_MOST] 10:00–50:00 close 100% of minutes; gap never held above 6.3k for 3 min; latest close 50:00 (window 41m, match 53m) 
+CLOSE_MOST_OF_GAME:K4 b2 | STA mid(P2) Lina LOSS 51m | lead 5:-0k 10:-1k 15:-3k 20:+1k 25:-4k 30:-0k 35:-9k 40:+3k 45:+4k 50:+22k | end(51):+14k
+    [CLOSE_MOST] 10:00–48:00 close 85% of minutes; gap never held above 5.8k for 3 min; latest close 47:00 (window 39m, match 51m) 
+CLOSE_MOST_OF_GAME:K5 b1 | STA carry(P1) Spectre WIN 45m | lead 5:+1k 10:+2k 15:+1k 20:+0k 25:-1k 30:-7k 35:-1k 40:+10k 45:+16k | end(45):+16k
+    [CLOSE_MOST] 10:00–42:00 close 79% of minutes; gap never held above 7.4k for 3 min; latest close 42:00 (window 33m, match 45m) 
+CLOSE_MOST_OF_GAME:K6 b2 | STA support(P4) Lion LOSS 41m | lead 5:+1k 10:-1k 15:-4k 20:-3k 25:-4k 30:-4k 35:+1k 40:-2k | end(41):-2k
+    [CLOSE_MOST] 10:00–38:00 close 86% of minutes; gap never held above 5.7k for 3 min; latest close 38:00 (window 29m, match 41m) 
+CLOSE_MOST_OF_GAME:K7 b2 | STA carry(P1) Shadow Fiend LOSS 49m | lead 5:-0k 10:-0k 15:-3k 20:-6k 25:-6k 30:-2k 35:+1k 40:+2k 45:+1k | end(49):-3k
+    [CLOSE_MOST] 10:00–46:00 close 84% of minutes; gap never held above 6.5k for 3 min; latest close 46:00 (window 37m, match 49m) 
+CLOSE_MOST_OF_GAME:K8 b2 | STA carry(P1) Morphling WIN 37m | lead 5:+0k 10:-1k 15:-0k 20:+1k 25:+2k 30:+2k 35:+7k | end(37):+12k
+    [CLOSE_MOST] 10:00–34:00 close 100% of minutes; gap never held above 2.5k for 3 min; latest close 34:00 (window 25m, match 37m) 
+CLOSE_MOST_OF_GAME:K9 b2 | STA carry(P1) Ursa WIN 56m | lead 5:+1k 10:+1k 15:+3k 20:+4k 25:+3k 30:+3k 35:+3k 40:+0k 45:-2k 50:+1k 55:-1k | end(56):+6k
+    [CLOSE_MOST] 10:00–53:00 close 89% of minutes; gap never held above 5.0k for 3 min; latest close 53:00 (window 44m, match 56m) 
+CLOSE_MOST_OF_GAME:K10 b2 | STA support(P5) Crystal Maiden LOSS 52m | lead 5:-1k 10:-1k 15:-1k 20:+2k 25:-1k 30:-2k 35:-3k 40:-1k 45:+3k 50:-1k | end(52):-24k
+    [CLOSE_MOST] 10:00–49:00 close 100% of minutes; gap never held above 1.9k for 3 min; latest close 49:00 (window 40m, match 52m) 
+CLOSE_MOST_OF_GAME:K11 b2 | STA offlane(P3) Magnus LOSS 46m | lead 5:+2k 10:+0k 15:-0k 20:-3k 25:+2k 30:+12k 35:+1k 40:-4k 45:-18k | end(46):-30k
+    [CLOSE_MOST] 10:00–43:00 close 88% of minutes; gap never held above 7.1k for 3 min; latest close 41:00 (window 34m, match 46m) 
+
+######## VISION_REGION_SWEEP (fresh pool 33)
+VISION_REGION_SWEEP:K0 b1 | STA mid(P2) Lina LOSS 35m | lead 5:-0k 10:-2k 15:-3k 20:-3k 25:-7k 30:-12k 35:-28k | end(35):-28k
+    [SWEEP] 3 observers in OWN_HALF destroyed 24:24–28:28 (lived [33, 123, 299] s); lead at start -5.5k
+VISION_REGION_SWEEP:K1 b1 | STA carry(P1) Phantom Assassin WIN 42m | lead 5:-0k 10:-0k 15:-4k 20:-8k 25:-6k 30:-12k 35:-3k 40:-0k | end(42):+13k
+    [SWEEP] 3 observers in OWN_HALF destroyed 17:43–19:58 (lived [75, 81, 243] s); lead at start -4.8k
+VISION_REGION_SWEEP:K2 b1 | STA mid(P2) Viper WIN 57m | lead 5:+1k 10:+4k 15:+6k 20:+9k 25:+11k 30:+15k 35:+12k 40:+8k 45:+10k 50:-5k 55:-20k | end(57):-12k
+    [SWEEP] 3 observers in ENEMY_HALF destroyed 17:22–21:39 (lived [73, 149, 173] s); lead at start +4.8k
+VISION_REGION_SWEEP:K3 b1 | STA offlane(P3) Chaos Knight LOSS 42m | lead 5:-0k 10:-3k 15:-6k 20:-12k 25:-16k 30:-18k 35:-19k 40:-19k | end(42):-21k
+    [SWEEP] 3 observers in RIVER destroyed 12:20–14:48 (lived [28, 163, 166] s); lead at start -3.0k
+VISION_REGION_SWEEP:K4 b1 | STA mid(P2) Shadow Fiend WIN 51m | lead 5:+1k 10:+1k 15:-1k 20:-0k 25:+3k 30:+7k 35:+12k 40:+15k 45:+16k 50:+31k | end(51):+31k
+    [SWEEP] 3 observers in ENEMY_HALF destroyed 27:06–28:04 (lived [6, 120, 123] s); lead at start +5.2k
+VISION_REGION_SWEEP:K5 b1 | STA offlane(P3) Centaur Warrunner LOSS 28m | lead 5:-3k 10:-7k 15:-10k 20:-15k 25:-18k | end(28):-20k
+    [SWEEP] 3 observers in OWN_HALF destroyed 14:34–17:24 (lived [50, 108, 251] s); lead at start -8.5k
+VISION_REGION_SWEEP:K6 b1 | STA support(P4) Monkey King LOSS 55m | lead 5:-1k 10:-1k 15:-2k 20:-3k 25:-6k 30:-4k 35:-2k 40:-3k 45:+10k 50:+6k 55:-18k | end(55):-18k
+    [SWEEP] 3 observers in OWN_HALF destroyed 32:33–34:56 (lived [16, 23, 24] s); lead at start -3.2k
+VISION_REGION_SWEEP:K7 b1 | STA support(P4) Techies WIN 41m | lead 5:+1k 10:+1k 15:+3k 20:+5k 25:+2k 30:+3k 35:+3k 40:+13k | end(41):+16k
+    [SWEEP] 3 observers in ENEMY_HALF destroyed 17:50–22:19 (lived [17, 33, 247] s); lead at start +5.0k
+VISION_REGION_SWEEP:K8 b1 | STA support(P5) Windranger LOSS 32m | lead 5:-1k 10:-2k 15:-5k 20:-7k 25:-15k 30:-26k | end(32):-31k
+    [SWEEP] 3 observers in OWN_HALF destroyed 16:51–21:39 (lived [128, 155, 158] s); lead at start -5.5k
+VISION_REGION_SWEEP:K9 b1 | STA support(P4) Jakiro LOSS 47m | lead 5:+2k 10:+4k 15:+4k 20:+9k 25:+7k 30:+3k 35:-5k 40:-5k 45:-21k | end(47):-20k
+    [SWEEP] 3 observers in ENEMY_HALF destroyed 19:32–21:42 (lived [110, 128, 316] s); lead at start +7.8k
+VISION_REGION_SWEEP:K10 b1 | STA offlane(P3) Sven LOSS 36m | lead 5:-1k 10:-2k 15:-2k 20:-4k 25:-4k 30:-7k 35:-14k | end(36):-23k
+    [SWEEP] 3 observers in RIVER destroyed 10:05–12:31 (lived [37, 65, 198] s); lead at start -2.1k
+VISION_REGION_SWEEP:K11 b1 | STA mid(P2) Shadow Fiend WIN 48m | lead 5:+1k 10:+2k 15:-0k 20:+2k 25:+5k 30:+16k 35:+15k 40:+24k 45:+22k | end(48):+20k
+    [SWEEP] 3 observers in RIVER destroyed 8:35–11:55 (lived [70, 75, 350] s); lead at start +1.6k
+
+######## ENEMY_EARLY_RICH (fresh pool 80)
+ENEMY_EARLY_RICH:K0 b2 | STA support(P4) Invoker LOSS 28m | lead 5:-1k 10:-4k 15:-8k 20:-16k 25:-23k | end(28):-34k
+    [EARLY_RICH] Phantom Assassin (P1) reached 10k NW at 17:00; your team's first at 25:00
+ENEMY_EARLY_RICH:K1 b1 | TUR support(P4) Marci LOSS 22m | lead 5:-9k 10:-19k 15:-17k 20:-8k | end(22):-5k
+    [EARLY_RICH] Juggernaut (P1) reached 15k NW at 12:00; your team's first at 15:00
+ENEMY_EARLY_RICH:K2 b1 | STA support(P5) Lion LOSS 46m | lead 5:-0k 10:-1k 15:-3k 20:-1k 25:+0k 30:-7k 35:-12k 40:-14k 45:-19k | end(46):-23k
+    [EARLY_RICH] Anti-Mage (P1) reached 10k NW at 17:00; your team's first at 21:00
+ENEMY_EARLY_RICH:K3 b2 | TUR support(P5) Vengeful Spirit LOSS 23m | lead 5:-0k 10:-9k 15:-19k 20:-35k | end(23):-25k
+    [EARLY_RICH] Phantom Assassin (P1) reached 15k NW at 12:00; your team's first at 17:00
+ENEMY_EARLY_RICH:K4 b1 | STA support(P4) Muerta LOSS 33m | lead 5:+2k 10:+3k 15:+1k 20:-6k 25:-10k 30:-23k | end(33):-36k
+    [EARLY_RICH] Storm Spirit (P2) reached 10k NW at 18:00; your team's first at 21:00
+ENEMY_EARLY_RICH:K5 b1 | STA mid(P2) Necrophos LOSS 41m | lead 5:-1k 10:+1k 15:-1k 20:-8k 25:-6k 30:-15k 35:-29k 40:-20k | end(41):-21k
+    [EARLY_RICH] Keeper of the Light (P2) reached 10k NW at 18:00; your team's first at 21:00
+ENEMY_EARLY_RICH:K6 b1 | STA offlane(P3) Broodmother LOSS 26m | lead 5:-2k 10:-5k 15:-9k 20:-15k 25:-25k | end(26):-29k
+    [EARLY_RICH] Phantom Lancer (P1) reached 10k NW at 18:00; your team's first at 24:00
+ENEMY_EARLY_RICH:K7 b2 | STA offlane(P3) Enigma LOSS 29m | lead 5:-2k 10:-3k 15:-6k 20:-7k 25:-22k | end(29):-34k
+    [EARLY_RICH] Kez (P2) reached 10k NW at 15:00; your team's first at 20:00
+ENEMY_EARLY_RICH:K8 b1 | TUR support(P5) Ancient Apparition WIN 29m | lead 5:-3k 10:-2k 15:-9k 20:+6k 25:+31k | end(29):+35k
+    [EARLY_RICH] Sniper (P2) reached 15k NW at 11:00; your team's first at 14:00
+ENEMY_EARLY_RICH:K9 b2 | STA carry(P1) Slark LOSS 37m | lead 5:-1k 10:-2k 15:-6k 20:-6k 25:-13k 30:-10k 35:-15k | end(37):-24k
+    [EARLY_RICH] Dawnbreaker (P3) reached 10k NW at 17:00; your team's first at 22:00
+ENEMY_EARLY_RICH:K10 b2 | STA support(P4) Kunkka LOSS 38m | lead 5:-3k 10:-5k 15:-12k 20:-15k 25:-18k 30:-16k 35:-20k | end(38):-30k
+    [EARLY_RICH] Lone Druid (P1) reached 10k NW at 17:00; your team's first at 23:00
+ENEMY_EARLY_RICH:K11 b3 | TUR support(P4) Underlord LOSS 20m | lead 5:-4k 10:-13k 15:-24k 20:-28k | end(20):-28k
+    [EARLY_RICH] Lina (P2) reached 15k NW at 8:00; your team's first at 17:00
+
+######## ENEMY_SMOKE_VOLUME (fresh pool 0)

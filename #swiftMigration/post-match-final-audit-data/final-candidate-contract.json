@@ -1,0 +1,1870 @@
+{
+ "contract": "post-match-insights",
+ "version": "1.0.0",
+ "status": "FINAL - NORMATIVE (owner-locked 2026-09-17). Companion of POST-MATCH-INSIGHTS-SSOT.md; the Markdown SSOT and this file must agree.",
+ "supersedes": "the 2026-09-16 'FINAL RECOMMENDATION' version of this file; tier-b-shape-definitions.json and candidate-definitions files are research evidence only",
+ "units": {
+  "gold": "team net-worth difference (your team minus enemy)",
+  "L(t)": "sum over your 5 players of stats.networthPerMinute[t] minus the same sum for the enemy; t = array index, read as minute t:00; the curve ends at the first t for which any of the ten arrays has no value",
+  "R(t)": "L(t) / (your team NW(t) + enemy NW(t)); 0 when the denominator is 0",
+  "core curve": "L with its final 3 samples removed (L[0 .. len(L)-4]); if len(L) <= 3, L[0 .. 0]",
+  "minute checkpoints": {
+   "STANDARD": {
+    "late": 10,
+    "lane_end": 12,
+    "stack": 20,
+    "nw_goal": 10000,
+    "feeding_minute": 10
+   },
+   "TURBO": {
+    "late": 8,
+    "lane_end": 9,
+    "stack": null,
+    "nw_goal": 15000,
+    "feeding_minute": 8
+   }
+  },
+  "CS(p, t)": "sum of stats.lastHitsPerMinute[0 .. t-1]; unknown if the array has fewer than t entries",
+  "bucket": "STANDARD = gameMode ALL_PICK or ALL_PICK_RANKED with lobbyType RANKED or UNRANKED; TURBO = gameMode TURBO; anything else is not eligible",
+  "role": "effective role per role-resolution-and-correction-v1.md; STRATZ position 1 carry, 2 mid, 3 offlane, 4/5 support is the research proxy",
+  "counterpart": "carry -> enemy POSITION_3, mid -> enemy POSITION_2, offlane -> enemy POSITION_1; resolved only if exactly one such enemy exists and its map lane equals the viewer's (map lane: MID_LANE -> mid; SAFE_LANE -> bot for Radiant / top for Dire; OFF_LANE -> top for Radiant / bot for Dire)",
+  "major_patch": "7.xx from gameVersionId; lettered sub-patches are the same major patch (research ids: 180 = 7.39; 181 and 182 = 7.40)"
+ },
+ "global_eligibility": [
+  "bucket in {STANDARD, TURBO}",
+  "numHumanPlayers == 10",
+  "durationSeconds >= 600",
+  "all ten players have a non-empty stats.networthPerMinute",
+  "no player has leaverStatus in {ABANDONED, AFK, DISCONNECTED_TOO_LONG, NEVER_CONNECTED, NEVER_CONNECTED_TOO_LONG, FAILED_TO_READY_UP, DECLINED_READY_UP}",
+  "positions: each team has exactly one each of POSITION_1..POSITION_5",
+  "feeding guard: no player has >= 8 deathEvents with time < 600 s (STANDARD) / 480 s (TURBO); if violated, no card of any kind"
+ ],
+ "output": {
+  "max_cards": 3,
+  "min_cards": 0,
+  "force_fill": false,
+  "status_values": [
+   "EVALUATED",
+   "NOT_ELIGIBLE(reason)"
+  ],
+  "card_fields": [
+   "candidate_id",
+   "tier",
+   "family",
+   "band",
+   "level",
+   "rank_class",
+   "slots",
+   "enrichments",
+   "history_line",
+   "contract_version"
+  ]
+ },
+ "severity": {
+  "bands": {
+   "1": "NOTABLE",
+   "2": "STRONG",
+   "3": "EXTREME"
+  },
+  "ladder_level": "v < q: ineligible; q <= v < s: (v - q) / (s - q); s <= v < e: 1 + (v - s) / (e - s); v >= e: min(3, 2 + (v - e) / (e - s)); band = 1 if level < 1, 2 if level < 2, else 3",
+  "history_level": "(band - 1) + min(0.99, N / 50)",
+  "tier_b_level": "candidate-specific fixed formulas (see candidates)",
+  "rounding": "level is rounded to 3 decimal places before comparison"
+ },
+ "ranking": {
+  "story_group": {
+   "members_in_priority_order": [
+    "COMEBACK_WIN",
+    "LOST_FROM_AHEAD",
+    "CLOSE_MOST_OF_GAME",
+    "EVEN_THEN_SEPARATED",
+    "LEAD_FLIP",
+    "LEAD_ERODED",
+    "DEFICIT_RECOVERED",
+    "LATE_REVERSAL"
+   ],
+   "rule": "keep at most one group card: the eligible member earliest in this list; drop the others before sorting",
+   "applies_before_sort": true
+  },
+  "rank_class": {
+   "1": [
+    "COMEBACK_WIN",
+    "LOST_FROM_AHEAD"
+   ],
+   "3": [
+    "ENEMY_EARLY_ITEM",
+    "VISION_REGION_SWEEP"
+   ],
+   "2": "every other card"
+  },
+  "rank_class_direction": "ascending: class 1 is shown before class 2, class 2 before class 3",
+  "sort_key": [
+   "rank_class ascending",
+   "band descending (3 EXTREME, 2 STRONG, 1 NOTABLE)",
+   "level descending",
+   "tie_order ascending"
+  ],
+  "tie_order": [
+   "COMEBACK_WIN",
+   "LOST_FROM_AHEAD",
+   "EVEN_THEN_SEPARATED",
+   "OWN_LANE_VS_USUAL",
+   "ENEMY_SMOKE_VOLUME",
+   "ENEMY_STACKING",
+   "LEAD_ERODED",
+   "OWN_ITEM_VS_HISTORY",
+   "VISION_QUICK_CLEARS",
+   "CLOSE_MOST_OF_GAME",
+   "LEAD_FLIP",
+   "DEFICIT_RECOVERED",
+   "ENEMY_EARLY_RICH",
+   "OPP_START_VS_HISTORY",
+   "LATE_REVERSAL",
+   "ENEMY_EARLY_ITEM",
+   "VISION_REGION_SWEEP"
+  ],
+  "select": "first min(3, n) cards after sorting; n may be 0; never fill",
+  "not_used": [
+   "Tier A over Tier B",
+   "own/enemy balancing",
+   "win/loss balancing",
+   "diversity quotas",
+   "family caps",
+   "generic redundancy or merge logic",
+   "EXTREME class promotion",
+   "additive scores"
+  ],
+  "validation": {
+   "gold_set": "120 multi-card viewpoints / 332 cards",
+   "pairwise_agreement": 0.83,
+   "top1_agreement": 0.8,
+   "split_half_pairwise": 0.79,
+   "split_half_top1": 0.75,
+   "band_only_same_guard_pairwise": 0.64,
+   "random_pairwise": 0.5
+  }
+ },
+ "history": {
+  "window": "the most recent 50 comparable prior values in the account's currently entitled retained history; prior = strictly earlier (startDateTime, then match id); comparable = globally eligible, not feeding-guarded, same comparator key, metric measurable (unknown is excluded, never zero)",
+  "N": "number of values in the window (0..50)",
+  "claims": {
+   "N<10": "no historical wording of any kind",
+   "10<=N<=19": "median-only secondary line on an already-eligible card; never creates a card",
+   "N>=20": "record wording 'across your last N ...'; history-required cards become eligible",
+   "N>=30": "'one of your 3 ...', 'top 10% of your last N', 'unusually ... for you' - continuous metrics only",
+   "never": [
+    "ever",
+    "all-time",
+    "personal record",
+    "PB",
+    "exact percentiles",
+    "population data presented as 'your usual'"
+   ]
+  },
+  "line_precedence": "at most one history line per card: record (N>=20) > rarity (N>=30, continuous) > median (N>=10)",
+  "record_rule": "strict; must beat the previous record by the card's margin; an exact tie is never a record",
+  "rarity_definitions": {
+   "top3": "fewer than 3 window values are better than the current value (and it is not a record)",
+   "top10pct_or_unusual": "current value is better than the window's 90th percentile (10th for timings), nearest-rank"
+  },
+  "continuous_metrics": [
+   "own lane gap",
+   "counterpart CS",
+   "own item time",
+   "enemy item time",
+   "enemy Smoke rate"
+  ],
+  "integer_metrics_no_rarity": [
+   "enemy stacks",
+   "enemy goal minute"
+  ],
+  "comparator_keys": {
+   "OWN_LANE_VS_USUAL": [
+    "bucket",
+    "effective_role (cores only)"
+   ],
+   "OPP_START_VS_HISTORY": [
+    "bucket",
+    "effective_role (cores only)"
+   ],
+   "OWN_ITEM_VS_HISTORY": [
+    "bucket",
+    "effective_role",
+    "item",
+    "major_patch"
+   ],
+   "ENEMY_EARLY_RICH line": [
+    "bucket"
+   ],
+   "ENEMY_STACKING line": [
+    "bucket"
+   ],
+   "ENEMY_SMOKE_VOLUME line": [
+    "bucket"
+   ],
+   "ENEMY_EARLY_ITEM line": [
+    "bucket",
+    "item",
+    "major_patch"
+   ]
+  },
+  "patch_scope": "same major patch applies ONLY to own and enemy item-timing comparisons",
+  "fallback": "below the gate the history card is ineligible and enemy cards render without a line; no population baseline is ever presented as personal",
+  "evidence": {
+   "accounts": 31,
+   "usable_rows": 9930,
+   "record_precision": {
+    "N=3": "19-27%",
+    "N=10": "51-63%",
+    "N=20": "80-90%",
+    "N=30": "91-100%"
+   }
+  }
+ },
+ "tier_b_classifier": {
+  "version": "tier-b-match-shape 2.0 (frozen)",
+  "window": {
+   "start_minute": {
+    "STANDARD": 10,
+    "TURBO": 8
+   },
+   "end_minute": "E = min(len(R) - 1, floor((durationSeconds - 180) / 60))",
+   "length": "n = E - S + 1",
+   "min_length": 9,
+   "below_min": "SHORT_WINDOW"
+  },
+  "smoothing": "a[i] = median(R[j] for j in [S+i-1, S+i+1] intersected with [0, E]) - centered 3-minute median on R truncated at E (2-value median = mean at the edges)",
+  "phase_bin": {
+   "edges": {
+    "STANDARD": [
+     20,
+     30,
+     40
+    ],
+    "TURBO": [
+     14,
+     20,
+     26
+    ]
+   },
+   "rule": "bin = number of edges <= absolute minute"
+  },
+  "band_percentiles": {
+   "close C": "p50",
+   "edge E": "p70",
+   "strong S": "p90"
+  },
+  "reference_percentiles": {
+   "STANDARD": [
+    {
+     "p45": 0.0567,
+     "p50": 0.0637,
+     "p55": 0.072,
+     "p65": 0.0865,
+     "p70": 0.0943,
+     "p75": 0.1052,
+     "p85": 0.1335,
+     "p90": 0.1563,
+     "p95": 0.1861
+    },
+    {
+     "p45": 0.0564,
+     "p50": 0.0653,
+     "p55": 0.0732,
+     "p65": 0.092,
+     "p70": 0.1032,
+     "p75": 0.1162,
+     "p85": 0.1507,
+     "p90": 0.1803,
+     "p95": 0.2163
+    },
+    {
+     "p45": 0.0499,
+     "p50": 0.0568,
+     "p55": 0.0635,
+     "p65": 0.081,
+     "p70": 0.0914,
+     "p75": 0.1026,
+     "p85": 0.1258,
+     "p90": 0.1429,
+     "p95": 0.1706
+    },
+    {
+     "p45": 0.0365,
+     "p50": 0.0409,
+     "p55": 0.0463,
+     "p65": 0.0575,
+     "p70": 0.0641,
+     "p75": 0.0693,
+     "p85": 0.0904,
+     "p90": 0.1073,
+     "p95": 0.1261
+    }
+   ],
+   "TURBO": [
+    {
+     "p45": 0.0567,
+     "p50": 0.0649,
+     "p55": 0.0726,
+     "p65": 0.0895,
+     "p70": 0.1008,
+     "p75": 0.1125,
+     "p85": 0.1394,
+     "p90": 0.1638,
+     "p95": 0.1913
+    },
+    {
+     "p45": 0.059,
+     "p50": 0.0657,
+     "p55": 0.0743,
+     "p65": 0.0898,
+     "p70": 0.0994,
+     "p75": 0.1119,
+     "p85": 0.1442,
+     "p90": 0.1687,
+     "p95": 0.1986
+    },
+    {
+     "p45": 0.0454,
+     "p50": 0.0522,
+     "p55": 0.0591,
+     "p65": 0.0738,
+     "p70": 0.0798,
+     "p75": 0.0881,
+     "p85": 0.1119,
+     "p90": 0.131,
+     "p95": 0.1448
+    },
+    {
+     "p45": 0.0365,
+     "p50": 0.0407,
+     "p55": 0.0462,
+     "p65": 0.0545,
+     "p70": 0.0635,
+     "p75": 0.069,
+     "p85": 0.095,
+     "p90": 0.1054,
+     "p95": 0.1207
+    }
+   ]
+  },
+  "state": "state[i] = +1 if a[i] >= E(i); -1 if a[i] <= -E(i); else 0 (no hysteresis)",
+  "sustained_run": "maximal block of equal non-zero state with length >= 3",
+  "parameters": {
+   "ets_close": 0.65,
+   "ets_sep": 0.3,
+   "ets_final": 0.6,
+   "erosion": 0.5,
+   "le_start_frac": "2/3",
+   "late_k": 3,
+   "le_gold_floor": {
+    "STANDARD": 5000,
+    "TURBO": 8000
+   },
+   "os_share": 0.7,
+   "os_first": 0.33,
+   "os_struct": 3,
+   "os_strong_min": 3,
+   "se_share": 0.5,
+   "se_lean": 0.8,
+   "ct_close": 0.6,
+   "ct_gold": 7500,
+   "run": 3
+  },
+  "labels": [
+   "ETS_FOR",
+   "ETS_AGAINST",
+   "LE",
+   "DR",
+   "OS_FOR",
+   "OS_AGAINST",
+   "SE_FOR",
+   "SE_AGAINST",
+   "SWAP_FOR",
+   "SWAP_AGAINST",
+   "CT",
+   "UNCLEAR",
+   "SHORT_WINDOW"
+  ],
+  "priority": [
+   "ETS",
+   "LE",
+   "DR",
+   "OS",
+   "SE",
+   "SWAP",
+   "CT",
+   "UNCLEAR"
+  ],
+  "displayable_labels": {
+   "CT": "CLOSE_MOST_OF_GAME",
+   "ETS_*": "EVEN_THEN_SEPARATED",
+   "LE": "LEAD_ERODED",
+   "DR": "DEFICIT_RECOVERED"
+  },
+  "never_displayed": [
+   "OS_*",
+   "SE_*",
+   "SWAP_*",
+   "UNCLEAR",
+   "SHORT_WINDOW"
+  ],
+  "mirror_rule": "label(enemy view) = mirror(label(your view)): LE <-> DR, *_FOR <-> *_AGAINST, CT <-> CT, UNCLEAR <-> UNCLEAR, SHORT_WINDOW <-> SHORT_WINDOW; a required test",
+  "shape_confidence": {
+   "definition": "share of the 34 perturbations below whose label equals the unperturbed label; percentile perturbations use reference_percentiles",
+   "variants": [
+    "close_p-5",
+    "close_p+5",
+    "edge_p-5",
+    "edge_p+5",
+    "strong_p-5",
+    "strong_p+5",
+    "run-1",
+    "run+1",
+    "os_share-0.05",
+    "os_share+0.05",
+    "se_share-0.05",
+    "se_share+0.05",
+    "ets_close-0.05",
+    "ets_close+0.05",
+    "ets_final-0.05",
+    "ets_final+0.05",
+    "erosion-0.10",
+    "erosion+0.10",
+    "start-2",
+    "start-1",
+    "start+1",
+    "start+2",
+    "end_excl-2",
+    "end_excl-1",
+    "end_excl+1",
+    "end_excl+2",
+    "ct_close-0.05",
+    "ct_close+0.05",
+    "se_lean-0.05",
+    "se_lean+0.05",
+    "ct_gold-1000",
+    "ct_gold+1000",
+    "le_gold_floor-1000",
+    "le_gold_floor+1000"
+   ],
+   "gate": 0.7
+  },
+  "structures": "towerDeaths rows classified tower or barracks by npcId (ancient, fillers and other buildings excluded); owner = isRadiant; net for a side = enemy structures destroyed minus own structures destroyed",
+  "superseded_research_elements": [
+   "TierBScore formula and 45 cutoff",
+   "0.7-0.9 confidence display allow-list",
+   "moderate signals (C_LANE_NW_CS, X_LANE_VS_OTHER_LANES, C_SPIKE_RICH_ITEM, RICH_MOD, SMOKE_MOD, OBSCLEAR_MOD, STACK_MOD, X_HIDDEN_MULTI, C_ECON_STACK_RICH)",
+   "'Tier A first, then Tier B' fallback"
+  ]
+ },
+ "vision_reconstruction": {
+  "status": "VALIDATED - approved for V1 (fresh 33-match playback holdout, 2026-09-16)",
+  "canonical_method": "stats-only reconstruction for both vision cards; playback wardEvents are not used for card eligibility in V1",
+  "inputs": {
+   "own_observers": "stats.wards rows with type == 0 of your players: (time t0, positionX, positionY), sorted by (t0, x, y)",
+   "enemy_sentries": "stats.wards rows with type == 1 of enemy players: (time, positionX, positionY)",
+   "clears": "stats.wardDestruction rows with isWard == true of enemy players: time, sorted ascending",
+   "coordinates": "STRATZ cell units (1 cell = 64 world units); distance = Euclidean in cells"
+  },
+  "nominal_observer_life_s": 360,
+  "algorithm": [
+   "taken = empty set",
+   "for each clear time t in ascending order:",
+   "  candidates = own observers i with t0_i <= t < min(t0_i + 360, durationSeconds) and i not in taken",
+   "  for each candidate i: evidence_i = enemy sentries placed at time ts with t - 90 <= ts <= t and distance(sentry, observer_i) <= 10",
+   "  scored = candidates with non-empty evidence, scored by (min distance, min age t - ts, index i)",
+   "  if exactly one scored candidate: pick it (tier A)",
+   "  else if >= 2 scored and best.min_distance + 3 < second.min_distance (after sorting by score): pick best (tier A)",
+   "  else if exactly one candidate (scored or not): pick it (tier C)",
+   "  else: unresolved (no pick)",
+   "  if picked: add to taken; identified clear = {t, t0, x, y, life = t - t0, region = region(x, y, your side)}"
+  ],
+  "no_second_pass": "the research code's second (tier B) pass ran with W2 = 0, R2 = 0 and its picks were discarded; V1 has no second pass",
+  "unresolved": "never guessed, never counted; displayed counts are lower bounds",
+  "region": {
+   "rule": [
+    "label = region_label_cells[(floor(x/8), floor(y/8))] or none",
+    "if label ends with BASE or FOUNTAIN: OWN_BASE if (label starts with RADIANT) == (your side is Radiant) else ENEMY_BASE",
+    "else if |x + y - 252| <= 10 or label in {RIVER, ROSHAN}: RIVER",
+    "else: radiant_half = (x + y < 252); OWN_HALF if radiant_half == (your side is Radiant) else ENEMY_HALF"
+   ],
+   "values": [
+    "OWN_HALF",
+    "RIVER",
+    "ENEMY_HALF",
+    "OWN_BASE",
+    "ENEMY_BASE"
+   ],
+   "region_label_cells": {
+    "RADIANT_BASE": [
+     [
+      8,
+      12
+     ],
+     [
+      9,
+      9
+     ],
+     [
+      9,
+      10
+     ],
+     [
+      9,
+      11
+     ],
+     [
+      9,
+      12
+     ],
+     [
+      10,
+      9
+     ],
+     [
+      10,
+      10
+     ],
+     [
+      10,
+      11
+     ],
+     [
+      10,
+      12
+     ],
+     [
+      11,
+      9
+     ],
+     [
+      11,
+      10
+     ],
+     [
+      11,
+      11
+     ],
+     [
+      11,
+      12
+     ],
+     [
+      12,
+      8
+     ],
+     [
+      12,
+      9
+     ],
+     [
+      12,
+      10
+     ]
+    ],
+    "DIRE_BASE": [
+     [
+      19,
+      19
+     ],
+     [
+      19,
+      20
+     ],
+     [
+      19,
+      21
+     ],
+     [
+      19,
+      22
+     ],
+     [
+      20,
+      19
+     ],
+     [
+      20,
+      20
+     ],
+     [
+      20,
+      21
+     ],
+     [
+      20,
+      22
+     ],
+     [
+      21,
+      18
+     ],
+     [
+      21,
+      19
+     ],
+     [
+      21,
+      20
+     ],
+     [
+      21,
+      21
+     ],
+     [
+      21,
+      22
+     ],
+     [
+      22,
+      18
+     ],
+     [
+      22,
+      19
+     ],
+     [
+      22,
+      20
+     ],
+     [
+      23,
+      18
+     ],
+     [
+      23,
+      19
+     ],
+     [
+      23,
+      20
+     ]
+    ],
+    "DIRE_FOUNTAIN": [
+     [
+      22,
+      21
+     ],
+     [
+      22,
+      22
+     ],
+     [
+      23,
+      21
+     ]
+    ],
+    "RIVER": [
+     [
+      11,
+      18
+     ],
+     [
+      12,
+      18
+     ],
+     [
+      13,
+      16
+     ],
+     [
+      13,
+      17
+     ],
+     [
+      14,
+      16
+     ],
+     [
+      14,
+      17
+     ],
+     [
+      14,
+      18
+     ],
+     [
+      17,
+      14
+     ],
+     [
+      19,
+      13
+     ],
+     [
+      20,
+      13
+     ]
+    ],
+    "ROSHAN": [
+     [
+      13,
+      18
+     ]
+    ]
+   }
+  },
+  "validation": {
+   "units": 66,
+   "matches": 33,
+   "identity_precision": 0.991,
+   "tier_A_precision": 0.99,
+   "tier_C_precision": 1.0,
+   "coverage": 0.79,
+   "region_correct": 0.991,
+   "quick_classification_agreement": 0.995,
+   "quick_count_mean_abs_error": 0.41,
+   "rule_agreement": {
+    "quick_clears": {
+     "both": 3,
+     "missed": 2,
+     "false_fire": 0
+    },
+    "region_sweep": {
+     "both": 3,
+     "missed": 1,
+     "false_fire": 0
+    }
+   }
+  },
+  "recheck": "re-validate after any patch that changes observer/sentry mechanics or the map layout (region cells, river diagonal)"
+ },
+ "candidates": [
+  {
+   "id": "COMEBACK_WIN",
+   "display_name": "Comeback Win",
+   "tier": "A",
+   "family": "MATCH_LEAD_STORY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": true,
+   "story_priority": 1,
+   "rank_class": 1,
+   "tie_order": 1,
+   "eligibility": "team won AND max(-L(t)) over the core curve (L with its last 3 minute samples removed) >= ladder.q",
+   "magnitude": "max enemy lead (gold) over the core curve",
+   "ladder": {
+    "STANDARD": [
+     12000,
+     19500,
+     31000
+    ],
+    "TURBO": [
+     18300,
+     23700,
+     33500
+    ]
+   },
+   "severity": "ladder",
+   "guards": [
+    "final-3-minute exclusion (core curve)"
+   ],
+   "slots": [
+    "deficit",
+    "deficit_minute (first minute of the maximum)",
+    "last_minute_behind (on the core curve)",
+    "final_lead_sign (full curve)",
+    "win_time"
+   ],
+   "safe_claim": "You trailed by {deficit} at {deficit_minute} and won. If still behind at the end: won despite trailing by {deficit}.",
+   "forbidden_claim": [
+    "because",
+    "clutch",
+    "outplayed",
+    "they threw",
+    "the game turned"
+   ]
+  },
+  {
+   "id": "LOST_FROM_AHEAD",
+   "display_name": "Lost From Ahead",
+   "tier": "A",
+   "family": "MATCH_LEAD_STORY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": true,
+   "story_priority": 2,
+   "rank_class": 1,
+   "tie_order": 2,
+   "eligibility": "team lost AND max(L(t)) over the core curve >= ladder.q",
+   "magnitude": "max own lead (gold) over the core curve",
+   "ladder": {
+    "STANDARD": [
+     12000,
+     19500,
+     31000
+    ],
+    "TURBO": [
+     18300,
+     23700,
+     33500
+    ]
+   },
+   "severity": "ladder",
+   "guards": [
+    "final-3-minute exclusion (core curve)"
+   ],
+   "slots": [
+    "lead",
+    "lead_minute",
+    "final_lead (full curve)"
+   ],
+   "safe_claim": "Your team led by {lead} at {lead_minute} and lost.",
+   "forbidden_claim": [
+    "threw",
+    "throw",
+    "the game turned at",
+    "blame of any kind"
+   ]
+  },
+  {
+   "id": "LEAD_FLIP",
+   "display_name": "Major Sustained Lead Flip",
+   "tier": "A",
+   "family": "MATCH_LEAD_STORY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": true,
+   "story_priority": 5,
+   "rank_class": 2,
+   "tie_order": 11,
+   "eligibility": "on the core curve: sign(t) = +1 if L(t) >= 1500, -1 if L(t) <= -1500, else 0; sustained run = maximal block of equal non-zero sign with length >= 3 minutes; flip = two consecutive sustained runs (in run order) of opposite sign whose second run starts at minute >= lane_end (STANDARD 12, TURBO 9); flip magnitude = min(max|L| inside run 1, max|L| inside run 2); qualifying flip = magnitude >= ladder.q; display the LATEST qualifying flip",
+   "magnitude": "min(peak before, peak after) of the displayed flip",
+   "ladder": {
+    "STANDARD": [
+     7900,
+     12100,
+     21900
+    ],
+    "TURBO": [
+     14200,
+     19400,
+     27500
+    ]
+   },
+   "severity": "ladder",
+   "guards": [
+    "final-3-minute truncation (core curve)",
+    "latest qualifying flip is displayed"
+   ],
+   "slots": [
+    "direction (FLIP_FOR | FLIP_AGAINST)",
+    "peak_before",
+    "run_before [start,end]",
+    "peak_after",
+    "run_after [start,end]",
+    "result"
+   ],
+   "safe_claim": "Your team led by up to {peak_before} ({run_before}); then the enemy led by up to {peak_after} ({run_after}). Result always stated.",
+   "forbidden_claim": [
+    "the fight at X flipped the game",
+    "momentum",
+    "any cause of the swing"
+   ]
+  },
+  {
+   "id": "OWN_LANE_VS_USUAL",
+   "display_name": "Own Lane vs Your Usual",
+   "tier": "A",
+   "family": "LANE_STORY",
+   "unit": "viewpoint",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": [
+    "carry",
+    "mid",
+    "offlane"
+   ],
+   "history": "required",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": false,
+   "rank_class": 2,
+   "tie_order": 4,
+   "comparator_key": [
+    "bucket",
+    "effective_role"
+   ],
+   "history_min_n": 20,
+   "history_window": 50,
+   "eligibility": "viewer effective role is a core; lane counterpart resolved; value = NW(viewer, late) - NW(counterpart, late) with late = 10 (STANDARD) / 8 (TURBO); window = the viewer's most recent <=50 prior comparable values (same bucket + effective role); N = window size >= 20; BEST record: value - max(window) >= margin; WORST record: min(window) - value >= margin; margin = 100 (STANDARD) / 200 (TURBO) gold",
+   "severity": "history: STRONG if N = 50 OR |value| >= core lane-gap p95 (STANDARD 2,254 / TURBO 4,449); EXTREME if both; otherwise NOTABLE; level = (band - 1) + min(0.99, N / 50)",
+   "pop_p95": {
+    "STANDARD": 2254,
+    "TURBO": 4449
+   },
+   "guards": [
+    "cores only",
+    "record margin",
+    "N >= 20"
+   ],
+   "slots": [
+    "value",
+    "direction (BEST | WORST)",
+    "N",
+    "window_median",
+    "previous_record",
+    "counterpart_hero",
+    "counterpart_position"
+   ],
+   "safe_claim": "Your lane gap at {late} was {value}: your {best|worst} across your last {N} {mode} {role} matches (previous {previous_record}).",
+   "forbidden_claim": [
+    "ever",
+    "personal record",
+    "your worst lane ever",
+    "you won/lost lane because"
+   ]
+  },
+  {
+   "id": "OPP_START_VS_HISTORY",
+   "display_name": "Extreme Opponent Start vs Your History",
+   "tier": "A",
+   "family": "LANE_STORY",
+   "unit": "viewpoint",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": [
+    "carry",
+    "mid",
+    "offlane"
+   ],
+   "history": "required",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": false,
+   "rank_class": 2,
+   "tie_order": 14,
+   "comparator_key": [
+    "bucket",
+    "effective_role"
+   ],
+   "history_min_n": 20,
+   "history_window": 50,
+   "eligibility": "viewer effective role is a core; lane counterpart resolved; value = counterpart CS at late (sum of lastHitsPerMinute[0..late-1]); value >= population p90 for the counterpart position; value > max(window) (strict); window = most recent <=50 prior comparable counterpart-CS values (same bucket + effective role); N >= 20",
+   "pop_gate_p90": {
+    "STANDARD": {
+     "P1": 60,
+     "P2": 63,
+     "P3": 53
+    },
+    "TURBO": {
+     "P1": 48,
+     "P2": 48,
+     "P3": 39
+    }
+   },
+   "pop_p95": {
+    "STANDARD": {
+     "P1": 64,
+     "P2": 70,
+     "P3": 57
+    },
+    "TURBO": {
+     "P1": 53,
+     "P2": 53,
+     "P3": 42
+    }
+   },
+   "severity": "history: STRONG if N = 50 OR value >= population p95 for that position; EXTREME if both; otherwise NOTABLE; level = (band - 1) + min(0.99, N / 50)",
+   "guards": [
+    "cores only",
+    "population p90 gate",
+    "strict window maximum",
+    "N >= 20"
+   ],
+   "slots": [
+    "counterpart_hero",
+    "counterpart_position",
+    "value",
+    "N",
+    "window_median",
+    "previous_high",
+    "your_lane_diff"
+   ],
+   "safe_claim": "Their {hero} had {value} CS at {late}: the most an opposing {position} has had against you across your last {N} {mode} {role} matches.",
+   "forbidden_claim": [
+    "strongest opponent ever",
+    "outplayed you",
+    "MMR or skill claims"
+   ]
+  },
+  {
+   "id": "OWN_ITEM_VS_HISTORY",
+   "display_name": "Own Key Item Timing vs Your History",
+   "tier": "A",
+   "family": "POWER_SPIKES_AND_ITEM_TIMINGS",
+   "unit": "viewpoint",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "required",
+   "patch_scope": "same major patch",
+   "playback": "none",
+   "story_group": false,
+   "rank_class": 2,
+   "tie_order": 8,
+   "comparator_key": [
+    "bucket",
+    "effective_role",
+    "item",
+    "major_patch"
+   ],
+   "history_min_n": 20,
+   "history_window": 50,
+   "items": [
+    "black_king_bar",
+    "blink",
+    "radiance",
+    "hand_of_midas",
+    "manta",
+    "desolator",
+    "bfury",
+    "maelstrom",
+    "ultimate_scepter",
+    "orchid"
+   ],
+   "eligibility": "for each item in list order: t = viewer's first purchase time; window = viewer's most recent <=50 prior first purchases of that item with the same bucket + effective role + major patch; N >= 20; t <= min(window) - margin, margin = 60 s (STANDARD) / 30 s (TURBO); FASTEST direction only; at most one card per match: the first qualifying item in list order",
+   "severity": "history: STRONG if N = 50 OR (min(window) - t) >= 120 s (STANDARD) / 60 s (TURBO); EXTREME if both; otherwise NOTABLE; level = (band - 1) + min(0.99, N / 50)",
+   "guards": [
+    "fastest only",
+    "margin",
+    "role + major patch in key",
+    "N >= 20"
+   ],
+   "slots": [
+    "item",
+    "time",
+    "previous_fastest",
+    "window_median",
+    "N",
+    "hero"
+   ],
+   "safe_claim": "Your {time} {item} was your fastest across your last {N} {mode} {role} {item} purchases (previous {previous_fastest}).",
+   "forbidden_claim": [
+    "fastest ever",
+    "finished / completed (purchase only)",
+    "advice",
+    "fastest on this hero",
+    "slowest-record cards"
+   ]
+  },
+  {
+   "id": "ENEMY_STACKING",
+   "display_name": "Enemy Stacking Edge",
+   "tier": "A",
+   "family": "HIDDEN_ENEMY_ACTIVITY",
+   "unit": "team",
+   "modes": [
+    "STANDARD"
+   ],
+   "roles": "all",
+   "history": "optional enrichment",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": false,
+   "rank_class": 2,
+   "tie_order": 6,
+   "eligibility": "duration >= 20:00; enemy stacks = sum over enemy players of campStack[19]; own stacks likewise; enemy stacks >= 7 AND enemy stacks - own stacks >= 4",
+   "magnitude": "enemy camps stacked by 20:00",
+   "ladder": {
+    "STANDARD": [
+     7,
+     9,
+     13
+    ]
+   },
+   "severity": "ladder",
+   "guards": [
+    "Standard only"
+   ],
+   "slots": [
+    "enemy",
+    "own"
+   ],
+   "history_line": {
+    "key": [
+     "bucket"
+    ],
+    "metric": "enemy stacks by 20:00",
+    "record": "strictly highest",
+    "rarity_wording": false
+   },
+   "safe_claim": "Their team stacked {enemy} camps by 20:00; yours stacked {own}.",
+   "forbidden_claim": [
+    "their stacks won them the game",
+    "your supports didn't stack"
+   ]
+  },
+  {
+   "id": "VISION_QUICK_CLEARS",
+   "display_name": "Vision Quick Clears",
+   "tier": "A",
+   "family": "HIDDEN_ENEMY_ACTIVITY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none (stats-only reconstruction is the canonical method)",
+   "story_group": false,
+   "rank_class": 2,
+   "tie_order": 9,
+   "eligibility": "identified clears (reconstruction tiers A or C) with life <= 90 s and clear time < duration - 300 s: count >= 4 AND count >= 0.25 x observers placed by your team",
+   "magnitude": "quick-clear count",
+   "ladder": {
+    "STANDARD": [
+     4,
+     5,
+     6
+    ],
+    "TURBO": [
+     4,
+     5,
+     6
+    ]
+   },
+   "severity": "ladder",
+   "guards": [
+    "min 4 in both modes",
+    ">= 25% of placed",
+    "clears before final 5 minutes",
+    "counts are lower bounds"
+   ],
+   "slots": [
+    "count",
+    "count_within_60s",
+    "placed",
+    "destroyed_total",
+    "lower_bound_flag (always true)"
+   ],
+   "safe_claim": "At least {count} of your {placed} observers were destroyed within 90 seconds of being placed ({count_within_60s} within a minute).",
+   "forbidden_claim": [
+    "they could see you",
+    "your wards were in bad spots",
+    "you had no vision",
+    "visibility percentage"
+   ]
+  },
+  {
+   "id": "VISION_REGION_SWEEP",
+   "display_name": "Vision Region Sweep",
+   "tier": "A",
+   "family": "HIDDEN_ENEMY_ACTIVITY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none (stats-only reconstruction is the canonical method)",
+   "story_group": false,
+   "rank_class": 3,
+   "tie_order": 17,
+   "eligibility": "for each identified clear a (in clear-time order): cluster = identified clears x with region(x) = region(a) and a.t <= x.t <= a.t + 300; reject cluster if a.t < 300 OR max(x.t) >= duration - 300 OR |L(min(len(L)-1, floor(a.t/60)))| >= 10000 OR median(x.life) > 180; choose the largest surviving cluster (ties: earliest a); eligible if size >= 3",
+   "magnitude": "observers in the chosen cluster",
+   "ladder": {
+    "STANDARD": [
+     3,
+     4,
+     5
+    ],
+    "TURBO": [
+     3,
+     4,
+     5
+    ]
+   },
+   "severity": "ladder",
+   "guards": [
+    "first clear >= 5:00",
+    "last clear < end - 5 min",
+    "|lead at first clear| < 10,000",
+    "median lifetime <= 180 s",
+    "counts are lower bounds"
+   ],
+   "slots": [
+    "region",
+    "start",
+    "end",
+    "lifetimes_rounded",
+    "enemy_sentries_in_region (placed in [start - 90 s, end]; shown only if >= 1)"
+   ],
+   "safe_claim": "Between {start} and {end}, at least {n} of your observers in {region} were destroyed; they had lasted {lifetimes}. Optional: the enemy placed {sentries} Sentries there.",
+   "forbidden_claim": [
+    "map-visibility percentage",
+    "they blinded your jungle",
+    "this led to deaths",
+    "map control"
+   ]
+  },
+  {
+   "id": "ENEMY_SMOKE_VOLUME",
+   "display_name": "Enemy Smoke Volume",
+   "tier": "A",
+   "family": "HIDDEN_ENEMY_ACTIVITY",
+   "unit": "team",
+   "modes": [
+    "STANDARD"
+   ],
+   "roles": "all",
+   "history": "optional enrichment",
+   "patch_scope": "none",
+   "playback": "optional (SMOKE_TO_KILLS enrichment only)",
+   "story_group": false,
+   "rank_class": 2,
+   "tie_order": 5,
+   "eligibility": "bucket = STANDARD; enemy uses = sum of enemy itemUsed count for itemId 188; own uses likewise; enemy uses x 600 / durationSeconds >= 1.60 AND enemy uses >= 4 AND enemy uses - own uses >= 4",
+   "magnitude": "enemy uses - own uses",
+   "ladder": {
+    "STANDARD": [
+     4,
+     6,
+     8
+    ]
+   },
+   "severity": "ladder",
+   "guards": [
+    "Standard only",
+    "enemy at least 4 Smokes ahead",
+    "rate >= 1.60 per 10 min"
+   ],
+   "slots": [
+    "enemy_uses",
+    "own_uses",
+    "smoke_followed_by_kill (optional enrichment: k, n)"
+   ],
+   "enrichment": "SMOKE_TO_KILLS",
+   "history_line": {
+    "key": [
+     "bucket"
+    ],
+    "metric": "enemy Smoke uses per 10 minutes",
+    "record": "strictly highest",
+    "rarity_wording": true
+   },
+   "safe_claim": "They used Smoke {enemy_uses} times; your team used it {own_uses} times.",
+   "forbidden_claim": [
+    "successful Smokes",
+    "Smoke ganks worked",
+    "their Smokes killed you",
+    "resulted in kills"
+   ]
+  },
+  {
+   "id": "ENEMY_EARLY_RICH",
+   "display_name": "Enemy Early-Rich Hero",
+   "tier": "A",
+   "family": "HIDDEN_ENEMY_ACTIVITY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "optional enrichment",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": false,
+   "rank_class": 2,
+   "tie_order": 13,
+   "eligibility": "goal = 10,000 (STANDARD) / 15,000 (TURBO) net worth; goal minute of a player = first index t with NW(p, t) >= goal; m = earliest enemy goal minute (hero tie-break: lower position number, then lower heroId); m <= 18 (STANDARD) / 12 (TURBO); own = earliest goal minute on your team, MUST exist; gap = own - m >= 3; that enemy hero is not Alchemist; duration/60 - m >= 8",
+   "magnitude": "min(gap, 12) minutes",
+   "ladder": {
+    "STANDARD": [
+     3,
+     5,
+     7
+    ],
+    "TURBO": [
+     3,
+     4,
+     6
+    ]
+   },
+   "severity": "ladder",
+   "guards": [
+    "your team reached the goal",
+    "match lasted >= 8 more minutes",
+    "hero is not Alchemist"
+   ],
+   "slots": [
+    "hero",
+    "position",
+    "minute",
+    "your_team_minute"
+   ],
+   "history_line": {
+    "key": [
+     "bucket"
+    ],
+    "metric": "earliest enemy goal minute",
+    "record": "strictly earliest",
+    "rarity_wording": false
+   },
+   "safe_claim": "Their {hero} reached {goal} net worth at {minute}; your team's first hero got there at {your_team_minute}.",
+   "forbidden_claim": [
+    "that's why you lost",
+    "unkillable",
+    "snowballed because"
+   ]
+  },
+  {
+   "id": "ENEMY_EARLY_ITEM",
+   "display_name": "Enemy Core Early Key Item",
+   "tier": "A",
+   "family": "POWER_SPIKES_AND_ITEM_TIMINGS",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "optional enrichment",
+   "patch_scope": "enrichment line only: same major patch",
+   "playback": "none",
+   "story_group": false,
+   "rank_class": 3,
+   "tie_order": 16,
+   "items": [
+    "black_king_bar",
+    "blink",
+    "manta",
+    "bfury",
+    "radiance",
+    "desolator",
+    "maelstrom",
+    "orchid"
+   ],
+   "eligibility": "for each listed item: t = earliest first purchase among enemy P1-P3; margin = (p5 - t) / p5 with p5 = bucket core p5 for that item; eligible if margin >= 0.10 (i.e. t <= 0.90 x p5); display the largest margin (ties: item list order)",
+   "magnitude": "margin",
+   "ladder": {
+    "STANDARD": [
+     0.1,
+     0.15,
+     0.22
+    ],
+    "TURBO": [
+     0.1,
+     0.15,
+     0.22
+    ]
+   },
+   "severity": "ladder",
+   "reference_p5_seconds": {
+    "STANDARD": {
+     "black_king_bar": 1288,
+     "blink": 593,
+     "manta": 936,
+     "bfury": 721,
+     "radiance": 826,
+     "desolator": 838,
+     "maelstrom": 669,
+     "orchid": 761
+    },
+    "TURBO": {
+     "black_king_bar": 639,
+     "blink": 267,
+     "manta": 462,
+     "bfury": 348,
+     "radiance": 391,
+     "desolator": 389,
+     "maelstrom": 307,
+     "orchid": 363
+    }
+   },
+   "reference_p5_mmss": {
+    "STANDARD": {
+     "black_king_bar": "21:28",
+     "blink": "9:53",
+     "manta": "15:36",
+     "bfury": "12:01",
+     "radiance": "13:46",
+     "desolator": "13:58",
+     "maelstrom": "11:09",
+     "orchid": "12:41"
+    },
+    "TURBO": {
+     "black_king_bar": "10:39",
+     "blink": "4:27",
+     "manta": "7:42",
+     "bfury": "5:48",
+     "radiance": "6:31",
+     "desolator": "6:29",
+     "maelstrom": "5:07",
+     "orchid": "6:03"
+    }
+   },
+   "typical_core_time_seconds": {
+    "STANDARD": {
+     "black_king_bar": 1718,
+     "blink": 879,
+     "manta": 1372,
+     "bfury": 945,
+     "radiance": 1079,
+     "desolator": 1280,
+     "maelstrom": 915,
+     "orchid": 1330
+    },
+    "TURBO": {
+     "black_king_bar": 930,
+     "blink": 450,
+     "manta": 689,
+     "bfury": 498,
+     "radiance": 558,
+     "desolator": 632,
+     "maelstrom": 470,
+     "orchid": 662
+    }
+   },
+   "typical_core_time_mmss": {
+    "STANDARD": {
+     "black_king_bar": "28:38",
+     "blink": "14:39",
+     "manta": "22:52",
+     "bfury": "15:45",
+     "radiance": "17:59",
+     "desolator": "21:20",
+     "maelstrom": "15:15",
+     "orchid": "22:10"
+    },
+    "TURBO": {
+     "black_king_bar": "15:30",
+     "blink": "7:30",
+     "manta": "11:29",
+     "bfury": "8:18",
+     "radiance": "9:18",
+     "desolator": "10:32",
+     "maelstrom": "7:50",
+     "orchid": "11:02"
+    }
+   },
+   "guards": [
+    "curated 8-item list (no Midas, no Aghanim's)",
+    "margin >= 10% earlier than p5",
+    "typical core time REQUIRED in copy",
+    "'bought' wording only"
+   ],
+   "slots": [
+    "hero",
+    "position",
+    "item",
+    "time",
+    "typical_core_time (REQUIRED in copy)"
+   ],
+   "history_line": {
+    "key": [
+     "bucket",
+     "item",
+     "major_patch"
+    ],
+    "metric": "earliest enemy P1-P3 first purchase of the displayed item",
+    "record": "earlier than window minimum by >= 60 s (STANDARD) / 30 s (TURBO)",
+    "rarity_wording": true
+   },
+   "safe_claim": "Their {hero} bought {item} at {time}, about {delta} earlier than a typical core {item}.",
+   "forbidden_claim": [
+    "finished",
+    "completed",
+    "rushed to counter you",
+    "counter-built",
+    "any intent"
+   ]
+  },
+  {
+   "id": "CLOSE_MOST_OF_GAME",
+   "display_name": "Close Most of Game",
+   "tier": "B",
+   "family": "MATCH_LEAD_STORY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": true,
+   "story_priority": 3,
+   "rank_class": 2,
+   "tie_order": 10,
+   "eligibility": "Tier B classifier label = CT AND close_share >= 0.75 AND window length n >= 20 (STANDARD) / 16 (TURBO) AND shape_confidence >= 0.7",
+   "severity": "STRONG if close_share >= 0.90 AND latest_close_minute >= window_end - 2 AND n >= 30 (STANDARD) / 20 (TURBO): level = 1 + (close_share - 0.9) x 5; else NOTABLE: level = (close_share - 0.75) / 0.15 x 0.99; no EXTREME",
+   "guards": [
+    "close share >= 0.75",
+    "window length",
+    "confidence >= 0.7",
+    "wording 'most of', never 'throughout'"
+   ],
+   "slots": [
+    "window_start",
+    "window_end",
+    "close_share",
+    "max_3min_gap",
+    "latest_close_minute"
+   ],
+   "safe_claim": "The net-worth gap stayed within {max_3min_gap} for most of {window_start}-{window_end}. Allowed: still close at {latest_close_minute}.",
+   "forbidden_claim": [
+    "even throughout",
+    "anyone's game",
+    "you should have won"
+   ]
+  },
+  {
+   "id": "EVEN_THEN_SEPARATED",
+   "display_name": "Even Then Separated",
+   "tier": "B",
+   "family": "MATCH_LEAD_STORY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": true,
+   "story_priority": 4,
+   "rank_class": 2,
+   "tie_order": 3,
+   "eligibility": "Tier B classifier label = ETS_FOR or ETS_AGAINST AND the separating side won the match AND pre_max <= 7,500 where pre_max = max |L(t)| for t in [S, max(S, sep - 3)] AND n >= 18 (STANDARD) / 20 (TURBO) AND shape_confidence >= 0.7",
+   "severity": "STRONG (level 1.0) if sep >= 30 (STANDARD) / 20 (TURBO) AND pre_max <= 5,000; else NOTABLE (level 0.5); no EXTREME",
+   "guards": [
+    "pre-separation gap <= 7,500",
+    "window length",
+    "separating side = winner",
+    "confidence >= 0.7"
+   ],
+   "slots": [
+    "side",
+    "even_until (max(S, sep - 3))",
+    "max_gap_before (pre_max)",
+    "separation_minute",
+    "lead_at_separation",
+    "lead_at_window_end"
+   ],
+   "safe_claim": "Until {even_until} the gap never exceeded {max_gap_before}; from {separation_minute} {side} held a sustained lead.",
+   "forbidden_claim": [
+    "this fight decided the game",
+    "this item decided the game"
+   ]
+  },
+  {
+   "id": "LEAD_ERODED",
+   "display_name": "Lead Eroded",
+   "tier": "B",
+   "family": "MATCH_LEAD_STORY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": true,
+   "story_priority": 6,
+   "rank_class": 2,
+   "tie_order": 7,
+   "eligibility": "Tier B classifier label = LE AND gold_peak >= floor (5,000 STANDARD / 10,000 TURBO) AND peak_minute >= S + 6 AND -floor <= L(E) <= max(0.5 x floor, 0.25 x gold_peak) AND min over t in [peak_minute, E] of L(t) >= -2 x floor AND shape_confidence >= 0.7",
+   "severity": "gold_erosion = (gold_peak - gold_late) / gold_peak (gold_late from the classifier); EXTREME (level 2.0) if gold_peak >= 15,000 / 22,000 AND gold_erosion >= 0.90; STRONG if gold_peak >= 10,000 / 15,000 AND gold_erosion >= 0.75: level = 1 + min(0.99, (gold_erosion - 0.75) x 4); else NOTABLE: level = min(0.99, (gold_erosion - 0.5) x 2)",
+   "guards": [
+    "gold floor",
+    "peak >= 6 min after window start",
+    "end value on original side or within the floor",
+    "no interim opposite lead beyond 2 x floor",
+    "confidence >= 0.7"
+   ],
+   "slots": [
+    "peak",
+    "peak_minute",
+    "value_at_window_end (actual L(E), never a median)",
+    "window_end_minute",
+    "result"
+   ],
+   "safe_claim": "Your {peak} lead at {peak_minute} was down to {value_at_window_end} by {window_end_minute}. Result stated.",
+   "forbidden_claim": [
+    "you threw your lead",
+    "percentages without gold values"
+   ]
+  },
+  {
+   "id": "DEFICIT_RECOVERED",
+   "display_name": "Deficit Recovered",
+   "tier": "B",
+   "family": "MATCH_LEAD_STORY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": true,
+   "story_priority": 7,
+   "rank_class": 2,
+   "tie_order": 12,
+   "eligibility": "exact mirror of LEAD_ERODED with label = DR and every L replaced by -L",
+   "severity": "mirror of LEAD_ERODED",
+   "guards": [
+    "mirror of LEAD_ERODED guards",
+    "result stated in copy"
+   ],
+   "slots": [
+    "enemy_peak",
+    "peak_minute",
+    "enemy_value_at_window_end (actual)",
+    "window_end_minute",
+    "result"
+   ],
+   "safe_claim": "You cut the enemy's {enemy_peak} lead to {enemy_value_at_window_end} by {window_end_minute}; {winner} won.",
+   "forbidden_claim": [
+    "comeback (in a loss; in a win COMEBACK_WIN or another story card is shown)",
+    "you recovered (when still >= floor behind)"
+   ]
+  },
+  {
+   "id": "LATE_REVERSAL",
+   "display_name": "Late Reversal",
+   "tier": "B",
+   "family": "MATCH_LEAD_STORY",
+   "unit": "team",
+   "modes": [
+    "STANDARD",
+    "TURBO"
+   ],
+   "roles": "all",
+   "history": "none",
+   "patch_scope": "none",
+   "playback": "none",
+   "story_group": true,
+   "story_priority": 8,
+   "rank_class": 2,
+   "tie_order": 15,
+   "eligibility": "team won AND Tier B classifier label is not SHORT_WINDOW or UNCLEAR AND the last sustained Tier B run (on smoothed R) belongs to the enemy AND its end minute >= S + 0.75 x n - 1 AND peak = max over the run's minutes of -L(t) >= floor (5,000 STANDARD / 8,000 TURBO) AND shape_confidence >= 0.7",
+   "severity": "STRONG (level 1.0) if peak >= 10,000 (STANDARD) / 15,000 (TURBO); else NOTABLE (level 0.5); no EXTREME",
+   "guards": [
+    "winner only",
+    "run ends in the last 25% of the window",
+    "gold floor",
+    "confidence >= 0.7"
+   ],
+   "slots": [
+    "run_start",
+    "run_end",
+    "max_enemy_lead",
+    "lead_at_window_end",
+    "win_time"
+   ],
+   "safe_claim": "The enemy led by up to {max_enemy_lead} until {run_end}; you won at {win_time}.",
+   "forbidden_claim": [
+    "you always had it"
+   ]
+  }
+ ],
+ "enrichments": [
+  {
+   "id": "SMOKE_TO_KILLS",
+   "display_name": "Smoke -> Kills",
+   "tier": "A",
+   "family": "HIDDEN_ENEMY_ACTIVITY",
+   "kind": "enrichment",
+   "status": "LOCKED",
+   "attaches_to": "ENEMY_SMOKE_VOLUME",
+   "modes": [
+    "STANDARD"
+   ],
+   "playback": "required (frozen source checkpoint)",
+   "playback_usable": [
+    "match playback is non-null",
+    "sum of itemUsedEvents over all ten players > 0",
+    "count of enemy itemUsedEvents with itemId 188 == enemy stats itemUsed count for itemId 188"
+   ],
+   "rule": [
+    "n = enemy Smoke activations t1 < t2 < ... < tn (playback itemUsedEvents, itemId 188); n >= 3",
+    "window(i) = (t_i, min(t_i + 60, t_{i+1})]; the last window is (t_n, t_n + 60]",
+    "kill = a death of a hero on your team (deathEvents on your players) whose attacker heroId belongs to the enemy team",
+    "k = number of windows containing >= 1 kill",
+    "f = number of windows containing >= 1 kill whose joined killEvents row (enemy killer, same target + time) has isSmoke == true",
+    "fire when k >= 3 AND k >= 0.70 x n AND f >= 2"
+   ],
+   "displays": [
+    "k",
+    "n"
+   ],
+   "changes_band": false,
+   "changes_rank": false,
+   "non_rules": [
+    "no minimum delay",
+    "no phase- or mode-specific window",
+    "unit is Smokes, never kills",
+    "isSmoke never appears in displayed numbers"
+   ],
+   "safe_claim": "{k} of their {n} Smokes were followed by a kill within a minute.",
+   "forbidden_claim": [
+    "{k} successful Smokes",
+    "{k} Smokes resulted in / led to kills",
+    "their Smokes caused {k} kills",
+    "they ganked you {k} times",
+    "hero-specific victim claims",
+    "party membership",
+    "comparison to normal rates",
+    "any window other than 60 s"
+   ],
+   "evidence": "SMOKE-TO-KILLS-VALIDATION.md section 8; fresh replication 62 followed windows vs 38.2 expected (x1.6), suppressed units at chance"
+  },
+  {
+   "id": "STRUCTURE_CONTRADICTION",
+   "display_name": "Structure contradiction",
+   "tier": "B",
+   "family": "MATCH_LEAD_STORY",
+   "kind": "enrichment",
+   "status": "LOCKED",
+   "attaches_to": [
+    "CLOSE_MOST_OF_GAME",
+    "EVEN_THEN_SEPARATED",
+    "LEAD_ERODED",
+    "DEFICIT_RECOVERED",
+    "LATE_REVERSAL"
+   ],
+   "rule": [
+    "NO_STRUCTURE_CONVERSION: a sustained Tier B run of >= 8 (STANDARD) / 5 (TURBO) minutes whose leader has net 0 towers/barracks over [run start, run end + 1 min)",
+    "STRUCTURE_COUNTERTREND: over all of one side's sustained-run minutes, that side's net towers/barracks <= -2"
+   ],
+   "changes_band": false,
+   "changes_rank": false,
+   "never_a_card": true,
+   "safe_claim": "The enemy led for {minutes} minutes ({start}-{end}) with no net tower/barracks change.",
+   "forbidden_claim": [
+    "they failed to close",
+    "wasted their lead"
+   ]
+  }
+ ],
+ "removed": {
+  "LANE_DRAMATIC (Dramatic Lane Lead Path / Reversal)": "REMOVED - owner-confirmed 2026-09-17; 0 genuine early reversals in 5,202 core lanes; fires were blowouts (0 GOOD, 83% BORING)",
+  "ENEMY_SMOKE_VOLUME in TURBO": "REMOVED - owner-confirmed 2026-09-17; 0 GOOD in 24",
+  "OWN_ITEM_VS_HISTORY slowest direction": "REMOVED - 12 of 14 BORING",
+  "supports in OWN_LANE_VS_USUAL / OPP_START_VS_HISTORY": "REMOVED - 0 GOOD in 8 / 2 GOOD in 11",
+  "Hand of Midas and Aghanim's Scepter in ENEMY_EARLY_ITEM": "REMOVED - farm / gift / hero-specific semantics",
+  "old Smoke->Kills >=50% rule": "REMOVED - fired at chance (60% of fires reproduced by ordinary moments)",
+  "ENEMY_STACKING in TURBO": "REMOVED (earlier owner decision)",
+  "earlier owner removals": [
+   "Support Lane Pair",
+   "CS-vs-Gold Split",
+   "Level-6 Race",
+   "Ordinary Lane Lead Path",
+   "Generic Swing Window",
+   "Structures Lost While You Were Dead",
+   "Raw vision-cleared count",
+   "Enemy Barely Warded",
+   "Enemy Boss Control",
+   "Unused Active Item",
+   "Activation-rate extremes",
+   "Lane Item Race",
+   "Spike cluster variants",
+   "Tier B STEADY_EDGE, ONE_SIDED, LEAD_SWAPPED, UNCLEAR as cards"
+  ]
+ },
+ "coverage": {
+  "status": "ACCEPTED by owner 2026-09-17",
+  "no_card_share": {
+   "tuning_corpus_no_history_with_vision": 0.574,
+   "established_accounts_with_history_no_vision": 0.611,
+   "expected_range": "0.57-0.61"
+  },
+  "by_segment_tuning": {
+   "STANDARD": 0.489,
+   "TURBO": 0.673,
+   "win": 0.618,
+   "loss": 0.53
+  },
+  "by_segment_established": {
+   "STANDARD": 0.506,
+   "TURBO": 0.717,
+   "win": 0.656,
+   "loss": 0.565,
+   "support": 0.658
+  },
+  "multi_card_share": {
+   ">=2": "0.07-0.09",
+   ">=3": "0.01-0.02"
+  },
+  "superseded_assumption": "13-17% no insight (measured on the larger pre-removal pool)",
+  "policy": "not an engine failure; thresholds and guards MUST NOT be loosened for coverage"
+ },
+ "semantics": {
+  "allowed_connectors": [
+   "was",
+   "reached",
+   "bought",
+   "used",
+   "destroyed",
+   "followed by",
+   "within",
+   "after",
+   "before",
+   "while",
+   "during",
+   "across your last N"
+  ],
+  "prohibited": [
+   "because",
+   "caused",
+   "cost you",
+   "resulted in",
+   "led to",
+   "won them the game",
+   "punished",
+   "outplayed",
+   "should have",
+   "successful (causal)",
+   "counter-built",
+   "they saw you",
+   "you had no vision",
+   "map control",
+   "visibility percentage",
+   "throw / threw",
+   "ever",
+   "all-time",
+   "personal record"
+  ]
+ }
+}

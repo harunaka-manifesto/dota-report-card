@@ -1,0 +1,711 @@
+{
+ "_rubric": "GOOD=player likely cares, non-obvious or quantifies something only vaguely felt, accurate; ACCEPTABLE=true and somewhat interesting but partly known/low magnitude; BORING=true but obvious/so-what/restates result; MISLEADING=wording or fact leads to wrong understanding (outcome contradiction, role-norm, end-push artifact, fake comeback/erosion, overclaim). Rater: research model, single rater, round 1 on audit split (pre-guard definitions).",
+ "LANE_DRAMATIC": {
+  "G": [],
+  "A": [
+   6,
+   20,
+   22,
+   25
+  ],
+  "B": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   21,
+   23,
+   24,
+   26,
+   27,
+   28,
+   29
+  ],
+  "M": [
+   19
+  ],
+  "notes": "BLOWOUT dominates (480/540 fires). Separated/reversal full census 40 viewpoints: G0 A16 B23 M1 (LD27 offlaner -1.0k vs carry framed as lost lead). Path-based reversal with meaningful early lead (>=p75) then opposite >=p50: 0/2812 Std, 0/2390 Turbo core lanes."
+ },
+ "COMEBACK_WIN": {
+  "G": [
+   0,
+   1,
+   2,
+   3,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   12,
+   14,
+   15,
+   16,
+   17,
+   20,
+   21,
+   22,
+   24,
+   26,
+   27,
+   28,
+   29
+  ],
+  "A": [
+   4,
+   13,
+   18,
+   19,
+   23,
+   25
+  ],
+  "B": [],
+  "M": [
+   11
+  ],
+  "notes": "#11 deficit existed only in final minutes of a game the team led (+10k at 30). Won-while-still-behind cases need 'won despite trailing' wording."
+ },
+ "LOST_FROM_AHEAD": {
+  "G": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   9,
+   10,
+   11,
+   14,
+   15,
+   16,
+   17,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24,
+   25,
+   28
+  ],
+  "A": [
+   0,
+   8,
+   12,
+   13,
+   18,
+   26,
+   27,
+   29
+  ],
+  "B": [],
+  "M": [],
+  "notes": "Some losses while still ahead at end (base race); wording must not say 'the game turned' or 'threw'."
+ },
+ "LEAD_FLIP": {
+  "G": [
+   0,
+   2,
+   3,
+   5,
+   7,
+   11,
+   14,
+   15,
+   17,
+   18,
+   19,
+   22,
+   23,
+   24,
+   26,
+   27
+  ],
+  "A": [
+   1,
+   4,
+   6,
+   8,
+   9,
+   10,
+   12,
+   13,
+   21,
+   25,
+   28
+  ],
+  "B": [
+   29
+  ],
+  "M": [
+   16,
+   20
+  ],
+  "notes": "M: small flip selected while later opposite run decided game (pick latest qualifying flip). A/B: new run is final-push minutes (compute on curve truncated at end-3)."
+ },
+ "LEAD_ERODED": {
+  "G": [
+   2,
+   5,
+   19,
+   29
+  ],
+  "A": [
+   1,
+   6,
+   11,
+   12,
+   13,
+   15,
+   18,
+   20,
+   22,
+   24
+  ],
+  "B": [
+   7,
+   23,
+   27
+  ],
+  "M": [
+   0,
+   3,
+   4,
+   8,
+   9,
+   10,
+   14,
+   16,
+   17,
+   21,
+   25,
+   26,
+   28
+  ],
+  "notes": "43% misleading: relative bands let real gold flips (enemy +8..+21k late) pass as 'eroded'. Guard: -floor <= s*lead(E) <= max(floor, 0.25*peak)."
+ },
+ "DEFICIT_RECOVERED": {
+  "G": [
+   3,
+   6,
+   13,
+   17,
+   21,
+   23
+  ],
+  "A": [
+   0,
+   1,
+   2,
+   5,
+   8,
+   9,
+   10,
+   11,
+   12,
+   14,
+   15,
+   16,
+   18,
+   19,
+   20,
+   22,
+   24,
+   25,
+   27,
+   28,
+   29
+  ],
+  "B": [
+   4,
+   7,
+   26
+  ],
+  "M": [],
+  "notes": "Render actual minute values not 3-min medians (#22 said 7.6k where minute value was 13.0k). Same end-state guard as LEAD_ERODED."
+ },
+ "CLOSE_MOST_OF_GAME": {
+  "G": [
+   0,
+   4,
+   5,
+   8,
+   9,
+   10,
+   11,
+   13,
+   16,
+   24,
+   25,
+   28,
+   29
+  ],
+  "A": [
+   1,
+   2,
+   6,
+   12,
+   17,
+   20,
+   23,
+   26,
+   27
+  ],
+  "B": [
+   7,
+   14,
+   15,
+   18,
+   22
+  ],
+  "M": [
+   3,
+   19,
+   21
+  ],
+  "notes": "BORING = short Turbo windows (<=15m) / close share <80%; MISLEADING = close share 62-72% with persistent one-side lead."
+ },
+ "EVEN_THEN_SEPARATED": {
+  "G": [
+   0,
+   8,
+   10,
+   17,
+   21,
+   24
+  ],
+  "A": [
+   1,
+   7,
+   9,
+   11,
+   13,
+   14,
+   18
+  ],
+  "B": [
+   2,
+   3,
+   6,
+   15,
+   19,
+   22,
+   23,
+   26,
+   27
+  ],
+  "M": [
+   4,
+   5,
+   12,
+   16,
+   20,
+   25,
+   28,
+   29
+  ],
+  "notes": "MISL: 'even' period had 8.5-15.8k gaps (late relative bands). BORING: Turbo games <28m (even=laning, then stomp)."
+ },
+ "LATE_REVERSAL": {
+  "G": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   6,
+   8,
+   9,
+   10,
+   13,
+   14
+  ],
+  "A": [
+   5,
+   7,
+   11,
+   12,
+   15
+  ],
+  "B": [],
+  "M": [],
+  "notes": "Almost always co-fires with COMEBACK_WIN (same story)."
+ },
+ "ENEMY_STACKING": {
+  "G": [
+   4,
+   6,
+   8,
+   9,
+   10,
+   14,
+   18,
+   21,
+   23,
+   26,
+   27,
+   29
+  ],
+  "A": [
+   0,
+   1,
+   2,
+   3,
+   5,
+   11,
+   12,
+   13,
+   15,
+   16,
+   20,
+   22,
+   24,
+   25,
+   28
+  ],
+  "B": [
+   7,
+   17,
+   19
+  ],
+  "M": [],
+  "notes": "Team-vs-team count; safe if factual (no blame)."
+ },
+ "ENEMY_SMOKE_VOLUME": {
+  "G": [
+   0,
+   4,
+   12,
+   16,
+   28,
+   29
+  ],
+  "A": [
+   5,
+   7,
+   11,
+   13,
+   14,
+   15,
+   17,
+   18,
+   21,
+   22,
+   24,
+   25,
+   26
+  ],
+  "B": [
+   1,
+   2,
+   3,
+   6,
+   8,
+   9,
+   10,
+   19,
+   20,
+   23,
+   27
+  ],
+  "M": [],
+  "notes": "BORING when asymmetry small (Std diff<=3) or Turbo 4 vs 2. Guard: diff >=4 Std / >=3 Turbo."
+ },
+ "VISION_QUICK_CLEARS": {
+  "G": [
+   2,
+   4,
+   7,
+   8,
+   12,
+   15,
+   16,
+   17,
+   20,
+   21,
+   25,
+   28
+  ],
+  "A": [
+   0,
+   1,
+   5,
+   9,
+   10,
+   11,
+   13,
+   14,
+   18,
+   22,
+   24,
+   26,
+   27,
+   29
+  ],
+  "B": [
+   3,
+   6,
+   19,
+   23
+  ],
+  "M": [],
+  "notes": "BORING = Turbo count 3 in short stomps. Guard candidate Turbo >=4."
+ },
+ "VISION_REGION_SWEEP": {
+  "G": [
+   1,
+   2,
+   3,
+   7,
+   9,
+   21,
+   23
+  ],
+  "A": [
+   0,
+   5,
+   10,
+   11,
+   12,
+   13,
+   16,
+   18,
+   22,
+   26,
+   27,
+   28
+  ],
+  "B": [
+   4,
+   6,
+   8,
+   14,
+   15,
+   17,
+   19,
+   20,
+   24,
+   25,
+   29
+  ],
+  "M": [],
+  "notes": "BORING = swept wards near natural expiry (median life >180s) or team already >=10k ahead. Guards: median life <=180s; lead at start in (-10k, +10k)."
+ },
+ "ENEMY_EARLY_ITEM": {
+  "G": [],
+  "A": [
+   0,
+   4,
+   5,
+   9,
+   10,
+   11,
+   17,
+   23,
+   24
+  ],
+  "B": [
+   1,
+   2,
+   3,
+   7,
+   8,
+   12,
+   13,
+   14,
+   15,
+   16,
+   18,
+   19,
+   20,
+   21,
+   22,
+   25,
+   26,
+   27,
+   28,
+   29
+  ],
+  "M": [
+   6
+  ],
+  "notes": "Pooled-hero p5 flags hero-typical rushes (Invoker/CK Midas, ES blink, Alch/Spectre Radiance, Io/Ogre Aghs). 0-2% margins read as 'normal'. #6 Alchemist Aghanim's may be gifted."
+ },
+ "ENEMY_EARLY_RICH": {
+  "G": [
+   2,
+   4,
+   8,
+   10,
+   12,
+   16,
+   20,
+   24,
+   28
+  ],
+  "A": [
+   0,
+   1,
+   3,
+   5,
+   7,
+   9,
+   11,
+   13,
+   14,
+   15,
+   18,
+   21,
+   22,
+   23,
+   25,
+   26,
+   27,
+   29
+  ],
+  "B": [
+   6,
+   17,
+   19
+  ],
+  "M": [],
+  "notes": "Useful snowball context. BORING: Alchemist (natural farm profile) and 'your team never reached it' in <=15m stomps."
+ },
+ "OWN_LANE_VS_USUAL": {
+  "G": [
+   1,
+   2,
+   3,
+   4,
+   8,
+   10,
+   12,
+   15,
+   17,
+   18,
+   20,
+   21,
+   22,
+   23,
+   28
+  ],
+  "A": [
+   0,
+   5,
+   6,
+   7,
+   9,
+   11,
+   13,
+   16,
+   19,
+   24,
+   25,
+   26,
+   27,
+   29
+  ],
+  "B": [
+   14
+  ],
+  "M": [],
+  "notes": "Contract v1 (bucket+role, last<=50, N>=20, strict best/worst). Supports all ACC (support NW diff is a weaker lane read). Near-tie records (margin <100) read silly."
+ },
+ "OWN_ITEM_VS_HISTORY": {
+  "G": [
+   0,
+   4,
+   5,
+   8,
+   21,
+   25,
+   28
+  ],
+  "A": [
+   1,
+   9,
+   12,
+   13,
+   17,
+   18,
+   24,
+   26
+  ],
+  "B": [
+   2,
+   3,
+   6,
+   7,
+   10,
+   11,
+   14,
+   15,
+   16,
+   19,
+   20,
+   22,
+   23,
+   27,
+   29
+  ],
+  "M": [],
+  "notes": "Slowest records: 12/14 BORING (late situational buys in long games, off-role heroes). Fastest with margin <60s Std/<30s Turbo: BORING/ACC."
+ },
+ "OPP_START_VS_HISTORY": {
+  "G": [
+   1,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   16,
+   18,
+   22,
+   27,
+   28,
+   29
+  ],
+  "A": [
+   0,
+   2,
+   3,
+   4,
+   14,
+   15,
+   17,
+   19,
+   20,
+   24,
+   25
+  ],
+  "B": [
+   21,
+   23,
+   26
+  ],
+  "M": [],
+  "notes": "Support counterpart NW records mostly ACC/BORING; farming heroes (KotL, NP, Alch, Tinker) inflate CS but claim stays true."
+ }
+}

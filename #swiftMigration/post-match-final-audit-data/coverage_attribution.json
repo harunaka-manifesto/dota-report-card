@@ -1,0 +1,83 @@
+{
+ "steps": [
+  [
+   "v1 locked pool, pre-audit definitions (incl. LANE_DRAMATIC blowouts)",
+   69.0
+  ],
+  [
+   "apply v3 definition/guard to LANE_DRAMATIC",
+   67.1
+  ],
+  [
+   "apply v3 definition/guard to ENEMY_EARLY_ITEM",
+   62.3
+  ],
+  [
+   "apply v3 definition/guard to EVEN_THEN_SEPARATED",
+   56.9
+  ],
+  [
+   "apply v3 definition/guard to CLOSE_MOST_OF_GAME",
+   53.2
+  ],
+  [
+   "apply v3 definition/guard to ENEMY_SMOKE_VOLUME",
+   49.9
+  ],
+  [
+   "apply v3 definition/guard to LEAD_ERODED",
+   48.6
+  ],
+  [
+   "apply v3 definition/guard to DEFICIT_RECOVERED",
+   47.6
+  ],
+  [
+   "apply v3 definition/guard to VISION_REGION_SWEEP",
+   46.3
+  ],
+  [
+   "apply v3 definition/guard to VISION_QUICK_CLEARS",
+   45.2
+  ],
+  [
+   "apply v3 definition/guard to ENEMY_EARLY_RICH",
+   44.0
+  ],
+  [
+   "apply v3 definition/guard to LEAD_FLIP",
+   42.6
+  ],
+  [
+   "apply v3 definition/guard to COMEBACK_WIN",
+   42.6
+  ],
+  [
+   "apply v3 definition/guard to LOST_FROM_AHEAD",
+   42.6
+  ],
+  [
+   "apply v3 definition/guard to LATE_REVERSAL",
+   42.6
+  ],
+  [
+   "apply v3 definition/guard to ENEMY_STACKING",
+   42.6
+  ]
+ ],
+ "v3_sole_share": {
+  "CLOSE_MOST_OF_GAME": 5.53,
+  "EVEN_THEN_SEPARATED": 4.21,
+  "ENEMY_EARLY_RICH": 3.97,
+  "ENEMY_EARLY_ITEM": 3.23,
+  "ENEMY_STACKING": 2.25,
+  "LEAD_FLIP": 2.02,
+  "LOST_FROM_AHEAD": 1.96,
+  "VISION_REGION_SWEEP": 1.73,
+  "VISION_QUICK_CLEARS": 1.32,
+  "COMEBACK_WIN": 1.21,
+  "LEAD_ERODED": 0.98,
+  "DEFICIT_RECOVERED": 0.63,
+  "ENEMY_SMOKE_VOLUME": 0.46
+ }
+}

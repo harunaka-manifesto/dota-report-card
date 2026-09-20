@@ -1,0 +1,185 @@
+{
+ "corpus886": {
+  "all": {
+   ">=1": 42.6,
+   ">=2": 8.8,
+   ">=3": 1.9,
+   "none": 57.4,
+   "n": 8680
+  },
+  "STANDARD": {
+   ">=1": 51.1,
+   ">=2": 12.3,
+   ">=3": 2.7,
+   "none": 48.9,
+   "n": 4690
+  },
+  "win": {
+   ">=1": 38.2,
+   ">=2": 7.8,
+   ">=3": 1.6,
+   "none": 61.8,
+   "n": 4340
+  },
+  "support": {
+   ">=1": 42.6,
+   ">=2": 8.8,
+   ">=3": 1.9,
+   "none": 57.4,
+   "n": 3472
+  },
+  "mid": {
+   ">=1": 42.6,
+   ">=2": 8.8,
+   ">=3": 1.9,
+   "none": 57.4,
+   "n": 1736
+  },
+  "carry": {
+   ">=1": 42.6,
+   ">=2": 8.8,
+   ">=3": 1.9,
+   "none": 57.4,
+   "n": 1736
+  },
+  "offlane": {
+   ">=1": 42.6,
+   ">=2": 8.8,
+   ">=3": 1.9,
+   "none": 57.4,
+   "n": 1736
+  },
+  "loss": {
+   ">=1": 47.0,
+   ">=2": 9.7,
+   ">=3": 2.2,
+   "none": 53.0,
+   "n": 4340
+  },
+  "TURBO": {
+   ">=1": 32.7,
+   ">=2": 4.6,
+   ">=3": 1.0,
+   "none": 67.3,
+   "n": 3990
+  }
+ },
+ "lean": {
+  "all": {
+   ">=1": 38.9,
+   ">=2": 7.4,
+   ">=3": 1.0,
+   "none": 61.1,
+   "n": 9581
+  },
+  "TURBO": {
+   ">=1": 28.3,
+   ">=2": 4.2,
+   ">=3": 0.5,
+   "none": 71.7,
+   "n": 4732
+  },
+  "win": {
+   ">=1": 34.4,
+   ">=2": 6.4,
+   ">=3": 0.9,
+   "none": 65.6,
+   "n": 4816
+  },
+  "offlane": {
+   ">=1": 41.4,
+   ">=2": 8.1,
+   ">=3": 1.1,
+   "none": 58.6,
+   "n": 1711
+  },
+  "carry": {
+   ">=1": 40.0,
+   ">=2": 8.0,
+   ">=3": 0.9,
+   "none": 60.0,
+   "n": 2642
+  },
+  "loss": {
+   ">=1": 43.5,
+   ">=2": 8.4,
+   ">=3": 1.0,
+   "none": 56.5,
+   "n": 4765
+  },
+  "mid": {
+   ">=1": 41.8,
+   ">=2": 8.7,
+   ">=3": 1.4,
+   "none": 58.2,
+   "n": 2321
+  },
+  "support": {
+   ">=1": 34.2,
+   ">=2": 5.4,
+   ">=3": 0.6,
+   "none": 65.8,
+   "n": 2907
+  },
+  "STANDARD": {
+   ">=1": 49.4,
+   ">=2": 10.5,
+   ">=3": 1.4,
+   "none": 50.6,
+   "n": 4849
+  }
+ },
+ "shown886": {
+  "COMEBACK_WIN": 430,
+  "LOST_FROM_AHEAD": 430,
+  "ENEMY_EARLY_RICH": 625,
+  "ENEMY_EARLY_ITEM": 500,
+  "ENEMY_STACKING": 405,
+  "CLOSE_MOST_OF_GAME": 660,
+  "VISION_QUICK_CLEARS": 270,
+  "ENEMY_SMOKE_VOLUME": 115,
+  "LEAD_FLIP": 230,
+  "VISION_REGION_SWEEP": 340,
+  "EVEN_THEN_SEPARATED": 440,
+  "LEAD_ERODED": 90,
+  "DEFICIT_RECOVERED": 90
+ },
+ "shownLean": {
+  "OWN_LANE_VS_USUAL": 179,
+  "ENEMY_EARLY_RICH": 706,
+  "ENEMY_EARLY_ITEM": 569,
+  "EVEN_THEN_SEPARATED": 484,
+  "DEFICIT_RECOVERED": 82,
+  "COMEBACK_WIN": 396,
+  "OPP_START_VS_HISTORY": 146,
+  "OWN_ITEM_VS_HISTORY": 79,
+  "LEAD_FLIP": 217,
+  "CLOSE_MOST_OF_GAME": 605,
+  "LOST_FROM_AHEAD": 397,
+  "LEAD_ERODED": 94,
+  "ENEMY_STACKING": 413,
+  "ENEMY_SMOKE_VOLUME": 162,
+  "LATE_REVERSAL": 2
+ },
+ "suppressions": {
+  "COMEBACK_WIN|LATE_REVERSAL": 219,
+  "COMEBACK_WIN|CLOSE_MOST_OF_GAME": 26,
+  "LOST_FROM_AHEAD|CLOSE_MOST_OF_GAME": 22,
+  "LOST_FROM_AHEAD|LEAD_FLIP": 280,
+  "COMEBACK_WIN|LEAD_FLIP": 274,
+  "LOST_FROM_AHEAD|DEFICIT_RECOVERED": 6,
+  "COMEBACK_WIN|LEAD_ERODED": 6,
+  "LOST_FROM_AHEAD|LEAD_ERODED": 107,
+  "COMEBACK_WIN|DEFICIT_RECOVERED": 117,
+  "LEAD_FLIP|DEFICIT_RECOVERED": 9,
+  "LEAD_FLIP|LEAD_ERODED": 11,
+  "CLOSE_MOST_OF_GAME|LEAD_FLIP": 56
+ },
+ "shape_lead_cooccurrence": {
+  "CLOSE_MOST_OF_GAME|COMEBACK_WIN": 26,
+  "CLOSE_MOST_OF_GAME|CLOSE_MOST_OF_GAME": 1313,
+  "CLOSE_MOST_OF_GAME|LOST_FROM_AHEAD": 22,
+  "CLOSE_MOST_OF_GAME|LEAD_FLIP": 66,
+  "EVEN_THEN_SEPARATED|EVEN_THEN_SEPARATED": 924
+ }
+}

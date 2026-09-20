@@ -1,0 +1,122 @@
+{
+ "C3: class>band>lvl": {
+  "top1": 61.7,
+  "pairwise": 69.9,
+  "kendall": 0.387,
+  "top3_set": 79.4,
+  "bad_displacement": 1,
+  "n4": 21,
+  "nodup_pairwise": 79.6,
+  "nodup_top1_n": 84
+ },
+ "C3: class-promote(EXTREME +1)>band>lvl": {
+  "top1": 60.0,
+  "pairwise": 69.6,
+  "kendall": 0.403,
+  "top3_set": 77.8,
+  "bad_displacement": 1,
+  "n4": 21,
+  "nodup_pairwise": 77.3,
+  "nodup_top1_n": 80
+ },
+ "C3: additive class+(3-band)": {
+  "top1": 61.7,
+  "pairwise": 70.8,
+  "kendall": 0.412,
+  "top3_set": 79.4,
+  "bad_displacement": 1,
+  "n4": 21,
+  "nodup_pairwise": 79.6,
+  "nodup_top1_n": 82
+ },
+ "C3: class>lvl": {
+  "top1": 62.5,
+  "pairwise": 70.2,
+  "kendall": 0.403,
+  "top3_set": 79.4,
+  "bad_displacement": 1,
+  "n4": 21,
+  "nodup_pairwise": 80.1,
+  "nodup_top1_n": 85
+ },
+ "C2: class>band>lvl": {
+  "top1": 56.7,
+  "pairwise": 66.0,
+  "kendall": 0.338,
+  "top3_set": 79.4,
+  "bad_displacement": 6,
+  "n4": 21,
+  "nodup_pairwise": 72.2,
+  "nodup_top1_n": 77
+ },
+ "C2: class-promote(EXTREME +1)>band>lvl": {
+  "top1": 56.7,
+  "pairwise": 63.3,
+  "kendall": 0.344,
+  "top3_set": 76.2,
+  "bad_displacement": 8,
+  "n4": 21,
+  "nodup_pairwise": 71.3,
+  "nodup_top1_n": 75
+ },
+ "C2: additive class+(3-band)": {
+  "top1": 57.5,
+  "pairwise": 64.5,
+  "kendall": 0.332,
+  "top3_set": 77.8,
+  "bad_displacement": 8,
+  "n4": 21,
+  "nodup_pairwise": 71.8,
+  "nodup_top1_n": 76
+ },
+ "C2: class>lvl": {
+  "top1": 56.7,
+  "pairwise": 66.0,
+  "kendall": 0.338,
+  "top3_set": 79.4,
+  "bad_displacement": 6,
+  "n4": 21,
+  "nodup_pairwise": 72.2,
+  "nodup_top1_n": 77
+ },
+ "C3s: class>band>lvl": {
+  "top1": 80.8,
+  "pairwise": 80.4,
+  "kendall": 0.596,
+  "top3_set": 81.0,
+  "bad_displacement": 1,
+  "n4": 21,
+  "nodup_pairwise": 81.9,
+  "nodup_top1_n": 88
+ },
+ "C3s: class-promote(EXTREME +1)>band>lvl": {
+  "top1": 72.5,
+  "pairwise": 74.4,
+  "kendall": 0.522,
+  "top3_set": 76.2,
+  "bad_displacement": 4,
+  "n4": 21,
+  "nodup_pairwise": 76.9,
+  "nodup_top1_n": 79
+ },
+ "C3s: additive class+(3-band)": {
+  "top1": 76.7,
+  "pairwise": 78.0,
+  "kendall": 0.568,
+  "top3_set": 77.8,
+  "bad_displacement": 4,
+  "n4": 21,
+  "nodup_pairwise": 80.1,
+  "nodup_top1_n": 83
+ },
+ "C3s: class>lvl": {
+  "top1": 81.7,
+  "pairwise": 80.7,
+  "kendall": 0.613,
+  "top3_set": 81.0,
+  "bad_displacement": 1,
+  "n4": 21,
+  "nodup_pairwise": 82.4,
+  "nodup_top1_n": 89
+ }
+}

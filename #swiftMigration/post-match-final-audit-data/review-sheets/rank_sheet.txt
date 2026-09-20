@@ -1,0 +1,572 @@
+
+[0] TUR carry(P1) Spectre WIN 33m | lead 5:+3k 10:+1k 15:-2k 20:+5k 25:+12k 30:+38k | end(33):+58k
+   a) [ENEMY_EARLY_ITEM] Clinkz (P2) bought desolator at 5:40 (typical core desolator 10:32; bucket core p5 6:29; 13% earlier than p5)
+   b) [ETS_FOR] until 24:00 the gap never exceeded 7.0k; from 27:00 your team held a sustained lead: 23.4k at 27:00, 37.6k at 30:00; result W (33m) 
+
+[1] STA mid(P2) Phoenix LOSS 80m | lead 5:+1k 10:-2k 15:-5k 20:-9k 25:-10k 30:-12k 35:-9k 40:-12k 45:-6k 50:+4k 55:+11k 60:+4k 65:+17k 70:+5k 75:+15k 80:-25k | end(80):-25k
+   a) [FLIP_FOR] enemy led up to 15.0k (10:00–46:00), then your team led up to 22.7k (47:00–68:00); result L
+   b) [LOST_FROM_AHEAD] led by 22.7k at 68:00 and lost (80m)
+
+[2] TUR support(P4) Vengeful Spirit WIN 30m | lead 5:+6k 10:+11k 15:+14k 20:+13k 25:-0k 30:-13k | end(30):-13k
+   a) [QUICK_CLEARS] 4 of your 4 observers destroyed within 90s of placement (3 within 60s); enemy destroyed 4 total
+   b) [LEAD_ERODED] your team's lead peaked 25.0k at 18:00 and was gone (-0.9k for your side) at 27:00; result W (30m); final-minute lead -12.9k 
+
+[3] STA mid(P2) Puck LOSS 46m | lead 5:+2k 10:+2k 15:+1k 20:-0k 25:-2k 30:-5k 35:-3k 40:-6k 45:-17k | end(46):-21k
+   a) [CLOSE_MOST] 10:00–43:00 close 94% of minutes; gap never held above 5.8k for 3 min; latest close 41:00 (window 34m, match 46m) 
+   b) [ENEMY_EARLY_ITEM] Templar Assassin (P2) bought black king bar at 19:05 (typical core black king bar 28:37; bucket core p5 21:28; 11% earlier than p5)
+
+[4] STA carry(P1) Drow Ranger LOSS 41m | lead 5:-1k 10:-1k 15:-3k 20:-5k 25:-2k 30:-3k 35:-3k 40:-13k | end(41):-16k
+   a) [ENEMY_EARLY_ITEM] Lion (P2) bought blink at 6:58 (typical core blink 14:39; bucket core p5 9:53; 30% earlier than p5)
+   b) [SMOKES] enemy used Smoke 8 times (1.91/10min) vs your team 1; 41m
+
+[5] STA support(P5) Vengeful Spirit LOSS 47m | lead 5:+2k 10:+4k 15:+4k 20:+9k 25:+7k 30:+3k 35:-5k 40:-5k 45:-21k | end(47):-20k
+   a) [SWEEP] 3 observers in ENEMY_HALF destroyed 19:32–21:42 (lived [110, 128, 316] s); lead at start +7.8k
+   b) [FLIP_AGAINST] your team led up to 10.2k (4:00–31:00), then enemy led up to 20.7k (33:00–44:00); result L
+
+[6] STA mid(P2) Necrophos LOSS 41m | lead 5:-1k 10:+1k 15:-1k 20:-8k 25:-6k 30:-15k 35:-29k 40:-20k | end(41):-21k
+   a) [EARLY_RICH] Keeper of the Light (P2) reached 10k NW at 18:00; your team's first at 21:00
+   b) [ENEMY_STACKING] enemy stacked 9 camps by 20:00 vs your team 1
+
+[7] STA carry(P1) Anti-Mage LOSS 34m | lead 5:-0k 10:-2k 15:+0k 20:-4k 25:-13k 30:-16k | end(34):-28k
+   a) [ENEMY_EARLY_ITEM] Magnus (P3) bought blink at 8:33 (typical core blink 14:39; bucket core p5 9:53; 13% earlier than p5)
+   b) [ETS_AGAINST] until 20:00 the gap never exceeded 4.6k; from 23:00 enemy held a sustained lead: 7.8k at 23:00, 13.9k at 31:00; result L (34m) 
+
+[8] STA support(P4) Lion WIN 40m | lead 5:-0k 10:-2k 15:-3k 20:+0k 25:-3k 30:-9k 35:-1k 40:+16k | end(40):+16k
+   a) [SMOKES] enemy used Smoke 7 times (1.71/10min) vs your team 0; 40m
+   b) [CLOSE_MOST] 10:00–37:00 close 79% of minutes; gap never held above 5.3k for 3 min; latest close 37:00 (window 28m, match 40m) 
+
+[9] STA support(P5) Shadow Shaman LOSS 49m | lead 5:-0k 10:-0k 15:+1k 20:+2k 25:-6k 30:-5k 35:-14k 40:-16k 45:-15k | end(49):-29k
+   a) [ENEMY_EARLY_ITEM] Primal Beast (P3) bought black king bar at 15:46 (typical core black king bar 28:37; bucket core p5 21:28; 27% earlier than p5)
+   b) [ENEMY_STACKING] enemy stacked 9 camps by 20:00 vs your team 3
+
+[10] STA mid(P2) Invoker LOSS 36m | lead 5:+2k 10:+3k 15:+2k 20:+5k 25:+4k 30:-2k 35:-14k | end(36):-19k
+   a) [CLOSE_MOST] 10:00–33:00 close 75% of minutes; gap never held above 4.6k for 3 min; latest close 33:00 (window 24m, match 36m) 
+   b) [ENEMY_STACKING] enemy stacked 10 camps by 20:00 vs your team 2
+
+[11] STA mid(P2) Invoker LOSS 58m | lead 5:-1k 10:-0k 15:-4k 20:+1k 25:+2k 30:-4k 35:-2k 40:+2k 45:+4k 50:-0k 55:+8k | end(58):-9k
+   a) [LOST_FROM_AHEAD] led by 13.3k at 43:00 and lost (58m)
+   b) [CLOSE_MOST] 10:00–55:00 close 89% of minutes; gap never held above 7.5k for 3 min; latest close 55:00 (window 46m, match 58m) 
+
+[12] STA support(P5) Shadow Shaman WIN 64m | lead 5:-0k 10:-4k 15:-7k 20:-6k 25:-11k 30:-1k 35:+1k 40:-9k 45:-5k 50:-4k 55:+12k 60:+14k | end(64):+19k
+   a) [COMEBACK_WIN] trailed by 13.4k at 41:00 and won (64m); last behind at 50:00
+   b) [FLIP_FOR] enemy led up to 13.4k (38:00–50:00), then your team led up to 17.7k (51:00–61:00); result W
+
+[13] STA support(P5) Lion LOSS 38m | lead 5:+0k 10:+1k 15:-4k 20:-12k 25:-15k 30:-17k 35:-33k | end(38):-41k
+   a) [ENEMY_STACKING] enemy stacked 10 camps by 20:00 vs your team 2
+   b) [ENEMY_EARLY_ITEM] Phantom Assassin (P3) bought black king bar at 18:57 (typical core black king bar 28:37; bucket core p5 21:28; 12% earlier than p5)
+
+[14] STA support(P5) Hoodwink WIN 40m | lead 5:+2k 10:+2k 15:+5k 20:+4k 25:+6k 30:+6k 35:+13k 40:+25k | end(40):+25k
+   a) [ENEMY_STACKING] enemy stacked 11 camps by 20:00 vs your team 5
+   b) [SMOKES] enemy used Smoke 7 times (1.71/10min) vs your team 1; 40m
+
+[15] STA mid(P2) Rubick LOSS 32m | lead 5:+0k 10:-0k 15:-6k 20:-10k 25:-22k 30:-18k | end(32):-24k
+   a) [ENEMY_EARLY_ITEM] Phantom Lancer (P1) bought manta at 12:45 (typical core manta 22:52; bucket core p5 15:36; 18% earlier than p5)
+   b) [EARLY_RICH] Phantom Lancer (P1) reached 10k NW at 18:00; your team's first at 26:00
+
+[16] STA mid(P2) Nature's Prophet LOSS 36m | lead 5:-1k 10:-2k 15:-2k 20:-4k 25:-4k 30:-7k 35:-14k | end(36):-23k
+   a) [SWEEP] 3 observers in RIVER destroyed 10:05–12:31 (lived [37, 65, 198] s); lead at start -2.1k
+   b) [QUICK_CLEARS] 6 of your 17 observers destroyed within 90s of placement (2 within 60s); enemy destroyed 9 total
+
+[17] STA support(P5) Lion WIN 54m | lead 5:+0k 10:+0k 15:+1k 20:-5k 25:-13k 30:-15k 35:-18k 40:-17k 45:-0k 50:+23k | end(54):+42k
+   a) [FLIP_FOR] enemy led up to 21.9k (17:00–44:00), then your team led up to 31.2k (46:00–51:00); result W
+   b) [COMEBACK_WIN] trailed by 21.9k at 37:00 and won (54m); last behind at 45:00
+
+[18] STA mid(P2) Shadow Fiend WIN 48m | lead 5:+1k 10:+2k 15:-0k 20:+2k 25:+5k 30:+16k 35:+15k 40:+24k 45:+22k | end(48):+20k
+   a) [ETS_FOR] until 26:00 the gap never exceeded 5.9k; from 29:00 your team held a sustained lead: 13.0k at 29:00, 21.6k at 45:00; result W (48m) 
+   b) [SWEEP] 3 observers in RIVER destroyed 8:35–11:55 (lived [70, 75, 350] s); lead at start +1.6k
+
+[19] STA mid(P2) Lion WIN 44m | lead 5:+0k 10:-2k 15:-6k 20:-7k 25:-12k 30:-11k 35:-6k 40:-5k | end(44):+15k
+   a) [COMEBACK_WIN] trailed by 15.5k at 27:00 and won (44m); last behind at 40:00
+   b) [DEFICIT_RECOVERED] enemy's lead peaked 15.5k at 27:00 and was gone (+1.5k for your side) at 41:00; result W (44m); final-minute lead +15.2k 
+
+[20] STA support(P5) Tiny WIN 42m | lead 5:+0k 10:-1k 15:-4k 20:-7k 25:-6k 30:-9k 35:-3k 40:+7k | end(42):+14k
+   a) [FLIP_FOR] enemy led up to 9.8k (13:00–35:00), then your team led up to 8.7k (36:00–39:00); result W
+   b) [DEFICIT_RECOVERED] enemy's lead peaked 8.3k at 19:00 and was gone (+4.7k for your side) at 39:00; result W (42m); final-minute lead +13.5k 
+
+[21] TUR support(P5) Huskar WIN 28m | lead 5:-6k 10:-18k 15:-9k 20:+6k 25:+26k | end(28):+55k
+   a) [COMEBACK_WIN] trailed by 20.2k at 11:00 and won (28m); last behind at 17:00
+   b) [FLIP_FOR] enemy led up to 20.2k (2:00–17:00), then your team led up to 25.6k (19:00–25:00); result W
+
+[22] TUR mid(P2) Venomancer WIN 38m | lead 5:+4k 10:+3k 15:-5k 20:-8k 25:+9k 30:+5k 35:+27k | end(38):+27k
+   a) [ENEMY_EARLY_ITEM] Monkey King (P2) bought black king bar at 8:48 (typical core black king bar 15:30; bucket core p5 10:39; 17% earlier than p5)
+   b) [FLIP_FOR] enemy led up to 14.6k (13:00–23:00), then your team led up to 27.2k (24:00–35:00); result W
+
+[23] STA mid(P2) Storm Spirit WIN 41m | lead 5:-1k 10:-0k 15:+1k 20:+1k 25:+1k 30:-1k 35:+4k 40:+14k | end(41):+26k
+   a) [ENEMY_STACKING] enemy stacked 9 camps by 20:00 vs your team 5
+   b) [CLOSE_MOST] 10:00–38:00 close 100% of minutes; gap never held above 5.1k for 3 min; latest close 38:00 (window 29m, match 41m) 
+
+[24] TUR support(P5) Rubick WIN 41m | lead 5:+0k 10:-5k 15:-13k 20:-26k 25:-25k 30:+2k 35:+17k 40:-1k | end(41):-0k
+   a) [FLIP_FOR] enemy led up to 26.2k (9:00–28:00), then your team led up to 16.7k (30:00–33:00); result W
+   b) [COMEBACK_WIN] trailed by 26.2k at 20:00 and won (41m); last behind at 34:00
+
+[25] STA support(P4) Dragon Knight LOSS 46m | lead 5:+1k 10:+1k 15:+3k 20:-0k 25:-8k 30:-12k 35:-25k 40:-33k 45:-45k | end(46):-51k
+   a) [ENEMY_STACKING] enemy stacked 7 camps by 20:00 vs your team 0
+   b) [ETS_AGAINST] until 23:00 the gap never exceeded 5.4k; from 26:00 enemy held a sustained lead: 9.6k at 26:00, 39.6k at 43:00; result L (46m) 
+
+[26] STA offlane(P3) Night Stalker WIN 47m | lead 5:-2k 10:-4k 15:-4k 20:-9k 25:-7k 30:-3k 35:+5k 40:+5k 45:+21k | end(47):+20k
+   a) [EARLY_RICH] Shadow Fiend (P1) reached 10k NW at 16:00; your team's first at 20:00
+   b) [FLIP_FOR] enemy led up to 10.2k (4:00–31:00), then your team led up to 20.7k (33:00–44:00); result W
+
+[27] STA support(P5) Witch Doctor LOSS 33m | lead 5:-1k 10:-1k 15:-2k 20:-5k 25:-5k 30:-12k | end(33):-25k
+   a) [EARLY_RICH] Shadow Fiend (P2) reached 10k NW at 18:00; your team's first at 23:00
+   b) [ENEMY_STACKING] enemy stacked 7 camps by 20:00 vs your team 1
+
+[28] STA support(P4) Earth Spirit LOSS 52m | lead 5:+1k 10:+2k 15:+0k 20:+1k 25:+9k 30:+10k 35:+9k 40:+9k 45:+4k 50:+1k | end(52):-2k
+   a) [LOST_FROM_AHEAD] led by 15.8k at 28:00 and lost (52m)
+   b) [ENEMY_STACKING] enemy stacked 13 camps by 20:00 vs your team 4
+   c) [LEAD_ERODED] your team's lead peaked 15.8k at 28:00 and was 0.8k at 49:00; result L (52m); final-minute lead -2.2k 
+
+[29] STA carry(P1) Spectre LOSS 41m | lead 5:+0k 10:+3k 15:+8k 20:+13k 25:+11k 30:+12k 35:+1k 40:-14k | end(41):-20k
+   a) [FLIP_AGAINST] your team led up to 13.6k (8:00–33:00), then enemy led up to 9.6k (36:00–38:00); result L
+   b) [ENEMY_EARLY_ITEM] Luna (P1) bought manta at 12:38 (typical core manta 22:52; bucket core p5 15:36; 19% earlier than p5)
+   c) [LOST_FROM_AHEAD] led by 13.6k at 28:00 and lost (41m)
+
+[30] STA mid(P2) Huskar LOSS 68m | lead 5:-1k 10:-1k 15:-1k 20:+1k 25:+2k 30:+5k 35:+12k 40:+10k 45:+9k 50:-6k 55:+8k 60:-3k 65:-8k | end(68):-19k
+   a) [LOST_FROM_AHEAD] led by 13.4k at 39:00 and lost (68m)
+   b) [FLIP_AGAINST] your team led up to 8.1k (55:00–59:00), then enemy led up to 14.3k (60:00–65:00); result L
+   c) [ENEMY_STACKING] enemy stacked 13 camps by 20:00 vs your team 2
+
+[31] STA offlane(P3) Legion Commander WIN 46m | lead 5:-1k 10:-3k 15:-9k 20:-8k 25:-6k 30:-9k 35:-16k 40:-11k 45:+8k | end(46):+18k
+   a) [COMEBACK_WIN] trailed by 16.1k at 35:00 and won (46m); last behind at 42:00
+   b) [DEFICIT_RECOVERED] enemy's lead peaked 11.7k at 29:00 and was gone (+0.8k for your side) at 43:00; result W (46m); final-minute lead +17.7k 
+   c) [LATE_REVERSAL] enemy held a sustained lead 33:00–35:00 (up to 16.1k); at 43:00 +0.8k; you won at 46:14; final-minute lead +17.7k
+
+[32] STA mid(P2) Queen of Pain WIN 44m | lead 5:-1k 10:-0k 15:+0k 20:-0k 25:+3k 30:-2k 35:-2k 40:+6k | end(44):+17k
+   a) [SWEEP] 3 observers in ENEMY_HALF destroyed 17:25–21:59 (lived [14, 72, 148] s); lead at start +1.6k
+   b) [CLOSE_MOST] 10:00–41:00 close 100% of minutes; gap never held above 5.4k for 3 min; latest close 41:00 (window 32m, match 44m) 
+   c) [QUICK_CLEARS] 8 of your 20 observers destroyed within 90s of placement (4 within 60s); enemy destroyed 11 total
+
+[33] TUR support(P5) Lion LOSS 25m | lead 5:-0k 10:+2k 15:+14k 20:+13k 25:-10k | end(25):-10k
+   a) [LOST_FROM_AHEAD] led by 20.8k at 16:00 and lost (25m)
+   b) [ENEMY_EARLY_ITEM] Necrophos (P3) bought radiance at 5:15 (typical core radiance 9:18; bucket core p5 6:31; 19% earlier than p5)
+   c) [QUICK_CLEARS] 4 of your 11 observers destroyed within 90s of placement (3 within 60s); enemy destroyed 7 total
+
+[34] STA carry(P1) Anti-Mage LOSS 89m | lead 5:+0k 10:+1k 15:+4k 20:+3k 25:+2k 30:+7k 35:+4k 40:+5k 45:-0k 50:-2k 55:-5k 60:-6k 65:+8k 70:+2k 75:+7k 80:+13k 85:+28k | end(89):+16k
+   a) [EARLY_RICH] Broodmother (P2) reached 10k NW at 16:00; your team's first at 19:00
+   b) [FLIP_FOR] enemy led up to 8.1k (50:00–60:00), then your team led up to 13.3k (62:00–71:00); result L
+   c) [LOST_FROM_AHEAD] led by 31.9k at 86:00 and lost (89m)
+
+[35] TUR support(P4) Mirana WIN 32m | lead 5:-4k 10:-9k 15:-23k 20:-10k 25:+10k 30:+21k | end(32):+44k
+   a) [COMEBACK_WIN] trailed by 22.8k at 15:00 and won (32m); last behind at 23:00
+   b) [QUICK_CLEARS] 4 of your 13 observers destroyed within 90s of placement (4 within 60s); enemy destroyed 7 total
+   c) [FLIP_FOR] enemy led up to 22.8k (4:00–22:00), then your team led up to 17.0k (24:00–29:00); result W
+
+[36] STA mid(P2) Queen of Pain WIN 41m | lead 5:-2k 10:-4k 15:-8k 20:-11k 25:-20k 30:+2k 35:+45k 40:+30k | end(41):+26k
+   a) [FLIP_FOR] enemy led up to 31.0k (4:00–29:00), then your team led up to 48.1k (30:00–38:00); result W
+   b) [COMEBACK_WIN] trailed by 31.0k at 29:00 and won (41m); last behind at 29:00
+   c) [EARLY_RICH] Outworld Destroyer (P2) reached 10k NW at 16:00; your team's first at 21:00
+
+[37] STA carry(P1) Faceless Void LOSS 69m | lead 5:-1k 10:-5k 15:-4k 20:-8k 25:-9k 30:-10k 35:+0k 40:-1k 45:+1k 50:+15k 55:+29k 60:+43k 65:+48k | end(69):+18k
+   a) [LOST_FROM_AHEAD] led by 48.8k at 63:00 and lost (69m)
+   b) [SWEEP] 3 observers in OWN_HALF destroyed 16:33–20:11 (lived [76, 158, 226] s); lead at start -4.6k
+   c) [ENEMY_STACKING] enemy stacked 12 camps by 20:00 vs your team 2
+
+[38] TUR carry(P1) Juggernaut WIN 36m | lead 5:-1k 10:-10k 15:-19k 20:-30k 25:-25k 30:+6k 35:+28k | end(36):+37k
+   a) [EARLY_RICH] Razor (P2) reached 15k NW at 11:00; your team's first at 16:00
+   b) [COMEBACK_WIN] trailed by 29.8k at 24:00 and won (36m); last behind at 28:00
+   c) [ENEMY_EARLY_ITEM] Razor (P2) bought manta at 6:30 (typical core manta 11:29; bucket core p5 7:42; 16% earlier than p5)
+
+[39] TUR support(P5) Lich WIN 39m | lead 5:+0k 10:-3k 15:-15k 20:-11k 25:-4k 30:+14k 35:+55k | end(39):+64k
+   a) [COMEBACK_WIN] trailed by 21.9k at 17:00 and won (39m); last behind at 25:00
+   b) [EARLY_RICH] Viper (P2) reached 15k NW at 12:00; your team's first at 18:00
+   c) [FLIP_FOR] enemy led up to 21.9k (9:00–25:00), then your team led up to 58.3k (26:00–36:00); result W
+
+[40] STA offlane(P3) Centaur Warrunner LOSS 51m | lead 5:-0k 10:-3k 15:-6k 20:-8k 25:-3k 30:-5k 35:-4k 40:-9k 45:+11k 50:+10k | end(51):+3k
+   a) [ENEMY_STACKING] enemy stacked 13 camps by 20:00 vs your team 5
+   b) [LOST_FROM_AHEAD] led by 17.2k at 48:00 and lost (51m)
+   c) [FLIP_FOR] enemy led up to 9.2k (8:00–42:00), then your team led up to 17.2k (43:00–48:00); result L
+
+[41] STA support(P5) Techies WIN 89m | lead 5:-0k 10:-1k 15:-4k 20:-3k 25:-2k 30:-7k 35:-4k 40:-5k 45:+0k 50:+2k 55:+5k 60:+6k 65:-8k 70:-2k 75:-7k 80:-13k 85:-28k | end(89):-16k
+   a) [COMEBACK_WIN] trailed by 31.9k at 86:00 and won (89m); last behind at 86:00
+   b) [FLIP_AGAINST] your team led up to 8.1k (50:00–60:00), then enemy led up to 13.3k (62:00–71:00); result W
+   c) [LATE_REVERSAL] enemy held a sustained lead 83:00–86:00 (up to 31.9k); at 86:00 -31.9k; you won at 89:41; final-minute lead -16.3k
+
+[42] STA offlane(P3) Dark Seer WIN 51m | lead 5:+0k 10:+1k 15:+3k 20:-1k 25:+4k 30:+0k 35:+9k 40:-3k 45:-4k 50:-22k | end(51):-14k
+   a) [COMEBACK_WIN] trailed by 15.8k at 48:00 and won (51m); last behind at 48:00
+   b) [CLOSE_MOST] 10:00–48:00 close 85% of minutes; gap never held above 5.8k for 3 min; latest close 47:00 (window 39m, match 51m) 
+   c) [ENEMY_STACKING] enemy stacked 7 camps by 20:00 vs your team 2
+
+[43] TUR support(P5) Mirana LOSS 53m | lead 5:-0k 10:+0k 15:+1k 20:+14k 25:+14k 30:-11k 35:-15k 40:-4k 45:+51k 50:-8k | end(53):-4k
+   a) [LOST_FROM_AHEAD] led by 52.0k at 48:00 and lost (53m)
+   b) [LEAD_ERODED] your team's lead peaked 28.7k at 22:00 and was gone (-8.1k for your side) at 50:00; result L (53m); final-minute lead -4.0k 
+   c) [FLIP_FOR] enemy led up to 14.9k (30:00–37:00), then your team led up to 52.0k (41:00–49:00); result L
+
+[44] STA carry(P1) Spectre LOSS 26m | lead 5:-0k 10:-3k 15:-9k 20:-15k 25:-33k | end(26):-32k
+   a) [ENEMY_EARLY_ITEM] Phantom Assassin (P1) bought bfury at 10:27 (typical core bfury 15:45; bucket core p5 12:01; 13% earlier than p5)
+   b) [EARLY_RICH] Phantom Assassin (P1) reached 10k NW at 17:00; your team's first at 26:00
+   c) [QUICK_CLEARS] 5 of your 10 observers destroyed within 90s of placement (4 within 60s); enemy destroyed 6 total
+
+[45] STA support(P5) Lich LOSS 48m | lead 5:-2k 10:-1k 15:+0k 20:+3k 25:+3k 30:+3k 35:+5k 40:+1k 45:+2k | end(48):-3k
+   a) [QUICK_CLEARS] 7 of your 20 observers destroyed within 90s of placement (5 within 60s); enemy destroyed 12 total
+   b) [SMOKES] enemy used Smoke 8 times (1.66/10min) vs your team 0; 48m
+   c) [CLOSE_MOST] 10:00–45:00 close 100% of minutes; gap never held above 3.5k for 3 min; latest close 45:00 (window 36m, match 48m) 
+
+[46] STA support(P5) Silencer LOSS 29m | lead 5:-2k 10:-3k 15:-6k 20:-7k 25:-22k | end(29):-34k
+   a) [ENEMY_STACKING] enemy stacked 7 camps by 20:00 vs your team 1
+   b) [ENEMY_EARLY_ITEM] Kez (P2) bought desolator at 10:10 (typical core desolator 21:20; bucket core p5 13:58; 27% earlier than p5)
+   c) [EARLY_RICH] Kez (P2) reached 10k NW at 15:00; your team's first at 20:00
+
+[47] STA carry(P1) Juggernaut LOSS 28m | lead 5:-3k 10:-7k 15:-10k 20:-15k 25:-18k | end(28):-20k
+   a) [EARLY_RICH] Phantom Assassin (P1) reached 10k NW at 18:00; your team's first at 24:00
+   b) [SMOKES] enemy used Smoke 6 times (2.10/10min) vs your team 0; 28m
+   c) [SWEEP] 3 observers in OWN_HALF destroyed 14:34–17:24 (lived [50, 108, 251] s); lead at start -8.5k
+
+[48] STA support(P4) Lion LOSS 50m | lead 5:+0k 10:-0k 15:-2k 20:-4k 25:-4k 30:+5k 35:+7k 40:-2k 45:-5k 50:-12k | end(50):-12k
+   a) [CLOSE_MOST] 10:00–47:00 close 100% of minutes; gap never held above 4.7k for 3 min; latest close 47:00 (window 38m, match 50m) 
+   b) [SWEEP] 3 observers in ENEMY_HALF destroyed 12:14–16:18 (lived [24, 149, 165] s); lead at start -0.1k
+   c) [ENEMY_STACKING] enemy stacked 9 camps by 20:00 vs your team 3
+
+[49] STA offlane(P3) Tidehunter WIN 52m | lead 5:-1k 10:-2k 15:-0k 20:-1k 25:-9k 30:-10k 35:-9k 40:-9k 45:-4k 50:-1k | end(52):+2k
+   a) [COMEBACK_WIN] trailed by 15.8k at 28:00 and won (52m); last behind at 49:00
+   b) [DEFICIT_RECOVERED] enemy's lead peaked 15.8k at 28:00 and was 0.8k at 49:00; result W (52m); final-minute lead +2.2k 
+   c) [SMOKES] enemy used Smoke 9 times (1.71/10min) vs your team 3; 52m
+
+[50] STA mid(P2) Death Prophet WIN 39m | lead 5:+1k 10:+0k 15:-3k 20:-1k 25:-2k 30:+6k 35:-2k | end(39):+14k
+   a) [CLOSE_MOST] 10:00–36:00 close 89% of minutes; gap never held above 3.6k for 3 min; latest close 36:00 (window 27m, match 39m) 
+   b) [ENEMY_STACKING] enemy stacked 9 camps by 20:00 vs your team 2
+   c) [SWEEP] 3 observers in ENEMY_HALF destroyed 24:30–27:32 (lived [24, 40, 165] s); lead at start -0.0k
+
+[51] STA mid(P2) Rubick LOSS 71m | lead 5:-2k 10:-5k 15:-9k 20:-10k 25:-12k 30:-17k 35:-21k 40:-17k 45:-24k 50:-25k 55:-10k 60:+1k 65:+14k 70:+34k | end(71):+32k
+   a) [EARLY_RICH] Viper (P3) reached 10k NW at 18:00; your team's first at 25:00
+   b) [FLIP_FOR] enemy led up to 27.1k (4:00–59:00), then your team led up to 34.7k (61:00–68:00); result L
+   c) [LOST_FROM_AHEAD] led by 34.7k at 68:00 and lost (71m)
+
+[52] STA carry(P1) Lifestealer LOSS 35m | lead 5:-1k 10:-7k 15:-14k 20:-19k 25:-22k 30:-34k 35:-52k | end(35):-52k
+   a) [EARLY_RICH] Keeper of the Light (P2) reached 10k NW at 16:00; your team's first at 21:00
+   b) [ENEMY_STACKING] enemy stacked 8 camps by 20:00 vs your team 2
+   c) [ENEMY_EARLY_ITEM] Medusa (P1) bought manta at 13:20 (typical core manta 22:52; bucket core p5 15:36; 15% earlier than p5)
+
+[53] TUR carry(P1) Beastmaster LOSS 30m | lead 5:-6k 10:-11k 15:-14k 20:-13k 25:+0k 30:+13k | end(30):+13k
+   a) [EARLY_RICH] Necrophos (P2) reached 15k NW at 11:00; your team's first at 16:00
+   b) [ENEMY_EARLY_ITEM] Necrophos (P2) bought radiance at 5:45 (typical core radiance 9:18; bucket core p5 6:31; 12% earlier than p5)
+   c) [DEFICIT_RECOVERED] enemy's lead peaked 25.0k at 18:00 and was gone (+0.9k for your side) at 27:00; result L (30m); final-minute lead +12.9k 
+
+[54] STA support(P5) Windranger WIN 44m | lead 5:-0k 10:-2k 15:-7k 20:-9k 25:-12k 30:-11k 35:-9k 40:-2k | end(44):+17k
+   a) [LATE_REVERSAL] enemy held a sustained lead 30:00–33:00 (up to 14.5k); at 41:00 +5.6k; you won at 44:24; final-minute lead +17.0k
+   b) [COMEBACK_WIN] trailed by 14.5k at 33:00 and won (44m); last behind at 40:00
+   c) [ENEMY_EARLY_ITEM] Templar Assassin (P1) bought desolator at 11:53 (typical core desolator 21:20; bucket core p5 13:58; 15% earlier than p5)
+   d) [EARLY_RICH] Templar Assassin (P1) reached 10k NW at 18:00; your team's first at 22:00
+
+[55] STA support(P4) Jakiro LOSS 46m | lead 5:+2k 10:+0k 15:-0k 20:-3k 25:+2k 30:+12k 35:+1k 40:-4k 45:-18k | end(46):-30k
+   a) [LOST_FROM_AHEAD] led by 12.2k at 30:00 and lost (46m)
+   b) [CLOSE_MOST] 10:00–43:00 close 88% of minutes; gap never held above 7.1k for 3 min; latest close 41:00 (window 34m, match 46m) 
+   c) [ENEMY_STACKING] enemy stacked 21 camps by 20:00 vs your team 1
+   d) [FLIP_AGAINST] your team led up to 12.2k (25:00–34:00), then enemy led up to 9.6k (40:00–43:00); result L
+
+[56] STA offlane(P3) Visage WIN 50m | lead 5:-2k 10:-3k 15:-2k 20:-3k 25:-8k 30:-9k 35:-11k 40:-20k 45:-14k 50:+9k | end(50):+9k
+   a) [SWEEP] 3 observers in ENEMY_HALF destroyed 19:18–23:20 (lived [46, 101, 115] s); lead at start -3.8k
+   b) [LATE_REVERSAL] enemy held a sustained lead 36:00–45:00 (up to 24.6k); at 47:00 -5.7k; you won at 50:11; final-minute lead +8.8k
+   c) [QUICK_CLEARS] 4 of your 15 observers destroyed within 90s of placement (2 within 60s); enemy destroyed 6 total
+   d) [COMEBACK_WIN] trailed by 24.6k at 41:00 and won (50m); last behind at 47:00
+
+[57] STA offlane(P3) Kunkka WIN 55m | lead 5:-1k 10:-1k 15:-4k 20:-9k 25:-3k 30:-6k 35:-2k 40:-4k 45:-7k 50:+3k 55:+11k | end(55):+11k
+   a) [ENEMY_STACKING] enemy stacked 9 camps by 20:00 vs your team 2
+   b) [CLOSE_MOST] 10:00–52:00 close 86% of minutes; gap never held above 7.3k for 3 min; latest close 52:00 (window 43m, match 55m) 
+   c) [EARLY_RICH] Necrophos (P2) reached 10k NW at 18:00; your team's first at 21:00
+   d) [FLIP_FOR] enemy led up to 8.7k (37:00–41:00), then your team led up to 9.4k (47:00–52:00); result W
+
+[58] STA support(P4) Lion LOSS 55m | lead 5:-1k 10:-3k 15:-3k 20:-7k 25:-7k 30:-15k 35:-17k 40:-16k 45:-15k 50:-11k 55:-11k | end(55):-11k
+   a) [ENEMY_EARLY_ITEM] Drow Ranger (P1) bought manta at 13:43 (typical core manta 22:52; bucket core p5 15:36; 12% earlier than p5)
+   b) [DEFICIT_RECOVERED] enemy's lead peaked 23.5k at 34:00 and was 5.7k at 52:00; result L (55m); final-minute lead -11.0k 
+   c) [EARLY_RICH] Drow Ranger (P1) reached 10k NW at 17:00; your team's first at 23:00
+   d) [SMOKES] enemy used Smoke 9 times (1.61/10min) vs your team 5; 55m
+
+[59] STA support(P4) Nyx Assassin WIN 46m | lead 5:-1k 10:-1k 15:-5k 20:-9k 25:-20k 30:-20k 35:-14k 40:-5k 45:-9k | end(46):-7k
+   a) [COMEBACK_WIN] trailed by 22.8k at 31:00 and won (46m); last behind at 42:00
+   b) [LATE_REVERSAL] enemy held a sustained lead 14:00–35:00 (up to 22.8k); at 43:00 +4.9k; you won at 46:54; final-minute lead -6.6k
+   c) [DEFICIT_RECOVERED] enemy's lead peaked 22.8k at 31:00 and was gone (+4.9k for your side) at 43:00; result W (46m); final-minute lead -6.6k 
+   d) [EARLY_RICH] Meepo (P2) reached 10k NW at 18:00; your team's first at 28:00
+
+[60] STA support(P5) Lion WIN 72m | lead 5:-1k 10:-2k 15:-2k 20:-7k 25:-5k 30:-6k 35:-9k 40:-2k 45:-0k 50:-3k 55:-17k 60:-24k 65:-20k 70:-2k | end(72):+0k
+   a) [EARLY_RICH] Magnus (P1) reached 10k NW at 17:00; your team's first at 25:00
+   b) [SWEEP] 3 observers in ENEMY_HALF destroyed 43:08–46:10 (lived [37, 37, 341] s); lead at start +1.8k
+   c) [COMEBACK_WIN] trailed by 23.6k at 60:00 and won (72m); last behind at 69:00
+   d) [LATE_REVERSAL] enemy held a sustained lead 55:00–62:00 (up to 23.6k); at 69:00 -0.7k; you won at 72:44; final-minute lead +0.3k
+
+[61] TUR mid(P2) Zeus WIN 35m | lead 5:+1k 10:-1k 15:+4k 20:-17k 25:-1k 30:+27k 35:+49k | end(35):+49k
+   a) [COMEBACK_WIN] trailed by 28.2k at 21:00 and won (35m); last behind at 25:00
+   b) [FLIP_FOR] enemy led up to 28.2k (17:00–24:00), then your team led up to 38.6k (26:00–32:00); result W
+   c) [ENEMY_EARLY_ITEM] Lina (P2) bought black king bar at 9:20 (typical core black king bar 15:30; bucket core p5 10:39; 12% earlier than p5)
+   d) [EARLY_RICH] Lina (P2) reached 15k NW at 11:00; your team's first at 14:00
+
+[62] TUR carry(P1) Chaos Knight LOSS 30m | lead 5:+5k 10:+21k 15:+9k 20:-6k 25:-14k 30:-55k | end(30):-55k
+   a) [QUICK_CLEARS] 4 of your 14 observers destroyed within 90s of placement (1 within 60s); enemy destroyed 8 total
+   b) [FLIP_AGAINST] your team led up to 23.7k (3:00–18:00), then enemy led up to 28.7k (20:00–27:00); result L
+   c) [LOST_FROM_AHEAD] led by 23.7k at 11:00 and lost (30m)
+   d) [SWEEP] 3 observers in ENEMY_HALF destroyed 16:27–19:20 (lived [73, 117, 169] s); lead at start +5.8k
+
+[63] STA support(P5) Witch Doctor WIN 41m | lead 5:-0k 10:-3k 15:-8k 20:-13k 25:-11k 30:-12k 35:-1k 40:+14k | end(41):+20k
+   a) [FLIP_FOR] enemy led up to 13.6k (8:00–33:00), then your team led up to 9.6k (36:00–38:00); result W
+   b) [COMEBACK_WIN] trailed by 13.6k at 28:00 and won (41m); last behind at 35:00
+   c) [ENEMY_STACKING] enemy stacked 11 camps by 20:00 vs your team 3
+   d) [SWEEP] 3 observers in OWN_HALF destroyed 18:06–21:52 (lived [84, 170, 240] s); lead at start -9.3k
+
+[64] TUR offlane(P3) Zeus WIN 53m | lead 5:+0k 10:-0k 15:-1k 20:-14k 25:-14k 30:+11k 35:+15k 40:+4k 45:-51k 50:+8k | end(53):+4k
+   a) [COMEBACK_WIN] trailed by 52.0k at 48:00 and won (53m); last behind at 49:00
+   b) [LATE_REVERSAL] enemy held a sustained lead 45:00–48:00 (up to 52.0k); at 50:00 +8.1k; you won at 53:01; final-minute lead +4.0k
+   c) [DEFICIT_RECOVERED] enemy's lead peaked 28.7k at 22:00 and was gone (+8.1k for your side) at 50:00; result W (53m); final-minute lead +4.0k 
+   d) [FLIP_AGAINST] your team led up to 14.9k (30:00–37:00), then enemy led up to 52.0k (41:00–49:00); result W
+
+[65] STA support(P4) Pudge WIN 80m | lead 5:-1k 10:+2k 15:+5k 20:+9k 25:+10k 30:+12k 35:+9k 40:+12k 45:+6k 50:-4k 55:-11k 60:-4k 65:-17k 70:-5k 75:-15k 80:+25k | end(80):+25k
+   a) [LATE_REVERSAL] enemy held a sustained lead 62:00–68:00 (up to 22.7k); at 77:00 -16.3k; you won at 80:12; final-minute lead +25.4k
+   b) [COMEBACK_WIN] trailed by 22.7k at 68:00 and won (80m); last behind at 77:00
+   c) [SWEEP] 3 observers in ENEMY_HALF destroyed 8:52–12:52 (lived [53, 135, 227] s); lead at start +0.7k
+   d) [FLIP_AGAINST] your team led up to 15.0k (10:00–46:00), then enemy led up to 22.7k (47:00–68:00); result W
+
+[66] TUR support(P5) Pudge WIN 44m | lead 5:+1k 10:+7k 15:+14k 20:-10k 25:-2k 30:-9k 35:+1k 40:-3k | end(44):-9k
+   a) [QUICK_CLEARS] 6 of your 19 observers destroyed within 90s of placement (5 within 60s); enemy destroyed 11 total
+   b) [LEAD_ERODED] your team's lead peaked 14.1k at 15:00 and was gone (-2.9k for your side) at 41:00; result W (44m); final-minute lead -9.4k 
+   c) [SWEEP] 3 observers in ENEMY_HALF destroyed 28:04–29:46 (lived [30, 56, 60] s); lead at start -6.2k
+   d) [COMEBACK_WIN] trailed by 18.9k at 22:00 and won (44m); last behind at 41:00
+
+[67] STA support(P5) Rubick WIN 57m | lead 5:+1k 10:+4k 15:+6k 20:+9k 25:+11k 30:+15k 35:+12k 40:+8k 45:+10k 50:-5k 55:-20k | end(57):-12k
+   a) [FLIP_AGAINST] your team led up to 9.8k (44:00–46:00), then enemy led up to 13.7k (47:00–54:00); result W
+   b) [ENEMY_STACKING] enemy stacked 7 camps by 20:00 vs your team 2
+   c) [COMEBACK_WIN] trailed by 13.7k at 54:00 and won (57m); last behind at 54:00
+   d) [SWEEP] 3 observers in ENEMY_HALF destroyed 17:22–21:39 (lived [73, 149, 173] s); lead at start +4.8k
+
+[68] STA support(P5) Lion LOSS 46m | lead 5:+1k 10:+3k 15:+9k 20:+8k 25:+6k 30:+9k 35:+16k 40:+11k 45:-8k | end(46):-18k
+   a) [LEAD_ERODED] your team's lead peaked 11.7k at 29:00 and was gone (-0.8k for your side) at 43:00; result L (46m); final-minute lead -17.7k 
+   b) [ENEMY_STACKING] enemy stacked 13 camps by 20:00 vs your team 7
+   c) [LOST_FROM_AHEAD] led by 16.1k at 35:00 and lost (46m)
+   d) [SMOKES] enemy used Smoke 8 times (1.73/10min) vs your team 4; 46m
+
+[69] STA support(P5) Rubick LOSS 30m | lead 5:-1k 10:-3k 15:-10k 20:-14k 25:-16k 30:-28k | end(30):-28k
+   a) [SMOKES] enemy used Smoke 5 times (1.63/10min) vs your team 1; 30m
+   b) [ENEMY_EARLY_ITEM] Faceless Void (P1) bought bfury at 9:45 (typical core bfury 15:45; bucket core p5 12:01; 19% earlier than p5)
+   c) [QUICK_CLEARS] 5 of your 15 observers destroyed within 90s of placement (3 within 60s); enemy destroyed 8 total
+   d) [EARLY_RICH] Faceless Void (P1) reached 10k NW at 17:00; your team's first at 23:00
+
+[70] TUR mid(P2) Sniper WIN 24m | lead 5:+4k 10:+8k 15:+23k 20:+2k | end(24):+9k [no vision data]
+   a) [OWN_LANE_BEST] lane NW diff +6.1k at late checkpoint vs Viper (P2); previous best +5.5k, median +1.7k across last 32 TUR mid matches
+   b) [LEAD_ERODED] your team's lead peaked 23.4k at 15:00 and was 0.2k at 21:00; result W (24m); final-minute lead +8.9k 
+
+[71] STA mid(P2) Templar Assassin WIN 40m | lead 5:-1k 10:-1k 15:-4k 20:-0k 25:+6k 30:+4k 35:-9k 40:-3k | end(40):-3k [no vision data]
+   a) [OPP_START_RECORD] Shadow Fiend (P2) had 74 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 70, median 45.0); your lane diff -0.0k
+   b) [FLIP_AGAINST] your team led up to 8.4k (23:00–32:00), then enemy led up to 10.5k (33:00–37:00); result W
+
+[72] STA support(P5) Nature's Prophet LOSS 46m | lead 5:-1k 10:-2k 15:-3k 20:-3k 25:-1k 30:-4k 35:-16k 40:-14k 45:-25k | end(46):-26k [no vision data]
+   a) [OPP_START_RECORD] Skywrath Mage (P4) had 3234 NW at late checkpoint — highest faced across your last 48 STA support matches (previous high 3091, median 2058.0); your lane diff -1.1k
+   b) [ETS_AGAINST] until 29:00 the gap never exceeded 3.6k; from 32:00 enemy held a sustained lead: 12.2k at 32:00, 20.5k at 43:00; result L (46m) 
+
+[73] STA carry(P1) Ursa WIN 41m | lead 5:-1k 10:-2k 15:-3k 20:+3k 25:+4k 30:+9k 35:+17k 40:+35k | end(41):+37k [no vision data]
+   a) [OPP_START_RECORD] Dark Seer (P3) had 66 CS at late checkpoint — highest faced across your last 39 STA carry matches (previous high 60, median 43); your lane diff +0.1k
+   b) [SMOKES] enemy used Smoke 7 times (1.71/10min) vs your team 0; 41m
+
+[74] TUR support(P5) Pudge WIN 31m | lead 5:-1k 10:-8k 15:-13k 20:-19k 25:-18k 30:+3k | end(31):+19k [no vision data]
+   a) [OPP_START_RECORD] Jakiro (P4) had 5931 NW at late checkpoint — highest faced across your last 34 TUR support matches (previous high 5794, median 3983.0); your lane diff -1.5k
+   b) [COMEBACK_WIN] trailed by 18.9k at 20:00 and won (31m); last behind at 28:00
+   c) [ENEMY_EARLY_ITEM] Earthshaker (P2) bought blink at 3:17 (typical core blink 7:30; bucket core p5 4:27; 26% earlier than p5)
+
+[75] STA carry(P1) Phantom Lancer WIN 55m | lead 5:+0k 10:+1k 15:+4k 20:+3k 25:+5k 30:+2k 35:-3k 40:+1k 45:-5k 50:-1k 55:+28k | end(55):+28k [no vision data]
+   a) [OWN_ITEM_FASTEST] Phantom Lancer manta at 13:10 — fastest across your last 50 STA carry manta purchases (previous 14:21, median 17:39)
+   b) [CLOSE_MOST] 10:00–52:00 close 100% of minutes; gap never held above 4.7k for 3 min; latest close 52:00 (window 43m, match 55m) 
+
+[76] STA carry(P1) Drow Ranger WIN 54m | lead 5:-0k 10:+0k 15:+3k 20:+0k 25:-2k 30:-6k 35:-6k 40:-6k 45:-8k 50:+4k | end(54):+9k [no vision data]
+   a) [SMOKES] enemy used Smoke 9 times (1.65/10min) vs your team 3; 54m
+   b) [OWN_LANE_WORST] lane NW diff -2.5k at late checkpoint vs Centaur Warrunner (P3); previous worst -1.8k, median +0.0k across last 25 STA carry matches
+   c) [COMEBACK_WIN] trailed by 14.5k at 38:00 and won (54m); last behind at 48:00
+
+[77] TUR carry(P1) Alchemist WIN 24m | lead 5:+3k 10:+3k 15:-3k 20:+22k | end(24):+30k [no vision data]
+   a) [OWN_ITEM_FASTEST] Alchemist ultimate_scepter at 6:46 — fastest across your last 50 TUR carry ultimate_scepter purchases (previous 8:04, median 14:31)
+   b) [OWN_LANE_WORST] lane NW diff -2.9k at late checkpoint vs Razor (P3); previous worst -2.7k, median +0.6k across last 50 TUR carry matches
+
+[78] STA mid(P2) Tinker WIN 45m | lead 5:+2k 10:+2k 15:+3k 20:+6k 25:+10k 30:+10k 35:+18k 40:+26k 45:+19k | end(45):+19k [no vision data]
+   a) [ENEMY_STACKING] enemy stacked 10 camps by 20:00 vs your team 6
+   b) [OPP_START_RECORD] Sniper (P2) had 75 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 72, median 55.0); your lane diff -0.3k
+
+[79] TUR support(P4) Enigma LOSS 20m | lead 5:+3k 10:-12k 15:-24k 20:-41k | end(20):-41k [no vision data]
+   a) [EARLY_RICH] Bloodseeker (P1) reached 15k NW at 10:00; your team's first at 16:00
+   b) [OWN_ITEM_FASTEST] Enigma blink at 4:35 — fastest across your last 50 TUR support blink purchases (previous 5:26, median 9:07)
+
+[80] STA offlane(P3) Windranger WIN 32m | lead 5:+1k 10:+2k 15:+7k 20:+12k 25:+20k 30:+26k | end(32):+33k [no vision data]
+   a) [OPP_START_RECORD] Shadow Fiend (P1) had 71 CS at late checkpoint — highest faced across your last 50 STA offlane matches (previous high 67, median 47.0); your lane diff +1.3k
+   b) [ENEMY_STACKING] enemy stacked 16 camps by 20:00 vs your team 3
+
+[81] TUR support(P4) Ogre Magi LOSS 37m | lead 5:-5k 10:-22k 15:-16k 20:-5k 25:-1k 30:+20k 35:+32k | end(37):+34k [no vision data]
+   a) [LOST_FROM_AHEAD] led by 38.7k at 33:00 and lost (37m)
+   b) [ENEMY_EARLY_ITEM] Invoker (P2) bought orchid at 4:50 (typical core orchid 11:01; bucket core p5 6:03; 20% earlier than p5)
+   c) [EARLY_RICH] Weaver (P3) reached 15k NW at 11:00; your team's first at 16:00
+   d) [OPP_START_RECORD] Bristleback (P5) had 6876 NW at late checkpoint — highest faced across your last 50 TUR support matches (previous high 6478, median 3682.5); your lane diff -2.8k
+
+[82] TUR carry(P1) Phantom Assassin LOSS 20m | lead 5:-3k 10:+2k 15:-13k 20:-43k | end(20):-43k [no vision data]
+   a) [OPP_START_RECORD] Dark Seer (P3) had 50 CS at late checkpoint — highest faced across your last 47 TUR carry matches (previous high 47, median 24); your lane diff -4.0k
+   b) [EARLY_RICH] Dark Seer (P3) reached 15k NW at 12:00; your team's first at 16:00
+
+[83] STA carry(P1) Lina WIN 42m | lead 5:+1k 10:+5k 15:+5k 20:+8k 25:+4k 30:+14k 35:+16k 40:+25k | end(42):+37k [no vision data]
+   a) [ENEMY_STACKING] enemy stacked 21 camps by 20:00 vs your team 5
+   b) [OWN_ITEM_FASTEST] Lina maelstrom at 10:05 — fastest across your last 20 STA carry maelstrom purchases (previous 11:33, median 16:37)
+
+[84] STA mid(P2) Lina LOSS 37m | lead 5:+1k 10:-2k 15:-3k 20:-4k 25:-6k 30:-19k 35:-21k | end(37):-38k [no vision data]
+   a) [EARLY_RICH] Keeper of the Light (P2) reached 10k NW at 17:00; your team's first at 20:00
+   b) [OPP_START_RECORD] Keeper of the Light (P2) had 99 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 81, median 43.0); your lane diff -0.7k
+   c) [ETS_AGAINST] until 25:00 the gap never exceeded 6.3k; from 28:00 enemy held a sustained lead: 13.7k at 28:00, 20.3k at 34:00; result L (37m) 
+
+[85] TUR support(P4) Warlock WIN 26m | lead 5:+1k 10:+3k 15:+6k 20:-10k 25:+13k | end(26):+22k [no vision data]
+   a) [CLOSE_MOST] 8:00–23:00 close 88% of minutes; gap never held above 6.4k for 3 min; latest close 23:00 (window 16m, match 26m) 
+   b) [OPP_START_RECORD] Skywrath Mage (P5) had 7098 NW at late checkpoint — highest faced across your last 50 TUR support matches (previous high 6876, median 3851.5); your lane diff -3.1k
+
+[86] STA offlane(P3) Timbersaw WIN 38m | lead 5:-2k 10:-4k 15:-10k 20:-12k 25:-4k 30:+5k 35:+24k | end(38):+28k [no vision data]
+   a) [FLIP_FOR] enemy led up to 11.5k (4:00–26:00), then your team led up to 24.3k (27:00–35:00); result W
+   b) [ENEMY_EARLY_ITEM] Magnus (P2) bought blink at 7:26 (typical core blink 14:39; bucket core p5 9:53; 25% earlier than p5)
+   c) [OPP_START_RECORD] Shadow Fiend (P1) had 77 CS at late checkpoint — highest faced across your last 50 STA offlane matches (previous high 73, median 44.0); your lane diff -2.8k
+   d) [EARLY_RICH] Shadow Fiend (P1) reached 10k NW at 16:00; your team's first at 22:00
+
+[87] STA mid(P2) Keeper of the Light WIN 31m | lead 5:+0k 10:-0k 15:+1k 20:+2k 25:+8k 30:+24k | end(31):+29k [no vision data]
+   a) [ETS_FOR] until 23:00 the gap never exceeded 6.7k; from 26:00 your team held a sustained lead: 11.7k at 26:00, 15.1k at 28:00; result W (31m) 
+   b) [OWN_LANE_WORST] lane NW diff -1.9k at late checkpoint vs Viper (P2); previous worst -1.7k, median +0.5k across last 50 STA mid matches
+
+[88] STA mid(P2) Storm Spirit LOSS 41m | lead 5:-1k 10:-5k 15:-7k 20:-10k 25:-11k 30:-9k 35:-17k 40:-22k | end(41):-24k [no vision data]
+   a) [OWN_LANE_WORST] lane NW diff -2.7k at late checkpoint vs Queen of Pain (P2); previous worst -1.9k, median -0.1k across last 27 STA mid matches
+   b) [EARLY_RICH] Queen of Pain (P2) reached 10k NW at 17:00; your team's first at 23:00
+
+[89] STA mid(P2) Keeper of the Light WIN 52m | lead 5:-1k 10:-4k 15:-6k 20:-5k 25:-4k 30:-6k 35:+0k 40:+8k 45:+14k 50:+24k | end(52):+32k [no vision data]
+   a) [ENEMY_EARLY_ITEM] Phantom Lancer (P1) bought manta at 14:01 (typical core manta 22:52; bucket core p5 15:36; 10% earlier than p5)
+   b) [OWN_LANE_WORST] lane NW diff -3.5k at late checkpoint vs Nyx Assassin (P2); previous worst -3.0k, median +0.2k across last 50 STA mid matches
+
+[90] STA offlane(P3) Mars WIN 47m | lead 5:-2k 10:-1k 15:-1k 20:-0k 25:+2k 30:-2k 35:-5k 40:+1k 45:-8k | end(47):+3k [no vision data]
+   a) [OPP_START_RECORD] Spectre (P1) had 61 CS at late checkpoint — highest faced across your last 31 STA offlane matches (previous high 59, median 44); your lane diff -0.7k
+   b) [CLOSE_MOST] 10:00–44:00 close 100% of minutes; gap never held above 6.0k for 3 min; latest close 44:00 (window 35m, match 47m) 
+
+[91] STA mid(P2) Tinker WIN 42m | lead 5:+0k 10:+1k 15:+0k 20:-0k 25:+3k 30:+2k 35:+2k 40:+7k | end(42):+11k [no vision data]
+   a) [ENEMY_EARLY_ITEM] Legion Commander (P2) bought blink at 7:29 (typical core blink 14:39; bucket core p5 9:53; 24% earlier than p5)
+   b) [OWN_ITEM_FASTEST] Tinker ultimate_scepter at 16:26 — fastest across your last 40 STA mid ultimate_scepter purchases (previous 19:20, median 34:50)
+   c) [CLOSE_MOST] 10:00–39:00 close 100% of minutes; gap never held above 3.6k for 3 min; latest close 39:00 (window 30m, match 42m) 
+
+[92] TUR support(P5) Shadow Demon WIN 29m | lead 5:-3k 10:-17k 15:-20k 20:-14k 25:-9k | end(29):+37k [no vision data]
+   a) [OPP_START_RECORD] Windranger (P4) had 7888 NW at late checkpoint — highest faced across your last 50 TUR support matches (previous high 7452, median 4389.0); your lane diff -4.7k
+   b) [COMEBACK_WIN] trailed by 23.7k at 18:00 and won (29m); last behind at 26:00
+   c) [DEFICIT_RECOVERED] enemy's lead peaked 23.7k at 18:00 and was 5.8k at 26:00; result W (29m); final-minute lead +36.7k 
+
+[93] TUR support(P5) Tusk WIN 16m | lead 5:+4k 10:+13k 15:+35k | end(16):+41k [no vision data]
+   a) [ENEMY_EARLY_ITEM] Pudge (P3) bought blink at 3:33 (typical core blink 7:30; bucket core p5 4:27; 20% earlier than p5)
+   b) [OWN_ITEM_FASTEST] Tusk ultimate_scepter at 10:44 — fastest across your last 26 TUR support ultimate_scepter purchases (previous 12:43, median 16:30)
+
+[94] STA mid(P2) Lina LOSS 54m | lead 5:+1k 10:+5k 15:+6k 20:+6k 25:+8k 30:-2k 35:+13k 40:+4k 45:-10k 50:-18k | end(54):-26k [no vision data]
+   a) [LOST_FROM_AHEAD] led by 13.1k at 35:00 and lost (54m)
+   b) [FLIP_AGAINST] your team led up to 13.1k (33:00–40:00), then enemy led up to 19.3k (41:00–51:00); result L
+   c) [OPP_START_RECORD] Necrophos (P2) had 74 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 65, median 42.5); your lane diff -0.0k
+
+[95] STA support(P5) Shadow Shaman LOSS 41m | lead 5:-0k 10:+1k 15:-2k 20:-4k 25:-12k 30:-11k 35:-19k 40:-22k | end(41):-23k [no vision data]
+   a) [EARLY_RICH] Beastmaster (P3) reached 10k NW at 18:00; your team's first at 21:00
+   b) [OPP_START_RECORD] Techies (P4) had 3265 NW at late checkpoint — highest faced across your last 27 STA support matches (previous high 3050, median 2336); your lane diff -0.1k
+
+[96] STA carry(P1) Faceless Void LOSS 56m | lead 5:-1k 10:-1k 15:+2k 20:+10k 25:+14k 30:+12k 35:+3k 40:-9k 45:-13k 50:-23k 55:-40k | end(56):-51k [no vision data]
+   a) [FLIP_AGAINST] your team led up to 15.2k (14:00–35:00), then enemy led up to 36.1k (38:00–53:00); result L
+   b) [LOST_FROM_AHEAD] led by 15.2k at 28:00 and lost (56m)
+   c) [OWN_LANE_WORST] lane NW diff -1.8k at late checkpoint vs Razor (P3); previous worst -1.4k, median +0.3k across last 50 STA carry matches
+
+[97] TUR offlane(P3) Nature's Prophet WIN 23m | lead 5:-4k 10:-9k 15:+3k 20:+28k | end(23):+40k [no vision data]
+   a) [EARLY_RICH] Tusk (P1) reached 15k NW at 12:00; your team's first at 15:00
+   b) [OWN_LANE_WORST] lane NW diff -5.4k at late checkpoint vs Tusk (P1); previous worst -5.2k, median -0.4k across last 50 TUR offlane matches
+   c) [ENEMY_EARLY_ITEM] Tusk (P1) bought desolator at 5:31 (typical core desolator 10:32; bucket core p5 6:29; 15% earlier than p5)
+
+[98] TUR mid(P2) Mirana LOSS 31m | lead 5:+4k 10:+11k 15:+8k 20:-13k 25:+2k 30:+8k | end(31):-18k [no vision data]
+   a) [FLIP_AGAINST] your team led up to 15.6k (4:00–16:00), then enemy led up to 21.5k (17:00–24:00); result L
+   b) [OWN_ITEM_FASTEST] Mirana ultimate_scepter at 5:20 — fastest across your last 29 TUR mid ultimate_scepter purchases (previous 6:42, median 14:47)
+
+[99] STA mid(P2) Windranger LOSS 39m | lead 5:+1k 10:+2k 15:+3k 20:+9k 25:+10k 30:+3k 35:-9k | end(39):-28k [no vision data]
+   a) [OWN_ITEM_FASTEST] Windranger black_king_bar at 18:35 — fastest across your last 50 STA mid black_king_bar purchases (previous 20:19, median 28:12)
+   b) [FLIP_AGAINST] your team led up to 10.1k (15:00–32:00), then enemy led up to 13.6k (33:00–36:00); result L
+
+[100] STA support(P4) Pugna WIN 32m | lead 5:-1k 10:-2k 15:-1k 20:+2k 25:+10k 30:+19k | end(32):+22k [no vision data]
+   a) [ETS_FOR] until 20:00 the gap never exceeded 2.5k; from 23:00 your team held a sustained lead: 9.3k at 23:00, 17.0k at 29:00; result W (32m) 
+   b) [OPP_START_RECORD] Axe (P5) had 3299 NW at late checkpoint — highest faced across your last 50 STA support matches (previous high 3265, median 2322.5); your lane diff -1.7k
+
+[101] TUR carry(P1) Anti-Mage LOSS 20m | lead 5:-1k 10:-9k 15:-0k 20:-32k | end(20):-32k [no vision data]
+   a) [OWN_LANE_WORST] lane NW diff -4.6k at late checkpoint vs Dragon Knight (P3); previous worst -2.5k, median +0.8k across last 50 TUR carry matches
+   b) [ENEMY_EARLY_ITEM] Magnus (P1) bought blink at 3:57 (typical core blink 7:30; bucket core p5 4:27; 11% earlier than p5)
+
+[102] STA mid(P2) Clinkz WIN 25m | lead 5:+1k 10:+3k 15:+6k 20:+12k 25:+20k | end(25):+20k [no vision data]
+   a) [OWN_LANE_BEST] lane NW diff +2.7k at late checkpoint vs Arc Warden (P2); previous best +1.9k, median +0.3k across last 50 STA mid matches
+   b) [OWN_ITEM_FASTEST] Clinkz desolator at 11:33 — fastest across your last 23 STA mid desolator purchases (previous 14:37, median 19:55)
+
+[103] STA offlane(P3) Tidehunter WIN 42m | lead 5:+1k 10:-1k 15:-3k 20:-6k 25:-7k 30:-17k 35:-5k 40:+5k | end(42):+14k [no vision data]
+   a) [EARLY_RICH] Shadow Fiend (P1) reached 10k NW at 17:00; your team's first at 21:00
+   b) [OPP_START_RECORD] Shadow Fiend (P1) had 91 CS at late checkpoint — highest faced across your last 20 STA offlane matches (previous high 70, median 45.5); your lane diff -2.2k
+   c) [OWN_LANE_WORST] lane NW diff -2.2k at late checkpoint vs Shadow Fiend (P1); previous worst -1.4k, median +0.5k across last 20 STA offlane matches
+   d) [DEFICIT_RECOVERED] enemy's lead peaked 16.9k at 29:00 and was 1.1k at 39:00; result W (42m); final-minute lead +14.3k 
+   e) [LATE_REVERSAL] enemy held a sustained lead 28:00–33:00 (up to 19.8k); at 39:00 -1.1k; you won at 42:07; final-minute lead +14.3k
+   f) [COMEBACK_WIN] trailed by 19.8k at 33:00 and won (42m); last behind at 39:00
+
+[104] STA mid(P2) Meepo LOSS 37m | lead 5:-0k 10:-0k 15:+1k 20:+1k 25:-1k 30:-3k 35:-10k | end(37):-17k [no vision data]
+   a) [CLOSE_MOST] 10:00–34:00 close 100% of minutes; gap never held above 5.4k for 3 min; latest close 34:00 (window 25m, match 37m) 
+   b) [OPP_START_RECORD] Keeper of the Light (P2) had 86 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 81, median 48.5); your lane diff -0.4k
+   c) [ENEMY_STACKING] enemy stacked 17 camps by 20:00 vs your team 10
+
+[105] TUR mid(P2) Death Prophet LOSS 22m | lead 5:-6k 10:-16k 15:-26k 20:-35k | end(22):-40k [no vision data]
+   a) [OWN_LANE_WORST] lane NW diff -5.1k at late checkpoint vs Skywrath Mage (P2); previous worst -3.5k, median -0.0k across last 50 TUR mid matches
+   b) [EARLY_RICH] Gyrocopter (P1) reached 15k NW at 12:00; your team's first at 19:00
+
+[106] STA offlane(P3) Legion Commander LOSS 23m | lead 5:-2k 10:-6k 15:-9k 20:-17k | end(23):-16k [no vision data]
+   a) [EARLY_RICH] Wraith King (P1) reached 10k NW at 15:00; your team's first at 23:00
+   b) [OWN_LANE_WORST] lane NW diff -3.3k at late checkpoint vs Wraith King (P1); previous worst -3.1k, median -0.4k across last 50 STA offlane matches
+   c) [ENEMY_EARLY_ITEM] Wraith King (P1) bought radiance at 10:42 (typical core radiance 17:59; bucket core p5 13:46; 22% earlier than p5)
+
+[107] TUR mid(P2) Pangolier WIN 48m | lead 5:-0k 10:+14k 15:-2k 20:-6k 25:-15k 30:-18k 35:-32k 40:+10k 45:-7k | end(48):+73k [no vision data]
+   a) [COMEBACK_WIN] trailed by 42.0k at 34:00 and won (48m); last behind at 45:00
+   b) [LATE_REVERSAL] enemy held a sustained lead 32:00–38:00 (up to 42.0k); at 45:00 -6.7k; you won at 48:32; final-minute lead +72.8k
+   c) [OWN_ITEM_FASTEST] Pangolier ultimate_scepter at 6:42 — fastest across your last 25 TUR mid ultimate_scepter purchases (previous 7:22, median 14:47)
+   d) [FLIP_FOR] enemy led up to 42.0k (14:00–38:00), then your team led up to 19.0k (40:00–44:00); result W
+   e) [DEFICIT_RECOVERED] enemy's lead peaked 27.4k at 33:00 and was 6.7k at 45:00; result W (48m); final-minute lead +72.8k 
+
+[108] STA offlane(P3) Kunkka LOSS 56m | lead 5:+0k 10:-1k 15:-6k 20:-9k 25:-15k 30:-10k 35:-4k 40:-13k 45:+7k 50:+1k 55:-6k | end(56):-3k [no vision data]
+   a) [DEFICIT_RECOVERED] enemy's lead peaked 15.6k at 29:00 and was 2.9k at 53:00; result L (56m); final-minute lead -2.5k 
+   b) [EARLY_RICH] Arc Warden (P2) reached 10k NW at 17:00; your team's first at 22:00
+   c) [ENEMY_STACKING] enemy stacked 11 camps by 20:00 vs your team 1
+
+[109] TUR support(P4) Lion WIN 32m | lead 5:+0k 10:-11k 15:-23k 20:-31k 25:-24k 30:+10k | end(32):+4k [no vision data]
+   a) [COMEBACK_WIN] trailed by 33.5k at 24:00 and won (32m); last behind at 29:00
+   b) [LATE_REVERSAL] enemy held a sustained lead 8:00–28:00 (up to 33.5k); at 29:00 -11.1k; you won at 32:28; final-minute lead +3.6k
+   c) [EARLY_RICH] Necrophos (P2) reached 15k NW at 11:00; your team's first at 16:00
+
+[110] STA mid(P2) Meepo WIN 35m | lead 5:+2k 10:+1k 15:+3k 20:+3k 25:+8k 30:+18k 35:+27k | end(35):+27k [no vision data]
+   a) [ETS_FOR] until 23:00 the gap never exceeded 3.4k; from 26:00 your team held a sustained lead: 11.0k at 26:00, 22.3k at 32:00; result W (35m) 
+   b) [ENEMY_EARLY_ITEM] Arc Warden (P2) bought maelstrom at 9:52 (typical core maelstrom 15:15; bucket core p5 11:09; 12% earlier than p5)
+   c) [EARLY_RICH] Arc Warden (P2) reached 10k NW at 15:00; your team's first at 20:00
+
+[111] TUR mid(P2) Death Prophet WIN 35m | lead 5:-0k 10:-3k 15:-9k 20:-11k 25:+1k 30:+17k 35:+56k | end(35):+56k [no vision data]
+   a) [FLIP_FOR] enemy led up to 19.3k (10:00–24:00), then your team led up to 16.8k (26:00–32:00); result W
+   b) [EARLY_RICH] Dawnbreaker (P3) reached 15k NW at 12:00; your team's first at 15:00
+   c) [COMEBACK_WIN] trailed by 19.3k at 13:00 and won (35m); last behind at 24:00
+
+[112] STA offlane(P3) Batrider WIN 41m | lead 5:-0k 10:-3k 15:-5k 20:-8k 25:-12k 30:-16k 35:-3k 40:+13k | end(41):+19k [no vision data]
+   a) [ENEMY_EARLY_ITEM] Primal Beast (P3) bought black king bar at 17:09 (typical core black king bar 28:37; bucket core p5 21:28; 20% earlier than p5)
+   b) [COMEBACK_WIN] trailed by 21.2k at 29:00 and won (41m); last behind at 35:00
+   c) [LATE_REVERSAL] enemy held a sustained lead 23:00–31:00 (up to 21.2k); at 38:00 +7.3k; you won at 41:31; final-minute lead +18.9k
+
+[113] TUR support(P4) Razor WIN 34m | lead 5:-3k 10:-8k 15:-6k 20:-13k 25:+3k 30:+16k | end(34):+66k [no vision data]
+   a) [FLIP_FOR] enemy led up to 20.3k (15:00–24:00), then your team led up to 21.4k (28:00–31:00); result W
+   b) [COMEBACK_WIN] trailed by 20.3k at 19:00 and won (34m); last behind at 27:00
+   c) [EARLY_RICH] Shadow Fiend (P1) reached 15k NW at 11:00; your team's first at 14:00
+
+[114] TUR support(P5) Shadow Shaman LOSS 32m | lead 5:+1k 10:+1k 15:-6k 20:-9k 25:+17k 30:+7k | end(32):-27k [no vision data]
+   a) [LOST_FROM_AHEAD] led by 22.5k at 26:00 and lost (32m)
+   b) [FLIP_FOR] enemy led up to 14.4k (11:00–20:00), then your team led up to 22.5k (22:00–29:00); result L
+   c) [ENEMY_EARLY_ITEM] Magnus (P1) bought blink at 3:47 (typical core blink 7:30; bucket core p5 4:27; 15% earlier than p5)
+
+[115] STA offlane(P3) Legion Commander LOSS 27m | lead 5:-2k 10:-3k 15:-8k 20:-18k 25:-26k | end(27):-29k [no vision data]
+   a) [SMOKES] enemy used Smoke 6 times (2.18/10min) vs your team 1; 27m
+   b) [EARLY_RICH] Arc Warden (P2) reached 10k NW at 17:00; your team's first at 21:00
+   c) [ENEMY_STACKING] enemy stacked 7 camps by 20:00 vs your team 1
+
+[116] STA mid(P2) Tinker WIN 44m | lead 5:-1k 10:-3k 15:-6k 20:-13k 25:-17k 30:-15k 35:-9k 40:-5k | end(44):+11k [no vision data]
+   a) [COMEBACK_WIN] trailed by 18.6k at 27:00 and won (44m); last behind at 41:00
+   b) [LATE_REVERSAL] enemy held a sustained lead 12:00–33:00 (up to 18.6k); at 41:00 -3.1k; you won at 44:09; final-minute lead +11.1k
+   c) [DEFICIT_RECOVERED] enemy's lead peaked 18.6k at 27:00 and was 3.1k at 41:00; result W (44m); final-minute lead +11.1k +noconv: enemy led 12:00–33:00 with no net structure change
+
+[117] TUR support(P5) Zeus WIN 22m | lead 5:+1k 10:-6k 15:-10k 20:+11k | end(22):+30k [no vision data]
+   a) [COMEBACK_WIN] trailed by 19.4k at 14:00 and won (22m); last behind at 17:00
+   b) [EARLY_RICH] Skywrath Mage (P2) reached 15k NW at 12:00; your team's first at 16:00
+   c) [DEFICIT_RECOVERED] enemy's lead peaked 19.4k at 14:00 and was gone (+4.8k for your side) at 19:00; result W (22m); final-minute lead +29.5k 
+
+[118] STA mid(P2) Necrophos WIN 42m | lead 5:-1k 10:-2k 15:-2k 20:-7k 25:-13k 30:-15k 35:-5k 40:-5k | end(42):+3k [no vision data]
+   a) [ENEMY_STACKING] enemy stacked 7 camps by 20:00 vs your team 1
+   b) [COMEBACK_WIN] trailed by 17.9k at 31:00 and won (42m); last behind at 39:00
+   c) [EARLY_RICH] Tinker (P2) reached 10k NW at 18:00; your team's first at 22:00
+
+[119] TUR offlane(P3) Slark LOSS 34m | lead 5:-6k 10:-6k 15:-13k 20:-14k 25:-10k 30:+10k | end(34):+24k [no vision data]
+   a) [FLIP_FOR] enemy led up to 26.3k (1:00–26:00), then your team led up to 20.2k (29:00–31:00); result L
+   b) [LOST_FROM_AHEAD] led by 20.2k at 31:00 and lost (34m)
+   c) [ENEMY_EARLY_ITEM] Windranger (P2) bought maelstrom at 4:03 (typical core maelstrom 7:50; bucket core p5 5:07; 21% earlier than p5)
+   d) [EARLY_RICH] Windranger (P2) reached 15k NW at 12:00; your team's first at 15:00

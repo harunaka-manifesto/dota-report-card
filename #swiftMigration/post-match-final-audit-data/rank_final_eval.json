@@ -1,0 +1,30 @@
+{
+ "final_contract": {
+  "n": 107,
+  "top1": 80.4,
+  "pairwise": 83.0,
+  "top3": 80.0,
+  "suppressed": 61
+ },
+ "bands_only_same_guard": {
+  "n": 107,
+  "top1": 54.2,
+  "pairwise": 64.0,
+  "top3": 73.3,
+  "suppressed": 61
+ },
+ "exceedance_only_same_guard": {
+  "n": 107,
+  "top1": 57.0,
+  "pairwise": 65.5,
+  "top3": 73.3,
+  "suppressed": 61
+ },
+ "random_same_guard": {
+  "top1": 43.3,
+  "pairwise": 50.0,
+  "top3": 75.1
+ },
+ "gold_top_card_suppressed_by_guard": 1,
+ "suppressed_cards_that_gold_marked_duplicate": "52/61"
+}

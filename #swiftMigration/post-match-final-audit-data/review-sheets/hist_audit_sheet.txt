@@ -1,0 +1,186 @@
+
+######## OWN_LANE_VS_USUAL total 320
+OWN_LANE_VS_USUAL:0 b2 | STA support Windranger LOSS 41m
+    [OWN_LANE_BEST] lane NW diff +1.5k at late checkpoint vs Oracle (P5); previous best +1.0k, median -0.1k across last 23 STA support matches
+OWN_LANE_VS_USUAL:1 b2 | TUR carry Wraith King WIN 29m
+    [OWN_LANE_BEST] lane NW diff +4.3k at late checkpoint vs Tidehunter (P3); previous best +3.8k, median +0.2k across last 50 TUR carry matches
+OWN_LANE_VS_USUAL:2 b2 | STA carry Faceless Void LOSS 56m
+    [OWN_LANE_WORST] lane NW diff -1.8k at late checkpoint vs Razor (P3); previous worst -1.4k, median +0.3k across last 50 STA carry matches
+OWN_LANE_VS_USUAL:3 b3 | TUR mid Necrophos LOSS 29m
+    [OWN_LANE_WORST] lane NW diff -5.4k at late checkpoint vs Invoker (P2); previous worst -5.0k, median +0.9k across last 50 TUR mid matches
+OWN_LANE_VS_USUAL:4 b3 | STA carry Lone Druid WIN 28m
+    [OWN_LANE_BEST] lane NW diff +2.8k at late checkpoint vs Pudge (P3); previous best +2.0k, median +0.6k across last 50 STA carry matches
+OWN_LANE_VS_USUAL:5 b1 | TUR support Lina WIN 29m
+    [OWN_LANE_BEST] lane NW diff +2.4k at late checkpoint vs Pudge (P5); previous best +2.2k, median +0.1k across last 28 TUR support matches
+OWN_LANE_VS_USUAL:6 b1 | STA carry Morphling LOSS 29m
+    [OWN_LANE_WORST] lane NW diff -1.6k at late checkpoint vs Axe (P3); previous worst -1.5k, median +0.4k across last 26 STA carry matches
+OWN_LANE_VS_USUAL:7 b3 | TUR support Lion WIN 29m
+    [OWN_LANE_WORST] lane NW diff -3.5k at late checkpoint vs Razor (P4); previous worst -3.2k, median +0.2k across last 50 TUR support matches
+OWN_LANE_VS_USUAL:8 b3 | STA carry Sven WIN 26m
+    [OWN_LANE_BEST] lane NW diff +2.6k at late checkpoint vs Nature's Prophet (P3); previous best +2.4k, median +0.7k across last 50 STA carry matches
+OWN_LANE_VS_USUAL:9 b1 | TUR support Enigma WIN 23m
+    [OWN_LANE_BEST] lane NW diff +2.3k at late checkpoint vs Lich (P5); previous best +2.0k, median +0.3k across last 28 TUR support matches
+OWN_LANE_VS_USUAL:10 b3 | STA carry Slark LOSS 58m
+    [OWN_LANE_WORST] lane NW diff -2.3k at late checkpoint vs Wraith King (P3); previous worst -1.8k, median -0.3k across last 50 STA carry matches
+OWN_LANE_VS_USUAL:11 b1 | TUR support Pudge WIN 22m
+    [OWN_LANE_WORST] lane NW diff -2.2k at late checkpoint vs Ogre Magi (P5); previous worst -1.9k, median -0.1k across last 44 TUR support matches
+OWN_LANE_VS_USUAL:12 b1 | STA mid Kunkka WIN 42m
+    [OWN_LANE_BEST] lane NW diff +1.9k at late checkpoint vs Tiny (P2); previous best +1.3k, median +0.3k across last 20 STA mid matches
+OWN_LANE_VS_USUAL:13 b1 | TUR support Mirana WIN 27m
+    [OWN_LANE_BEST] lane NW diff +2.6k at late checkpoint vs Shadow Shaman (P4); previous best +1.9k, median -0.2k across last 25 TUR support matches
+OWN_LANE_VS_USUAL:14 b1 | STA offlane Mars WIN 54m
+    [OWN_LANE_WORST] lane NW diff -1.5k at late checkpoint vs Juggernaut (P1); previous worst -1.5k, median -0.3k across last 21 STA offlane matches
+OWN_LANE_VS_USUAL:15 b2 | TUR mid Zeus WIN 23m
+    [OWN_LANE_WORST] lane NW diff -5.1k at late checkpoint vs Riki (P2); previous worst -3.6k, median +0.1k across last 42 TUR mid matches
+OWN_LANE_VS_USUAL:16 b3 | STA support Doom LOSS 55m
+    [OWN_LANE_BEST] lane NW diff +1.8k at late checkpoint vs Pudge (P5); previous best +1.6k, median -0.2k across last 50 STA support matches
+OWN_LANE_VS_USUAL:17 b3 | TUR mid Magnus LOSS 25m
+    [OWN_LANE_BEST] lane NW diff +4.5k at late checkpoint vs Witch Doctor (P2); previous best +3.4k, median +0.3k across last 50 TUR mid matches
+OWN_LANE_VS_USUAL:18 b1 | STA mid Puck LOSS 41m
+    [OWN_LANE_WORST] lane NW diff -2.2k at late checkpoint vs Necrophos (P2); previous worst -1.8k, median +0.2k across last 36 STA mid matches
+OWN_LANE_VS_USUAL:19 b3 | TUR support Lion LOSS 28m
+    [OWN_LANE_WORST] lane NW diff -3.2k at late checkpoint vs Tiny (P4); previous worst -2.8k, median +0.1k across last 50 TUR support matches
+OWN_LANE_VS_USUAL:20 b3 | STA carry Sven WIN 34m
+    [OWN_LANE_BEST] lane NW diff +2.8k at late checkpoint vs Broodmother (P3); previous best +1.7k, median -0.2k across last 50 STA carry matches
+OWN_LANE_VS_USUAL:21 b1 | TUR offlane Necrophos LOSS 28m
+    [OWN_LANE_BEST] lane NW diff +3.9k at late checkpoint vs Luna (P1); previous best +3.5k, median +0.1k across last 27 TUR offlane matches
+OWN_LANE_VS_USUAL:22 b2 | STA carry Templar Assassin LOSS 31m
+    [OWN_LANE_WORST] lane NW diff -1.6k at late checkpoint vs Pudge (P3); previous worst -1.4k, median +0.2k across last 50 STA carry matches
+OWN_LANE_VS_USUAL:23 b1 | TUR carry Enigma WIN 31m
+    [OWN_LANE_WORST] lane NW diff -3.9k at late checkpoint vs Magnus (P3); previous worst -3.4k, median +0.3k across last 27 TUR carry matches
+OWN_LANE_VS_USUAL:24 b1 | STA carry Spectre WIN 59m
+    [OWN_LANE_BEST] lane NW diff +1.4k at late checkpoint vs Tidehunter (P3); previous best +1.3k, median -0.5k across last 37 STA carry matches
+OWN_LANE_VS_USUAL:25 b3 | TUR support Ogre Magi WIN 27m
+    [OWN_LANE_BEST] lane NW diff +4.0k at late checkpoint vs Leshrac (P5); previous best +2.8k, median -0.0k across last 50 TUR support matches
+OWN_LANE_VS_USUAL:26 b1 | STA offlane Mars LOSS 37m
+    [OWN_LANE_WORST] lane NW diff -1.8k at late checkpoint vs Slark (P1); previous worst -1.7k, median -0.4k across last 42 STA offlane matches
+OWN_LANE_VS_USUAL:27 b2 | TUR mid Weaver WIN 21m
+    [OWN_LANE_WORST] lane NW diff -4.5k at late checkpoint vs Necrophos (P2); previous worst -4.4k, median +1.4k across last 21 TUR mid matches
+OWN_LANE_VS_USUAL:28 b2 | STA carry Slark WIN 36m
+    [OWN_LANE_BEST] lane NW diff +2.1k at late checkpoint vs Magnus (P3); previous best +1.2k, median -0.1k across last 50 STA carry matches
+OWN_LANE_VS_USUAL:29 b2 | TUR support Wraith King WIN 28m
+    [OWN_LANE_BEST] lane NW diff +3.4k at late checkpoint vs Lion (P5); previous best +3.2k, median -0.1k across last 47 TUR support matches
+
+######## OWN_ITEM_VS_HISTORY total 321
+OWN_ITEM_VS_HISTORY:0 b2 | STA support Zeus WIN 64m
+    [OWN_ITEM_FASTEST] Zeus ultimate_scepter at 18:50 — fastest across your last 50 STA support ultimate_scepter purchases (previous 20:02, median 30:30)
+OWN_ITEM_VS_HISTORY:1 b1 | TUR mid Nature's Prophet LOSS 22m
+    [OWN_ITEM_FASTEST] Nature's Prophet black_king_bar at 10:08 — fastest across your last 37 TUR mid black_king_bar purchases (previous 10:34, median 17:32)
+OWN_ITEM_VS_HISTORY:2 b2 | STA carry Vengeful Spirit LOSS 43m
+    [OWN_ITEM_SLOWEST] Vengeful Spirit black_king_bar at 40:02 — slowest across your last 31 STA carry black_king_bar purchases (previous 37:21, median 27:33)
+OWN_ITEM_VS_HISTORY:3 b3 | TUR support Silencer WIN 42m
+    [OWN_ITEM_SLOWEST] Silencer ultimate_scepter at 34:41 — slowest across your last 50 TUR support ultimate_scepter purchases (previous 25:46, median 14:30)
+OWN_ITEM_VS_HISTORY:4 b1 | STA support Zeus LOSS 40m
+    [OWN_ITEM_FASTEST] Zeus ultimate_scepter at 21:02 — fastest across your last 25 STA support ultimate_scepter purchases (previous 22:30, median 33:53)
+OWN_ITEM_VS_HISTORY:5 b1 | TUR offlane Razor LOSS 24m
+    [OWN_ITEM_FASTEST] Razor black_king_bar at 12:38 — fastest across your last 48 TUR offlane black_king_bar purchases (previous 13:33, median 19:32)
+OWN_ITEM_VS_HISTORY:6 b2 | STA mid Keeper of the Light LOSS 70m
+    [OWN_ITEM_SLOWEST] Keeper of the Light ultimate_scepter at 55:49 — slowest across your last 50 STA mid ultimate_scepter purchases (previous 55:02, median 29:38)
+OWN_ITEM_VS_HISTORY:7 b3 | TUR support Slark WIN 27m
+    [OWN_ITEM_SLOWEST] Slark blink at 21:41 — slowest across your last 50 TUR support blink purchases (previous 16:16, median 8:19)
+OWN_ITEM_VS_HISTORY:8 b2 | STA support Pudge WIN 53m
+    [OWN_ITEM_FASTEST] Pudge blink at 14:10 — fastest across your last 26 STA support blink purchases (previous 16:54, median 21:29)
+OWN_ITEM_VS_HISTORY:9 b1 | TUR support Pudge WIN 34m
+    [OWN_ITEM_FASTEST] Pudge blink at 5:03 — fastest across your last 29 TUR support blink purchases (previous 5:22, median 8:51)
+OWN_ITEM_VS_HISTORY:10 b2 | STA mid Lina LOSS 54m
+    [OWN_ITEM_SLOWEST] Lina black_king_bar at 45:04 — slowest across your last 38 STA mid black_king_bar purchases (previous 42:22, median 27:35)
+OWN_ITEM_VS_HISTORY:11 b1 | TUR carry Faceless Void WIN 33m
+    [OWN_ITEM_SLOWEST] Faceless Void blink at 31:50 — slowest across your last 31 TUR carry blink purchases (previous 31:34, median 16:56)
+OWN_ITEM_VS_HISTORY:12 b1 | STA offlane Nature's Prophet LOSS 44m
+    [OWN_ITEM_FASTEST] Nature's Prophet maelstrom at 10:36 — fastest across your last 36 STA offlane maelstrom purchases (previous 10:50, median 15:05)
+OWN_ITEM_VS_HISTORY:13 b1 | TUR support Witch Doctor LOSS 27m
+    [OWN_ITEM_FASTEST] Witch Doctor ultimate_scepter at 9:29 — fastest across your last 46 TUR support ultimate_scepter purchases (previous 10:13, median 16:19)
+OWN_ITEM_VS_HISTORY:14 b1 | STA offlane Pudge WIN 49m
+    [OWN_ITEM_SLOWEST] Pudge black_king_bar at 40:19 — slowest across your last 23 STA offlane black_king_bar purchases (previous 38:32, median 27:51)
+OWN_ITEM_VS_HISTORY:15 b1 | TUR mid Death Prophet LOSS 28m
+    [OWN_ITEM_SLOWEST] Death Prophet black_king_bar at 25:19 — slowest across your last 26 TUR mid black_king_bar purchases (previous 24:46, median 14:43)
+OWN_ITEM_VS_HISTORY:16 b1 | STA mid Meepo WIN 29m
+    [OWN_ITEM_FASTEST] Meepo ultimate_scepter at 20:00 — fastest across your last 25 STA mid ultimate_scepter purchases (previous 20:08, median 33:11)
+OWN_ITEM_VS_HISTORY:17 b1 | TUR support Pudge LOSS 21m
+    [OWN_ITEM_FASTEST] Pudge blink at 5:38 — fastest across your last 21 TUR support blink purchases (previous 5:58, median 9:15)
+OWN_ITEM_VS_HISTORY:18 b2 | STA carry Luna WIN 57m
+    [OWN_ITEM_SLOWEST] Luna black_king_bar at 46:07 — slowest across your last 30 STA carry black_king_bar purchases (previous 36:53, median 31:20)
+OWN_ITEM_VS_HISTORY:19 b2 | TUR mid Legion Commander LOSS 40m
+    [OWN_ITEM_SLOWEST] Legion Commander ultimate_scepter at 29:05 — slowest across your last 28 TUR mid ultimate_scepter purchases (previous 20:01, median 9:44)
+OWN_ITEM_VS_HISTORY:20 b1 | STA carry Spectre WIN 33m
+    [OWN_ITEM_FASTEST] Spectre radiance at 15:43 — fastest across your last 20 STA carry radiance purchases (previous 15:49, median 20:04)
+OWN_ITEM_VS_HISTORY:21 b2 | TUR support Tusk WIN 16m
+    [OWN_ITEM_FASTEST] Tusk ultimate_scepter at 10:44 — fastest across your last 26 TUR support ultimate_scepter purchases (previous 12:43, median 16:30)
+OWN_ITEM_VS_HISTORY:22 b2 | STA offlane Axe LOSS 70m
+    [OWN_ITEM_SLOWEST] Axe ultimate_scepter at 61:25 — slowest across your last 22 STA offlane ultimate_scepter purchases (previous 40:18, median 22:26)
+OWN_ITEM_VS_HISTORY:23 b3 | TUR support Sniper LOSS 20m
+    [OWN_ITEM_SLOWEST] Sniper blink at 14:12 — slowest across your last 50 TUR support blink purchases (previous 12:20, median 8:19)
+OWN_ITEM_VS_HISTORY:24 b2 | STA carry Phantom Lancer LOSS 55m
+    [OWN_ITEM_FASTEST] Phantom Lancer manta at 14:45 — fastest across your last 50 STA carry manta purchases (previous 15:20, median 20:12)
+OWN_ITEM_VS_HISTORY:25 b2 | TUR support Pudge LOSS 26m
+    [OWN_ITEM_FASTEST] Pudge blink at 2:54 — fastest across your last 31 TUR support blink purchases (previous 4:26, median 8:21)
+OWN_ITEM_VS_HISTORY:26 b2 | STA carry Spectre LOSS 34m
+    [OWN_ITEM_SLOWEST] Spectre radiance at 28:03 — slowest across your last 50 STA carry radiance purchases (previous 26:36, median 19:39)
+OWN_ITEM_VS_HISTORY:27 b3 | TUR support Kunkka WIN 36m
+    [OWN_ITEM_SLOWEST] Kunkka ultimate_scepter at 31:11 — slowest across your last 50 TUR support ultimate_scepter purchases (previous 26:20, median 18:42)
+OWN_ITEM_VS_HISTORY:28 b2 | STA support Pudge WIN 31m
+    [OWN_ITEM_FASTEST] Pudge blink at 11:05 — fastest across your last 23 STA support blink purchases (previous 14:41, median 19:12)
+OWN_ITEM_VS_HISTORY:29 b1 | TUR carry Phantom Assassin LOSS 22m
+    [OWN_ITEM_FASTEST] Phantom Assassin desolator at 7:23 — fastest across your last 34 TUR carry desolator purchases (previous 7:24, median 9:24)
+
+######## OPP_START_VS_HISTORY total 149
+OPP_START_VS_HISTORY:0 b1 | STA offlane Legion Commander LOSS 38m
+    [OPP_START_RECORD] Terrorblade (P1) had 62 CS at late checkpoint — highest faced across your last 44 STA offlane matches (previous high 61, median 44.0); your lane diff -0.5k
+OPP_START_VS_HISTORY:1 b3 | TUR support Queen of Pain LOSS 27m
+    [OPP_START_RECORD] Pudge (P4) had 8346 NW at late checkpoint — highest faced across your last 50 TUR support matches (previous high 6063, median 3640.5); your lane diff -3.7k
+OPP_START_VS_HISTORY:2 b3 | STA mid Death Prophet WIN 40m
+    [OPP_START_RECORD] Alchemist (P2) had 75 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 68, median 45.0); your lane diff +0.9k
+OPP_START_VS_HISTORY:3 b3 | TUR carry Gyrocopter LOSS 39m
+    [OPP_START_RECORD] Doom (P3) had 49 CS at late checkpoint — highest faced across your last 50 TUR carry matches (previous high 46, median 24.0); your lane diff +0.3k
+OPP_START_VS_HISTORY:4 b2 | STA support Shadow Shaman LOSS 41m
+    [OPP_START_RECORD] Techies (P4) had 3265 NW at late checkpoint — highest faced across your last 27 STA support matches (previous high 3050, median 2336); your lane diff -0.1k
+OPP_START_VS_HISTORY:5 b3 | TUR carry Phantom Assassin LOSS 20m
+    [OPP_START_RECORD] Necrophos (P3) had 49 CS at late checkpoint — highest faced across your last 50 TUR carry matches (previous high 46, median 30.5); your lane diff -5.0k
+OPP_START_VS_HISTORY:6 b2 | STA offlane Legion Commander WIN 55m
+    [OPP_START_RECORD] Lone Druid (P1) had 77 CS at late checkpoint — highest faced across your last 45 STA offlane matches (previous high 72, median 44); your lane diff -1.2k
+OPP_START_VS_HISTORY:7 b2 | TUR mid Sniper LOSS 16m
+    [OPP_START_RECORD] Keeper of the Light (P2) had 66 CS at late checkpoint — highest faced across your last 25 TUR mid matches (previous high 52, median 32); your lane diff -4.7k
+OPP_START_VS_HISTORY:8 b3 | STA mid Invoker LOSS 39m
+    [OPP_START_RECORD] Beastmaster (P2) had 88 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 84, median 53.0); your lane diff -2.3k
+OPP_START_VS_HISTORY:9 b2 | TUR carry Phantom Assassin LOSS 19m
+    [OPP_START_RECORD] Kunkka (P3) had 45 CS at late checkpoint — highest faced across your last 26 TUR carry matches (previous high 37, median 26.5); your lane diff -1.5k
+OPP_START_VS_HISTORY:10 b2 | STA offlane Doom LOSS 38m
+    [OPP_START_RECORD] Shadow Fiend (P1) had 63 CS at late checkpoint — highest faced across your last 50 STA offlane matches (previous high 62, median 44.5); your lane diff -2.9k
+OPP_START_VS_HISTORY:11 b3 | TUR support Pudge LOSS 34m
+    [OPP_START_RECORD] Pangolier (P4) had 7896 NW at late checkpoint — highest faced across your last 50 TUR support matches (previous high 7170, median 4342.5); your lane diff -2.5k
+OPP_START_VS_HISTORY:12 b3 | STA mid Clinkz WIN 66m
+    [OPP_START_RECORD] Tinker (P2) had 77 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 63, median 39.5); your lane diff +0.2k
+OPP_START_VS_HISTORY:13 b2 | TUR mid Pudge WIN 39m
+    [OPP_START_RECORD] Tinker (P2) had 60 CS at late checkpoint — highest faced across your last 38 TUR mid matches (previous high 51, median 32.5); your lane diff -0.7k
+OPP_START_VS_HISTORY:14 b3 | STA support Lion WIN 52m
+    [OPP_START_RECORD] Undying (P5) had 3104 NW at late checkpoint — highest faced across your last 50 STA support matches (previous high 2997, median 2036.5); your lane diff -1.7k
+OPP_START_VS_HISTORY:15 b3 | TUR support Pudge WIN 23m
+    [OPP_START_RECORD] Bounty Hunter (P4) had 7334 NW at late checkpoint — highest faced across your last 50 TUR support matches (previous high 6561, median 4311.5); your lane diff -1.3k
+OPP_START_VS_HISTORY:16 b2 | STA mid Broodmother WIN 43m
+    [OPP_START_RECORD] Nature's Prophet (P2) had 92 CS at late checkpoint — highest faced across your last 20 STA mid matches (previous high 65, median 41.5); your lane diff -0.3k
+OPP_START_VS_HISTORY:17 b2 | TUR offlane Timbersaw WIN 16m
+    [OPP_START_RECORD] Sven (P1) had 63 CS at late checkpoint — highest faced across your last 24 TUR offlane matches (previous high 59, median 35.5); your lane diff +2.3k
+OPP_START_VS_HISTORY:18 b3 | STA offlane Slardar WIN 53m
+    [OPP_START_RECORD] Luna (P1) had 79 CS at late checkpoint — highest faced across your last 50 STA offlane matches (previous high 77, median 45.0); your lane diff -2.8k
+OPP_START_VS_HISTORY:19 b3 | TUR support Enigma LOSS 23m
+    [OPP_START_RECORD] Io (P5) had 7091 NW at late checkpoint — highest faced across your last 50 TUR support matches (previous high 6565, median 3830.5); your lane diff -2.9k
+OPP_START_VS_HISTORY:20 b3 | STA carry Lifestealer WIN 58m
+    [OPP_START_RECORD] Axe (P3) had 69 CS at late checkpoint — highest faced across your last 50 STA carry matches (previous high 60, median 37.0); your lane diff +0.4k
+OPP_START_VS_HISTORY:21 b2 | TUR support Lina WIN 17m
+    [OPP_START_RECORD] Shadow Shaman (P5) had 6063 NW at late checkpoint — highest faced across your last 50 TUR support matches (previous high 5990, median 3640.5); your lane diff +3.0k
+OPP_START_VS_HISTORY:22 b3 | STA mid Lina LOSS 37m
+    [OPP_START_RECORD] Keeper of the Light (P2) had 99 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 81, median 43.0); your lane diff -0.7k
+OPP_START_VS_HISTORY:23 b1 | TUR support Pudge WIN 31m
+    [OPP_START_RECORD] Jakiro (P4) had 5931 NW at late checkpoint — highest faced across your last 34 TUR support matches (previous high 5794, median 3983.0); your lane diff -1.5k
+OPP_START_VS_HISTORY:24 b2 | STA support Nature's Prophet LOSS 46m
+    [OPP_START_RECORD] Skywrath Mage (P4) had 3234 NW at late checkpoint — highest faced across your last 48 STA support matches (previous high 3091, median 2058.0); your lane diff -1.1k
+OPP_START_VS_HISTORY:25 b2 | TUR support Undying LOSS 21m
+    [OPP_START_RECORD] Techies (P4) had 6824 NW at late checkpoint — highest faced across your last 47 TUR support matches (previous high 5931, median 4020); your lane diff -2.1k
+OPP_START_VS_HISTORY:26 b3 | STA support Venomancer LOSS 43m
+    [OPP_START_RECORD] Mirana (P5) had 3000 NW at late checkpoint — highest faced across your last 50 STA support matches (previous high 2877, median 2159.5); your lane diff -0.1k
+OPP_START_VS_HISTORY:27 b3 | TUR mid Legion Commander WIN 16m
+    [OPP_START_RECORD] Lina (P2) had 71 CS at late checkpoint — highest faced across your last 50 TUR mid matches (previous high 59, median 30.0); your lane diff -4.4k
+OPP_START_VS_HISTORY:28 b3 | STA mid Death Prophet LOSS 28m
+    [OPP_START_RECORD] Keeper of the Light (P2) had 80 CS at late checkpoint — highest faced across your last 50 STA mid matches (previous high 75, median 45.5); your lane diff -2.0k
+OPP_START_VS_HISTORY:29 b2 | TUR mid Windranger LOSS 40m
+    [OPP_START_RECORD] Kunkka (P2) had 55 CS at late checkpoint — highest faced across your last 29 TUR mid matches (previous high 45, median 29); your lane diff -3.8k
