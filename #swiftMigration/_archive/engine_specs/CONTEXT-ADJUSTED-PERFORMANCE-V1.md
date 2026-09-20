@@ -2,15 +2,15 @@
 
 Status: SSOT-READY PROPOSAL (promote on owner sign-off)
 Date: 2026-09-20
-Supersedes as the leading hypothesis: [Lane Difficulty Research V1](LANE-DIFFICULTY-RESEARCH-V1.md)
-Reproduction code: [`lane-difficulty-research-code/pass2/`](lane-difficulty-research-code/pass2/)
+Supersedes as the leading hypothesis: [Lane Difficulty Research V1](../research/LANE-DIFFICULTY-RESEARCH-V1.md)
+Reproduction code: [`lane-difficulty-research-code/pass2/`](../scripts/lane-difficulty-research-code/pass2)
 
 Related contracts:
-[Role Metrics & Personal Baselines V1](role-metrics-and-baselines-v1.md) ·
-[Role Resolution & Correction V1](role-resolution-and-correction-v1.md) ·
-[Progress & History V1](progress-and-history-v1.md) ·
+[Role Metrics & Personal Baselines V1](../superseded_ssots/role-metrics-and-baselines-v1.md) ·
+[Role Resolution & Correction V1](../superseded_ssots/role-resolution-and-correction-v1.md) ·
+[Progress & History V1](../superseded_ssots/progress-and-history-v1.md) ·
 [Post-Match Insights SSOT](POST-MATCH-INSIGHTS-SSOT.md) ·
-[Post-Match Intelligence Feasibility V1](post-match-intelligence-feasibility-v1.md)
+[Post-Match Intelligence Feasibility V1](../research/post-match-intelligence-feasibility-v1.md)
 
 ### Evidence classes used below
 

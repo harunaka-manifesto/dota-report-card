@@ -2,8 +2,8 @@
 
 **Status:** Final recommendation for the three open areas in `POST-MATCH-INSIGHT-DECISIONS-V1.md` (§22.1–22.3). Also closes the vision-reconstruction holdout (§22.4) and adds evidence for the Smoke→Kills lock (§22.5).
 **Date:** 2026-09-16
-**Machine-readable contract:** [`post-match-final-audit-data/final-candidate-contract.json`](post-match-final-audit-data/final-candidate-contract.json)
-**Evidence folder:** [`post-match-final-audit-data/`](post-match-final-audit-data/) — results JSON, every rating file, review sheets, and research code.
+**Machine-readable contract:** [`post-match-final-audit-data/final-candidate-contract.json`](../generated_data/post-match-final-audit-data/final-candidate-contract.json)
+**Evidence folder:** [`post-match-final-audit-data/`](../generated_data/post-match-final-audit-data) — results JSON, every rating file, review sheets, and research code.
 **Workspace (git-ignored):** `.local/stratz-probe/final-audit-2026-09-16/`
 
 Rendered sentences in this report are diagnostic research renderings, not product copy.

@@ -4,7 +4,7 @@
 **Area:** Deterministic post-match insight engine
 **Status:** FINAL — NORMATIVE. Owner-locked 2026-09-17.
 **Contract version:** `post-match-insights 1.0.0`
-**Machine-readable companion:** [`post-match-final-audit-data/final-candidate-contract.json`](post-match-final-audit-data/final-candidate-contract.json)
+**Machine-readable companion:** [`post-match-final-audit-data/final-candidate-contract.json`](../generated_data/post-match-final-audit-data/final-candidate-contract.json)
 
 ---
 

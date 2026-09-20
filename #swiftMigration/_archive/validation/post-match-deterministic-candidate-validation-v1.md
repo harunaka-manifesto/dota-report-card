@@ -2,9 +2,9 @@
 
 Status: RESEARCH VALIDATION — candidate menu for product selection (non-normative)
 Date: 2026-09-15
-Primary source of truth: [Post-Match Intelligence Deep Research V2](post-match-intelligence-deep-research-v2.md)
+Primary source of truth: [Post-Match Intelligence Deep Research V2](../research/post-match-intelligence-deep-research-v2.md)
 Scope: the four locked families — Lane Story · Match Turning Point · Hidden Enemy Activity · Item Execution & Power Spikes
-Machine-readable outputs: [`post-match-candidate-validation-data/`](post-match-candidate-validation-data/)
+Machine-readable outputs: [`post-match-candidate-validation-data/`](../generated_data/post-match-candidate-validation-data)
 (`candidate-results.csv`, `candidate-definitions.json`, `candidate-examples.json`, `final_metrics.json`, `patch_v3_results.json`, `research-code/`)
 Provider calls this phase: STRATZ 274 (4 history lists, 112 core batches, 65 reports batches, 90 playback, 3 diagnostics). OpenDota 0.
 Identifiers: none. Accounts appear only as `acct0…acct8`.

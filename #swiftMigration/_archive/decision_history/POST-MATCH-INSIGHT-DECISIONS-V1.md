@@ -1,6 +1,6 @@
 # Post-Match Insight Decisions V1
 
-> **This document is retained as the decision history. For normative implementation behavior, see [`POST-MATCH-INSIGHTS-SSOT.md`](POST-MATCH-INSIGHTS-SSOT.md).** All owner calls are resolved (2026-09-17, §26). Where text below says "pending", "recommendation" or "owner confirmation", read it as the historical state at the time; §26 records the final outcome.
+> **This document is retained as the decision history. For normative implementation behavior, see [`POST-MATCH-INSIGHTS-SSOT.md`](../engine_specs/POST-MATCH-INSIGHTS-SSOT.md).** All owner calls are resolved (2026-09-17, §26). Where text below says "pending", "recommendation" or "owner confirmation", read it as the historical state at the time; §26 records the final outcome.
 
 **Project:** Dota Tracker  
 **Area:** Deterministic Post-Match Intelligence  

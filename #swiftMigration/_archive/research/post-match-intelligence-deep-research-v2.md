@@ -8,7 +8,7 @@ Provider calls this phase: **STRATZ 122** (114 HTTP 200; 8 deliberate complexity
 Probe workspace (git-ignored): `.local/stratz-probe/deep-research-2026-09-14/` (`raw/`, `ledger.jsonl`, `schema_types.json`, analysis scripts)
 Identifiers: none in this document. Other players' account IDs were never requested.
 
-> **Corrections, 2026-09-15** (from [Deterministic Candidate Validation V1](post-match-deterministic-candidate-validation-v1.md)):
+> **Corrections, 2026-09-15** (from [Deterministic Candidate Validation V1](../validation/post-match-deterministic-candidate-validation-v1.md)):
 > 1. `inventoryReport` snapshots are **empty** (every item slot null) for current-patch matches — 0 of 7,780 player rows in a new 778-match pull; only 26% of rows in the older corpus had items. The "held ≥ 5 minutes" rule in §4.7 cannot be computed; held-at-end is determined from final inventory instead.
 > 2. On 2026-09-15 STRATZ returned `playbackData: null` (no error) for **every** requested match, including a match that returned playback the previous day. Playback availability is not stable; every playback-dependent card must be optional.
 > 3. "Bought, Never Activated" (§4.7) is far rarer than assumed: for active items still in the main inventory at match end and held ≥10 min (Standard) / ≥6 min (Turbo), only 0.5% / 1.2% were never activated, dominated by Mjollnir (passive value). It no longer qualifies as P0.

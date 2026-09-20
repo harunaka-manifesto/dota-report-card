@@ -20,8 +20,8 @@ Identifiers in this document: none (aggregate statistics only)
 
 This document does not change any locked rule. Where it touches metric
 definitions, baselines, Personal Bests, eligibility, or lifecycle, the
-[Role Metrics & Personal Baselines V1](role-metrics-and-baselines-v1.md) and
-[Match Lifecycle V1](match-lifecycle-v1.md) SSOTs remain authoritative. Anything
+[Role Metrics & Personal Baselines V1](../superseded_ssots/role-metrics-and-baselines-v1.md) and
+[Match Lifecycle V1](../superseded_ssots/match-lifecycle-v1.md) SSOTs remain authoritative. Anything
 here that would alter those contracts is labelled as a proposal requiring an
 owner decision.
 

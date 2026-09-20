@@ -6,12 +6,12 @@ Scope: whether and how to contextualise laning metrics by lane difficulty
 Audience: product, design, backend, coding agents
 
 Related contracts:
-[Role Metrics & Personal Baselines V1](role-metrics-and-baselines-v1.md) ·
-[Role Resolution & Correction V1](role-resolution-and-correction-v1.md) ·
-[Post-Match Insights SSOT](POST-MATCH-INSIGHTS-SSOT.md) ·
+[Role Metrics & Personal Baselines V1](../superseded_ssots/role-metrics-and-baselines-v1.md) ·
+[Role Resolution & Correction V1](../superseded_ssots/role-resolution-and-correction-v1.md) ·
+[Post-Match Insights SSOT](../engine_specs/POST-MATCH-INSIGHTS-SSOT.md) ·
 [Post-Match Intelligence Feasibility V1](post-match-intelligence-feasibility-v1.md)
 
-Reproduction code: [`lane-difficulty-research-code/`](lane-difficulty-research-code/)
+Reproduction code: [`lane-difficulty-research-code/`](../scripts/lane-difficulty-research-code)
 
 ---
 

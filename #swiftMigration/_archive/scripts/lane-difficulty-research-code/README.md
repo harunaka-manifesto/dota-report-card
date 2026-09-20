@@ -1,6 +1,6 @@
 # Lane Difficulty research code
 
-Read-only analysis behind [`../LANE-DIFFICULTY-RESEARCH-V1.md`](../LANE-DIFFICULTY-RESEARCH-V1.md).
+Read-only analysis behind [`../LANE-DIFFICULTY-RESEARCH-V1.md`](../../research/LANE-DIFFICULTY-RESEARCH-V1.md).
 No STRATZ calls: everything reads cached corpora already under `.local/`.
 
 Run from a working directory containing the generated `.pkl` files, in order:
