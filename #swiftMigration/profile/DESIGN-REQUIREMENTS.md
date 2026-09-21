@@ -160,6 +160,8 @@ Open Profile → Share card → preview → share
 | **Private provider profile** | Refusal state with the fix. **No fabricated content.** |
 | **Turbo vs Standard** | One bucket at a time; toggle only when both have ≥ 30 matches. |
 | **Profile just changed** | A change event exists; the ledger has something new. |
+| **History still being imported** | The Profile stays usable on what it already has. It **MUST NOT** blank out, show a full-page loader, or visibly rewrite claims match by match. Any hint that more is coming is quiet and optional. |
+| **Identity available, current form not yet** | Common and correct. Who the player is needs less evidence than what they are doing lately, so the identity sections can be complete while "Right now" is still hidden. Not a degraded Profile. |
 | **Post-correction rebuild** | Aggregates recomputing; superseded change events marked as updated. |
 | **Share unavailable** | No confirmed identity line → hero-card fallback only. |
 
@@ -179,6 +181,10 @@ Switch mode bucket · switch role (hero section) · open a claim's evidence · p
 - **MUST** keep stable identity and current form visibly distinct — **every Right-now item carries its window label**; identity does not need one on its face.
 - **MUST NOT** put a decline on the first screen. Down-runs are never first and never shared.
 - **MUST** make every visible claim tappable to its evidence. A claim without receipts does not ship.
+- **MUST NOT** imply a claim covers the player's whole career when it was computed over part of it. The evidence panel states what it actually looked at.
+- **MUST NOT** show missing history as a low value or a zero. A hero not played is not a hero played badly, and a period we cannot see is not a quiet period.
+- **MUST NOT** block, blank or reload the Profile while more history is arriving, or rewrite claims one match at a time as it lands.
+- **MUST NOT** use backend vocabulary to explain coverage. "How far back we can see" is a player-facing idea; "backfill" is not.
 - **MUST NOT** present Specialist as better than Flexible, or vice versa. They are equal identities.
 - **MUST NOT** fill empty claim slots with win rate, KDA, or any filler fact. **The moment the empty slots get filled with stats, this becomes the fourth stats site.**
 - **MUST NOT** rotate claims for novelty. A claim holds its slot; motion comes from Right now and Changes.

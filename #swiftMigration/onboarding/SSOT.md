@@ -5,6 +5,14 @@
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) — identity model, lifecycle, baselines, entitlement, rebuild semantics. This document does not redefine them.
 **Boundary:** Ongoing account management after the first successful link (Steam switching, subscription changes, deletion, recovery flows) belongs to [`../settings_account/SSOT.md`](../settings_account/SSOT.md).
 
+## Architecture dependencies
+
+| Concern | Authoritative source |
+|---|---|
+| Evidence classes and readiness | [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A |
+| Historical acquisition, the replay horizon, coverage | [`../architecture/MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §3.4, §8 |
+| Bootstrap is not a tier-conditional pipeline | [ADR 0004](../architecture/decisions/0004-entitlement-above-the-data-foundation.md) |
+
 ---
 
 ## 1. Purpose
@@ -102,6 +110,23 @@ Operational retry/provider states and product data states are separate. A tempor
 
 These outcomes exist **per mode**. `Standard = READY` with `Turbo = NO_MATCHES_FOUND` is a valid, usable account state.
 
+### 5.5 Bootstrap evidence classes
+
+Bootstrap acquires matches in two evidence classes, and they do **not** have the same reach ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A).
+
+| # | Rule |
+|---|---|
+| BE-1 | Bootstrap MUST acquire **summary-class** evidence for every match in scope. This is what makes the account non-empty, gives every match a hero, result, role and scoreboard, and lets History and Home work immediately. |
+| BE-2 | Bootstrap MUST attempt **replay-class** evidence for matches in scope. It is **not optional**: fourteen of the twenty role metrics are replay-class, so a summary-only bootstrap produces a history in which most metrics are N/A, no baseline reaches its 5-prior gate, and no trend reaches its 10-point window. |
+| BE-3 | **The fresh-match enrichment route cannot serve the whole bootstrap window.** Bootstrap looks back up to 90 days; replay availability for on-demand processing expires earlier, and its exact edge is **UNKNOWN** ([`../architecture/PROVIDER-CAPABILITIES-AND-ROUTING.md`](../architecture/PROVIDER-CAPABILITIES-AND-ROUTING.md) §7.3, open test T-2). Replay-class evidence for older bootstrap matches must come from a historical source that already holds it. |
+| BE-4 | Bootstrap matches for which replay-class evidence cannot be obtained are `REPLAY_UNAVAILABLE`. They are **valid, complete, viewable matches** with their replay-class metrics as N/A. They are **not** failures and **not** coverage-blocking on their own. |
+| BE-5 | Replay-class coverage gaps in the bootstrap window MUST be recorded as **coverage gaps** (§5.3, §4A.6), which is what `READY_WITH_GAPS` exists to express. They MUST NOT be silently treated as "the player did not play then". |
+| BE-6 | Bootstrap acquisition is **identical for Free and Pro**. Pro may extend historical **depth** beyond the Free window; it does not change how the Free window is acquired ([ADR 0004](../architecture/decisions/0004-entitlement-above-the-data-foundation.md)). |
+| BE-7 | Bootstrap is **background, low-priority work**. It MUST NOT delay any user's newly completed match, including the bootstrapping user's own ([`../architecture/SCALING-RELIABILITY-AND-OPERATIONS.md`](../architecture/SCALING-RELIABILITY-AND-OPERATIONS.md) §2). |
+| BE-8 | Bootstrap MUST NOT block onboarding. The product is navigable throughout (§6). |
+
+**Product consequence worth stating plainly:** a freshly bootstrapped account may reach baseline readiness at **different times for different metrics**, because the six summary-class metrics have complete coverage while the fourteen replay-class ones may not. This is an honest outcome shown through the existing baseline-building states — it is not a defect, and it MUST NOT be explained to the user in backend terms.
+
 ---
 
 ## 6. Cold-start presentation semantics
@@ -116,6 +141,8 @@ These outcomes exist **per mode**. `Standard = READY` with `Turbo = NO_MATCHES_F
 A newly played match may arrive while its mode's bootstrap is still unsettled. **The match MUST NOT be hidden.**
 
 The product MAY immediately expose: match identity, hero, result, effective role when available, raw metrics, and other non-history-dependent facts.
+
+> This rule is the original instance of the pattern now generalised as the two-stage contract in [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A.3: **show the facts immediately, defer the history-dependent finalization.** A live match during an unsettled bootstrap has *two* reasons to defer — its own evidence may still be arriving, and its mode's history has not settled. Both must be satisfied before it finalizes.
 
 History-dependent progression for that match MUST wait until **that mode's** Free bootstrap reaches terminal state. History-dependent includes at minimum: baseline comparison, adjusted expectation and performance state, PB determination, achievement consequences, and history-dependent celebration.
 
@@ -256,6 +283,12 @@ A freshly bootstrapped account (30 per bucket) will frequently **not** reach the
 - No role or goals questionnaire exists.
 - Temporary provider failure is never presented as a permanent empty-state conclusion.
 - The Free-history entitlement boundary is anchored to the original Steam-link date and never shifts forward.
+- Bootstrap acquires both summary-class and replay-class evidence; it is not a summary-only import.
+- Replay-class coverage gaps in the bootstrap window are recorded as coverage gaps, never as matches not played.
+- A bootstrap match without replay-class evidence is a valid match with N/A replay metrics, never a failure.
+- Bootstrap acquisition is identical for Free and Pro; Pro extends depth, not mechanism.
+- Bootstrap never delays any user's newly completed match, including the bootstrapping user's own.
+- Metric-level baseline readiness may legitimately differ by evidence class, and is never explained to the user in backend terms.
 
 ---
 
@@ -281,6 +314,11 @@ A freshly bootstrapped account (30 per bucket) will frequently **not** reach the
 - [ ] Bootstrap survives force quit, logout, restart and reinstall without duplicating or resetting.
 - [ ] Bootstrap is terminal only after both searches finish and every discovered match is processed or terminally failed.
 - [ ] All six product-level bootstrap outcomes are representable, per mode.
+- [ ] Bootstrap attempts replay-class evidence, not only summary-class.
+- [ ] A bootstrap match whose replay evidence is unobtainable is viewable, counted, and shows N/A — not zero — for its replay-derived metrics.
+- [ ] Replay-coverage gaps inside the bootstrap window produce `READY_WITH_GAPS`, not `NO_MATCHES_FOUND`.
+- [ ] A Free and a Pro account bootstrap the same Free window by the same mechanism.
+- [ ] A large bootstrap never delays a freshly completed match for any user.
 - [ ] A live match during unsettled bootstrap shows its facts and defers only its history-dependent state, for its own mode.
 - [ ] No per-match notification/PB/celebration is emitted for imported matches.
 - [ ] Exactly one idempotent bootstrap-completion event exists, and it is not queued for later permission grants.

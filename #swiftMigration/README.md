@@ -13,9 +13,13 @@ It is organised by **product feature**. Pick the feature you are working on, ope
 | Design a screen | that feature's `DESIGN-REQUIREMENTS.md` |
 | Know the exact product rule behind something | that feature's `SSOT.md` |
 | Know a rule that applies everywhere | [`app_foundation/SSOT.md`](app_foundation/SSOT.md) |
-| Understand *why* a decision was made | [`_archive/`](_archive/) |
+| Know **how the system behaves** — data, providers, readiness, storage, scale | [`architecture/README.md`](architecture/README.md) |
+| Know what data a screen needs before it can render | [`architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) |
+| Understand *why* a decision was made | [`architecture/decisions/`](architecture/decisions/) for architecture · [`_archive/`](_archive/) for product |
 
 Every feature folder contains exactly two files. There are no "final-v2", "latest" or "research" documents next to them.
+
+`architecture/` is the one non-feature folder. It answers *how the system behaves*, where the feature folders answer *what the product means*. Start at its [`README.md`](architecture/README.md).
 
 ---
 
@@ -31,6 +35,14 @@ Every feature folder contains exactly two files. There are no "final-v2", "lates
 | **Progress** | Per-role, per-mode, per-metric progression: observation series, rolling baselines, trend states and Personal Bests. | [SSOT](progress/SSOT.md) | [Design](progress/DESIGN-REQUIREMENTS.md) |
 | **Profile** | Who the player is over the long term: identity line, role map, hero identity, durable claims with receipts, and what's moving right now. | [SSOT](profile/SSOT.md) | [Design](profile/DESIGN-REQUIREMENTS.md) |
 | **Settings, Account & Subscription** | Ongoing account management: auth methods, Steam switching, data-access recovery, subscription lifecycle, notifications and deletion. | [SSOT](settings_account/SSOT.md) | [Design](settings_account/DESIGN-REQUIREMENTS.md) |
+
+### Architecture
+
+| Area | One sentence | Entry point |
+|---|---|---|
+| **Architecture** | How match data is acquired, stored, enriched, analysed and delivered — and the rules that keep that shape stable while providers, scale and monetisation change. | [`architecture/README.md`](architecture/README.md) |
+
+Read it before changing ingestion, analysis, Match Lifecycle, Home, History, Match Detail, Profile, Progress, role resolution, social/following, or subscription behaviour. It carries a short **rules-for-agents** section that is worth reading in full.
 
 ### Not a feature folder
 
@@ -48,6 +60,8 @@ When two documents disagree, resolve in this order:
 4. The feature's **`DESIGN-REQUIREMENTS.md`** (a projection of its SSOT — never an independent source of truth).
 5. Anything in **`_archive/`** — evidence only, never active product truth.
 
+**`architecture/` is not in that ladder**, because it answers a different question. On *product meaning* the SSOTs win; on *system behaviour* the architecture documents win. If architecture appears to make a locked product rule technically impossible, do not silently pick one — see [`architecture/README.md`](architecture/README.md) §5.
+
 A feature SSOT may **summarise** a foundation rule for readability and link to it. It may **never** define a competing version. If it does, that is a defect: fix it, don't pick one silently.
 
 Design Requirements are derived from the SSOT. Every content item, state and flow in a design brief traces to its feature SSOT, to explicit owner direction, or to a clearly labelled open question.
@@ -64,6 +78,8 @@ They live in `_archive/` because a designer never needs them and because their p
 ---
 
 ## Where the history lives
+
+Architecture rationale lives in [`architecture/decisions/`](architecture/decisions/) (immutable ADRs) and architecture evidence in [`architecture/evidence/`](architecture/evidence/). Product history lives here:
 
 ```text
 _archive/

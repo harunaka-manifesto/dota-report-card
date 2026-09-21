@@ -6,6 +6,19 @@
 
 Keywords MUST, MUST NOT, SHOULD, MAY are used as in RFC 2119.
 
+## Architecture dependencies
+
+This document defines what the product *means*. [`../architecture/`](../architecture/) defines how the system *behaves*. Neither overrules the other; see [`../architecture/README.md`](../architecture/README.md) §5 for the conflict rule.
+
+| This document's section | Depends on |
+|---|---|
+| §4 Match lifecycle, §4A Evidence readiness | [`MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §3, §5 |
+| §5 Role resolution timing | [`MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §6 |
+| §7 Metric registry — evidence class per metric | [`FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3 |
+| §10.1 Population reference data | [`PROVIDER-CAPABILITIES-AND-ROUTING.md`](../architecture/PROVIDER-CAPABILITIES-AND-ROUTING.md) §4.3 |
+| §13 Free / Pro entitlement | [ADR 0004](../architecture/decisions/0004-entitlement-above-the-data-foundation.md) |
+| §14 Rebuild and versioning | [`DATA-CONTRACTS-AND-VERSIONING.md`](../architecture/DATA-CONTRACTS-AND-VERSIONING.md) §7 |
+
 ---
 
 ## 1. Product purpose and philosophy
@@ -110,6 +123,8 @@ Describes only the latest discovery attempt. It never summarises or overwrites k
 
 ### 4.3 Per-match lifecycle state
 
+Lifecycle state answers **"how far has this match's processing got for this player?"**. It is distinct from *evidence readiness* (§4A), which answers **"what do we know about this match yet?"**. The two are orthogonal, and §4A.3 maps them.
+
 | State | Product meaning |
 |---|---|
 | `WAITING_FOR_PROVIDER` | Sufficient validated source truth is not yet available for the next unresolved stage. |
@@ -122,6 +137,8 @@ Describes only the latest discovery attempt. It never summarises or overwrites k
 `RETRYING` is **attempt metadata** layered on `WAITING_FOR_PROVIDER` or `ANALYZING`. It is never a durable state.
 
 There is **no partial-READY state**. A READY match MAY have legitimate N/A metrics and MAY be progression-ineligible.
+
+**`UNAVAILABLE` is narrow.** It means trustworthy *summary-class* source truth never arrived, remained invalid, or was withdrawn. A match we can see but cannot analyse deeply is **not** UNAVAILABLE — it is a READY match whose replay-derived metrics are N/A. See §4A.4.
 
 ### 4.4 Ordering and idempotency
 
@@ -162,6 +179,59 @@ Orthogonal to lifecycle state.
 
 ---
 
+## 4A. Evidence readiness
+
+A match's data does not arrive all at once. Summary-class evidence — the final scoreboard and match header — exists within minutes. Replay-class evidence — everything derived from the match timeline — arrives later, and sometimes never.
+
+This section defines the product's vocabulary for that. The mechanics are owned by [`../architecture/MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §3, which this section MUST NOT contradict or restate in provider terms.
+
+### 4A.1 Evidence classes
+
+| Class | What it covers |
+|---|---|
+| **Summary-class** | Result, duration, mode, heroes, K/D/A, LH/DN, GPM/XPM, net worth, final damage / tower damage / healing, final items, ability build, draft, tower and barracks end state — for all ten players. |
+| **Replay-class** | Everything derived from the match timeline: per-minute resource series, team advantage curves, lane assignment and lane metrics, item timings, item usage, wards and dewards, camp stacking, objectives with timestamps, teamfights, kill and death context, runes, damage breakdowns, positional data. |
+
+Which of the 20 role metrics fall in which class is defined once, in [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3. **Fourteen of the twenty are replay-class**, as are all insight card types.
+
+### 4A.2 States
+
+```text
+EvidenceState : DISCOVERED | SUMMARY_READY | REPLAY_PENDING | REPLAY_READY | REPLAY_UNAVAILABLE
+```
+
+Evidence readiness is a property of the **match**, shared by every tracked player in it. Lifecycle state (§4.3) is a property of **our processing for one player**. `REPLAY_READY` and `REPLAY_UNAVAILABLE` are both terminal.
+
+### 4A.3 The two-stage contract (normative)
+
+1. A match becomes a real, openable thing in the product at **`SUMMARY_READY`**. Basic match usefulness **MUST NOT** wait for replay-derived analysis.
+2. **Stage 1** — from `SUMMARY_READY` onward — may show **non-history-dependent facts**: match identity, hero, result, mode, duration, the full ten-player scoreboard, draft, items, effective role, and raw achieved values for any metric whose evidence already exists.
+3. **Stage 2** is the single **finalization point**, reached when evidence is terminal **and** deterministic analysis has run and persisted. Only at finalization does the product produce: baseline comparisons, context-adjusted expectations, performance states, matchup context, PB determination and `NEW_PB` events, progression observations, insight cards, and any READY notification.
+4. There is therefore still exactly **one** finalization point and **no partial-READY state**. Adding a second would create a path to duplicate celebration, which §12.2 forbids.
+5. This is the same rule §6.1 of [`../onboarding/SSOT.md`](../onboarding/SSOT.md) already locked for live matches during an unsettled bootstrap, generalised: **show the facts immediately, defer the history-dependent finalization.**
+6. The UI **adds** deep content when readiness advances. It **MUST NOT** replace or invalidate Stage-1 content already on screen.
+
+### 4A.4 When replay-class evidence never arrives
+
+`REPLAY_UNAVAILABLE` is **terminal and explainable, not a failure**.
+
+1. Deterministic analysis still runs, on summary-class evidence. The match still reaches `READY`.
+2. Replay-class metrics are **N/A with a reason** (§8). Never zero, never omitted silently, never substituted.
+3. The match MAY still be progression-eligible. `MATCH_ELIGIBLE != EVERY_METRIC_AVAILABLE` (§6.3) is exactly this case.
+4. It is **not** lifecycle `UNAVAILABLE` (§4.3).
+5. It is **not** `ACTION_REQUIRED`. Nothing the user can press makes a non-existent replay exist.
+6. Replay-dependent surfaces show a **terminal, settled** state — stated once, plainly. **Never an endless spinner, never an apology, never an error.**
+
+### 4A.5 Vocabulary boundary (normative)
+
+Product copy **MUST NOT** contain provider or pipeline vocabulary: no provider names, no "parse", "parser", "replay parse", "quota", "rate limit", "queue" or "job". Users are told about capabilities and outcomes, and **MUST NOT** need to understand the two stages to use the app. The mapping from internal state to user-facing meaning is in [`../architecture/MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §9.
+
+### 4A.6 Historical coverage
+
+Backfill is **not** a per-match state. How far back our knowledge reaches is a property of the account, tracked per evidence class, with known gaps recorded. A surface making a claim about a long period **MUST** be able to state what its claim is based on, and **MUST NOT** imply complete lifetime evidence when only a subset has replay-class coverage.
+
+---
+
 ## 5. Role resolution and correction
 
 ### 5.1 The four roles
@@ -177,6 +247,8 @@ A match that is *structurally unprocessable* (invalid identity, missing required
 1. A successfully classified match receives the classifier's best role **immediately**.
 2. Role-dependent processing proceeds without waiting for user confirmation.
 3. A low-confidence result is still a real role, used immediately.
+
+**"Immediately" means at `SUMMARY_READY`** (§4A.2). The classifier MUST be able to produce an effective role from summary-class evidence alone. A fresh match MUST NOT wait on any provider's native position or role label — making role resolution a single-provider dependency is forbidden ([ADR 0001](../architecture/decisions/0001-provider-independent-hybrid-ingestion.md)).
 
 Evidence hierarchy: **primary** — lane/early-map position, farm priority, lane relationship; **supporting** — support behaviours (vision, stacks, consumables); **weak** — hero identity, as a prior or tiebreaker only.
 
@@ -201,6 +273,13 @@ latest user role assertion > classifier output
 - A later assertion replaces the earlier one.
 - Classifier reruns MAY update detected role, confidence and version metadata, but MUST NEVER overwrite a user-asserted effective role.
 - With no assertion, classifier output is the source of effective role; a rerun that changes it follows the correction rebuild contract.
+
+**Reruns across evidence readiness.** The classifier MAY re-run when evidence advances from summary-class to replay-class, using the richer evidence profile.
+
+- A rerun **before** the match finalizes (§4A.3) is **not a correction**: no history has been written, so nothing is rebuilt, nothing is retracted, and no notification is emitted.
+- A rerun **after** finalization is passive provider enrichment and is governed by §4.7: it MUST NOT silently mutate the finalized snapshot.
+- A rerun MUST NEVER overwrite a user assertion, at any readiness.
+- The low-confidence prompt (§5.3) SHOULD be raised from the classifier's **final** run, so the user is not asked twice about the same match.
 
 ### 5.5 Persistent correction access
 
@@ -303,6 +382,7 @@ Notes that carry product meaning:
 - **Raw ≠ comparison.** The product may display a raw amount (ward count, healing amount, dead seconds, player damage) while the baseline, delta and PB use the declared comparison value (per-10 rate, share, rate). A UI MUST NOT invent its own conversion.
 - Every metric definition is **versioned**. Any change to formula, inputs, boundary, denominator, direction, zero/N/A rule, normalization, or PB basis requires a new metric version or an explicit migration.
 - A Dota patch alone does not reset a role history.
+- **Each metric has an evidence class** (§4A.1). Six of the twenty are summary-class; the other fourteen are replay-class. The per-metric classification is defined once, in [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3, and MUST NOT be restated here. A replay-class metric on a `REPLAY_UNAVAILABLE` match is **N/A with a reason** (§4A.4), which means it never enters a baseline, trend or PB history (§8).
 
 ### 7.3 Metric limitations (product-level honesty)
 
@@ -526,6 +606,8 @@ A **PB** is the current best qualifying observation for an eligible role metric 
 
 V1 exposes only the **current** PB per eligible role metric. There is no user-facing lineage of every historical PB. V1 has Personal Best only — no Season Best.
 
+**PB readiness follows the metric's evidence class** (§4A.1). A PB on a summary-class metric MUST NOT wait for replay-derived evidence that its metric does not use. A PB on a replay-class metric is simply not evaluated for a match whose replay evidence never arrived, because that observation is N/A (§4A.4) and N/A never enters PB history (§8). Both are evaluated at the same single finalization point (§4A.3) — the evidence class determines *whether* there is an observation, not *when* the verdict is produced.
+
 ### 12.2 Celebrations
 
 - A newly processed eligible match MAY emit **one** `NEW_PB` event, only when it genuinely beats the canonical entitled record immediately preceding that match.
@@ -558,6 +640,8 @@ For Free-entitled history: ongoing tracking, role-specific metric histories, can
 
 Free achievement **qualification continues** underneath the visible cap. The cap is an entitlement/display boundary, not a claim that earning stops.
 
+**Reports and recaps (normative).** Any periodic report — monthly, weekly, or profile-level — MUST be generated from persisted canonical data. It MUST NOT launch a provider backfill from a screen render; historical acquisition is background, low-priority work. A report MUST state the coverage it is based on (§4A.6) and MUST NOT imply complete evidence for a period that is only partly covered.
+
 ### 13.3 Directional Pro value
 
 Deeper historical context and recovered backfill; deeper monthly reporting; approximately year-scale pattern analysis; uncapped achievement levels from active Pro history; weekly recaps; challenges/missions; richer factual Match Detail highlights; medals; cosmetic or motivational experiences; additional premium synthesis.
@@ -569,10 +653,11 @@ This list is **non-exhaustive and not a permanent feature matrix**. Exact catalo
 1. Free and Pro use identical processing, role resolution, metric definitions, eligibility, baseline/PB calculation and methodology for any match in the applicable entitled history.
 2. Pro MUST NOT be framed as more accurate, more trustworthy, or a superior measurement engine.
 3. There is no separate Pro progression algorithm.
-4. Pro activation and expiry are **atomic**: PBs, baselines, trends, records, achievement display and historical views switch together at one coherent checkpoint. No progressively mixed state is exposed.
-5. Pro-acquired historical data is retained and reused on resubscription; retention does not keep it active in a Free-derived state.
-6. A Free match remains a truthful Free-history record whether or not the user is subscribed.
-7. An entitlement reduction MUST NOT masquerade as performance change. A trend may legitimately become `Insufficient History`; that is not `Declining`.
+4. **There is no separate Pro data pipeline either.** Free and Pro use the same fundamental ingestion architecture. Separate free/paid ingestion pipelines, separate free/paid match models, and tier-conditional acquisition depth or freshness on the fresh-match path are all forbidden. Entitlement is applied **above** persisted analysis results — never below them. Fresh-match ingestion MUST be viable as a system even if every launched user is free; it MUST NOT depend on conversion revenue existing. Pro MAY request greater historical **depth**, which is more work of the same kind at the same priority class, not a different pipeline. See [ADR 0004](../architecture/decisions/0004-entitlement-above-the-data-foundation.md).
+5. Pro activation and expiry are **atomic**: PBs, baselines, trends, records, achievement display and historical views switch together at one coherent checkpoint. No progressively mixed state is exposed.
+6. Pro-acquired historical data is retained and reused on resubscription; retention does not keep it active in a Free-derived state.
+7. A Free match remains a truthful Free-history record whether or not the user is subscribed.
+8. An entitlement reduction MUST NOT masquerade as performance change. A trend may legitimately become `Insufficient History`; that is not `Declining`.
 
 ---
 
@@ -628,8 +713,12 @@ These distinctions must survive any visual redesign.
 | **READY** | Complete factual processing. Not necessarily progression eligibility, and not necessarily numeric values for every metric. |
 | **Effective role** | The role shown to the player, with Edit Role available while retained data supports correction. |
 | **Difficult / Typical / Favourable matchup** | On-paper drafted opponent context. **Not** a statement about what happened in the lane, and never a reason for a result. |
-| **Free vs Pro** | Different history depth, synthesis and engagement — never different measurement accuracy. |
+| **Free vs Pro** | Different history depth, synthesis and engagement — never different measurement accuracy, and never a different data pipeline. |
 | **Progression** | A set of role/metric signals. Never a single overall player judgment. |
+| **Summary-class / replay-class evidence** | What we know about a match from the final scoreboard, versus what needs the match timeline. §4A.1. |
+| **Stage 1 / Stage 2** | The factual match record available from `SUMMARY_READY`, versus the single history-dependent finalization. §4A.3. **Internal vocabulary — never user-facing.** |
+| **`REPLAY_UNAVAILABLE`** | Replay-derived evidence will never arrive for this match. Terminal and explained. **Not** a failure, **not** `UNAVAILABLE`, **not** retryable. §4A.4. |
+| **Historical coverage** | How far back our knowledge of an account reaches, per evidence class, with known gaps. §4A.6. |
 
 ---
 
@@ -644,6 +733,9 @@ No surface may:
 - attribute anything to a teammate, or imply teammate quality;
 - imply a difficult matchup caused a loss, or soften a below-expectation verdict because of context;
 - render N/A as zero, or an unavailable state as a neutral/typical default;
+- treat missing replay-derived evidence as zero, or leave a replay-dependent section in a permanent pending state;
+- name a data provider, or use pipeline vocabulary, in user-facing copy;
+- promise "instant analysis", "analysis available immediately", or any numeric latency figure not backed by production monitoring;
 - imply causality where only sequence is observed;
 - claim rank, bracket, MMR, behaviour score, or any provider-derived impact/award score;
 - invent content to keep a chart, card or slot populated;
@@ -657,6 +749,8 @@ No surface may:
 | Concern | Authoritative owner |
 |---|---|
 | Identity, lifecycle, roles, metrics, baselines, context adjustment, trend, PB, entitlement, rebuild, vocabulary | **This document** |
+| System behaviour: ingestion, evidence-readiness mechanics, providers, storage, versioning mechanics, queues, degradation, scale, cost | [`../architecture/`](../architecture/) — starts at its [`README.md`](../architecture/README.md) |
+| Which evidence class a metric, feature or UI block requires | [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) |
 | First-time account creation, Steam linking, bootstrap, cold-start data outcomes | `onboarding/SSOT.md` |
 | Daily entry surface, Today's Focus/Matches, role summaries, Last 5 | `home/SSOT.md` |
 | Chronological match browsing and navigation | `history/SSOT.md` |
@@ -681,6 +775,15 @@ No surface may:
 - [ ] A later same-bucket match cannot finalize ahead of an older unresolved predecessor; the other bucket is never blocked.
 - [ ] READY has no partial variant and may coexist with N/A metrics or `NONE(reason)`.
 - [ ] A provider/source failure is never relabelled as progression ineligibility to obtain READY.
+- [ ] A match is openable and shows its factual record from `SUMMARY_READY`, without waiting for replay-derived analysis.
+- [ ] Exactly one finalization point exists per match; no comparison, performance state, PB event, progression observation or insight card is produced before it.
+- [ ] A `REPLAY_UNAVAILABLE` match reaches READY with its replay-class metrics as N/A, and is never shown as `UNAVAILABLE` or `ACTION_REQUIRED`.
+- [ ] No replay-dependent surface renders an endless spinner; every pending deep section has a terminal outcome.
+- [ ] Advancing readiness adds deep content; it never replaces or invalidates Stage-1 content already on screen.
+- [ ] No product copy anywhere contains a provider name or pipeline vocabulary.
+- [ ] The classifier produces an effective role from summary-class evidence alone; no fresh match waits on a provider's native role label.
+- [ ] A classifier rerun before finalization writes no history, emits no notification, and is not treated as a correction.
+- [ ] Free and Pro share one ingestion pipeline and one match model; entitlement is applied above persisted analysis results.
 - [ ] Automatic retries are bounded; manual Retry resumes the earliest unresolved stage without duplicating the match or its effects.
 - [ ] A historical Match Detail never silently compares against today's baseline.
 - [ ] A missing baseline produces an explicit baseline-building state, never a synthetic comparison.
@@ -704,14 +807,14 @@ No surface may:
 
 Intentionally not locked. These MUST NOT be filled by inference merely to make a screen or implementation look complete.
 
-- Exact Pro historical acquisition mechanism, lifetime ceiling and coverage economics.
+- Exact Pro historical **depth** ceiling and coverage economics. (The acquisition *mechanism* is architecture: [`../architecture/MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §8. How deep Pro goes remains an open product decision.)
 - Account-recovery verification, fraud controls, support escalation, ownership disputes; any account-merge product.
 - Achievement XP curves, milestone and qualification definitions beyond the Free Level-5 display cap.
 - Challenge / mission mechanics, recommendation design, medals, cosmetics and motivational systems.
 - Exact Pro feature catalog, pricing, packaging, paywall UI, and report content/cadence beyond the locked Free monthly direction.
 - Classifier scoring weights, calibration and low-confidence thresholds.
 - Per-metric meaningful-movement thresholds for Improving/Stable/Declining (subject to the hero-mix noise floor constraint in §11.1).
-- Implementation policy: retry backoff, storage, API/provider query shape, pagination, queueing, OS scheduling.
+- Product-level implementation policy: exact retry backoff and attempt counts, OS scheduling, client caching strategy. (Backend ingestion, storage, provider query shape, pagination and queueing are **no longer deferred** — they are owned by [`../architecture/`](../architecture/). They remain outside this document's authority, but they are now decided.)
 - Career-history visualization and higher-order findings/report eligibility.
 - All UI layout, navigation, copy, animation and visual treatment.
 

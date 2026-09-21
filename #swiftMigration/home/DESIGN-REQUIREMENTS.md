@@ -134,6 +134,9 @@ Open Home
 | **Not linked** | Match-dependent areas in a dedicated unlinked state, with a route to connect. Never zeros. |
 | **Bootstrap unsettled** | Usable; history-dependent content pending per mode. |
 | **Data access blocked** | Recovery route surfaced; existing data still shown truthfully. |
+| **Match just finished, deeper read still coming** | **The normal case right after a session.** The match is acknowledged and openable; the deeper read is on its way. Any indication of that is quiet and subordinate to the match itself. **Not a warning, not a spinner, not a headline.** |
+| **Deeper read lands while Home is open** | Home reflects the finished state without the player doing anything. No jarring reshuffle. |
+| **Match will never get a deeper read** | An ordinary match on Home. Nothing unusual shown; the explanation belongs on Match Detail. |
 | **Match processing** | One or more of today's matches not yet READY. Needs a resolvable, non-alarming treatment. |
 | **Match needs action** | `ACTION_REQUIRED` — a Retry must be reachable. |
 | **Match unavailable** | Data never arrived. Visible, retryable, not hidden. |
@@ -154,6 +157,9 @@ Refresh · open a match · open History · open a role's progression · open the
 
 ## 10. Experience requirements / guardrails
 
+- **MUST** acknowledge a just-finished match as soon as its basics exist, and **MUST** let the player open it. Home is where they come straight after a game; making them wait for the deeper read is the one thing this page cannot do.
+- **MUST NOT** use backend vocabulary anywhere. The player never learns what a replay parse is, and Home is where that temptation is strongest.
+- **MUST NOT** treat a pending or permanently absent deeper read as a warning, an error or a failed match.
 - **MUST NOT** display a composite role trend, role score, grade, rating or percentage. Only metric-level states exist. If four Carry metrics disagree, that disagreement is the truth.
 - **MUST NOT** present win/loss as personal performance, or as the headline of a match entry's "how it went".
 - **MUST NOT** merge Standard and Turbo inside a role summary. Chronological lists (today, last 5) may mix modes if each entry shows its own.

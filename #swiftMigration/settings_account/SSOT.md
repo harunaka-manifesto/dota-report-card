@@ -5,6 +5,15 @@
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md).
 **Boundary:** first-time authentication, first Steam link and initial bootstrap belong to [`../onboarding/SSOT.md`](../onboarding/SSOT.md).
 
+## Architecture dependencies
+
+| Concern | Authoritative source |
+|---|---|
+| Entitlement sits above the data and analysis foundation | [ADR 0004](../architecture/decisions/0004-entitlement-above-the-data-foundation.md) |
+| Historical acquisition for Pro depth | [`../architecture/MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §8 |
+| Rebuilds read stored data, not providers | [`../architecture/DATA-CONTRACTS-AND-VERSIONING.md`](../architecture/DATA-CONTRACTS-AND-VERSIONING.md) §7 |
+| Data-access-blocked degradation | [`../architecture/SCALING-RELIABILITY-AND-OPERATIONS.md`](../architecture/SCALING-RELIABILITY-AND-OPERATIONS.md) §6 |
+
 ---
 
 ## 1. Purpose
@@ -88,6 +97,37 @@ Recovery re-anchors to the **original Steam-link date** and attempts to restore 
 ---
 
 ## 5. Subscription
+
+### 5.0 What subscription does and does not change (normative)
+
+Entitlement is applied **above** the data and analysis foundation. It decides what an already-computed result is shown to a user, and how much history is exposed. It never reaches below that line.
+
+**Pro MAY change:**
+
+- how much historical depth is acquired and exposed;
+- which already-computed analyses are visible;
+- reports, recaps, achievement display depth, challenges and other synthesis;
+- engagement and presentation.
+
+**Pro MUST NOT change:**
+
+- how a fresh match is detected, acquired or enriched;
+- the canonical match model;
+- feature extraction, metric definitions, eligibility, baselines, PB calculation or any methodology;
+- the freshness or completeness of a fresh match's evidence;
+- measurement accuracy, in any form or framing.
+
+**Structural rules:**
+
+| # | Rule |
+|---|---|
+| E-1 | There is **one** ingestion pipeline and **one** match model. Separate free/paid pipelines or match models are forbidden. |
+| E-2 | Fresh-match ingestion MUST be viable as a system **even if every launched user is free**. It MUST NOT depend on conversion revenue existing. |
+| E-3 | Pro historical depth is **more work of the same kind**, scheduled at the normal historical priority class. It does not jump the queue, and it never delays any user's fresh match — including a Pro user's own. |
+| E-4 | Entitlement transitions are **rebuilds over stored data**, not re-acquisitions. A full provider fetch happens only when retained coverage is genuinely incomplete. |
+| E-5 | A future genuinely expensive Pro-only capability needs its own justification against [ADR 0004](../architecture/decisions/0004-entitlement-above-the-data-foundation.md). It may not simply assume paid users are served differently at the acquisition layer. |
+
+This is the architectural expression of the locked product rule that Free and Pro use identical processing and methodology ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §2.9, §13.4).
 
 ### 5.1 Purchase
 
@@ -203,6 +243,10 @@ Recovery MUST NOT automatically merge app accounts, Steam histories, subscriptio
 - A successful switch starts a 90-day cooldown; failed attempts do not reset it.
 - Switching is blocked during a non-terminal import or rebuild, and blocked when the target is owned by another account.
 - No analytical state crosses a Steam switch, and old-profile state is never shown for the new identity.
+- Free and Pro share one ingestion pipeline and one match model; entitlement is applied above persisted analysis results.
+- Fresh-match ingestion is viable with zero paying users and never depends on conversion revenue.
+- Pro historical acquisition runs at the normal historical priority and never delays any user's fresh match.
+- Entitlement transitions rebuild from stored data; a full refetch happens only when retained coverage is genuinely incomplete.
 - Pro entitlement belongs to the app account; Pro-derived **history** is scoped to the Steam profile.
 - Pro activation and deactivation are atomic; no partially rebuilt state is exposed.
 - Losing Steam data access never revokes Pro or wipes Pro history.
@@ -225,6 +269,9 @@ Recovery MUST NOT automatically merge app accounts, Steam histories, subscriptio
 - [ ] A Pro user after a switch sees the new profile's Free/bootstrap state first, never the old profile's analytics.
 - [ ] Data-access loss retains the link, retains Pro, blocks acquisition, and shows recovery guidance.
 - [ ] Recovery re-anchors to the original Steam-link date and records unrecoverable gaps.
+- [ ] No code path acquires, enriches or measures a fresh match differently for a Free and a Pro user.
+- [ ] A Pro historical import never delays a freshly completed match, for that user or any other.
+- [ ] Pro activation, expiry and resubscription rebuild from stored data without a provider refetch when coverage is complete.
 - [ ] Pro cannot be purchased without a linked Steam ID.
 - [ ] Pro activation and expiry switch all dependent state together, with no mixed intermediate visible.
 - [ ] Pro expiry that changes a PB presents it as entitlement scope, not as a lost record.

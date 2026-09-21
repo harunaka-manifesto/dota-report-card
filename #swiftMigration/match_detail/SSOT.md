@@ -5,6 +5,18 @@
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) — lifecycle, roles, metrics, baselines, context adjustment, PB, entitlement, rebuild.
 **Engineering annex:** the insight-card algorithms, thresholds, ladders, classifier constants and frozen reference tables live in [`../_archive/engine_specs/POST-MATCH-INSIGHTS-SSOT.md`](../_archive/engine_specs/POST-MATCH-INSIGHTS-SSOT.md) and its machine-readable contract. That annex is **engineering-normative for algorithms** and **subordinate to this document for product meaning**.
 
+## Architecture dependencies
+
+Match Detail is the surface most affected by progressive data readiness.
+
+| Concern | Authoritative source |
+|---|---|
+| Evidence-readiness states and the two-stage contract | [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A · [`../architecture/MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §3, §5 |
+| Which blocks need which evidence class | [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3, §4 |
+| Why delivery is two-stage | [ADR 0003](../architecture/decisions/0003-progressive-post-match-readiness.md) |
+
+This document does **not** restate provider, endpoint, quota or latency detail. It speaks only in evidence classes.
+
 ---
 
 ## 1. Purpose
@@ -54,6 +66,98 @@ For a retained processed match, Match Detail MUST be able to express, where appl
 13. 0–3 insight cards, or the normal no-special-insight state.
 
 This is a **minimum semantic contract, not an exhaustive schema**. Additional factual context MAY be added later if it violates nothing here.
+
+---
+
+## 3A. Progressive rendering
+
+A match's evidence arrives in two waves ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A). Match Detail is therefore **progressive**, and this section is normative about how.
+
+### 3A.1 Always-available section (Stage 1)
+
+From `SUMMARY_READY`, Match Detail MUST be openable and MUST render the factual match record. This section **MUST NOT** depend on replay-derived evidence in any way.
+
+It may express:
+
+- match identity: hero, result, mode, date/time, duration;
+- the full ten-player scoreboard: K/D/A, LH/DN, GPM/XPM, net worth, final hero damage, tower damage and healing;
+- final items and the ability/talent build;
+- the draft and basic roster context;
+- the **effective role**, with Edit Role available;
+- raw achieved values for any metric whose evidence already exists (the six summary-class metrics);
+- progression ineligibility where already determinable.
+
+**Stage 1 is genuinely substantive**, not a placeholder. A user who opens a match here should learn what happened.
+
+### 3A.2 Deep section (Stage 2)
+
+Everything that needs the match timeline waits for replay-class evidence:
+
+- the fourteen replay-class role metrics;
+- laning and lane metrics;
+- resource trajectories and team advantage curves;
+- item timings, ward and deward events, camp stacking, objectives, teamfights, kill and death context, damage breakdowns;
+- **all insight cards** — every V1 card family is replay-derived;
+- matchup context, which requires lane assignment.
+
+### 3A.3 What waits for finalization
+
+Distinct from — and stricter than — the evidence split. **Comparisons and verdicts belong to the single finalization point** ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A.3), even for metrics whose raw value is already available at Stage 1:
+
+- baseline-at-the-time comparisons;
+- context-adjusted expectations and performance states;
+- matchup context;
+- PB determination and the one-time `NEW_PB` distinction;
+- progression observations;
+- insight cards.
+
+**Why a raw value may show before its verdict.** A verdict is a claim against history. Producing one at Stage 1 and again at Stage 2 would create two finalization points, and therefore a path to celebrating the same Personal Best twice — which §4.5 and foundation §12.2 forbid. So Match Detail shows the number early and the judgment once.
+
+There is consequently still **no partial-READY state**: the personal-performance layer and the insight cards are final together.
+
+### 3A.4 Processing state
+
+While replay-class evidence is outstanding:
+
+- the deep sections show an honest processing affordance;
+- the affordance **MUST NOT** be an endless spinner. It has a bounded, terminal outcome;
+- Stage-1 content remains fully usable and is **never** hidden, greyed out, or framed as incomplete;
+- the screen **MUST NOT** present itself as broken, partial or failed.
+
+### 3A.5 Ready transition
+
+If readiness advances while Match Detail is open:
+
+- deep sections become available **additively**;
+- Stage-1 content already rendered **MUST NOT** be replaced, re-laid-out from scratch, or invalidated;
+- the transition **SHOULD** be legible — the user should understand that something arrived, not wonder whether the screen reloaded;
+- no celebration is replayed. A `NEW_PB` emitted at finalization is emitted once.
+
+### 3A.6 User-away behaviour
+
+If the user has left the app, readiness advancing to finalization MAY produce a notification, subject unchanged to the READY-only notification rules in foundation §4.7. Intermediate readiness advances produce no notification.
+
+### 3A.7 Terminal unavailable state
+
+When replay-class evidence will never arrive (`REPLAY_UNAVAILABLE`):
+
+- the match still reaches READY, with replay-class metrics as **N/A with a reason**;
+- deep sections show a **terminal, settled** state, stated **once**;
+- it reads as a plain fact, **not** an error, **not** an apology, and **not** a retry prompt;
+- there is **no spinner**, and no automatic retry continues behind it;
+- the insight-card area renders the **normal no-card state**, which is already the majority experience (§5.2). No special copy is needed for it.
+
+### 3A.8 Partial data
+
+- A replay-derived metric without its evidence is **N/A with a reason**. Never `0`, never blank, never an estimate, never carried over from another match.
+- A legitimate measured zero stays zero and MUST remain visually distinguishable from N/A (§7.3).
+- A deep section with no evidence is **absent or explicitly unavailable**. It is never rendered with placeholder, zeroed or illustrative values.
+
+### 3A.9 Language
+
+Match Detail speaks in capabilities, never in pipeline vocabulary. It MUST NOT name a data provider or use "parse", "parser", "replay parse", "queue", "job", "quota" or "rate limit".
+
+**The one exception** is an internal diagnostic or admin surface, which is not a product screen and whose vocabulary MUST NOT leak into product copy.
 
 ---
 
@@ -227,13 +331,16 @@ Insight cards are independent of progression eligibility but have their own elig
 
 | State | What Match Detail shows |
 |---|---|
-| `WAITING_FOR_PROVIDER` | Waiting on source data. Any already-known identity facts may show. |
-| `ANALYZING` | Processing. |
-| `WAITING_FOR_PRIOR_MATCH` | Computation is done; an older same-bucket match must settle first. **Not an error.** |
-| `ACTION_REQUIRED` | Automatic attempts exhausted. One Retry action. |
-| `UNAVAILABLE` | Trustworthy data never arrived. Visible, explained, still manually retryable. |
+| `WAITING_FOR_PROVIDER`, evidence `DISCOVERED` | Waiting on source data. Any already-known identity facts may show. |
+| `WAITING_FOR_PROVIDER`, evidence `SUMMARY_READY` or `REPLAY_PENDING` | **The full Stage-1 section** (§3A.1), plus a bounded processing affordance on the deep sections. This is the common case for a just-finished match and is **not** a degraded state. |
+| `ANALYZING` | Processing. Stage 1 remains fully usable. |
+| `WAITING_FOR_PRIOR_MATCH` | Computation is done; an older same-bucket match must settle first. **Not an error.** Stage 1 remains fully usable. |
+| `ACTION_REQUIRED` | Automatic attempts exhausted on a **retryable** failure. One Retry action. |
+| `UNAVAILABLE` | Trustworthy **summary-class** data never arrived. Visible, explained, still manually retryable. |
 
 There is no partial-READY state: the personal-performance layer and insight cards are final together, or not yet present.
+
+**A `REPLAY_UNAVAILABLE` match is not in this table.** It reaches READY, with its replay-class metrics as N/A and its deep sections in the terminal state of §3A.7. It is **not** `UNAVAILABLE` and **not** `ACTION_REQUIRED` — no Retry is offered, because nothing the user can press will produce a replay that does not exist.
 
 ### 7.3 N/A
 
@@ -268,6 +375,13 @@ Match Detail MUST NOT introduce:
 
 ## 10. Hard invariants
 
+- The match is openable and its factual record renders from `SUMMARY_READY`; Stage 1 never waits for replay-derived evidence.
+- Comparisons, performance states, matchup context, PB determination and insight cards appear only at the single finalization point.
+- Advancing readiness adds deep sections; it never replaces or invalidates Stage-1 content.
+- No replay-dependent section renders an endless spinner; every pending section has a terminal outcome.
+- A permanently unavailable deep section is a settled fact stated once — never an error, an apology or a retry prompt.
+- A missing replay-derived metric is N/A with a reason, never zero and never estimated.
+- No provider name or pipeline vocabulary appears in any product copy on this surface.
 - Personal performance and match diagnosis are never merged into one judgment.
 - Insight cards never read lane context, adjustments or the adjusted expectation.
 - At most 3 cards; slots are never filled; 0 cards is the majority, expected state.
@@ -289,6 +403,13 @@ Match Detail MUST NOT introduce:
 
 ## 11. Acceptance rules
 
+- [ ] A match that just finished is openable and shows its full factual record before any replay-derived analysis exists.
+- [ ] No Stage-1 element becomes unavailable, greyed out, or framed as incomplete because deep sections are pending.
+- [ ] Deep sections pending shows a bounded affordance, never an endless spinner.
+- [ ] Readiness advancing while the screen is open adds sections without replacing Stage-1 content, and replays no celebration.
+- [ ] A match whose replay will never arrive reaches READY, states that once, offers no Retry, and shows N/A — not zero — for its replay-derived metrics.
+- [ ] Such a match renders the normal no-insight-card state, not an error.
+- [ ] No string on this surface names a provider or uses pipeline vocabulary.
 - [ ] Every applicable metric shows a value, a legitimate zero, or an explicit N/A with a reason.
 - [ ] A metric without a ready baseline shows baseline-not-established, never a synthetic comparison.
 - [ ] Class A/D and Turbo metrics compare against "your usual"; class B/C/C\* Standard metrics compare against the adjusted expectation.

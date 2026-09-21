@@ -141,14 +141,17 @@ Notice the role is wrong
 
 | State | Product meaning |
 |---|---|
+| **Just finished — basics available, deeper read still coming** | **The default state for a match the player just played.** The full factual record is here: result, hero, role, duration, the whole scoreboard, items, draft. The deeper sections are still arriving. **Not a loading screen. Not degraded. This is a real, designed state that the player will see often.** |
+| **Deeper read arrives while the screen is open** | Sections become available in place. Nothing already on screen moves, reloads or disappears. Needs a legible arrival, not a silent swap. |
+| **Deeper read will never arrive** | Terminal. Said **once**, plainly, and then left alone. Not an error, not an apology, not a retry button, not a spinner. The rest of the match is complete and worth reading. |
 | **Ready, full** | Everything available. The best case. |
-| **Ready, some metrics N/A** | Normal and common (short matches lose the 20:00 checkpoints). Not degraded. |
+| **Ready, some metrics N/A** | Normal and common (short matches lose the 20:00 checkpoints; a missing replay removes the timeline-derived metrics). Not degraded. |
 | **Baseline building** | This metric doesn't have 5 priors in this role+mode yet. Value shows; verdict doesn't. Countable. |
 | **Matchup context unavailable** | Show **nothing**. Never a neutral "Typical" chip. |
 | **No insight cards** | **The majority case.** A designed, legitimate, non-apologetic state. |
 | **1–3 insight cards** | Special-insight state. |
 | **Doesn't count toward progression** | Viewable, with reason. No comparisons, no PB evaluation. |
-| **Processing** | Waiting for provider / analyzing. |
+| **Processing** | Analysis is running. The factual record stays fully usable underneath. |
 | **Waiting for an earlier match** | The analysis is done; its place in history isn't settled. Explicitly **not an error**. |
 | **Needs action** | One Retry. |
 | **Unavailable** | Data never arrived. Visible, explained, retryable. |
@@ -168,8 +171,33 @@ Open a metric's explainer · edit role · retry a failed match · share a PB · 
 
 ---
 
+## 9A. The page arrives in two waves
+
+This is the single biggest thing to design correctly on this page, and it is a design problem, not a loading problem.
+
+**What the player experiences.** They finish a game, open the app a couple of minutes later, and the match is there. They can see what happened — result, hero, their whole scoreboard line, everyone else's, their items, the draft. A few minutes after that, the deeper read arrives: laning, the gold and XP story, item timings, wards, and whatever the app has noticed about the match.
+
+**What that means for design.**
+
+- **The first wave is a real page, not a skeleton.** Design it as something worth opening on its own. A player who never scrolls to the second wave should still feel they got something. Avoid ghost boxes, shimmer placeholders and greyed-out sections standing in for content that has not arrived — they make a complete page look broken.
+- **The second wave adds; it never rearranges.** When the deeper read lands, nothing already on screen may jump, reflow or reload. The player may be mid-read.
+- **Make the arrival noticeable but not disruptive.** They should understand that something appeared. They should not lose their place.
+- **Waiting must be bounded and quiet.** No endless spinner, no progress bar, no ETA, no percentage. The wait has an end, and the design should feel unworried about it.
+- **The never-arriving case is a settled fact.** Say it once, in the sections it affects, and move on. It is not an error state and should not borrow error styling. Some matches just do not have a replay.
+- **Never name the plumbing.** No provider names, no "parse", no "queue", no "job". The player does not need to know the app gets its data from anywhere in particular, and should never be asked to care.
+- **Never show a missing number as zero.** A metric with no evidence is N/A and must look unmistakably different from a real zero.
+
+**Two states worth prototyping explicitly**, because they are common and easy to get wrong: *basics here, deeper read coming*, and *deeper read will never come*.
+
+---
+
 ## 10. Experience requirements / guardrails
 
+- **MUST** be fully usable and worth reading before the deeper analysis arrives.
+- **MUST NOT** replace, reflow or invalidate content already on screen when the deeper analysis lands.
+- **MUST NOT** use an endless spinner, a progress bar, a percentage or an ETA for the deeper sections.
+- **MUST** present a permanently unavailable deeper analysis as a settled fact stated once — never as an error, an apology or a retry prompt.
+- **MUST NOT** name a data provider or use backend vocabulary anywhere on the page.
 - **MUST NOT** let win/loss visually masquerade as personal performance, or frame the performance layer.
 - **MUST NOT** merge the personal-performance layer and the insight cards into one verdict or one ranked list.
 - **MUST NOT** imply a difficult matchup caused the loss, or soften a "Below" because the matchup was difficult. `Difficult + Below` must read exactly like `Typical + Below`.

@@ -127,6 +127,8 @@ Open History
 | Offline / sync error | Everything known is still correct and usable. Only freshness is in doubt. |
 | Bootstrap unsettled | Matches appearing progressively; not an incomplete-forever state. |
 | Entitlement-limited | The list has a floor. Honest scope, not data loss, not a performance statement. |
+| Row: basics available, deeper read coming | **The normal state for a recent match.** The row is complete for scanning and fully openable. Marked minimally, if at all. |
+| Row: deeper read will never arrive | An ordinary row. No warning, no badge of failure. The explanation lives on Match Detail. |
 | Row: processing | Normal, temporary. |
 | Row: waiting for an earlier match | Correct and temporary — its result is fine, its position isn't settled. |
 | Row: needs action | A single Retry. |
@@ -145,6 +147,9 @@ Scroll / paginate · scope by mode, role or time (if offered) · open a match ·
 ## 10. Experience requirements / guardrails
 
 - **MUST NOT** turn a row into a mini Match Detail. No performance states, no matchup context, no insight content, no metric numbers.
+- **MUST NOT** turn History into a status dashboard. No progress bars, percentages, ETAs, retry counts, queue positions or backend vocabulary. If a readiness marker draws more attention than the match, it is too loud.
+- **MUST** list a match as soon as its basics exist, and **MUST** keep it listed while its deeper read is pending or permanently absent. A row that vanishes and returns reads as data loss.
+- **MUST** keep every row openable at every readiness — Match Detail is worth opening before the deeper read arrives.
 - **MUST** show every retained match, including ones that don't count and ones that failed. Hiding them looks like data loss.
 - **MUST** pair "doesn't count" with its reason.
 - **MUST** show mode on every row — the list mixes Standard and Turbo.

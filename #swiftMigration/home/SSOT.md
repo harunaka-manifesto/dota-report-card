@@ -4,6 +4,14 @@
 **Scope:** The default authenticated surface: today's state, the Challenge slot, role progression summaries, recent matches, and the routing rules out of Home.
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md).
 
+## Architecture dependencies
+
+| Concern | Authoritative source |
+|---|---|
+| Evidence readiness; when a match becomes acknowledgeable | [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A · [`../architecture/MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §3 |
+| Which Home blocks need which evidence class | [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §5 |
+| Degradation behaviour behind Home's states | [`../architecture/SCALING-RELIABILITY-AND-OPERATIONS.md`](../architecture/SCALING-RELIABILITY-AND-OPERATIONS.md) §6 |
+
 ---
 
 ## 1. Purpose
@@ -44,6 +52,8 @@ This list is the V1 Home content set. Additional content MUST NOT be added to Ho
 
 Today's Matches spans **both** progression buckets — it is a chronological view, not a progression calculation, so mixing Standard and Turbo here is permitted. Each match MUST carry its own mode.
 
+**Home MUST acknowledge a completed match as soon as summary-class evidence exists** (`SUMMARY_READY`, foundation §4A). It MUST NOT wait for replay-derived analysis before showing that the match happened. A match played today is part of the user's day whether or not its deep analysis has landed.
+
 ### 3.2 What a today's-match entry may express
 
 Per match, Home MAY show any of the following once available:
@@ -56,6 +66,16 @@ Per match, Home MAY show any of the following once available:
 - readiness of the personal-performance layer.
 
 Home MUST NOT reproduce the full Match Detail analysis. Per-metric values, performance states, matchup context and insight card content belong to `match_detail/`.
+
+### 3.2a Readiness behaviour (normative)
+
+1. **A match appears at `SUMMARY_READY`.** It is never withheld pending deep analysis.
+2. **Navigation into Match Detail is always available** from a today's-match entry, at any readiness. Match Detail is useful from Stage 1 (see [`../match_detail/SSOT.md`](../match_detail/SSOT.md) §3A.1).
+3. **Readiness MAY be indicated subtly** — a quiet marker that the deeper read is still coming, or that it is ready. It MUST be subordinate to the match itself, never the entry's headline.
+4. **Home updates when readiness advances.** A match acknowledged earlier in the day reflects its finalized state once analysis persists, without the user re-triggering anything.
+5. **An entry never disappears or regresses.** A match acknowledged at Stage 1 stays acknowledged.
+6. **Readiness is expressed in plain language, never in backend terms.** Home MUST NOT name a provider or use pipeline vocabulary — the user does not need to know what a replay parse is, and Home is the surface where that temptation is strongest. See foundation §4A.5.
+7. **A match whose deep analysis will never arrive is not an error on Home.** It is an ordinary completed match. Home MAY show nothing unusual about it at all; the explanation belongs on Match Detail.
 
 ### 3.3 Routing
 
@@ -102,6 +122,16 @@ Challenge/mission mechanics are listed as deferred in the foundation SSOT §19. 
 - No SSOT in this repository can currently specify what a Challenge is. A `challenges/` feature folder is deliberately **not** created, because doing so would manufacture a contract that does not exist.
 - Any Challenge that ships MUST inherit the foundation invariants: no composite score, no win/loss-based progression, no teammate attribution, no causal claims, Standard/Turbo isolation, and N/A ≠ zero.
 - Until the feature is contracted, Home MUST be designable with the slot in an "unavailable / coming" or absent state without the rest of Home breaking.
+
+### 5.3 Readiness constraints on any future Challenge
+
+Recorded now so a future contract does not have to rediscover them. These constrain the shape of a Challenge; they do **not** invent one.
+
+1. **Each challenge is classified by its own evidence requirement** ([`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §7). A challenge counting final last hits resolves from summary-class evidence; a challenge counting ward timing needs replay-class evidence.
+2. **A single generic "match processing" flag MUST NOT gate all challenges.** Different evidence, different gate — otherwise a scoreboard-only challenge waits for a replay it never needed.
+3. **A challenge is never declared failed because its required evidence has not arrived.** The states are **pending**, **resolved** and **unavailable**. Pending is not failure.
+4. **A challenge whose evidence will never arrive becomes `unavailable`**, terminally and understandably — not failed, and not permanently pending.
+5. The same three-state rule applies to any achievement requiring a replay-derived event.
 
 ---
 
@@ -171,7 +201,9 @@ Which bucket Home defaults to, and whether Home exposes a toggle, is open to des
 | Checking | Discovery running. Cached content stays usable and correct. |
 | Sync error / offline | Cached content remains fully usable. Home MUST NOT claim the account is empty or up to date. |
 | Up to date, nothing new today | Today's Focus mode. A legitimate, complete state. |
-| Today has matches, still processing | Today's Matches mode with lifecycle states per match. |
+| Today has matches, still processing | Today's Matches mode with lifecycle states per match. Every entry is navigable. |
+| Today has matches, deep analysis pending | Normal. Matches are acknowledged and openable; readiness may be shown subtly. **Not a degraded state.** |
+| Today has matches, deep analysis will never arrive | Normal. The match is an ordinary completed match on Home. |
 | Today has matches, one is `ACTION_REQUIRED` | The Retry affordance must be reachable from Home or from the match it belongs to. |
 | Free | Complete within entitled history. Never framed as degraded truth. |
 | Pro | Greater history depth. Never framed as more accurate. |
@@ -192,6 +224,10 @@ Which bucket Home defaults to, and whether Home exposes a toggle, is open to des
 - Home never renders N/A as zero, or an unready state as a neutral value.
 - Home is usable from cache on every open, before discovery completes.
 - Home never blocks on provider availability.
+- Home acknowledges a completed match as soon as summary-class evidence exists, and never waits for deep analysis to do so.
+- Home never withholds navigation into Match Detail because deep analysis is pending.
+- Home never names a data provider or uses pipeline vocabulary.
+- Home never presents a pending or permanently unavailable deep analysis as an error, a warning or a failed match.
 
 ---
 
@@ -210,6 +246,10 @@ Neither gap blocks designing Home: both are slots with defined boundaries and de
 ## 11. Acceptance rules
 
 - [ ] Home renders usable cached state before discovery completes.
+- [ ] A match finished minutes ago appears in Today's Matches before its deep analysis exists, and is openable.
+- [ ] Home reflects the finalized state once analysis persists, without the user re-triggering anything.
+- [ ] An acknowledged match never disappears or regresses as readiness advances.
+- [ ] No Home string names a provider or uses pipeline vocabulary.
 - [ ] Element 1 shows Today's Matches when today has matches, otherwise Today's Focus — never both.
 - [ ] A single today's match may route straight to Match Detail; multiple route to History.
 - [ ] Role summaries exist for all four roles, scoped to one unambiguous bucket, with no composite verdict.

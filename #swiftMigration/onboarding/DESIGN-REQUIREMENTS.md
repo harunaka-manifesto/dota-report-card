@@ -29,7 +29,7 @@ The user should leave onboarding **connected, with something real about their ow
 
 ## 3. Questions this must answer
 
-- What does this app do that Dotabuff/STRATZ/the client doesn't?
+- What does this app do that Dotabuff/STRATZ/the client doesn't? *(These are named here as **rival products the player already knows**, for positioning. This is not a statement about where our data comes from — the app never names a data source to users. See [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A.5.)*
 - What do you need from me, and why?
 - Am I connected? To which Steam account?
 - What have you already got from my history?
@@ -149,6 +149,8 @@ Link Steam → data access blocked → guidance → user changes Dota setting �
 | Mixed per-mode outcome | e.g. Standard ready, Turbo empty. Must be representable simultaneously. |
 | Live match during unsettled bootstrap | Match visible with raw facts; comparisons explicitly pending for that mode. |
 | Baseline building | Per metric+role+mode, countable. |
+| Metrics ready at different times | Expected. Some metrics need only the final scoreboard; most need the match timeline, which is not available for every imported match. Readiness legitimately differs metric by metric within one role. |
+| Imported match without deep data | A real, viewable, counted match with some metrics unavailable. **Not a failed import.** Contributes to `READY_WITH_GAPS`, not to `NO_MATCHES_FOUND`. |
 | Bootstrap complete | One moment; also the natural place to explain notifications. |
 | Pro purchased pre-settle | Free state stays visible; Pro activates later, atomically. |
 
@@ -169,6 +171,8 @@ Skip value proposition · sign in (Apple / Google / email) · connect Steam · s
 - **MUST** show a newly played match during bootstrap, with its raw facts, while marking its comparison as pending — and only for its own mode.
 - **MUST** express readiness gates in **match counts**, not time estimates ("5 more Carry matches", not "about a week").
 - **MUST** treat `READY_WITH_GAPS` as a normal successful result, not a warning.
+- **MUST NOT** explain an imported match's missing metrics in backend terms. The player sees counts and readiness, not the reason some old games have less detail than others.
+- **MUST NOT** show a metric that is unavailable for an imported match as zero, or as a bad result.
 - **MUST NOT** let one mode's empty result make the account read as empty.
 - **MUST NOT** imply merging accounts is possible on an auth collision.
 - Steam is a *data connection*, not the login — the design must not make it read as a second sign-in.

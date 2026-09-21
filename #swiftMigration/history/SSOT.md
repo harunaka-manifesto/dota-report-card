@@ -4,6 +4,14 @@
 **Scope:** The chronological record of retained matches: browsing, scanning, filtering, and navigating into individual matches.
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md).
 
+## Architecture dependencies
+
+| Concern | Authoritative source |
+|---|---|
+| Evidence readiness; when a match enters the record | [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A · [`../architecture/MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §3 |
+| Which History blocks need which evidence class | [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §5 |
+| Why rows are driven by persisted records | [ADR 0001](../architecture/decisions/0001-provider-independent-hybrid-ingestion.md) — the client reads persisted state, never a provider |
+
 ---
 
 ## 1. Purpose
@@ -31,6 +39,28 @@ Every retained match appears, including:
 - matches that are `UNAVAILABLE`.
 
 A match is never hidden because it failed, because it doesn't count, or because it is unavailable. `UNAVAILABLE` is not deletion.
+
+### 2.1 History is driven by persisted records
+
+History renders from Dota Tracker's own persisted match records. Opening, scrolling, filtering or refreshing History **MUST NOT** trigger a provider call anywhere in the stack.
+
+### 2.2 When a match appears, and when it stays
+
+1. **A match appears once summary-class evidence exists** (`SUMMARY_READY`, foundation §4A). It is never withheld pending deep analysis.
+2. **A match never disappears because deep analysis is pending, delayed or permanently unavailable.** Readiness changes what a row can say; it never changes whether the row exists.
+3. **Row navigation is always valid**, at every readiness. Every row opens Match Detail, which is useful from Stage 1.
+4. **A row updates in place** as readiness advances. Its chronological position never changes.
+5. **A match whose deep analysis will never arrive is an ordinary row.** It is not marked as failed, and it carries no warning.
+
+### 2.3 History is not a status dashboard
+
+A row MAY carry a **minimal** readiness signal where it genuinely helps scanning. It MUST NOT become a pipeline-status display:
+
+- no provider names, no pipeline vocabulary (foundation §4A.5);
+- no progress bars, percentages, ETAs, retry counts or queue positions;
+- no per-row diagnostic detail about why deep analysis is outstanding.
+
+If a row's readiness signal would draw more attention than the match itself, it is too loud.
 
 ---
 
@@ -145,8 +175,11 @@ After a methodology or parameter-set migration, any derived content History disp
 | Bootstrap unsettled | Matches appear progressively; history-dependent content pends per mode. |
 | Entitlement-limited | Visible history is bounded by entitlement. Shown honestly; never as loss or as poor performance. |
 | Row processing | Per-match lifecycle state, not an error. |
+| Row summary-available, deep pending | The common state for a recent match. Row present, openable, minimally marked at most. **Not an error, not a warning.** |
+| Row deep ready | Normal. |
+| Row deep permanently unavailable | An ordinary row. Marked only if it genuinely helps scanning; the explanation lives on Match Detail. |
 | Row action-required | Retry reachable from the row or from its Match Detail. |
-| Row unavailable | Visible, explained, still manually retryable. |
+| Row unavailable | Visible, explained, still manually retryable. Reserved for matches whose summary-class truth never arrived. |
 | Row ineligible | Visible, marked as not counting, with its reason. |
 
 ---
@@ -154,6 +187,10 @@ After a methodology or parameter-set migration, any derived content History disp
 ## 10. Hard invariants
 
 - Every retained match is visible, including ineligible, failed and unavailable matches.
+- History renders from persisted records; no History interaction triggers a provider call.
+- A match appears once summary-class evidence exists, and never disappears because deep analysis is pending or permanently unavailable.
+- Row navigation into Match Detail is valid at every readiness.
+- History is never a provider-status dashboard: no provider names, no pipeline vocabulary, no progress bars, ETAs, retry counts or queue positions.
 - Ordering is by canonical chronology; late-recovered matches are inserted at their true position.
 - Each entry carries its own mode; no progression calculation crosses buckets or roles.
 - A History row never becomes a miniature Match Detail.
@@ -170,6 +207,10 @@ After a methodology or parameter-set migration, any derived content History disp
 
 ## 11. Acceptance rules
 
+- [ ] A match finished minutes ago is listed and openable before its deep analysis exists.
+- [ ] A row with pending deep analysis does not disappear when the user refreshes, filters or returns later.
+- [ ] A row whose deep analysis is permanently unavailable is not marked as failed and carries no warning.
+- [ ] No row shows a progress bar, percentage, ETA, retry count, queue position, provider name or pipeline term.
 - [ ] Ineligible, processing, action-required and unavailable matches are all listed and openable.
 - [ ] A recovered historical match appears at its true chronological position, not at the end.
 - [ ] Every row shows its mode; no aggregate mixes Standard and Turbo.

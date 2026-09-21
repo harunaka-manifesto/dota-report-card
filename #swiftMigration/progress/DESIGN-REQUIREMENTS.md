@@ -132,7 +132,8 @@ Open Progress
 | **Baseline ready, trend insufficient** | Fewer than 10 eligible trend points. `Insufficient History`. **Must not read as decline.** |
 | **Improving / Stable / Declining** | The three real trend states. `Stable` must not read as failure. |
 | **Metric N/A at a point** | Gap in the series. Never plotted as zero. |
-| **Metric with many N/A points** | Common for checkpoint metrics in short games. Honest, not degraded. |
+| **Metric with many N/A points** | Common for checkpoint metrics in short games, and for any timeline-derived metric on a match whose replay never arrived. Honest, not degraded. |
+| **Metrics in one role at different readiness** | Normal. Some metrics need only the final scoreboard; most need the match timeline, which is not always available. So one Carry metric can be trend-ready while another is still building. **Show it with the states above and never explain the cause in backend terms.** |
 | **Sparse activity** | Long calendar gaps. No decay, no penalty. Recency shown separately if at all. |
 | **Entitlement reduced** | Less history exposed; trend may regress to `Insufficient History`. **Not decline, not data loss.** |
 | **Rebuilding** | After a role correction or methodology change. No mixed math shown. |

@@ -5,6 +5,16 @@
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md).
 **Provenance:** consolidated from the Living Dota Player Profile research and contract, now archived at [`../_archive/superseded_ssots/living-player-profile-v1.md`](../_archive/superseded_ssots/living-player-profile-v1.md).
 
+## Architecture dependencies
+
+Profile is the most long-horizon surface, so historical coverage matters here more than anywhere else.
+
+| Concern | Authoritative source |
+|---|---|
+| Historical coverage per evidence class | [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A.6 · [`../architecture/MATCH-INGESTION-AND-LIFECYCLE.md`](../architecture/MATCH-INGESTION-AND-LIFECYCLE.md) §3.4, §8 |
+| Which Profile blocks need which evidence class | [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §5 |
+| Profile reads persisted features, never providers | [`../architecture/SYSTEM-ARCHITECTURE.md`](../architecture/SYSTEM-ARCHITECTURE.md) §3.1 scenario QA-5 |
+
 ---
 
 ## 1. Purpose
@@ -216,6 +226,49 @@ Matches without a resolved effective role are excluded from every role claim and
 
 ---
 
+## 6A. Historical coverage
+
+The Profile makes claims about long periods. Those claims are only as good as the history behind them, and history arrives in two evidence classes with **different reach** ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A).
+
+### 6A.1 What needs which coverage
+
+| Profile content | Needs |
+|---|---|
+| Header facts; matches-since; last-played | Summary-class coverage of the period. |
+| Role map, Role Shape, identity line | Summary-class coverage + a resolved effective role per match. |
+| Hero section and hero tags | Summary-class coverage over the role window. |
+| Confirmed claims (Role Shape, Hero Shape, Exploration, Role-Pool Contrast, Mode-Split, Role Migration, Pool Turnover, Go-to vs Longtime) | Summary-class coverage over the claim's window. **None of them requires replay-class evidence.** |
+| **Right now** — current-form runs, PB momentum | **Replay-class coverage** wherever the underlying metric is replay-class, which is most of them. |
+| Personal Bests | Coverage at the evidence class of each metric. |
+
+**The practical consequence:** the Profile's **identity layer works on summary-class history**, while its **current-form layer depends on replay-class coverage**. A deep historical import therefore changes what "Right now" can say far more than it changes who the player is.
+
+### 6A.2 Honesty rules (normative)
+
+| # | Rule |
+|---|---|
+| PC-1 | A claim **MUST NOT** imply complete lifetime evidence when only a subset of the period has the coverage that claim requires. |
+| PC-2 | Every claim's evidence panel **MUST** state the window and the sample it was actually computed over — not the window it would ideally use. The existing "Why am I seeing this?" requirement (§2.5) already carries this; coverage is part of the answer. |
+| PC-3 | A claim whose window is not sufficiently covered is **withheld**, exactly as a claim below its sample gate is. It is not computed on a partial window and presented as if whole. |
+| PC-4 | Missing history is **absent**, never zero and never a low value. A hero not played is not a hero played badly. |
+| PC-5 | Coverage is expressed in player terms — how far back the Profile can see, and whether more is still arriving. **Never** in backend terms (foundation §4A.5). |
+
+### 6A.3 Import progress
+
+While a historical import is running:
+
+1. Profile stays usable on the coherent state it already has. It **MUST NOT** blank out, show a full-page loader, or progressively rewrite claims match by match.
+2. Profile **MAY** indicate that more history is still arriving, at most quietly. This is optional; an import must be survivable without any indicator.
+3. Displayed state changes at a **coherent checkpoint**, not continuously (foundation §14.2).
+4. Imported history **never** produces retroactive celebrations, PB events or backdated change events (§8, foundation §12.2). A change event records that displayed state moved **because of an import** — which is exactly what §4.7 already requires.
+5. An incomplete import is recorded as a coverage gap, not silently treated as "the player did not play then".
+
+### 6A.4 No provider calls on render
+
+Profile is computed from **persisted canonical features**. Opening Profile, switching buckets, switching roles or opening an evidence panel **MUST NOT** trigger a provider call, and **MUST NOT** launch a historical backfill. Backfill is background, low-priority work initiated by onboarding, entitlement change or recovery — never by a screen render.
+
+---
+
 ## 7. Role and hero rules
 
 - Effective role is **consumed, never recomputed**. A user correction triggers a deterministic rebuild of every Profile aggregate in the affected bucket.
@@ -312,6 +365,11 @@ Measured and rejected, or structurally unsupportable:
 - Volume alone infers nothing. Volume is not a trait.
 - Imported history never creates retroactive celebrations or change events.
 - No single-match analytics are copied onto the Profile.
+- No claim implies complete lifetime evidence when only part of its window is covered.
+- A claim whose window lacks the coverage it needs is withheld, never computed on a partial window and presented as whole.
+- Missing history is absent, never zero and never a low value.
+- Profile is computed from persisted features; no Profile interaction triggers a provider call or launches a backfill.
+- Coverage is communicated in player terms, never in backend terms.
 
 ---
 
@@ -363,5 +421,10 @@ Additional validation still owed (research, not product decisions): whether play
 - [ ] Specialist and Flexible are presented as equal identities.
 - [ ] A role correction rebuilds Profile aggregates in that bucket and records a Change event where displayed state changed.
 - [ ] An import changes displayed state without creating celebrations or backdated change events.
+- [ ] Profile stays usable on its existing coherent state throughout a running import, and never rewrites claims match by match.
+- [ ] Every visible claim's evidence panel states the sample it was actually computed over.
+- [ ] A claim whose window lacks the required coverage is absent, not computed on what happens to be available.
+- [ ] Opening Profile, switching bucket or role, or opening an evidence panel triggers no provider call and no backfill.
+- [ ] Identity claims render for an account with summary-class history only; "Right now" is simply absent until replay-class coverage exists.
 - [ ] The share card is built from the whitelisted projection only, and is unavailable without a confirmed identity line.
 - [ ] A private provider profile produces a refusal state, never fabricated content.

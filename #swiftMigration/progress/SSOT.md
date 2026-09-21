@@ -4,6 +4,14 @@
 **Scope:** The role progression surface: per-role, per-mode, per-metric observation series, rolling baselines, trend states, Personal Bests in their progression context, and readiness semantics.
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) — metric registry, baseline, trend, PB, entitlement, rebuild.
 
+## Architecture dependencies
+
+| Concern | Authoritative source |
+|---|---|
+| Evidence readiness and the single finalization point | [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A |
+| Which metrics need which evidence class | [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3 |
+| Rebuild from stored data, never from providers | [`../architecture/DATA-CONTRACTS-AND-VERSIONING.md`](../architecture/DATA-CONTRACTS-AND-VERSIONING.md) §7.2 |
+
 ---
 
 ## 1. Purpose
@@ -56,6 +64,39 @@ For a selected `bucket + role`:
 3. **Role-level context that is not a verdict**: number of eligible matches, recency of activity, metric readiness counts.
 
 Navigation from any observation into its `match_detail/` MUST be possible.
+
+---
+
+## 3A. Readiness and recomputation
+
+### 3A.1 When a match enters progression
+
+A match contributes observations **only at the single finalization point** ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §4A.3) — when its evidence is terminal and deterministic analysis has persisted.
+
+| # | Rule |
+|---|---|
+| PR-1 | Progression recomputation is triggered by finalization, **never** by intermediate readiness. A match at `SUMMARY_READY` with its deep evidence still pending contributes nothing yet. |
+| PR-2 | Progression **MUST NOT** present a deep-data-dependent value before its inputs exist. Provisional observations are forbidden: they would produce false baselines, false trends and false PBs that later have to be retracted. |
+| PR-3 | Progression **MUST NOT** be unnecessarily delayed when its required inputs already exist. A summary-class metric on a `REPLAY_UNAVAILABLE` match is finalizable and contributes normally. |
+| PR-4 | Ordering is unchanged: an older unresolved match in the same bucket still settles first (foundation §4.4). Readiness does not reorder chronology. |
+
+### 3A.2 Metric evidence classes
+
+Six of the twenty metrics are summary-class; the other fourteen are replay-class. The per-metric classification is defined once, in [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3, and is **not** restated here.
+
+The consequence for this surface:
+
+1. A replay-class metric on a `REPLAY_UNAVAILABLE` match is **N/A** (foundation §4A.4) — never zero, never estimated, never substituted.
+2. N/A observations do not enter baselines, rolling windows, trend counts or PB history (foundation §8). This is existing law; it is restated because replay unavailability is now a named, expected cause of it.
+3. Therefore **a track's readiness depends on the evidence class of its metrics.** Standard Carry hero-damage share may be baseline-ready while Standard Carry CS@10 is still building, purely because some matches lacked replay-derived evidence.
+4. This is an **honest, correct outcome**, not a defect and not a degraded state. It is shown with the existing baseline-building and `Insufficient History` states, which are already defined as neutral and explicitly not decline.
+5. Progress **MUST NOT** explain such a gap in backend terms. It shows the count and the readiness state, as it already does for a player who simply has not played enough.
+
+### 3A.3 Rebuilds make no provider calls
+
+Recomputation from a role correction, metric-version bump, methodology migration or baseline-definition change reads **stored** data only ([`../architecture/DATA-CONTRACTS-AND-VERSIONING.md`](../architecture/DATA-CONTRACTS-AND-VERSIONING.md) §7.2). A rebuild that needed a provider call would mean the stored derived features were incomplete — that is a storage defect, not an acceptable fallback.
+
+This is what makes the locked rule that **baseline-definition changes apply retroactively** (foundation §14.3) possible at all.
 
 ---
 
@@ -157,7 +198,9 @@ Rebuilds are deterministic and idempotent, and make no provider calls.
 | Baseline building | Fewer than 5 prior measured observations for this metric+role+mode. Value history may show; no comparison. Countable. |
 | Baseline ready, trend insufficient | A baseline exists but fewer than 10 eligible trend points. `Insufficient History`. **Not a decline.** |
 | Trend available | One of Improving / Stable / Declining. |
-| Metric N/A at a point | Shown as N/A or omitted from a derived chart. **Never zero.** |
+| Metric N/A at a point | Shown as N/A or omitted from a derived chart. **Never zero.** One expected cause is a match whose replay-derived evidence never arrived (§3A.2). |
+| Match finalized without deep evidence | Its summary-class metrics contribute normally; its replay-class metrics are N/A. Not a gap in the record, not an error. |
+| Metrics within one role at different readiness | Normal and expected. Shown with the existing building / `Insufficient History` states, never explained in backend terms. |
 | Metric unsupported | Not in this role's set, or unsupported in V1 (Support Control). Absent — never proxied. |
 | Sparse activity | Long gaps in chronology. No penalty, no decay; recency may be shown separately. |
 | Entitlement reduced | Fewer observations exposed; state may regress to building/insufficient. Not decline. |
@@ -168,6 +211,10 @@ Rebuilds are deterministic and idempotent, and make no provider calls.
 
 ## 11. Hard invariants
 
+- A match contributes observations only at its single finalization point; no provisional or deep-dependent value is shown before its inputs exist.
+- A metric whose inputs already exist is never delayed waiting for another metric's evidence.
+- Metrics within one role legitimately sit at different readiness; that is shown with the existing neutral states and never explained in backend terms.
+- Rebuilds read stored data only and make no provider calls.
 - Every calculation is scoped to one bucket, one role, one metric, one metric version.
 - No composite: no role trend, player score, grade, rating, percentage, cross-role normalization, or all-role curve.
 - Trend requires a complete 10-point window; otherwise `Insufficient History`.
@@ -187,6 +234,10 @@ Rebuilds are deterministic and idempotent, and make no provider calls.
 
 ## 12. Acceptance rules
 
+- [ ] A match still awaiting deep evidence contributes no observation, no baseline movement and no trend point.
+- [ ] A match finalized without deep evidence contributes its summary-class metrics and shows N/A — not zero — for the rest.
+- [ ] Two metrics in the same role at different readiness both render correctly, with no backend explanation shown.
+- [ ] A baseline-definition change recomputes history from stored data with zero provider calls.
 - [ ] Selecting a role and bucket shows only that track's metrics and series.
 - [ ] No surface element aggregates metrics into a role-level verdict.
 - [ ] A metric with fewer than 10 eligible trend points shows `Insufficient History`, styled neutrally.
