@@ -8,7 +8,7 @@ Operational evidence, not a product or architecture contract.
 - Branch: `codex/tracker-backend-foundation`.
 - Authorized: BACKEND, DATABASE, ANALYTICAL (new tracker only), DOCUMENTATION, local INFRASTRUCTURE. No release/deployment.
 - Existing untracked `docs/prompts/tracker-backend-foundation-goal.md` is user-owned and remains untouched.
-- Current step: baseline recorded; R1 documentation relocation begins next. No implementation gap is closed.
+- Current step: Phase A additive schema. Baseline and R1 committed; mobile resource/state draft written. No implementation gap is closed.
 
 ## Gap status
 
@@ -62,7 +62,7 @@ All remain open; no product choices are inferred from missing UI content.
 
 ## External blockers and environment
 
-- PostgreSQL 16.15 installed locally. Redis 7.2.16 official archive SHA-256 verified and built under `/tmp/tracker-foundation-deps`; isolated services run only on localhost ports 55432/56379; Docker absent. Local database/Redis integration tests still pending.
+- PostgreSQL 16.15 installed locally. Redis 7.2.16 official archive SHA-256 verified and built under `/tmp/tracker-foundation-deps`; isolated services run only on localhost ports 55432/56379; Docker absent. Legacy PostgreSQL migration smoke passes; tracker concurrency and Redis integration tests still pending.
 - Web node_modules absent: web checks cannot execute until installed.
 - STRATZ concurrent production token use not established: zero live calls permitted until safety is established or a dev token is available.
 - Production identity/store/push credentials and approved calibration artifacts require later verification.
@@ -80,7 +80,8 @@ Commands: `make <target> PYTHON=.venv/bin/python PYTEST=.venv/bin/pytest RUFF=.v
 | Full pytest | 1419 | 2 sandbox failures | 3 | Both failures are localhost bind denials; affected module rerun outside sandbox: 3 passed |
 | STRATZ subset | 27 | 0 | 0 | Pass |
 | Contract | 8 | 0 | 0 | Pass |
-| Integration | 8 | 0 | 1 | PostgreSQL migration skipped, not passed |
+| Integration baseline | 8 | 0 | 1 | Initially skipped PostgreSQL; see explicit run below |
+| PostgreSQL migration | 1 | 0 | 0 | Real PostgreSQL 16.15: clean and repeated upgrade; readiness passes |
 | Backend ruff | — | 0 | — | Pass |
 | Backend mypy | 254 files | 0 | — | Pass |
 | Web lint/typecheck | — | — | — | Commands unavailable: node_modules missing |
@@ -94,10 +95,10 @@ Detailed local logs: `/tmp/tracker-foundation-baseline/`. The baseline import gr
 
 R1: `#swiftMigration/` → `docs/tracker/` with `git mv`, preserving all 186 original files plus the three baseline evidence files. Five outward Markdown destinations repaired. Legacy documentation is fenced in place because tooling and historical references still use those paths.
 
-Baseline checkpoint: `b4bf302`. R1 verification and commit pending.
+Baseline checkpoint: `b4bf302`. R1 checkpoint: `ae9aaed`. Verification: documentation check passes, covering 57 tracker Markdown documents and 451 local destinations with zero missing paths; checker regression test and ruff pass. All 189 files from the baseline checkpoint survive relocation. Only seven tracker Markdown files changed (five outward-link fixes, archive README, and this ledger). A first filename audit mishandled Git-quoted Unicode names; rerun with NUL-delimited paths verified every file.
 
 ## Resume checkpoint
 
-Baseline full suite completed; 305 acceptance/invariant rules inventoried as pending in `evidence/backend-acceptance-traceability.json`. Complete isolated R1 docs move/link audit, then contract-first draft before schema work. Revisit algorithm companion sections before engine implementation.
+Baseline full suite completed; 305 acceptance/invariant rules inventoried as pending in `evidence/backend-acceptance-traceability.json`. R1 docs move/link audit is green. Mobile resource/state design is in `MOBILE-API-DRAFT.md`. Next: Phase A additive schema and populated-legacy upgrade tests. Revisit algorithm companion sections before engine implementation.
 
 Progress board: [Dota Tracker — Backend Foundation](https://app.asana.com/1/1218421734064975/project/1218700923418699). Two Luna agents created phase cards, 13 decision/blocker cards and seven E2E subtasks; no task is claimed implemented by creating its card.
