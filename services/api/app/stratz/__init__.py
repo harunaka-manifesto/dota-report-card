@@ -45,6 +45,7 @@ from .queries import (
     GET_PARSED_MATCHES_BATCH,
     GET_PLAYER_HISTORY_PAGE,
     GET_PLAYER_PROFILE,
+    GET_ROLE_METRIC_MATCH_BATCH,
     STRATZ_OPERATIONS,
     GraphQLOperation,
     get_operation,
@@ -107,6 +108,11 @@ class StratzProvider:
     ) -> list[dict[str, Any]]:
         return await self.client.get_deep_matches(account_id, match_ids)
 
+    async def fetch_role_metric_matches(
+        self, account_id: int, match_ids: list[int] | tuple[int, ...]
+    ) -> list[dict[str, Any]]:
+        return await self.client.get_role_metric_matches(account_id, match_ids)
+
 
 __all__ = [
     "GET_DEEP_MATCH_BATCH",
@@ -116,6 +122,7 @@ __all__ = [
     "GET_PARSED_MATCHES_BATCH",
     "GET_PLAYER_HISTORY_PAGE",
     "GET_PLAYER_PROFILE",
+    "GET_ROLE_METRIC_MATCH_BATCH",
     "GraphQLOperation",
     "HistoryProvider",
     "HistoryWindow",

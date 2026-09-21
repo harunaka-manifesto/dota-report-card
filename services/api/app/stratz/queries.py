@@ -783,6 +783,66 @@ query GetDeepMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
 )
 
 
+GET_ROLE_METRIC_MATCH_BATCH = GraphQLOperation(
+    name="GetRoleMetricMatchBatch",
+    version="1.0.0",
+    purpose=(
+        "Progression-only acquisition: player healing, camp-stack trajectory, "
+        "credited team kill timestamps, and specific player tower damage. This "
+        "is separate from the frozen V7 report-card query."
+    ),
+    response_model="StratzRoleMetricMatchBatch",
+    document="""
+query GetRoleMetricMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!) {
+  player(steamAccountId: $steamAccountId) {
+    matches(request: { matchIds: $matchIds }) {
+      id
+      durationSeconds
+      startDateTime
+      endDateTime
+      gameMode
+      lobbyType
+      towerDeaths {
+        time
+        isRadiant
+        npcId
+      }
+      allPlayers: players {
+        playerSlot
+        isRadiant
+        kills
+        assists
+        stats {
+          killEvents { time }
+        }
+      }
+      players(steamAccountId: $steamAccountId) {
+        playerSlot
+        isRadiant
+        position
+        role
+        lane
+        leaverStatus
+        kills
+        assists
+        heroHealing
+        stats {
+          campStack
+          killEvents { time }
+          assistEvents { time }
+          towerDamageReport {
+            npcId
+            damage
+          }
+        }
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
 PROBE_LOCATION_REPORT = GraphQLOperation(
     name="ProbeLocationReport",
     version="1.0.0",
@@ -961,6 +1021,7 @@ STRATZ_OPERATIONS = {
         GET_SHORT_PARSED_TRAJECTORY,
         PROBE_PARSED_AVAILABILITY,
         GET_DEEP_MATCH_BATCH,
+        GET_ROLE_METRIC_MATCH_BATCH,
         PROBE_LOCATION_REPORT,
         PROBE_ITEM_VOCABULARY,
         GET_PLAYER_RANK_HISTORY,
@@ -979,6 +1040,7 @@ def get_operation(name: str) -> GraphQLOperation:
 
 __all__ = [
     "GET_DEEP_MATCH_BATCH",
+    "GET_ROLE_METRIC_MATCH_BATCH",
     "GET_MATCH_CORE",
     "GET_PARSED_MATCH_CORE",
     "GET_PARSED_ACQUISITION_BATCH",
