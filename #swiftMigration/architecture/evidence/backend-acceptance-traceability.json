@@ -1,0 +1,2445 @@
+{
+  "note": "Initial inventory. Pending is not coverage. Classify client-only and owner-blocked explicitly; record executable test node IDs as implementation lands.",
+  "rules": [
+    {
+      "id": "app_foundation#2.1",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**No opaque judgment.** V1 MUST NOT present an overall match score, letter grade, composite performance score, player rating, percentile, arbitrary good/bad-player judgment, or opaque AI verdict.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.2",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**No fabricated certainty.** Missing, malformed, unavailable, or insufficient evidence MUST be represented as N/A, an explicit unavailable state, or an explicit ineligible reason. It MUST NOT be silently converted to zero or to a synthetic comparison.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.3",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**N/A is not zero.** A legitimate measured zero remains zero. These are different states and MUST be distinguishable everywhere they appear.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.4",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**Standard and Turbo are separate progression worlds.** They MAY use identical methodology, but MUST NOT share baselines, trends, Personal Bests, observations, queues, blockers, or progression histories.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.5",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**Progression is role-specific.** Every successfully classified retained match resolves to exactly one of Carry, Mid, Offlane, Support. Position 4 and Position 5 both map to Support. There is no Unknown progression role.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.6",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**Historical comparisons are time-relative.** A historical match compares against the same-role, same-mode baseline that existed *before* that match. A later match MUST NOT make an old comparison silently drift.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.7",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**Canonical methodology is singular.** One methodology at a time. Approved migrations rebuild compatible retained history deterministically; old and new math never coexist in one canonical timeline.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.8",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**Current truth and past events are distinct.** Derived current truth (PBs, baselines, trends, comparisons) MAY be rebuilt. Delivered celebrations and notifications are append-only, auditable, and are never retracted or replayed.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.9",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**Subscription does not change measurement truth.** Free and Pro use identical processing and methodology for whatever history each tier is entitled to inspect. Pro adds depth, synthesis and engagement \u2014 never better accuracy.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.10",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**Account isolation is absolute.** Cursors, match entries, role assertions, histories, derived state, acknowledgements and notifications are scoped to the app account and the active Steam profile.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.11",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**No teammate attribution.** V1 MUST NOT estimate, score, label, or imply teammate quality, and MUST NOT attach any coefficient, adjustment or copy to a teammate's behaviour or hero.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.12",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**No causal explanation of the match result.** No surface may claim why a match was won or lost.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#2.13",
+      "source": "app_foundation/SSOT.md",
+      "section": "2. Product invariants",
+      "rule": "**Implementation status is not product status.** A locked contract is not shipped merely because it is documented.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.1",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Standard history never changes a Turbo baseline, trend, PB, queue or history, and vice versa.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.2",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Every successfully classified retained match has exactly one effective role; P4/P5 are Support.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.3",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A classifier rerun never overwrites the latest explicit user role assertion.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.4",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Processing never waits for role confirmation; low-confidence prompting is corrective only.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.5",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Every retained match with sufficient telemetry exposes Edit Role.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.6",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A role correction rebuilds only the same-bucket old/new-role dependency closure, deterministically and idempotently, with no provider calls.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.7",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Discovery records all items before advancing its cursor and resumes without gaps or duplicate effects.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.8",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A later same-bucket match cannot finalize ahead of an older unresolved predecessor; the other bucket is never blocked.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.9",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "READY has no partial variant and may coexist with N/A metrics or `NONE(reason)`.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.10",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A provider/source failure is never relabelled as progression ineligibility to obtain READY.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.11",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A match is openable and shows its factual record from `SUMMARY_READY`, without waiting for replay-derived analysis.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.12",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Exactly one finalization point exists per match; no comparison, performance state, PB event, progression observation or insight card is produced before it.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.13",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A `REPLAY_UNAVAILABLE` match reaches READY with its replay-class metrics as N/A, and is never shown as `UNAVAILABLE` or `ACTION_REQUIRED`.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.14",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "No replay-dependent surface renders an endless spinner; every pending deep section has a terminal outcome.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.15",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Advancing readiness adds deep content; it never replaces or invalidates Stage-1 content already on screen.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.16",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "No product copy anywhere contains a provider name or pipeline vocabulary.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.17",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "The classifier produces an effective role from summary-class evidence alone; no fresh match waits on a provider's native role label.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.18",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A classifier rerun before finalization writes no history, emits no notification, and is not treated as a correction.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.19",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Free and Pro share one ingestion pipeline and one match model; entitlement is applied above persisted analysis results.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.20",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Automatic retries are bounded; manual Retry resumes the earliest unresolved stage without duplicating the match or its effects.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.21",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A historical Match Detail never silently compares against today's baseline.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.22",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A missing baseline produces an explicit baseline-building state, never a synthetic comparison.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.23",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A READY but ineligible match remains viewable, states that it does not count, and gives the reason.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.24",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Baseline is the previous-20 **median** after a 5-prior gate; trend needs a complete 10-point window.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.25",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "No time decay, inactivity reset, Progress-specific retention cutoff, composite role trend, or overall progress score exists.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.26",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A current PB always points to its qualifying source match under the current entitlement and methodology; ties are not PBs.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.27",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "PB comparison uses the comparison value and all known eligible history, not the 20-observation window.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.28",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Imports, backfills, recovery, entitlement changes and rebuilds never generate retroactive celebrations or notification spam.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.29",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Context adjustment reads no realised in-match behaviour, no teammate hero, and no outcome.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.30",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Lane context never appears in the same claim as the match result, and never softens a BELOW state.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.31",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "`UNAVAILABLE` lane context renders nothing and is never drawn as `Typical`.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.32",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "`offlane.objective_involvement.v1` emits no performance state.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.33",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "A metric whose baseline median sits at its floor receives no population adjustment.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.34",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "Notification permission or device state never gates processing, readiness, progression or account state.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "app_foundation#18.35",
+      "source": "app_foundation/SSOT.md",
+      "section": "18. Product-level acceptance rules",
+      "rule": "No surface introduces a score, grade, composite judgment, causal result explanation, teammate claim, or opaque AI verdict.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.1",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Every retained match is visible, including ineligible, failed and unavailable matches.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.2",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "History renders from persisted records; no History interaction triggers a provider call.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.3",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "A match appears once summary-class evidence exists, and never disappears because deep analysis is pending or permanently unavailable.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.4",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Row navigation into Match Detail is valid at every readiness.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.5",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "History is never a provider-status dashboard: no provider names, no pipeline vocabulary, no progress bars, ETAs, retry counts or queue positions.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.6",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Ordering is by canonical chronology; late-recovered matches are inserted at their true position.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.7",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Each entry carries its own mode; no progression calculation crosses buckets or roles.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.8",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "A History row never becomes a miniature Match Detail.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.9",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "No composite progression curve, score, grade, rating or percentage appears in History.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.10",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Win/loss is never presented as progression.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.11",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Filters never redefine canonical baseline, trend or PB math.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.12",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "History has no retention cutoff of its own.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.13",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Entitlement limits are presented as scope, never as loss or performance.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.14",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "N/A is never rendered as zero; an unready state is never rendered as a neutral value.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.15",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Role correction does not happen here.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#10.16",
+      "source": "history/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "No causal explanation of any result appears here.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.1",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A match finished minutes ago is listed and openable before its deep analysis exists.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.2",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A row with pending deep analysis does not disappear when the user refreshes, filters or returns later.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.3",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A row whose deep analysis is permanently unavailable is not marked as failed and carries no warning.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.4",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "No row shows a progress bar, percentage, ETA, retry count, queue position, provider name or pipeline term.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.5",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Ineligible, processing, action-required and unavailable matches are all listed and openable.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.6",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A recovered historical match appears at its true chronological position, not at the end.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.7",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Every row shows its mode; no aggregate mixes Standard and Turbo.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.8",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "No row exposes per-metric performance state, matchup context, or insight content.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.9",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "An ineligible row states that it does not count and gives the reason.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.10",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A calendar or mode filter changes what is listed without changing any canonical calculation.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.11",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Empty-account, unlinked and empty-filter states are visually and semantically distinct.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.12",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Offline/sync-error preserves the full known history and never claims emptiness.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.13",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A reduced entitlement removes matches from view without implying data loss or decline.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "history#11.14",
+      "source": "history/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "After a role correction, the corrected row shows the new role and affected aggregates recompute within that bucket only.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.1",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home's V1 content set is exactly the four elements in \u00a72.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.2",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Today's Focus and Today's Matches never appear together.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.3",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never shows a composite role trend, role score, player score, grade, rating or percentage.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.4",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never merges Standard and Turbo inside a progression calculation.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.5",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never reproduces Match Detail's per-metric analysis, matchup context, or insight card content.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.6",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never presents win/loss as personal performance.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.7",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never explains why a match was won or lost.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.8",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never fills the Today's Focus or Challenge slot with fabricated content.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.9",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never renders N/A as zero, or an unready state as a neutral value.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.10",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home is usable from cache on every open, before discovery completes.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.11",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never blocks on provider availability.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.12",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home acknowledges a completed match as soon as summary-class evidence exists, and never waits for deep analysis to do so.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.13",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never withholds navigation into Match Detail because deep analysis is pending.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.14",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never names a data provider or uses pipeline vocabulary.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#9.15",
+      "source": "home/SSOT.md",
+      "section": "9. Hard invariants",
+      "rule": "Home never presents a pending or permanently unavailable deep analysis as an error, a warning or a failed match.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.1",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Home renders usable cached state before discovery completes.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.2",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A match finished minutes ago appears in Today's Matches before its deep analysis exists, and is openable.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.3",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Home reflects the finalized state once analysis persists, without the user re-triggering anything.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.4",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "An acknowledged match never disappears or regresses as readiness advances.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.5",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "No Home string names a provider or uses pipeline vocabulary.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.6",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Element 1 shows Today's Matches when today has matches, otherwise Today's Focus \u2014 never both.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.7",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A single today's match may route straight to Match Detail; multiple route to History.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.8",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Role summaries exist for all four roles, scoped to one unambiguous bucket, with no composite verdict.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.9",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A role with insufficient trend history shows `Insufficient History`, never a flat or declining state.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.10",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Last 5 Matches includes ineligible and non-READY matches, each carrying its mode.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.11",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "No Home element reproduces per-metric performance states, matchup context, or insight card content.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.12",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "`NO_STEAM_LINKED`, bootstrap-unsettled, sync-error and offline states are all representable without implying an empty account.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.13",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "The Challenge slot degrades cleanly when the feature is absent.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "home#11.14",
+      "source": "home/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Today's Focus renders an honest neutral state rather than fabricated content when nothing qualifies.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.1",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "The match is openable and its factual record renders from `SUMMARY_READY`; Stage 1 never waits for replay-derived evidence.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.2",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Comparisons, performance states, matchup context, PB determination and insight cards appear only at the single finalization point.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.3",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Advancing readiness adds deep sections; it never replaces or invalidates Stage-1 content.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.4",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "No replay-dependent section renders an endless spinner; every pending section has a terminal outcome.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.5",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "A permanently unavailable deep section is a settled fact stated once \u2014 never an error, an apology or a retry prompt.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.6",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "A missing replay-derived metric is N/A with a reason, never zero and never estimated.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.7",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "No provider name or pipeline vocabulary appears in any product copy on this surface.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.8",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Personal performance and match diagnosis are never merged into one judgment.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.9",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Insight cards never read lane context, adjustments or the adjusted expectation.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.10",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "At most 3 cards; slots are never filled; 0 cards is the majority, expected state.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.11",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Cards claim sequence, never cause.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.12",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "History wording always states N and never exceeds its sample gate.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.13",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "One matchup badge per match, on the lane-metric group; `UNAVAILABLE` renders nothing.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.14",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "A below-expectation state is never softened by matchup context.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.15",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "The matchup label and the match result never appear in the same claim.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.16",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Comparisons use the baseline at the time, never today's baseline.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.17",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "N/A is never rendered as zero.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.18",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "`objective_involvement` emits no performance state.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.19",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Trend states do not appear on this surface.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.20",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Edit Role is available on every retained match with sufficient telemetry.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.21",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "A correction rebuilds this match's metrics, comparisons, adjustments, PB state and insight result, deterministically, with no provider calls.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.22",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "A READY but ineligible match is visible, says it doesn't count, and gives the reason.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#10.23",
+      "source": "match_detail/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "No score, grade, causal result explanation, teammate claim or visibility claim appears.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.1",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A match that just finished is openable and shows its full factual record before any replay-derived analysis exists.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.2",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "No Stage-1 element becomes unavailable, greyed out, or framed as incomplete because deep sections are pending.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.3",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Deep sections pending shows a bounded affordance, never an endless spinner.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.4",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Readiness advancing while the screen is open adds sections without replacing Stage-1 content, and replays no celebration.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.5",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A match whose replay will never arrive reaches READY, states that once, offers no Retry, and shows N/A \u2014 not zero \u2014 for its replay-derived metrics.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.6",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Such a match renders the normal no-insight-card state, not an error.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.7",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "No string on this surface names a provider or uses pipeline vocabulary.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.8",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Every applicable metric shows a value, a legitimate zero, or an explicit N/A with a reason.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.9",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A metric without a ready baseline shows baseline-not-established, never a synthetic comparison.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.10",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Class A/D and Turbo metrics compare against \"your usual\"; class B/C/C\\* Standard metrics compare against the adjusted expectation.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.11",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "`offlane.objective_involvement.v1` shows value + personal median only.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.12",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Exactly one matchup badge appears, on the lane-metric group, for Standard cores only; `UNAVAILABLE` shows nothing.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.13",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "`DIFFICULT + BELOW` renders identically to `TYPICAL + BELOW`.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.14",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "No string contains both the matchup label and the match result.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.15",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A match with 0 insight cards renders a designed normal state, not an error or an empty container.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.16",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Cards render in engine order; no client reordering, merging or padding.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.17",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Every history claim states N and respects its sample gate.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.18",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Current PB ownership is distinguishable from the one-time NEW_PB event.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.19",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Edit Role is present on old, recent, high-confidence and low-confidence matches alike.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.20",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "After a correction, the metric set, comparisons, adjustments, PB state and insight result all reflect the new role, with unsupported metrics as N/A.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.21",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A READY ineligible match is fully viewable with its reason and no comparisons.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.22",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "`ACTION_REQUIRED` exposes exactly one Retry; `UNAVAILABLE` remains manually retryable.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "match_detail#11.23",
+      "source": "match_detail/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "`WAITING_FOR_PRIOR_MATCH` does not read as an error.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.1",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Authentication is required before Home; there is no guest mode.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.2",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Steam is optional for exploration, required for tracking, required before Pro purchase.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.3",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Bootstrap caps are 30 Standard **and** 30 Turbo, independent, within 90 days before the link date.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.4",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Standard and Turbo never satisfy one another's minimum-history requirements.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.5",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Free History = bootstrap + all eligible post-link matches, permanently.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.6",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "A live match during unsettled bootstrap appears immediately but defers history-dependent finalization for its own mode only.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.7",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Imports never produce per-match notifications, PBs, achievements, baseline-ready events or celebrations.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.8",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "There is exactly one idempotent bootstrap-completion event per Steam-profile bootstrap.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.9",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Notification permission is requested only at Home, with contextual value.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.10",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "No role or goals questionnaire exists.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.11",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Temporary provider failure is never presented as a permanent empty-state conclusion.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.12",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "The Free-history entitlement boundary is anchored to the original Steam-link date and never shifts forward.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.13",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Bootstrap acquires both summary-class and replay-class evidence; it is not a summary-only import.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.14",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Replay-class coverage gaps in the bootstrap window are recorded as coverage gaps, never as matches not played.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.15",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "A bootstrap match without replay-class evidence is a valid match with N/A replay metrics, never a failure.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.16",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Bootstrap acquisition is identical for Free and Pro; Pro extends depth, not mechanism.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.17",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Bootstrap never delays any user's newly completed match, including the bootstrapping user's own.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#15.18",
+      "source": "onboarding/SSOT.md",
+      "section": "15. Hard invariants",
+      "rule": "Metric-level baseline readiness may legitimately differ by evidence class, and is never explained to the user in backend terms.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.1",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "Value-proposition screens appear for brand-new users only and are never replayed.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.2",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "No single `ONBOARDING_COMPLETE` flag conflates account, Steam, bootstrap and baseline readiness.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.3",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "A colliding auth identity is blocked, never merged.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.4",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "An authenticated user with no Steam can reach and navigate Home.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.5",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "Bootstrap searches 30 Standard and 30 Turbo independently within 90 days.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.6",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "Bootstrap survives force quit, logout, restart and reinstall without duplicating or resetting.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.7",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "Bootstrap is terminal only after both searches finish and every discovered match is processed or terminally failed.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.8",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "All six product-level bootstrap outcomes are representable, per mode.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.9",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "Bootstrap attempts replay-class evidence, not only summary-class.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.10",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "A bootstrap match whose replay evidence is unobtainable is viewable, counted, and shows N/A \u2014 not zero \u2014 for its replay-derived metrics.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.11",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "Replay-coverage gaps inside the bootstrap window produce `READY_WITH_GAPS`, not `NO_MATCHES_FOUND`.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.12",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "A Free and a Pro account bootstrap the same Free window by the same mechanism.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.13",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "A large bootstrap never delays a freshly completed match for any user.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.14",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "A live match during unsettled bootstrap shows its facts and defers only its history-dependent state, for its own mode.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.15",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "No per-match notification/PB/celebration is emitted for imported matches.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.16",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "Exactly one idempotent bootstrap-completion event exists, and it is not queued for later permission grants.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.17",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "Notification permission is never requested before Home.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.18",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "No role or goals questionnaire is presented.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.19",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "Data-access recovery re-anchors to the original Steam-link date and records unrecoverable gaps.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "onboarding#17.20",
+      "source": "onboarding/SSOT.md",
+      "section": "17. Acceptance rules",
+      "rule": "First Pro activation waits for a coherent Free foundation and activates atomically.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.1",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "The Profile concludes; it does not measure. It never re-derives a Progress number.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.2",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Every visible claim has receipts. No claim ships without a \"Why?\" panel.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.3",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Claims move slowly, with hysteresis and persistence. One match never changes identity.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.4",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Refusal is a valid state. Below the gates, the Profile shows facts and an honest phrase \u2014 never a manufactured personality.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.5",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "No overall score, grade, rating, percentile, radar, or rank-derived label.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.6",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Specialist and Flexible are equal identities.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.7",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Every aggregate is per bucket; only Mode-Split compares buckets, and it never pools their matches.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.8",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Hero tags are per bucket \u00d7 role, never across either.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.9",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Favourite is player-pinned, never inferred, never analytic.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.10",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Matches without a resolved role are excluded from role claims and surfaced as a correction affordance.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.11",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Role Shape is withheld when more than 20% of the identity window lacks a role.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.12",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Every Right-now item carries its window label.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.13",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Down-runs are never first and never shared.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.14",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Volume alone infers nothing. Volume is not a trait.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.15",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Imported history never creates retroactive celebrations or change events.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.16",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "No single-match analytics are copied onto the Profile.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.17",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "No claim implies complete lifetime evidence when only part of its window is covered.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.18",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "A claim whose window lacks the coverage it needs is withheld, never computed on a partial window and presented as whole.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.19",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Missing history is absent, never zero and never a low value.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.20",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Profile is computed from persisted features; no Profile interaction triggers a provider call or launches a backfill.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#11.21",
+      "source": "profile/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Coverage is communicated in player terms, never in backend terms.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.1",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "The identity line is composed only from confirmed Role Shape and Hero Shape states, or an honest \"so far\" fallback, or nothing.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.2",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Below 10 matches there is no identity line; below 30 the role map shows counts only.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.3",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Role Shape is withheld when over 20% of the identity window lacks a resolved role.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.4",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Every visible claim can produce its evidence panel with window, n, thresholds and contributing matches.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.5",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "A claim never appears before its persistence gap is satisfied, and never disappears without its exit condition.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.6",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "A discarded candidate leaves no user-visible trace.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.7",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "At most three claims and at most two Right-now items are shown.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.8",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Every Right-now item carries a window label; down-runs are never first.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.9",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Hero tags are scoped to one bucket and one role; Favourite is only ever player-set.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.10",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Mode-Split compares two buckets without pooling their matches; no other claim crosses buckets.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.11",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "No composite score, grade, rating, radar or percentile appears anywhere.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.12",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Specialist and Flexible are presented as equal identities.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.13",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "A role correction rebuilds Profile aggregates in that bucket and records a Change event where displayed state changed.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.14",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "An import changes displayed state without creating celebrations or backdated change events.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.15",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Profile stays usable on its existing coherent state throughout a running import, and never rewrites claims match by match.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.16",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Every visible claim's evidence panel states the sample it was actually computed over.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.17",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "A claim whose window lacks the required coverage is absent, not computed on what happens to be available.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.18",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Opening Profile, switching bucket or role, or opening an evidence panel triggers no provider call and no backfill.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.19",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "Identity claims render for an account with summary-class history only; \"Right now\" is simply absent until replay-class coverage exists.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.20",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "The share card is built from the whitelisted projection only, and is unavailable without a confirmed identity line.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "profile#14.21",
+      "source": "profile/SSOT.md",
+      "section": "14. Acceptance rules",
+      "rule": "A private provider profile produces a refusal state, never fabricated content.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.1",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "A match contributes observations only at its single finalization point; no provisional or deep-dependent value is shown before its inputs exist.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.2",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "A metric whose inputs already exist is never delayed waiting for another metric's evidence.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.3",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Metrics within one role legitimately sit at different readiness; that is shown with the existing neutral states and never explained in backend terms.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.4",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Rebuilds read stored data only and make no provider calls.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.5",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Every calculation is scoped to one bucket, one role, one metric, one metric version.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.6",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "No composite: no role trend, player score, grade, rating, percentage, cross-role normalization, or all-role curve.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.7",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Trend requires a complete 10-point window; otherwise `Insufficient History`.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.8",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "`Insufficient History` is never styled or worded as decline; `Stable` is never worded as failure.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.9",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Baseline is the previous-20 median after a 5-prior gate; the current match never enters its own baseline.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.10",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "N/A never becomes zero and never enters a baseline, trend or PB.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.11",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Progress is never context-adjusted and never shows a matchup badge.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.12",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Calendar filters never redefine canonical math.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.13",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "No time decay, inactivity penalty, trend expiry, season reset, or Progress-owned retention cutoff.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.14",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "PB uses the comparison value and all known eligible history; ties are not PBs.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.15",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "A role correction rebuilds only the affected same-bucket old/new-role closure.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.16",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "One canonical methodology is displayed at a time; mixed timelines are never published.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.17",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Entitlement changes never masquerade as performance change.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#11.18",
+      "source": "progress/SSOT.md",
+      "section": "11. Hard invariants",
+      "rule": "Win/loss never appears as a progression signal.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.1",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "A match still awaiting deep evidence contributes no observation, no baseline movement and no trend point.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.2",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "A match finalized without deep evidence contributes its summary-class metrics and shows N/A \u2014 not zero \u2014 for the rest.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.3",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "Two metrics in the same role at different readiness both render correctly, with no backend explanation shown.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.4",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "A baseline-definition change recomputes history from stored data with zero provider calls.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.5",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "Selecting a role and bucket shows only that track's metrics and series.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.6",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "No surface element aggregates metrics into a role-level verdict.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.7",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "A metric with fewer than 10 eligible trend points shows `Insufficient History`, styled neutrally.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.8",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "A lower-is-better metric moving down is `Improving`.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.9",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "N/A points are visibly not zero, and are excluded from baseline and trend counts.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.10",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "A calendar filter changes the view without changing any trend state or baseline.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.11",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "A role never played in the selected bucket shows an unstarted state, not zeros.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.12",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "Each PB shows its value, hero, date, role, mode and a route to its source match.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.13",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "A raw value higher than the PB's raw value does not display as a PB when its comparison value is lower.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.14",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "After a correction, only the affected old/new-role series in that bucket change.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.15",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "After a migration, no series shows mixed methodology.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.16",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "An entitlement reduction that regresses a trend is not presented as decline.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "progress#12.17",
+      "source": "progress/SSOT.md",
+      "section": "12. Acceptance rules",
+      "rule": "No matchup badge, adjusted expectation or hero/lane adjustment appears anywhere on this surface.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.1",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "One active Steam ID per app account; one app account per Steam ID.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.2",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "No normal unlink action exists.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.3",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "A successful switch starts a 90-day cooldown; failed attempts do not reset it.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.4",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Switching is blocked during a non-terminal import or rebuild, and blocked when the target is owned by another account.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.5",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "No analytical state crosses a Steam switch, and old-profile state is never shown for the new identity.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.6",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Free and Pro share one ingestion pipeline and one match model; entitlement is applied above persisted analysis results.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.7",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Fresh-match ingestion is viable with zero paying users and never depends on conversion revenue.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.8",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Pro historical acquisition runs at the normal historical priority and never delays any user's fresh match.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.9",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Entitlement transitions rebuild from stored data; a full refetch happens only when retained coverage is genuinely incomplete.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.10",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Pro entitlement belongs to the app account; Pro-derived **history** is scoped to the Steam profile.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.11",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Pro activation and deactivation are atomic; no partially rebuilt state is exposed.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.12",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Losing Steam data access never revokes Pro or wipes Pro history.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.13",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Pro expiry generates no negative or downgrade celebration; scope change is never presented as performance change.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.14",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Pro historical data is retained after expiry and reused on resubscription.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.15",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Pro is never framed as more accurate.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.16",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Notification permission never gates processing, readiness or account state.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.17",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Account deletion is immediate, outranks background work, releases the Steam link, and cancels renewal without a prorated refund.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#10.18",
+      "source": "settings_account/SSOT.md",
+      "section": "10. Hard invariants",
+      "rule": "Accounts are never automatically merged, by any path including recovery.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.1",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Attaching a colliding auth identity is blocked and routed to recovery, never merged.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.2",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "No standalone unlink action exists anywhere in the product.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.3",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A switch attempt is blocked with a clear cause for each of: cooldown, non-terminal rebuild, target owned elsewhere, validation failure.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.4",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A failed switch attempt leaves the cooldown timer unchanged.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.5",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "After a successful switch, no PB, baseline, achievement, role history, match history, cursor, correction or notification state from the old profile is visible.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.6",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A Pro user after a switch sees the new profile's Free/bootstrap state first, never the old profile's analytics.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.7",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Data-access loss retains the link, retains Pro, blocks acquisition, and shows recovery guidance.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.8",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Recovery re-anchors to the original Steam-link date and records unrecoverable gaps.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.9",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "No code path acquires, enriches or measures a fresh match differently for a Free and a Pro user.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.10",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "A Pro historical import never delays a freshly completed match, for that user or any other.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.11",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Pro activation, expiry and resubscription rebuild from stored data without a provider refetch when coverage is complete.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.12",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Pro cannot be purchased without a linked Steam ID.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.13",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Pro activation and expiry switch all dependent state together, with no mixed intermediate visible.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.14",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Pro expiry that changes a PB presents it as entitlement scope, not as a lost record.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.15",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Resubscription reuses retained history without a full refetch when coverage is complete.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.16",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Declining notifications changes nothing about tracking or readiness.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.17",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Deletion is available during any running job, takes effect immediately, and prevents late results from restoring state.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.18",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Deletion while Pro is active ends access immediately, stops renewal, and grants no prorated refund.",
+      "status": "pending",
+      "tests": []
+    },
+    {
+      "id": "settings_account#11.19",
+      "source": "settings_account/SSOT.md",
+      "section": "11. Acceptance rules",
+      "rule": "Every irreversible action states its consequences before it is confirmed.",
+      "status": "pending",
+      "tests": []
+    }
+  ]
+}

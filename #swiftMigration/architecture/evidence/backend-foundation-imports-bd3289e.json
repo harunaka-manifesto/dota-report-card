@@ -1,0 +1,2136 @@
+{
+  "base_sha": "bd3289e4602303a7cdb9fccb3ea5bc482413f68f",
+  "method": "AST Import and ImportFrom, including conditional imports; relative names resolved against module package. Static inventory, not proof against dynamic imports.",
+  "modules": {
+    "app.__init__": [],
+    "app.analysis.__init__": [],
+    "app.analysis.budget": [
+      "__future__",
+      "dataclasses",
+      "decimal",
+      "typing"
+    ],
+    "app.analysis.deep_scan": [
+      "__future__",
+      "app.analysis.budget",
+      "app.features.summary_models",
+      "app.hypotheses.generator",
+      "app.hypotheses.models",
+      "app.ingestion.coverage",
+      "app.ingestion.eligibility",
+      "app.ingestion.normalize",
+      "app.patterns.models",
+      "app.selection.candidates",
+      "app.selection.models",
+      "app.selection.planner",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.analysis.service": [
+      "__future__",
+      "app.analysis.budget",
+      "app.analysis.deep_scan",
+      "app.analysis.source",
+      "app.api.report_schemas",
+      "app.behavior.context_baseline",
+      "app.behavior.elements.registry",
+      "app.behavior.outcomes",
+      "app.behavior.patterns.registry",
+      "app.behavior.service",
+      "app.cohorts.selector",
+      "app.content.catalog",
+      "app.core.cache",
+      "app.core.config",
+      "app.core.errors",
+      "app.core.metrics",
+      "app.core.security",
+      "app.dna.features.models",
+      "app.dna.performance",
+      "app.dna.pipeline",
+      "app.dna.recency",
+      "app.dna.sessions",
+      "app.features.calculators",
+      "app.features.models",
+      "app.features.summary_calculators",
+      "app.features.summary_models",
+      "app.hero_portfolio.config",
+      "app.hero_portfolio.version",
+      "app.heroes.knowledge",
+      "app.heroes.recommendations",
+      "app.heroes.taxonomy",
+      "app.identity.steam",
+      "app.ingestion.coverage",
+      "app.ingestion.eligibility",
+      "app.ingestion.normalize",
+      "app.ingestion.summary_history_contract",
+      "app.ingestion.summary_normalize",
+      "app.insights.evaluator",
+      "app.patterns.detector",
+      "app.player_analysis_v6.artifacts",
+      "app.player_analysis_v6.calibration",
+      "app.player_analysis_v6.hero_portfolio",
+      "app.player_analysis_v6.models",
+      "app.player_analysis_v61.artifacts",
+      "app.player_analysis_v61.story_selector",
+      "app.player_analysis_v61.versions",
+      "app.reports.assembly",
+      "app.reports.dna_assembly",
+      "app.reports.dna_assembly_v6",
+      "app.reports.dna_assembly_v61",
+      "app.share.service",
+      "app.storage.repository",
+      "app.workers.tasks",
+      "asyncio",
+      "collections.abc",
+      "copy",
+      "dataclasses",
+      "datetime",
+      "hashlib",
+      "json",
+      "logging",
+      "re",
+      "typing",
+      "urllib.parse"
+    ],
+    "app.analysis.source": [
+      "__future__",
+      "app.core.config",
+      "app.core.errors",
+      "collections.abc",
+      "json",
+      "pathlib",
+      "typing"
+    ],
+    "app.api.__init__": [],
+    "app.api.report_schemas": [
+      "__future__",
+      "app.api.report_schemas_v6",
+      "app.api.report_schemas_v61",
+      "app.behavior.elements.registry",
+      "app.behavior.outcomes",
+      "app.behavior.patterns.registry",
+      "app.behavior.presentation",
+      "app.content.catalog",
+      "app.heroes.recommendations",
+      "pydantic",
+      "typing"
+    ],
+    "app.api.report_schemas_v6": [
+      "__future__",
+      "pydantic",
+      "typing"
+    ],
+    "app.api.report_schemas_v61": [
+      "__future__",
+      "app.api.report_schemas_v6",
+      "app.api.story_payload_schemas_v61",
+      "app.player_analysis_v61.semantic_outcomes",
+      "pydantic",
+      "typing"
+    ],
+    "app.api.routes": [
+      "__future__",
+      "app.api.schemas",
+      "app.core.errors",
+      "app.core.metrics",
+      "app.core.security",
+      "app.ingestion.eligibility",
+      "app.ingestion.summary_history_contract",
+      "app.ingestion.summary_normalize",
+      "app.player_analysis_v7.capability_payload",
+      "app.player_analysis_v7.public_projection",
+      "app.share.service",
+      "app.storage.repository",
+      "asyncio",
+      "collections.abc",
+      "datetime",
+      "fastapi",
+      "fastapi.responses",
+      "inspect",
+      "json",
+      "typing"
+    ],
+    "app.api.schemas": [
+      "__future__",
+      "json",
+      "pydantic",
+      "typing"
+    ],
+    "app.api.story_payload_schemas_v61": [
+      "__future__",
+      "app.api.report_schemas_v6",
+      "app.player_analysis_v61.story_selector",
+      "app.player_analysis_v61.versions",
+      "collections.abc",
+      "pydantic",
+      "re",
+      "typing"
+    ],
+    "app.behavior.__init__": [
+      "app.behavior.models",
+      "app.behavior.presentation",
+      "app.behavior.service"
+    ],
+    "app.behavior.actions": [
+      "__future__",
+      "app.behavior.context_baseline",
+      "app.behavior.display_bands",
+      "app.behavior.models",
+      "app.dna.breakpoints",
+      "app.dna.performance",
+      "app.dna.recency",
+      "app.dna.sessions",
+      "app.hero_portfolio.config",
+      "app.hero_portfolio.version",
+      "app.heroes.evidence",
+      "app.heroes.knowledge",
+      "app.heroes.recommendations",
+      "app.heroes.relationships",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "datetime",
+      "math",
+      "statistics",
+      "typing"
+    ],
+    "app.behavior.catalog": [
+      "__future__",
+      "app.behavior.dimensions",
+      "app.behavior.elements.registry",
+      "app.behavior.patterns.registry"
+    ],
+    "app.behavior.comparisons": [
+      "__future__",
+      "collections.abc",
+      "math",
+      "statistics",
+      "typing"
+    ],
+    "app.behavior.context_baseline": [
+      "__future__",
+      "app.dna.recency",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.behavior.dimensions": [
+      "__future__",
+      "app.behavior.tiers",
+      "dataclasses"
+    ],
+    "app.behavior.display_bands": [
+      "__future__",
+      "app.heroes.knowledge",
+      "typing"
+    ],
+    "app.behavior.elements.__init__": [
+      "app.behavior.elements.registry",
+      "app.behavior.elements.service"
+    ],
+    "app.behavior.elements.free_summary.__init__": [
+      "app.behavior.elements.free_summary.adaptability",
+      "app.behavior.elements.free_summary.combat_expression",
+      "app.behavior.elements.free_summary.consistency_form",
+      "app.behavior.elements.free_summary.hero_identity",
+      "app.behavior.elements.free_summary.risk_survival",
+      "app.behavior.elements.free_summary.role_identity",
+      "app.behavior.elements.free_summary.session_response"
+    ],
+    "app.behavior.elements.free_summary.adaptability": [
+      "app.behavior.elements.service"
+    ],
+    "app.behavior.elements.free_summary.combat_expression": [
+      "app.behavior.elements.service"
+    ],
+    "app.behavior.elements.free_summary.consistency_form": [
+      "app.behavior.elements.service"
+    ],
+    "app.behavior.elements.free_summary.hero_identity": [
+      "app.behavior.elements.service"
+    ],
+    "app.behavior.elements.free_summary.risk_survival": [
+      "app.behavior.elements.service"
+    ],
+    "app.behavior.elements.free_summary.role_identity": [
+      "app.behavior.elements.service"
+    ],
+    "app.behavior.elements.free_summary.session_response": [
+      "app.behavior.elements.service"
+    ],
+    "app.behavior.elements.models": [
+      "app.behavior.models"
+    ],
+    "app.behavior.elements.registry": [
+      "__future__",
+      "app.behavior.models",
+      "app.behavior.tiers",
+      "bisect",
+      "collections.abc"
+    ],
+    "app.behavior.elements.service": [
+      "__future__",
+      "app.behavior.comparisons",
+      "app.behavior.context_baseline",
+      "app.behavior.elements.registry",
+      "app.behavior.evidence",
+      "app.behavior.models",
+      "app.dna.breakpoints",
+      "app.dna.dimensions",
+      "app.dna.features.models",
+      "app.dna.recency",
+      "app.dna.sessions",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "json",
+      "math",
+      "statistics",
+      "typing"
+    ],
+    "app.behavior.evidence": [
+      "__future__",
+      "dataclasses",
+      "typing"
+    ],
+    "app.behavior.models": [
+      "__future__",
+      "app.behavior.context_baseline",
+      "app.behavior.evidence",
+      "app.behavior.tiers",
+      "app.hero_portfolio.version",
+      "app.heroes.recommendations",
+      "collections.abc",
+      "dataclasses",
+      "datetime",
+      "typing"
+    ],
+    "app.behavior.outcomes": [
+      "__future__",
+      "collections.abc",
+      "typing"
+    ],
+    "app.behavior.patterns.__init__": [
+      "app.behavior.patterns.registry",
+      "app.behavior.patterns.service"
+    ],
+    "app.behavior.patterns.free_summary": [
+      "app.behavior.models",
+      "app.behavior.patterns.service"
+    ],
+    "app.behavior.patterns.models": [
+      "app.behavior.models"
+    ],
+    "app.behavior.patterns.registry": [
+      "__future__",
+      "app.behavior.elements.registry",
+      "app.behavior.models"
+    ],
+    "app.behavior.patterns.service": [
+      "__future__",
+      "app.behavior.comparisons",
+      "app.behavior.elements.registry",
+      "app.behavior.evidence",
+      "app.behavior.models",
+      "app.behavior.patterns.registry",
+      "collections.abc",
+      "dataclasses"
+    ],
+    "app.behavior.presentation": [
+      "__future__",
+      "app.behavior.display_bands",
+      "app.behavior.models",
+      "app.behavior.outcomes",
+      "app.heroes.knowledge",
+      "app.heroes.recommendations",
+      "app.heroes.relationships",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.behavior.ranking": [
+      "__future__",
+      "app.behavior.models",
+      "collections.abc",
+      "dataclasses"
+    ],
+    "app.behavior.service": [
+      "__future__",
+      "app.behavior.actions",
+      "app.behavior.context_baseline",
+      "app.behavior.dimensions",
+      "app.behavior.elements.registry",
+      "app.behavior.elements.service",
+      "app.behavior.models",
+      "app.behavior.patterns.registry",
+      "app.behavior.patterns.service",
+      "collections.abc"
+    ],
+    "app.behavior.tiers": [
+      "typing"
+    ],
+    "app.cohorts.__init__": [
+      "app.cohorts.selector"
+    ],
+    "app.cohorts.aggregation": [
+      "__future__",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "statistics",
+      "typing"
+    ],
+    "app.cohorts.collector": [
+      "__future__",
+      "asyncio",
+      "dataclasses",
+      "time",
+      "typing"
+    ],
+    "app.cohorts.selector": [
+      "__future__",
+      "app.features.models",
+      "collections.abc",
+      "dataclasses",
+      "statistics",
+      "typing"
+    ],
+    "app.cohorts.statistics": [
+      "__future__",
+      "collections.abc",
+      "math",
+      "statistics"
+    ],
+    "app.content.__init__": [
+      "app.content.catalog"
+    ],
+    "app.content.catalog": [
+      "__future__",
+      "functools",
+      "json",
+      "pathlib",
+      "typing"
+    ],
+    "app.content.renderer": [
+      "__future__",
+      "app.behavior.elements.registry",
+      "app.behavior.outcomes",
+      "app.behavior.patterns.registry",
+      "app.behavior.presentation",
+      "app.content.catalog",
+      "string",
+      "typing"
+    ],
+    "app.core.__init__": [],
+    "app.core.cache": [
+      "__future__",
+      "collections.abc",
+      "dataclasses",
+      "datetime",
+      "hashlib",
+      "json",
+      "redis",
+      "threading",
+      "typing"
+    ],
+    "app.core.config": [
+      "__future__",
+      "dataclasses",
+      "dotenv",
+      "functools",
+      "os",
+      "pathlib",
+      "re"
+    ],
+    "app.core.errors": [
+      "__future__"
+    ],
+    "app.core.logging": [
+      "__future__",
+      "app.core.security",
+      "logging",
+      "typing"
+    ],
+    "app.core.metrics": [
+      "__future__",
+      "collections.abc",
+      "threading"
+    ],
+    "app.core.release": [
+      "__future__",
+      "app.core.config",
+      "collections.abc",
+      "hashlib",
+      "json",
+      "pathlib",
+      "re",
+      "subprocess",
+      "typing"
+    ],
+    "app.core.security": [
+      "__future__",
+      "app.core.errors",
+      "app.identity.steam",
+      "dataclasses",
+      "datetime",
+      "hashlib",
+      "re",
+      "redis",
+      "threading",
+      "time",
+      "typing",
+      "urllib.parse"
+    ],
+    "app.dna.__init__": [
+      "app.dna.pipeline"
+    ],
+    "app.dna.baselines": [
+      "__future__",
+      "dataclasses",
+      "json",
+      "pathlib"
+    ],
+    "app.dna.breakpoints": [
+      "__future__",
+      "collections.abc",
+      "dataclasses"
+    ],
+    "app.dna.confidence": [
+      "__future__",
+      "typing"
+    ],
+    "app.dna.dimensions.__init__": [
+      "app.dna.dimensions.models",
+      "app.dna.dimensions.service"
+    ],
+    "app.dna.dimensions.activity": [
+      "__future__",
+      "app.dna.baselines",
+      "app.dna.dimensions.common",
+      "app.dna.features.models",
+      "math",
+      "statistics"
+    ],
+    "app.dna.dimensions.adaptability": [
+      "__future__",
+      "app.dna.dimensions.common",
+      "app.dna.features.models",
+      "app.ingestion.summary_normalize",
+      "math",
+      "statistics"
+    ],
+    "app.dna.dimensions.breadth": [
+      "__future__",
+      "app.dna.dimensions.common",
+      "app.dna.features.models"
+    ],
+    "app.dna.dimensions.common": [
+      "__future__",
+      "app.dna.confidence",
+      "app.dna.dimensions.models",
+      "app.dna.features.models",
+      "dataclasses",
+      "typing"
+    ],
+    "app.dna.dimensions.endurance": [
+      "__future__",
+      "app.dna.dimensions.common",
+      "app.dna.features.models",
+      "collections"
+    ],
+    "app.dna.dimensions.models": [
+      "__future__",
+      "app.dna.confidence",
+      "app.dna.features.models",
+      "dataclasses",
+      "typing"
+    ],
+    "app.dna.dimensions.orientation": [
+      "__future__",
+      "app.dna.baselines",
+      "app.dna.dimensions.common",
+      "app.dna.features.models",
+      "statistics"
+    ],
+    "app.dna.dimensions.resilience": [
+      "__future__",
+      "app.dna.dimensions.common",
+      "app.dna.features.models"
+    ],
+    "app.dna.dimensions.rhythm": [
+      "__future__",
+      "app.dna.dimensions.common",
+      "app.dna.features.models",
+      "statistics"
+    ],
+    "app.dna.dimensions.role": [
+      "__future__",
+      "app.dna.dimensions.common",
+      "app.dna.features.models"
+    ],
+    "app.dna.dimensions.service": [
+      "__future__",
+      "app.dna.dimensions",
+      "app.dna.dimensions.models",
+      "app.dna.features.models",
+      "collections.abc",
+      "logging"
+    ],
+    "app.dna.features.__init__": [
+      "app.dna.features.extractor",
+      "app.dna.features.models"
+    ],
+    "app.dna.features.extractor": [
+      "__future__",
+      "app.dna.dimensions.service",
+      "app.dna.features.models",
+      "app.dna.performance",
+      "app.dna.recency",
+      "app.dna.sessions",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "dataclasses",
+      "math",
+      "statistics",
+      "typing"
+    ],
+    "app.dna.features.models": [
+      "__future__",
+      "app.dna.sessions",
+      "app.ingestion.summary_normalize",
+      "dataclasses",
+      "typing"
+    ],
+    "app.dna.models": [
+      "app.dna.dimensions.models",
+      "app.dna.features.models"
+    ],
+    "app.dna.normalization": [
+      "app.ingestion.summary_normalize"
+    ],
+    "app.dna.performance": [
+      "__future__",
+      "app.ingestion.summary_normalize",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "statistics"
+    ],
+    "app.dna.pipeline": [
+      "__future__",
+      "app.behavior.elements.service",
+      "app.behavior.models",
+      "app.behavior.service",
+      "app.dna.features.extractor",
+      "app.dna.features.models",
+      "app.dna.recency",
+      "app.dna.sessions",
+      "app.hero_portfolio.models",
+      "app.hero_portfolio.service",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.dna.recency": [
+      "__future__",
+      "collections.abc",
+      "math"
+    ],
+    "app.dna.sessions": [
+      "__future__",
+      "app.ingestion.summary_normalize",
+      "dataclasses",
+      "typing"
+    ],
+    "app.features.__init__": [
+      "app.features.calculators"
+    ],
+    "app.features.calculators": [
+      "__future__",
+      "app.features.models",
+      "app.features.roles",
+      "app.ingestion.normalize",
+      "dataclasses"
+    ],
+    "app.features.models": [
+      "__future__",
+      "app.ingestion.coverage",
+      "dataclasses",
+      "typing"
+    ],
+    "app.features.roles": [
+      "__future__",
+      "app.ingestion.normalize",
+      "collections.abc",
+      "dataclasses"
+    ],
+    "app.features.summary_calculators": [
+      "__future__",
+      "app.features.summary_models",
+      "dataclasses",
+      "typing"
+    ],
+    "app.features.summary_models": [
+      "__future__",
+      "dataclasses",
+      "typing"
+    ],
+    "app.hero_portfolio.__init__": [
+      "app.hero_portfolio.models",
+      "app.hero_portfolio.service"
+    ],
+    "app.hero_portfolio.behavior": [
+      "__future__",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc"
+    ],
+    "app.hero_portfolio.common_thread": [
+      "__future__",
+      "app.behavior.display_bands",
+      "app.content.renderer",
+      "app.hero_portfolio.config",
+      "app.hero_portfolio.eligibility",
+      "app.hero_portfolio.models",
+      "app.hero_portfolio.ordering",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc"
+    ],
+    "app.hero_portfolio.config": [
+      "__future__",
+      "dataclasses"
+    ],
+    "app.hero_portfolio.eligibility": [
+      "__future__",
+      "app.hero_portfolio.config",
+      "app.hero_portfolio.models",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc"
+    ],
+    "app.hero_portfolio.evolution": [
+      "__future__",
+      "app.behavior.display_bands",
+      "app.hero_portfolio.config",
+      "app.hero_portfolio.models",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc",
+      "datetime",
+      "math",
+      "typing"
+    ],
+    "app.hero_portfolio.exception": [
+      "__future__",
+      "app.behavior.display_bands",
+      "app.content.renderer",
+      "app.hero_portfolio.config",
+      "app.hero_portfolio.eligibility",
+      "app.hero_portfolio.models",
+      "app.hero_portfolio.ordering",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections.abc",
+      "math"
+    ],
+    "app.hero_portfolio.mirror": [
+      "__future__",
+      "app.hero_portfolio.behavior",
+      "app.hero_portfolio.config",
+      "app.hero_portfolio.eligibility",
+      "app.hero_portfolio.models",
+      "app.hero_portfolio.version",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "typing"
+    ],
+    "app.hero_portfolio.models": [
+      "__future__",
+      "dataclasses",
+      "typing"
+    ],
+    "app.hero_portfolio.ordering": [
+      "__future__",
+      "collections.abc",
+      "hashlib",
+      "typing"
+    ],
+    "app.hero_portfolio.service": [
+      "__future__",
+      "app.behavior.models",
+      "app.hero_portfolio.common_thread",
+      "app.hero_portfolio.eligibility",
+      "app.hero_portfolio.evolution",
+      "app.hero_portfolio.exception",
+      "app.hero_portfolio.mirror",
+      "app.hero_portfolio.models",
+      "app.hero_portfolio.version",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections.abc"
+    ],
+    "app.hero_portfolio.version": [],
+    "app.heroes.__init__": [
+      "app.heroes.identity",
+      "app.heroes.taxonomy"
+    ],
+    "app.heroes.evidence": [
+      "__future__",
+      "app.hero_portfolio.version",
+      "dataclasses",
+      "functools",
+      "json",
+      "pathlib"
+    ],
+    "app.heroes.identity": [
+      "__future__",
+      "app.dna.features.models",
+      "app.heroes.knowledge",
+      "app.heroes.patterns",
+      "app.heroes.recommendations",
+      "app.heroes.taxonomy",
+      "dataclasses",
+      "math",
+      "statistics",
+      "typing"
+    ],
+    "app.heroes.knowledge": [
+      "__future__",
+      "app.behavior.display_bands",
+      "app.heroes.taxonomy",
+      "collections.abc",
+      "dataclasses",
+      "json",
+      "pathlib",
+      "typing"
+    ],
+    "app.heroes.patterns": [
+      "__future__",
+      "app.heroes.identity",
+      "app.heroes.taxonomy",
+      "math",
+      "typing"
+    ],
+    "app.heroes.recommendations": [
+      "__future__",
+      "app.dna.features.models",
+      "app.heroes.identity",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "typing"
+    ],
+    "app.heroes.relationships": [
+      "__future__",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "math"
+    ],
+    "app.heroes.taxonomy": [
+      "__future__",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "pathlib",
+      "typing"
+    ],
+    "app.hypotheses.__init__": [],
+    "app.hypotheses.generator": [
+      "__future__",
+      "app.hypotheses.models",
+      "app.patterns.models",
+      "collections.abc",
+      "typing"
+    ],
+    "app.hypotheses.models": [
+      "__future__",
+      "app.features.summary_models",
+      "dataclasses",
+      "typing"
+    ],
+    "app.identity.__init__": [
+      "app.identity.steam"
+    ],
+    "app.identity.steam": [
+      "__future__",
+      "app.core.cache",
+      "app.core.errors",
+      "asyncio",
+      "collections.abc",
+      "dataclasses",
+      "httpx",
+      "typing"
+    ],
+    "app.ingestion.__init__": [],
+    "app.ingestion.coverage": [
+      "__future__",
+      "dataclasses",
+      "typing"
+    ],
+    "app.ingestion.eligibility": [
+      "__future__",
+      "dataclasses",
+      "enum",
+      "typing"
+    ],
+    "app.ingestion.normalize": [
+      "__future__",
+      "app.ingestion.coverage",
+      "app.ingestion.eligibility",
+      "dataclasses",
+      "datetime",
+      "typing"
+    ],
+    "app.ingestion.summary_history_contract": [
+      "__future__",
+      "app.ingestion.summary_normalize",
+      "collections.abc",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "typing"
+    ],
+    "app.ingestion.summary_normalize": [
+      "__future__",
+      "dataclasses",
+      "datetime",
+      "typing"
+    ],
+    "app.insights.__init__": [
+      "app.insights.evaluator",
+      "app.insights.registry"
+    ],
+    "app.insights.evaluator": [
+      "__future__",
+      "app.cohorts.selector",
+      "app.cohorts.statistics",
+      "app.core.config",
+      "app.features.models",
+      "app.insights.gates",
+      "app.insights.models",
+      "app.insights.ranking",
+      "app.insights.registry",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "statistics"
+    ],
+    "app.insights.gates": [
+      "__future__",
+      "app.insights.models",
+      "app.insights.registry",
+      "dataclasses"
+    ],
+    "app.insights.models": [
+      "__future__",
+      "dataclasses",
+      "typing"
+    ],
+    "app.insights.ranking": [
+      "__future__",
+      "app.insights.models"
+    ],
+    "app.insights.registry": [
+      "__future__",
+      "dataclasses"
+    ],
+    "app.insights.templates": [
+      "__future__",
+      "app.insights.models"
+    ],
+    "app.main": [
+      "__future__",
+      "app.analysis.service",
+      "app.analysis.source",
+      "app.api.routes",
+      "app.core.cache",
+      "app.core.config",
+      "app.core.errors",
+      "app.core.logging",
+      "app.core.metrics",
+      "app.core.release",
+      "app.core.security",
+      "app.features.models",
+      "app.identity.steam",
+      "app.opendota.client",
+      "app.opendota.parse_client",
+      "app.player_analysis_v7.service",
+      "app.providers",
+      "app.storage.repository",
+      "app.workers.tasks",
+      "asyncio",
+      "collections.abc",
+      "contextlib",
+      "fastapi",
+      "fastapi.middleware.cors",
+      "fastapi.responses",
+      "redis",
+      "typing"
+    ],
+    "app.opendota.__init__": [
+      "app.opendota.client"
+    ],
+    "app.opendota.client": [
+      "__future__",
+      "app.core.cache",
+      "app.core.config",
+      "app.core.errors",
+      "app.core.metrics",
+      "app.core.security",
+      "app.ingestion.summary_history_contract",
+      "asyncio",
+      "collections.abc",
+      "httpx",
+      "logging",
+      "random",
+      "typing"
+    ],
+    "app.opendota.parse_client": [
+      "__future__",
+      "app.core.config",
+      "app.core.errors",
+      "httpx",
+      "re",
+      "typing"
+    ],
+    "app.opendota.schemas": [
+      "__future__",
+      "dataclasses",
+      "typing"
+    ],
+    "app.patterns.__init__": [],
+    "app.patterns.detector": [
+      "__future__",
+      "app.features.summary_models",
+      "app.patterns.models",
+      "collections",
+      "collections.abc",
+      "math",
+      "statistics"
+    ],
+    "app.patterns.models": [
+      "__future__",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v6.__init__": [
+      "app.player_analysis_v6.artifacts",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.calibration",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.costs",
+      "app.player_analysis_v6.elements",
+      "app.player_analysis_v6.family_statistics",
+      "app.player_analysis_v6.findings",
+      "app.player_analysis_v6.identity",
+      "app.player_analysis_v6.metrics",
+      "app.player_analysis_v6.models",
+      "app.player_analysis_v6.pipeline",
+      "app.player_analysis_v6.statistics",
+      "app.player_analysis_v6.story",
+      "app.player_analysis_v6.thresholds"
+    ],
+    "app.player_analysis_v6.analysis": [
+      "app.player_analysis_v6.pipeline"
+    ],
+    "app.player_analysis_v6.artifacts": [
+      "__future__",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.constants",
+      "collections.abc",
+      "dataclasses",
+      "json",
+      "math",
+      "pathlib",
+      "typing"
+    ],
+    "app.player_analysis_v6.baselines": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.models",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v6.bootstrap": [
+      "app.player_analysis_v6.statistics"
+    ],
+    "app.player_analysis_v6.calibration": [
+      "__future__",
+      "app.player_analysis_v6.artifacts",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.thresholds",
+      "collections.abc",
+      "dataclasses",
+      "json",
+      "math",
+      "pathlib",
+      "typing"
+    ],
+    "app.player_analysis_v6.calibration_corpus": [
+      "__future__",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "math",
+      "os",
+      "pathlib",
+      "re",
+      "typing"
+    ],
+    "app.player_analysis_v6.calibration_derivation": [
+      "__future__",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.context_adjustment",
+      "app.player_analysis_v6.metrics",
+      "app.player_analysis_v6.post_loss",
+      "app.player_analysis_v6.session_drift",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "statistics",
+      "typing"
+    ],
+    "app.player_analysis_v6.calibration_evaluation": [
+      "__future__",
+      "app.player_analysis_v6.artifacts",
+      "app.player_analysis_v6.calibration",
+      "app.player_analysis_v6.constants",
+      "collections.abc",
+      "datetime",
+      "hashlib",
+      "json",
+      "math",
+      "os",
+      "pathlib",
+      "re",
+      "shutil",
+      "typing"
+    ],
+    "app.player_analysis_v6.constants": [
+      "__future__"
+    ],
+    "app.player_analysis_v6.context_adjustment": [
+      "__future__",
+      "app.player_analysis_v6.baselines",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v6.contracts": [
+      "app.player_analysis_v6.models"
+    ],
+    "app.player_analysis_v6.copy": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "collections.abc",
+      "typing"
+    ],
+    "app.player_analysis_v6.cost": [
+      "app.player_analysis_v6.costs"
+    ],
+    "app.player_analysis_v6.costs": [
+      "__future__",
+      "app.player_analysis_v6.models",
+      "collections.abc",
+      "typing"
+    ],
+    "app.player_analysis_v6.deep_questions": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "collections.abc",
+      "copy",
+      "typing"
+    ],
+    "app.player_analysis_v6.elements": [
+      "__future__",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.context_adjustment",
+      "app.player_analysis_v6.metrics",
+      "app.player_analysis_v6.models",
+      "app.player_analysis_v6.statistics",
+      "app.player_analysis_v6.thresholds",
+      "collections",
+      "collections.abc",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v6.family_statistics": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.statistics",
+      "collections.abc",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v6.findings": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.copy",
+      "app.player_analysis_v6.family_statistics",
+      "app.player_analysis_v6.models",
+      "app.player_analysis_v6.recommendations",
+      "app.player_analysis_v6.statistics",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v6.hero_portfolio": [
+      "__future__",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.player_analysis_v6.context_adjustment",
+      "app.player_analysis_v6.metrics",
+      "collections",
+      "collections.abc",
+      "typing"
+    ],
+    "app.player_analysis_v6.identity": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.copy",
+      "app.player_analysis_v6.findings",
+      "app.player_analysis_v6.models",
+      "collections.abc",
+      "typing"
+    ],
+    "app.player_analysis_v6.metrics": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v6.models": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "types",
+      "typing"
+    ],
+    "app.player_analysis_v6.pipeline": [
+      "__future__",
+      "app.ingestion.summary_normalize",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.context_adjustment",
+      "app.player_analysis_v6.costs",
+      "app.player_analysis_v6.elements",
+      "app.player_analysis_v6.family_statistics",
+      "app.player_analysis_v6.findings",
+      "app.player_analysis_v6.hero_portfolio",
+      "app.player_analysis_v6.identity",
+      "app.player_analysis_v6.models",
+      "app.player_analysis_v6.post_loss",
+      "app.player_analysis_v6.recommendations",
+      "app.player_analysis_v6.session_drift",
+      "app.player_analysis_v6.story",
+      "app.player_analysis_v6.thresholds",
+      "collections.abc",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v6.post_loss": [
+      "__future__",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.context_adjustment",
+      "app.player_analysis_v6.metrics",
+      "app.player_analysis_v6.statistics",
+      "app.player_analysis_v6.thresholds",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v6.recommendations": [
+      "__future__",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v6.registry": [
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.elements",
+      "app.player_analysis_v6.findings"
+    ],
+    "app.player_analysis_v6.session_drift": [
+      "__future__",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.context_adjustment",
+      "app.player_analysis_v6.metrics",
+      "app.player_analysis_v6.statistics",
+      "app.player_analysis_v6.thresholds",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v6.statistics": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "hashlib",
+      "math",
+      "random",
+      "statistics",
+      "typing"
+    ],
+    "app.player_analysis_v6.stats": [
+      "app.player_analysis_v6.statistics"
+    ],
+    "app.player_analysis_v6.story": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.context_adjustment",
+      "app.player_analysis_v6.copy",
+      "app.player_analysis_v6.deep_questions",
+      "app.player_analysis_v6.models",
+      "app.player_analysis_v6.post_loss",
+      "collections.abc",
+      "typing"
+    ],
+    "app.player_analysis_v6.threshold": [
+      "app.player_analysis_v6.thresholds"
+    ],
+    "app.player_analysis_v6.thresholds": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v61.__init__": [
+      "app.player_analysis_v61.semantic_outcomes",
+      "app.player_analysis_v61.supporting_signals",
+      "app.player_analysis_v61.versions"
+    ],
+    "app.player_analysis_v61.artifacts": [
+      "__future__",
+      "app.ingestion.summary_history_contract",
+      "app.player_analysis_v6.artifacts",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.calibration",
+      "app.player_analysis_v6.thresholds",
+      "app.player_analysis_v61.calibration_corpus",
+      "app.player_analysis_v61.semantic_outcomes",
+      "app.player_analysis_v61.versions",
+      "collections.abc",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "math",
+      "pathlib",
+      "re",
+      "typing"
+    ],
+    "app.player_analysis_v61.calibration_corpus": [
+      "__future__",
+      "app.dna.sessions",
+      "app.ingestion.summary_history_contract",
+      "app.ingestion.summary_normalize",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "math",
+      "pathlib",
+      "re",
+      "typing"
+    ],
+    "app.player_analysis_v61.calibration_evaluation": [
+      "__future__",
+      "app.player_analysis_v61.artifacts",
+      "app.player_analysis_v61.calibration_corpus",
+      "app.player_analysis_v61.copy",
+      "app.player_analysis_v61.hierarchical",
+      "app.player_analysis_v61.semantic_outcomes",
+      "app.player_analysis_v61.versions",
+      "collections.abc",
+      "datetime",
+      "random",
+      "typing"
+    ],
+    "app.player_analysis_v61.copy": [
+      "__future__",
+      "app.player_analysis_v61.semantic_outcomes",
+      "dataclasses",
+      "types"
+    ],
+    "app.player_analysis_v61.corpus_reuse": [
+      "__future__",
+      "app.ingestion.summary_history_contract",
+      "app.player_analysis_v6.calibration_corpus",
+      "app.player_analysis_v61.calibration_corpus",
+      "collections",
+      "collections.abc",
+      "hashlib",
+      "json",
+      "math",
+      "pathlib",
+      "re",
+      "typing"
+    ],
+    "app.player_analysis_v61.estimators": [
+      "__future__",
+      "app.player_analysis_v6.context_adjustment",
+      "app.player_analysis_v6.metrics",
+      "app.player_analysis_v61.portfolio_shape",
+      "collections",
+      "collections.abc",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v61.experimental": [
+      "__future__",
+      "collections",
+      "collections.abc",
+      "hashlib",
+      "math",
+      "random",
+      "typing"
+    ],
+    "app.player_analysis_v61.family_statistics": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v61.semantic_outcomes",
+      "collections.abc",
+      "math",
+      "statistics",
+      "typing"
+    ],
+    "app.player_analysis_v61.hierarchical": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.family_statistics",
+      "collections.abc"
+    ],
+    "app.player_analysis_v61.holdout_evaluation": [
+      "__future__",
+      "app.analysis.budget",
+      "app.api.report_schemas_v61",
+      "app.player_analysis_v6.artifacts",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v61.artifacts",
+      "app.player_analysis_v61.calibration_corpus",
+      "app.player_analysis_v61.corpus_reuse",
+      "app.player_analysis_v61.legacy_adapter",
+      "app.player_analysis_v61.semantic_outcomes",
+      "app.player_analysis_v61.versions",
+      "app.reports.dna_assembly_v61",
+      "collections",
+      "collections.abc",
+      "concurrent.futures",
+      "hashlib",
+      "json",
+      "multiprocessing",
+      "os",
+      "pathlib",
+      "resource",
+      "statistics",
+      "time",
+      "typing"
+    ],
+    "app.player_analysis_v61.identity": [
+      "__future__",
+      "collections.abc",
+      "typing"
+    ],
+    "app.player_analysis_v61.legacy_adapter": [
+      "__future__",
+      "app.heroes.taxonomy",
+      "app.ingestion.summary_history_contract",
+      "app.ingestion.summary_normalize",
+      "app.player_analysis_v6.hero_portfolio",
+      "app.player_analysis_v6.metrics",
+      "collections",
+      "collections.abc",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v61.portfolio_shape": [
+      "__future__",
+      "app.player_analysis_v6.metrics",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v61.production_statistics": [
+      "__future__",
+      "collections",
+      "collections.abc",
+      "hashlib",
+      "math",
+      "random",
+      "typing"
+    ],
+    "app.player_analysis_v61.relationships": [
+      "__future__",
+      "app.player_analysis_v61.portfolio_shape",
+      "collections",
+      "collections.abc",
+      "typing"
+    ],
+    "app.player_analysis_v61.semantic_outcomes": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v61.versions",
+      "collections.abc",
+      "dataclasses",
+      "types",
+      "typing"
+    ],
+    "app.player_analysis_v61.story_payload": [
+      "__future__",
+      "calendar",
+      "collections",
+      "collections.abc",
+      "datetime",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v61.story_projection": [
+      "__future__",
+      "app.api.story_payload_schemas_v61",
+      "app.player_analysis_v61.story_payload",
+      "app.player_analysis_v61.story_selector",
+      "collections.abc",
+      "copy",
+      "datetime",
+      "hashlib",
+      "json",
+      "typing"
+    ],
+    "app.player_analysis_v61.story_selector": [
+      "__future__",
+      "app.ingestion.summary_normalize",
+      "app.player_analysis_v61.versions",
+      "collections",
+      "collections.abc",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "pathlib",
+      "typing"
+    ],
+    "app.player_analysis_v61.supporting_signals": [
+      "__future__",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v61.versions",
+      "collections.abc",
+      "dataclasses",
+      "types",
+      "typing"
+    ],
+    "app.player_analysis_v61.versions": [
+      "__future__",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v7.__init__": [],
+    "app.player_analysis_v7.acquisition_policy": [
+      "__future__",
+      "collections.abc",
+      "dataclasses",
+      "math"
+    ],
+    "app.player_analysis_v7.assembly": [
+      "__future__",
+      "app.player_analysis_v7.capability_payload",
+      "app.player_analysis_v7.context_projection",
+      "app.player_analysis_v7.descriptive",
+      "app.player_analysis_v7.display_semantics",
+      "app.player_analysis_v7.population",
+      "app.player_analysis_v7.public_projection",
+      "app.player_analysis_v7.report_contract",
+      "app.providers.base",
+      "collections.abc"
+    ],
+    "app.player_analysis_v7.capability_payload": [
+      "__future__",
+      "app.player_analysis_v7.acquisition_policy",
+      "app.player_analysis_v7.descriptive",
+      "app.player_analysis_v7.display_semantics",
+      "app.player_analysis_v7.public_projection",
+      "app.player_analysis_v7.report_contract",
+      "app.player_analysis_v7.research.corpus",
+      "app.player_analysis_v7.research.ranking",
+      "app.player_analysis_v7.research.recommendation",
+      "collections.abc",
+      "json",
+      "math",
+      "pydantic",
+      "typing"
+    ],
+    "app.player_analysis_v7.context_projection": [
+      "__future__",
+      "collections.abc",
+      "dataclasses",
+      "functools",
+      "hashlib",
+      "json",
+      "math",
+      "pathlib",
+      "re",
+      "typing"
+    ],
+    "app.player_analysis_v7.descriptive": [
+      "__future__",
+      "app.player_analysis_v7.report_contract",
+      "app.player_analysis_v7.research.tables",
+      "app.providers.base",
+      "collections",
+      "collections.abc",
+      "datetime",
+      "pydantic",
+      "typing"
+    ],
+    "app.player_analysis_v7.display_semantics": [
+      "__future__",
+      "app.player_analysis_v7.population",
+      "app.player_analysis_v7.report_contract",
+      "app.player_analysis_v7.research.pass2_observations",
+      "app.player_analysis_v7.research.recommendation",
+      "app.player_analysis_v7.research.registry",
+      "typing"
+    ],
+    "app.player_analysis_v7.lifecycle": [
+      "__future__",
+      "app.player_analysis_v7.capability_payload",
+      "hashlib",
+      "json",
+      "typing"
+    ],
+    "app.player_analysis_v7.population": [
+      "__future__",
+      "app.player_analysis_v7.context_projection",
+      "dataclasses",
+      "functools",
+      "json",
+      "math",
+      "pathlib",
+      "typing"
+    ],
+    "app.player_analysis_v7.public_projection": [
+      "__future__",
+      "app.player_analysis_v7.descriptive",
+      "app.player_analysis_v7.display_semantics",
+      "app.player_analysis_v7.report_contract",
+      "typing"
+    ],
+    "app.player_analysis_v7.report_contract": [
+      "__future__",
+      "app.player_analysis_v7.research.recommendation",
+      "collections.abc",
+      "math",
+      "pydantic",
+      "re",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.__init__": [],
+    "app.player_analysis_v7.research.archetype": [
+      "__future__",
+      "app.player_analysis_v7.research",
+      "collections.abc",
+      "dataclasses",
+      "statistics",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.corpus": [
+      "__future__",
+      "app.player_analysis_v7.research.durability",
+      "collections.abc",
+      "dataclasses",
+      "datetime",
+      "hashlib",
+      "json",
+      "os",
+      "pathlib",
+      "sys",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.durability": [
+      "__future__",
+      "os",
+      "pathlib"
+    ],
+    "app.player_analysis_v7.research.features": [
+      "__future__",
+      "app.player_analysis_v7.research.corpus",
+      "app.player_analysis_v7.research.rank_fence",
+      "app.player_analysis_v7.research.tables",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.inference": [
+      "__future__",
+      "app.player_analysis_v7.research.screen",
+      "collections.abc",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "math",
+      "random",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.owner_decisions": [
+      "__future__",
+      "dataclasses"
+    ],
+    "app.player_analysis_v7.research.pass2_features": [
+      "__future__",
+      "app.player_analysis_v7.research",
+      "app.stratz.item_vocabulary",
+      "collections.abc",
+      "dataclasses",
+      "statistics",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.pass2_observations": [
+      "__future__",
+      "app.player_analysis_v7.research",
+      "app.player_analysis_v7.research.features",
+      "app.player_analysis_v7.research.pass2_features",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.pass2_tables": [
+      "__future__",
+      "app.player_analysis_v7.research",
+      "app.player_analysis_v7.research.durability",
+      "app.player_analysis_v7.research.rank_fence",
+      "collections.abc",
+      "json",
+      "pathlib",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.rank_fence": [
+      "__future__",
+      "app.player_analysis_v7.research.corpus",
+      "collections.abc",
+      "pathlib",
+      "re",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.ranking": [
+      "__future__",
+      "collections.abc",
+      "dataclasses",
+      "math"
+    ],
+    "app.player_analysis_v7.research.recommendation": [
+      "__future__",
+      "app.player_analysis_v7.research",
+      "app.player_analysis_v7.research.features",
+      "app.player_analysis_v7.research.pass2_features",
+      "app.player_analysis_v7.research.pass2_observations",
+      "app.player_analysis_v7.research.screen",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.redteam": [
+      "__future__",
+      "collections.abc",
+      "math",
+      "statistics"
+    ],
+    "app.player_analysis_v7.research.registry": [
+      "__future__",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.screen": [
+      "__future__",
+      "app.player_analysis_v7.research.features",
+      "collections.abc",
+      "dataclasses",
+      "hashlib",
+      "math",
+      "random",
+      "time",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.tables": [
+      "__future__",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.tournament": [
+      "__future__",
+      "app.player_analysis_v7.research",
+      "app.player_analysis_v7.research.features",
+      "app.player_analysis_v7.research.inference",
+      "app.player_analysis_v7.research.registry",
+      "app.player_analysis_v7.research.screen",
+      "collections.abc",
+      "dataclasses",
+      "math",
+      "time",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.variants": [
+      "__future__",
+      "app.player_analysis_v7.research",
+      "app.player_analysis_v7.research.features",
+      "collections.abc",
+      "contextlib",
+      "typing"
+    ],
+    "app.player_analysis_v7.research.verdicts": [
+      "__future__",
+      "dataclasses",
+      "typing"
+    ],
+    "app.player_analysis_v7.runtime": [
+      "__future__",
+      "app.player_analysis_v7.assembly",
+      "app.player_analysis_v7.context_projection",
+      "app.player_analysis_v7.population",
+      "app.player_analysis_v7.report_contract",
+      "app.player_analysis_v7.research",
+      "app.player_analysis_v7.research.features",
+      "app.player_analysis_v7.research.inference",
+      "app.player_analysis_v7.research.pass2_features",
+      "app.player_analysis_v7.research.pass2_observations",
+      "app.player_analysis_v7.research.pass2_tables",
+      "app.player_analysis_v7.research.ranking",
+      "app.player_analysis_v7.research.registry",
+      "app.player_analysis_v7.research.tables",
+      "app.providers.base",
+      "collections.abc",
+      "typing"
+    ],
+    "app.player_analysis_v7.service": [
+      "__future__",
+      "app.heroes.taxonomy",
+      "app.player_analysis_v7.acquisition_policy",
+      "app.player_analysis_v7.context_projection",
+      "app.player_analysis_v7.lifecycle",
+      "app.player_analysis_v7.population",
+      "app.player_analysis_v7.research.tables",
+      "app.player_analysis_v7.runtime",
+      "app.stratz.queries",
+      "collections.abc",
+      "datetime",
+      "typing"
+    ],
+    "app.progression.__init__": [],
+    "app.progression.role_metrics": [
+      "__future__",
+      "collections.abc",
+      "dataclasses",
+      "statistics",
+      "typing"
+    ],
+    "app.providers.__init__": [
+      "__future__",
+      "app.providers.base",
+      "app.stratz",
+      "typing"
+    ],
+    "app.providers.base": [
+      "__future__",
+      "dataclasses",
+      "datetime",
+      "hashlib",
+      "json",
+      "typing"
+    ],
+    "app.reports.__init__": [
+      "app.reports.assembly"
+    ],
+    "app.reports.assembly": [
+      "__future__",
+      "app.analysis.budget",
+      "app.features.summary_models",
+      "app.hypotheses.models",
+      "app.insights.evaluator",
+      "app.insights.models",
+      "app.insights.templates",
+      "app.patterns.models",
+      "app.selection.models",
+      "collections",
+      "typing"
+    ],
+    "app.reports.dna_assembly": [
+      "__future__",
+      "app.analysis.budget",
+      "app.behavior.outcomes",
+      "app.behavior.presentation",
+      "app.behavior.ranking",
+      "app.content.catalog",
+      "app.content.renderer",
+      "app.dna.pipeline",
+      "app.hero_portfolio.config",
+      "app.hero_portfolio.models",
+      "app.hero_portfolio.version",
+      "app.heroes.knowledge",
+      "app.heroes.recommendations",
+      "app.heroes.taxonomy",
+      "app.share.service",
+      "datetime",
+      "typing"
+    ],
+    "app.reports.dna_assembly_v6": [
+      "__future__",
+      "app.analysis.budget",
+      "app.dna.pipeline",
+      "app.player_analysis_v6",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.constants",
+      "app.player_analysis_v6.thresholds",
+      "collections.abc",
+      "datetime",
+      "typing"
+    ],
+    "app.reports.dna_assembly_v61": [
+      "__future__",
+      "app.analysis.budget",
+      "app.behavior.display_bands",
+      "app.heroes.knowledge",
+      "app.heroes.taxonomy",
+      "app.hypotheses.models",
+      "app.ingestion.summary_history_contract",
+      "app.player_analysis_v6.baselines",
+      "app.player_analysis_v6.context_adjustment",
+      "app.player_analysis_v6.metrics",
+      "app.player_analysis_v6.story",
+      "app.player_analysis_v61.copy",
+      "app.player_analysis_v61.estimators",
+      "app.player_analysis_v61.family_statistics",
+      "app.player_analysis_v61.hierarchical",
+      "app.player_analysis_v61.identity",
+      "app.player_analysis_v61.portfolio_shape",
+      "app.player_analysis_v61.production_statistics",
+      "app.player_analysis_v61.relationships",
+      "app.player_analysis_v61.semantic_outcomes",
+      "app.player_analysis_v61.story_projection",
+      "app.player_analysis_v61.story_selector",
+      "app.player_analysis_v61.versions",
+      "app.reports.dna_assembly_v6",
+      "collections",
+      "collections.abc",
+      "copy",
+      "hashlib",
+      "json",
+      "math",
+      "random",
+      "typing"
+    ],
+    "app.selection.__init__": [],
+    "app.selection.candidates": [
+      "__future__",
+      "app.features.summary_models",
+      "app.hypotheses.models",
+      "app.ingestion.coverage",
+      "app.selection.models",
+      "collections.abc"
+    ],
+    "app.selection.models": [
+      "__future__",
+      "app.features.summary_models",
+      "dataclasses",
+      "typing"
+    ],
+    "app.selection.planner": [
+      "__future__",
+      "app.hypotheses.models",
+      "app.selection.models",
+      "app.selection.scoring",
+      "collections.abc"
+    ],
+    "app.selection.scoring": [
+      "__future__",
+      "app.hypotheses.models",
+      "app.selection.models",
+      "collections.abc"
+    ],
+    "app.share.__init__": [
+      "app.share.service"
+    ],
+    "app.share.service": [
+      "__future__",
+      "app.content.renderer",
+      "app.player_analysis_v6.copy",
+      "hashlib",
+      "html",
+      "json",
+      "typing",
+      "urllib.parse"
+    ],
+    "app.storage.__init__": [
+      "app.storage.repository"
+    ],
+    "app.storage.database": [
+      "__future__",
+      "app.core.config",
+      "sqlalchemy",
+      "sqlalchemy.engine",
+      "sqlalchemy.orm"
+    ],
+    "app.storage.models": [
+      "__future__",
+      "datetime",
+      "sqlalchemy",
+      "sqlalchemy.dialects.postgresql",
+      "sqlalchemy.orm",
+      "typing"
+    ],
+    "app.storage.repository": [
+      "__future__",
+      "app.core.cache",
+      "app.insights.models",
+      "app.storage.database",
+      "app.storage.models",
+      "copy",
+      "dataclasses",
+      "datetime",
+      "hashlib",
+      "hmac",
+      "json",
+      "secrets",
+      "sqlalchemy",
+      "sqlalchemy.exc",
+      "sqlalchemy.orm",
+      "threading",
+      "typing",
+      "uuid"
+    ],
+    "app.stratz.__init__": [
+      "__future__",
+      "app.core.config",
+      "app.providers.base",
+      "app.stratz.client",
+      "app.stratz.models",
+      "app.stratz.normalize",
+      "app.stratz.queries",
+      "typing"
+    ],
+    "app.stratz.client": [
+      "__future__",
+      "app.core.cache",
+      "app.core.config",
+      "app.core.errors",
+      "app.core.metrics",
+      "app.core.security",
+      "app.providers.base",
+      "app.stratz.deep",
+      "app.stratz.models",
+      "app.stratz.queries",
+      "asyncio",
+      "collections.abc",
+      "datetime",
+      "email.utils",
+      "httpx",
+      "logging",
+      "random",
+      "re",
+      "time",
+      "typing"
+    ],
+    "app.stratz.deep": [
+      "__future__",
+      "app.core.errors",
+      "app.player_analysis_v7.research.corpus",
+      "collections.abc",
+      "re",
+      "typing"
+    ],
+    "app.stratz.item_vocabulary": [
+      "__future__",
+      "dataclasses",
+      "json",
+      "pathlib"
+    ],
+    "app.stratz.models": [
+      "__future__",
+      "app.providers.base",
+      "collections.abc",
+      "dataclasses",
+      "typing"
+    ],
+    "app.stratz.normalize": [
+      "__future__",
+      "app.providers.base",
+      "app.stratz.models",
+      "typing"
+    ],
+    "app.stratz.queries": [
+      "__future__",
+      "dataclasses",
+      "hashlib"
+    ],
+    "app.workers.__init__": [],
+    "app.workers.tasks": [
+      "__future__",
+      "app.analysis.service",
+      "app.core.config",
+      "app.core.metrics",
+      "app.core.release",
+      "app.core.security",
+      "app.main",
+      "asyncio",
+      "celery",
+      "celery.signals",
+      "logging"
+    ]
+  }
+}
