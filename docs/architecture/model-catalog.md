@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](../tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # Free DNA model catalog
 
 This file is the generated owner-facing registry reference. It is refreshed by

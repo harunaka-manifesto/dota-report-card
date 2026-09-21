@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](docs/tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # Dota Report Card V7 — Master Experience Plan
 
 7 September 2026 · Experience specification v1 · Planning deliverable, not production certification

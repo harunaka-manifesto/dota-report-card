@@ -1,5 +1,13 @@
 # Documentation
 
+Current product: [Dota Tracker V1](tracker/README.md).
+Current system behavior and ADRs: [tracker architecture](tracker/architecture/README.md).
+Agent safety: [production safety](agent/production-safety.md).
+
+## Live legacy report-card references
+
+The following references preserve the report product and its evidence. They are non-authoritative for the tracker.
+
 - [Free DNA system](architecture/free-dna-system.md)
 - [Elements](architecture/elements.md)
 - [Patterns](architecture/patterns.md)
@@ -32,4 +40,4 @@
 
 The [archive](archive/README.md) contains superseded plans and snapshots.
 The retained V5.2/V6.0 material documents runtime compatibility and historical
-evidence; V7 forward development uses the STRATZ-native staging line.
+evidence; current development follows the tracker SSOTs and architecture.

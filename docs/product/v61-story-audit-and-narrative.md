@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](../tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # V6.1 Story Audit and Narrative Implementation Brief
 
 - Status: documentation-only audit of the shipped V6.1 story renderer

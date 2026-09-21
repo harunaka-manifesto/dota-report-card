@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](../tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # STRATZ V7 provider contract
 
 Status: staging foundation, 2026-09-01. This document defines the provider

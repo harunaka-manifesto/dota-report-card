@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](../tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # V6.1 Storytelling and Reveal Implementation Report
 
 - Status: combined implementation and local release gates complete; deployment verification pending

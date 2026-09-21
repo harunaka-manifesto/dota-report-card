@@ -54,7 +54,7 @@ With an explicit page size the **unchanged** field selection returned 50 fully r
 ### G-2 — Replay parsing is entitlement-gated
 
 **Class:** BLOCKER
-**Where:** `services/api/app/analysis/deep_scan.py` (parse requests occur only inside the deep-scan path, behind `decision.allowed`); `services/api/app/analysis/service.py` (`analysis_mode`, `entitlement_decision`); `services/api/app/opendota/client.py` (docstring: the read client deliberately has *no* parse method, "which keeps the v1 no-auto-parse rule enforceable at the transport boundary"); [`../../ARCHITECTURE.md`](../../ARCHITECTURE.md) ("Free … never hydrates match details or requests replay parsing").
+**Where:** `services/api/app/analysis/deep_scan.py` (parse requests occur only inside the deep-scan path, behind `decision.allowed`); `services/api/app/analysis/service.py` (`analysis_mode`, `entitlement_decision`); `services/api/app/opendota/client.py` (docstring: the read client deliberately has *no* parse method, "which keeps the v1 no-auto-parse rule enforceable at the transport boundary"); [`../../../ARCHITECTURE.md`](../../../ARCHITECTURE.md) ("Free … never hydrates match details or requests replay parsing").
 
 **Conflicts with:** [ADR 0004](decisions/0004-entitlement-above-the-data-foundation.md), [ADR 0003](decisions/0003-progressive-post-match-readiness.md), [`FEATURE-DATA-DEPENDENCY-MATRIX.md`](FEATURE-DATA-DEPENDENCY-MATRIX.md) §3
 

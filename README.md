@@ -1,18 +1,25 @@
-# Dota Report Card
+# Dota Tracker and the live legacy Report Card
 
 The maintained release and reproducibility reference is Free DNA V6.1 on the
 OpenDota lineage. Its runtime, persisted reports, artifacts, and release gates
 remain explicit and independently versioned; an owner-authorized package is
 not the same thing as a production deployment.
 
-Forward development is V7 on the staging line. V7 uses STRATZ-native raw and
-normalized data, a new canonical analytical layer, and newly re-derived
-Findings. It does not preserve V6/V6.1 estimators merely to make the provider
-look interchangeable.
+Current development targets the native iOS **Dota Tracker**. Start with its
+[product documentation](docs/tracker/README.md),
+[architecture](docs/tracker/architecture/README.md), and
+[implementation ledger](docs/tracker/architecture/IMPLEMENTATION-LEDGER.md).
+The tracker backend is under implementation; the ledger records verified progress.
+
+## Live legacy report product
+
+The following describes the retained report-card implementation. It is not
+the product or provider contract for the tracker. V7 is an older staging
+lineage; it does not define the tracker’s system behavior.
 
 ```text
 V6.1 / OpenDota reference → persisted reports, rollback, reproducibility
-V7 / STRATZ staging       → provider foundation → future analytical rebuild
+V7 / STRATZ staging       → retained runtime and research evidence
 older generations         → unsupported product targets
 ```
 

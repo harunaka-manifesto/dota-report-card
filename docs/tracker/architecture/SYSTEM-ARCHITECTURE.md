@@ -120,7 +120,7 @@ flowchart TB
 
 ### 4.4 C4 Level 2 — Containers
 
-Runs on the existing production stack (see [`../../AGENTS.md`](../../AGENTS.md) §2). No new infrastructure technology is introduced by this architecture.
+Runs on the existing production stack (see [`../../../AGENTS.md`](../../../AGENTS.md) §2). No new infrastructure technology is introduced by this architecture.
 
 ```mermaid
 flowchart TB

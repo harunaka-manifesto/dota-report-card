@@ -14,7 +14,7 @@ Two **independent** provider investigations were run on 2026-09-20 against live 
 | Report | Location | Emphasis |
 |---|---|---|
 | **Post-match ingestion probe** | [`post-match-ingestion-probe-2026-09-20.md`](post-match-ingestion-probe-2026-09-20.md) | Latency-forward. Larger measured latency cohorts; batching and complexity mechanics; scale and cost simulation. |
-| **Provider architecture investigation** | [`../../../docs/evidence/provider-post-match-architecture-investigation-2026-09-20.md`](../../../docs/evidence/provider-post-match-architecture-investigation-2026-09-20.md) | Structure-forward. Provider-independence discipline; entity model; immutable snapshots; explicit refusal to convert probes into promises. |
+| **Provider architecture investigation** | [`../../../evidence/provider-post-match-architecture-investigation-2026-09-20.md`](../../../evidence/provider-post-match-architecture-investigation-2026-09-20.md) | Structure-forward. Provider-independence discipline; entity model; immutable snapshots; explicit refusal to convert probes into promises. |
 
 The second report lives under the repository-wide `docs/evidence/` tree with the rest of the evidence archive. It is **linked, not copied** — duplicating it would create two versions of the same evidence.
 

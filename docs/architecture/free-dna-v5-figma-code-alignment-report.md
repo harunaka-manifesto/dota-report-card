@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](../tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # Historical Free DNA v5.1 — Figma-to-Code Alignment Implementation Report
 
 > Historical artifact. This records the v5.1 alignment run at `164dd74` and

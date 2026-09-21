@@ -1,6 +1,8 @@
+> **Superseded.** Current rules are in [App Foundation](../tracker/app_foundation/SSOT.md); this document is historical evidence only.
+
 # Role Resolution & Correction V1
 
-Status: ACTIVE SSOT
+Status: **SUPERSEDED**
 Scope: Role Resolution & Correction for V1 progression
 Audience: Product, design, backend, mobile, QA, and coding agents
 

@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](../tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # Figma Story map
 
 Source: [Report / Story](https://www.figma.com/design/D3uhn7WPXFsX1DiCIVklyg/Report?node-id=364-359), page `364:359`. This is an implementation map, not a list of React routes. A/B/C/D frames are persistent component states.

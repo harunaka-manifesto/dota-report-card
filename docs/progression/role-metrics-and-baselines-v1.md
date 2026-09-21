@@ -1,6 +1,8 @@
+> **Superseded.** Current rules are in [App Foundation](../tracker/app_foundation/SSOT.md); this document is historical evidence only.
+
 # Role Metrics & Personal Baselines V1
 
-Status: ACTIVE SSOT
+Status: **SUPERSEDED**
 Scope: Role Metrics & Personal Baselines V1
 Last audited: 2026-09-12
 

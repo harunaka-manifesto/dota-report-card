@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](../tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # Dota DNA v5.2 — Historical Compatibility SSOT
 
 Status: retained for V5.2 compatibility and runtime lineage; not a V7 analytical contract

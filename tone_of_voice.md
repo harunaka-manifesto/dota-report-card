@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](docs/tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # Product Tone of Voice Guideline
 ## A Dota-native voice system derived from the supplied Dota 2 News articles
 

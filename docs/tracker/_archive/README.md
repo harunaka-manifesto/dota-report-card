@@ -8,7 +8,7 @@
 >
 > Active product documentation lives in the feature folders described in [`../README.md`](../README.md).
 
-Relative links **inside** archived documents may point at paths that no longer exist. That is expected. The mapping below tells you where each document's content went.
+Local Markdown links in this tree are checked by `make docs-check`. Historical paths quoted as code remain evidence of their original location; the mapping below identifies their current home.
 
 ---
 

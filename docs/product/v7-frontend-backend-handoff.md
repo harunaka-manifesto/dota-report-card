@@ -1,3 +1,7 @@
+> **Legacy report-card documentation — non-authoritative for Dota Tracker.**
+> For current product and architecture rules, start at [Dota Tracker](../tracker/README.md).
+> Retained for the live report product, compatibility and historical evidence.
+
 # V7 frontend/backend handoff
 
 Status: **backend analytical runtime and contract usable; public generation entry point not yet exposed**.

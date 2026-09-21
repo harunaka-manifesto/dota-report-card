@@ -1,4 +1,10 @@
-# Architecture
+# Architecture entry point
+
+Current Dota Tracker system behavior is defined in [the tracker architecture](docs/tracker/architecture/README.md). Product meaning is defined in [its feature SSOTs](docs/tracker/README.md).
+
+## Legacy report-card architecture
+
+The remaining sections describe the deprecated but live report product. They are non-authoritative for Dota Tracker. In particular, the legacy Free restriction below does not apply to the tracker’s shared fresh-match enrichment.
 
 ## Maintained lineages
 

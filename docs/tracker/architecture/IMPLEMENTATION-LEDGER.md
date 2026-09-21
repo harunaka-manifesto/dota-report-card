@@ -62,7 +62,7 @@ All remain open; no product choices are inferred from missing UI content.
 
 ## External blockers and environment
 
-- PostgreSQL 16.15 installed locally. Redis 7.2.16 official archive verified and compiling under `/tmp/tracker-foundation-deps`; Docker absent. Local database/Redis integration tests still pending.
+- PostgreSQL 16.15 installed locally. Redis 7.2.16 official archive SHA-256 verified and built under `/tmp/tracker-foundation-deps`; isolated services run only on localhost ports 55432/56379; Docker absent. Local database/Redis integration tests still pending.
 - Web node_modules absent: web checks cannot execute until installed.
 - STRATZ concurrent production token use not established: zero live calls permitted until safety is established or a dev token is available.
 - Production identity/store/push credentials and approved calibration artifacts require later verification.
@@ -92,7 +92,9 @@ Detailed local logs: `/tmp/tracker-foundation-baseline/`. The baseline import gr
 
 ## Path mapping
 
-No moves yet. Planned R1: `#swiftMigration/` → `docs/tracker/`, preserving the entire archive and normative annexes.
+R1: `#swiftMigration/` → `docs/tracker/` with `git mv`, preserving all 186 original files plus the three baseline evidence files. Five outward Markdown destinations repaired. Legacy documentation is fenced in place because tooling and historical references still use those paths.
+
+Baseline checkpoint: `b4bf302`. R1 verification and commit pending.
 
 ## Resume checkpoint
 
