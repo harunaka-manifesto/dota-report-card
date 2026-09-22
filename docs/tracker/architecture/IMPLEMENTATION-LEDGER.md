@@ -71,7 +71,7 @@ All remain open; no product choices are inferred from missing UI content.
 
 ## Live provider call ledger
 
-OpenDota reads: 1; replay requests: 0; STRATZ calls: 0. No deployment.
+OpenDota reads: 3; replay requests: 1; STRATZ calls: 0. Total: 13 rate units, 4 known billing units. No deployment.
 
 ## Baseline test results
 
@@ -172,3 +172,32 @@ Tracker + legacy STRATZ client tests: **22 passed, 0 failed, 0 skipped**. Ruff a
 One authorized history read using the existing test/evidence account, `significant=0`, limit 20 and 90-day window returned HTTP 200: **13 Turbo and 7 Standard rows**. Purpose: verify actual Turbo inclusion and quota-header format, not presentation QA. Cost: **1 read / 1 rate unit / 1 known billing unit**, zero replay requests. No payload identifiers, credentials or raw account data committed.
 
 Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacity header**. The limiter initially required a capacity header and would have indefinitely withheld processing. Corrected initialization to use the observed named-window remainder as a conservative capacity lower bound. It does not infer a published plan ceiling. A regression test uses the exact header shape; **5 real Redis tests passed, 0 failed, 0 skipped**. STRATZ safety gate remains closed; no STRATZ live call.
+
+
+### Paired replay checkpoints
+
+- The bounded provider total is now **3 OpenDota reads + 1 processing request**
+  (**13 rate units, 4 known billing units**), with **zero live STRATZ calls**. The
+  paired OpenDota match was first unparsed, accepted processing, and had replay
+  statistics at a later check. The observation does not establish exact processing
+  latency. No further calls were needed for the offline normalization work.
+- Added a sanitized real ten-player pair at `tests/fixtures/tracker/paired-replay-v1/`.
+  Known summary facts agree, including the retained NONE/no-abandon translation.
+  The STRATZ capture has `isStats=false` with positive `statsDateTime` and replay
+  arrays, exposing and correcting the earlier overly strict AND gate. Either stats
+  marker now permits field-level validation; ingestion time alone never does.
+- `tracker/replay.py` normalizes exact net-worth, cumulative last-hit and stacked-camp
+  checkpoints with source paths and a translation version. STRATZ last hits are
+  interval deltas; campStack is cumulative and index 19 means 20:00. OpenDota uses
+  explicit sample times and networth_t, never gold_t as a substitute.
+- All ten players agree at 10:00 and 20:00 for these three series. Other real point
+  differences remain in the fixtures; reconciliation withholds only conflicting
+  known points and preserves both inputs. Missing deltas invalidate the subsequent
+  cumulative prefix. Missing samples, malformed data and out-of-duration points
+  never become zero or interpolated values.
+- This is translation and in-memory conflict quarantine, not finished acquisition
+  orchestration or persisted dependency quarantine. Event translation, remaining
+  replay features, source binding, pipeline and all later phases remain required.
+- Verification: **84 passed, 0 failed, 0 skipped** across tracker (real PostgreSQL
+  and Redis), legacy provider clients and report contracts; one existing Starlette
+  deprecation warning. Tracker lint/typecheck and documentation links pass.

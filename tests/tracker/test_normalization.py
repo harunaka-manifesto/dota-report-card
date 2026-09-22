@@ -59,7 +59,8 @@ def test_partial_or_conflicting_roster_never_becomes_summary_ready():
 
 def test_replay_gate_uses_statistics_not_ingestion_marker():
     assert not replay_available({"parsedDateTime": 123}, "stratz")
-    assert not replay_available({"parsedDateTime": 123, "statsDateTime": 124, "isStats": False}, "stratz")
+    assert replay_available({"parsedDateTime": 123, "statsDateTime": 124, "isStats": False}, "stratz")
+    assert not replay_available({"parsedDateTime": 123, "statsDateTime": None, "isStats": False}, "stratz")
     assert replay_available({"statsDateTime": 124, "isStats": True}, "stratz")
     assert replay_available({"version": 21}, "opendota")
     assert not replay_available({"version": True}, "opendota")
@@ -84,3 +85,43 @@ def test_stage_one_build_and_draft_keep_unknown_distinct_from_empty():
     raw["players"][0]["ability_upgrades_arr"] = []
     assert opendota_summary(raw)["draft"] == []
     assert opendota_summary(raw)["players"][0]["ability_build"] == []
+
+
+def test_historical_ten_player_summary_excludes_native_roles_and_unproven_fields():
+    from app.tracker.normalization import stratz_summary
+
+    raw = {
+        "id": 9000000001, "startDateTime": 2_000_000_000, "durationSeconds": 1800,
+        "didRadiantWin": True, "gameMode": "TURBO", "lobbyType": "UNRANKED",
+        "players": [
+            {"playerSlot": i if i < 5 else i + 123, "isRadiant": i < 5,
+             "heroId": i + 1, "kills": 0, "position": "POSITION_1", "role": "CORE",
+             "item0Id": 0, "leaverStatus": "NONE"}
+            for i in range(10)
+        ],
+    }
+    summary = stratz_summary(raw)
+    assert summary["mode"] == "TURBO"
+    assert summary["lobby_type"] == 0
+    assert summary["players"][0]["values"]["kills"] == 0
+    assert summary["players"][0]["items"]["item_0"] == 0
+    assert summary["players"][0]["leaver_status"] == 0
+    assert "POSITION_1" not in str(summary)
+    assert stratz_summary({**raw, "gameMode": "FUTURE_MODE"})["mode"] == "UNSUPPORTED"
+
+
+def test_disagreement_is_field_specific_and_missing_is_not_zero_or_conflict():
+    from app.tracker.normalization import summary_disagreements
+
+    raw = json.loads((FIXTURES / "unparsed-match.json").read_text())
+    first = opendota_summary(raw)
+    second = deepcopy(first)
+    second["players"].reverse()
+    assert summary_disagreements(first, second) == []
+    second["players"][9]["values"]["kills"] = first["players"][0]["values"]["kills"] + 1
+    second["players"][9]["values"]["deaths"] = None
+    second["duration_seconds"] += 1
+    assert summary_disagreements(first, second) == ["duration_seconds", "players.0.values.kills"]
+    second["match_id"] += 1
+    with pytest.raises(InvalidEvidence):
+        summary_disagreements(first, second)
