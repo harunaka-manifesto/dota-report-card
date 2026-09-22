@@ -12,7 +12,7 @@ from alembic.script import ScriptDirectory
 from app.storage.database import EXPECTED_SCHEMA_REVISION, check_database_revision
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-EXPECTED_HEAD = "0005_v6_interactions_deep"
+EXPECTED_HEAD = "0006_tracker_foundation"
 MAX_VERSION_NUM_LENGTH = 64
 
 
@@ -30,6 +30,7 @@ def test_all_migration_ids_fit_the_widened_version_table() -> None:
         "0002_persist_analysis_job_details",
         "0003_analysis_mode",
         "0004_raw_payload_metadata",
+        "0005_v6_interactions_deep",
         EXPECTED_HEAD,
     }
 

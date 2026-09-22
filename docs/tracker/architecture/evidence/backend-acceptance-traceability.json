@@ -14,16 +14,22 @@
       "source": "app_foundation/SSOT.md",
       "section": "2. Product invariants",
       "rule": "**No fabricated certainty.** Missing, malformed, unavailable, or insufficient evidence MUST be represented as N/A, an explicit unavailable state, or an explicit ineligible reason. It MUST NOT be silently converted to zero or to a synthetic comparison.",
-      "status": "pending",
-      "tests": []
+      "status": "partial",
+      "tests": [
+        "tests/tracker/test_schema.py::test_analysis_retention_role_assertions_and_readiness_axes"
+      ],
+      "remaining": "Storage constraint verified; engine and public projection behavior still pending."
     },
     {
       "id": "app_foundation#2.3",
       "source": "app_foundation/SSOT.md",
       "section": "2. Product invariants",
       "rule": "**N/A is not zero.** A legitimate measured zero remains zero. These are different states and MUST be distinguishable everywhere they appear.",
-      "status": "pending",
-      "tests": []
+      "status": "partial",
+      "tests": [
+        "tests/tracker/test_schema.py::test_analysis_retention_role_assertions_and_readiness_axes"
+      ],
+      "remaining": "Storage constraint verified; engine and public projection behavior still pending."
     },
     {
       "id": "app_foundation#2.4",
@@ -69,7 +75,7 @@
       "id": "app_foundation#2.9",
       "source": "app_foundation/SSOT.md",
       "section": "2. Product invariants",
-      "rule": "**Subscription does not change measurement truth.** Free and Pro use identical processing and methodology for whatever history each tier is entitled to inspect. Pro adds depth, synthesis and engagement \u2014 never better accuracy.",
+      "rule": "**Subscription does not change measurement truth.** Free and Pro use identical processing and methodology for whatever history each tier is entitled to inspect. Pro adds depth, synthesis and engagement — never better accuracy.",
       "status": "pending",
       "tests": []
     },
@@ -629,7 +635,7 @@
       "id": "home#9.1",
       "source": "home/SSOT.md",
       "section": "9. Hard invariants",
-      "rule": "Home's V1 content set is exactly the four elements in \u00a72.",
+      "rule": "Home's V1 content set is exactly the four elements in §2.",
       "status": "pending",
       "tests": []
     },
@@ -789,7 +795,7 @@
       "id": "home#11.6",
       "source": "home/SSOT.md",
       "section": "11. Acceptance rules",
-      "rule": "Element 1 shows Today's Matches when today has matches, otherwise Today's Focus \u2014 never both.",
+      "rule": "Element 1 shows Today's Matches when today has matches, otherwise Today's Focus — never both.",
       "status": "pending",
       "tests": []
     },
@@ -893,7 +899,7 @@
       "id": "match_detail#10.5",
       "source": "match_detail/SSOT.md",
       "section": "10. Hard invariants",
-      "rule": "A permanently unavailable deep section is a settled fact stated once \u2014 never an error, an apology or a retry prompt.",
+      "rule": "A permanently unavailable deep section is a settled fact stated once — never an error, an apology or a retry prompt.",
       "status": "pending",
       "tests": []
     },
@@ -1077,7 +1083,7 @@
       "id": "match_detail#11.5",
       "source": "match_detail/SSOT.md",
       "section": "11. Acceptance rules",
-      "rule": "A match whose replay will never arrive reaches READY, states that once, offers no Retry, and shows N/A \u2014 not zero \u2014 for its replay-derived metrics.",
+      "rule": "A match whose replay will never arrive reaches READY, states that once, offers no Retry, and shows N/A — not zero — for its replay-derived metrics.",
       "status": "pending",
       "tests": []
     },
@@ -1445,7 +1451,7 @@
       "id": "onboarding#17.10",
       "source": "onboarding/SSOT.md",
       "section": "17. Acceptance rules",
-      "rule": "A bootstrap match whose replay evidence is unobtainable is viewable, counted, and shows N/A \u2014 not zero \u2014 for its replay-derived metrics.",
+      "rule": "A bootstrap match whose replay evidence is unobtainable is viewable, counted, and shows N/A — not zero — for its replay-derived metrics.",
       "status": "pending",
       "tests": []
     },
@@ -1557,7 +1563,7 @@
       "id": "profile#11.4",
       "source": "profile/SSOT.md",
       "section": "11. Hard invariants",
-      "rule": "Refusal is a valid state. Below the gates, the Profile shows facts and an honest phrase \u2014 never a manufactured personality.",
+      "rule": "Refusal is a valid state. Below the gates, the Profile shows facts and an honest phrase — never a manufactured personality.",
       "status": "pending",
       "tests": []
     },
@@ -1589,7 +1595,7 @@
       "id": "profile#11.8",
       "source": "profile/SSOT.md",
       "section": "11. Hard invariants",
-      "rule": "Hero tags are per bucket \u00d7 role, never across either.",
+      "rule": "Hero tags are per bucket × role, never across either.",
       "status": "pending",
       "tests": []
     },
@@ -2021,7 +2027,7 @@
       "id": "progress#12.2",
       "source": "progress/SSOT.md",
       "section": "12. Acceptance rules",
-      "rule": "A match finalized without deep evidence contributes its summary-class metrics and shows N/A \u2014 not zero \u2014 for the rest.",
+      "rule": "A match finalized without deep evidence contributes its summary-class metrics and shows N/A — not zero — for the rest.",
       "status": "pending",
       "tests": []
     },
@@ -2150,8 +2156,11 @@
       "source": "settings_account/SSOT.md",
       "section": "10. Hard invariants",
       "rule": "One active Steam ID per app account; one app account per Steam ID.",
-      "status": "pending",
-      "tests": []
+      "status": "partial",
+      "tests": [
+        "tests/tracker/test_schema.py::test_steam_ownership_is_unique_under_concurrent_writers"
+      ],
+      "remaining": "Database concurrent uniqueness verified; verified linking and switching application flows still pending."
     },
     {
       "id": "settings_account#10.2",

@@ -8,7 +8,7 @@ Operational evidence, not a product or architecture contract.
 - Branch: `codex/tracker-backend-foundation`.
 - Authorized: BACKEND, DATABASE, ANALYTICAL (new tracker only), DOCUMENTATION, local INFRASTRUCTURE. No release/deployment.
 - Existing untracked `docs/prompts/tracker-backend-foundation-goal.md` is user-owned and remains untouched.
-- Current step: Phase A additive schema. Baseline and R1 committed; mobile resource/state draft written. No implementation gap is closed.
+- Current step: Phase A schema verified; next Phase C provider acquisition. Baseline, R1 and API design are committed. No implementation gap is closed.
 
 ## Gap status
 
@@ -36,7 +36,9 @@ Pending: app authentication and sessions; verified Steam linking; bootstrap per 
 
 ## Engineering decisions
 
-- Preserve deployment-coupled paths and legacy endpoints. Tracker behavior will use a distinct boundary.
+- Preserve deployment-coupled paths and legacy endpoints. Tracker behavior uses a distinct boundary.
+- Tracker storage uses separate SQLAlchemy Core metadata and `tracker_` tables. `tracker_matches` is global across tracker accounts; legacy report extraction rows are not canonical tracker inputs. This avoids changing `0001_initial` (which imports live legacy metadata) or legacy raw retention.
+- Account-relative analytical rows use the Steam-profile ownership boundary so archived state and a future owner cannot inherit private corrections. Canonical match evidence remains shared.
 - Read-only AST import inventory covers 254 runtime modules. `stratz.deep` imports `player_analysis_v7.research.corpus`; research code cannot be blindly archived.
 - Legacy purge removes old raw payloads regardless of published tracker use. Tracker storage must prevent that without weakening legacy retention.
 - Baseline uses installed `.venv/bin` tools through Make overrides, avoiding dependency/network changes while establishing evidence.
@@ -99,6 +101,16 @@ Baseline checkpoint: `b4bf302`. R1 checkpoint: `ae9aaed`. Verification: document
 
 ## Resume checkpoint
 
-Baseline full suite completed; 305 acceptance/invariant rules inventoried as pending in `evidence/backend-acceptance-traceability.json`. R1 docs move/link audit is green. Mobile resource/state design is in `MOBILE-API-DRAFT.md`. Next: Phase A additive schema and populated-legacy upgrade tests. Revisit algorithm companion sections before engine implementation.
+Baseline full suite completed; 305 acceptance/invariant rules inventoried as pending in `evidence/backend-acceptance-traceability.json`. R1 docs move/link audit is green. Mobile resource/state design is in `MOBILE-API-DRAFT.md`. Phase A has a frozen additive migration and 36 tracker tables. Next: Phase C providers (OpenDota history inclusion and canonical normalization first), then fixture pipeline. All application-level gap closures remain pending. Revisit algorithm companion sections before engine implementation.
 
 Progress board: [Dota Tracker — Backend Foundation](https://app.asana.com/1/1218421734064975/project/1218700923418699). Two Luna agents created phase cards, 13 decision/blocker cards and seven E2E subtasks; no task is claimed implemented by creating its card.
+
+## Phase A verification — 2026-09-22
+
+- Migration `0006_tracker_foundation` is additive. Legacy table definitions, routes and retention code are unchanged. Application readiness expects the new head; deployment must migrate before starting this code. No deployment performed.
+- Real PostgreSQL 16: **9 tracker checks passed, 0 failed, 0 skipped**. They cover schema parity; populated upgrade from 0005; repeated upgrade; downgrade/re-upgrade; both current and sanitized historical-production report reads through `/v1/reports`; parallel Steam ownership and work deduplication; complete roster requirement; immutable snapshots/assertions; source retention; independent readiness axes; terminal finalization; finite/null/zero values; SKIP LOCKED.
+- Combined tracker + contract + integration + migration + legacy SQL repository/release checks: **38 passed, 0 failed, 0 skipped**. Database URL checks: **6 passed**. Ruff passes; mypy passes on 256 modules. Existing deprecation warnings remain.
+- CI migration job now runs the real PostgreSQL tests; `make test-tracker` requires a PostgreSQL URL rather than silently using SQLite.
+- No analytical algorithm, report JSON contract, frozen artifact, holdout or calibration changed. No claim that schema constraints alone prove the pipeline, identity services, deletion races, atomic rebuilds, or API isolation.
+- API metadata generation exposed a baseline omission: `/v1/v7/reports/{report_id}` already exists at `bd3289e` (`api/routes.py:941`) but is absent from checked-in generated path metadata. Routes, main app and generator are unchanged. Refreshing that generated artifact is a separate maintenance checkpoint; it does not add an endpoint.
+- Local dependencies: PostgreSQL 16.15 isolated data directory `/tmp/tracker-foundation-deps/pgdata`, localhost 55432; Redis 7.2.16 localhost 56379, built from the official SHA-256-verified archive. No production services used.

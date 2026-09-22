@@ -31,6 +31,11 @@ jobs:
       - run: uv run alembic upgrade head
         env:
           DATABASE_URL: postgresql+psycopg://dota:dota@localhost:5432/dota_report_card
+      - name: Tracker schema and populated legacy migration regressions
+        run: uv run pytest -q tests/integration/test_postgres_migrations.py tests/tracker
+        env:
+          RUN_POSTGRES_MIGRATION_TEST: "1"
+          TEST_POSTGRES_URL: postgresql+psycopg://dota:dota@localhost:5432/dota_report_card
 
   backend:
     name: Backend contract and regression QA

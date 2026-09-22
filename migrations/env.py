@@ -6,6 +6,7 @@ from logging.config import fileConfig
 from alembic import context
 from app.storage.models import Base
 from app.storage.database import normalize_database_url
+from app.tracker.schema import metadata as tracker_metadata
 from sqlalchemy import create_engine, pool
 
 config = context.config
@@ -14,7 +15,7 @@ if config.config_file_name:
 database_url = normalize_database_url(
     os.getenv("DATABASE_URL", config.get_main_option("sqlalchemy.url"))
 )
-target_metadata = Base.metadata
+target_metadata = [Base.metadata, tracker_metadata]
 
 
 def run_migrations_offline() -> None:
