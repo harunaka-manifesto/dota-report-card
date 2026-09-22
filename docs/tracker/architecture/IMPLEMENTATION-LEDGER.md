@@ -114,3 +114,11 @@ Progress board: [Dota Tracker — Backend Foundation](https://app.asana.com/1/12
 - No analytical algorithm, report JSON contract, frozen artifact, holdout or calibration changed. No claim that schema constraints alone prove the pipeline, identity services, deletion races, atomic rebuilds, or API isolation.
 - API metadata generation exposed a baseline omission: `/v1/v7/reports/{report_id}` already exists at `bd3289e` (`api/routes.py:941`) but is absent from checked-in generated path metadata. Routes, main app and generator are unchanged. Refreshing that generated artifact is a separate maintenance checkpoint; it does not add an endpoint.
 - Local dependencies: PostgreSQL 16.15 isolated data directory `/tmp/tracker-foundation-deps/pgdata`, localhost 55432; Redis 7.2.16 localhost 56379, built from the official SHA-256-verified archive. No production services used.
+
+## Phase C checkpoint — acquisition transport
+
+- Added `OpenDotaClient.get_history_page`: explicitly `significant=0`, bounded one-page reads, no legacy Free cap, no cached history, strict response validation. Detection and bootstrap will share this method. A malformed response is an acquisition failure, never empty coverage.
+- Added `refresh_match`: one physical read independent of the immutable legacy match cache; rejects mismatched IDs. Tracker jobs will own scheduling/retries and immutable snapshot persistence. This does not yet provide distributed deduplication or quota admission.
+- G-10 applies to all new tracker history readers. Audited existing history callers in legacy API/analysis and offline V6/V6.1 calibration tools; their frozen annual input contract is intentionally unchanged under goal §2.1. They are not tracker acquisition paths. Changing that legacy corpus is outside this goal's analytical authorization.
+- `tests/tracker/test_opendota_acquisition.py` plus existing client suite: **18 passed, 0 failed, 0 skipped**; lint and client typecheck pass. Mock provider default deliberately excludes Turbo unless explicitly requested; replay refresh test proves stale legacy cache cannot hide new evidence. Live calls remain zero.
+- Phase C remains in progress: normalization, paired evidence, persistence, historical batches, distributed accounting and circuit breakers still required.

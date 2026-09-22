@@ -296,6 +296,63 @@ class OpenDotaClient:
         )
         return [row for row in list(value or []) if isinstance(row, dict)]
 
+    async def get_history_page(
+        self,
+        account_id: int,
+        *,
+        offset: int = 0,
+        limit: int = MATCH_HISTORY_PAGE_SIZE,
+        days: int | None = None,
+    ) -> list[dict[str, Any]]:
+        """Read one Turbo-inclusive tracker page, without legacy caps or caches.
+
+        Scheduling, durable pagination and retries belong to the tracker job.
+        The frozen annual report methods above retain their original inputs.
+        """
+        if type(account_id) is not int or not 0 < account_id < 2**32:
+            raise ValueError("Invalid account ID")
+        if type(offset) is not int or offset < 0:
+            raise ValueError("Invalid history offset")
+        if type(limit) is not int or not 1 <= limit <= MATCH_HISTORY_PAGE_SIZE:
+            raise ValueError("Invalid history page size")
+        if days is not None and (type(days) is not int or days < 1):
+            raise ValueError("Invalid history window")
+        params = {"significant": 0, "limit": limit, "offset": offset}
+        if days is not None:
+            params["date"] = days
+        value = await self._request_json(
+            f"/players/{account_id}/matches", params=params, retry_limit=0,
+        )
+        if (
+            not isinstance(value, list)
+            or len(value) > limit
+            or any(
+                not isinstance(row, dict)
+                or type(row.get("match_id")) is not int
+                or row["match_id"] <= 0
+                for row in value
+            )
+        ):
+            raise OpenDotaUnavailable("OpenDota returned invalid match history")
+        return value
+
+    async def refresh_match(self, match_id: int) -> dict[str, Any]:
+        """Acquire current evidence; never reuse the immutable legacy cache.
+
+        The tracker persists each response as a separate immutable snapshot.
+        A job owns retries, so a physical attempt cannot hide extra quota use.
+        """
+        if type(match_id) is not int or not 0 < match_id < 2**63:
+            raise ValueError("Invalid match ID")
+        value = await self._request_json(f"/matches/{match_id}", retry_limit=0)
+        if (
+            not isinstance(value, dict)
+            or type(value.get("match_id")) is not int
+            or value["match_id"] != match_id
+        ):
+            raise OpenDotaUnavailable("OpenDota returned an invalid match")
+        return value
+
     async def get_match(self, match_id: int) -> dict[str, Any]:
         return await self._request_json(
             f"/matches/{match_id}",
