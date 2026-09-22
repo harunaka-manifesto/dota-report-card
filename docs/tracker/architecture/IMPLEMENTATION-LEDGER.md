@@ -254,3 +254,35 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   PostgreSQL/Redis, legacy provider clients, report contracts); one existing
   Starlette warning. Tracker lint/mypy (10 modules), docs links and whitespace
   checks pass. Full goal remains in progress, with no deployment/push/merge.
+
+
+### Fresh summary acquisition handler
+
+- `tracker/acquisition.py` creates global deduplicated P0 SUMMARY jobs. A claimed
+  job uses the existing fresh OpenDota client inside ControlledTransport, so shared
+  admission, bounded HTTP, raw persistence and call accounting cannot be bypassed
+  by the normal execution path. No entitlement branch or STRATZ fresh fallback.
+- Before network work, the handler reuses valid stored summary evidence. After
+  provider success, canonical materialization, link-job fanout, acquisition source
+  pointer and job completion commit together under the lease fence. An internal
+  publication failure retries from the stored response, without source refetch.
+- Quota deferrals persist run_after without burning failure attempts. Malformed
+  summaries and internal failures have bounded retries. Duplicate execution of
+  the same claimed job leaves the active worker's lease intact; it neither makes
+  another request nor reschedules that active worker out from under publication.
+- Six real PostgreSQL/Redis tests passed: fake HTTP through controlled transport
+  to summary, link and shared replay scheduling; internal-failure recovery without
+  refetch; quota deferral; malformed roster bounded failure; lease takeover with
+  preserved raw but fenced publication; concurrent duplicate delivery.
+- These tests use fake provider HTTP and real local storage. Live totals remain
+  **3 OpenDota reads + 1 processing request, 0 STRATZ calls**. Exactly-once external
+  network effects are not claimed across the unavoidable request/response-loss
+  boundary. The stored-success/internal-failure boundary is now tested.
+- Still required: replay handler and full telemetry extraction, detection/sync,
+  historical batch recovery, Celery dispatch/priority policy, immediate roles,
+  finalization/order, notification and mobile integration. This does not complete
+  Phase C/D or the full backend goal.
+- Combined regression: **98 passed, 0 failed, 0 skipped** across tracker with
+  real PostgreSQL/Redis, legacy provider clients and report contracts. Tracker
+  lint/mypy (11 modules), docs (474 links) and whitespace pass; one existing
+  Starlette deprecation warning. No push, merge or deployment.

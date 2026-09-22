@@ -35,7 +35,15 @@ persisted multi-source dependency quarantine remain under implementation.
 `complete_link_job` publishes under the lease/identity fence and schedules one shared
 P1 replay job for live matches, with an explicit availability delay from match end.
 Historical links never schedule fresh processing. These functions do not classify
-roles, run provider requests or finalize analysis; those worker handlers remain pending.
+roles or finalize analysis; those handlers remain pending.
+
+`enqueue_fresh_summary` deduplicates global P0 work. `acquire_fresh_summary` executes
+one claimed job through ControlledTransport, reuses a valid persisted response before
+fetching, then atomically materializes evidence, enqueues private link jobs, records the
+acquisition pointer and completes the job. Internal publication failures retry from
+stored evidence. Quota deferral does not spend the failure-attempt budget. Redis
+single-flight guards duplicate delivery; PostgreSQL leases fence late publication.
+Replay execution, sync detection and Celery dispatch are still pending.
 
 ## Storage boundary
 
