@@ -1,0 +1,405 @@
+[
+  {
+    "opendota": {
+      "assists": 4,
+      "deaths": 8,
+      "denies": 9,
+      "gold_per_min": 475,
+      "hero_id": 128,
+      "kills": 11,
+      "last_hits": 204,
+      "player_slot": 128,
+      "xp_per_min": 567
+    },
+    "stratz": {
+      "assists": 4,
+      "deaths": 8,
+      "experiencePerMinute": 567,
+      "goldPerMinute": 475,
+      "goldSpent": 13615,
+      "heroDamage": 29584,
+      "heroHealing": 322,
+      "heroId": 128,
+      "isRadiant": false,
+      "kills": 11,
+      "level": 18,
+      "networth": 13330,
+      "numDenies": 9,
+      "numLastHits": 204,
+      "playerSlot": 128,
+      "towerDamage": 130
+    }
+  },
+  {
+    "opendota": {
+      "assists": 18,
+      "deaths": 9,
+      "denies": 4,
+      "gold_per_min": 584,
+      "hero_id": 120,
+      "kills": 10,
+      "last_hits": 338,
+      "player_slot": 129,
+      "xp_per_min": 852
+    },
+    "stratz": {
+      "assists": 18,
+      "deaths": 9,
+      "experiencePerMinute": 852,
+      "goldPerMinute": 584,
+      "goldSpent": 23080,
+      "heroDamage": 42595,
+      "heroHealing": 0,
+      "heroId": 120,
+      "isRadiant": false,
+      "kills": 10,
+      "level": 25,
+      "networth": 22388,
+      "numDenies": 4,
+      "numLastHits": 338,
+      "playerSlot": 129,
+      "towerDamage": 1012
+    }
+  },
+  {
+    "opendota": {
+      "assists": 4,
+      "deaths": 9,
+      "denies": 3,
+      "gold_per_min": 474,
+      "hero_id": 120,
+      "kills": 4,
+      "last_hits": 233,
+      "player_slot": 129,
+      "xp_per_min": 590
+    },
+    "stratz": {
+      "assists": 4,
+      "deaths": 9,
+      "experiencePerMinute": 590,
+      "goldPerMinute": 474,
+      "goldSpent": 14185,
+      "heroDamage": 17274,
+      "heroHealing": 0,
+      "heroId": 120,
+      "isRadiant": false,
+      "kills": 4,
+      "level": 19,
+      "networth": 14244,
+      "numDenies": 3,
+      "numLastHits": 233,
+      "playerSlot": 129,
+      "towerDamage": 490
+    }
+  },
+  {
+    "opendota": {
+      "assists": 11,
+      "deaths": 7,
+      "denies": 10,
+      "gold_per_min": 676,
+      "hero_id": 39,
+      "kills": 9,
+      "last_hits": 544,
+      "player_slot": 3,
+      "xp_per_min": 990
+    },
+    "stratz": {
+      "assists": 11,
+      "deaths": 7,
+      "experiencePerMinute": 990,
+      "goldPerMinute": 676,
+      "goldSpent": 29370,
+      "heroDamage": 35168,
+      "heroHealing": 0,
+      "heroId": 39,
+      "isRadiant": true,
+      "kills": 9,
+      "level": 27,
+      "networth": 27940,
+      "numDenies": 10,
+      "numLastHits": 544,
+      "playerSlot": 3,
+      "towerDamage": 692
+    }
+  },
+  {
+    "opendota": {
+      "assists": 37,
+      "deaths": 8,
+      "denies": 5,
+      "gold_per_min": 485,
+      "hero_id": 110,
+      "kills": 5,
+      "last_hits": 122,
+      "player_slot": 3,
+      "xp_per_min": 709
+    },
+    "stratz": {
+      "assists": 37,
+      "deaths": 8,
+      "experiencePerMinute": 709,
+      "goldPerMinute": 485,
+      "goldSpent": 16115,
+      "heroDamage": 28433,
+      "heroHealing": 9106,
+      "heroId": 110,
+      "isRadiant": true,
+      "kills": 5,
+      "level": 23,
+      "networth": 17950,
+      "numDenies": 5,
+      "numLastHits": 122,
+      "playerSlot": 3,
+      "towerDamage": 1028
+    }
+  },
+  {
+    "opendota": {
+      "assists": 9,
+      "deaths": 10,
+      "denies": 25,
+      "gold_per_min": 584,
+      "hero_id": 25,
+      "kills": 6,
+      "last_hits": 386,
+      "player_slot": 128,
+      "xp_per_min": 659
+    },
+    "stratz": {
+      "assists": 9,
+      "deaths": 10,
+      "experiencePerMinute": 659,
+      "goldPerMinute": 584,
+      "goldSpent": 19915,
+      "heroDamage": 46586,
+      "heroHealing": 0,
+      "heroId": 25,
+      "isRadiant": false,
+      "kills": 6,
+      "level": 23,
+      "networth": 19463,
+      "numDenies": 25,
+      "numLastHits": 386,
+      "playerSlot": 128,
+      "towerDamage": 1501
+    }
+  },
+  {
+    "opendota": {
+      "assists": 33,
+      "deaths": 8,
+      "denies": 12,
+      "gold_per_min": 809,
+      "hero_id": 128,
+      "kills": 13,
+      "last_hits": 592,
+      "player_slot": 131,
+      "xp_per_min": 1189
+    },
+    "stratz": {
+      "assists": 33,
+      "deaths": 8,
+      "experiencePerMinute": 1189,
+      "goldPerMinute": 809,
+      "goldSpent": 34575,
+      "heroDamage": 78202,
+      "heroHealing": 464,
+      "heroId": 128,
+      "isRadiant": false,
+      "kills": 13,
+      "level": 30,
+      "networth": 35725,
+      "numDenies": 12,
+      "numLastHits": 592,
+      "playerSlot": 131,
+      "towerDamage": 4683
+    }
+  },
+  {
+    "opendota": {
+      "assists": 17,
+      "deaths": 4,
+      "denies": 4,
+      "gold_per_min": 611,
+      "hero_id": 120,
+      "kills": 5,
+      "last_hits": 313,
+      "player_slot": 130,
+      "xp_per_min": 926
+    },
+    "stratz": {
+      "assists": 17,
+      "deaths": 4,
+      "experiencePerMinute": 926,
+      "goldPerMinute": 611,
+      "goldSpent": 18455,
+      "heroDamage": 20136,
+      "heroHealing": 322,
+      "heroId": 120,
+      "isRadiant": false,
+      "kills": 5,
+      "level": 24,
+      "networth": 21014,
+      "numDenies": 4,
+      "numLastHits": 313,
+      "playerSlot": 130,
+      "towerDamage": 3052
+    }
+  },
+  {
+    "opendota": {
+      "assists": 15,
+      "deaths": 2,
+      "denies": 21,
+      "gold_per_min": 721,
+      "hero_id": 39,
+      "kills": 13,
+      "last_hits": 322,
+      "player_slot": 4,
+      "xp_per_min": 937
+    },
+    "stratz": {
+      "assists": 15,
+      "deaths": 2,
+      "experiencePerMinute": 937,
+      "goldPerMinute": 721,
+      "goldSpent": 21005,
+      "heroDamage": 40284,
+      "heroHealing": 0,
+      "heroId": 39,
+      "isRadiant": true,
+      "kills": 13,
+      "level": 24,
+      "networth": 23518,
+      "numDenies": 21,
+      "numLastHits": 322,
+      "playerSlot": 4,
+      "towerDamage": 4176
+    }
+  },
+  {
+    "opendota": {
+      "assists": 19,
+      "deaths": 7,
+      "denies": 13,
+      "gold_per_min": 565,
+      "hero_id": 25,
+      "kills": 10,
+      "last_hits": 304,
+      "player_slot": 129,
+      "xp_per_min": 721
+    },
+    "stratz": {
+      "assists": 19,
+      "deaths": 7,
+      "experiencePerMinute": 721,
+      "goldPerMinute": 565,
+      "goldSpent": 20640,
+      "heroDamage": 36761,
+      "heroHealing": 0,
+      "heroId": 25,
+      "isRadiant": false,
+      "kills": 10,
+      "level": 23,
+      "networth": 19857,
+      "numDenies": 13,
+      "numLastHits": 304,
+      "playerSlot": 129,
+      "towerDamage": 3154
+    }
+  },
+  {
+    "opendota": {
+      "assists": 7,
+      "deaths": 8,
+      "denies": 19,
+      "gold_per_min": 550,
+      "hero_id": 120,
+      "kills": 11,
+      "last_hits": 195,
+      "player_slot": 131,
+      "xp_per_min": 770
+    },
+    "stratz": {
+      "assists": 7,
+      "deaths": 8,
+      "experiencePerMinute": 770,
+      "goldPerMinute": 550,
+      "goldSpent": 17240,
+      "heroDamage": 28426,
+      "heroHealing": 0,
+      "heroId": 120,
+      "isRadiant": false,
+      "kills": 11,
+      "level": 21,
+      "networth": 15732,
+      "numDenies": 19,
+      "numLastHits": 195,
+      "playerSlot": 131,
+      "towerDamage": 373
+    }
+  },
+  {
+    "opendota": {
+      "assists": 9,
+      "deaths": 3,
+      "denies": 7,
+      "gold_per_min": 752,
+      "hero_id": 128,
+      "kills": 14,
+      "last_hits": 309,
+      "player_slot": 0,
+      "xp_per_min": 1264
+    },
+    "stratz": {
+      "assists": 9,
+      "deaths": 3,
+      "experiencePerMinute": 1264,
+      "goldPerMinute": 752,
+      "goldSpent": 21430,
+      "heroDamage": 41117,
+      "heroHealing": 985,
+      "heroId": 128,
+      "isRadiant": true,
+      "kills": 14,
+      "level": 27,
+      "networth": 25760,
+      "numDenies": 7,
+      "numLastHits": 309,
+      "playerSlot": 0,
+      "towerDamage": 3990
+    }
+  },
+  {
+    "opendota": {
+      "assists": 38,
+      "deaths": 6,
+      "denies": 7,
+      "gold_per_min": 513,
+      "hero_id": 69,
+      "kills": 12,
+      "last_hits": 103,
+      "player_slot": 131,
+      "xp_per_min": 784
+    },
+    "stratz": {
+      "assists": 38,
+      "deaths": 6,
+      "experiencePerMinute": 784,
+      "goldPerMinute": 513,
+      "goldSpent": 15725,
+      "heroDamage": 27922,
+      "heroHealing": 0,
+      "heroId": 69,
+      "isRadiant": false,
+      "kills": 12,
+      "level": 24,
+      "networth": 18280,
+      "numDenies": 7,
+      "numLastHits": 103,
+      "playerSlot": 131,
+      "towerDamage": 2264
+    }
+  }
+]
