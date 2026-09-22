@@ -63,3 +63,24 @@ def test_replay_gate_uses_statistics_not_ingestion_marker():
     assert replay_available({"statsDateTime": 124, "isStats": True}, "stratz")
     assert replay_available({"version": 21}, "opendota")
     assert not replay_available({"version": True}, "opendota")
+
+
+def test_stage_one_build_and_draft_keep_unknown_distinct_from_empty():
+    raw = json.loads((FIXTURES / "unparsed-match.json").read_text())
+    raw["players"][0].update(item_0=0, item_1=42, ability_upgrades_arr=[10, 20, 10])
+    raw["picks_bans"] = [{"hero_id": 1, "order": 1, "team": 1, "is_pick": False}]
+    summary = opendota_summary(raw)
+    player = summary["players"][0]
+    assert player["items"]["item_0"] == 0
+    assert player["items"]["item_1"] == 42
+    assert player["items"]["item_2"] is None
+    assert player["ability_build"] == [10, 20, 10]
+    assert summary["draft"] == [{"hero_id": 1, "order": 1, "team": "DIRE", "is_pick": False}]
+    raw["players"][0]["ability_upgrades_arr"] = [True]
+    raw["picks_bans"][0]["team"] = True
+    assert opendota_summary(raw)["draft"] is None
+    assert opendota_summary(raw)["players"][0]["ability_build"] is None
+    raw["picks_bans"] = []
+    raw["players"][0]["ability_upgrades_arr"] = []
+    assert opendota_summary(raw)["draft"] == []
+    assert opendota_summary(raw)["players"][0]["ability_build"] == []

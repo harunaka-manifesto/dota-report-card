@@ -80,6 +80,21 @@ def opendota_summary(raw: Mapping[str, Any]) -> dict[str, Any]:
         player = player_summary(raw_player, "opendota")
         account = raw_player.get("account_id")
         player["account_id"] = account if type(account) is int and 0 < account < 2**32 - 1 else None
+        for field in ("hero_variant", "leaver_status", "party_size"):
+            player[field] = _optional_int(raw_player.get(field))
+        player["items"] = {
+            field: _optional_int(raw_player.get(field))
+            for field in (
+                *(f"item_{i}" for i in range(6)),
+                *(f"backpack_{i}" for i in range(3)),
+                "item_neutral", "item_neutral2",
+            )
+        }
+        abilities = raw_player.get("ability_upgrades_arr")
+        player["ability_build"] = (
+            list(abilities) if isinstance(abilities, list)
+            and all(type(ability) is int and ability > 0 for ability in abilities) else None
+        )
         players.append(player)
     if {p["player_slot"] for p in players} != set(range(10)):
         raise InvalidEvidence("Duplicate or missing player slot")
@@ -90,8 +105,38 @@ def opendota_summary(raw: Mapping[str, Any]) -> dict[str, Any]:
         "mode": "TURBO" if game_mode == 23 else "STANDARD" if game_mode in {1, 22} else "UNSUPPORTED",
         "game_mode": game_mode, "lobby_type": _optional_int(raw.get("lobby_type")),
         "human_players": _optional_int(raw.get("human_players")),
+        "first_blood_seconds": _optional_int(raw.get("first_blood_time")),
+        "team_scores": {team: _optional_int(raw.get(f"{team}_score")) for team in ("radiant", "dire")},
+        "structures": {
+            field: _optional_int(raw.get(field))
+            for field in ("tower_status_radiant", "tower_status_dire", "barracks_status_radiant", "barracks_status_dire")
+        },
+        "draft": _opendota_draft(raw.get("picks_bans")),
         "players": sorted(players, key=lambda p: p["player_slot"]),
     }
+
+
+def _opendota_draft(value: Any) -> list[dict[str, Any]] | None:
+    if not isinstance(value, list):
+        return None
+    result = []
+    for entry in value:
+        if not isinstance(entry, Mapping):
+            return None
+        if (
+            type(entry.get("hero_id")) is not int or entry["hero_id"] <= 0
+            or type(entry.get("order")) is not int or entry["order"] < 0
+            or type(entry.get("team")) is not int or entry["team"] not in {0, 1}
+            or type(entry.get("is_pick")) is not bool
+        ):
+            return None
+        result.append({
+            "hero_id": entry["hero_id"], "order": entry["order"],
+            "team": "RADIANT" if entry["team"] == 0 else "DIRE", "is_pick": entry["is_pick"],
+        })
+    if len({row["order"] for row in result}) != len(result):
+        return None
+    return sorted(result, key=lambda row: row["order"])
 
 
 def replay_available(raw: Mapping[str, Any], provider: Provider) -> bool:
