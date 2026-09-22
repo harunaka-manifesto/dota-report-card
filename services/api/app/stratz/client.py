@@ -54,6 +54,7 @@ from .queries import (
     GET_PLAYER_HISTORY_PAGE,
     GET_PLAYER_PROFILE,
     GET_ROLE_METRIC_MATCH_BATCH,
+    GET_TRACKER_MATCH_BATCH,
     GraphQLOperation,
 )
 
@@ -368,6 +369,48 @@ class StratzClient:
             raise StratzUnavailable("STRATZ match does not contain the requested player")
         return match
 
+    async def get_tracker_match_batch(
+        self,
+        account_id: int,
+        match_ids: list[int] | tuple[int, ...],
+        *,
+        mixed_coverage: bool = False,
+    ) -> Mapping[str, Any]:
+        """One uncached historical attempt; preserve raw evidence for the tracker.
+
+        All-covered batches are capped at 50; explicitly mixed batches at 100.
+        These are ceilings, not a promise that every selection fits every token.
+        The durable acquisition job reduces the batch after a size/timeout error.
+        """
+        if type(account_id) is not int or not 0 < account_id < 2**32:
+            raise ValueError("Invalid account ID")
+        if type(mixed_coverage) is not bool:
+            raise ValueError("Invalid coverage flag")
+        if any(type(value) is not int or not 0 < value < 2**63 for value in match_ids):
+            raise ValueError("Invalid match ID")
+        requested = tuple(dict.fromkeys(match_ids))
+        if not 1 <= len(requested) <= (100 if mixed_coverage else 50):
+            raise ValueError("Tracker batch exceeds the coverage-specific ceiling")
+        data = await self._graphql(
+            GET_TRACKER_MATCH_BATCH,
+            {"steamAccountId": account_id, "matchIds": list(requested), "take": len(requested)},
+            retry_limit=0,
+        )
+        player = data.get("player")
+        if player is None:
+            raise ProfileUnavailable("STRATZ history is private or unavailable")
+        rows = player.get("matches") if isinstance(player, Mapping) else None
+        if not isinstance(rows, list) or len(rows) > len(requested):
+            raise StratzSchemaDrift("Invalid tracker batch shape")
+        returned: set[int] = set()
+        for row in rows:
+            match_id = row.get("id") if isinstance(row, Mapping) else None
+            if type(match_id) is not int or match_id not in requested or match_id in returned:
+                raise StratzSchemaDrift("Unrequested or duplicate tracker match")
+            returned.add(match_id)
+        # Missing IDs mean unavailable from this source, never globally nonexistent.
+        return data
+
     async def get_deep_matches(
         self,
         account_id: int,
@@ -424,6 +467,7 @@ class StratzClient:
         cache_key: str | None = None,
         cache_ttl: int | None = None,
         ledger: RequestLedger | None = None,
+        retry_limit: int | None = None,
     ) -> Mapping[str, Any]:
         if not self.settings.stratz_api_token:
             raise StratzForbidden("STRATZ_API_TOKEN is not configured")
@@ -440,7 +484,7 @@ class StratzClient:
         if self._http is None:
             self._http = httpx.AsyncClient(timeout=self.settings.stratz_timeout_seconds)
         active_ledger = ledger or self.request_ledger
-        retries = max(0, int(self.settings.stratz_max_retries))
+        retries = max(0, int(self.settings.stratz_max_retries if retry_limit is None else retry_limit))
         body = {
             "operationName": operation.name,
             "variables": dict(variables),

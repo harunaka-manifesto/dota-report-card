@@ -32,6 +32,54 @@ class GraphQLOperation:
         }
 
 
+GET_TRACKER_MATCH_BATCH = GraphQLOperation(
+    name="GetTrackerMatchBatch",
+    version="1.0.0",
+    purpose="Historical tracker evidence for all ten players with explicit bounded take.",
+    response_model="TrackerRawMatchBatch",
+    document="""
+query GetTrackerMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!, $take: Int!) {
+  player(steamAccountId: $steamAccountId) {
+    matches(request: { matchIds: $matchIds, take: $take }) {
+      id didRadiantWin durationSeconds startDateTime endDateTime
+      gameMode lobbyType gameVersionId regionId parsedDateTime statsDateTime isStats
+      numHumanPlayers firstBloodTime
+      towerStatusRadiant towerStatusDire barracksStatusRadiant barracksStatusDire
+      radiantKills direKills radiantNetworthLeads radiantExperienceLeads
+      towerDeaths { time isRadiant npcId attacker }
+      pickBans { isPick isRadiant heroId bannedHeroId order playerIndex }
+      players {
+        steamAccountId playerSlot isRadiant isVictory heroId variant leaverStatus
+        kills deaths assists numLastHits numDenies goldPerMinute experiencePerMinute
+        networth level gold goldSpent heroDamage towerDamage heroHealing
+        item0Id item1Id item2Id item3Id item4Id item5Id
+        backpack0Id backpack1Id backpack2Id neutral0Id
+        abilities { abilityId level time isTalent }
+        stats {
+          networthPerMinute goldPerMinute experiencePerMinute lastHitsPerMinute
+          deniesPerMinute heroDamagePerMinute heroDamageReceivedPerMinute
+          towerDamagePerMinute healPerMinute campStack level
+          itemUsed { itemId count }
+          wardDestruction { time isWard gold experience }
+          matchPlayerBuffEvent { time itemId abilityId stackCount }
+          farmDistributionReport {
+            buyBackGold abandonGold
+            creepLocation { id count gold xp }
+            neutralLocation { id count gold xp }
+          }
+          killEvents { time } deathEvents { time } assistEvents { time }
+          itemPurchases { time itemId }
+          wards { time type positionX positionY }
+          runes { time rune }
+        }
+      }
+    }
+  }
+}
+""".strip(),
+)
+
+
 GET_PLAYER_PROFILE = GraphQLOperation(
     name="GetPlayerProfile",
     version="1.0.0",
@@ -1021,6 +1069,7 @@ STRATZ_OPERATIONS = {
         GET_SHORT_PARSED_TRAJECTORY,
         PROBE_PARSED_AVAILABILITY,
         GET_DEEP_MATCH_BATCH,
+        GET_TRACKER_MATCH_BATCH,
         GET_ROLE_METRIC_MATCH_BATCH,
         PROBE_LOCATION_REPORT,
         PROBE_ITEM_VOCABULARY,
@@ -1039,6 +1088,7 @@ def get_operation(name: str) -> GraphQLOperation:
 
 
 __all__ = [
+    "GET_TRACKER_MATCH_BATCH",
     "GET_DEEP_MATCH_BATCH",
     "GET_ROLE_METRIC_MATCH_BATCH",
     "GET_MATCH_CORE",
