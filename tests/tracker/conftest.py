@@ -49,3 +49,22 @@ def postgres() -> Iterator[Engine]:
 def database(postgres: Engine) -> Engine:
     migrate(postgres.url.render_as_string(hide_password=False), "head")
     return postgres
+
+
+@pytest.fixture
+def redis_client():
+    from redis import Redis
+
+    url = os.getenv("TEST_REDIS_URL")
+    if not url:
+        pytest.skip("TEST_REDIS_URL is required for distributed tracker guarantees")
+    client = Redis.from_url(url, decode_responses=True, socket_timeout=2)
+    assert client.ping()
+    namespace = "tracker-test:" + uuid4().hex
+    try:
+        yield client, namespace
+    finally:
+        keys = list(client.scan_iter(match=namespace + ":*"))
+        if keys:
+            client.delete(*keys)
+        client.close()

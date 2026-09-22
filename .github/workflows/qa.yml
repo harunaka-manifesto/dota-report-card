@@ -13,6 +13,13 @@ jobs:
     name: Alembic upgrade smoke
     runs-on: ubuntu-latest
     services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
       postgres:
         image: postgres:16
         env:
@@ -36,6 +43,7 @@ jobs:
         env:
           RUN_POSTGRES_MIGRATION_TEST: "1"
           TEST_POSTGRES_URL: postgresql+psycopg://dota:dota@localhost:5432/dota_report_card
+          TEST_REDIS_URL: redis://localhost:6379/0
 
   backend:
     name: Backend contract and regression QA

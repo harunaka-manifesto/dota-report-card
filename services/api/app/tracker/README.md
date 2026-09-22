@@ -4,8 +4,23 @@ Product meaning: [Tracker SSOTs](../../../../docs/tracker/README.md).
 System behavior: [Tracker architecture](../../../../docs/tracker/architecture/README.md).
 Implementation status: [ledger](../../../../docs/tracker/architecture/IMPLEMENTATION-LEDGER.md).
 
-This namespace is under implementation. The current slice provides the PostgreSQL schema;
-it does not yet provide authentication, the match pipeline, analytical engines or mobile routes.
+This namespace is under implementation. It provides the PostgreSQL schema, immutable
+evidence persistence, summary translation and controlled provider transport. Authentication,
+the match pipeline, analytical engines and mobile routes remain under implementation.
+
+`ControlledTransport` wraps the existing OpenDota/STRATZ HTTP clients. It enforces shared
+Redis admission, replay pacing, bounded response size/time, STRATZ single-flight and
+PostgreSQL call/evidence persistence. Its provider key must be shared by every process using
+the same credential. Never give replicas separate namespaces. An IPv4 client is used, but
+stable public egress is still a deployment prerequisite. IP/credential failures disable the
+provider until an operator resolves the cause and resets its shared state.
+
+Quota capacities come only from named response-header windows. Until those are known,
+one shared discovery read per probe interval is permitted; processing is withheld. Generic
+headers with ambiguous window duration do not authorize guessed capacity. Reserve and
+processing shares are operational policy. A Redis outage fails acquisition closed; it must
+not affect persisted product reads. Network-ambiguous calls record rate reservations and
+zero **known** billing units, not a claim that the provider charged nothing.
 
 ## Storage boundary
 
@@ -52,6 +67,7 @@ Use an isolated PostgreSQL 16 database that the test role may create schemas in:
 
 ```sh
 export TEST_POSTGRES_URL='postgresql+psycopg://dota:dota@127.0.0.1:5432/dota_report_card'
+export TEST_REDIS_URL='redis://127.0.0.1:6379/0'
 make test-tracker
 RUN_POSTGRES_MIGRATION_TEST=1 uv run pytest -q tests/integration/test_postgres_migrations.py
 ```

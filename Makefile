@@ -37,6 +37,7 @@ test:
 
 test-tracker:
 	@test -n "$(TEST_POSTGRES_URL)" || (echo "TEST_POSTGRES_URL is required (PostgreSQL 16)" && exit 1)
+	@test -n "$(TEST_REDIS_URL)" || (echo "TEST_REDIS_URL is required (Redis 7)" && exit 1)
 	$(PYTEST) -q tests/tracker
 
 test-v7-stratz:
