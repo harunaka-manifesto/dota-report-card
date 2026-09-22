@@ -17,5 +17,6 @@ export const apiPaths = [
   "/v1/reports/{report_id}/deep-analyses",
   "/v1/reports/{report_id}/evidence/{insight_id}",
   "/v1/reports/{report_id}/interaction-sessions",
-  "/v1/reports/{report_id}/share/{card_type}"
+  "/v1/reports/{report_id}/share/{card_type}",
+  "/v1/v7/reports/{report_id}"
 ] as const;
