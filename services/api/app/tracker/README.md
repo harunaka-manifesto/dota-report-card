@@ -31,6 +31,12 @@ quarantine paths. Product analysis must apply those dependency paths before publ
 Replay checkpoint reconciliation is currently a pure transformation; worker wiring and
 persisted multi-source dependency quarantine remain under implementation.
 
+`enqueue_roster_links` creates generation-bound private link work for active owners.
+`complete_link_job` publishes under the lease/identity fence and schedules one shared
+P1 replay job for live matches, with an explicit availability delay from match end.
+Historical links never schedule fresh processing. These functions do not classify
+roles, run provider requests or finalize analysis; those worker handlers remain pending.
+
 ## Storage boundary
 
 `schema.py` uses SQLAlchemy Core and separate metadata. `tracker_matches` is the single

@@ -228,3 +228,29 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   lint and mypy (9 modules), docs-check (474 links) and diff whitespace checks pass.
   Task-base scope audit shows no changes to the web app, legacy analytical runtime
   or frozen runtime artifacts. The complete backend goal remains unfinished.
+
+
+### Profile links and shared fresh replay scheduling
+
+- `tracker/linking.py` fans the stored ten-player roster out to active owned
+  profiles as generation-bound LINK_MATCH jobs. It performs no provider calls
+  and does not read entitlement. Publication uses the existing user/profile/lease
+  fence, then locks the shared match and inserts the private link idempotently.
+- A live link enqueues one global P1 REPLAY job by match ID and advances evidence
+  to REPLAY_PENDING. The availability delay is explicit operational policy from
+  match end, persisted in run_after. Neither per-user links nor Free/Pro duplicate
+  the acquisition job. Historical links use their own acquisition route and do
+  not enqueue fresh processing; terminal evidence never passively reopens.
+- Existing links keep origin, role and analysis state. Missing or contradictory
+  roster account identity cannot authorize a link. Four real PostgreSQL tests
+  pass: concurrent Free/Pro users share one replay job; deletion and switch fence
+  late publication; historical/terminal attachment preserves role state; absent
+  and quarantined account identities cannot attach.
+- This is storage/scheduling integration, not a completed Stage-1 API: effective
+  role classification is still pending. Replay handlers, stored-evidence reuse
+  before network requests, Celery dispatch, finalization/order, notifications and
+  mobile consumers remain required. No additional live calls or deployment.
+- Combined verification: **92 passed, 0 failed, 0 skipped** (tracker with real
+  PostgreSQL/Redis, legacy provider clients, report contracts); one existing
+  Starlette warning. Tracker lint/mypy (10 modules), docs links and whitespace
+  checks pass. Full goal remains in progress, with no deployment/push/merge.
