@@ -71,7 +71,7 @@ All remain open; no product choices are inferred from missing UI content.
 
 ## Live provider call ledger
 
-OpenDota reads: 0; replay requests: 0; STRATZ calls: 0. No deployment.
+OpenDota reads: 1; replay requests: 0; STRATZ calls: 0. No deployment.
 
 ## Baseline test results
 
@@ -166,3 +166,9 @@ Tracker + legacy STRATZ client tests: **22 passed, 0 failed, 0 skipped**. Ruff a
 - **4 real PostgreSQL tests passed, 0 failed, 0 skipped**: parallel enqueue and non-overlapping claims; priority isolation/paused claims; expired-lease takeover rejecting the old token; deletion generation rejecting late effects; persisted cursor resumption and bounded failures. Module lint/typecheck pass.
 - Previous combined tracker + legacy provider + report-contract run: **72 passed, 0 failed, 0 skipped**, one existing deprecation warning. No live provider calls or deployment.
 - This is scheduler storage, not a claim of finished Celery routing, P3 pressure policy or end-to-end pipeline. Those remain required next integration work, alongside remaining provider normalization and batch recovery.
+
+### Bounded live OpenDota verification
+
+One authorized history read using the existing test/evidence account, `significant=0`, limit 20 and 90-day window returned HTTP 200: **13 Turbo and 7 Standard rows**. Purpose: verify actual Turbo inclusion and quota-header format, not presentation QA. Cost: **1 read / 1 rate unit / 1 known billing unit**, zero replay requests. No payload identifiers, credentials or raw account data committed.
+
+Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacity header**. The limiter initially required a capacity header and would have indefinitely withheld processing. Corrected initialization to use the observed named-window remainder as a conservative capacity lower bound. It does not infer a published plan ceiling. A regression test uses the exact header shape; **5 real Redis tests passed, 0 failed, 0 skipped**. STRATZ safety gate remains closed; no STRATZ live call.

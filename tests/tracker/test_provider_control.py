@@ -89,3 +89,15 @@ def test_accounting_distinguishes_rate_from_known_billing():
     for status in (404, 429, 500, None):
         assert call_units("opendota", processing=True, status=status) == (10, 0)
     assert call_units("stratz", processing=False, status=200) == (1, 0)
+
+
+def test_live_remaining_only_header_bootstraps_conservative_capacity(redis_client):
+    redis, namespace = redis_client
+    gate = ProviderGate(redis, namespace=namespace, provider="opendota")
+    gate.acquire()
+    # Exact header shape observed in the bounded live check; no limit header.
+    gate.observe({"x-rate-limit-remaining-minute": "2999"}, status=200)
+    gate.acquire(processing=True)
+    state = json.loads(redis.get(gate.key))
+    assert state["buckets"]["minute"]["limit"] == 2999
+    assert state["buckets"]["minute"]["total"] < 2990

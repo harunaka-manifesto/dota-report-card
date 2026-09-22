@@ -118,7 +118,9 @@ class ProviderGate:
         def apply(state: dict[str, Any], now: float) -> None:
             for name in _WINDOWS:
                 old = state["buckets"].get(name)
-                limit = parsed.limits.get(name, old["limit"] if old else 0)
+                # A named remaining-only header proves at least that much capacity.
+                # Use that lower bound, never a guessed published plan ceiling.
+                limit = parsed.limits.get(name, old["limit"] if old else parsed.remaining.get(name, 0))
                 remaining = parsed.remaining.get(name)
                 if remaining is None or remaining < 0 or limit <= 0:
                     continue
