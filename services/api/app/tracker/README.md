@@ -5,7 +5,8 @@ System behavior: [Tracker architecture](../../../../docs/tracker/architecture/RE
 Implementation status: [ledger](../../../../docs/tracker/architecture/IMPLEMENTATION-LEDGER.md).
 
 This namespace is under implementation. It provides the PostgreSQL schema, immutable
-evidence persistence, summary translation and controlled provider transport. Authentication,
+evidence persistence, summary/replay translation, source materialization and controlled
+provider transport. Authentication,
 the match pipeline, analytical engines and mobile routes remain under implementation.
 
 `ControlledTransport` wraps the existing OpenDota/STRATZ HTTP clients. It enforces shared
@@ -21,6 +22,14 @@ headers with ambiguous window duration do not authorize guessed capacity. Reserv
 processing shares are operational policy. A Redis outage fails acquisition closed; it must
 not affect persisted product reads. Network-ambiguous calls record rate reservations and
 zero **known** billing units, not a claim that the provider charged nothing.
+
+`materialize_snapshot` consumes supported stored responses, creates one canonical match
+and ten players, and persists immutable per-source feature projections. It does not call
+providers, link private profiles or finalize analysis. Canonical summary fields retain the
+first accepted facts; later conflicting observations remain separate and add explicit
+quarantine paths. Product analysis must apply those dependency paths before publication.
+Replay checkpoint reconciliation is currently a pure transformation; worker wiring and
+persisted multi-source dependency quarantine remain under implementation.
 
 ## Storage boundary
 

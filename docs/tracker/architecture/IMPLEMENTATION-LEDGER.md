@@ -201,3 +201,30 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 - Verification: **84 passed, 0 failed, 0 skipped** across tracker (real PostgreSQL
   and Redis), legacy provider clients and report contracts; one existing Starlette
   deprecation warning. Tracker lint/typecheck and documentation links pass.
+
+
+### Canonical source materialization checkpoint
+
+- `tracker/materialization.py` consumes registered inline snapshots rather than making
+  provider calls. It validates the operation/schema identity and requested match, then
+  serializes publication on the global match row. First summary materialization creates
+  all ten players and the header in one transaction. It only advances to SUMMARY_READY;
+  replay terminal state and private finalization belong to the still-pending pipeline.
+- Every source produces immutable per-player summary/header/checkpoint projections, with
+  source snapshot, provider/operation/schema, content digest and translation versions.
+  Reprocessing the same source is idempotent. A later parsed source creates new feature
+  rows without changing earlier missing values, first-ready time or source evidence.
+- Cross-provider summary conflicts are persisted on the match as dependency paths while
+  both source projections survive. No last-writer-wins scoreboard replacement. This
+  alone does not close dependent analytical suppression: the analysis consumer and
+  persisted multi-source replay reconciliation still need wiring.
+- Four real PostgreSQL checks cover concurrent materialization (one match, ten players,
+  ten features), immutable replay enrichment, persisted provider disagreement, and
+  rejection of partial/mismatched/duplicate-batch evidence without partial match rows.
+  Remaining: account links, durable acquisition job handlers, replay transitions,
+  ordering, analysis and mobile API integration. No new live calls or deployment.
+- Final combined check for this slice: **88 passed, 0 failed, 0 skipped** across
+  tracker/PostgreSQL/Redis, legacy provider clients and report contracts. Tracker
+  lint and mypy (9 modules), docs-check (474 links) and diff whitespace checks pass.
+  Task-base scope audit shows no changes to the web app, legacy analytical runtime
+  or frozen runtime artifacts. The complete backend goal remains unfinished.

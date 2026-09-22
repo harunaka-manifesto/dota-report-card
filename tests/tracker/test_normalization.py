@@ -107,6 +107,8 @@ def test_historical_ten_player_summary_excludes_native_roles_and_unproven_fields
     assert summary["players"][0]["items"]["item_0"] == 0
     assert summary["players"][0]["leaver_status"] == 0
     assert "POSITION_1" not in str(summary)
+    raw["players"][0]["leaverStatus"] = "FUTURE_STATUS"
+    assert stratz_summary(raw)["players"][0]["leaver_status"] is None
     assert stratz_summary({**raw, "gameMode": "FUTURE_MODE"})["mode"] == "UNSUPPORTED"
 
 
@@ -122,6 +124,10 @@ def test_disagreement_is_field_specific_and_missing_is_not_zero_or_conflict():
     second["players"][9]["values"]["deaths"] = None
     second["duration_seconds"] += 1
     assert summary_disagreements(first, second) == ["duration_seconds", "players.0.values.kills"]
+    malformed = deepcopy(first)
+    malformed["players"][0] = None
+    with pytest.raises(InvalidEvidence):
+        summary_disagreements(first, malformed)
     second["match_id"] += 1
     with pytest.raises(InvalidEvidence):
         summary_disagreements(first, second)
