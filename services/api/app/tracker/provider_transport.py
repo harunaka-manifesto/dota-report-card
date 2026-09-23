@@ -53,9 +53,11 @@ class ControlledTransport(httpx.AsyncBaseTransport):
         transport: httpx.AsyncBaseTransport | None = None,
         deadline_seconds: float = 30, max_response_bytes: int = 16 * 1024 * 1024,
         before_send: Callable[[], None] | None = None,
+        job_id: str | None = None,
     ):
         if not math.isfinite(deadline_seconds) or deadline_seconds <= 0 or max_response_bytes <= 0:
             raise ValueError("Invalid acquisition bounds")
+        self.job_id = job_id
         self.before_send = before_send
         self.gate = gate
         self.database = database
@@ -128,7 +130,16 @@ class ControlledTransport(httpx.AsyncBaseTransport):
                 await response.aclose()
             ip_blocked = status == 403 and self.gate.provider == "stratz" and b"ip" in bytes(body).lower()
             rate, billed = call_units(self.gate.provider, processing=processing, status=status)
+            account_id = None
+            history_path = re.fullmatch(r"(?:/api)?/players/([1-9][0-9]*)/matches", request.url.path)
+            if self.gate.provider == "opendota" and history_path:
+                account_id = int(history_path[1])
+            elif self.gate.provider == "stratz":
+                account_id = json.loads(request.content).get("variables", {}).get("steamAccountId")
+            if type(account_id) is not int or not 0 < account_id < 2**32:
+                account_id = None
             values = dict(
+                account_id=account_id, job_id=self.job_id,
                 provider=self.gate.provider, operation=operation, operation_version=version,
                 match_id=match_id, status=status, latency_ms=(time.monotonic() - started) * 1000,
                 billed_units=billed, rate_units=rate, called_at=called_at,
@@ -142,13 +153,14 @@ class ControlledTransport(httpx.AsyncBaseTransport):
 
     def _record(self, values: dict[str, Any], payload: Any, subject: str) -> None:
         with self.database.begin() as connection:
-            connection.execute(provider_calls.insert().values(**values))
+            snapshot_id = None
             if isinstance(payload, (dict, list)):
-                save_snapshot(
+                snapshot_id = save_snapshot(
                     connection, provider=self.gate.provider, operation=values["operation"],
                     operation_version=values["operation_version"], schema_version="raw-1",
                     subject=subject, fetched_at=datetime.now(UTC), payload=payload,
                 )
+            connection.execute(provider_calls.insert().values(**values, snapshot_id=snapshot_id, request_subject=subject))
 
     async def aclose(self) -> None:
         await self.transport.aclose()

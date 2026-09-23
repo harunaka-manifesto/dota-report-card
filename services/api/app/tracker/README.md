@@ -53,8 +53,16 @@ again. Known 429 rejections preserve the remaining poll budget.
 60-day processing window (not a claim about Valve's exact horizon), five polls with
 60/120/300/600/1200-second delays, and a two-hour elapsed bound from job creation.
 Existing replay evidence is reused regardless of processing age. Terminal evidence
-never finalizes private analysis or passively reopens an unavailable match. Sync
-detection, Celery dispatch, complete analysis and mobile integration remain pending.
+never finalizes private analysis or passively reopens an unavailable match.
+
+`request_account_sync` debounces explicit foreground triggers per account and creates
+one shared P0 job. `sync_account_page` reads one Turbo-inclusive page per claim, journals
+each accepted/rejected source item, and commits discovery work with the next offset.
+Only an empty terminal page advances the completed boundary; errors and page limits
+leave the previous boundary intact. Missing source chronology remains null until full
+summary acquisition. Successful call rows bind job, request and immutable snapshot,
+so a publication retry reuses that exact page without another fetch. Foreground
+authenticated routes, Celery dispatch, complete analysis and mobile integration remain pending.
 
 ## Storage boundary
 
@@ -68,6 +76,8 @@ All tracker tables use the `tracker_` prefix. This keeps the live legacy purge p
 and avoids changing the historical migration that creates the legacy ORM metadata.
 `migrations/env.py` exposes both metadata sets; the frozen `0006_tracker_foundation` migration
 creates only new tables, indexes, constraints and tracker-specific trigger functions.
+`0007_tracker_discovery_journal` adds the global discovery journal and nullable call
+correlation fields; pre-existing call rows retain their accounting without invented provenance.
 Runtime must never call `create_all` for these tables.
 
 User analytical state belongs to a Steam profile. Foreign keys retain the account identity,

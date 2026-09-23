@@ -280,3 +280,19 @@ def test_worker_claims_do_not_block_behind_another_locked_job(database: Engine) 
         second.execute(text("SET LOCAL statement_timeout = '1s'"))
         assert first.scalar(due) == "0"
         assert second.scalar(due) == "1"
+
+
+def test_discovery_upgrade_retains_existing_call_ledger(postgres: Engine) -> None:
+    url = postgres.url.render_as_string(hide_password=False)
+    migrate(url, "0006_tracker_foundation")
+    with postgres.begin() as c:
+        c.execute(text("INSERT INTO tracker_provider_calls (provider, operation, operation_version, latency_ms, billed_units, rate_units, called_at) VALUES ('opendota', 'history', '1', 1, 1, 1, now())"))
+    migrate(url, "head")
+    with postgres.connect() as c:
+        row = c.execute(select(s.provider_calls)).mappings().one()
+        assert row['billed_units'] == row['rate_units'] == 1
+        assert all(row[key] is None for key in ('account_id', 'job_id', 'snapshot_id', 'request_subject'))
+    migrate(url, "0006_tracker_foundation", "downgrade")
+    with postgres.connect() as c:
+        assert c.scalar(text("SELECT count(*) FROM tracker_provider_calls")) == 1
+    migrate(url, "head")

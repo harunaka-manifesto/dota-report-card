@@ -8,7 +8,7 @@ Operational evidence, not a product or architecture contract.
 - Branch: `codex/tracker-backend-foundation`.
 - Authorized: BACKEND, DATABASE, ANALYTICAL (new tracker only), DOCUMENTATION, local INFRASTRUCTURE. No release/deployment.
 - Existing untracked `docs/prompts/tracker-backend-foundation-goal.md` is user-owned and remains untouched.
-- Current step: Phase A schema verified; next Phase C provider acquisition. Baseline, R1 and API design are committed. No implementation gap is closed.
+- Current step: Phases C/D in progress: controlled providers, summary/replay handlers and foreground account discovery. Phase A schema, baseline, R1 and API design are committed. Full pipeline, analysis and mobile wiring remain pending; no implementation gap is claimed closed.
 
 ## Gap status
 
@@ -64,7 +64,7 @@ All remain open; no product choices are inferred from missing UI content.
 
 ## External blockers and environment
 
-- PostgreSQL 16.15 installed locally. Redis 7.2.16 official archive SHA-256 verified and built under `/tmp/tracker-foundation-deps`; isolated services run only on localhost ports 55432/56379; Docker absent. Legacy PostgreSQL migration smoke passes; tracker concurrency and Redis integration tests still pending.
+- PostgreSQL 16.15 installed locally. Redis 7.2.16 official archive SHA-256 verified and built under `/tmp/tracker-foundation-deps`; isolated services run only on localhost ports 55432/56379; Docker absent. Legacy PostgreSQL migration smoke, tracker concurrency and Redis integration checks pass (latest counts below).
 - Web node_modules absent: web checks cannot execute until installed.
 - STRATZ concurrent production token use not established: zero live calls permitted until safety is established or a dev token is available.
 - Production identity/store/push credentials and approved calibration artifacts require later verification.
@@ -328,3 +328,36 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   existing Starlette warning. This includes summary-read and replay-submission
   duplicate tests after deliberate Redis lock loss. Tracker lint/mypy (12 modules),
   docs-check (474 links) and whitespace pass. No deployment, push or merge.
+
+
+### Foreground account discovery checkpoint
+
+- `tracker/sync.py` implements explicit account-global debounced triggers, shared P0
+  jobs and one Turbo-inclusive history page per claim. Concurrent triggers reuse the
+  active job. It has no polling timer and no entitlement branch. Authenticated mobile
+  entry points and queue delivery are still pending.
+- Each page journals accepted/rejected items with its immutable source snapshot.
+  Invalid IDs and out-of-window chronology get explicit reasons; absent chronology
+  stays null and needs the full summary. Accepted matches share global summary jobs;
+  existing canonical matches enqueue generation-fenced owner links.
+- Journal, enqueue effects and next offset commit together. Only an empty page
+  advances completed coverage; short pages continue. A page limit or source/internal
+  failure preserves the last completed boundary. The explicit scope is widened at
+  the provider during long interruptions, then filtered against the frozen job window.
+- Migration `0007_tracker_discovery_journal` adds an account discovery table and
+  nullable call account/job/snapshot/request correlation plus a lookup index. Calls
+  and saved responses commit atomically. Existing 0006 call rows keep their original
+  accounting with null new provenance. No legacy table is altered.
+- A DB step claim before HTTP prevents duplicate delivery; a retry uses the exact
+  job/request response even when snapshot content was deduplicated. This does not
+  claim exactly-once network I/O if a process dies between HTTP and durable recording.
+- Verification includes concurrent triggers, Turbo pagination through an empty page,
+  invalid/missing chronology, atomic rollback recovery without refetch, duplicate
+  delivery, bounded malformed/page-limit failure, shared matches across accounts,
+  outage preservation, and populated 0006 upgrade/downgrade/re-upgrade.
+- No new live calls: cumulative 3 OpenDota reads, 1 processing request, 0 STRATZ.
+  No push, merge or deployment. Full goal remains active and unfinished.
+- Combined verification: **124 passed, 0 failed, 0 skipped** across tracker, legacy
+  provider clients, migration unit checks and report contracts on real PostgreSQL/Redis.
+  Two existing deprecation warnings (Starlette, Alembic). Ruff, mypy (14 modules),
+  docs-check (474 local links) and whitespace pass.
