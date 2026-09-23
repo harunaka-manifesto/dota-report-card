@@ -43,7 +43,18 @@ fetching, then atomically materializes evidence, enqueues private link jobs, rec
 acquisition pointer and completes the job. Internal publication failures retry from
 stored evidence. Quota deferral does not spend the failure-attempt budget. Redis
 single-flight guards duplicate delivery; PostgreSQL leases fence late publication.
-Replay execution, sync detection and Celery dispatch are still pending.
+`acquire_fresh_replay` reuses stored replay evidence, submits processing through the
+separate bucket, then polls on a persisted bounded schedule. Submission/poll intent is
+committed after admission and before HTTP; PostgreSQL rejects a duplicate step even
+if its Redis lock disappears. Unknown submission outcomes poll rather than submit
+again. Known 429 rejections preserve the remaining poll budget.
+
+`ReplayPolicy` defaults are operational policy: six-minute minimum age, a conservative
+60-day processing window (not a claim about Valve's exact horizon), five polls with
+60/120/300/600/1200-second delays, and a two-hour elapsed bound from job creation.
+Existing replay evidence is reused regardless of processing age. Terminal evidence
+never finalizes private analysis or passively reopens an unavailable match. Sync
+detection, Celery dispatch, complete analysis and mobile integration remain pending.
 
 ## Storage boundary
 

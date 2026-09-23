@@ -153,7 +153,8 @@ async def test_lease_takeover_keeps_raw_but_fences_late_publication(database, re
     assert calls == 1
 
 
-async def test_duplicate_delivery_does_not_invalidate_running_worker(database, redis_client):
+@pytest.mark.parametrize("lose_lock", [False, True])
+async def test_duplicate_delivery_does_not_invalidate_running_worker(database, redis_client, lose_lock):
     job = prepare(database)
     gate = gate_for(redis_client, "opendota")
     entered, release = asyncio.Event(), asyncio.Event()
@@ -169,6 +170,8 @@ async def test_duplicate_delivery_does_not_invalidate_running_worker(database, r
     first = asyncio.create_task(run(database, gate, job, handler))
     await asyncio.wait_for(entered.wait(), 3)
     try:
+        if lose_lock:
+            gate.redis.delete(f"{gate.key}:summary:{MATCH_ID}")
         assert await run(database, gate, job, handler) == "RUNNING"
     finally:
         release.set()

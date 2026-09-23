@@ -286,3 +286,45 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   real PostgreSQL/Redis, legacy provider clients and report contracts. Tracker
   lint/mypy (11 modules), docs (474 links) and whitespace pass; one existing
   Starlette deprecation warning. No push, merge or deployment.
+
+
+### Bounded replay acquisition checkpoint
+
+- `tracker/replay_acquisition.py` implements the claimed P1 replay handler through
+  the existing separate processing client and ControlledTransport. It checks
+  stored valid parsed evidence before any call, including after internal failure.
+  It persists terminal evidence and acquisition provenance without writing private
+  READY, finalization, PBs or notifications.
+- Policy is explicit/configurable: minimum age 360 seconds, conservative processing
+  window 60 days, poll delays 60/120/300/600/1200 seconds, at most five failures and
+  a 7200-second elapsed bound. The window is policy, not a discovered exact Valve
+  horizon. Processing is submitted once unless a known 429 rejection permits a
+  retry. An uncertain submission is reconciled by polling, never blind re-POST.
+- ControlledTransport now has a guarded pre-send hook after quota admission. The
+  worker commits a step claim/cursor before physical I/O. PostgreSQL cursor/lease
+  checks prevent duplicate steps if the Redis lock disappears; the same guard is
+  applied to summary reads. Quota denial does not create submission intent.
+- The replay cursor preserves submission intent, poll count and next allowed time
+  across crashes. Known 429 responses preserve poll budget; the elapsed bound
+  stops indefinite quota waiting. Actual attempted request time comes from the
+  provider call ledger, not merely from intent. Acquisition attempt counts use
+  recorded physical calls. Terminal reasons distinguish exhausted checks, elapsed
+  wait, out-of-policy age and source failure.
+- Fourteen real PostgreSQL/Redis replay tests passed before the final combined run:
+  submission/poll success; cached replay; missing replay terminality; ambiguous
+  submission; quota-before-intent; young/old processing bounds; recovery after
+  internal publication failure; GET/POST 429; elapsed limit; duplicate delivery
+  with/without Redis lock; lease takeover between admission and HTTP.
+- The initial integration attempt was not executed because automatic approval
+  review hit an account usage limit. After the user's continuation, review
+  succeeded and the real integration checks ran. This was an infrastructure
+  review failure, not a safety rejection and not a passing test.
+- No new live provider calls: cumulative totals remain 3 OpenDota reads plus one
+  processing request, zero STRATZ calls. Still required: detection, historical
+  recovery, Celery/pressure policy, roles, remaining telemetry/engines, private
+  finalization/order, notifications and mobile API. Full goal remains unfinished.
+- Final combined verification: **113 passed, 0 failed, 0 skipped** across tracker
+  with real PostgreSQL/Redis, legacy provider clients and report contracts; one
+  existing Starlette warning. This includes summary-read and replay-submission
+  duplicate tests after deliberate Redis lock loss. Tracker lint/mypy (12 modules),
+  docs-check (474 links) and whitespace pass. No deployment, push or merge.

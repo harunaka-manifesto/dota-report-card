@@ -17,10 +17,10 @@ from app.tracker.evidence import canonical_json
 from app.tracker.jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from app.tracker.linking import enqueue_roster_links
 from app.tracker.materialization import materialize_snapshot
-from app.tracker.normalization import InvalidEvidence, opendota_summary
+from app.tracker.normalization import InvalidEvidence, opendota_summary, replay_available
 from app.tracker.provider_control import ProviderDeferred, ProviderGate
 from app.tracker.provider_transport import ControlledTransport
-from app.tracker.schema import acquisitions, matches, provider_calls, snapshots
+from app.tracker.schema import acquisitions, ingest_jobs, matches, provider_calls, snapshots
 
 
 def enqueue_fresh_summary(connection: Connection, match_id: int) -> str:
@@ -30,7 +30,7 @@ def enqueue_fresh_summary(connection: Connection, match_id: int) -> str:
     return enqueue(connection, dedup_key=f"summary:{match_id}", job_type="SUMMARY", priority=0, payload={}, match_id=match_id)
 
 
-def _stored_summary(connection: Connection, match_id: int) -> str | None:
+def stored_match_snapshot(connection: Connection, match_id: int, *, replay_only: bool = False) -> str | None:
     # Query all matching inline responses; a malformed latest response must not
     # hide a valid earlier success or force another billable request.
     rows = connection.execute(select(snapshots.c.id, snapshots.c.payload).where(
@@ -44,6 +44,8 @@ def _stored_summary(connection: Connection, match_id: int) -> str | None:
         try:
             opendota_summary(row["payload"])
         except InvalidEvidence:
+            continue
+        if replay_only and not replay_available(row["payload"], "opendota"):
             continue
         return row["id"]
     return None
@@ -79,9 +81,20 @@ async def acquire_fresh_summary(
                 enqueue_roster_links(connection, match_id=job["match_id"], origin="LIVE")
                 finish(connection, current)
                 return "COMPLETE"
-            snapshot_id = _stored_summary(connection, job["match_id"])
+            snapshot_id = stored_match_snapshot(connection, job["match_id"])
+            cursor = dict(current["cursor"] or {})
+            if snapshot_id is None and cursor.get("acquisition_lease_token") == lease_token:
+                return "RUNNING"
         if snapshot_id is None:
-            controlled = ControlledTransport(gate, database, transport=transport)
+            def before_send() -> None:
+                with authorized_job(database, job_id, lease_token) as (connection, latest):
+                    if dict(latest["cursor"] or {}) != cursor:
+                        raise ProviderDeferred("SUMMARY_STEP_ALREADY_CLAIMED", 0.1)
+                    connection.execute(ingest_jobs.update().where(ingest_jobs.c.id == job_id).values(
+                        cursor={**cursor, "acquisition_lease_token": lease_token},
+                    ))
+
+            controlled = ControlledTransport(gate, database, transport=transport, before_send=before_send)
             async with httpx.AsyncClient(transport=controlled) as http:
                 payload = await OpenDotaClient(settings, http_client=http).refresh_match(job["match_id"])
             opendota_summary(payload)
@@ -109,6 +122,8 @@ async def acquire_fresh_summary(
         raise
     except Exception as exc:
         if isinstance(exc, ProviderDeferred):
+            if exc.reason == "SUMMARY_STEP_ALREADY_CLAIMED":
+                return "RUNNING"
             reason, delay, failure = exc.reason, exc.delay, False
         elif isinstance(exc, OpenDotaRateLimited):
             reason, delay, failure = "RATE_LIMITED", float(retry_seconds), False
