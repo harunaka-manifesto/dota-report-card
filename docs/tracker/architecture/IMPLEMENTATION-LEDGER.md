@@ -667,7 +667,34 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 - Idempotency rows back Steam link start/completion, identity attach, and sync. Free/Pro read scope is applied above persisted match data. Absent Focus/Challenge and uncalibrated trends stay explicitly unavailable. This is a **partial Phase G checkpoint**: Profile, correction/retry, entitlement, switch/deletion, incremental changes, full Stage-2 insight projection, golden fixtures, local seed and mobile E2E remain open. The exact authentication POST idempotency convention also remains to be settled.
 - Focused mobile/Steam/auth integration tests against local PostgreSQL and Redis: **21 passed, 0 failed, 0 skipped**. Migration tests including clean/repeated PostgreSQL smoke: **11 passed**. Ruff and mypy pass on the changed mobile/identity modules. No provider calls, deployment, push or merge.
 
+### App Store entitlement boundary checkpoint
+
+- Added a tracker-only signed transaction/Server Notifications verifier protocol,
+  deterministic fake verifier, immutable transaction-to-account binding,
+  linked-Steam purchase gate, stale-update protection, expiry/refund/revoke
+  state, and a revision-scoped entitlement rebuild request. Pro activation is
+  withheld until both Free mode bootstraps are terminal. `complete_scope_rebuild`
+  publishes scope and revision together only after the caller's stored-data
+  rebuild is coherent; a refund/expiry cancels pending activation and requests
+  a Free-scope rebuild. Cached subscription rows and retained history are not
+  deleted. `reconcile_entitlement_scope` is the hook for bootstrap settlement
+  and transaction refresh.
+- PostgreSQL purchase/foundation gating, atomic scope publication, refund,
+  expiry fencing, cached subscription retention and account-link checks: **4
+  passed**. Ruff and mypy pass. Production Apple JWS signature-chain
+  verification, the operation worker that rebuilds derived state, mobile
+  transaction/webhook routes and notifications remain unimplemented; this is
+  not production App Store verification or entitlement completion. No provider
+  calls, deployment, push or merge.
+
 ### READY event and outbox checkpoint
 
 - The single finalization transaction now records one deduplicated `MATCH_READY` event for a live match. Imported/bootstrap matches do not emit it. Device permission and account notification choice gate only push-outbox creation, never finalization or the in-app event. Pending READY events for an account/profile coalesce into one outbox bundle; Steam switching cancels its old pending bundle. A delivery adapter rechecks active account/profile generation and permission before sending with the stable outbox dedupe key; revoked permission suppresses the bundle without changing the match.
 - Real PostgreSQL tests for live/import distinction, no retroactive enqueue, duplicate finalization, coalescing, delivery and revocation: **10 passed, 0 failed, 0 skipped** across notifications, finalization and lifecycle. Ruff and mypy pass on the affected modules. This is not notification completion: a production APNs transport, worker dispatch, foreground signal/suppression and cross-device failure handling remain to be implemented and verified. No live push or provider call occurred.
+
+### Profile claim lifecycle foundation
+
+- Added `tracker_profile_claim_checkpoints` as an additive migration and advanced the application schema readiness head. Each account/bucket/scope/claim/version has a generation-fenced latest state, prior evidence snapshot, lifecycle checkpoint and bounded input digest. It is separate from existing Profile report rows and leaves legacy reports untouched.
+- Added a deterministic CANDIDATE → CONFIRMED → FADING → RETIRED state machine with explicit versioned persistence-gap input, monotonic checkpoint enforcement, silent candidate discard, evidence-window/sample validation (≤200 match references), and fail-closed eligibility/coverage checks. Current evidence requires its actual window, sample references/count, aggregates, threshold crossings and player-facing coverage state. The repository does not publish claim candidates yet: deriving claim-specific enter/exit signals, evaluating these checkpoints in finalization, reconstructing coherent visible claim history, and serving Profile remain integration work.
+- Goal SSOT §12 says Profile numeric parameters are provisional and need development-corpus calibration. Its active claim lifecycle specifies a persistence gap but no numeric value; the superseded archived profile document is not promoted to authority. Therefore policy gap stays explicit and versioned, test values are test-only, and calibration remains a pre-release gate.
+- Focused pure/PostgreSQL tests plus migration contract: **9 passed, 0 failed, 0 skipped**; ruff and mypy pass. Migration used an isolated clean PostgreSQL schema. No provider calls or legacy report changes.
