@@ -53,6 +53,8 @@ def test_concurrent_materialization_one_match_ten_players_and_features(database)
         assert feature["provenance"]["snapshot_id"] == snapshot_id
         assert feature["features"]["checkpoints"]["net_worth"]["1200"] == 5185
         assert feature["features"]["events"]["wards"]
+        assert feature["features"]["integrity"] == {"verdict": "VALID", "reason": None}
+        assert feature["provenance"]["integrity_version"] == "integrity-1"
         assert feature["provenance"]["event_version"] == "replay-events-1"
         assert "wards" in feature["provenance"]["event_source_paths"]
 

@@ -580,3 +580,19 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 - Historical/worker PostgreSQL/Redis checks: **15 passed**; ruff and mypy pass.
   No live provider calls. Provider-specific threshold behavior remains unproven
   until controlled live validation.
+
+### Source-backed integrity projection
+
+- `integrity-1` requires a normal/ranked lobby, ten humans, explicit no-leaver
+  status for all ten players, and complete K/D/A rows. Nonzero leaver status
+  (including OpenDota's "Left Safely" status 1), noncompetitive lobby or fewer
+  humans is invalid; missing values remain unknown. This is a conservative
+  inference from the [OpenDota status labels](https://github.com/odota/web/blob/master/src/lang/en-US.json)
+  and retained paired OpenDota/STRATZ fixtures, not a claim that the providers
+  expose a dedicated remake flag. The verdict and reason are immutable
+  versioned features; progression still applies its independent duration,
+  mode, role and tracked-player gates.
+- Focused integrity/materialization/historical tests: **16 passed**; full tracker
+  suite: **175 passed**. Ruff, mypy and docs checks pass. No frozen V6.1
+  analytical source, artifacts or public report
+  contract changed.

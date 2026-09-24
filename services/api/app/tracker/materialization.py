@@ -17,6 +17,7 @@ from sqlalchemy.dialects.postgresql import insert
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
 from app.tracker.events import EVENT_VERSION, replay_events
 from app.tracker.evidence import canonical_json
+from app.tracker.integrity import INTEGRITY_VERSION, verify
 from app.tracker.normalization import (
     SUMMARY_VERSION,
     InvalidEvidence,
@@ -31,7 +32,7 @@ from app.tracker.role_evidence import ROLE_EVIDENCE_VERSION, replay_role_inputs
 from app.tracker.roles import persist_positions, persist_summary_positions
 from app.tracker.schema import derived_features, match_players, matches, snapshots
 
-FEATURE_VERSION = f"{SUMMARY_VERSION}+{REPLAY_VERSION}+{ROLE_EVIDENCE_VERSION}+{EVENT_VERSION}"
+FEATURE_VERSION = "tracker-features-2"
 
 
 def _match_payload(snapshot: Mapping[str, Any], match_id: int) -> Mapping[str, Any]:
@@ -64,6 +65,7 @@ def materialize_snapshot(connection: Connection, *, snapshot_id: str, match_id: 
     raw = _match_payload(dict(snapshot), match_id)
     provider = cast(Provider, snapshot["provider"])
     summary = opendota_summary(raw) if provider == "opendota" else stratz_summary(raw)
+    integrity = verify(summary)
     checkpoints = replay_checkpoints(raw, provider)
     event_projection = replay_events(raw, provider)
     try:
@@ -103,7 +105,9 @@ def materialize_snapshot(connection: Connection, *, snapshot_id: str, match_id: 
         "snapshot_id": snapshot_id, "provider": provider, "operation": snapshot["operation"],
         "operation_version": snapshot["operation_version"], "schema_version": snapshot["schema_version"],
         "digest": snapshot["digest"], "fetched_at": snapshot["fetched_at"].isoformat(),
-        "summary_version": SUMMARY_VERSION, "replay_version": REPLAY_VERSION, "event_version": EVENT_VERSION,
+        "summary_version": SUMMARY_VERSION, "replay_version": REPLAY_VERSION,
+        "role_evidence_version": ROLE_EVIDENCE_VERSION, "event_version": EVENT_VERSION,
+        "integrity_version": INTEGRITY_VERSION,
     }
     inputs_digest = hashlib.sha256(canonical_json({
         "snapshot_id": snapshot_id, "digest": snapshot["digest"],
@@ -116,6 +120,7 @@ def materialize_snapshot(connection: Connection, *, snapshot_id: str, match_id: 
             inputs_digest=inputs_digest, created_at=func.now(),
             features={
                 "match": {k: v for k, v in summary.items() if k != "players"},
+                "integrity": {"verdict": integrity.verdict, "reason": integrity.reason},
                 "summary": player, "checkpoints": replay["series"],
                 "events": event_player["events"], "match_events": event_player["match_events"],
                 "role_evidence": {k: role_player[k] for k in ("lane", "wards_placed", "role_source_paths")},

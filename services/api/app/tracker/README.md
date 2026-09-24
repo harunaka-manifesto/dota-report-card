@@ -78,6 +78,12 @@ size, cost or deadline rejection. A singleton still uses bounded retries, and
 unrelated provider failures do not masquerade as size evidence. A retained
 HTTP-200 GraphQL error is never replayed as a successful batch.
 
+`integrity-1` derives a fail-closed verdict from each validated provider summary:
+normal/ranked lobby, ten human players, ten explicit no-leaver statuses, and a
+complete K/D/A scoreboard. A missing signal remains unknown, and a safe leave
+or abandon signal is invalid. This projection is versioned under
+`tracker-features-2`; it does not by itself finalize progression eligibility.
+
 ## Storage boundary
 
 `schema.py` uses SQLAlchemy Core and separate metadata. `tracker_matches` is the single
