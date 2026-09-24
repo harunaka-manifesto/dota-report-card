@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, JsonValue
 from redis import Redis
 from sqlalchemy import Connection, Engine, and_, func, or_, select, true
 from sqlalchemy.dialects.postgresql import insert
@@ -42,6 +42,7 @@ from app.tracker.schema import (
     devices,
     idempotency_keys,
     identities,
+    insight_results,
     match_players,
     matches,
     metric_observations,
@@ -158,6 +159,18 @@ class MetricView(BaseModel):
     performance_state: Literal["ABOVE", "IN_LINE", "BELOW", "NOT_READY"] | None
 
 
+class InsightCardView(BaseModel):
+    template_id: str
+    slots: dict[str, JsonValue]
+
+
+class InsightView(BaseModel):
+    state: Readiness
+    contract_version: str | None
+    reason: str | None
+    cards: list[InsightCardView]
+
+
 class MatchView(BaseModel):
     ref: str
     mode: Mode | None
@@ -166,7 +179,7 @@ class MatchView(BaseModel):
     lifecycle: Lifecycle
     facts: Readiness
     performance: Readiness
-    insights: Readiness
+    insights: InsightView
     role: Role | None
     progression: Literal["STANDARD", "TURBO", "NONE"] | None
     progression_reason: str | None
@@ -334,6 +347,7 @@ def _match_view(connection, row) -> MatchView:
         assists=player.get("values", {}).get("assists"),
     ) for player in roster]
     metrics: list[MetricView] = []
+    insight = InsightView(state=Readiness.PENDING, contract_version=None, reason=None, cards=[])
     if row["active_analysis_id"] is not None:
         observed = connection.execute(select(metric_observations).where(
             metric_observations.c.analysis_id == row["active_analysis_id"],
@@ -349,12 +363,28 @@ def _match_view(connection, row) -> MatchView:
                 baseline_value=baseline.get("value"), prior_count=baseline.get("prior_count", 0),
                 performance_state=metric["performance_state"],
             ))
+        result = connection.execute(select(insight_results).where(
+            insight_results.c.analysis_id == row["active_analysis_id"],
+        )).mappings().one_or_none()
+        if result is not None:
+            analysis = connection.execute(select(analyses.c.result).where(
+                analyses.c.id == row["active_analysis_id"],
+            )).scalar_one()
+            status = analysis.get("insight_status", "NOT_ELIGIBLE(SOURCE_EVIDENCE)")
+            eligible = status == "EVALUATED"
+            insight = InsightView(
+                state=Readiness.AVAILABLE if eligible else Readiness.UNAVAILABLE,
+                contract_version=result["contract_version"],
+                reason=None if eligible else status.removeprefix("NOT_ELIGIBLE(").removesuffix(")"),
+                cards=[InsightCardView(template_id=card["candidate_id"], slots=card["slots"])
+                       for card in result["cards"]],
+            )
     return MatchView(
         ref=row["public_ref"], mode=match["mode"] if match["mode"] in {"STANDARD", "TURBO"} else None,
         started_at=row["provider_started_at"], duration_seconds=match["duration_seconds"],
         lifecycle=_lifecycle(row["lifecycle"]), facts=Readiness.AVAILABLE,
         performance=Readiness.AVAILABLE if row["lifecycle"] == "READY" else Readiness.PENDING,
-        insights=Readiness.PENDING, role=row["effective_role"], progression=row["progression"],
+        insights=insight, role=row["effective_role"], progression=row["progression"],
         progression_reason=row["progression_reason"],
         won=match["radiant_win"] == (row["player_slot"] < 5), players=players, metrics=metrics,
     )

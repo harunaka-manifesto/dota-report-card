@@ -488,6 +488,27 @@ profile_claims = Table(
         "state IN ('CANDIDATE', 'CONFIRMED', 'FADING', 'RETIRED')", name="ck_tracker_claim_state"
     ),
 )
+profile_claim_checkpoints = Table(
+    "tracker_profile_claim_checkpoints",
+    metadata,
+    Column("profile_id", ForeignKey(profiles.c.id, ondelete="CASCADE"), primary_key=True),
+    Column("profile_generation", BigInteger, nullable=False),
+    Column("mode", String(16), primary_key=True),
+    Column("scope", String(80), primary_key=True),
+    Column("claim_id", String(80), primary_key=True),
+    Column("claim_version", String(64), primary_key=True),
+    Column("state", String(16), nullable=False),
+    Column("evidence", JSONB, nullable=False),
+    Column("previous_evidence", JSONB),
+    Column("lifecycle", JSONB, nullable=False),
+    Column("inputs_digest", String(64), nullable=False),
+    Column("evaluation_digest", String(64), nullable=False),
+    Column("checkpoint_seq", BigInteger, nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+    CheckConstraint("profile_generation > 0 AND checkpoint_seq > 0", name="ck_tracker_claim_checkpoint_order"),
+    CheckConstraint("mode IN ('STANDARD', 'TURBO')", name="ck_tracker_claim_checkpoint_mode"),
+    CheckConstraint("state IN ('CANDIDATE', 'CONFIRMED', 'FADING', 'RETIRED')", name="ck_tracker_claim_checkpoint_state"),
+)
 events = Table(
     "tracker_events",
     metadata,

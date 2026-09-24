@@ -8,11 +8,13 @@ from app.tracker.finalization import (
 from app.tracker.jobs import claim, enqueue
 from app.tracker.materialization import materialize_snapshot
 from app.tracker.metrics import metric_ids
+from app.tracker.mobile_api import _match_view
 from app.tracker.schema import (
     account_matches,
     analyses,
     coverage,
     events,
+    insight_results,
     matches,
     metric_observations,
 )
@@ -65,6 +67,14 @@ def test_terminal_analysis_publishes_once_from_retained_source(database):
         metric_count = len(metric_ids(link["effective_role"]))
         assert c.scalar(select(func.count()).select_from(metric_observations)) == metric_count
         assert c.scalar(select(func.count()).select_from(analyses)) == 1
+        insight = c.execute(select(insight_results)).mappings().one()
+        assert insight["contract_version"] == "post-match-insights 1.0.0"
+        assert isinstance(insight["cards"], list) and len(insight["cards"]) <= 3
+        projected = _match_view(c, link).model_dump()
+        assert projected["insights"] == {
+            "state": "AVAILABLE", "contract_version": "post-match-insights 1.0.0",
+            "reason": None, "cards": [],
+        }
         assert c.scalar(select(func.count()).select_from(events)) == 1
         assert dict(c.execute(select(coverage.c.evidence_class, coverage.c.state)).all()) == {
             "SUMMARY": "KNOWN", "REPLAY": "KNOWN",
@@ -77,6 +87,7 @@ def test_terminal_analysis_publishes_once_from_retained_source(database):
     assert complete_finalization_job(database, job_id=retry["id"], lease_token=retry["lease_token"]) == "ALREADY_READY"
     with database.connect() as c:
         assert c.scalar(select(func.count()).select_from(analyses)) == 1
+        assert c.scalar(select(func.count()).select_from(insight_results)) == 1
         assert c.scalar(select(func.count()).select_from(metric_observations)) == metric_count
         assert c.scalar(select(func.count()).select_from(events)) == 1
 
@@ -92,6 +103,35 @@ def test_replay_unavailable_still_finalizes_with_reasoned_na_metrics(database):
         assert dict(c.execute(select(coverage.c.evidence_class, coverage.c.state)).all()) == {
             "SUMMARY": "KNOWN", "REPLAY": "GAP",
         }
+
+
+def test_ambiguous_integrity_withholds_insight_cards(database):
+    profile_id = _ready_link(database)
+    with database.begin() as c:
+        c.execute(matches.update().where(matches.c.match_id == MATCH_ID).values(
+            quarantined_fields=["mode"],
+        ))
+    assert _run(database, profile_id) == "READY"
+    with database.connect() as c:
+        link = c.execute(select(account_matches)).mappings().one()
+        assert link["progression"] == "NONE"
+        view = _match_view(c, link)
+        assert view.insights.state == "UNAVAILABLE"
+        assert view.insights.reason == "PROGRESSION"
+        assert view.insights.cards == []
+
+
+def test_disputed_source_withholds_insight_cards_without_blocking_ready(database):
+    profile_id = _ready_link(database)
+    with database.begin() as c:
+        c.execute(matches.update().where(matches.c.match_id == MATCH_ID).values(
+            quarantined_fields=["players.0.series.net_worth.420"],
+        ))
+    assert _run(database, profile_id) == "READY"
+    with database.connect() as c:
+        link = c.execute(select(account_matches)).mappings().one()
+        assert link["progression"] == "STANDARD"
+        assert _match_view(c, link).insights.reason == "SOURCE_DISAGREEMENT"
 
 
 def test_later_same_bucket_waits_for_prior_without_blocking_other_bucket(database):

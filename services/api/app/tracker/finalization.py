@@ -13,8 +13,11 @@ from .context import ContextInput, evaluate
 from .eligibility import classify
 from .evidence import canonical_json
 from .history import BASELINE_VERSION, Observation, baseline, load_prior_observations, personal_best
+from .insights import CONTRACT_VERSION as INSIGHT_CONTRACT_VERSION
+from .insights import evaluate as evaluate_insights
+from .insights import from_provider_snapshot
 from .jobs import StaleJob, authorized_job, enqueue, finish, reschedule
-from .materialization import FEATURE_VERSION
+from .materialization import FEATURE_VERSION, _match_payload
 from .metrics import measure, metric_ids
 from .roles import ROLES
 from .schema import (
@@ -26,12 +29,14 @@ from .schema import (
     bootstrap,
     derived_features,
     events,
+    insight_results,
     matches,
     metric_observations,
     personal_bests,
     positions,
     profiles,
     role_assertions,
+    snapshots,
     users,
 )
 
@@ -170,6 +175,21 @@ def _prior_pending(connection: Connection, link: dict[str, Any]) -> bool:
     ).limit(1)) is not None
 
 
+def _insight_result(connection: Connection, *, link: dict[str, Any], match: dict[str, Any],
+                    snapshot_id: str, position_map: dict[int, int | str | None]) -> dict[str, Any]:
+    snapshot = connection.execute(select(snapshots).where(snapshots.c.id == snapshot_id)).mappings().one()
+    try:
+        raw = _match_payload(dict(snapshot), match["match_id"])
+        neutral = from_provider_snapshot(dict(raw), snapshot["provider"], position_map)
+    except (KeyError, TypeError, ValueError):
+        return {"status": "NOT_ELIGIBLE(SOURCE_EVIDENCE)",
+                "contract_version": INSIGHT_CONTRACT_VERSION, "cards": []}
+    viewer = {"team": "RADIANT" if link["player_slot"] < 5 else "DIRE",
+              "won": match["radiant_win"] == (link["player_slot"] < 5),
+              "player_slot": link["player_slot"], "effective_role": link["effective_role"]}
+    return evaluate_insights(neutral, viewer)
+
+
 def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str) -> str:
     """Publish metrics/history once after terminal evidence, in bucket chronology order."""
     with authorized_job(database, job_id, lease_token) as (connection, job):
@@ -248,6 +268,7 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
             return "WAITING_FOR_PRIOR_MATCH"
         features, snapshot_ids, feature_digest = _selected_features(connection, match)
         player = features[link["player_slot"]]
+        position_map = _positions(connection, link)
         integrity = player.get("integrity", {}).get("verdict")
         quarantined = match["quarantined_fields"] or []
         if any(path in {"duration_seconds", "mode", "game_mode", "lobby_type"} or
@@ -258,7 +279,16 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
             effective_role=link["effective_role"],
             leaver_status=player["summary"].get("leaver_status"), integrity=integrity,
         )
-        position_map = _positions(connection, link)
+        insight: dict[str, Any]
+        if eligibility.progression == "NONE" or quarantined:
+            # ponytail: withhold all cards on source disagreement until each card has a verified field dependency map.
+            insight = {"status": "NOT_ELIGIBLE(PROGRESSION)" if eligibility.progression == "NONE"
+                       else "NOT_ELIGIBLE(SOURCE_DISAGREEMENT)",
+                       "contract_version": INSIGHT_CONTRACT_VERSION, "cards": []}
+        else:
+            insight = _insight_result(connection, link=link, match=match,
+                                      snapshot_id=snapshot_ids[0],
+                                      position_map=cast(dict[int, int | str | None], position_map))
         metric_rows: list[dict[str, Any]] = []
         pb_rows: list[dict[str, Any]] = []
         for metric_id in metric_ids(link["effective_role"]):
@@ -304,6 +334,7 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
             "profile_id": job["profile_id"], "match_id": job["match_id"],
             "role": link["effective_role"], "role_revision": link["role_revision"],
             "progression": eligibility.progression, "metric_rows": metric_rows,
+            "insight_result": insight,
             "quarantined_fields": quarantined,
         })).hexdigest()
         analysis_id = str(uuid4())
@@ -311,7 +342,9 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
             id=analysis_id, profile_id=job["profile_id"], match_id=job["match_id"],
             feature_version=FEATURE_VERSION, analysis_version=ANALYSIS_VERSION,
             baseline_version=BASELINE_VERSION, inputs_digest=inputs_digest,
-            result={"progression": eligibility.progression, "reason": eligibility.reason},
+            result={"progression": eligibility.progression, "reason": eligibility.reason,
+                    "insight_status": insight["status"],
+                    "insight_contract_version": insight["contract_version"]},
             provenance={"source_snapshot_ids": snapshot_ids, "feature_digest": feature_digest,
                         "quarantined_fields": quarantined}, created_at=func.clock_timestamp(),
         ))
@@ -319,6 +352,11 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
             connection.execute(analysis_inputs.insert().values(analysis_id=analysis_id, snapshot_id=snapshot_id))
         for row in metric_rows:
             connection.execute(metric_observations.insert().values(analysis_id=analysis_id, **row))
+        connection.execute(insight_results.insert().values(
+            analysis_id=analysis_id, contract_version=insight["contract_version"],
+            inputs_digest=inputs_digest, cards=insight["cards"],
+            created_at=func.clock_timestamp(),
+        ))
         revision = connection.scalar(select(profiles.c.active_revision).where(profiles.c.id == job["profile_id"]))
         if revision is None:
             raise ValueError("Profile revision unavailable")
