@@ -119,7 +119,8 @@ def _validate_input(data: BuildInput) -> None:
         if (lane_row.position not in ROLE_POSITION.values() or type(lane_row.hero_id) is not int or lane_row.hero_id <= 0
                 or type(lane_row.opponent_hero_id) is not int or lane_row.opponent_hero_id <= 0
                 or not _number(lane_row.cs_count) or lane_row.cs_count < 0
-                or type(lane_row.match_count) is not int or lane_row.match_count < 0 or lane_key in seen_lane):
+                or type(lane_row.match_count) is not int or lane_row.match_count < 0
+                or lane_row.match_count == 0 and lane_row.cs_count != 0 or lane_key in seen_lane):
             raise ValueError("invalid heroStats.laneOutcome row")
         seen_lane.add(lane_key)
     if not data.lane_outcomes:
@@ -290,7 +291,8 @@ def publish_artifact(artifact: Mapping[str, object], directory: Path) -> Path:
     """Atomically create a versioned artifact; an existing version is immutable."""
     version = artifact.get("version")
     validation = artifact.get("validation")
-    if (not isinstance(version, str) or not isinstance(validation, Mapping)
+    if (not isinstance(version, str) or not version or "/" in version or "\\" in version
+            or version in {".", ".."} or not isinstance(validation, Mapping)
             or validation.get("passed") is not True or not _verified_artifact(artifact)):
         raise ValueError("only validated versioned artifacts may be published")
     directory.mkdir(parents=True, exist_ok=True)

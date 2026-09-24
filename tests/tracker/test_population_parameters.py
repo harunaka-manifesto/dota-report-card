@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import date
 
@@ -94,6 +95,15 @@ def test_publish_is_atomic_versioned_and_never_overwrites(tmp_path) -> None:
     with pytest.raises(FileExistsError):
         publish_artifact(artifact, tmp_path)
     assert path.read_bytes() == before
+    unsafe = dict(artifact)
+    unsafe["version"] = "../bad"
+    unsigned = dict(unsafe)
+    del unsigned["sha256"]
+    unsafe["sha256"] = hashlib.sha256(
+        json.dumps(unsigned, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    ).hexdigest()
+    with pytest.raises(ValueError, match="validated versioned"):
+        publish_artifact(unsafe, tmp_path)
     parameters = load_parameter_set(path)
     assert parameters.validated and parameters.version == "2026-09-v1"
     assert parameters.opponent_effects[(1, 10)] == -5
