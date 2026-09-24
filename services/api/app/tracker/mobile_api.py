@@ -35,6 +35,7 @@ from app.tracker.authentication import (
 )
 from app.tracker.evidence import canonical_json
 from app.tracker.metrics import METRICS
+from app.tracker.retry import retry_match
 from app.tracker.schema import (
     account_matches,
     analyses,
@@ -271,6 +272,10 @@ class SyncView(BaseModel):
 
 
 class SyncRequestView(BaseModel):
+    accepted: bool
+
+
+class RetryView(BaseModel):
     accepted: bool
 
 
@@ -687,6 +692,21 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             if row is None:
                 raise HTTPException(404, "MATCH_NOT_FOUND")
             return _match_view(connection, row)
+
+    @app.post("/matches/{match_ref}/retry", response_model=RetryView)
+    async def retry(request: Request, match_ref: str, owner: Annotated[str, Depends(_user)],
+                    idempotency_key: Annotated[str, Header(min_length=8, max_length=200)]) -> RetryView:
+        with _engine(request).begin() as connection:
+            def publish() -> dict[str, object]:
+                try:
+                    return {"accepted": retry_match(connection, user_id=owner, match_ref=match_ref)}
+                except ValueError as exc:
+                    code = str(exc)
+                    raise HTTPException(404 if code == "MATCH_NOT_FOUND" else 409, code) from exc
+
+            response = _idempotent(connection, owner=owner, operation="MATCH_RETRY",
+                                   key=idempotency_key, body={"match_ref": match_ref}, publish=publish)
+        return RetryView.model_validate(response)
 
     @app.get("/history", response_model=HistoryView)
     async def history(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode,

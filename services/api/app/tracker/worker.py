@@ -117,7 +117,7 @@ async def run_one(database: Engine, redis: Redis, settings: Settings, *, priorit
                         account_matches.c.profile_id == current["profile_id"],
                         account_matches.c.match_id == current["match_id"],
                         account_matches.c.lifecycle != "READY",
-                    ).values(lifecycle="ACTION_REQUIRED", failure_stage="FINALIZATION",
+                    ).values(lifecycle="ACTION_REQUIRED", retrying=False, failure_stage="FINALIZATION",
                              failure_reason="INTERNAL_FAILURE", attempt_count=current["attempts"]))
         except StaleJob:
             return "STALE"

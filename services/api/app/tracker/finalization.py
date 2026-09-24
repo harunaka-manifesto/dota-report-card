@@ -237,7 +237,7 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
         if link["effective_role"] is None:
             connection.execute(account_matches.update().where(
                 account_matches.c.profile_id == job["profile_id"], account_matches.c.match_id == job["match_id"],
-            ).values(lifecycle="UNAVAILABLE", failure_stage="ROLE_CLASSIFICATION", failure_reason="ROLE_UNAVAILABLE"))
+            ).values(lifecycle="UNAVAILABLE", retrying=False, failure_stage="ROLE_CLASSIFICATION", failure_reason="ROLE_UNAVAILABLE"))
             from .coverage import record_match_coverage
 
             record_match_coverage(connection, profile_id=job["profile_id"], match_id=job["match_id"])
@@ -385,7 +385,7 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
                     ).on_conflict_do_nothing())
         connection.execute(account_matches.update().where(
             account_matches.c.profile_id == job["profile_id"], account_matches.c.match_id == job["match_id"],
-        ).values(lifecycle="READY", progression=eligibility.progression,
+        ).values(lifecycle="READY", retrying=False, progression=eligibility.progression,
                  progression_reason=eligibility.reason, active_analysis_id=analysis_id,
                  finalized_at=func.clock_timestamp(), failure_stage=None, failure_reason=None))
         from .coverage import record_match_coverage

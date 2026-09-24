@@ -8,31 +8,31 @@ Operational evidence, not a product or architecture contract.
 - Branch: `codex/tracker-backend-foundation`.
 - Authorized: BACKEND, DATABASE, ANALYTICAL (new tracker only), DOCUMENTATION, local INFRASTRUCTURE. No release/deployment.
 - Existing untracked `docs/prompts/tracker-backend-foundation-goal.md` is user-owned and remains untouched.
-- Current step: Phases C–F in progress. Controlled providers, priority workers, summary/replay acquisition, provisional roles, metric formulas, history mechanics, per-mode Free bootstrap selection/refill/outcomes, tracker identity primitives and a first persisted finalization path are implemented. Insight/claim publication, full account services, mobile wiring and end-to-end evidence remain pending. The checkpoint entries below supersede older "next steps" notes; gap closure still requires end-to-end evidence.
+- Current step: Phases C–H have verified partial checkpoints. Controlled providers, ordered finalization, Free bootstrap, tracker identity, isolated mobile routes, insight persistence, account lifecycle, entitlement boundary and an operations readout exist. Rebuild/correction, Profile publication, production integrations, full mobile inventory and goal-wide E2E evidence remain pending. Checkpoint entries below govern the exact status; none of these phases is declared complete.
 
 ## Gap status
 
 | Gap | Work | Status | Code / verification / commit |
 |---|---|---|---|
 | G-1 | STRATZ batching | Partial | 50-ID deep batches and size/cost splitting; expanded selection/live ceiling unproven |
-| G-2 | Shared fresh replay enrichment | Partial | Shared P1 path and bounded polling; finalization/terminal propagation pending |
-| G-3 | Persisted evidence readiness | Partial | Separate summary/replay states and immutable snapshots; private READY pipeline pending |
+| G-2 | Shared fresh replay enrichment | Partial | Shared bounded path, terminal propagation and private finalization; full E2E matrix pending |
+| G-3 | Persisted evidence readiness | Partial | Separate summary/replay states, immutable snapshots and private READY path; recovery/rebuild pending |
 | G-4 | Classifier evidence profiles | Partial | Summary and replay profiles/refinement implemented; provisional calibration and correction remain |
 | G-5 | Global matches and account links | Partial | Shared match/roster and generation-fenced links; full lifecycle pending |
 | G-6 | Priority queues | Partial | Dedicated P0–P3 workers and pressure admission; E2E non-starvation gate pending |
 | G-7 | Job deduplication and locks | Partial | Leases, source-call recovery and unique jobs; full pipeline duplicate-effect gate pending |
-| G-8 | Sync and coverage | Partial | Durable foreground discovery; coverage and bootstrap outcome publication pending |
+| G-8 | Sync and coverage | Partial | Durable discovery, match coverage and per-mode bootstrap outcome publication; interval/recovery E2E pending |
 | G-9 | Rate and billing units | Partial | Separate Redis read/processing lanes and persisted units; live-limit evidence pending |
 | G-10 | Turbo-inclusive history | Implemented, E2E pending | Explicit `significant=0` in tracker readers; see Phase C tests |
-| G-11 | Snapshot provenance | Partial | Immutable provider/operation/version/digest storage; final analysis lineage pending |
+| G-11 | Snapshot provenance | Partial | Immutable source snapshots and final analysis lineage; rebuild lineage gate pending |
 | G-12 | Trigger-based raw tiering | Trigger-deferred; policy review pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
 | G-13 | Independent versions and digest | Partial | Source/feature/role/parameter versions and digests exist; complete analysis rebuild gate pending |
-| G-14 | Four-role public boundary | Partial | Internal positions map to four roles; isolated mobile contract pending |
-| G-15 | Account-match lifecycle | Partial | Separate private lifecycle columns and role updates; finalizer pending |
+| G-14 | Four-role public boundary | Partial | Internal positions map to four mobile roles; correction and full contract tests pending |
+| G-15 | Account-match lifecycle | Partial | Private lifecycle, ordered finalizer and retained-evidence Retry; full E2E matrix pending |
 
 ## V1 capability work outside the gap list
 
-Pending: complete app authentication routes; resumable Pro history; entitlement; full switching/deletion; notification delivery; population context artifact; complete deterministic insight engine; Profile claims; rebuild/correction; isolated mobile API; seed and golden fixtures; PostgreSQL/Redis/Celery E2E; acceptance traceability. All 20 pure metric formulas are persisted by the first finalizer, but the required Stage-2 insight/profile/notification effects and rebuild gate are not complete.
+Pending: production identity/store/push integrations; resumable Pro history; entitlement rebuild; full deletion/legal settlement; notification delivery; population context artifact; complete deterministic insight vectors; Profile claims; rebuild/correction; remaining mobile routes; seed and golden fixtures; PostgreSQL/Redis/Celery E2E; acceptance traceability. All 20 metric formulas are persisted, but calibrated adjustment and the rebuild gate are not complete.
 
 ## Engineering decisions
 
@@ -719,3 +719,8 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 
 - Added a separately mounted `/internal/tracker` FastAPI application requiring a configured operations token. Without a token it returns 503; invalid tokens return 401. It reads database-backed P0–P3 due depth/age and failures, provider calls/errors/429s/rate units, coverage intervals and summary/detailed/analysis P50/P90/P99 readiness spans. Its schema is separate from both mobile and legacy `/v1`, and it performs no provider call.
 - Local PostgreSQL operations plus legacy API contract tests: **5 passed, 0 failed, 0 skipped**. Ruff and mypy pass. This is partial Phase H observability: retry-reason distributions, breaker state, cost attribution and a controlled worker deployment/non-starvation proof remain to be completed.
+
+### Retained-evidence manual Retry checkpoint
+
+- The isolated mobile API now accepts an idempotent, account-scoped Retry for ACTION_REQUIRED and UNAVAILABLE matches. It reopens the existing private finalization job and, when a live match has unresolved evidence, reopens failed shared replay work in the P2 recovery lane. The request itself performs no provider I/O; finalization reuses retained snapshots. READY and other non-retryable states reject the action, and another account receives 404. Retry status is cleared on READY, role-unavailable and exhausted finalization outcomes.
+- Focused real-PostgreSQL tests cover failed-job revival, finished UNAVAILABLE recovery after stored role evidence changes, mobile idempotency/IDOR, replay-first recovery and zero provider calls during request: **4 passed**. Finalization regression: **6 passed**. Ruff and mypy pass. The full tracker, migration and legacy API contract suites passed **270 tests** with no failures after this edit. This is partial Phase D Retry: historical acquisition failures, interrupted in-flight recovery and the full §11.2 matrix still need integration evidence.
