@@ -9,7 +9,7 @@ from sqlalchemy import Connection, Engine, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.config import Settings
-from app.core.errors import StratzRateLimited
+from app.core.errors import StratzGraphQLError, StratzRateLimited, StratzUnavailable
 from app.stratz.client import StratzClient
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
 from app.tracker.evidence import canonical_json
@@ -65,7 +65,8 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
             or source["schema_version"] != "raw-1"):
         raise InvalidEvidence("Unsupported historical snapshot")
     payload = source["payload"]
-    player = payload.get("data", {}).get("player") if isinstance(payload, dict) else None
+    data = payload.get("data") if isinstance(payload, dict) else None
+    player = data.get("player") if isinstance(data, dict) else None
     rows = player.get("matches") if isinstance(player, dict) else None
     if not isinstance(payload, dict) or payload.get("errors") or not isinstance(rows, list) or len(rows) > len(requested_ids):
         raise InvalidEvidence("Malformed historical batch")
@@ -136,6 +137,40 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
     return results
 
 
+def _retained_batch(connection: Connection, job_id: str, account_id: int) -> str | None:
+    rows = connection.execute(select(snapshots.c.id, snapshots.c.payload).join(
+        provider_calls, provider_calls.c.snapshot_id == snapshots.c.id,
+    ).where(
+        provider_calls.c.job_id == job_id, provider_calls.c.provider == "stratz",
+        provider_calls.c.operation == GET_TRACKER_MATCH_BATCH.name,
+        provider_calls.c.account_id == account_id, provider_calls.c.status == 200,
+    ).order_by(provider_calls.c.id.desc())).all()
+    for snapshot_id, payload in rows:
+        data = payload.get("data") if isinstance(payload, dict) and not payload.get("errors") else None
+        player = data.get("player") if isinstance(data, dict) else None
+        if isinstance(player, dict) and isinstance(player.get("matches"), list):
+            return snapshot_id
+    return None
+
+
+def _split_for_size(connection: Connection, job: dict[str, Any], ids: list[int], origin: str, error: Exception) -> bool:
+    if len(ids) < 2:
+        return False
+    call = connection.execute(select(provider_calls.c.status, provider_calls.c.failure_code).where(
+        provider_calls.c.job_id == job["id"], provider_calls.c.operation == GET_TRACKER_MATCH_BATCH.name,
+    ).order_by(provider_calls.c.id.desc()).limit(1)).first()
+    cost_error = isinstance(error, StratzGraphQLError) and any(
+        marker in str(error).lower() for marker in ("complexity", "query cost", "too large")
+    )
+    if call is None or not (call.status == 413 or call.failure_code in {"RESPONSE_TOO_LARGE", "DEADLINE_EXCEEDED"} or cost_error):
+        return False
+    middle = len(ids) // 2
+    enqueue_historical_batch(connection, profile_id=job["profile_id"], match_ids=ids[:middle], origin=origin)
+    enqueue_historical_batch(connection, profile_id=job["profile_id"], match_ids=ids[middle:], origin=origin)
+    finish(connection, job)
+    return True
+
+
 async def acquire_historical_batch(database: Engine, gate: ProviderGate, settings: Settings, *,
                                    job_id: str, lease_token: str,
                                    transport: httpx.AsyncBaseTransport | None = None) -> str:
@@ -150,14 +185,7 @@ async def acquire_historical_batch(database: Engine, gate: ProviderGate, setting
             raise ValueError("Invalid historical job payload")
         if any(type(value) is not int or not 0 < value < 2**63 for value in ids) or len(set(ids)) != len(ids):
             raise ValueError("Invalid historical job match IDs")
-        snapshot_id = connection.scalar(select(snapshots.c.id).join(
-            provider_calls, provider_calls.c.snapshot_id == snapshots.c.id,
-        ).where(
-            provider_calls.c.job_id == job_id, provider_calls.c.provider == "stratz",
-            provider_calls.c.operation == GET_TRACKER_MATCH_BATCH.name,
-            provider_calls.c.account_id == job["account_id"],
-            provider_calls.c.status == 200, snapshots.c.payload.is_not(None),
-        ).order_by(provider_calls.c.called_at.desc()).limit(1))
+        snapshot_id = _retained_batch(connection, job_id, job["account_id"])
     if snapshot_id is None:
         def before_send() -> None:
             # A stale worker may not issue a request after its generation/lease expires.
@@ -176,14 +204,14 @@ async def acquire_historical_batch(database: Engine, gate: ProviderGate, setting
             with authorized_job(database, job_id, lease_token) as (connection, current):
                 reschedule(connection, current, delay_seconds=30, error="RATE_LIMITED", failure=False)
             return "DEFERRED"
+        except (StratzGraphQLError, StratzUnavailable, httpx.TransportError) as exc:
+            with authorized_job(database, job_id, lease_token) as (connection, current):
+                if _split_for_size(connection, current, ids, origin, exc):
+                    return "SPLIT"
+                reschedule(connection, current, delay_seconds=30, error="HISTORICAL_BATCH_FAILED")
+                return "FAILED" if current["attempts"] >= 5 else "DEFERRED"
         with authorized_job(database, job_id, lease_token) as (connection, _):
-            snapshot_id = connection.scalar(select(snapshots.c.id).join(
-                provider_calls, provider_calls.c.snapshot_id == snapshots.c.id,
-            ).where(
-                provider_calls.c.job_id == job_id, provider_calls.c.provider == "stratz",
-                provider_calls.c.operation == GET_TRACKER_MATCH_BATCH.name,
-                provider_calls.c.account_id == job["account_id"], provider_calls.c.status == 200,
-            ).order_by(provider_calls.c.called_at.desc()).limit(1))
+            snapshot_id = _retained_batch(connection, job_id, job["account_id"])
             if snapshot_id is None:
                 raise InvalidEvidence("Historical response was not retained")
     with authorized_job(database, job_id, lease_token) as (connection, current):

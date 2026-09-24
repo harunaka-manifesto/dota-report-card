@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+import httpx
 import pytest
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
 from app.tracker.evidence import save_snapshot
@@ -154,3 +155,68 @@ async def test_rate_limited_batch_keeps_p3_retry_without_consuming_attempt(datab
     with database.connect() as c:
         job = c.execute(select(ingest_jobs).where(ingest_jobs.c.id == job_id)).mappings().one()
         assert (job['state'], job['priority'], job['attempts'], job['last_error']) == ('PENDING', 3, 0, 'RATE_LIMITED')
+
+
+@pytest.mark.parametrize('status,payload', [
+    (413, None),
+    (200, {'errors': [{'message': 'Query complexity exceeds maximum'}]}),
+])
+async def test_oversized_batch_splits_without_losing_ids(database, redis_client, status, payload):
+    from app.core.config import Settings
+    from app.tracker.historical import enqueue_historical_batch
+    from app.tracker.worker import run_one
+
+    from .test_worker import policy_for
+
+    _, profile_id = identity(database)
+    redis, _ = redis_client
+    policy = policy_for(redis_client)
+    with database.begin() as c:
+        original = enqueue_historical_batch(c, profile_id=profile_id, match_ids=[MATCH_ID, MATCH_ID+1], origin='BOOTSTRAP')
+    result = await run_one(database, redis, Settings(stratz_api_token='test-only'), priority=3, policy=policy,
+                           transport=httpx.MockTransport(lambda _: httpx.Response(status, json=payload)))
+    assert result == 'SPLIT'
+    with database.connect() as c:
+        jobs = c.execute(select(ingest_jobs).order_by(ingest_jobs.c.created_at, ingest_jobs.c.id)).mappings().all()
+        assert len(jobs) == 3
+        assert next(job for job in jobs if job['id'] == original)['state'] == 'COMPLETE'
+        assert {tuple(job['payload']['match_ids']) for job in jobs if job['id'] != original} == {(MATCH_ID,), (MATCH_ID+1,)}
+        assert all(job['priority'] == 3 for job in jobs)
+
+
+async def test_transient_provider_failure_keeps_original_batch(database, redis_client):
+    from app.core.config import Settings
+    from app.tracker.historical import enqueue_historical_batch
+    from app.tracker.worker import run_one
+
+    from .test_worker import policy_for
+
+    _, profile_id = identity(database)
+    redis, _ = redis_client
+    with database.begin() as c:
+        job_id = enqueue_historical_batch(c, profile_id=profile_id, match_ids=[MATCH_ID, MATCH_ID+1], origin='BOOTSTRAP')
+    assert await run_one(database, redis, Settings(stratz_api_token='test-only'), priority=3, policy=policy_for(redis_client),
+        transport=httpx.MockTransport(lambda _: httpx.Response(503))) == 'DEFERRED'
+    with database.connect() as c:
+        job = c.execute(select(ingest_jobs)).mappings().one()
+        assert job['id'] == job_id and job['state'] == 'PENDING'
+
+
+def test_graphql_error_snapshot_is_not_reused_as_success(database):
+    from app.tracker.historical import _retained_batch, enqueue_historical_batch
+    from app.tracker.schema import provider_calls
+
+    _, profile_id = identity(database)
+    with database.begin() as c:
+        job_id = enqueue_historical_batch(c, profile_id=profile_id, match_ids=[MATCH_ID], origin='BOOTSTRAP')
+        snapshot_id = save_snapshot(c, provider='stratz', operation=GET_TRACKER_MATCH_BATCH.name,
+            operation_version=GET_TRACKER_MATCH_BATCH.version, schema_version='raw-1',
+            subject='batch:error', fetched_at=datetime.now(UTC), payload={'errors': [{'message': 'cost'}], 'data': None})
+        c.execute(provider_calls.insert().values(provider='stratz', operation=GET_TRACKER_MATCH_BATCH.name,
+            operation_version=GET_TRACKER_MATCH_BATCH.version, account_id=1001, job_id=job_id,
+            snapshot_id=snapshot_id, request_subject='test', status=200, latency_ms=1,
+            billed_units=1, rate_units=1, called_at=datetime.now(UTC)))
+        assert _retained_batch(c, job_id, 1001) is None
+        with pytest.raises(InvalidEvidence, match='Malformed historical batch'):
+            materialize_historical_batch(c, snapshot_id=snapshot_id, profile_id=profile_id,
+                requested_ids=[MATCH_ID], origin='BOOTSTRAP')

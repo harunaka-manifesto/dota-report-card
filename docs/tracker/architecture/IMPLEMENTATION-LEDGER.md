@@ -568,3 +568,15 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   provider call. `search_finished` here means enumeration only:
   30-eligible-per-mode selection, source-backed integrity classification,
   summary/replay settlement and product outcomes are not yet implemented.
+
+### Historical batch size fallback
+
+- Explicit HTTP 413, response-size, timeout and GraphQL complexity/cost errors
+  split a multi-ID historical batch into two deduplicated P3 children under the
+  same profile generation. The parent completes only with both child jobs
+  enqueued. Singleton and unrelated failures retain bounded retry behavior.
+  Retained HTTP-200 error payloads are excluded from successful response
+  recovery; malformed null `data` fails as invalid evidence.
+- Historical/worker PostgreSQL/Redis checks: **15 passed**; ruff and mypy pass.
+  No live provider calls. Provider-specific threshold behavior remains unproven
+  until controlled live validation.

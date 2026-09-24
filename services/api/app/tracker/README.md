@@ -73,6 +73,11 @@ the cursor moves only with those writes. Search completion does not imply bootst
 completion. Candidate eligibility, 30-per-mode selection, deep acquisition and
 coverage settlement remain separate pending steps.
 
+Historical deep batches split into two profile-fenced P3 jobs after an explicit
+size, cost or deadline rejection. A singleton still uses bounded retries, and
+unrelated provider failures do not masquerade as size evidence. A retained
+HTTP-200 GraphQL error is never replayed as a successful batch.
+
 ## Storage boundary
 
 `schema.py` uses SQLAlchemy Core and separate metadata. `tracker_matches` is the single
