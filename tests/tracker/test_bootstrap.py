@@ -155,3 +155,41 @@ async def test_initial_selection_caps_each_mode_independently(database, redis_cl
         batches = c.execute(select(ingest_jobs.c.payload).where(ingest_jobs.c.job_type == "HISTORICAL_BATCH")).scalars().all()
         assert {tuple(batch["match_ids"]) for batch in batches} == {tuple(range(1, 31)), tuple(range(36, 43))}
         assert all(batch["origin"] == "BOOTSTRAP" for batch in batches)
+
+
+async def test_ineligible_candidate_refills_only_its_mode_until_eligible_target(database, redis_client):
+    profile_id, job_id = setup(database)
+    gate = gate_for(redis_client, "opendota")
+    page = [
+        {"match_id": i, "start_time": int((NOW - timedelta(days=i)).timestamp()), "game_mode": 22}
+        for i in range(1, 33)
+    ] + [
+        {"match_id": 100 + i, "start_time": int((NOW - timedelta(days=32 + i)).timestamp()), "game_mode": 23}
+        for i in range(1, 4)
+    ] + [{"match_id": 999, "start_time": int((NOW - timedelta(days=91)).timestamp()), "game_mode": 22}]
+    job = claim_page(database, job_id)
+    assert await search.search_bootstrap_page(database, gate, Settings(), job_id=job_id,
+        lease_token=job["lease_token"], transport=httpx.MockTransport(lambda _: httpx.Response(200, json=page))) == "COMPLETE"
+
+    with database.begin() as c:
+        assert search.settle_candidate(c, profile_id=profile_id, match_id=1,
+            eligible=False, reason="INELIGIBLE:INTEGRITY_INVALID") == 1
+        assert search.settle_candidate(c, profile_id=profile_id, match_id=2,
+            eligible=True, reason="ELIGIBLE") == 0
+    with database.connect() as c:
+        counts = {row["mode"]: (row["discovered_count"], row["eligible_count"], row["settled_count"])
+                  for row in c.execute(select(bootstrap).where(bootstrap.c.profile_id == profile_id)).mappings()}
+        assert counts == {"STANDARD": (31, 1, 2), "TURBO": (3, 0, 0)}
+        standard_selected = set(c.scalars(select(bootstrap_search_items.c.match_id).where(
+            bootstrap_search_items.c.profile_id == profile_id,
+            bootstrap_search_items.c.mode == "STANDARD",
+            bootstrap_search_items.c.selected_at.is_not(None),
+        )))
+        assert standard_selected == set(range(1, 32))
+        assert set(c.scalars(select(bootstrap_search_items.c.match_id).where(
+            bootstrap_search_items.c.profile_id == profile_id,
+            bootstrap_search_items.c.mode == "TURBO",
+            bootstrap_search_items.c.selected_at.is_not(None),
+        ))) == {101, 102, 103}
+        batches = c.scalars(select(ingest_jobs.c.payload).where(ingest_jobs.c.job_type == "HISTORICAL_BATCH")).all()
+        assert any(batch["match_ids"] == [31] for batch in batches)

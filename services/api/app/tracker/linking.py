@@ -7,11 +7,13 @@ from typing import Any
 from sqlalchemy import Connection, Engine, select
 from sqlalchemy.dialects.postgresql import insert
 
+from app.tracker.eligibility import classify
 from app.tracker.jobs import authorized_job, enqueue, finish
 from app.tracker.normalization import InvalidEvidence
 from app.tracker.roles import FARM_FIELDS, ROLES, persist_summary_positions
 from app.tracker.schema import (
     account_matches,
+    derived_features,
     match_players,
     matches,
     positions,
@@ -70,14 +72,36 @@ def complete_link_job(database: Engine, *, job_id: str, lease_token: str, replay
             raise InvalidEvidence("Conflicting account identity cannot authorize a link")
         assignment = persist_summary_positions(connection, job["match_id"])
         role = next(row for row in assignment["players"] if row["player_slot"] == player["player_slot"])
+        eligibility = None
+        if origin == "BOOTSTRAP":
+            feature = connection.scalar(select(derived_features.c.features).where(
+                derived_features.c.match_id == job["match_id"],
+                derived_features.c.player_slot == player["player_slot"],
+            ).order_by(derived_features.c.created_at.desc()).limit(1))
+            integrity = feature.get("integrity", {}).get("verdict") if isinstance(feature, dict) else None
+            eligibility = classify(
+                mode=match["mode"], duration_seconds=match["duration_seconds"],
+                effective_role=role["role"], leaver_status=player["summary"].get("leaver_status"),
+                integrity=integrity,
+            )
         connection.execute(insert(account_matches).values(
             profile_id=job["profile_id"], match_id=job["match_id"], account_id=job["account_id"],
             player_slot=player["player_slot"], lifecycle="ANALYZING" if role["role"] else "UNAVAILABLE", mode=match["mode"],
             role_assignment={k: assignment[k] for k in ("version", "inputs_digest", "evidence_profile")},
             effective_role=role["role"], failure_stage=None if role["role"] else "ROLE_CLASSIFICATION",
             failure_reason=None if role["role"] else role["reason"],
+            progression=None if eligibility is None else eligibility.progression,
+            progression_reason=None if eligibility is None else eligibility.reason,
             provider_started_at=match["started_at"], provider_source_match_id=job["match_id"], origin=origin,
         ).on_conflict_do_nothing())
+        if eligibility is not None:
+            from app.tracker.bootstrap import settle_candidate
+
+            settle_candidate(
+                connection, profile_id=job["profile_id"], match_id=job["match_id"],
+                eligible=eligibility.progression in {"STANDARD", "TURBO"},
+                reason="ELIGIBLE" if eligibility.reason is None else f"INELIGIBLE:{eligibility.reason}",
+            )
         if match["evidence_state"] == "REPLAY_READY" and match["replay_role_assignment"] is not None:
             enqueue_role_refinements(connection, job["match_id"], match["replay_role_assignment"])
         replay_job_id = None

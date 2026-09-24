@@ -97,10 +97,20 @@ async def acquire_historical_summary(database: Engine, gate: ProviderGate, setti
                     match_id=job["match_id"], provider="opendota", operation="match",
                     operation_version="1", state="SOURCE_MISSING", attempts=1, terminal_reason="HTTP_404",
                 ).on_conflict_do_nothing())
+                if origin == "BOOTSTRAP":
+                    from app.tracker.bootstrap import settle_candidate
+
+                    settle_candidate(connection, profile_id=current["profile_id"], match_id=current["match_id"],
+                                    eligible=False, reason="UNAVAILABLE:SUMMARY_404")
                 finish(connection, current)
                 return "SOURCE_MISSING"
             deferred = isinstance(exc, (ProviderDeferred, OpenDotaRateLimited))
             reason = exc.reason if isinstance(exc, ProviderDeferred) else "RATE_LIMITED" if isinstance(exc, OpenDotaRateLimited) else "HISTORICAL_SUMMARY_FAILED"
             delay = exc.delay if isinstance(exc, ProviderDeferred) else 30
             reschedule(connection, current, delay_seconds=delay, error=reason, failure=not deferred, max_attempts=max_attempts)
+            if origin == "BOOTSTRAP" and not deferred and current["attempts"] >= max_attempts:
+                from app.tracker.bootstrap import settle_candidate
+
+                settle_candidate(connection, profile_id=current["profile_id"], match_id=current["match_id"],
+                                eligible=False, reason=f"UNAVAILABLE:{reason}")
             return "DEFERRED" if deferred or current["attempts"] < max_attempts else "FAILED"

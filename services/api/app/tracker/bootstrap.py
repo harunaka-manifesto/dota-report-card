@@ -62,6 +62,56 @@ def _select_initial_candidates(connection: Connection, profile_id: str) -> None:
         enqueue_historical_batch(connection, profile_id=profile_id, match_ids=ids, origin="BOOTSTRAP")
 
 
+def settle_candidate(connection: Connection, *, profile_id: str, match_id: int,
+                     eligible: bool, reason: str) -> int:
+    """Settle one selected candidate and fill its mode's remaining Free slots."""
+    item = connection.execute(bootstrap_search_items.update().where(
+        bootstrap_search_items.c.profile_id == profile_id,
+        bootstrap_search_items.c.match_id == match_id,
+        bootstrap_search_items.c.selected_at.is_not(None),
+        bootstrap_search_items.c.reason.is_(None),
+    ).values(reason=reason).returning(bootstrap_search_items.c.mode)).scalar_one_or_none()
+    if item is None:
+        return 0
+    mode = item
+    bucket = connection.execute(select(bootstrap).where(
+        bootstrap.c.profile_id == profile_id, bootstrap.c.mode == mode,
+    ).with_for_update()).mappings().one()
+    connection.execute(bootstrap.update().where(
+        bootstrap.c.profile_id == profile_id, bootstrap.c.mode == mode,
+    ).values(
+        settled_count=bootstrap.c.settled_count + 1,
+        eligible_count=bootstrap.c.eligible_count + int(eligible),
+    ))
+    pending = connection.scalar(select(func.count()).select_from(bootstrap_search_items).where(
+        bootstrap_search_items.c.profile_id == profile_id,
+        bootstrap_search_items.c.mode == mode,
+        bootstrap_search_items.c.selected_at.is_not(None),
+        bootstrap_search_items.c.reason.is_(None),
+    ))
+    vacancies = max(0, 30 - bucket["eligible_count"] - int(eligible) - pending)
+    if not vacancies or bucket["search_finished"] is False:
+        return 0
+    ids = list(connection.scalars(select(bootstrap_search_items.c.match_id).where(
+        bootstrap_search_items.c.profile_id == profile_id,
+        bootstrap_search_items.c.mode == mode,
+        bootstrap_search_items.c.outcome == "CANDIDATE",
+        bootstrap_search_items.c.selected_at.is_(None),
+    ).order_by(bootstrap_search_items.c.started_at.desc(), bootstrap_search_items.c.match_id.desc()).limit(vacancies)))
+    if not ids:
+        return 0
+    connection.execute(bootstrap_search_items.update().where(
+        bootstrap_search_items.c.profile_id == profile_id,
+        bootstrap_search_items.c.match_id.in_(ids),
+        bootstrap_search_items.c.selected_at.is_(None),
+    ).values(selected_at=func.clock_timestamp()))
+    connection.execute(bootstrap.update().where(
+        bootstrap.c.profile_id == profile_id, bootstrap.c.mode == mode,
+    ).values(discovered_count=bootstrap.c.discovered_count + len(ids)))
+    enqueue_historical_batch(connection, profile_id=profile_id, match_ids=ids, origin="BOOTSTRAP")
+    return len(ids)
+
+
 def _publish_page(connection: Connection, job: dict[str, Any], snapshot: dict[str, Any], *, max_pages: int) -> str:
     rows = snapshot["payload"]
     if not isinstance(rows, list) or len(rows) > 200:
