@@ -103,6 +103,11 @@ def assign_positions(players: list[dict[str, Any]], *, evidence_profile: str = "
 def persist_summary_positions(connection: Connection, match_id: int, *, policy: RolePolicy = RolePolicy()) -> dict[str, Any]:
     rows = connection.execute(select(match_players).where(match_players.c.match_id == match_id).order_by(match_players.c.player_slot)).mappings().all()
     players = [{**row["summary"], "player_slot": row["player_slot"], "team": row["team"]} for row in rows]
+    return persist_positions(connection, match_id, players, evidence_profile="SUMMARY", policy=policy)
+
+
+def persist_positions(connection: Connection, match_id: int, players: list[dict[str, Any]], *, evidence_profile: str, source_digest: str | None = None, policy: RolePolicy = RolePolicy()) -> dict[str, Any]:
+    players = [{**p, "values": dict(p.get("values") or {})} for p in players]
     conflicts = connection.scalar(select(matches.c.quarantined_fields).where(matches.c.match_id == match_id)) or []
     for player in players:
         values = dict(player.get("values") or {})
@@ -118,9 +123,11 @@ def persist_summary_positions(connection: Connection, match_id: int, *, policy: 
     existing = connection.execute(select(parameter_sets).where(parameter_sets.c.version == policy.version)).mappings().one()
     if existing["kind"] != "ROLE_CLASSIFIER" or existing["digest"] != policy_digest:
         raise ValueError("Role policy version reused with different parameters")
-    assignment = assign_positions(players, policy=policy)
+    assignment = assign_positions(players, evidence_profile=evidence_profile, policy=policy)
+    if source_digest is not None:
+        assignment["inputs_digest"] = hashlib.sha256(canonical_json([assignment["inputs_digest"], source_digest])).hexdigest()
     for player in assignment["players"]:
         connection.execute(insert(positions).values(match_id=match_id, player_slot=player["player_slot"], team=player["team"],
-            evidence_profile="SUMMARY", version=assignment["version"], inputs_digest=assignment["inputs_digest"], position=player["position"],
+            evidence_profile=evidence_profile, version=assignment["version"], inputs_digest=assignment["inputs_digest"], position=player["position"],
             confidence=player["confidence"], reason=player["reason"], created_at=func.now()).on_conflict_do_nothing())
     return assignment

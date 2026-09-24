@@ -16,7 +16,7 @@ from app.core.config import Settings, get_settings
 from app.storage.database import check_database_revision, create_database_engine
 from app.tracker.acquisition import acquire_fresh_summary
 from app.tracker.jobs import StaleJob, authorized_job, claim, reschedule
-from app.tracker.linking import complete_link_job
+from app.tracker.linking import complete_link_job, complete_role_job
 from app.tracker.provider_control import ProviderGate
 from app.tracker.replay_acquisition import acquire_fresh_replay
 from app.tracker.schema import ingest_jobs
@@ -80,6 +80,8 @@ async def run_one(database: Engine, redis: Redis, settings: Settings, *, priorit
     args: dict[str, Any] = dict(job_id=job["id"], lease_token=job["lease_token"])
     gate = ProviderGate(redis, namespace=policy.namespace, provider="opendota")
     try:
+        if job["job_type"] == "ROLE_REFRESH":
+            return complete_role_job(database, **args)
         if job["job_type"] == "LINK_MATCH":
             complete_link_job(database, **args, replay_delay_seconds=policy.replay_delay_seconds)
             return "COMPLETE"

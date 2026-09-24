@@ -445,3 +445,35 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   PostgreSQL/Redis/Celery plus legacy provider clients, migration units and report
   contracts. Two existing deprecation warnings. Ruff, mypy (16 runtime/storage
   modules), docs-check (474 links) and whitespace pass. No calibration is claimed.
+
+
+### Replay-role refinement checkpoint
+
+- Replay-only role evidence adapter maps OD lane/observer/sentry facts and STRATZ
+  ward events into canonical role inputs. All ten ward counts agree in the retained
+  pair. STRATZ has no retained lane input; no location/position proxy is invented.
+  OD lane codes verified against its official web language source; roaming/unknown
+  remains absent. Unparsed payloads never supply these replay observations.
+- Feature version now includes `role-evidence-1`; old projections remain immutable.
+  REPLAY assignments bind their digest to the source feature digest and persist
+  separately from SUMMARY assignments. Existing provisional classifier parameters
+  remain uncalibrated; no native position or performance outcome becomes a role.
+- P1 ROLE_REFRESH jobs use generation/lease guards, exact assignment identity and
+  latest user assertion precedence. Finalized/active-analysis rows are unchanged.
+  Missing replay classification keeps the prior usable assignment. No READY,
+  history, PB, rebuild or notification effect is introduced.
+- Migration 0008 adds nullable selected global/private role assignment references.
+  Terminal replay selects one reference; late account links schedule that same
+  refinement, closing the replay-before-link ordering gap. Existing private roles
+  survive upgrade/downgrade/re-upgrade with null provenance rather than invented refs.
+- Initial combined verification: **153 passed, 0 failed, 0 skipped** with real
+  PostgreSQL/Redis/Celery, legacy clients, migrations and report contracts. Subsequent
+  late-link and populated migration regressions run separately before commit.
+- No live provider calls, holdout/recalibration, legacy analytical changes, push,
+  merge or deployment. Corrections/rebuilds and remaining backend engines still pending.
+- After the late-link fix: **36 passed, 0 failed, 0 skipped**, including populated
+  0007→0008 upgrade/downgrade/re-upgrade, schema parity, old/current report reads,
+  replay acquisition and refinement. Added a final publication guard for team farm
+  disagreements discovered after the refinement was queued.
+- Final refinement suite after that guard: **10 passed, 0 failed, 0 skipped**.
+  Ruff, mypy (17 runtime/storage modules), docs (474 links) and whitespace pass.

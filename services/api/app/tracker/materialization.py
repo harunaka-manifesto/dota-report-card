@@ -21,14 +21,16 @@ from app.tracker.normalization import (
     InvalidEvidence,
     Provider,
     opendota_summary,
+    replay_available,
     stratz_summary,
     summary_disagreements,
 )
 from app.tracker.replay import REPLAY_VERSION, replay_checkpoints
-from app.tracker.roles import persist_summary_positions
+from app.tracker.role_evidence import ROLE_EVIDENCE_VERSION, replay_role_inputs
+from app.tracker.roles import persist_positions, persist_summary_positions
 from app.tracker.schema import derived_features, match_players, matches, snapshots
 
-FEATURE_VERSION = f"{SUMMARY_VERSION}+{REPLAY_VERSION}"
+FEATURE_VERSION = f"{SUMMARY_VERSION}+{REPLAY_VERSION}+{ROLE_EVIDENCE_VERSION}"
 
 
 def _match_payload(snapshot: Mapping[str, Any], match_id: int) -> Mapping[str, Any]:
@@ -105,15 +107,21 @@ def materialize_snapshot(connection: Connection, *, snapshot_id: str, match_id: 
         "snapshot_id": snapshot_id, "digest": snapshot["digest"],
         "feature_version": FEATURE_VERSION, "match_id": match_id,
     })).hexdigest()
-    for player, replay in zip(summary["players"], checkpoints["players"], strict=True):
+    role_players = replay_role_inputs(raw, provider, summary)
+    for player, replay, role_player in zip(summary["players"], checkpoints["players"], role_players, strict=True):
         connection.execute(insert(derived_features).values(
             match_id=match_id, player_slot=player["player_slot"], feature_version=FEATURE_VERSION,
             inputs_digest=inputs_digest, created_at=func.now(),
             features={
                 "match": {k: v for k, v in summary.items() if k != "players"},
                 "summary": player, "checkpoints": replay["series"],
+                "role_evidence": {k: role_player[k] for k in ("lane", "wards_placed", "role_source_paths")},
             },
             provenance={**provenance, "source_paths": replay["source_paths"]},
         ).on_conflict_do_nothing())
     persist_summary_positions(connection, match_id)
-    return {"match_id": match_id, "feature_version": FEATURE_VERSION, "inputs_digest": inputs_digest}
+    replay_assignment = None
+    if replay_available(raw, provider):
+        replay_assignment = persist_positions(connection, match_id, role_players, evidence_profile="REPLAY", source_digest=inputs_digest)
+    return {"match_id": match_id, "feature_version": FEATURE_VERSION, "inputs_digest": inputs_digest,
+            "role_assignment": None if replay_assignment is None else {k: replay_assignment[k] for k in ("version", "inputs_digest", "evidence_profile")}}

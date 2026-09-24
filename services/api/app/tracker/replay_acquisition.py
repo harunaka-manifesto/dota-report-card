@@ -17,6 +17,7 @@ from app.opendota.client import OpenDotaClient
 from app.opendota.parse_client import OpenDotaParseClient
 from app.tracker.acquisition import stored_match_snapshot
 from app.tracker.jobs import StaleJob, authorized_job, finish, reschedule
+from app.tracker.linking import enqueue_role_refinements
 from app.tracker.materialization import materialize_snapshot
 from app.tracker.normalization import InvalidEvidence, opendota_summary
 from app.tracker.provider_control import ProviderDeferred, ProviderGate
@@ -51,12 +52,17 @@ def _request_time(connection: Connection, match_id: int) -> None:
 def _terminal(connection: Connection, job: dict[str, Any], *, snapshot_id: str | None = None, reason: str | None = None) -> None:
     match = connection.execute(select(matches).where(matches.c.match_id == job["match_id"]).with_for_update()).mappings().one()
     if match["evidence_state"] not in {"REPLAY_READY", "REPLAY_UNAVAILABLE"}:
+        role_assignment = None
         if snapshot_id is not None:
-            materialize_snapshot(connection, snapshot_id=snapshot_id, match_id=job["match_id"])
+            projected = materialize_snapshot(connection, snapshot_id=snapshot_id, match_id=job["match_id"])
+            role_assignment = projected["role_assignment"]
+            if role_assignment is not None:
+                enqueue_role_refinements(connection, job["match_id"], projected["role_assignment"])
         _request_time(connection, job["match_id"])
         state = "REPLAY_READY" if snapshot_id is not None else "REPLAY_UNAVAILABLE"
         connection.execute(matches.update().where(matches.c.match_id == job["match_id"]).values(
             evidence_state=state, terminal_reason=reason, replay_terminal_at=func.clock_timestamp(),
+            replay_role_assignment=role_assignment,
         ))
         calls = connection.scalar(select(func.count()).select_from(provider_calls).where(
             provider_calls.c.provider == "opendota", provider_calls.c.match_id == job["match_id"],

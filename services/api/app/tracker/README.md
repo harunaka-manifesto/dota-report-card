@@ -157,7 +157,7 @@ cursors. Never clear provider state as a way to bypass quotas.
 `queue_metrics` reports due depth and oldest age per lane; future replay waits do not
 inflate queue latency. Worker logs include priority and bounded outcome codes. Complete
 metrics export/alarms and historical handlers remain pending.
-The current dispatcher executes SYNC, SUMMARY, LINK_MATCH and REPLAY only; this is not
+The current dispatcher executes SYNC, SUMMARY, LINK_MATCH, REPLAY and ROLE_REFRESH; this is not
 yet the complete analytical/finalization pipeline.
 
 Failures from P0/P1 move to P2 in the shared rescheduler. Normal page continuation,
@@ -180,7 +180,7 @@ Parameters are immutable `ROLE_CLASSIFIER` sets, initially
 `role-assignment-provisional-1`: farm weight 1, lane weight 6, support weight 1,
 confidence threshold 0.60. The margin score is not a calibrated probability.
 Lane and relative ward behavior are accepted only by the explicit REPLAY scoring
-profile; source adapters and replay rerun publication remain pending. The fresh
+profile; replay adapters and generation-fenced refinement publish this profile before finalization. The fresh
 summary path does not consume parsed lane labels. Calibration remains a release gate.
 
 Assignments retain profile, parameter version and a digest of actual classifier
@@ -188,6 +188,22 @@ inputs/parameters. Disputed farm measurements are withheld. A team with no commo
 observed farm field receives an explicit `MISSING_FARM_PRIORITY` failure, not invented
 zeroes or an Unknown role; linking exposes this as an unavailable classification.
 Measured zero is evidence. Re-linking preserves existing effective roles, revisions
-and user assertions. Full correction APIs, deterministic rebuilds and replay refinement
-remain under implementation. Shared internal assignments are not user corrections;
+and user assertions. Full correction APIs and deterministic rebuilds remain
+under implementation. Shared internal assignments are not user corrections;
 a correction must not mutate another tracked player's canonical assignment.
+
+Replay acquisition selects an exact role assignment at evidence terminality.
+`ROLE_REFRESH` jobs apply it only under the current user/profile/job fence and before
+private finalization; assertions remain authoritative. Global internal positions
+never change because one user corrects a role. A late account link schedules the
+same selected refinement. Missing replay classification preserves the usable prior
+assignment. Migration `0008_tracker_role_assignment` adds nullable global/private
+assignment references and preserves pre-existing effective roles.
+
+The replay adapter requires a parsed-evidence marker before accepting lane/wards.
+[OpenDota's lane labels](https://github.com/odota/web/blob/master/src/lang/en-US.json)
+map lane_role 1/2/3 to Safe/Mid/Off, not positions; roaming/jungle/unknown yields
+no lane. OD observer+sentry counts and STRATZ ward-event counts agree for all ten
+players in the retained pair. STRATZ's retained operation has no lane evidence.
+Empty validated ward lists mean zero; absent, malformed or unsupported events
+remain unavailable. Input projections include adapter version and source paths.
