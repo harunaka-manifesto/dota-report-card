@@ -58,8 +58,24 @@ def test_batch_rejects_unrequested_duplicate_and_unproven_roster(database):
         with pytest.raises(InvalidEvidence, match='duplicate'):
             materialize_historical_batch(c, snapshot_id=bad_ids, profile_id=profile_id,
                 requested_ids=[MATCH_ID, MATCH_ID+1], origin='HISTORICAL')
-        with pytest.raises(InvalidEvidence, match='membership'):
-            materialize_historical_batch(c, snapshot_id=unproven, profile_id=profile_id,
-                requested_ids=[MATCH_ID], origin='HISTORICAL')
+        assert materialize_historical_batch(c, snapshot_id=unproven, profile_id=profile_id,
+            requested_ids=[MATCH_ID], origin='HISTORICAL') == {MATCH_ID: 'INVALID_SOURCE'}
         assert c.scalar(select(func.count()).select_from(derived_features)) == 0
         assert c.scalar(select(func.count()).select_from(ingest_jobs)) == 0
+
+
+def test_bad_row_does_not_discard_valid_sibling(database):
+    _, profile_id = identity(database)
+    good = raw('stratz')
+    good['players'][0]['steamAccountId'] = 1001
+    malformed = {'id': MATCH_ID+1, 'players': []}
+    with database.begin() as c:
+        for match_id in (MATCH_ID, MATCH_ID+1):
+            c.execute(matches.insert().values(match_id=match_id, discovered_at=func.now()))
+        snapshot_id = batch_snapshot(c, [good, malformed])
+        assert materialize_historical_batch(c, snapshot_id=snapshot_id, profile_id=profile_id,
+            requested_ids=[MATCH_ID, MATCH_ID+1], origin='BOOTSTRAP') == {
+                MATCH_ID: 'REPLAY_READY', MATCH_ID+1: 'INVALID_SOURCE'}
+        assert c.scalar(select(func.count()).select_from(derived_features)) == 10
+        assert c.scalar(select(func.count()).select_from(ingest_jobs)) == 1
+        assert c.scalar(select(acquisitions.c.state).where(acquisitions.c.match_id == MATCH_ID+1)) == 'INVALID_SOURCE'

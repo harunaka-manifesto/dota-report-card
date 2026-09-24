@@ -546,3 +546,7 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 - This is the stored-evidence half of historical acquisition. Provider fetch,
   batch-size fallback, account history enumeration, source-gap settlement and
   bootstrap completion are still pending. No live STRATZ calls were made.
+- Each returned row now uses a PostgreSQL savepoint. One malformed source row
+  records INVALID_SOURCE and leaves valid siblings materialized; neither
+  malformed evidence nor a roster mismatch creates a private link. Retained
+  batch checks: **3 passed, 0 failed, 0 skipped**.

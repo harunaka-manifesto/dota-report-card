@@ -249,3 +249,6 @@ readiness, queues profile-specific link work, and records provider-specific
 missing IDs without declaring the match nonexistent. A later returned row can
 replace that source-missing acquisition. The network batch worker, enumeration,
 coverage settlement and terminal source resolution are still to be connected.
+A malformed returned match is isolated with a database savepoint, leaving
+valid sibling matches processable and recording an `INVALID_SOURCE` acquisition
+for the affected match. The raw snapshot remains available for diagnosis.

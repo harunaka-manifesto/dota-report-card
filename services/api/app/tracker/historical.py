@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import Connection, select
+from sqlalchemy import Connection, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
@@ -54,38 +54,52 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
                 ).on_conflict_do_nothing())
             results[match_id] = "SOURCE_MISSING"
             continue
-        row = by_id[match_id]
-        summary = stratz_summary(row)
-        roster = [p for p in summary["players"] if p["account_id"] == owner["account_id"]]
-        if len(roster) != 1:
-            raise InvalidEvidence("Historical match does not establish tracked roster membership")
-        projected = materialize_snapshot(connection, snapshot_id=snapshot_id, match_id=match_id)
-        match = connection.execute(select(matches).where(matches.c.match_id == match_id).with_for_update()).mappings().one()
-        slot = roster[0]["player_slot"]
-        canonical_id = connection.scalar(select(match_players.c.account_id).where(
-            match_players.c.match_id == match_id, match_players.c.player_slot == slot,
-        ))
-        if canonical_id != owner["account_id"] or f"players.{slot}.account_id" in match["quarantined_fields"]:
-            raise InvalidEvidence("Historical identity disagrees with canonical roster")
-        parsed = replay_available(row, "stratz")
-        if parsed and match["evidence_state"] not in {"REPLAY_READY"}:
-            connection.execute(matches.update().where(matches.c.match_id == match_id).values(
-                evidence_state="REPLAY_READY", replay_terminal_at=source["fetched_at"],
-                replay_role_assignment=projected["role_assignment"], terminal_reason=None,
+        try:
+            with connection.begin_nested():
+                row = by_id[match_id]
+                summary = stratz_summary(row)
+                roster = [p for p in summary["players"] if p["account_id"] == owner["account_id"]]
+                if len(roster) != 1:
+                    raise InvalidEvidence("Historical match does not establish tracked roster membership")
+                projected = materialize_snapshot(connection, snapshot_id=snapshot_id, match_id=match_id)
+                match = connection.execute(select(matches).where(matches.c.match_id == match_id).with_for_update()).mappings().one()
+                slot = roster[0]["player_slot"]
+                canonical_id = connection.scalar(select(match_players.c.account_id).where(
+                    match_players.c.match_id == match_id, match_players.c.player_slot == slot,
+                ))
+                if canonical_id != owner["account_id"] or f"players.{slot}.account_id" in match["quarantined_fields"]:
+                    raise InvalidEvidence("Historical identity disagrees with canonical roster")
+                parsed = replay_available(row, "stratz")
+                if parsed and match["evidence_state"] not in {"REPLAY_READY"}:
+                    connection.execute(matches.update().where(matches.c.match_id == match_id).values(
+                        evidence_state="REPLAY_READY", replay_terminal_at=source["fetched_at"],
+                        replay_role_assignment=projected["role_assignment"], terminal_reason=None,
+                    ))
+                    if projected["role_assignment"] is not None:
+                        enqueue_role_refinements(connection, match_id, projected["role_assignment"])
+                acquired = dict(
+                    operation_version=source["operation_version"], state="REPLAY_READY" if parsed else "SUMMARY_ONLY",
+                    attempts=1, terminal_reason=None, snapshot_id=snapshot_id,
+                )
+                connection.execute(insert(acquisitions).values(
+                    match_id=match_id, provider="stratz", operation=GET_TRACKER_MATCH_BATCH.name, **acquired,
+                ).on_conflict_do_update(
+                    index_elements=[acquisitions.c.match_id, acquisitions.c.provider, acquisitions.c.operation],
+                    set_=acquired, where=acquisitions.c.state != "REPLAY_READY",
+                ))
+                enqueue(connection, dedup_key=f"link:{profile_id}:{owner['generation']}:{owner['user_generation']}:{match_id}:{origin}",
+                        job_type="LINK_MATCH", priority=3, payload={"origin": origin}, match_id=match_id, profile_id=profile_id)
+                results[match_id] = "REPLAY_READY" if parsed else "SUMMARY_ONLY"
+        except InvalidEvidence:
+            # Isolate one invalid source row so valid matches in the batch settle.
+            connection.execute(insert(matches).values(match_id=match_id, discovered_at=func.now()).on_conflict_do_nothing())
+            invalid = dict(operation_version=source["operation_version"], state="INVALID_SOURCE",
+                           attempts=1, terminal_reason="INVALID_HISTORICAL_ROW", snapshot_id=snapshot_id)
+            connection.execute(insert(acquisitions).values(
+                match_id=match_id, provider="stratz", operation=GET_TRACKER_MATCH_BATCH.name, **invalid,
+            ).on_conflict_do_update(
+                index_elements=[acquisitions.c.match_id, acquisitions.c.provider, acquisitions.c.operation],
+                set_=invalid, where=acquisitions.c.state != "REPLAY_READY",
             ))
-            if projected["role_assignment"] is not None:
-                enqueue_role_refinements(connection, match_id, projected["role_assignment"])
-        acquired = dict(
-            operation_version=source["operation_version"], state="REPLAY_READY" if parsed else "SUMMARY_ONLY",
-            attempts=1, terminal_reason=None, snapshot_id=snapshot_id,
-        )
-        connection.execute(insert(acquisitions).values(
-            match_id=match_id, provider="stratz", operation=GET_TRACKER_MATCH_BATCH.name, **acquired,
-        ).on_conflict_do_update(
-            index_elements=[acquisitions.c.match_id, acquisitions.c.provider, acquisitions.c.operation],
-            set_=acquired, where=acquisitions.c.state != "REPLAY_READY",
-        ))
-        enqueue(connection, dedup_key=f"link:{profile_id}:{owner['generation']}:{owner['user_generation']}:{match_id}:{origin}",
-                job_type="LINK_MATCH", priority=3, payload={"origin": origin}, match_id=match_id, profile_id=profile_id)
-        results[match_id] = "REPLAY_READY" if parsed else "SUMMARY_ONLY"
+            results[match_id] = "INVALID_SOURCE"
     return results
