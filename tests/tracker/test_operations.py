@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime
 
 from app.core.config import Settings
@@ -31,3 +32,30 @@ def test_operations_requires_separate_secret_and_stays_out_of_mobile_schema(data
     }]
     assert len(body["latency"]) == 3
     assert "summary" not in create_mobile_app(Settings(), database=database).openapi()["paths"]
+
+
+def test_operations_reads_shared_circuit_and_pause_state(database, redis_client, monkeypatch):
+    redis, namespace = redis_client
+    monkeypatch.setenv("TRACKER_NAMESPACE", namespace)
+    seconds, micros = redis.time()
+    now = seconds + micros / 1_000_000
+    redis.set(f"{namespace}:pause:p3", "1")
+    redis.set(f"{namespace}:provider:opendota", json.dumps({
+        "buckets": {}, "disabled": True, "failure_code": "CREDENTIAL_REJECTED",
+    }))
+    redis.set(f"{namespace}:provider:stratz", json.dumps({
+        "buckets": {}, "open_until": now + 30,
+    }))
+    client = TestClient(create_operations_app(Settings(), database=database,
+                                              redis=redis, token="local-operations-test-token"))
+    response = client.get("/summary", headers={"X-Tracker-Operations-Token": "local-operations-test-token"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["p3_paused"] is True
+    assert body["provider_control"][0] == {
+        "name": "opendota", "state": "DISABLED", "open_seconds": 0,
+        "failure_code": "CREDENTIAL_REJECTED",
+    }
+    assert body["provider_control"][1]["name"] == "stratz"
+    assert body["provider_control"][1]["state"] == "OPEN"
+    assert 0 < body["provider_control"][1]["open_seconds"] <= 30

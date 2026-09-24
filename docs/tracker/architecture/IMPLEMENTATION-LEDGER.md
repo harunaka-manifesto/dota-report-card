@@ -735,3 +735,8 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 
 - The isolated mobile API now exposes `DELETE /account`. It invokes the existing immediate deletion fence, removes private profile and session state, and returns only the deletion-pending state; subsequent use of the revoked bearer token fails authentication. The existing legal/store policy gates remain internal and unresolved rather than being promised to the client.
 - Real PostgreSQL mobile/account-lifecycle tests: **11 passed, 0 failed, 0 skipped**, including an in-flight private job that cannot publish after deletion and an unaffected second account. Ruff and mypy pass. This does not resolve shared canonical-row retention or App Store auto-renewal policy; both remain owner/legal decisions.
+
+### Shared provider-control operations visibility
+
+- The authenticated internal summary now reads Redis provider circuit state and the P3 pause flag alongside its database metrics. It distinguishes unknown, open, disabled, closed and Redis-unavailable states and reports the bounded remaining open time and non-secret failure code. This read performs no quota admission or provider call.
+- Real PostgreSQL/Redis operations and legacy API contract checks: **6 passed, 0 failed, 0 skipped**. Ruff and mypy pass. Remaining Phase H gaps include retry-reason distribution, cost attribution, controlled Celery priority/non-starvation proof and production worker wiring; this card stays in progress.

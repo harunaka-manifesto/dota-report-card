@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import hmac
+import json
+import math
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel
+from redis import Redis, RedisError
 from sqlalchemy import Engine, distinct, func, select
 
 from app.core.config import Settings
@@ -47,17 +50,27 @@ class LatencyView(BaseModel):
     p99_seconds: float | None
 
 
+class ProviderControlView(BaseModel):
+    name: str
+    state: str
+    open_seconds: float
+    failure_code: str | None
+
+
 class OperationsView(BaseModel):
     queues: list[QueueView]
     providers: list[ProviderView]
     coverage: list[CoverageView]
     latency: list[LatencyView]
+    provider_control: list[ProviderControlView]
+    p3_paused: bool | None
 
 
 def create_operations_app(settings: Settings, *, database: Engine | None = None,
-                          token: str | None = None) -> FastAPI:
+                          token: str | None = None, redis: Redis | None = None) -> FastAPI:
     app = FastAPI(title="Tracker Operations", version="1.0.0")
     app.state.database = database
+    app.state.redis = redis
 
     def authorize(header: Annotated[str | None, Header(alias="X-Tracker-Operations-Token")] = None) -> None:
         if not token:
@@ -67,7 +80,7 @@ def create_operations_app(settings: Settings, *, database: Engine | None = None,
 
     @app.get("/summary", response_model=OperationsView, dependencies=[Depends(authorize)])
     async def summary(request: Request) -> OperationsView:
-        from app.tracker.worker import queue_metrics
+        from app.tracker.worker import WorkerPolicy, queue_metrics
 
         engine = app.state.database
         if engine is None:
@@ -109,6 +122,38 @@ def create_operations_app(settings: Settings, *, database: Engine | None = None,
                     p50_seconds=float(row[1]) if row[1] is not None else None,
                     p90_seconds=float(row[2]) if row[2] is not None else None,
                     p99_seconds=float(row[3]) if row[3] is not None else None))
+        namespace = WorkerPolicy().namespace
+        redis_client = app.state.redis
+        if redis_client is None:
+            redis_client = Redis.from_url(settings.redis_url, decode_responses=True, socket_timeout=1)
+            app.state.redis = redis_client
+        control: list[ProviderControlView] = []
+        p3_paused: bool | None
+        try:
+            seconds, micros = redis_client.time()
+            now = seconds + micros / 1_000_000
+            p3_paused = bool(redis_client.get(f"{namespace}:pause:p3"))
+            for name in ("opendota", "stratz"):
+                raw = redis_client.get(f"{namespace}:provider:{name}")
+                state = json.loads(raw) if raw else None
+                if not isinstance(state, dict):
+                    control.append(ProviderControlView(name=name, state="UNKNOWN", open_seconds=0,
+                                                       failure_code=None))
+                    continue
+                open_until = float(state.get("open_until", 0))
+                if not math.isfinite(open_until):
+                    raise ValueError("invalid circuit deadline")
+                remaining = max(0.0, open_until - now)
+                control.append(ProviderControlView(
+                    name=name,
+                    state="DISABLED" if state.get("disabled") else "OPEN" if remaining else "CLOSED",
+                    open_seconds=remaining,
+                    failure_code=state.get("failure_code") if isinstance(state.get("failure_code"), str) else None,
+                ))
+        except (RedisError, ValueError, TypeError):
+            p3_paused = None
+            control = [ProviderControlView(name=name, state="UNAVAILABLE", open_seconds=0,
+                                           failure_code=None) for name in ("opendota", "stratz")]
         return OperationsView(
             queues=[QueueView(priority=p, depth=int(depth[p]["depth"]),
                               oldest_seconds=float(depth[p]["oldest_seconds"]),
@@ -120,6 +165,7 @@ def create_operations_app(settings: Settings, *, database: Engine | None = None,
             coverage=[CoverageView(mode=mode, capability=capability, state=state, intervals=count)
                       for mode, capability, state, count in spans],
             latency=latencies,
+            provider_control=control, p3_paused=p3_paused,
         )
 
     return app
