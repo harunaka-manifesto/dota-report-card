@@ -1,7 +1,9 @@
 from datetime import UTC, datetime
 
+import pytest
 from app.core.config import Settings
 from app.tracker.authentication import VerifiedIdentity, create_user_session
+from app.tracker.jobs import StaleJob, authorized_job, claim, enqueue
 from app.tracker.materialization import materialize_snapshot
 from app.tracker.mobile_api import _cursor, create_mobile_app
 from app.tracker.schema import (
@@ -44,6 +46,30 @@ def test_mobile_account_requires_session_and_keeps_identity_private(database):
     assert {row["mode"]: row["outcome"] for row in bootstrap["modes"]} == {
         "STANDARD": "NO_STEAM_LINKED", "TURBO": "NO_STEAM_LINKED",
     }
+
+
+def test_mobile_deletion_revokes_session_and_fences_running_private_work(database):
+    client, headers, owner = _client(database, "mobile-delete-owner")
+    other_client, other_headers, _ = _client(database, "mobile-delete-other")
+    with database.begin() as connection:
+        connection.execute(dota_accounts.insert().values(account_id=1337))
+        connection.execute(profiles.insert().values(
+            id="mobile-delete-profile", user_id=owner, account_id=1337,
+            active=True, original_linked_at=datetime.now(UTC),
+        ))
+        job_id = enqueue(connection, dedup_key="mobile-delete-running", job_type="LINK_MATCH",
+                         priority=0, profile_id="mobile-delete-profile", payload={})
+        job = claim(connection, priority=0)
+        assert job is not None and job["id"] == job_id
+    deleted = client.delete("/account", headers=headers)
+    assert deleted.status_code == 200 and deleted.json() == {"state": "DELETION_PENDING"}
+    assert client.get("/account", headers=headers).status_code == 401
+    assert other_client.get("/account", headers=other_headers).status_code == 200
+    with database.connect() as connection:
+        assert connection.scalar(select(profiles.c.id).where(profiles.c.user_id == owner)) is None
+    with pytest.raises(StaleJob):
+        with authorized_job(database, job_id, job["lease_token"]):
+            pytest.fail("deleted account job published")
 
 
 def test_mobile_match_ref_is_opaque_and_cannot_cross_accounts(database):

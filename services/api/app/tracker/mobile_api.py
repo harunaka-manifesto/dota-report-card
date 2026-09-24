@@ -20,7 +20,11 @@ from sqlalchemy.dialects.postgresql import insert
 
 from app.core.config import Settings
 from app.storage.database import create_database_engine
-from app.tracker.account_lifecycle import AccountLifecycleError, switch_preflight
+from app.tracker.account_lifecycle import (
+    AccountLifecycleError,
+    request_account_deletion,
+    switch_preflight,
+)
 from app.tracker.authentication import (
     AuthenticationError,
     HttpJwksSource,
@@ -115,6 +119,10 @@ class AccountView(BaseModel):
     scope: Literal["FREE", "PRO"]
     revision: int
     identity_methods: list[Literal["apple", "google", "email"]]
+
+
+class DeletionView(BaseModel):
+    state: Literal["DELETION_PENDING"]
 
 
 class SteamStartView(BaseModel):
@@ -534,6 +542,11 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                            scope=profile["active_scope"] if profile else "FREE",
                            revision=profile["active_revision"] if profile else 0,
                            identity_methods=methods)
+
+    @app.delete("/account", response_model=DeletionView)
+    async def delete_account(request: Request, owner: Annotated[str, Depends(_user)]) -> DeletionView:
+        result = request_account_deletion(_engine(request), user_id=owner)
+        return DeletionView(state=result["state"])
 
     @app.get("/account/identities", response_model=MethodsView)
     async def account_identities(request: Request, owner: Annotated[str, Depends(_user)]) -> MethodsView:
