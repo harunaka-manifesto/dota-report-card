@@ -25,6 +25,7 @@ from app.tracker.normalization import (
     summary_disagreements,
 )
 from app.tracker.replay import REPLAY_VERSION, replay_checkpoints
+from app.tracker.roles import persist_summary_positions
 from app.tracker.schema import derived_features, match_players, matches, snapshots
 
 FEATURE_VERSION = f"{SUMMARY_VERSION}+{REPLAY_VERSION}"
@@ -114,4 +115,5 @@ def materialize_snapshot(connection: Connection, *, snapshot_id: str, match_id: 
             },
             provenance={**provenance, "source_paths": replay["source_paths"]},
         ).on_conflict_do_nothing())
+    persist_summary_positions(connection, match_id)
     return {"match_id": match_id, "feature_version": FEATURE_VERSION, "inputs_digest": inputs_digest}

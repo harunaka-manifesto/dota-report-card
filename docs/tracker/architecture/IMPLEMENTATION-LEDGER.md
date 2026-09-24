@@ -416,3 +416,32 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   PostgreSQL/Redis/Celery), legacy provider clients, migration units and report
   contracts; two existing deprecation warnings. Ruff, mypy (14 tracker modules),
   docs-check (474 links) and whitespace pass.
+
+
+### Summary role-classification checkpoint
+
+- Tracker-only ANALYTICAL/BACKEND change: `roles.py` provides joint within-team
+  position assignments and four-role projection. It does not import or change the
+  legacy classifier. Summary farm midranks use only commonly observed fields and
+  exclude KDA, result, opponent economy, hero identity and native position labels.
+- Versioned provisional weights (farm 1, lane 6, support 1, threshold 0.60) are
+  stored in immutable parameter sets. Same-version parameter drift is rejected.
+  Summary-only classification is always low confidence; assignment margin is not a
+  calibrated probability. Owner calibration gate remains open.
+- Materialization persists ten summary-profile assignments before committing
+  SUMMARY_READY. Account linking sets effective role or an explicit unavailable
+  classification failure. Null/missing farm is never zero; tied observed zeroes
+  remain evidence with deterministic low-confidence assignments.
+- Disputed farm fields are withheld. Identity conflicts still block private linking.
+  Re-linking cannot overwrite existing user assertions/effective role/revision.
+  Internal assignments stay global; private role corrections must not mutate another
+  player's assignment. Full correction/rebuild APIs are still pending.
+- The pure scorer has an explicit REPLAY profile for canonical lane/ward behavior;
+  provider adapters and pre-finalization replay rerun wiring are not yet implemented.
+- Initial roles/link/materialization run: **14 passed**. Expanded suite includes
+  actual stored user assertions and per-team quarantine. No live provider calls,
+  legacy analytical changes, holdout/recalibration, push, merge or deployment.
+- Combined verification: **146 passed, 0 failed, 0 skipped** on real
+  PostgreSQL/Redis/Celery plus legacy provider clients, migration units and report
+  contracts. Two existing deprecation warnings. Ruff, mypy (16 runtime/storage
+  modules), docs-check (474 links) and whitespace pass. No calibration is claimed.

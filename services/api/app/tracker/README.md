@@ -5,7 +5,7 @@ System behavior: [Tracker architecture](../../../../docs/tracker/architecture/RE
 Implementation status: [ledger](../../../../docs/tracker/architecture/IMPLEMENTATION-LEDGER.md).
 
 This namespace is under implementation. It provides the PostgreSQL schema, immutable
-evidence persistence, summary/replay translation, source materialization and controlled
+evidence persistence, summary/replay translation, summary roles, source materialization and controlled
 provider transport. Authentication,
 the match pipeline, analytical engines and mobile routes remain under implementation.
 
@@ -35,7 +35,9 @@ persisted multi-source dependency quarantine remain under implementation.
 `complete_link_job` publishes under the lease/identity fence and schedules one shared
 P1 replay job for live matches, with an explicit availability delay from match end.
 Historical links never schedule fresh processing. These functions do not classify
-roles or finalize analysis; those handlers remain pending.
+finalize analysis; those handlers remain pending. Summary role assignment is persisted
+with materialization and applied when the account link is first created. Existing
+links and user assertions are never overwritten by re-linking.
 
 `enqueue_fresh_summary` deduplicates global P0 work. `acquire_fresh_summary` executes
 one claimed job through ControlledTransport, reuses a valid persisted response before
@@ -164,3 +166,28 @@ P3 retries stay in P3. A subsequent P2 attempt may draw on the reserved quota sh
 while all provider windows, lane capacity, pacing and circuit checks still apply.
 This recovery permission is derived from persisted job priority/attempt count, not
 from a client request.
+
+## Provisional role classifier
+
+`roles.py` assigns all five internal positions jointly within each team and exposes
+only Carry, Mid, Offlane and Support. Summary inputs use within-team midranks of
+commonly observed net worth, GPM, last hits and gold spent; tied ranks stay tied.
+The assignment minimizes farm-rank distance, with canonical slot order as the stable
+tiebreaker. Opponent economy, KDA, result, hero identity and native position labels
+do not enter the score. Summary-only assignments always have low confidence.
+
+Parameters are immutable `ROLE_CLASSIFIER` sets, initially
+`role-assignment-provisional-1`: farm weight 1, lane weight 6, support weight 1,
+confidence threshold 0.60. The margin score is not a calibrated probability.
+Lane and relative ward behavior are accepted only by the explicit REPLAY scoring
+profile; source adapters and replay rerun publication remain pending. The fresh
+summary path does not consume parsed lane labels. Calibration remains a release gate.
+
+Assignments retain profile, parameter version and a digest of actual classifier
+inputs/parameters. Disputed farm measurements are withheld. A team with no common
+observed farm field receives an explicit `MISSING_FARM_PRIORITY` failure, not invented
+zeroes or an Unknown role; linking exposes this as an unavailable classification.
+Measured zero is evidence. Re-linking preserves existing effective roles, revisions
+and user assertions. Full correction APIs, deterministic rebuilds and replay refinement
+remain under implementation. Shared internal assignments are not user corrections;
+a correction must not mutate another tracked player's canonical assignment.

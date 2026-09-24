@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from app.tracker.jobs import authorized_job, enqueue, finish
 from app.tracker.normalization import InvalidEvidence
+from app.tracker.roles import persist_summary_positions
 from app.tracker.schema import account_matches, match_players, matches, profiles, users
 
 ORIGINS = {"LIVE", "BOOTSTRAP", "HISTORICAL", "RECOVERY"}
@@ -58,9 +59,13 @@ def complete_link_job(database: Engine, *, job_id: str, lease_token: str, replay
         player = roster[0]
         if f"players.{player['player_slot']}.account_id" in match["quarantined_fields"]:
             raise InvalidEvidence("Conflicting account identity cannot authorize a link")
+        assignment = persist_summary_positions(connection, job["match_id"])
+        role = next(row for row in assignment["players"] if row["player_slot"] == player["player_slot"])
         connection.execute(insert(account_matches).values(
             profile_id=job["profile_id"], match_id=job["match_id"], account_id=job["account_id"],
-            player_slot=player["player_slot"], lifecycle="ANALYZING", mode=match["mode"],
+            player_slot=player["player_slot"], lifecycle="ANALYZING" if role["role"] else "UNAVAILABLE", mode=match["mode"],
+            effective_role=role["role"], failure_stage=None if role["role"] else "ROLE_CLASSIFICATION",
+            failure_reason=None if role["role"] else role["reason"],
             provider_started_at=match["started_at"], provider_source_match_id=job["match_id"], origin=origin,
         ).on_conflict_do_nothing())
         replay_job_id = None
