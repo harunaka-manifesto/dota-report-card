@@ -1,0 +1,145 @@
+"""Profile-owned, resumable search of the original pre-link history window."""
+from __future__ import annotations
+
+import hashlib
+from datetime import UTC, datetime, timedelta
+from typing import Any
+
+import httpx
+from sqlalchemy import Connection, Engine, func, select
+from sqlalchemy.dialects.postgresql import insert
+
+from app.core.config import Settings
+from app.core.errors import OpenDotaRateLimited, OpenDotaUnavailable
+from app.opendota.client import OpenDotaClient
+from app.tracker.jobs import StaleJob, authorized_job, enqueue, finish, reschedule
+from app.tracker.provider_control import ProviderDeferred, ProviderGate
+from app.tracker.provider_transport import ControlledTransport
+from app.tracker.schema import bootstrap, bootstrap_search_items, ingest_jobs, profiles, users
+from app.tracker.sync import _saved_page
+
+
+def request_bootstrap_search(connection: Connection, profile_id: str) -> str:
+    """Start one P3 scan for both independent mode ledgers, once per profile generation."""
+    owner = connection.execute(select(profiles, users.c.generation.label("user_generation"), users.c.state).join(
+        users, users.c.id == profiles.c.user_id,
+    ).where(profiles.c.id == profile_id)).mappings().one()
+    if not owner["active"] or owner["state"] != "ACTIVE":
+        raise StaleJob("Inactive bootstrap owner")
+    for mode in ("STANDARD", "TURBO"):
+        connection.execute(insert(bootstrap).values(profile_id=profile_id, mode=mode).on_conflict_do_nothing())
+    return enqueue(
+        connection, dedup_key=f"bootstrap-search:{profile_id}:{owner['generation']}:{owner['user_generation']}",
+        job_type="BOOTSTRAP_SEARCH", priority=3, profile_id=profile_id, payload={},
+    )
+
+
+def _publish_page(connection: Connection, job: dict[str, Any], snapshot: dict[str, Any], *, max_pages: int) -> str:
+    rows = snapshot["payload"]
+    if not isinstance(rows, list) or len(rows) > 200:
+        raise ValueError("Invalid bootstrap history page")
+    profile = connection.execute(select(profiles.c.original_linked_at).where(profiles.c.id == job["profile_id"])).mappings().one()
+    linked_at = profile["original_linked_at"]
+    floor = linked_at - timedelta(days=90)
+    cursor = dict(job["cursor"] or {})
+    previous = cursor.get("last_start")
+    seen: set[int] = set()
+    crossed_floor = False
+    for raw in rows:
+        if not isinstance(raw, dict) or type(raw.get("match_id")) is not int or not 0 < raw["match_id"] < 2**63:
+            raise ValueError("Invalid bootstrap history item")
+        match_id = raw["match_id"]
+        timestamp = raw.get("start_time")
+        if type(timestamp) is not int or not 0 < timestamp <= 253402300799 or match_id in seen or previous is not None and timestamp > previous:
+            raise ValueError("Unordered or undated bootstrap history")
+        seen.add(match_id)
+        previous = timestamp
+        started_at = datetime.fromtimestamp(timestamp, UTC)
+        game_mode = raw.get("game_mode")
+        mode = "STANDARD" if type(game_mode) is int and game_mode in (1, 22) else "TURBO" if type(game_mode) is int and game_mode == 23 else None
+        reason = "AFTER_LINK" if started_at > linked_at else "BEFORE_WINDOW" if started_at < floor else "UNSUPPORTED_MODE" if mode is None else None
+        if reason == "BEFORE_WINDOW":
+            crossed_floor = True
+        saved = connection.execute(insert(bootstrap_search_items).values(
+            profile_id=job["profile_id"], source_item_id=str(match_id), snapshot_id=snapshot["id"],
+            match_id=match_id if reason is None else None, started_at=started_at,
+            mode=mode if reason is None else None,
+            outcome="CANDIDATE" if reason is None else "REJECTED", reason=reason,
+        ).on_conflict_do_nothing().returning(bootstrap_search_items.c.source_item_id)).scalar_one_or_none()
+        if saved is None:
+            # Offset pagination shifted under us. Do not claim complete coverage.
+            raise ValueError("Bootstrap history page overlaps an earlier page")
+    pages = cursor.get("pages", 0) + 1
+    offset = cursor.get("offset", 0) + len(rows)
+    finished = not rows or crossed_floor
+    next_cursor = {"offset": offset, "pages": pages, "request_days": cursor["request_days"], "last_start": previous}
+    for mode in ("STANDARD", "TURBO"):
+        connection.execute(bootstrap.update().where(bootstrap.c.profile_id == job["profile_id"], bootstrap.c.mode == mode).values(
+            search_finished=finished,
+            cursor=next_cursor,
+        ))
+    if finished:
+        finish(connection, job)
+        return "COMPLETE"
+    if pages >= max_pages:
+        reschedule(connection, job, delay_seconds=0, error="PAGINATION_LIMIT", cursor=next_cursor, max_attempts=1)
+        return "FAILED"
+    reschedule(connection, job, delay_seconds=0, error="NEXT_PAGE", cursor=next_cursor, failure=False)
+    return "DEFERRED"
+
+
+async def search_bootstrap_page(database: Engine, gate: ProviderGate, settings: Settings, *, job_id: str, lease_token: str,
+                                transport: httpx.AsyncBaseTransport | None = None, max_pages: int = 100, max_attempts: int = 5) -> str:
+    if gate.provider != "opendota" or type(max_pages) is not int or max_pages < 1 or type(max_attempts) is not int or max_attempts < 1:
+        raise ValueError("Invalid bootstrap search policy")
+    with authorized_job(database, job_id, lease_token) as (connection, job):
+        if job["job_type"] != "BOOTSTRAP_SEARCH" or job["profile_id"] is None:
+            raise ValueError("Expected private bootstrap search")
+        cursor = dict(job["cursor"] or {})
+        linked_at = connection.scalar(select(profiles.c.original_linked_at).where(profiles.c.id == job["profile_id"]))
+        if linked_at is None:
+            raise StaleJob("Bootstrap profile vanished")
+        now = connection.execute(select(func.clock_timestamp())).scalar_one()
+        days = cursor.get("request_days", max(1, int((now - (linked_at - timedelta(days=90))).total_seconds() // 86400) + 1))
+        offset = cursor.get("offset", 0)
+        request = httpx.Request("GET", f"{settings.opendota_base_url.rstrip('/')}/players/{job['account_id']}/matches",
+                                params={"significant": 0, "limit": 200, "offset": offset, "date": days})
+        subject = hashlib.sha256(request.url.raw_path + request.content).hexdigest()
+        snapshot = _saved_page(connection, job_id, subject)
+        if snapshot is None and cursor.get("request_lease_token") == lease_token:
+            return "RUNNING"
+    try:
+        if snapshot is None:
+            def before_send() -> None:
+                with authorized_job(database, job_id, lease_token) as (connection, current):
+                    if dict(current["cursor"] or {}) != cursor:
+                        raise ProviderDeferred("BOOTSTRAP_STEP_ALREADY_CLAIMED", 0.1)
+                    connection.execute(ingest_jobs.update().where(ingest_jobs.c.id == job_id).values(
+                        cursor={**cursor, "request_days": days, "request_lease_token": lease_token},
+                    ))
+
+            controlled = ControlledTransport(gate, database, transport=transport, before_send=before_send, job_id=job_id)
+            try:
+                async with httpx.AsyncClient(transport=controlled) as http:
+                    await OpenDotaClient(settings, http_client=http).get_history_page(job["account_id"], offset=offset, days=days)
+            except OpenDotaUnavailable:
+                with database.connect() as connection:
+                    if _saved_page(connection, job_id, subject) is None:
+                        raise
+            with database.connect() as connection:
+                snapshot = _saved_page(connection, job_id, subject)
+            if snapshot is None:
+                raise RuntimeError("Missing bootstrap history evidence")
+        with authorized_job(database, job_id, lease_token) as (connection, current):
+            return _publish_page(connection, current, snapshot, max_pages=max_pages)
+    except StaleJob:
+        raise
+    except Exception as exc:
+        if isinstance(exc, ProviderDeferred) and exc.reason == "BOOTSTRAP_STEP_ALREADY_CLAIMED":
+            return "RUNNING"
+        deferred = isinstance(exc, (ProviderDeferred, OpenDotaRateLimited))
+        reason = exc.reason if isinstance(exc, ProviderDeferred) else "RATE_LIMITED" if isinstance(exc, OpenDotaRateLimited) else "BOOTSTRAP_PAGE_FAILED"
+        delay = exc.delay if isinstance(exc, ProviderDeferred) else 30
+        with authorized_job(database, job_id, lease_token) as (connection, current):
+            reschedule(connection, current, delay_seconds=delay, error=reason, failure=not deferred, max_attempts=max_attempts)
+        return "DEFERRED" if deferred or current["attempts"] < max_attempts else "FAILED"

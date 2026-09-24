@@ -553,3 +553,18 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   records INVALID_SOURCE and leaves valid siblings materialized; neither
   malformed evidence nor a roster mismatch creates a private link. Retained
   batch checks: **3 passed, 0 failed, 0 skipped**.
+
+### Durable Free-bootstrap search
+
+- Added one profile-generation-fenced P3 `BOOTSTRAP_SEARCH` job with independent
+  Standard/Turbo ledgers. The job scans Turbo-inclusive OpenDota history once,
+  anchored to the original link date and its preceding 90 days. Each source row
+  is durably journaled as a candidate or a reasoned rejection; unsupported modes,
+  post-link rows and pre-window rows cannot become bootstrap candidates. The
+  search cursor advances in the same transaction as the page journal. A retained
+  page is reused after publication rollback rather than fetched again.
+- Bootstrap, worker, sync and migration tests: **21 passed**; full tracker suite:
+  **170 passed** on PostgreSQL/Redis. Ruff, mypy and docs checks pass. No live
+  provider call. `search_finished` here means enumeration only:
+  30-eligible-per-mode selection, source-backed integrity classification,
+  summary/replay settlement and product outcomes are not yet implemented.

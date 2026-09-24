@@ -66,6 +66,13 @@ summary acquisition. Successful call rows bind job, request and immutable snapsh
 so a publication retry reuses that exact page without another fetch. Foreground
 authenticated routes, complete analysis and mobile integration remain pending.
 
+`request_bootstrap_search` creates one profile-fenced P3 scan and separate Standard/Turbo
+search ledgers anchored to the original Steam-link date. Each Turbo-inclusive history
+page is retained before its 90-day-window candidates or rejections are journaled;
+the cursor moves only with those writes. Search completion does not imply bootstrap
+completion. Candidate eligibility, 30-per-mode selection, deep acquisition and
+coverage settlement remain separate pending steps.
+
 ## Storage boundary
 
 `schema.py` uses SQLAlchemy Core and separate metadata. `tracker_matches` is the single

@@ -601,6 +601,22 @@ bootstrap = Table(
         name="ck_tracker_bootstrap_terminal",
     ),
 )
+bootstrap_search_items = Table(
+    "tracker_bootstrap_search_items",
+    metadata,
+    Column("profile_id", ForeignKey(profiles.c.id, ondelete="CASCADE"), primary_key=True),
+    Column("source_item_id", String(128), primary_key=True),
+    Column("snapshot_id", ForeignKey(snapshots.c.id), nullable=False),
+    Column("match_id", BigInteger),
+    Column("started_at", DateTime(timezone=True)),
+    Column("mode", String(16)),
+    Column("outcome", String(16), nullable=False),
+    Column("reason", String(64)),
+    CheckConstraint("mode IS NULL OR mode IN ('STANDARD', 'TURBO')", name="ck_tracker_bootstrap_item_mode"),
+    CheckConstraint("outcome IN ('CANDIDATE', 'REJECTED')", name="ck_tracker_bootstrap_item_outcome"),
+    CheckConstraint("(outcome = 'CANDIDATE') = (match_id IS NOT NULL AND started_at IS NOT NULL AND mode IS NOT NULL)", name="ck_tracker_bootstrap_item_candidate"),
+    Index("ix_tracker_bootstrap_candidates", "profile_id", "mode", "started_at", "match_id"),
+)
 ingest_jobs = Table(
     "tracker_ingest_jobs",
     metadata,
