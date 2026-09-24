@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import uuid4
 
 import httpx
 from sqlalchemy import Connection, Engine, func, select
@@ -17,8 +18,11 @@ from app.tracker.jobs import StaleJob, authorized_job, enqueue, finish, reschedu
 from app.tracker.provider_control import ProviderDeferred, ProviderGate
 from app.tracker.provider_transport import ControlledTransport
 from app.tracker.schema import (
+    account_matches,
     bootstrap,
     bootstrap_search_items,
+    coverage,
+    events,
     ingest_jobs,
     profiles,
     users,
@@ -65,6 +69,7 @@ def _select_initial_candidates(connection: Connection, profile_id: str) -> None:
 def settle_candidate(connection: Connection, *, profile_id: str, match_id: int,
                      eligible: bool, reason: str) -> int:
     """Settle one selected candidate and fill its mode's remaining Free slots."""
+    connection.execute(select(profiles.c.id).where(profiles.c.id == profile_id).with_for_update()).scalar_one()
     item = connection.execute(bootstrap_search_items.update().where(
         bootstrap_search_items.c.profile_id == profile_id,
         bootstrap_search_items.c.match_id == match_id,
@@ -91,6 +96,7 @@ def settle_candidate(connection: Connection, *, profile_id: str, match_id: int,
     ))
     vacancies = max(0, 30 - bucket["eligible_count"] - int(eligible) - pending)
     if not vacancies or bucket["search_finished"] is False:
+        settle_bootstrap(connection, profile_id)
         return 0
     ids = list(connection.scalars(select(bootstrap_search_items.c.match_id).where(
         bootstrap_search_items.c.profile_id == profile_id,
@@ -99,6 +105,7 @@ def settle_candidate(connection: Connection, *, profile_id: str, match_id: int,
         bootstrap_search_items.c.selected_at.is_(None),
     ).order_by(bootstrap_search_items.c.started_at.desc(), bootstrap_search_items.c.match_id.desc()).limit(vacancies)))
     if not ids:
+        settle_bootstrap(connection, profile_id)
         return 0
     connection.execute(bootstrap_search_items.update().where(
         bootstrap_search_items.c.profile_id == profile_id,
@@ -109,13 +116,94 @@ def settle_candidate(connection: Connection, *, profile_id: str, match_id: int,
         bootstrap.c.profile_id == profile_id, bootstrap.c.mode == mode,
     ).values(discovered_count=bootstrap.c.discovered_count + len(ids)))
     enqueue_historical_batch(connection, profile_id=profile_id, match_ids=ids, origin="BOOTSTRAP")
+    settle_bootstrap(connection, profile_id)
     return len(ids)
+
+
+def settle_bootstrap(connection: Connection, profile_id: str) -> bool:
+    """Persist mode outcomes only after acquisition, analyses and coverage settle."""
+    linked_at = connection.execute(select(profiles.c.original_linked_at).where(
+        profiles.c.id == profile_id,
+    ).with_for_update()).scalar_one_or_none()
+    if linked_at is None:
+        return False
+    floor = linked_at - timedelta(days=90)
+    buckets = connection.execute(select(bootstrap).where(
+        bootstrap.c.profile_id == profile_id,
+    ).order_by(bootstrap.c.mode).with_for_update()).mappings().all()
+    if len(buckets) != 2:
+        return False
+
+    now = connection.execute(select(func.clock_timestamp())).scalar_one()
+    for bucket in buckets:
+        if bucket["completed_at"] is not None or not bucket["search_finished"]:
+            continue
+        selected = connection.execute(select(
+            bootstrap_search_items.c.match_id,
+            bootstrap_search_items.c.reason,
+            account_matches.c.lifecycle,
+        ).select_from(bootstrap_search_items.outerjoin(
+            account_matches,
+            (account_matches.c.profile_id == bootstrap_search_items.c.profile_id)
+            & (account_matches.c.match_id == bootstrap_search_items.c.match_id),
+        )).where(
+            bootstrap_search_items.c.profile_id == profile_id,
+            bootstrap_search_items.c.mode == bucket["mode"],
+            bootstrap_search_items.c.selected_at.is_not(None),
+        )).mappings().all()
+        if len(selected) != bucket["discovered_count"] or bucket["settled_count"] != bucket["discovered_count"]:
+            continue
+        if any(row["reason"] is None or row["lifecycle"] not in {"READY", "UNAVAILABLE"} for row in selected):
+            continue
+        pending = connection.scalar(select(func.count()).select_from(coverage).where(
+            coverage.c.profile_id == profile_id,
+            coverage.c.mode == bucket["mode"],
+            coverage.c.end_at >= floor,
+            coverage.c.start_at <= linked_at,
+            coverage.c.state == "PENDING",
+        ))
+        if pending:
+            continue
+        gaps = connection.scalar(select(func.count()).select_from(coverage).where(
+            coverage.c.profile_id == profile_id,
+            coverage.c.mode == bucket["mode"],
+            coverage.c.end_at >= floor,
+            coverage.c.start_at <= linked_at,
+            coverage.c.state == "GAP",
+        ))
+        if bucket["discovered_count"] == 0:
+            outcome = "NO_MATCHES_FOUND"
+        elif bucket["eligible_count"] == 0:
+            outcome = "NO_ELIGIBLE_MATCHES"
+        else:
+            outcome = "READY_WITH_GAPS" if gaps else "READY"
+        connection.execute(bootstrap.update().where(
+            bootstrap.c.profile_id == profile_id,
+            bootstrap.c.mode == bucket["mode"],
+            bootstrap.c.completed_at.is_(None),
+        ).values(outcome=outcome, completed_at=now))
+
+    terminal = connection.execute(select(bootstrap).where(
+        bootstrap.c.profile_id == profile_id,
+    ).order_by(bootstrap.c.mode)).mappings().all()
+    if len(terminal) != 2 or any(row["completed_at"] is None for row in terminal):
+        return False
+    payload = {row["mode"].lower(): row["outcome"] for row in terminal}
+    connection.execute(insert(events).values(
+        id=str(uuid4()), profile_id=profile_id, kind="BOOTSTRAP_COMPLETED",
+        dedup_key=f"bootstrap-completed:{profile_id}", payload={"outcomes": payload},
+        created_at=now,
+    ).on_conflict_do_nothing(index_elements=[events.c.dedup_key]))
+    return True
 
 
 def _publish_page(connection: Connection, job: dict[str, Any], snapshot: dict[str, Any], *, max_pages: int) -> str:
     rows = snapshot["payload"]
     if not isinstance(rows, list) or len(rows) > 200:
         raise ValueError("Invalid bootstrap history page")
+    connection.execute(select(profiles.c.id).where(
+        profiles.c.id == job["profile_id"],
+    ).with_for_update()).scalar_one()
     profile = connection.execute(select(profiles.c.original_linked_at).where(profiles.c.id == job["profile_id"])).mappings().one()
     linked_at = profile["original_linked_at"]
     floor = linked_at - timedelta(days=90)
@@ -158,6 +246,7 @@ def _publish_page(connection: Connection, job: dict[str, Any], snapshot: dict[st
         ))
     if finished:
         _select_initial_candidates(connection, job["profile_id"])
+        settle_bootstrap(connection, job["profile_id"])
         finish(connection, job)
         return "COMPLETE"
     if pages >= max_pages:

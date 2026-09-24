@@ -1,13 +1,18 @@
 from datetime import timedelta
+from uuid import uuid4
 
 import httpx
 from app.core.config import Settings
 from app.tracker import bootstrap as search
 from app.tracker.jobs import claim
 from app.tracker.schema import (
+    account_matches,
     bootstrap,
     bootstrap_search_items,
+    coverage,
+    events,
     ingest_jobs,
+    match_players,
     matches,
     provider_calls,
 )
@@ -193,3 +198,58 @@ async def test_ineligible_candidate_refills_only_its_mode_until_eligible_target(
         ))) == {101, 102, 103}
         batches = c.scalars(select(ingest_jobs.c.payload).where(ingest_jobs.c.job_type == "HISTORICAL_BATCH")).all()
         assert any(batch["match_ids"] == [31] for batch in batches)
+
+
+async def test_bootstrap_completion_waits_for_analyses_and_coverage_then_emits_once(database, redis_client):
+    profile_id, job_id = setup(database)
+    gate = gate_for(redis_client, "opendota")
+    stamp = int((NOW - timedelta(days=2)).timestamp())
+    page = [
+        {"match_id": 77, "start_time": stamp, "game_mode": 22},
+        {"match_id": 78, "start_time": int((NOW - timedelta(days=91)).timestamp()), "game_mode": 22},
+    ]
+    job = claim_page(database, job_id)
+    assert await search.search_bootstrap_page(database, gate, Settings(), job_id=job_id,
+        lease_token=job["lease_token"], transport=httpx.MockTransport(lambda _: httpx.Response(200, json=page))) == "COMPLETE"
+
+    with database.begin() as c:
+        c.execute(match_players.insert(), [dict(match_id=77, player_slot=slot, hero_id=slot + 1,
+            account_id=1001 if slot == 0 else None, team="RADIANT" if slot < 5 else "DIRE", summary={})
+            for slot in range(10)])
+        c.execute(account_matches.insert().values(profile_id=profile_id, match_id=77, account_id=1001,
+            player_slot=0, lifecycle="ANALYZING", mode="STANDARD", progression="STANDARD",
+            provider_started_at=NOW - timedelta(days=2), provider_source_match_id=77,
+            origin="BOOTSTRAP", effective_role="CARRY"))
+        assert search.settle_candidate(c, profile_id=profile_id, match_id=77,
+            eligible=True, reason="ELIGIBLE") == 0
+        assert not search.settle_bootstrap(c, profile_id)
+        c.execute(account_matches.update().where(account_matches.c.profile_id == profile_id,
+            account_matches.c.match_id == 77).values(lifecycle="UNAVAILABLE"))
+        c.execute(coverage.insert().values(id=str(uuid4()), profile_id=profile_id, mode="STANDARD",
+            evidence_class="REPLAY", start_at=NOW - timedelta(days=90), end_at=NOW,
+            state="PENDING", reason="REPLAY_PENDING"))
+        assert not search.settle_bootstrap(c, profile_id)
+        c.execute(coverage.update().where(coverage.c.profile_id == profile_id).values(state="GAP", reason="REPLAY_UNAVAILABLE"))
+        assert search.settle_bootstrap(c, profile_id)
+        assert search.settle_bootstrap(c, profile_id)
+
+    with database.connect() as c:
+        outcomes = dict(c.execute(select(bootstrap.c.mode, bootstrap.c.outcome).where(
+            bootstrap.c.profile_id == profile_id)).all())
+        assert outcomes == {"STANDARD": "READY_WITH_GAPS", "TURBO": "NO_MATCHES_FOUND"}
+        assert c.scalar(select(func.count()).select_from(events).where(
+            events.c.profile_id == profile_id, events.c.kind == "BOOTSTRAP_COMPLETED")) == 1
+
+
+async def test_empty_bootstrap_scope_completes_both_modes(database, redis_client):
+    profile_id, job_id = setup(database)
+    job = claim_page(database, job_id)
+    assert await search.search_bootstrap_page(database, gate_for(redis_client, "opendota"), Settings(),
+        job_id=job_id, lease_token=job["lease_token"],
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json=[]))) == "COMPLETE"
+    with database.connect() as c:
+        rows = c.execute(select(bootstrap).where(bootstrap.c.profile_id == profile_id)).mappings().all()
+        assert {row["outcome"] for row in rows} == {"NO_MATCHES_FOUND"}
+        assert all(row["completed_at"] is not None for row in rows)
+        assert c.scalar(select(func.count()).select_from(events).where(
+            events.c.profile_id == profile_id, events.c.kind == "BOOTSTRAP_COMPLETED")) == 1
