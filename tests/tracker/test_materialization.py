@@ -89,7 +89,10 @@ def test_cross_provider_conflict_is_persisted_without_overwriting_either_source(
         historical["players"][0]["kills"] += 1
         sz_id = save(c, {"data": {"player": {"matches": [historical]}}}, "stratz")
         result = materialize_snapshot(c, snapshot_id=sz_id, match_id=MATCH_ID)
-        assert c.scalar(select(matches.c.quarantined_fields)) == ["players.0.values.kills"]
+        quarantined = c.scalar(select(matches.c.quarantined_fields))
+        assert "players.0.values.kills" in quarantined
+        assert "players.7.series.net_worth.420" in quarantined
+        assert all(not path.endswith((".600", ".1200")) for path in quarantined if ".series." in path)
         canonical = c.scalar(select(match_players.c.summary).where(match_players.c.player_slot == 0))
         assert canonical["values"]["kills"] == raw()["players"][0]["kills"]
         features = c.scalar(select(derived_features.c.features).where(

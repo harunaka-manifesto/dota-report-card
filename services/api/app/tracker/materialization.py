@@ -27,7 +27,7 @@ from app.tracker.normalization import (
     stratz_summary,
     summary_disagreements,
 )
-from app.tracker.replay import REPLAY_VERSION, replay_checkpoints
+from app.tracker.replay import REPLAY_VERSION, quarantine_checkpoint_conflicts, replay_checkpoints
 from app.tracker.role_evidence import ROLE_EVIDENCE_VERSION, replay_role_inputs
 from app.tracker.roles import persist_positions, persist_summary_positions
 from app.tracker.schema import derived_features, match_players, matches, snapshots
@@ -99,6 +99,15 @@ def materialize_snapshot(connection: Connection, *, snapshot_id: str, match_id: 
             select(match_players.c.summary).where(match_players.c.match_id == match_id)
         ).scalars())}
         conflicts = sorted(set(match["quarantined_fields"]) | set(summary_disagreements(canonical, summary)))
+        first_source = connection.scalar(select(derived_features.c.provenance["snapshot_id"].astext).where(
+            derived_features.c.match_id == match_id, derived_features.c.player_slot == 0,
+        ).order_by(derived_features.c.created_at, derived_features.c.inputs_digest).limit(1))
+        if first_source is not None and first_source != snapshot_id:
+            original = connection.execute(select(snapshots).where(snapshots.c.id == first_source)).mappings().one()
+            original_raw = _match_payload(dict(original), match_id)
+            original_replay = replay_checkpoints(original_raw, cast(Provider, original["provider"]))
+            if original_replay["duration_seconds"] == checkpoints["duration_seconds"]:
+                conflicts = sorted(set(conflicts) | set(quarantine_checkpoint_conflicts(original_replay, checkpoints)["conflicts"]))
         connection.execute(matches.update().where(matches.c.match_id == match_id).values(quarantined_fields=conflicts))
 
     provenance = {
