@@ -224,3 +224,13 @@ denial. Missing assists or level timing remain unavailable. STRATZ operation 1.1
 reports. Stored 1.0.0 snapshots remain readable, with these measurements unavailable
 when the fields are absent. Retained raw death durations can disagree across providers or be incomplete;
 the adapter preserves these facts without inventing intervals or reconciling values.
+
+`history.py` computes previous-only median baselines and current Personal Best
+ownership from explicit eligible observations. It keeps the 20-prior baseline
+window separate from the full PB history, honours the five-prior gate and strict
+ties, and never selects another role, bucket or metric. The caller supplies
+entitled, finalized observations in chronology order and controls whether a
+new live PB may celebrate. The PostgreSQL reader selects only finalized observations through active
+analysis pointers and applies current Free/Pro history scope. Ordered
+finalization, atomic entitlement revision and publication remain required
+before this calculation is exposed.

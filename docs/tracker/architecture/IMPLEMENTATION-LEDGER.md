@@ -503,3 +503,19 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   After the additive query revision: **62 passed, 0 failed, 0 skipped**, including
   older-operation materialization, provenance, event formulas and STRATZ clients.
   Ruff, mypy (19 runtime/storage modules), docs (474 links) and whitespace pass.
+
+### Progression history mechanics
+
+- Added deterministic previous-only baseline and Personal Best calculations.
+  Baseline selects the last 20 eligible measured priors in the exact bucket,
+  role and metric identity; median needs five. PB searches the entire supplied
+  eligible measured history, retains the earliest source on ties, honours the
+  lower-is-better metrics and only marks a strict live improvement when the
+  caller explicitly enables celebration.
+- Focused tests cover the sixth-observation gate, chronology and match identity,
+  Standard/Turbo and role separation, 20-vs-all-history distinction, N/A,
+  ties, invalid values and silent rebuild. A PostgreSQL reader includes only
+  READY active-analysis rows of the matching methodology, with Free bootstrap
+  and post-link scope or Pro retained history. **6 passed, 0 failed, 0 skipped**
+  including real PostgreSQL. Ordered publication, notifications and atomic
+  entitlement revision switching remain open.
