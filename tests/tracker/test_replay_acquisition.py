@@ -54,7 +54,7 @@ def due(database):
             now = c.execute(select(func.clock_timestamp())).scalar_one()
             cursor["next_poll_at"] = (now - timedelta(seconds=1)).isoformat()
         c.execute(ingest_jobs.update().where(ingest_jobs.c.id == row["id"]).values(run_after=func.clock_timestamp(), cursor=cursor))
-        return claim(c, priority=1)
+        return claim(c, priority=row["priority"])
 
 
 async def run(database, gate, job, handler, policy=POLICY):

@@ -31,7 +31,7 @@ def next_page(database, job_id):
         # Other P0 summary jobs must not obscure the sync claim in this unit test.
         c.execute(ingest_jobs.update().where(ingest_jobs.c.id != job_id).values(run_after=func.clock_timestamp() + timedelta(days=1)))
         c.execute(ingest_jobs.update().where(ingest_jobs.c.id == job_id).values(run_after=func.clock_timestamp()))
-        return claim(c, priority=0)
+        return claim(c, priority=c.scalar(select(ingest_jobs.c.priority).where(ingest_jobs.c.id == job_id)))
 
 
 async def run(database, gate, job, handler, **kwargs):

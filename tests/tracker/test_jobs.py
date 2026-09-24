@@ -87,3 +87,22 @@ def test_checkpoint_survives_redelivery_and_failures_are_bounded(database):
         assert c.execute(select(ingest_jobs.c.state)).scalar_one() == "FAILED"
         with pytest.raises(ValueError, match="different work"):
             enqueue(c, dedup_key="history", job_type="HISTORY", priority=3, payload={"different": True})
+
+
+@pytest.mark.parametrize('priority', [0, 1, 2, 3])
+@pytest.mark.parametrize('failure', [False, True])
+def test_retry_lane_is_separate_without_promoting_history_or_normal_waits(database, priority, failure):
+    with database.begin() as c:
+        job_id = enqueue(c, dedup_key='retry', job_type='SUMMARY', priority=priority, payload={})
+        job = claim(c, priority=priority)
+    with authorized_job(database, job_id, job['lease_token']) as (c, row):
+        reschedule(c, row, delay_seconds=0, error='SOURCE_UNAVAILABLE' if failure else 'AWAITING_REPLAY', failure=failure, cursor={'offset': 50})
+    expected = max(2, priority) if failure else priority
+    with database.begin() as c:
+        current = c.execute(select(ingest_jobs)).mappings().one()
+        assert current['priority'] == expected
+        assert current['cursor'] == {'offset': 50}
+        assert current['attempts'] == int(failure)
+        if expected != priority:
+            assert claim(c, priority=priority) is None
+        assert claim(c, priority=expected)['id'] == job_id

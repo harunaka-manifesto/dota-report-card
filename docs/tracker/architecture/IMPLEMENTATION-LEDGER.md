@@ -396,3 +396,23 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   requires two stored jobs to finish and the duplicate wake to become idle.
 - Final affected worker rerun after that correction: **6 passed, 0 failed, 0 skipped**.
   Ruff, mypy (15 runtime/storage modules), docs-check (474 links) and whitespace pass.
+
+
+### Retry-lane and quota-reserve checkpoint
+
+- The shared `jobs.reschedule` now moves actual P0/P1 failures to P2. Existing P2
+  stays P2 and historical P3 never gets promoted. Quota waits, replay schedules and
+  page continuation preserve priority and do not spend the failure-attempt budget.
+- ControlledTransport forwards an internal recovery flag to the existing provider
+  gate. Summary, replay and sync handlers derive it from persisted P2 priority and
+  a subsequent attempt. Recovery can use the reserve share but cannot bypass a
+  provider window, empty read/processing lane, pacing, circuit or credential block.
+- Regression coverage spans every priority and failure/wait combination, retained
+  cursors and attempt counts, plus an actual failed summary retry that completes
+  with protected quota while ordinary admission is denied. All acquisition/worker
+  and legacy compatibility checks are rerun against local PostgreSQL and Redis.
+- No schema or public report contract changes; no live calls, push, merge or deployment.
+- Combined verification: **139 passed, 0 failed, 0 skipped** across tracker (real
+  PostgreSQL/Redis/Celery), legacy provider clients, migration units and report
+  contracts; two existing deprecation warnings. Ruff, mypy (14 tracker modules),
+  docs-check (474 links) and whitespace pass.

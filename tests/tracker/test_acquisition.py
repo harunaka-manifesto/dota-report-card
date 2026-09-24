@@ -34,7 +34,7 @@ def prepare(database):
 def retry(database):
     with database.begin() as c:
         c.execute(ingest_jobs.update().where(ingest_jobs.c.job_type == "SUMMARY").values(run_after=func.clock_timestamp()))
-        return claim(c, priority=0)
+        return claim(c, priority=2)
 
 
 async def run(database, gate, job, handler, **kwargs):
@@ -179,3 +179,22 @@ async def test_duplicate_delivery_does_not_invalidate_running_worker(database, r
     assert calls == 1
     with database.connect() as c:
         assert c.scalar(select(ingest_jobs.c.state).where(ingest_jobs.c.id == job["id"])) == "COMPLETE"
+
+
+async def test_source_retry_moves_to_p2_and_can_use_protected_recovery_reserve(database, redis_client):
+    job = prepare(database)
+    gate = gate_for(redis_client, "opendota")
+    assert await run(database, gate, job, lambda _: httpx.Response(503)) == "DEFERRED"
+    with database.begin() as c:
+        assert claim(c, priority=0) is None
+        assert c.scalar(select(ingest_jobs.c.priority)) == 2
+    gate.observe({'x-ratelimit-limit-hour': '100', 'x-ratelimit-remaining-hour': '5'}, status=200)
+    from app.tracker.provider_control import ProviderDeferred
+    with pytest.raises(ProviderDeferred, match='QUOTA_EXHAUSTED'):
+        gate.acquire()
+    resumed = retry(database)
+    assert resumed['attempts'] == 2
+    assert await run(database, gate, resumed, lambda _: httpx.Response(200, json=raw())) == "COMPLETE"
+    with database.connect() as c:
+        assert c.scalar(select(matches.c.evidence_state)) == 'SUMMARY_READY'
+        assert c.scalar(select(func.count()).select_from(provider_calls)) == 2

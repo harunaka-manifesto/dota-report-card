@@ -128,6 +128,8 @@ def reschedule(
     if cursor is not None:
         canonical_json(cursor)
         values["cursor"] = cursor
+    if failure and job["priority"] < 2:
+        values["priority"] = 2
     if not failure:
         values["attempts"] = max(0, job["attempts"] - 1)
     connection.execute(ingest_jobs.update().where(

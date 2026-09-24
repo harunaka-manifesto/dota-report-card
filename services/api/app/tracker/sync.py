@@ -128,7 +128,7 @@ async def sync_account_page(database: Engine, gate: ProviderGate, settings: Sett
                         raise ProviderDeferred("SYNC_STEP_ALREADY_CLAIMED", 0.1)
                     connection.execute(ingest_jobs.update().where(ingest_jobs.c.id == job_id).values(cursor={**cursor, "request_days": days, "request_lease_token": lease_token}))
 
-            controlled = ControlledTransport(gate, database, transport=transport, before_send=before_send, job_id=job_id)
+            controlled = ControlledTransport(gate, database, transport=transport, before_send=before_send, job_id=job_id, recovery=job["priority"] == 2 and job["attempts"] > 1)
             try:
                 async with httpx.AsyncClient(transport=controlled) as http:
                     await OpenDotaClient(settings, http_client=http).get_history_page(job["account_id"], offset=offset, days=days)

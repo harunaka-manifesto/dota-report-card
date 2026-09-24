@@ -54,9 +54,11 @@ class ControlledTransport(httpx.AsyncBaseTransport):
         deadline_seconds: float = 30, max_response_bytes: int = 16 * 1024 * 1024,
         before_send: Callable[[], None] | None = None,
         job_id: str | None = None,
+        recovery: bool = False,
     ):
         if not math.isfinite(deadline_seconds) or deadline_seconds <= 0 or max_response_bytes <= 0:
             raise ValueError("Invalid acquisition bounds")
+        self.recovery = recovery
         self.job_id = job_id
         self.before_send = before_send
         self.gate = gate
@@ -77,7 +79,7 @@ class ControlledTransport(httpx.AsyncBaseTransport):
             if not await asyncio.to_thread(lock.acquire):
                 raise ProviderDeferred("SINGLEFLIGHT_BUSY", 1)
         try:
-            await asyncio.to_thread(self.gate.acquire, processing=processing)
+            await asyncio.to_thread(self.gate.acquire, processing=processing, recovery=self.recovery)
             if self.before_send is not None:
                 await asyncio.to_thread(self.before_send)
             return await self._attempt(request, operation, version, match_id, processing)

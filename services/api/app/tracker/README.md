@@ -154,6 +154,13 @@ cursors. Never clear provider state as a way to bypass quotas.
 
 `queue_metrics` reports due depth and oldest age per lane; future replay waits do not
 inflate queue latency. Worker logs include priority and bounded outcome codes. Complete
-metrics export/alarms, historical handlers and retry-priority demotion remain pending.
+metrics export/alarms and historical handlers remain pending.
 The current dispatcher executes SYNC, SUMMARY, LINK_MATCH and REPLAY only; this is not
 yet the complete analytical/finalization pipeline.
+
+Failures from P0/P1 move to P2 in the shared rescheduler. Normal page continuation,
+quota deferral and scheduled replay waits do not count as failures or change lanes;
+P3 retries stay in P3. A subsequent P2 attempt may draw on the reserved quota share,
+while all provider windows, lane capacity, pacing and circuit checks still apply.
+This recovery permission is derived from persisted job priority/attempt count, not
+from a client request.

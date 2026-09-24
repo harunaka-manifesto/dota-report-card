@@ -94,7 +94,7 @@ async def acquire_fresh_summary(
                         cursor={**cursor, "acquisition_lease_token": lease_token},
                     ))
 
-            controlled = ControlledTransport(gate, database, transport=transport, before_send=before_send, job_id=job_id)
+            controlled = ControlledTransport(gate, database, transport=transport, before_send=before_send, job_id=job_id, recovery=job["priority"] == 2 and job["attempts"] > 1)
             async with httpx.AsyncClient(transport=controlled) as http:
                 payload = await OpenDotaClient(settings, http_client=http).refresh_match(job["match_id"])
             opendota_summary(payload)

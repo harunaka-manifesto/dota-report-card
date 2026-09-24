@@ -149,7 +149,7 @@ async def acquire_fresh_replay(
                 if changed.rowcount != 1:
                     raise ProviderDeferred("EVIDENCE_CHANGED", 0.1)
 
-        controlled = ControlledTransport(gate, database, transport=transport, before_send=before_send, job_id=job_id)
+        controlled = ControlledTransport(gate, database, transport=transport, before_send=before_send, job_id=job_id, recovery=job["priority"] == 2 and job["attempts"] > 1)
         async with httpx.AsyncClient(transport=controlled) as http:
             if not submitted:
                 await OpenDotaParseClient(settings, http_client=http).request_parse(job["match_id"])
