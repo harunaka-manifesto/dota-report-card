@@ -241,3 +241,11 @@ an explicit positive competitive-integrity verdict. A missing verdict yields
 `NONE(INTEGRITY_UNKNOWN)` while factual Match Detail and available measurements
 remain possible. A source-backed integrity verifier is still needed; neither
 replay absence nor a missing metric is an automatic ineligibility reason.
+
+`historical.py` consumes one retained STRATZ deep-batch snapshot inside a
+current profile/job fence. It validates requested IDs and tracked roster
+membership, materializes per-match source features, selects parsed replay
+readiness, queues profile-specific link work, and records provider-specific
+missing IDs without declaring the match nonexistent. A later returned row can
+replace that source-missing acquisition. The network batch worker, enumeration,
+coverage settlement and terminal source resolution are still to be connected.

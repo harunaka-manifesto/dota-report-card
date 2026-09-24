@@ -532,3 +532,17 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   Replay availability and individual metric availability are separate axes.
 - Focused eligibility test: **1 passed, 0 failed, 0 skipped**. No finalization
   or public API claim rests on this classifier yet.
+
+### Retained historical batch materialization
+
+- Added a consumer for recorded STRATZ deep batches. It validates operation
+  identity, requested match IDs and tracked roster membership before global
+  materialization and profile link scheduling. Parsed historical evidence can
+  make a shared match REPLAY_READY. Absent IDs record SOURCE_MISSING for that
+  source only; later retained evidence can recover them.
+- PostgreSQL verification: **2 passed, 0 failed, 0 skipped**. Tests cover
+  duplicate delivery, one omitted ID, later recovery, link deduplication and
+  rejection of duplicate/unrequested rows or unproven roster membership.
+- This is the stored-evidence half of historical acquisition. Provider fetch,
+  batch-size fallback, account history enumeration, source-gap settlement and
+  bootstrap completion are still pending. No live STRATZ calls were made.
