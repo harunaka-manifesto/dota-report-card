@@ -188,6 +188,11 @@ def create_app(
         },
         steam_callback_url=os.getenv("TRACKER_STEAM_CALLBACK_URL"),
     ))
+    from app.tracker.operations import create_operations_app
+
+    app.mount("/internal/tracker", create_operations_app(
+        settings, token=os.getenv("TRACKER_INTERNAL_TOKEN"),
+    ))
     return app
 
 

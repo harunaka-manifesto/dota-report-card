@@ -714,3 +714,8 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 
 - A switch-specific Redis challenge namespace now prevents a normal first-link assertion from authorizing a switch. The mobile API exposes account-wide cooldown/import preflight plus idempotent Steam switch start/completion; completion verifies the exact callback and one-use nonce through the server-side assertion verifier before the account lifecycle transaction archives the old profile and starts a new bootstrap. Replaying the same idempotency key returns the same result without another switch. Target ownership and same-account checks remain inside the locked transaction.
 - Focused mobile/Steam/lifecycle PostgreSQL/Redis tests: **21 passed, 0 failed, 0 skipped**. Ruff and mypy pass. A production Steam callback configuration is still required; tests used a fake verifier and made no live Steam call. Pro backfill after the new Free foundation and full mobile/E2E verification remain open.
+
+### Isolated operations readout
+
+- Added a separately mounted `/internal/tracker` FastAPI application requiring a configured operations token. Without a token it returns 503; invalid tokens return 401. It reads database-backed P0–P3 due depth/age and failures, provider calls/errors/429s/rate units, coverage intervals and summary/detailed/analysis P50/P90/P99 readiness spans. Its schema is separate from both mobile and legacy `/v1`, and it performs no provider call.
+- Local PostgreSQL operations plus legacy API contract tests: **5 passed, 0 failed, 0 skipped**. Ruff and mypy pass. This is partial Phase H observability: retry-reason distributions, breaker state, cost attribution and a controlled worker deployment/non-starvation proof remain to be completed.
