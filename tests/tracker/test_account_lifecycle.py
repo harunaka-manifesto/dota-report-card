@@ -25,7 +25,7 @@ from app.tracker.schema import (
     switches,
     users,
 )
-from sqlalchemy import insert, select
+from sqlalchemy import func, insert, select, update
 
 from .test_schema import NOW, identity, summary
 
@@ -102,16 +102,36 @@ def test_switch_preflight_reports_cooldown_history_and_owned_target(database):
                              verified_target_account_id=4004, now=current + timedelta(days=100))
 
 
-def test_switch_back_to_archived_identity_has_explicit_schema_block(database):
-    user_id, _ = identity(database, account_id=1001)
+def test_switch_back_to_archived_identity_creates_new_isolated_profile(database):
+    user_id, original_profile = identity(database, account_id=1001)
     current = datetime.now(UTC)
     switch_steam_profile(database, user_id=user_id, verified_target_account_id=2002, now=current)
+    assert switch_preflight(database, user_id=user_id, verified_target_account_id=1001,
+                            now=current + timedelta(days=91))["cause"] == "HISTORICAL_WORK_RUNNING"
+    with database.begin() as connection:
+        active_id = connection.scalar(select(profiles.c.id).where(
+            profiles.c.user_id == user_id, profiles.c.active.is_(True),
+        ))
+        connection.execute(update(ingest_jobs).where(
+            ingest_jobs.c.job_type == "BOOTSTRAP_SEARCH", ingest_jobs.c.user_id == user_id,
+        ).values(state="COMPLETE"))
+        connection.execute(update(bootstrap).where(
+            bootstrap.c.profile_id == active_id,
+        ).values(search_finished=True, completed_at=func.clock_timestamp(), outcome="NO_MATCHES_FOUND"))
     result = switch_preflight(database, user_id=user_id, verified_target_account_id=1001,
                               now=current + timedelta(days=91))
-    assert result["cause"] == "ARCHIVED_TARGET_REQUIRES_PROFILE_VERSIONING"
-    with pytest.raises(AccountLifecycleError, match="ARCHIVED_TARGET_REQUIRES_PROFILE_VERSIONING"):
-        switch_steam_profile(database, user_id=user_id,
-                             verified_target_account_id=1001, now=current + timedelta(days=91))
+    assert result["available"] is True
+    relinked = switch_steam_profile(database, user_id=user_id,
+                                   verified_target_account_id=1001, now=current + timedelta(days=91))
+    assert relinked != original_profile
+    with database.connect() as connection:
+        versions = connection.execute(select(profiles.c.id, profiles.c.active).where(
+            profiles.c.user_id == user_id, profiles.c.account_id == 1001,
+        )).all()
+        assert set(versions) == {(original_profile, False), (relinked, True)}
+        assert connection.execute(select(bootstrap.c.mode).where(
+            bootstrap.c.profile_id == relinked,
+        )).scalars().all() == ["STANDARD", "TURBO"]
 
 
 def test_deletion_immediately_fences_and_removes_private_profile_state(database):

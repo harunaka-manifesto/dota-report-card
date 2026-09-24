@@ -11,6 +11,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from app.tracker.bootstrap import request_bootstrap_search
 from app.tracker.schema import (
+    bootstrap,
     devices,
     dota_accounts,
     history_operations,
@@ -53,13 +54,6 @@ def _switch_block(
     )).scalar_one_or_none()
     if owner is not None and owner != user_id:
         return "TARGET_OWNED_BY_ANOTHER_ACCOUNT", 0, active["id"]
-    prior = connection.execute(select(profiles.c.id).where(
-        profiles.c.user_id == user_id, profiles.c.account_id == target_account_id,
-    )).scalar_one_or_none()
-    if prior is not None:
-        # tracker_profiles currently has UNIQUE(user_id, account_id); reusing an
-        # archived profile would expose its old analytical history as new state.
-        return "ARCHIVED_TARGET_REQUIRES_PROFILE_VERSIONING", 0, active["id"]
     last_switch = connection.execute(select(func.max(switches.c.completed_at)).where(
         switches.c.user_id == user_id,
     )).scalar_one()
@@ -76,7 +70,10 @@ def _switch_block(
         ingest_jobs.c.job_type.in_(_HISTORICAL_JOB_TYPES),
         ingest_jobs.c.state.in_(("PENDING", "RUNNING")),
     ).limit(1)).scalar_one_or_none()
-    if operation is not None or job is not None:
+    unsettled = connection.execute(select(bootstrap.c.mode).where(
+        bootstrap.c.profile_id == active["id"], bootstrap.c.completed_at.is_(None),
+    ).limit(1)).scalar_one_or_none()
+    if operation is not None or job is not None or unsettled is not None:
         return "HISTORICAL_WORK_RUNNING", 0, active["id"]
     return None, 0, active["id"]
 

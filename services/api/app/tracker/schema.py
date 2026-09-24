@@ -109,7 +109,6 @@ profiles = Table(
     Column("active_revision", BigInteger, nullable=False, server_default="0"),
     Column("active_scope", String(8), nullable=False, server_default="FREE"),
     Column("favourite_hero_id", Integer),
-    UniqueConstraint("user_id", "account_id"),
     UniqueConstraint("id", "account_id"),
     UniqueConstraint("id", "user_id", name="uq_tracker_profiles_id_user"),
     CheckConstraint("active_scope IN ('FREE', 'PRO')", name="ck_tracker_scope"),
