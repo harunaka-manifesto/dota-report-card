@@ -62,7 +62,7 @@ Only an empty terminal page advances the completed boundary; errors and page lim
 leave the previous boundary intact. Missing source chronology remains null until full
 summary acquisition. Successful call rows bind job, request and immutable snapshot,
 so a publication retry reuses that exact page without another fetch. Foreground
-authenticated routes, Celery dispatch, complete analysis and mobile integration remain pending.
+authenticated routes, complete analysis and mobile integration remain pending.
 
 ## Storage boundary
 
@@ -125,3 +125,35 @@ and persisted report reads, concurrent ownership and job identity, roster comple
 terminal evidence, immutable sources, retention isolation, finite numbers, missing versus
 measured zero, and `FOR UPDATE SKIP LOCKED`. A downgrade removes tracker data and is tested
 only in disposable schemas. Applying migrations to production requires separate permission.
+
+## Priority workers
+
+After local migrations, run `make tracker-worker PRIORITY=0` through `PRIORITY=3`
+in four separate processes, plus **one** `make tracker-beat`. The tracker Celery
+app is separate from the live report worker; do not change the report worker command.
+Never put P3 and P0/P1 queues on the same worker. Start with one process per lane;
+increase lane concurrency only from observed queue latency.
+
+Beat publishes expiring wake signals every five seconds. Each worker claims one due
+PostgreSQL job from its own priority with `SKIP LOCKED`, runs one bounded step and
+persists its result. Successful steps wake their lane immediately when more work is
+due; the five-second sweep is recovery, not a throughput cap. An omitted/expired delivery is recovered by the next wake;
+an interrupted job is recovered after its 120-second lease. Celery has late acks,
+worker-loss redelivery, prefetch 1, a 300-second broker visibility timeout and 90/110
+second soft/hard limits. Replay waits remain `run_after` timestamps, never long
+broker countdowns. Signals may duplicate; the database lease/step fences still apply.
+
+`TRACKER_*` knobs in `.env.example` are operational tuning, not calibrated product
+parameters. P3 pauses before claiming when P1 due depth/age crosses its threshold,
+when either provider's named quota window or read/processing lane exceeds configured
+utilization, or when quota is unknown. Under the same pressure, P2 gets one admission
+per configured interval. P0/P1 do not share this pause gate. Provider rate admission
+still applies to every physical request. To pause imports manually, set Redis key
+`<TRACKER_NAMESPACE>:pause:p3` to `1`; delete that key to resume. Do not reset job
+cursors. Never clear provider state as a way to bypass quotas.
+
+`queue_metrics` reports due depth and oldest age per lane; future replay waits do not
+inflate queue latency. Worker logs include priority and bounded outcome codes. Complete
+metrics export/alarms, historical handlers and retry-priority demotion remain pending.
+The current dispatcher executes SYNC, SUMMARY, LINK_MATCH and REPLAY only; this is not
+yet the complete analytical/finalization pipeline.

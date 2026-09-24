@@ -111,6 +111,27 @@ class ProviderGate:
                 )
         self._change(apply)
 
+    def utilization(self) -> float | None:
+        """Worst current window use; unknown/disabled capacity cannot fund backfills."""
+        def read(state: dict[str, Any], now: float) -> float | None:
+            if state.get("disabled") or state.get("open_until", 0) > now:
+                return 1.0
+            buckets = state["buckets"]
+            if not buckets:
+                return None
+            for bucket in buckets.values():
+                self._refill(bucket, now)
+            values = []
+            process_share = self.policy.processing_share if self.provider == "opendota" else 0
+            for bucket in buckets.values():
+                if bucket.get("blocked_until", 0) > now:
+                    return 1.0
+                for lane, share in (("total", 1), ("reads", 1 - process_share), ("processing", process_share)):
+                    if share:
+                        values.append(max(0.0, 1 - bucket[lane] / (bucket["limit"] * share)))
+            return max(values)
+        return self._change(read)
+
     def observe(self, headers: Mapping[str, str], *, status: int | None, ip_blocked: bool = False) -> None:
         parsed = parse_rate_limit_headers(headers)
         # Default-window duration is ambiguous; only explicit named windows are used.

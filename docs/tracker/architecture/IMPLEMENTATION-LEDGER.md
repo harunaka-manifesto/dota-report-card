@@ -361,3 +361,38 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   provider clients, migration unit checks and report contracts on real PostgreSQL/Redis.
   Two existing deprecation warnings (Starlette, Alembic). Ruff, mypy (14 modules),
   docs-check (474 local links) and whitespace pass.
+
+### Dedicated priority-worker checkpoint
+
+- `tracker/worker.py` adds a separate Celery app for tracker jobs. Existing report
+  worker startup and deployment commands are unchanged. Four named queues require
+  separate worker processes; Make targets and `.env.example` document local setup.
+- Beat sends expiring five-second wake signals, not provider-polling jobs. Each wake
+  claims one due job in its priority from PostgreSQL. Existing SYNC, SUMMARY,
+  LINK_MATCH and REPLAY handlers run through their existing fences. Long replay waits
+  remain database timestamps. Late acks, worker-loss redelivery, prefetch 1 and
+  soft/hard limits complement the 120-second database lease.
+- P3 admission checks shared manual pause, due P1 depth/age and observed provider
+  quota utilization before claiming. Both total and separate read/processing lanes
+  matter: spare total capacity cannot hide a nearly exhausted read lane. Unknown
+  quotas pause P3. P2 receives a reduced admission rate under the same pressure;
+  P0/P1 have dedicated workers and bypass this backpressure gate, while their actual
+  provider requests still require rate admission.
+- Queue metrics exclude scheduled future work from latency; worker logs expose
+  priority/outcome. Full telemetry export/alarms, retry demotion and historical/
+  analytical handlers remain pending; G-6 and the full goal are not closed.
+- Tests exercise P1 depth/age pressure, provider lane pressure, P3 pause/resume
+  without losing stored work, handler routing and an actual Redis-backed Celery
+  worker consuming duplicate wake messages. Initial four tests passed. The initial
+  combined-run process handle disappeared before its result was retrieved; it is
+  not counted as passing. A replacement combined run was launched.
+- No new live provider calls, push, merge or deployment.
+- Replacement combined run: **130 passed, 0 failed, 0 skipped**, two existing
+  deprecation warnings. This includes real PostgreSQL, Redis and Celery delivery,
+  legacy provider clients, migration unit tests and report contracts.
+- Follow-up correction: completing a step now immediately wakes its lane when more
+  work is due, avoiding a fixed one-job-per-five-seconds throughput ceiling. The
+  periodic sweep remains the lost-message recovery path. Expanded Celery test
+  requires two stored jobs to finish and the duplicate wake to become idle.
+- Final affected worker rerun after that correction: **6 passed, 0 failed, 0 skipped**.
+  Ruff, mypy (15 runtime/storage modules), docs-check (474 links) and whitespace pass.

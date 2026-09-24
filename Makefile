@@ -79,3 +79,11 @@ docs-check:
 
 hero-knowledge-refresh:
 	$(PYTHON) -m scripts.hero_knowledge.cli refresh --force-refresh
+
+# Run each priority in its own terminal/process. Never combine P0/P1 with P3.
+tracker-worker:
+	@test "$(PRIORITY)" = 0 -o "$(PRIORITY)" = 1 -o "$(PRIORITY)" = 2 -o "$(PRIORITY)" = 3 || (echo "PRIORITY must be 0, 1, 2 or 3" && exit 1)
+	uv run celery -A app.tracker.worker:celery_app worker -Q tracker-p$(PRIORITY) -n tracker-p$(PRIORITY)@%h --concurrency=1 --loglevel=INFO
+
+tracker-beat:
+	uv run celery -A app.tracker.worker:celery_app beat --loglevel=INFO
