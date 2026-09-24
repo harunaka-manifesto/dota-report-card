@@ -17,6 +17,7 @@ from app.storage.database import check_database_revision, create_database_engine
 from app.tracker.acquisition import acquire_fresh_summary
 from app.tracker.bootstrap import search_bootstrap_page
 from app.tracker.historical import acquire_historical_batch
+from app.tracker.historical_summary import acquire_historical_summary
 from app.tracker.jobs import StaleJob, authorized_job, claim, reschedule
 from app.tracker.linking import complete_link_job, complete_role_job
 from app.tracker.provider_control import ProviderGate
@@ -96,6 +97,8 @@ async def run_one(database: Engine, redis: Redis, settings: Settings, *, priorit
         if job["job_type"] == "HISTORICAL_BATCH":
             historical_gate = ProviderGate(redis, namespace=policy.namespace, provider="stratz")
             return await acquire_historical_batch(database, historical_gate, settings, **args, transport=transport)
+        if job["job_type"] == "HISTORICAL_SUMMARY":
+            return await acquire_historical_summary(database, gate, settings, **args, transport=transport)
         if job["job_type"] == "BOOTSTRAP_SEARCH":
             return await search_bootstrap_page(database, gate, settings, **args, transport=transport)
         raise ValueError("Unsupported tracker job type")

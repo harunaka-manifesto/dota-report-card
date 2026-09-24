@@ -9,10 +9,16 @@ from sqlalchemy import Connection, Engine, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.config import Settings
-from app.core.errors import StratzGraphQLError, StratzRateLimited, StratzUnavailable
+from app.core.errors import (
+    ProfileUnavailable,
+    StratzGraphQLError,
+    StratzRateLimited,
+    StratzUnavailable,
+)
 from app.stratz.client import StratzClient
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
 from app.tracker.evidence import canonical_json
+from app.tracker.historical_summary import enqueue_historical_summary
 from app.tracker.jobs import authorized_job, enqueue, finish, reschedule
 from app.tracker.linking import enqueue_role_refinements
 from app.tracker.materialization import materialize_snapshot
@@ -39,6 +45,9 @@ def enqueue_historical_batch(connection: Connection, *, profile_id: str, match_i
     owner = connection.execute(select(profiles.c.generation, users.c.generation.label("user_generation")).join(
         users, users.c.id == profiles.c.user_id,
     ).where(profiles.c.id == profile_id)).mappings().one()
+    connection.execute(insert(matches).values([
+        {"match_id": match_id, "discovered_at": func.clock_timestamp()} for match_id in ids
+    ]).on_conflict_do_nothing())
     digest = hashlib.sha256(canonical_json(ids)).hexdigest()[:24]
     return enqueue(connection, dedup_key=f"historical:{profile_id}:{owner['generation']}:{owner['user_generation']}:{origin}:{digest}",
                    job_type="HISTORICAL_BATCH", priority=3, profile_id=profile_id,
@@ -204,6 +213,17 @@ async def acquire_historical_batch(database: Engine, gate: ProviderGate, setting
             with authorized_job(database, job_id, lease_token) as (connection, current):
                 reschedule(connection, current, delay_seconds=30, error="RATE_LIMITED", failure=False)
             return "DEFERRED"
+        except ProfileUnavailable:
+            with authorized_job(database, job_id, lease_token) as (connection, current):
+                for match_id in ids:
+                    connection.execute(insert(acquisitions).values(
+                        match_id=match_id, provider="stratz", operation=GET_TRACKER_MATCH_BATCH.name,
+                        operation_version=GET_TRACKER_MATCH_BATCH.version, state="SOURCE_MISSING",
+                        attempts=1, terminal_reason="PROFILE_UNAVAILABLE",
+                    ).on_conflict_do_nothing())
+                    enqueue_historical_summary(connection, profile_id=job["profile_id"], match_id=match_id, origin=origin)
+                finish(connection, current)
+            return "SOURCE_MISSING"
         except (StratzGraphQLError, StratzUnavailable, httpx.TransportError) as exc:
             with authorized_job(database, job_id, lease_token) as (connection, current):
                 if _split_for_size(connection, current, ids, origin, exc):
@@ -215,7 +235,10 @@ async def acquire_historical_batch(database: Engine, gate: ProviderGate, setting
             if snapshot_id is None:
                 raise InvalidEvidence("Historical response was not retained")
     with authorized_job(database, job_id, lease_token) as (connection, current):
-        materialize_historical_batch(connection, snapshot_id=snapshot_id, profile_id=job["profile_id"],
-                                     requested_ids=ids, origin=origin)
+        results = materialize_historical_batch(connection, snapshot_id=snapshot_id, profile_id=job["profile_id"],
+                                               requested_ids=ids, origin=origin)
+        for match_id, state in results.items():
+            if state in {"SOURCE_MISSING", "INVALID_SOURCE"}:
+                enqueue_historical_summary(connection, profile_id=job["profile_id"], match_id=match_id, origin=origin)
         finish(connection, current)
     return "COMPLETE"

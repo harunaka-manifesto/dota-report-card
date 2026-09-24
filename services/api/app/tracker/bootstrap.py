@@ -16,7 +16,13 @@ from app.tracker.historical import enqueue_historical_batch
 from app.tracker.jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from app.tracker.provider_control import ProviderDeferred, ProviderGate
 from app.tracker.provider_transport import ControlledTransport
-from app.tracker.schema import bootstrap, bootstrap_search_items, ingest_jobs, profiles, users
+from app.tracker.schema import (
+    bootstrap,
+    bootstrap_search_items,
+    ingest_jobs,
+    profiles,
+    users,
+)
 from app.tracker.sync import _saved_page
 
 

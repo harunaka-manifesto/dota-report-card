@@ -73,7 +73,12 @@ the cursor moves only with those writes. Search completion does not imply bootst
 completion. At search completion, the newest 30 candidates in each mode are
 selected atomically with separate P3 historical batches. These are acquisition
 candidates, not yet eligible matches. Replacing ineligible candidates, summary
-fallback, coverage settlement and product terminality remain pending.
+coverage settlement and product terminality remain pending. Historical batch
+requests create shared match stubs before a provider read, so an omitted ID
+can be recorded as a source gap. Missing/invalid STRATZ rows and private STRATZ
+history route to a separate P3 OpenDota summary attempt. Its private link is
+created only after canonical roster membership is proved; an OpenDota 404 is
+recorded as another source-specific absence.
 
 Historical deep batches split into two profile-fenced P3 jobs after an explicit
 size, cost or deadline rejection. A singleton still uses bounded retries, and

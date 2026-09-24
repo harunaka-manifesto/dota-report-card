@@ -4,7 +4,13 @@ import httpx
 from app.core.config import Settings
 from app.tracker import bootstrap as search
 from app.tracker.jobs import claim
-from app.tracker.schema import bootstrap, bootstrap_search_items, ingest_jobs, provider_calls
+from app.tracker.schema import (
+    bootstrap,
+    bootstrap_search_items,
+    ingest_jobs,
+    matches,
+    provider_calls,
+)
 from sqlalchemy import func, select
 
 from .test_provider_transport import gate_for
@@ -60,6 +66,7 @@ async def test_bootstrap_search_journals_both_modes_and_original_window(database
         assert c.scalar(select(ingest_jobs.c.state).where(ingest_jobs.c.id == job_id)) == "COMPLETE"
         batches = c.execute(select(ingest_jobs.c.payload).where(ingest_jobs.c.job_type == "HISTORICAL_BATCH")).scalars().all()
         assert {tuple(batch["match_ids"]) for batch in batches} == {(2,), (3,)}
+        assert set(c.scalars(select(matches.c.match_id))) == {2, 3}
         assert c.scalar(select(func.count()).select_from(provider_calls)) == 1
 
 
@@ -144,6 +151,7 @@ async def test_initial_selection_caps_each_mode_independently(database, redis_cl
         assert counts == {"STANDARD": 30, "TURBO": 7}
         selected = set(c.scalars(select(bootstrap_search_items.c.match_id).where(bootstrap_search_items.c.selected_at.is_not(None))))
         assert selected == set(range(1, 31)) | set(range(36, 43))
+        assert set(c.scalars(select(matches.c.match_id))) == selected
         batches = c.execute(select(ingest_jobs.c.payload).where(ingest_jobs.c.job_type == "HISTORICAL_BATCH")).scalars().all()
         assert {tuple(batch["match_ids"]) for batch in batches} == {tuple(range(1, 31)), tuple(range(36, 43))}
         assert all(batch["origin"] == "BOOTSTRAP" for batch in batches)

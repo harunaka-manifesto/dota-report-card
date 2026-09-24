@@ -608,3 +608,17 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   **176 passed**. Ruff and mypy pass. Filling
   vacancies left by ineligible or unavailable first-wave candidates and
   settling the per-mode outcomes are the next dependent work.
+
+### Historical summary fallback
+
+- Every requested historical ID now gets a shared match stub before STRATZ
+  acquisition, so omitted rows can retain SOURCE_MISSING evidence. Missing or
+  invalid deep rows and a private STRATZ history response enqueue a generation-
+  fenced P3 OpenDota summary job. The job reuses valid stored summary evidence,
+  records its own provider attempt, and only queues a private bootstrap link
+  after canonical roster membership is proved. An OpenDota 404 remains a
+  source-specific gap, not proof the player never played the match.
+- Mock-provider tests on PostgreSQL/Redis: **18 passed** across historical,
+  fallback and bootstrap modules; full tracker suite: **180 passed**. No live
+  calls. Per-mode eligibility/refill,
+  replay-unavailable state and outcome settlement remain pending.
