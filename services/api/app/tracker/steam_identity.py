@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import secrets
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Protocol
@@ -12,7 +13,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
 import httpx
-from sqlalchemy import Engine, select
+from sqlalchemy import Connection, Engine, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.tracker.bootstrap import request_bootstrap_search
@@ -212,7 +213,7 @@ def verify_steam_assertion(
 
 
 def complete_steam_link(
-    engine: Engine,
+    engine: Engine | Connection,
     redis: RedisLike,
     *,
     user_id: str,
@@ -239,7 +240,7 @@ def complete_steam_link(
 
 
 def attach_verified_steam_profile(
-    engine: Engine,
+    engine: Engine | Connection,
     *,
     user_id: str,
     account_id: int,
@@ -251,7 +252,8 @@ def attach_verified_steam_profile(
         raise SteamLinkError("invalid Dota account id")
     linked_at = now or datetime.now(UTC)
     profile_id = str(uuid4())
-    with engine.begin() as connection:
+    transaction = engine.begin() if isinstance(engine, Engine) else nullcontext(engine)
+    with transaction as connection:
         owner = connection.execute(
             select(users.c.state).where(users.c.id == user_id).with_for_update()
         ).scalar_one_or_none()

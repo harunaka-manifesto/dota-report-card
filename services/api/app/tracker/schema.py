@@ -192,6 +192,7 @@ account_matches = Table(
     metadata,
     Column("profile_id", String(36), primary_key=True),
     Column("match_id", ForeignKey(matches.c.match_id), primary_key=True),
+    Column("public_ref", String(36), nullable=False, unique=True, server_default=text("gen_random_uuid()::text")),
     Column("account_id", BigInteger, nullable=False),
     Column("player_slot", Integer, nullable=False),
     Column("lifecycle", String(32), nullable=False, server_default="WAITING_FOR_PROVIDER"),

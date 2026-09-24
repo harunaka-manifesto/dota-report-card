@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from collections.abc import Iterable
 from contextlib import asynccontextmanager
 from typing import Any, cast
@@ -175,6 +176,18 @@ def create_app(
         return JSONResponse(_health_response(payload), status_code=200 if payload["ready"] else 503)
 
     app.include_router(router)
+    from app.tracker.mobile_api import create_mobile_app
+
+    apple_audience = os.getenv("TRACKER_APPLE_AUDIENCE")
+    google_audience = os.getenv("TRACKER_GOOGLE_AUDIENCE")
+    app.mount("/mobile/v1", create_mobile_app(
+        settings,
+        audiences={
+            "apple": {apple_audience} if apple_audience else set(),
+            "google": {google_audience} if google_audience else set(),
+        },
+        steam_callback_url=os.getenv("TRACKER_STEAM_CALLBACK_URL"),
+    ))
     return app
 
 

@@ -6,6 +6,7 @@ import hashlib
 import json
 import secrets
 import time
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Protocol
@@ -15,7 +16,7 @@ import httpx
 import jwt
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from jwt.algorithms import RSAAlgorithm
-from sqlalchemy import Engine, delete, select, update
+from sqlalchemy import Connection, Engine, delete, select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from app.tracker.schema import identities, sessions, users
@@ -193,10 +194,10 @@ def login_with_identity_token(
     )
 
 
-def attach_identity(engine: Engine, user_id: str, identity: VerifiedIdentity) -> str:
+def attach_identity(engine: Engine | Connection, user_id: str, identity: VerifiedIdentity) -> str:
     """Attach a verified identity, refusing account merging on collision."""
 
-    with engine.begin() as connection:
+    with engine.begin() if isinstance(engine, Engine) else nullcontext(engine) as connection:
         target = connection.execute(
             select(users.c.state).where(users.c.id == user_id)
         ).scalar_one_or_none()
@@ -385,3 +386,18 @@ def authenticate_access_token(engine: Engine, token: str, *, now: datetime | Non
     if row.state != "ACTIVE" or row.user_generation != row.generation:
         raise AuthenticationError("account session is no longer active")
     return row.user_id
+
+
+def revoke_access_session(engine: Engine, token: str, *, now: datetime | None = None) -> None:
+    """Log out the presented session without revoking unrelated devices."""
+    current = now or datetime.now(UTC)
+    with engine.begin() as connection:
+        row = connection.execute(select(sessions.c.id, sessions.c.user_id).where(
+            sessions.c.access_hash == _token_hash(token),
+        ).with_for_update()).one_or_none()
+        if row is None:
+            raise AuthenticationError("access token is invalid")
+        user = connection.scalar(select(users.c.state).where(users.c.id == row.user_id))
+        if user != "ACTIVE":
+            raise AuthenticationError("account is unavailable")
+        connection.execute(update(sessions).where(sessions.c.id == row.id).values(revoked_at=current))

@@ -19,6 +19,7 @@ from app.tracker.authentication import (
     authenticate_access_token,
     create_user_session,
     login_with_identity_token,
+    revoke_access_session,
     rotate_refresh_token,
     verify_identity_token,
 )
@@ -179,3 +180,13 @@ def test_email_sender_interface_has_a_local_fake() -> None:
     sender = FakeEmailSender()
     sender.send_sign_in_code("player@example.test", "123456")
     assert sender.messages == [("player@example.test", "123456")]
+
+
+def test_logout_revokes_only_the_presented_session(database) -> None:
+    identity = VerifiedIdentity("google", "https://accounts.google.com", "logout-user", None)
+    user_id, first = create_user_session(database, identity)
+    _, second = create_user_session(database, identity)
+    revoke_access_session(database, first.access_token)
+    with pytest.raises(AuthenticationError):
+        authenticate_access_token(database, first.access_token)
+    assert authenticate_access_token(database, second.access_token) == user_id
