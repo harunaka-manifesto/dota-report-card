@@ -84,9 +84,10 @@ def complete_link_job(database: Engine, *, job_id: str, lease_token: str, replay
                 effective_role=role["role"], leaver_status=player["summary"].get("leaver_status"),
                 integrity=integrity,
             )
+        terminal = match["evidence_state"] in {"REPLAY_READY", "REPLAY_UNAVAILABLE"}
         connection.execute(insert(account_matches).values(
             profile_id=job["profile_id"], match_id=job["match_id"], account_id=job["account_id"],
-            player_slot=player["player_slot"], lifecycle="ANALYZING" if role["role"] else "UNAVAILABLE", mode=match["mode"],
+            player_slot=player["player_slot"], lifecycle=("ANALYZING" if terminal else "WAITING_FOR_PROVIDER") if role["role"] else "UNAVAILABLE", mode=match["mode"],
             role_assignment={k: assignment[k] for k in ("version", "inputs_digest", "evidence_profile")},
             effective_role=role["role"], failure_stage=None if role["role"] else "ROLE_CLASSIFICATION",
             failure_reason=None if role["role"] else role["reason"],
@@ -94,6 +95,9 @@ def complete_link_job(database: Engine, *, job_id: str, lease_token: str, replay
             progression_reason=None if eligibility is None else eligibility.reason,
             provider_started_at=match["started_at"], provider_source_match_id=job["match_id"], origin=origin,
         ).on_conflict_do_nothing())
+        from app.tracker.coverage import record_match_coverage
+
+        record_match_coverage(connection, profile_id=job["profile_id"], match_id=job["match_id"])
         if eligibility is not None:
             from app.tracker.bootstrap import settle_candidate
 
@@ -104,6 +108,10 @@ def complete_link_job(database: Engine, *, job_id: str, lease_token: str, replay
             )
         if match["evidence_state"] == "REPLAY_READY" and match["replay_role_assignment"] is not None:
             enqueue_role_refinements(connection, job["match_id"], match["replay_role_assignment"])
+        if terminal:
+            from app.tracker.finalization import enqueue_finalization
+
+            enqueue_finalization(connection, profile_id=job["profile_id"], match_id=job["match_id"])
         replay_job_id = None
         if origin == "LIVE" and match["evidence_state"] in {"SUMMARY_READY", "REPLAY_PENDING"}:
             replay_job_id = enqueue(

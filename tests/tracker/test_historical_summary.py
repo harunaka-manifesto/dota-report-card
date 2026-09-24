@@ -41,7 +41,7 @@ async def test_missing_deep_row_falls_back_to_p3_summary_and_private_bootstrap_l
     assert await run_one(database, redis, settings, priority=3, policy=policy,
         transport=httpx.MockTransport(lambda _: httpx.Response(200, json=payload))) == 'COMPLETE'
     with database.connect() as c:
-        assert c.scalar(select(matches.c.evidence_state).where(matches.c.match_id == MATCH_ID)) == 'SUMMARY_READY'
+        assert c.scalar(select(matches.c.evidence_state).where(matches.c.match_id == MATCH_ID)) == 'REPLAY_UNAVAILABLE'
         assert c.scalar(select(acquisitions.c.state).where(acquisitions.c.provider == 'opendota')) == 'COMPLETE'
         assert c.scalar(select(func.count()).select_from(provider_calls)) == 2
     assert await run_one(database, redis, settings, priority=3, policy=policy) == 'COMPLETE'

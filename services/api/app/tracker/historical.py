@@ -118,6 +118,11 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
                     ))
                     if projected["role_assignment"] is not None:
                         enqueue_role_refinements(connection, match_id, projected["role_assignment"])
+                elif not parsed and match["evidence_state"] == "SUMMARY_READY":
+                    connection.execute(matches.update().where(matches.c.match_id == match_id).values(
+                        evidence_state="REPLAY_UNAVAILABLE", replay_terminal_at=source["fetched_at"],
+                        terminal_reason="HISTORICAL_REPLAY_ABSENT",
+                    ))
                 acquired = dict(
                     operation_version=source["operation_version"], state="REPLAY_READY" if parsed else "SUMMARY_ONLY",
                     attempts=1, terminal_reason=None, snapshot_id=snapshot_id,

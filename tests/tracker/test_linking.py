@@ -47,7 +47,7 @@ def test_two_users_one_match_schedule_one_replay_with_zero_provider_work(databas
         assert replay["run_after"] == match["started_at"] + timedelta(seconds=match["duration_seconds"] + 360)
         assert replay["priority"] == 1 and replay["profile_id"] is None and replay["account_id"] is None
         assert match["evidence_state"] == "REPLAY_PENDING"
-        assert c.scalars(select(account_matches.c.lifecycle)).all() == ["ANALYZING", "ANALYZING"]
+        assert c.scalars(select(account_matches.c.lifecycle)).all() == ["WAITING_FOR_PROVIDER", "WAITING_FOR_PROVIDER"]
         assert c.scalar(select(func.count()).select_from(ingest_jobs).where(ingest_jobs.c.state == "COMPLETE")) == 2
 
 

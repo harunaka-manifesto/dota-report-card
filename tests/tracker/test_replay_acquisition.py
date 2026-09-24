@@ -78,7 +78,7 @@ async def test_submission_then_replay_preserves_identity_and_never_finalizes_pri
     with database.connect() as c:
         assert c.scalar(select(matches.c.evidence_state)) == "REPLAY_READY"
         assert c.scalar(select(matches.c.replay_terminal_at)) is not None
-        assert c.scalar(select(account_matches.c.lifecycle)) == "ANALYZING"
+        assert c.scalar(select(account_matches.c.lifecycle)) == "WAITING_FOR_PROVIDER"
         assert c.scalar(select(func.count()).select_from(derived_features)) == 20
         assert c.scalar(select(func.sum(provider_calls.c.rate_units))) == 11
         assert c.scalar(select(acquisitions.c.attempts).where(acquisitions.c.operation == "replay_enrichment")) == 2
@@ -113,7 +113,7 @@ async def test_bounded_missing_replay_is_terminal_without_action_required(databa
     with database.connect() as c:
         assert c.scalar(select(matches.c.evidence_state)) == "REPLAY_UNAVAILABLE"
         assert c.scalar(select(matches.c.terminal_reason)) == "REPLAY_CHECKS_EXHAUSTED"
-        assert c.scalar(select(account_matches.c.lifecycle)) == "ANALYZING"
+        assert c.scalar(select(account_matches.c.lifecycle)) == "WAITING_FOR_PROVIDER"
         assert c.scalar(select(account_matches.c.finalized_at)) is None
     assert calls == ["POST", "GET", "GET"]
 
@@ -237,7 +237,7 @@ async def test_elapsed_limit_stops_even_when_quota_never_recovers(database, redi
     with database.connect() as c:
         assert c.scalar(select(matches.c.terminal_reason)) == "REPLAY_WAIT_EXPIRED"
         assert c.scalar(select(matches.c.evidence_state)) == "REPLAY_UNAVAILABLE"
-        assert c.scalar(select(account_matches.c.lifecycle)) == "ANALYZING"
+        assert c.scalar(select(account_matches.c.lifecycle)) == "WAITING_FOR_PROVIDER"
 
 
 @pytest.mark.parametrize("lose_lock", [False, True])

@@ -153,7 +153,10 @@ def settle_bootstrap(connection: Connection, profile_id: str) -> bool:
         )).mappings().all()
         if len(selected) != bucket["discovered_count"] or bucket["settled_count"] != bucket["discovered_count"]:
             continue
-        if any(row["reason"] is None or row["lifecycle"] not in {"READY", "UNAVAILABLE"} for row in selected):
+        if any(row["reason"] is None or
+               (row["lifecycle"] not in {"READY", "UNAVAILABLE"} and
+                not (row["lifecycle"] is None and row["reason"].startswith("UNAVAILABLE:")))
+               for row in selected):
             continue
         pending = connection.scalar(select(func.count()).select_from(coverage).where(
             coverage.c.profile_id == profile_id,

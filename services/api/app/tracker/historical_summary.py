@@ -13,10 +13,18 @@ from app.opendota.client import OpenDotaClient
 from app.tracker.acquisition import stored_match_snapshot
 from app.tracker.jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from app.tracker.materialization import materialize_snapshot
-from app.tracker.normalization import InvalidEvidence
+from app.tracker.normalization import InvalidEvidence, replay_available
 from app.tracker.provider_control import ProviderDeferred, ProviderGate
 from app.tracker.provider_transport import ControlledTransport
-from app.tracker.schema import acquisitions, ingest_jobs, match_players, matches, profiles, users
+from app.tracker.schema import (
+    acquisitions,
+    ingest_jobs,
+    match_players,
+    matches,
+    profiles,
+    snapshots,
+    users,
+)
 
 
 def enqueue_historical_summary(connection: Connection, *, profile_id: str, match_id: int, origin: str) -> str:
@@ -78,7 +86,21 @@ async def acquire_historical_summary(database: Engine, gate: ProviderGate, setti
             if snapshot_id is None:
                 raise InvalidEvidence("Historical summary response was not retained")
         with authorized_job(database, job_id, lease_token) as (connection, current):
-            materialize_snapshot(connection, snapshot_id=snapshot_id, match_id=job["match_id"])
+            projected = materialize_snapshot(connection, snapshot_id=snapshot_id, match_id=job["match_id"])
+            payload = connection.scalar(select(snapshots.c.payload).where(snapshots.c.id == snapshot_id))
+            if not isinstance(payload, dict):
+                raise InvalidEvidence("Historical summary snapshot is unavailable")
+            state = connection.scalar(select(matches.c.evidence_state).where(matches.c.match_id == job["match_id"]))
+            if state in {"SUMMARY_READY", "REPLAY_UNAVAILABLE"} and replay_available(payload, "opendota"):
+                connection.execute(matches.update().where(matches.c.match_id == job["match_id"]).values(
+                    evidence_state="REPLAY_READY", replay_terminal_at=func.clock_timestamp(),
+                    replay_role_assignment=projected["role_assignment"], terminal_reason=None,
+                ))
+            elif state == "SUMMARY_READY":
+                connection.execute(matches.update().where(matches.c.match_id == job["match_id"]).values(
+                    evidence_state="REPLAY_UNAVAILABLE", replay_terminal_at=func.clock_timestamp(),
+                    terminal_reason="HISTORICAL_REPLAY_ABSENT",
+                ))
             _link_owner(connection, current, origin)
             connection.execute(insert(acquisitions).values(
                 match_id=job["match_id"], provider="opendota", operation="match",

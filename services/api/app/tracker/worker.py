@@ -16,13 +16,14 @@ from app.core.config import Settings, get_settings
 from app.storage.database import check_database_revision, create_database_engine
 from app.tracker.acquisition import acquire_fresh_summary
 from app.tracker.bootstrap import search_bootstrap_page
+from app.tracker.finalization import complete_finalization_job
 from app.tracker.historical import acquire_historical_batch
 from app.tracker.historical_summary import acquire_historical_summary
 from app.tracker.jobs import StaleJob, authorized_job, claim, reschedule
 from app.tracker.linking import complete_link_job, complete_role_job
 from app.tracker.provider_control import ProviderGate
 from app.tracker.replay_acquisition import acquire_fresh_replay
-from app.tracker.schema import ingest_jobs
+from app.tracker.schema import account_matches, ingest_jobs
 from app.tracker.sync import sync_account_page
 
 
@@ -85,6 +86,8 @@ async def run_one(database: Engine, redis: Redis, settings: Settings, *, priorit
     try:
         if job["job_type"] == "ROLE_REFRESH":
             return complete_role_job(database, **args)
+        if job["job_type"] == "FINALIZE":
+            return complete_finalization_job(database, **args)
         if job["job_type"] == "LINK_MATCH":
             complete_link_job(database, **args, replay_delay_seconds=policy.replay_delay_seconds)
             return "COMPLETE"
@@ -109,6 +112,13 @@ async def run_one(database: Engine, redis: Redis, settings: Settings, *, priorit
         try:
             with authorized_job(database, **args) as (connection, current):
                 reschedule(connection, current, delay_seconds=30, error="WORKER_FAILED")
+                if job["job_type"] == "FINALIZE" and current["attempts"] >= 5:
+                    connection.execute(account_matches.update().where(
+                        account_matches.c.profile_id == current["profile_id"],
+                        account_matches.c.match_id == current["match_id"],
+                        account_matches.c.lifecycle != "READY",
+                    ).values(lifecycle="ACTION_REQUIRED", failure_stage="FINALIZATION",
+                             failure_reason="INTERNAL_FAILURE", attempt_count=current["attempts"]))
         except StaleJob:
             return "STALE"
         return "FAILED" if job["attempts"] >= 5 else "DEFERRED"

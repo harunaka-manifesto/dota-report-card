@@ -253,3 +253,23 @@ async def test_empty_bootstrap_scope_completes_both_modes(database, redis_client
         assert all(row["completed_at"] is not None for row in rows)
         assert c.scalar(select(func.count()).select_from(events).where(
             events.c.profile_id == profile_id, events.c.kind == "BOOTSTRAP_COMPLETED")) == 1
+
+
+async def test_terminal_summary_absence_can_settle_without_a_link(database, redis_client):
+    profile_id, job_id = setup(database)
+    job = claim_page(database, job_id)
+    page = [
+        {"match_id": 77, "start_time": int((NOW - timedelta(days=2)).timestamp()), "game_mode": 22},
+        {"match_id": 78, "start_time": int((NOW - timedelta(days=91)).timestamp()), "game_mode": 22},
+    ]
+    assert await search.search_bootstrap_page(database, gate_for(redis_client, "opendota"), Settings(),
+        job_id=job_id, lease_token=job["lease_token"],
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json=page))) == "COMPLETE"
+    with database.begin() as c:
+        assert search.settle_candidate(c, profile_id=profile_id, match_id=77,
+            eligible=False, reason="UNAVAILABLE:SUMMARY_404") == 0
+    with database.connect() as c:
+        assert dict(c.execute(select(bootstrap.c.mode, bootstrap.c.outcome).where(
+            bootstrap.c.profile_id == profile_id)).all()) == {
+            "STANDARD": "NO_ELIGIBLE_MATCHES", "TURBO": "NO_MATCHES_FOUND",
+        }

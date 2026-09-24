@@ -64,6 +64,9 @@ def _terminal(connection: Connection, job: dict[str, Any], *, snapshot_id: str |
             evidence_state=state, terminal_reason=reason, replay_terminal_at=func.clock_timestamp(),
             replay_role_assignment=role_assignment,
         ))
+        from app.tracker.finalization import enqueue_terminal_finalizations
+
+        enqueue_terminal_finalizations(connection, job["match_id"])
         calls = connection.scalar(select(func.count()).select_from(provider_calls).where(
             provider_calls.c.provider == "opendota", provider_calls.c.match_id == job["match_id"],
             provider_calls.c.operation.in_(("match", "request_replay")), provider_calls.c.called_at >= job["created_at"],
