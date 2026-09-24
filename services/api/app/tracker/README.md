@@ -234,3 +234,10 @@ new live PB may celebrate. The PostgreSQL reader selects only finalized observat
 analysis pointers and applies current Free/Pro history scope. Ordered
 finalization, atomic entitlement revision and publication remain required
 before this calculation is exposed.
+
+`eligibility.py` is the match-level progression gate. It requires a supported
+bucket, at least 600 seconds, a usable effective role, non-abandon evidence and
+an explicit positive competitive-integrity verdict. A missing verdict yields
+`NONE(INTEGRITY_UNKNOWN)` while factual Match Detail and available measurements
+remain possible. A source-backed integrity verifier is still needed; neither
+replay absence nor a missing metric is an automatic ineligibility reason.

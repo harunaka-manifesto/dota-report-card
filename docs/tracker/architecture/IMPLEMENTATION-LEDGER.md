@@ -519,3 +519,16 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   and post-link scope or Pro retained history. **6 passed, 0 failed, 0 skipped**
   including real PostgreSQL. Ordered publication, notifications and atomic
   entitlement revision switching remain open.
+
+### Match-level eligibility boundary
+
+- Added a fail-closed progression classifier for Standard and Turbo, exact
+  600-second duration boundary, tracked-player leaver status, effective role,
+  and explicit competitive-integrity verdict. Missing integrity proof produces
+  `NONE(INTEGRITY_UNKNOWN)` rather than a fabricated normal-match decision.
+- The current canonical summary exposes mode, duration, roster and leaver
+  status but lacks source-backed remake/safe-to-leave verification. A verifier
+  and source evidence must be established before calling this gate with VALID.
+  Replay availability and individual metric availability are separate axes.
+- Focused eligibility test: **1 passed, 0 failed, 0 skipped**. No finalization
+  or public API claim rests on this classifier yet.
