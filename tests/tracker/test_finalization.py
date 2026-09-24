@@ -65,7 +65,7 @@ def test_terminal_analysis_publishes_once_from_retained_source(database):
         metric_count = len(metric_ids(link["effective_role"]))
         assert c.scalar(select(func.count()).select_from(metric_observations)) == metric_count
         assert c.scalar(select(func.count()).select_from(analyses)) == 1
-        assert c.scalar(select(func.count()).select_from(events)) == 0
+        assert c.scalar(select(func.count()).select_from(events)) == 1
         assert dict(c.execute(select(coverage.c.evidence_class, coverage.c.state)).all()) == {
             "SUMMARY": "KNOWN", "REPLAY": "KNOWN",
         }
@@ -78,6 +78,7 @@ def test_terminal_analysis_publishes_once_from_retained_source(database):
     with database.connect() as c:
         assert c.scalar(select(func.count()).select_from(analyses)) == 1
         assert c.scalar(select(func.count()).select_from(metric_observations)) == metric_count
+        assert c.scalar(select(func.count()).select_from(events)) == 1
 
 
 def test_replay_unavailable_still_finalizes_with_reasoned_na_metrics(database):

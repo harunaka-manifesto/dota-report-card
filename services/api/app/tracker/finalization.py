@@ -353,6 +353,10 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
         from .coverage import record_match_coverage
 
         record_match_coverage(connection, profile_id=job["profile_id"], match_id=job["match_id"])
+        from .notifications import record_ready
+
+        record_ready(connection, profile_id=job["profile_id"], match_id=job["match_id"],
+                     origin=link["origin"])
         if link["origin"] == "BOOTSTRAP":
             from .bootstrap import settle_bootstrap
 

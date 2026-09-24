@@ -148,6 +148,10 @@ def switch_steam_profile(
             ingest_jobs.c.profile_id == active_id,
             ingest_jobs.c.state.in_(("PENDING", "RUNNING")),
         ).values(state="CANCELLED", lease_token=None, lease_until=None))
+        connection.execute(update(notification_outbox).where(
+            notification_outbox.c.profile_id == active_id,
+            notification_outbox.c.state == "PENDING",
+        ).values(state="CANCELLED"))
         stamp = connection.execute(select(func.clock_timestamp())).scalar_one()
         previous = connection.execute(update(profiles).where(
             profiles.c.id == active_id, profiles.c.active.is_(True),
