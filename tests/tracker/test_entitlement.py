@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 
 import pytest
+from app.tracker.bootstrap import settle_bootstrap
 from app.tracker.entitlement import (
     EntitlementError,
     FakeAppStoreVerifier,
@@ -125,3 +126,70 @@ def test_purchase_rejects_missing_steam_and_foreign_transaction(database):
     verifier.transactions["transaction:foreign"] = tx
     with pytest.raises(EntitlementError, match="does not match session"):
         submit_transaction(database, user_id=user_id, signed_transaction="foreign", verifier=verifier, now=NOW)
+
+
+def test_bootstrap_completion_reconciles_purchase_made_during_search(database):
+    user_id, profile_id = identity(database)
+    verifier = FakeAppStoreVerifier({"transaction:early": transaction(
+        user_id, expires=NOW + timedelta(days=365),
+    )})
+    pending = submit_transaction(database, user_id=user_id, signed_transaction="early",
+                                 verifier=verifier, now=NOW)
+    assert pending["desired_scope"] == "FREE" and pending["operation_id"] is None
+    ready_bootstrap(database, profile_id)
+    with database.begin() as connection:
+        assert settle_bootstrap(connection, profile_id)
+        assert settle_bootstrap(connection, profile_id)
+    with database.connect() as connection:
+        operations = connection.execute(select(history_operations).where(
+            history_operations.c.profile_id == profile_id,
+        )).mappings().all()
+        assert len(operations) == 1
+        assert operations[0]["target_scope"] == "PRO" and operations[0]["state"] == "PENDING"
+        assert connection.scalar(select(profiles.c.active_scope).where(profiles.c.id == profile_id)) == "FREE"
+
+
+def test_expired_activation_is_cancelled_and_a_renewal_cancels_pending_deactivation(database):
+    user_id, profile_id = identity(database)
+    ready_bootstrap(database, profile_id)
+    verifier = FakeAppStoreVerifier({"transaction:initial": transaction(
+        user_id, expires=NOW + timedelta(days=2),
+    )})
+    first = submit_transaction(database, user_id=user_id, signed_transaction="initial",
+                               verifier=verifier, now=NOW)
+    with pytest.raises(EntitlementError, match="no longer active"):
+        complete_scope_rebuild(database, user_id=user_id, operation_id=first["operation_id"],
+                               now=NOW + timedelta(days=3))
+    with database.connect() as connection:
+        assert connection.scalar(select(history_operations.c.state).where(
+            history_operations.c.id == first["operation_id"],
+        )) == "CANCELLED"
+        assert connection.scalar(select(profiles.c.active_scope).where(profiles.c.id == profile_id)) == "FREE"
+
+    verifier.transactions["transaction:renewed"] = transaction(
+        user_id, token="renewed", signed=NOW + timedelta(days=3),
+        expires=NOW + timedelta(days=33),
+    )
+    renewed = submit_transaction(database, user_id=user_id, signed_transaction="renewed",
+                                 verifier=verifier, now=NOW + timedelta(days=3))
+    complete_scope_rebuild(database, user_id=user_id, operation_id=renewed["operation_id"],
+                           now=NOW + timedelta(days=3))
+    verifier.transactions["notification:expired"] = transaction(
+        user_id, token="expired", signed=NOW + timedelta(days=32),
+        expires=NOW + timedelta(days=33),
+    )
+    expiring = apply_notification(database, signed_notification="expired", verifier=verifier,
+                                  now=NOW + timedelta(days=34))
+    assert expiring["desired_scope"] == "FREE" and expiring["operation_id"]
+    verifier.transactions["transaction:resubscribed"] = transaction(
+        user_id, token="resubscribed", signed=NOW + timedelta(days=34),
+        expires=NOW + timedelta(days=64),
+    )
+    restored = submit_transaction(database, user_id=user_id, signed_transaction="resubscribed",
+                                  verifier=verifier, now=NOW + timedelta(days=34))
+    assert restored["desired_scope"] == "PRO" and restored["operation_id"] is None
+    with database.connect() as connection:
+        assert connection.scalar(select(history_operations.c.state).where(
+            history_operations.c.id == expiring["operation_id"],
+        )) == "CANCELLED"
+        assert connection.scalar(select(profiles.c.active_scope).where(profiles.c.id == profile_id)) == "PRO"

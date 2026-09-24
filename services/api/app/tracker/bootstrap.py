@@ -197,6 +197,9 @@ def settle_bootstrap(connection: Connection, profile_id: str) -> bool:
         dedup_key=f"bootstrap-completed:{profile_id}", payload={"outcomes": payload},
         created_at=now,
     ).on_conflict_do_nothing(index_elements=[events.c.dedup_key]))
+    from app.tracker.entitlement import reconcile_bootstrap_entitlement
+
+    reconcile_bootstrap_entitlement(connection, profile_id=profile_id, now=now)
     return True
 
 

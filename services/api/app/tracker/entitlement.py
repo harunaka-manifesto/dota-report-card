@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from typing import Any, Protocol
 from uuid import uuid4
 
-from sqlalchemy import Engine, or_, select, update
+from sqlalchemy import Connection, Engine, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from app.tracker.schema import (
@@ -85,18 +85,18 @@ def _desired_scope(connection, user_id: str, now: datetime) -> str:
 
 def _request_scope_change(connection, *, profile: Any, target: str, now: datetime,
                           reason: str) -> str | None:
-    if profile["active_scope"] == target:
-        return None
     current = connection.execute(select(history_operations).where(
         history_operations.c.profile_id == profile["id"],
         history_operations.c.state.in_(("PENDING", "RUNNING")),
     ).with_for_update()).mappings().first()
-    if current and current["target_scope"] == target:
-        return current["id"]
-    if current:
+    if current and current["target_scope"] != target:
         connection.execute(update(history_operations).where(
             history_operations.c.id == current["id"]
         ).values(state="CANCELLED", completed_at=now))
+    if profile["active_scope"] == target:
+        return None
+    if current and current["target_scope"] == target:
+        return current["id"]
     operation_id = str(uuid4())
     cutoff = connection.execute(select(matches.c.started_at, matches.c.match_id).select_from(
         account_matches.join(matches, account_matches.c.match_id == matches.c.match_id)
@@ -231,6 +231,21 @@ def reconcile_entitlement_scope(engine: Engine, *, user_id: str,
                 "operation_id": operation_id}
 
 
+def reconcile_bootstrap_entitlement(connection: Connection, *, profile_id: str,
+                                    now: datetime) -> str | None:
+    """Queue a pending purchase once both Free mode settlements are coherent.
+
+    Called inside bootstrap's profile-locked transaction, after terminality.
+    """
+    profile = connection.execute(select(profiles).where(
+        profiles.c.id == profile_id, profiles.c.active.is_(True),
+    ).with_for_update()).mappings().one_or_none()
+    if profile is None or _desired_scope(connection, profile["user_id"], _utc(now)) != "PRO":
+        return None
+    return _request_scope_change(connection, profile=profile, target="PRO", now=now,
+                                 reason="FREE_FOUNDATION_COMPLETE")
+
+
 def complete_scope_rebuild(engine: Engine, *, user_id: str, operation_id: str,
                            now: datetime | None = None) -> int:
     """Atomically publish an already rebuilt scope at its persisted cutoff.
@@ -239,36 +254,46 @@ def complete_scope_rebuild(engine: Engine, *, user_id: str, operation_id: str,
     function only commits the revision pointer and entitlement scope together.
     """
     current = _utc(now or datetime.now(UTC))
+    cancelled = False
+    revision = 0
     with engine.begin() as connection:
-        connection.execute(select(users.c.id).where(users.c.id == user_id).with_for_update()).scalar_one()
+        user = connection.execute(select(users.c.state).where(users.c.id == user_id).with_for_update()).scalar_one_or_none()
+        if user != "ACTIVE":
+            raise EntitlementError("account unavailable")
+        profile = connection.execute(select(profiles).where(
+            profiles.c.user_id == user_id, profiles.c.active.is_(True),
+        ).with_for_update()).mappings().one_or_none()
+        if profile is None:
+            raise EntitlementError("scope rebuild is no longer active")
         operation = connection.execute(select(history_operations).where(
             history_operations.c.id == operation_id,
+            history_operations.c.profile_id == profile["id"],
         ).with_for_update()).mappings().first()
         if operation is None:
             raise EntitlementError("scope rebuild not found")
-        profile = connection.execute(select(profiles).where(
-            profiles.c.id == operation["profile_id"], profiles.c.user_id == user_id,
-            profiles.c.active.is_(True),
-        ).with_for_update()).mappings().first()
-        if profile is None or operation["state"] not in {"PENDING", "RUNNING"}:
+        if operation["state"] not in {"PENDING", "RUNNING"}:
             raise EntitlementError("scope rebuild is no longer active")
         if operation["target_revision"] != profile["active_revision"] + 1:
             raise EntitlementError("scope rebuild revision is stale")
-        if operation["target_scope"] == "PRO" and _desired_scope(connection, user_id, current) != "PRO":
+        if operation["target_scope"] != _desired_scope(connection, user_id, current):
             connection.execute(update(history_operations).where(
                 history_operations.c.id == operation_id
             ).values(state="CANCELLED", completed_at=current))
-            raise EntitlementError("Pro transaction is no longer active")
-        updated = connection.execute(update(profiles).where(
-            profiles.c.id == profile["id"], profiles.c.active_revision == profile["active_revision"],
-        ).values(active_scope=operation["target_scope"],
-                 active_revision=operation["target_revision"]))
-        if updated.rowcount != 1:
-            raise EntitlementError("profile revision changed")
-        connection.execute(update(history_operations).where(
-            history_operations.c.id == operation_id
-        ).values(state="COMPLETE", completed_at=current))
-        return int(operation["target_revision"])
+            cancelled = True
+        else:
+            updated = connection.execute(update(profiles).where(
+                profiles.c.id == profile["id"], profiles.c.active_revision == profile["active_revision"],
+            ).values(active_scope=operation["target_scope"],
+                     active_revision=operation["target_revision"]))
+            if updated.rowcount != 1:
+                raise EntitlementError("profile revision changed")
+            connection.execute(update(history_operations).where(
+                history_operations.c.id == operation_id
+            ).values(state="COMPLETE", completed_at=current))
+            revision = int(operation["target_revision"])
+    if cancelled:
+        raise EntitlementError("scope transaction is no longer active")
+    return revision
 
 
 def fake_digest(token: str) -> str:
