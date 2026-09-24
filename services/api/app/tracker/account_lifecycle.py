@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+from contextlib import nullcontext
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
@@ -39,7 +40,7 @@ class AccountLifecycleError(ValueError):
 
 
 def _switch_block(
-    connection: Connection, *, user_id: str, target_account_id: int, now: datetime,
+    connection: Connection, *, user_id: str, target_account_id: int | None, now: datetime,
 ) -> tuple[str | None, int, str | None]:
     user = connection.execute(select(users).where(users.c.id == user_id)).mappings().first()
     if user is None or user["state"] != "ACTIVE":
@@ -49,11 +50,14 @@ def _switch_block(
     )).mappings().first()
     if active is None:
         return "NO_ACTIVE_STEAM_PROFILE", 0, None
-    owner = connection.execute(select(profiles.c.user_id).where(
-        profiles.c.account_id == target_account_id, profiles.c.active.is_(True),
-    )).scalar_one_or_none()
-    if owner is not None and owner != user_id:
-        return "TARGET_OWNED_BY_ANOTHER_ACCOUNT", 0, active["id"]
+    if target_account_id is not None:
+        if target_account_id == active["account_id"]:
+            return "ALREADY_LINKED", 0, active["id"]
+        owner = connection.execute(select(profiles.c.user_id).where(
+            profiles.c.account_id == target_account_id, profiles.c.active.is_(True),
+        )).scalar_one_or_none()
+        if owner is not None and owner != user_id:
+            return "TARGET_OWNED_BY_ANOTHER_ACCOUNT", 0, active["id"]
     last_switch = connection.execute(select(func.max(switches.c.completed_at)).where(
         switches.c.user_id == user_id,
     )).scalar_one()
@@ -79,15 +83,15 @@ def _switch_block(
 
 
 def switch_preflight(
-    engine: Engine, *, user_id: str, verified_target_account_id: int,
+    engine: Engine, *, user_id: str, verified_target_account_id: int | None = None,
     now: datetime | None = None,
 ) -> dict[str, Any]:
     """Return exact switch block and remaining cooldown days.
 
-    The caller must pass only an account ID derived from a verified Steam
-    OpenID assertion; this function does not treat client claims as proof.
+    Without a target, report account-wide cooldown/work readiness. A supplied
+    target must come from a verified Steam OpenID assertion, never client claims.
     """
-    if type(verified_target_account_id) is not int or not 0 < verified_target_account_id <= 4_294_967_295:
+    if verified_target_account_id is not None and (type(verified_target_account_id) is not int or not 0 < verified_target_account_id <= 4_294_967_295):
         raise AccountLifecycleError("INVALID_TARGET")
     current = now or datetime.now(UTC)
     if current.tzinfo is None:
@@ -102,7 +106,7 @@ def switch_preflight(
 
 
 def switch_steam_profile(
-    engine: Engine, *, user_id: str, verified_target_account_id: int,
+    engine: Engine | Connection, *, user_id: str, verified_target_account_id: int,
     now: datetime | None = None,
 ) -> str:
     """Archive the active profile and begin a fresh Free bootstrap atomically."""
@@ -113,7 +117,8 @@ def switch_steam_profile(
         raise ValueError("Lifecycle time must include a timezone")
     profile_id = str(uuid4())
     switch_id = str(uuid4())
-    with engine.begin() as connection:
+    transaction = engine.begin() if isinstance(engine, Engine) else nullcontext(engine)
+    with transaction as connection:
         user = connection.execute(select(users).where(users.c.id == user_id).with_for_update()).mappings().first()
         if user is None or user["state"] != "ACTIVE":
             raise AccountLifecycleError("ACCOUNT_UNAVAILABLE")

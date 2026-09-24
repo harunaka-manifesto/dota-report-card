@@ -14,7 +14,9 @@ from app.tracker.steam_identity import (
     SteamLinkError,
     attach_verified_steam_profile,
     complete_steam_link,
+    complete_steam_switch,
     start_steam_link,
+    start_steam_switch,
     verify_steam_assertion,
 )
 from sqlalchemy import insert, select
@@ -176,3 +178,33 @@ def test_link_challenge_binds_user_callback_and_enqueues_bootstrap(database, red
             verifier=verifier, namespace=namespace, now=NOW,
         )
     assert verifier.calls == 1
+
+
+def test_switch_challenge_is_distinct_and_archives_only_after_verified_assertion(database, redis_client) -> None:
+    from .test_schema import identity
+
+    redis, namespace = redis_client
+    user_id, old_profile = identity(database, account_id=200)
+    challenge = start_steam_switch(
+        database, redis, user_id=user_id,
+        callback_url="https://api.example.test/mobile/v1/steam/switch/callback",
+        namespace=namespace,
+    )
+    fields = assertion(**{"openid.return_to": challenge.return_to})
+    fields["state"] = challenge.state
+    verifier = FakeVerifier()
+    with pytest.raises(SteamLinkError, match="challenge"):
+        complete_steam_link(database, redis, user_id=user_id, callback_fields=fields,
+                            verifier=verifier, namespace=namespace, now=NOW)
+    assert verifier.calls == 0
+    new_profile = complete_steam_switch(database, redis, user_id=user_id,
+                                        callback_fields=fields, verifier=verifier,
+                                        namespace=namespace, now=NOW)
+    assert verifier.calls == 1 and new_profile != old_profile
+    with database.connect() as connection:
+        assert connection.scalar(select(profiles.c.active).where(profiles.c.id == old_profile)) is False
+        assert connection.scalar(select(profiles.c.account_id).where(profiles.c.id == new_profile)) == 100
+    with pytest.raises(SteamLinkError, match="challenge"):
+        complete_steam_switch(database, redis, user_id=user_id,
+                              callback_fields=fields, verifier=verifier,
+                              namespace=namespace, now=NOW)

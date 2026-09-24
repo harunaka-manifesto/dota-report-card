@@ -239,6 +239,37 @@ def complete_steam_link(
     return attach_verified_steam_profile(engine, user_id=user_id, account_id=account_id, now=now)
 
 
+def start_steam_switch(
+    engine: Engine, redis: RedisLike, *, user_id: str, callback_url: str,
+    namespace: str = "tracker",
+) -> SteamLinkStart:
+    """Use a separate one-use challenge namespace for account switching."""
+    return start_steam_link(engine, redis, user_id=user_id, callback_url=callback_url,
+                            namespace=f"{namespace}:switch")
+
+
+def complete_steam_switch(
+    engine: Engine | Connection, redis: RedisLike, *, user_id: str,
+    callback_fields: dict[str, str], verifier: AssertionVerifier,
+    namespace: str = "tracker", now: datetime | None = None,
+) -> str:
+    """Verify a switch-specific Steam assertion before archiving the current profile."""
+    from app.tracker.account_lifecycle import switch_steam_profile
+
+    state = callback_fields.get("state")
+    if not isinstance(state, str) or not 32 <= len(state) <= 128:
+        raise SteamLinkError("Steam switch challenge is invalid or expired")
+    scoped = f"{namespace}:switch"
+    callback = SteamLinkChallengeStore(redis, namespace=scoped).consume(state, user_id=user_id)
+    openid_fields = {key: value for key, value in callback_fields.items() if key.startswith("openid.")}
+    account_id = verify_steam_assertion(
+        openid_fields, expected_return_to=callback, verifier=verifier,
+        nonces=RedisNonceStore(redis, namespace=scoped), now=now,
+    )
+    return switch_steam_profile(engine, user_id=user_id,
+                                verified_target_account_id=account_id, now=now)
+
+
 def attach_verified_steam_profile(
     engine: Engine | Connection,
     *,

@@ -12,10 +12,12 @@ from app.tracker.schema import (
     matches,
     profiles,
 )
+from app.tracker.steam_identity import STEAM_ID_BASE
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from .test_materialization import MATCH_ID, raw, save
+from .test_steam_identity import FakeVerifier, assertion
 
 
 def _client(database, subject: str):
@@ -136,3 +138,40 @@ def test_mobile_identity_attach_reuses_key_and_rejects_conflicting_body(database
         assert c.scalar(select(identities.c.subject).where(
             identities.c.user_id == owner, identities.c.issuer == "https://appleid.apple.com"
         )) == "a" * 20
+
+
+def test_mobile_steam_switch_requires_verified_challenge_and_is_idempotent(database, redis_client):
+    redis, _ = redis_client
+    owner, tokens = create_user_session(database, VerifiedIdentity(
+        "google", "https://accounts.google.com", "mobile-switch-user", None,
+    ))
+    with database.begin() as c:
+        c.execute(dota_accounts.insert().values(account_id=200))
+        c.execute(profiles.insert().values(id="mobile-switch-old", user_id=owner, account_id=200,
+            active=True, original_linked_at=datetime.now(UTC)))
+    app = create_mobile_app(Settings(), database=database, redis=redis,
+                            steam_callback_url="https://api.example.test/mobile/v1/steam/callback")
+    app.state.steam_verifier = FakeVerifier()
+    client = TestClient(app)
+    headers = {"Authorization": f"Bearer {tokens.access_token}", "Idempotency-Key": "switch-start-001"}
+    assert client.get("/account/steam-switch/preflight", headers=headers).json()["available"] is True
+    started = client.post("/account/steam-switch/start", headers=headers)
+    assert started.status_code == 200
+    assert client.post("/account/steam-switch/start", headers=headers).json() == started.json()
+    callback = started.json()
+    nonce = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ") + "unique"
+    fields = assertion(**{
+        "openid.return_to": "https://api.example.test/mobile/v1/steam/callback?state=" + callback["state"],
+        "openid.response_nonce": nonce,
+        "openid.claimed_id": f"https://steamcommunity.com/openid/id/{STEAM_ID_BASE + 100}",
+        "openid.identity": f"https://steamcommunity.com/openid/id/{STEAM_ID_BASE + 100}",
+    })
+    fields["state"] = callback["state"]
+    headers["Idempotency-Key"] = "switch-complete-001"
+    completed = client.post("/account/steam-switch/complete", json={"fields": fields}, headers=headers)
+    assert completed.status_code == 200 and completed.json() == {"linked": True}
+    assert client.post("/account/steam-switch/complete", json={"fields": fields}, headers=headers).json() == completed.json()
+    with database.connect() as c:
+        assert c.scalar(select(profiles.c.active).where(profiles.c.id == "mobile-switch-old")) is False
+        assert c.scalar(select(profiles.c.account_id).where(profiles.c.user_id == owner,
+            profiles.c.active.is_(True))) == 100

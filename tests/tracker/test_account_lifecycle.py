@@ -77,6 +77,10 @@ def test_switch_preflight_reports_cooldown_history_and_owned_target(database):
     owned = switch_preflight(database, user_id=user_id, verified_target_account_id=3003,
                              now=current + timedelta(days=20))
     assert owned["cause"] == "TARGET_OWNED_BY_ANOTHER_ACCOUNT"
+    assert switch_preflight(database, user_id=user_id, verified_target_account_id=2002,
+                            now=current + timedelta(days=20))["cause"] == "ALREADY_LINKED"
+    assert switch_preflight(database, user_id=user_id,
+                            now=current + timedelta(days=20))["cause"] == "SWITCH_COOLDOWN"
     result = switch_preflight(database, user_id=user_id, verified_target_account_id=4004,
                               now=current + timedelta(days=20))
     assert result["cause"] == "SWITCH_COOLDOWN"

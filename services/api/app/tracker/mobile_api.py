@@ -20,6 +20,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from app.core.config import Settings
 from app.storage.database import create_database_engine
+from app.tracker.account_lifecycle import AccountLifecycleError, switch_preflight
 from app.tracker.authentication import (
     AuthenticationError,
     HttpJwksSource,
@@ -56,7 +57,9 @@ from app.tracker.steam_identity import (
     RedisLike,
     SteamLinkError,
     complete_steam_link,
+    complete_steam_switch,
     start_steam_link,
+    start_steam_switch,
 )
 from app.tracker.sync import request_account_sync
 from app.tracker.trend import TrendPoint
@@ -124,6 +127,12 @@ class SteamCompleteRequest(BaseModel):
 
 class SteamCompleteView(BaseModel):
     linked: Literal[True] = True
+
+
+class SwitchPreflightView(BaseModel):
+    available: bool
+    cause: str | None
+    days_remaining: int
 
 
 class BootstrapModeView(BaseModel):
@@ -477,6 +486,10 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
     async def steam_problem(_request: Request, _exc: SteamLinkError) -> JSONResponse:
         return _problem(400, "STEAM_LINK_INVALID")
 
+    @app.exception_handler(AccountLifecycleError)
+    async def lifecycle_problem(_request: Request, exc: AccountLifecycleError) -> JSONResponse:
+        return _problem(409, exc.cause)
+
     async def sign_in(request: Request, body: SignInRequest, method: Literal["apple", "google"]) -> SessionView:
         allowed = app.state.audiences.get(method)
         if not allowed:
@@ -557,6 +570,42 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
         with _engine(request).begin() as connection:
             result = _idempotent(connection, owner=owner, operation="STEAM_COMPLETE", key=idempotency_key,
                 body={"fields": body.fields}, publish=lambda: {"linked": bool(complete_steam_link(
+                    connection, cast(RedisLike, _redis(request)), user_id=owner,
+                    callback_fields=body.fields, verifier=app.state.steam_verifier,
+                ))})
+        return SteamCompleteView.model_validate(result)
+
+    @app.get("/account/steam-switch/preflight", response_model=SwitchPreflightView)
+    async def steam_switch_preflight(request: Request, owner: Annotated[str, Depends(_user)]) -> SwitchPreflightView:
+        status = switch_preflight(_engine(request), user_id=owner)
+        return SwitchPreflightView(available=status["available"], cause=status["cause"],
+                                   days_remaining=status["days_remaining"])
+
+    @app.post("/account/steam-switch/start", response_model=SteamStartView)
+    async def steam_switch_start(request: Request, owner: Annotated[str, Depends(_user)],
+                                 idempotency_key: Annotated[str, Header(min_length=8, max_length=200)]) -> SteamStartView:
+        status = switch_preflight(_engine(request), user_id=owner)
+        if not status["available"]:
+            raise HTTPException(409, status["cause"])
+        if not app.state.steam_callback_url:
+            raise HTTPException(503, "STEAM_LINK_UNAVAILABLE")
+        def publish() -> dict[str, object]:
+            started = start_steam_switch(_engine(request), cast(RedisLike, _redis(request)),
+                                         user_id=owner, callback_url=app.state.steam_callback_url)
+            return {"authorization_url": started.authorization_url, "state": started.state}
+        with _engine(request).begin() as connection:
+            result = _idempotent(connection, owner=owner, operation="STEAM_SWITCH_START",
+                key=idempotency_key, body={}, publish=publish)
+        return SteamStartView.model_validate(result)
+
+    @app.post("/account/steam-switch/complete", response_model=SteamCompleteView)
+    async def steam_switch_complete(request: Request, body: SteamCompleteRequest,
+                                    owner: Annotated[str, Depends(_user)],
+                                    idempotency_key: Annotated[str, Header(min_length=8, max_length=200)]) -> SteamCompleteView:
+        with _engine(request).begin() as connection:
+            result = _idempotent(connection, owner=owner, operation="STEAM_SWITCH_COMPLETE",
+                key=idempotency_key, body={"fields": body.fields},
+                publish=lambda: {"linked": bool(complete_steam_switch(
                     connection, cast(RedisLike, _redis(request)), user_id=owner,
                     callback_fields=body.fields, verifier=app.state.steam_verifier,
                 ))})
