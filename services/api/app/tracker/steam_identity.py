@@ -2,19 +2,31 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+import secrets
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Protocol
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
 import httpx
 from sqlalchemy import Engine, select
 from sqlalchemy.dialects.postgresql import insert
 
+from app.tracker.bootstrap import request_bootstrap_search
 from app.tracker.schema import dota_accounts, profiles, users
 
 OPENID_NS = "http://specs.openid.net/auth/2.0"
 STEAM_ENDPOINT = "https://steamcommunity.com/openid/login"
 STEAM_ID_BASE = 76561197960265728
+CHALLENGE_TTL_SECONDS = 600
+
+
+class RedisLike(Protocol):
+    def set(self, name: str, value: str, ex: int | None = None, nx: bool = False) -> object: ...
+    def getdel(self, name: str) -> str | bytes | None: ...
 
 
 class SteamLinkError(ValueError):
@@ -27,6 +39,103 @@ class AssertionVerifier(Protocol):
 
 class NonceStore(Protocol):
     def consume(self, nonce: str) -> bool: ...
+
+
+class RedisNonceStore:
+    """One-use, cross-worker nonce fence with a bounded Redis lifetime."""
+
+    def __init__(self, redis: RedisLike, *, namespace: str = "tracker") -> None:
+        self.redis = redis
+        self.namespace = namespace
+
+    def consume(self, nonce: str) -> bool:
+        digest = hashlib.sha256(nonce.encode("utf-8")).hexdigest()
+        return bool(self.redis.set(
+            f"{self.namespace}:steam-openid:nonce:{digest}", "1", ex=CHALLENGE_TTL_SECONDS, nx=True
+        ))
+
+
+class SteamLinkChallengeStore:
+    """Persists opaque state -> authenticated owner + exact callback URL."""
+
+    def __init__(self, redis: RedisLike, *, namespace: str = "tracker") -> None:
+        self.redis = redis
+        self.namespace = namespace
+
+    def create(self, *, state: str, user_id: str, return_to: str) -> bool:
+        payload = json.dumps({"user_id": user_id, "return_to": return_to}, separators=(",", ":"))
+        return bool(self.redis.set(self._key(state), payload, ex=CHALLENGE_TTL_SECONDS, nx=True))
+
+    def consume(self, state: str, *, user_id: str) -> str:
+        value = self.redis.getdel(self._key(state))
+        if isinstance(value, bytes):
+            value = value.decode("utf-8")
+        try:
+            challenge = json.loads(value) if isinstance(value, str) else None
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise SteamLinkError("Steam link challenge is invalid or expired") from exc
+        if (
+            not isinstance(challenge, dict)
+            or challenge.get("user_id") != user_id
+            or not isinstance(challenge.get("return_to"), str)
+        ):
+            raise SteamLinkError("Steam link challenge is invalid or expired")
+        return challenge["return_to"]
+
+    def _key(self, state: str) -> str:
+        digest = hashlib.sha256(state.encode("utf-8")).hexdigest()
+        return f"{self.namespace}:steam-openid:state:{digest}"
+
+
+@dataclass(frozen=True, slots=True)
+class SteamLinkStart:
+    state: str
+    authorization_url: str
+    return_to: str
+
+
+def start_steam_link(
+    engine: Engine,
+    redis: RedisLike,
+    *,
+    user_id: str,
+    callback_url: str,
+    namespace: str = "tracker",
+) -> SteamLinkStart:
+    """Create an authenticated, short-lived challenge and Steam redirect URL."""
+
+    parsed = urlsplit(callback_url)
+    if (
+        not user_id
+        or len(user_id) > 200
+        or parsed.scheme != "https"
+        or not parsed.netloc
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.fragment
+    ):
+        raise SteamLinkError("Steam callback URL must be a trusted HTTPS URL")
+    with engine.connect() as connection:
+        active = connection.scalar(select(users.c.id).where(users.c.id == user_id, users.c.state == "ACTIVE"))
+    if active is None:
+        raise SteamLinkError("account is unavailable")
+    challenge_store = SteamLinkChallengeStore(redis, namespace=namespace)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    if "state" in query:
+        raise SteamLinkError("callback URL cannot provide its own state")
+    state = secrets.token_urlsafe(32)
+    return_to = urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode({**query, "state": state}), ""))
+    if not challenge_store.create(state=state, user_id=user_id, return_to=return_to):
+        raise SteamLinkError("could not create Steam link challenge")
+    params = {
+        "openid.ns": OPENID_NS,
+        "openid.mode": "checkid_setup",
+        "openid.return_to": return_to,
+        "openid.realm": f"{parsed.scheme}://{parsed.netloc}/",
+        "openid.identity": "http://specs.openid.net/auth/2.0/identifier_select",
+        "openid.claimed_id": "http://specs.openid.net/auth/2.0/identifier_select",
+    }
+    return SteamLinkStart(state, f"{STEAM_ENDPOINT}?{urlencode(params)}", return_to)
 
 
 class HttpSteamAssertionVerifier:
@@ -102,6 +211,33 @@ def verify_steam_assertion(
     return account_id
 
 
+def complete_steam_link(
+    engine: Engine,
+    redis: RedisLike,
+    *,
+    user_id: str,
+    callback_fields: dict[str, str],
+    verifier: AssertionVerifier,
+    namespace: str = "tracker",
+    now: datetime | None = None,
+) -> str:
+    """Consume the user-bound callback state, verify with Steam, then link and enqueue bootstrap."""
+
+    state = callback_fields.get("state")
+    if not isinstance(state, str) or not 32 <= len(state) <= 128:
+        raise SteamLinkError("Steam link challenge is invalid or expired")
+    callback = SteamLinkChallengeStore(redis, namespace=namespace).consume(state, user_id=user_id)
+    openid_fields = {key: value for key, value in callback_fields.items() if key.startswith("openid.")}
+    account_id = verify_steam_assertion(
+        openid_fields,
+        expected_return_to=callback,
+        verifier=verifier,
+        nonces=RedisNonceStore(redis, namespace=namespace),
+        now=now,
+    )
+    return attach_verified_steam_profile(engine, user_id=user_id, account_id=account_id, now=now)
+
+
 def attach_verified_steam_profile(
     engine: Engine,
     *,
@@ -142,4 +278,5 @@ def attach_verified_steam_profile(
                 active_scope="FREE",
             )
         )
+        request_bootstrap_search(connection, profile_id)
     return profile_id

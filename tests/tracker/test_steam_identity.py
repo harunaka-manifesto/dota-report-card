@@ -5,13 +5,16 @@ from urllib.parse import parse_qs
 
 import httpx
 import pytest
-from app.tracker.schema import dota_accounts, profiles, users
+from app.tracker.schema import bootstrap, dota_accounts, ingest_jobs, profiles, users
 from app.tracker.steam_identity import (
     OPENID_NS,
     STEAM_ENDPOINT,
     HttpSteamAssertionVerifier,
+    RedisNonceStore,
     SteamLinkError,
     attach_verified_steam_profile,
+    complete_steam_link,
+    start_steam_link,
     verify_steam_assertion,
 )
 from sqlalchemy import insert, select
@@ -129,3 +132,47 @@ def test_verified_steam_identity_cannot_be_claimed_twice(database) -> None:
     attach_verified_steam_profile(database, user_id=first, account_id=100, now=NOW)
     with pytest.raises(SteamLinkError, match="already linked to another"):
         attach_verified_steam_profile(database, user_id=second, account_id=100, now=NOW)
+
+
+def test_redis_nonce_is_durable_and_one_use(redis_client) -> None:
+    redis, namespace = redis_client
+    store = RedisNonceStore(redis, namespace=namespace)
+    assert store.consume("openid-nonce-once")
+    assert not store.consume("openid-nonce-once")
+
+
+def test_link_challenge_binds_user_callback_and_enqueues_bootstrap(database, redis_client) -> None:
+    redis, namespace = redis_client
+    user_id = "steam-link-start-user"
+    with database.begin() as connection:
+        connection.execute(insert(users).values(id=user_id, created_at=NOW))
+    challenge = start_steam_link(
+        database,
+        redis,
+        user_id=user_id,
+        callback_url="https://api.example.test/v1/tracker/steam/callback",
+        namespace=namespace,
+    )
+    assert challenge.state in challenge.return_to
+    assert STEAM_ENDPOINT in challenge.authorization_url
+    assert "openid.mode=checkid_setup" in challenge.authorization_url
+    fields = assertion(**{"openid.return_to": challenge.return_to})
+    fields["state"] = challenge.state
+    verifier = FakeVerifier()
+    profile_id = complete_steam_link(
+        database, redis, user_id=user_id, callback_fields=fields,
+        verifier=verifier, namespace=namespace, now=NOW,
+    )
+    assert verifier.calls == 1
+    with database.connect() as connection:
+        assert connection.scalar(select(bootstrap.c.profile_id).where(bootstrap.c.profile_id == profile_id)) == profile_id
+        assert connection.scalar(select(ingest_jobs.c.job_type).where(
+            ingest_jobs.c.profile_id == profile_id,
+            ingest_jobs.c.job_type == "BOOTSTRAP_SEARCH",
+        )) == "BOOTSTRAP_SEARCH"
+    with pytest.raises(SteamLinkError, match="invalid or expired"):
+        complete_steam_link(
+            database, redis, user_id=user_id, callback_fields=fields,
+            verifier=verifier, namespace=namespace, now=NOW,
+        )
+    assert verifier.calls == 1
