@@ -79,6 +79,8 @@ def test_metric_matrix_and_lower_is_better_polarity() -> None:
     assert result.adjusted_expectation == 100.0
     assert result.residual == 5.0
     assert result.performance_state == "ABOVE"
+    with pytest.raises(ValueError, match="progression role"):
+        evaluate(_input(metric_id="mid.level_6_time.v1"), params)
 
 
 def test_missing_or_unvalidated_artifact_fails_closed() -> None:

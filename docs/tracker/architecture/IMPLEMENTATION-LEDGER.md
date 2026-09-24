@@ -8,31 +8,31 @@ Operational evidence, not a product or architecture contract.
 - Branch: `codex/tracker-backend-foundation`.
 - Authorized: BACKEND, DATABASE, ANALYTICAL (new tracker only), DOCUMENTATION, local INFRASTRUCTURE. No release/deployment.
 - Existing untracked `docs/prompts/tracker-backend-foundation-goal.md` is user-owned and remains untouched.
-- Current step: Phases C/D in progress: controlled providers, summary/replay handlers and foreground account discovery. Phase A schema, baseline, R1 and API design are committed. Full pipeline, analysis and mobile wiring remain pending; no implementation gap is claimed closed.
+- Current step: Phases C–F in progress. Controlled providers, priority workers, summary/replay acquisition, provisional roles, metric formulas, history mechanics, and first-wave Free bootstrap acquisition are committed through `2131027`. Per-mode refill and settlement, persisted finalization, identity/account services, and mobile wiring remain pending. The checkpoint entries below supersede older "next steps" notes; gap closure still requires end-to-end evidence.
 
 ## Gap status
 
 | Gap | Work | Status | Code / verification / commit |
 |---|---|---|---|
-| G-1 | STRATZ batching | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-2 | Shared fresh replay enrichment | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-3 | Persisted evidence readiness | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-4 | Classifier evidence profiles | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-5 | Global matches and account links | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-6 | Priority queues | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-7 | Job deduplication and locks | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-8 | Sync and coverage | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-9 | Rate and billing units | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-10 | Turbo-inclusive history | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-11 | Snapshot provenance | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
+| G-1 | STRATZ batching | Partial | 50-ID deep batches and size/cost splitting; expanded selection/live ceiling unproven |
+| G-2 | Shared fresh replay enrichment | Partial | Shared P1 path and bounded polling; finalization/terminal propagation pending |
+| G-3 | Persisted evidence readiness | Partial | Separate summary/replay states and immutable snapshots; private READY pipeline pending |
+| G-4 | Classifier evidence profiles | Partial | Summary and replay profiles/refinement implemented; provisional calibration and correction remain |
+| G-5 | Global matches and account links | Partial | Shared match/roster and generation-fenced links; full lifecycle pending |
+| G-6 | Priority queues | Partial | Dedicated P0–P3 workers and pressure admission; E2E non-starvation gate pending |
+| G-7 | Job deduplication and locks | Partial | Leases, source-call recovery and unique jobs; full pipeline duplicate-effect gate pending |
+| G-8 | Sync and coverage | Partial | Durable foreground discovery; coverage and bootstrap outcome publication pending |
+| G-9 | Rate and billing units | Partial | Separate Redis read/processing lanes and persisted units; live-limit evidence pending |
+| G-10 | Turbo-inclusive history | Implemented, E2E pending | Explicit `significant=0` in tracker readers; see Phase C tests |
+| G-11 | Snapshot provenance | Partial | Immutable provider/operation/version/digest storage; final analysis lineage pending |
 | G-12 | Trigger-based raw tiering | Trigger-deferred; policy review pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-13 | Independent versions and digest | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-14 | Four-role public boundary | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-15 | Account-match lifecycle | Pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
+| G-13 | Independent versions and digest | Partial | Source/feature/role/parameter versions and digests exist; complete analysis rebuild gate pending |
+| G-14 | Four-role public boundary | Partial | Internal positions map to four roles; isolated mobile contract pending |
+| G-15 | Account-match lifecycle | Partial | Separate private lifecycle columns and role updates; finalizer pending |
 
 ## V1 capability work outside the gap list
 
-Pending: app authentication and sessions; verified Steam linking; bootstrap per mode; resumable history; entitlement; switching/deletion fencing; notification outbox; all 20 metrics; context parameters; deterministic insight engine; Profile claims; isolated mobile API; seed and golden fixtures; PostgreSQL/Redis/Celery E2E; acceptance traceability.
+Pending: app authentication and sessions; verified Steam linking; bootstrap refill/settlement; resumable Pro history; entitlement; switching/deletion fencing; notification delivery; context parameters; deterministic insight engine; Profile claims; persisted analysis/finalization/rebuild; isolated mobile API; seed and golden fixtures; PostgreSQL/Redis/Celery E2E; acceptance traceability. All 20 pure metric formulas are implemented but are not yet persisted through a finalizer.
 
 ## Engineering decisions
 
@@ -622,3 +622,34 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   fallback and bootstrap modules; full tracker suite: **180 passed**. No live
   calls. Per-mode eligibility/refill,
   replay-unavailable state and outcome settlement remain pending.
+
+### 2026-09-24 continuation audit
+
+- Reconstructed branch `codex/tracker-backend-foundation` at `2131027` (17 commits ahead of its remote tracking ref), with only the pre-existing, user-owned untracked goal copy. The separate `docs/evidence/v7-backend-completion-ledger.md` describes an older report-card effort; this ledger governs the tracker goal. The top status and gap matrix above were corrected from their Phase C snapshot to the verified checkpoints below.
+- Existing disposable PostgreSQL 16 and Redis 7 test services still run on localhost 55432/56379. Socket access requires execution outside the workspace sandbox; no service data was removed or recreated. Current HEAD tracker suite: **180 passed, 0 failed, 0 skipped**, one existing Starlette deprecation warning, against both real services. This is the baseline for subsequent slices, not final goal verification.
+- Asana project [Dota Tracker — Backend Foundation](https://app.asana.com/1/1218421734064975/project/1218700923418699): 5 tasks complete, 4 in progress, 29 incomplete total. Its phase task statuses agree with verified checkpoint evidence; a project-level note still describes the original Phase 0 state and should be refreshed with the next verified checkpoint.
+- Next dependencies: per-mode bootstrap candidate refill and evidence/coverage settlement; persisted analysis and ordered finalization from existing pure metric/history modules; then identity/account services, mobile API, E2E, and release-independent documentation. Provider safety still prohibits live STRATZ calls. No deployment, push, merge, holdout, recalibration, or new provider call occurred during this audit.
+
+### Trend evaluator checkpoint
+
+- Added a pure ten-baseline-point, metric-level trend evaluator with polarity and N/A exclusion. It emits `INSUFFICIENT_HISTORY` before ten points and a nullable state with `UNCALIBRATED` when the approved, versioned per-metric threshold is absent. A test-only fixture exercises direction; production has no approved calibration artifact and therefore cannot publish Improving/Stable/Declining. The measured 1.25 CS floor applies to the current Carry CS@10 metric; the annex's other named floor metrics do not map directly to the V1 registry, so no substitute mapping was invented.
+- Focused tests: **3 passed, 0 failed, 0 skipped**; ruff and mypy pass. Persisted history loading, artifact publication and mobile projection remain pending. No provider calls or legacy analytical changes.
+
+### Paired checkpoint disagreement persistence
+
+- Materializing a second source now compares its exact replay checkpoints with the immutable first source and adds observed point disagreements to the match's persisted quarantine paths. Neither raw snapshot nor derived feature record is overwritten; a missing point does not become a disagreement. The existing retained ten-player pair proves a non-checkpoint 420-second disagreement is recorded while agreed 600/1200-second values remain usable. Event-stream dependency comparison and downstream per-metric/insight quarantine remain pending.
+- Real PostgreSQL materialization suite: **5 passed, 0 failed, 0 skipped**; ruff and mypy pass. No provider calls or legacy behavior changed.
+
+### Pure context-adjusted expectation checkpoint
+
+- Added the exact named 20-metric A/B/C/C*/D/E matrix, a draft-only lane score, window-relative hero/lane terms and caps, the floor and support gates, polarity-aware performance states, and fail-closed unavailable outputs. The paired hero for C* is derived from the validated opposing lane/position in the draft; callers cannot assert a different counterpart. Turbo receives zero adjustments and no lane label. No provider call or production parameter artifact was introduced.
+- The annex §6 aggregate sentence says 9 B and 6 A, which sums to 22 metrics with its other classes. Its named rows and the active SSOT's named rows sum to 20 (8 B, 5 A); code and tests follow the row-level authority. This is a factual documentation discrepancy, not a new product classification.
+- Focused tests: **9 passed, 0 failed, 0 skipped**; ruff and mypy pass. Population-parameter acquisition/validation/publication, stored prior-term projection and persisted analysis wiring remain pending.
+
+### Per-mode bootstrap refill and tracker authentication primitives
+
+- Selected Free bootstrap candidates now settle once after a source-backed private link is classified, or after the summary fallback reaches terminal unavailability. An ineligible/unavailable selection opens only its own mode's next newest candidate, preserving the 30-eligible target and profile-generation fence. This is candidate/eligibility refill, not overall bootstrap completion: replay coverage, final analysis, six outcomes and the single completion event are still pending.
+- Tracker-only authentication primitives now verify fixed-issuer Apple/Google RS256 ID token signatures against their JWKS with PyJWT/cryptography, block identity collisions, issue hashed opaque sessions and rotate refresh tokens with reuse-family revocation. Email has only a sender interface and fake, per the open mechanism decision. The login path's explicit verification time now reaches the verifier. Steam OpenID, a full login challenge/nonce boundary, mobile routes and production credential/configuration validation remain pending; do not call the identity phase complete.
+- Integrated affected suites (bootstrap, historical summary, linking, materialization, context, trend, authentication) against real PostgreSQL/Redis: **36 passed, 0 failed, 0 skipped**, one existing Starlette deprecation warning. Ruff and mypy pass on the changed modules. No live provider calls, legacy report contract changes or deployment.
+- Broader pre-checkpoint regression on tracker, legacy provider clients, report contracts and migration units: **236 passed, 0 failed, 0 skipped**; two existing deprecation warnings. Full backend ruff and mypy pass (281 source files), docs-check passes (58 tracker documents, 474 links), and `git diff --check` passes. This is a regression gate for the current working tree, not final goal E2E evidence.
+- Follow-up guard: context evaluation rejects a metric under another role. The PyJWT verifier and role guard together pass **14 focused tests** with real PostgreSQL, ruff and mypy. Asana Phase E/F notes and a yellow project status update were published from verified evidence; tasks remain in progress.

@@ -189,6 +189,8 @@ def evaluate(context: ContextInput, parameters: ParameterSet | None) -> ContextR
     cls = METRIC_CLASS[context.metric_id]
     if context.mode not in {"STANDARD", "TURBO"} or context.role not in {"CARRY", "MID", "OFFLANE", "SUPPORT"}:
         raise ValueError("Invalid context identity")
+    if not context.metric_id.startswith(context.role.lower() + "."):
+        raise ValueError("Metric does not belong to progression role")
     if context.prior_count < 0 or context.prior_count > 20:
         raise ValueError("Baseline prior count must be between 0 and 20")
     if len(context.prior_hero_levels) > 20 or len(context.prior_lane_scores) > 20:
