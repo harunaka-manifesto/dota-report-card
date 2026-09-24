@@ -1,17 +1,48 @@
 """Materialize one retained STRATZ batch under a profile-fenced transaction."""
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
-from sqlalchemy import Connection, func, select
+import httpx
+from sqlalchemy import Connection, Engine, func, select
 from sqlalchemy.dialects.postgresql import insert
 
+from app.core.config import Settings
+from app.core.errors import StratzRateLimited
+from app.stratz.client import StratzClient
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
-from app.tracker.jobs import enqueue
+from app.tracker.evidence import canonical_json
+from app.tracker.jobs import authorized_job, enqueue, finish, reschedule
 from app.tracker.linking import enqueue_role_refinements
 from app.tracker.materialization import materialize_snapshot
 from app.tracker.normalization import InvalidEvidence, replay_available, stratz_summary
-from app.tracker.schema import acquisitions, match_players, matches, profiles, snapshots, users
+from app.tracker.provider_control import ProviderDeferred, ProviderGate
+from app.tracker.provider_transport import ControlledTransport
+from app.tracker.schema import (
+    acquisitions,
+    match_players,
+    matches,
+    profiles,
+    provider_calls,
+    snapshots,
+    users,
+)
+
+
+def enqueue_historical_batch(connection: Connection, *, profile_id: str, match_ids: list[int], origin: str) -> str:
+    if origin not in {"BOOTSTRAP", "HISTORICAL", "RECOVERY"} or not 1 <= len(match_ids) <= 50:
+        raise ValueError("Invalid historical batch")
+    ids = sorted(set(match_ids))
+    if len(ids) != len(match_ids) or any(type(value) is not int or not 0 < value < 2**63 for value in ids):
+        raise ValueError("Historical batch needs distinct match IDs")
+    owner = connection.execute(select(profiles.c.generation, users.c.generation.label("user_generation")).join(
+        users, users.c.id == profiles.c.user_id,
+    ).where(profiles.c.id == profile_id)).mappings().one()
+    digest = hashlib.sha256(canonical_json(ids)).hexdigest()[:24]
+    return enqueue(connection, dedup_key=f"historical:{profile_id}:{owner['generation']}:{owner['user_generation']}:{origin}:{digest}",
+                   job_type="HISTORICAL_BATCH", priority=3, profile_id=profile_id,
+                   payload={"match_ids": ids, "origin": origin})
 
 
 def materialize_historical_batch(connection: Connection, *, snapshot_id: str, profile_id: str,
@@ -103,3 +134,60 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
             ))
             results[match_id] = "INVALID_SOURCE"
     return results
+
+
+async def acquire_historical_batch(database: Engine, gate: ProviderGate, settings: Settings, *,
+                                   job_id: str, lease_token: str,
+                                   transport: httpx.AsyncBaseTransport | None = None) -> str:
+    """One bounded provider read, recoverable from its durably recorded response."""
+    if gate.provider != "stratz":
+        raise ValueError("Historical acquisition requires STRATZ admission")
+    with authorized_job(database, job_id, lease_token) as (connection, job):
+        ids, origin = job["payload"].get("match_ids"), job["payload"].get("origin")
+        if job["job_type"] != "HISTORICAL_BATCH" or job["profile_id"] is None or not isinstance(ids, list):
+            raise ValueError("Expected private historical batch job")
+        if origin not in {"BOOTSTRAP", "HISTORICAL", "RECOVERY"} or not 1 <= len(ids) <= 50:
+            raise ValueError("Invalid historical job payload")
+        if any(type(value) is not int or not 0 < value < 2**63 for value in ids) or len(set(ids)) != len(ids):
+            raise ValueError("Invalid historical job match IDs")
+        snapshot_id = connection.scalar(select(snapshots.c.id).join(
+            provider_calls, provider_calls.c.snapshot_id == snapshots.c.id,
+        ).where(
+            provider_calls.c.job_id == job_id, provider_calls.c.provider == "stratz",
+            provider_calls.c.operation == GET_TRACKER_MATCH_BATCH.name,
+            provider_calls.c.account_id == job["account_id"],
+            provider_calls.c.status == 200, snapshots.c.payload.is_not(None),
+        ).order_by(provider_calls.c.called_at.desc()).limit(1))
+    if snapshot_id is None:
+        def before_send() -> None:
+            # A stale worker may not issue a request after its generation/lease expires.
+            with authorized_job(database, job_id, lease_token):
+                pass
+
+        controlled = ControlledTransport(gate, database, transport=transport, before_send=before_send, job_id=job_id)
+        try:
+            async with httpx.AsyncClient(transport=controlled) as http:
+                await StratzClient(settings, http_client=http).get_tracker_match_batch(job["account_id"], ids)
+        except ProviderDeferred as exc:
+            with authorized_job(database, job_id, lease_token) as (connection, current):
+                reschedule(connection, current, delay_seconds=exc.delay, error=exc.reason, failure=False)
+            return "DEFERRED"
+        except StratzRateLimited:
+            with authorized_job(database, job_id, lease_token) as (connection, current):
+                reschedule(connection, current, delay_seconds=30, error="RATE_LIMITED", failure=False)
+            return "DEFERRED"
+        with authorized_job(database, job_id, lease_token) as (connection, _):
+            snapshot_id = connection.scalar(select(snapshots.c.id).join(
+                provider_calls, provider_calls.c.snapshot_id == snapshots.c.id,
+            ).where(
+                provider_calls.c.job_id == job_id, provider_calls.c.provider == "stratz",
+                provider_calls.c.operation == GET_TRACKER_MATCH_BATCH.name,
+                provider_calls.c.account_id == job["account_id"], provider_calls.c.status == 200,
+            ).order_by(provider_calls.c.called_at.desc()).limit(1))
+            if snapshot_id is None:
+                raise InvalidEvidence("Historical response was not retained")
+    with authorized_job(database, job_id, lease_token) as (connection, current):
+        materialize_historical_batch(connection, snapshot_id=snapshot_id, profile_id=job["profile_id"],
+                                     requested_ids=ids, origin=origin)
+        finish(connection, current)
+    return "COMPLETE"

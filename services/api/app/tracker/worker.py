@@ -15,6 +15,7 @@ from sqlalchemy import Engine, and_, func, or_, select
 from app.core.config import Settings, get_settings
 from app.storage.database import check_database_revision, create_database_engine
 from app.tracker.acquisition import acquire_fresh_summary
+from app.tracker.historical import acquire_historical_batch
 from app.tracker.jobs import StaleJob, authorized_job, claim, reschedule
 from app.tracker.linking import complete_link_job, complete_role_job
 from app.tracker.provider_control import ProviderGate
@@ -91,6 +92,9 @@ async def run_one(database: Engine, redis: Redis, settings: Settings, *, priorit
             return await acquire_fresh_summary(database, gate, settings, **args, transport=transport)
         if job["job_type"] == "REPLAY":
             return await acquire_fresh_replay(database, gate, settings, **args, transport=transport)
+        if job["job_type"] == "HISTORICAL_BATCH":
+            historical_gate = ProviderGate(redis, namespace=policy.namespace, provider="stratz")
+            return await acquire_historical_batch(database, historical_gate, settings, **args, transport=transport)
         raise ValueError("Unsupported tracker job type")
     except StaleJob:
         return "STALE"

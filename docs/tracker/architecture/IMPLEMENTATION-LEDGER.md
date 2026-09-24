@@ -543,9 +543,12 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 - PostgreSQL verification: **2 passed, 0 failed, 0 skipped**. Tests cover
   duplicate delivery, one omitted ID, later recovery, link deduplication and
   rejection of duplicate/unrequested rows or unproven roster membership.
-- This is the stored-evidence half of historical acquisition. Provider fetch,
-  batch-size fallback, account history enumeration, source-gap settlement and
-  bootstrap completion are still pending. No live STRATZ calls were made.
+- The P3 worker now performs one controlled STRATZ read for at most 50 IDs,
+  with generation/lease checks, provider accounting, stored-response recovery
+  and rate-limit deferral that preserves attempt budget. Mocked HTTP plus real
+  PostgreSQL/Redis worker verification: **11 passed, 0 failed, 0 skipped**
+  across historical and worker tests. Batch-size fallback, account history
+  enumeration, source-gap settlement and bootstrap completion remain pending. No live STRATZ calls were made.
 - Each returned row now uses a PostgreSQL savepoint. One malformed source row
   records INVALID_SOURCE and leaves valid siblings materialized; neither
   malformed evidence nor a roster mismatch creates a private link. Retained

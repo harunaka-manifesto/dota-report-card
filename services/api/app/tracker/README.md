@@ -247,8 +247,10 @@ current profile/job fence. It validates requested IDs and tracked roster
 membership, materializes per-match source features, selects parsed replay
 readiness, queues profile-specific link work, and records provider-specific
 missing IDs without declaring the match nonexistent. A later returned row can
-replace that source-missing acquisition. The network batch worker, enumeration,
-coverage settlement and terminal source resolution are still to be connected.
+replace that source-missing acquisition. A P3 historical batch worker now runs one controlled STRATZ read for at most
+50 IDs and reuses a durably recorded successful response after a crash.
+History enumeration, batch-size fallback, coverage settlement and terminal
+source resolution are still to be connected.
 A malformed returned match is isolated with a database savepoint, leaving
 valid sibling matches processable and recording an `INVALID_SOURCE` acquisition
 for the affected match. The raw snapshot remains available for diagnosis.
