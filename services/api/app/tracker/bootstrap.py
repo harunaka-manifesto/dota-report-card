@@ -12,6 +12,7 @@ from sqlalchemy.dialects.postgresql import insert
 from app.core.config import Settings
 from app.core.errors import OpenDotaRateLimited, OpenDotaUnavailable
 from app.opendota.client import OpenDotaClient
+from app.tracker.historical import enqueue_historical_batch
 from app.tracker.jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from app.tracker.provider_control import ProviderDeferred, ProviderGate
 from app.tracker.provider_transport import ControlledTransport
@@ -32,6 +33,27 @@ def request_bootstrap_search(connection: Connection, profile_id: str) -> str:
         connection, dedup_key=f"bootstrap-search:{profile_id}:{owner['generation']}:{owner['user_generation']}",
         job_type="BOOTSTRAP_SEARCH", priority=3, profile_id=profile_id, payload={},
     )
+
+
+def _select_initial_candidates(connection: Connection, profile_id: str) -> None:
+    """Acquire the first 30 per mode; later eligibility may require replacements."""
+    for mode in ("STANDARD", "TURBO"):
+        ids = list(connection.scalars(select(bootstrap_search_items.c.match_id).where(
+            bootstrap_search_items.c.profile_id == profile_id,
+            bootstrap_search_items.c.mode == mode,
+            bootstrap_search_items.c.outcome == "CANDIDATE",
+            bootstrap_search_items.c.selected_at.is_(None),
+        ).order_by(bootstrap_search_items.c.started_at.desc(), bootstrap_search_items.c.match_id.desc()).limit(30)))
+        if not ids:
+            continue
+        connection.execute(bootstrap_search_items.update().where(
+            bootstrap_search_items.c.profile_id == profile_id,
+            bootstrap_search_items.c.match_id.in_(ids),
+        ).values(selected_at=func.clock_timestamp()))
+        connection.execute(bootstrap.update().where(
+            bootstrap.c.profile_id == profile_id, bootstrap.c.mode == mode,
+        ).values(discovered_count=bootstrap.c.discovered_count + len(ids)))
+        enqueue_historical_batch(connection, profile_id=profile_id, match_ids=ids, origin="BOOTSTRAP")
 
 
 def _publish_page(connection: Connection, job: dict[str, Any], snapshot: dict[str, Any], *, max_pages: int) -> str:
@@ -79,6 +101,7 @@ def _publish_page(connection: Connection, job: dict[str, Any], snapshot: dict[st
             cursor=next_cursor,
         ))
     if finished:
+        _select_initial_candidates(connection, job["profile_id"])
         finish(connection, job)
         return "COMPLETE"
     if pages >= max_pages:

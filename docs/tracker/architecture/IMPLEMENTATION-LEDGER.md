@@ -596,3 +596,15 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   suite: **175 passed**. Ruff, mypy and docs checks pass. No frozen V6.1
   analytical source, artifacts or public report
   contract changed.
+
+### Independent initial bootstrap acquisition
+
+- Added a selected marker on source search items and an atomic first-wave
+  selector after the 90-day scan. It takes at most 30 newest candidates per
+  mode, increments each mode's discovered count independently and enqueues
+  one P3 STRATZ deep batch per nonempty bucket. The selected rows and jobs
+  commit with the search cursor; no match is counted eligible yet.
+- Bootstrap/migration focused suite: **9 passed**; full tracker suite:
+  **176 passed**. Ruff and mypy pass. Filling
+  vacancies left by ineligible or unavailable first-wave candidates and
+  settling the per-mode outcomes are the next dependent work.

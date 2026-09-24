@@ -70,8 +70,10 @@ authenticated routes, complete analysis and mobile integration remain pending.
 search ledgers anchored to the original Steam-link date. Each Turbo-inclusive history
 page is retained before its 90-day-window candidates or rejections are journaled;
 the cursor moves only with those writes. Search completion does not imply bootstrap
-completion. Candidate eligibility, 30-per-mode selection, deep acquisition and
-coverage settlement remain separate pending steps.
+completion. At search completion, the newest 30 candidates in each mode are
+selected atomically with separate P3 historical batches. These are acquisition
+candidates, not yet eligible matches. Replacing ineligible candidates, summary
+fallback, coverage settlement and product terminality remain pending.
 
 Historical deep batches split into two profile-fenced P3 jobs after an explicit
 size, cost or deadline rejection. A singleton still uses bounded retries, and

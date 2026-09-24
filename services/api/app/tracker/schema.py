@@ -612,9 +612,11 @@ bootstrap_search_items = Table(
     Column("mode", String(16)),
     Column("outcome", String(16), nullable=False),
     Column("reason", String(64)),
+    Column("selected_at", DateTime(timezone=True)),
     CheckConstraint("mode IS NULL OR mode IN ('STANDARD', 'TURBO')", name="ck_tracker_bootstrap_item_mode"),
     CheckConstraint("outcome IN ('CANDIDATE', 'REJECTED')", name="ck_tracker_bootstrap_item_outcome"),
     CheckConstraint("(outcome = 'CANDIDATE') = (match_id IS NOT NULL AND started_at IS NOT NULL AND mode IS NOT NULL)", name="ck_tracker_bootstrap_item_candidate"),
+    CheckConstraint("selected_at IS NULL OR outcome = 'CANDIDATE'", name="ck_tracker_bootstrap_item_selected"),
     Index("ix_tracker_bootstrap_candidates", "profile_id", "mode", "started_at", "match_id"),
 )
 ingest_jobs = Table(

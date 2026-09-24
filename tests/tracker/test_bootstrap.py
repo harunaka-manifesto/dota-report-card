@@ -50,13 +50,16 @@ async def test_bootstrap_search_journals_both_modes_and_original_window(database
     with database.connect() as c:
         states = c.execute(select(bootstrap).where(bootstrap.c.profile_id == profile_id).order_by(bootstrap.c.mode)).mappings().all()
         assert [row["mode"] for row in states] == ["STANDARD", "TURBO"]
-        assert all(row["search_finished"] and row["completed_at"] is None and row["discovered_count"] == 0 for row in states)
+        assert all(row["search_finished"] and row["completed_at"] is None and row["discovered_count"] == 1 for row in states)
         items = c.execute(select(bootstrap_search_items).order_by(bootstrap_search_items.c.source_item_id)).mappings().all()
         assert [(row["source_item_id"], row["mode"], row["reason"]) for row in items] == [
             ("1", None, "AFTER_LINK"), ("2", "STANDARD", None), ("3", "TURBO", None),
             ("4", None, "UNSUPPORTED_MODE"), ("5", None, "BEFORE_WINDOW"),
         ]
+        assert [row["selected_at"] is not None for row in items] == [False, True, True, False, False]
         assert c.scalar(select(ingest_jobs.c.state).where(ingest_jobs.c.id == job_id)) == "COMPLETE"
+        batches = c.execute(select(ingest_jobs.c.payload).where(ingest_jobs.c.job_type == "HISTORICAL_BATCH")).scalars().all()
+        assert {tuple(batch["match_ids"]) for batch in batches} == {(2,), (3,)}
         assert c.scalar(select(func.count()).select_from(provider_calls)) == 1
 
 
@@ -123,3 +126,24 @@ async def test_shifted_offset_page_does_not_advance_coverage(database, redis_cli
         assert c.scalar(select(func.count()).select_from(bootstrap_search_items)) == 1
         assert c.scalar(select(bootstrap.c.cursor).where(bootstrap.c.profile_id == profile_id, bootstrap.c.mode == "TURBO"))["offset"] == 1
         assert not c.scalar(select(bootstrap.c.search_finished).where(bootstrap.c.profile_id == profile_id, bootstrap.c.mode == "TURBO"))
+
+
+async def test_initial_selection_caps_each_mode_independently(database, redis_client):
+    profile_id, job_id = setup(database)
+    gate = gate_for(redis_client, "opendota")
+    page = [
+        {"match_id": i, "start_time": int((NOW - timedelta(days=i)).timestamp()), "game_mode": 22 if i <= 35 else 23}
+        for i in range(1, 43)
+    ]
+    page.append({"match_id": 43, "start_time": int((NOW - timedelta(days=91)).timestamp()), "game_mode": 22})
+    job = claim_page(database, job_id)
+    assert await search.search_bootstrap_page(database, gate, Settings(), job_id=job_id, lease_token=job["lease_token"],
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json=page))) == "COMPLETE"
+    with database.connect() as c:
+        counts = dict(c.execute(select(bootstrap.c.mode, bootstrap.c.discovered_count).where(bootstrap.c.profile_id == profile_id)).all())
+        assert counts == {"STANDARD": 30, "TURBO": 7}
+        selected = set(c.scalars(select(bootstrap_search_items.c.match_id).where(bootstrap_search_items.c.selected_at.is_not(None))))
+        assert selected == set(range(1, 31)) | set(range(36, 43))
+        batches = c.execute(select(ingest_jobs.c.payload).where(ingest_jobs.c.job_type == "HISTORICAL_BATCH")).scalars().all()
+        assert {tuple(batch["match_ids"]) for batch in batches} == {tuple(range(1, 31)), tuple(range(36, 43))}
+        assert all(batch["origin"] == "BOOTSTRAP" for batch in batches)
