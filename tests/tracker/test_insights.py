@@ -1,4 +1,13 @@
-from app.tracker.insights import classify_tier_b, evaluate, global_ineligibility, select, severity
+from app.tracker.insights import (
+    _counterpart,
+    _vision,
+    classify_tier_b,
+    evaluate,
+    from_provider_snapshot,
+    global_ineligibility,
+    select,
+    severity,
+)
 
 
 def _match(**changes):
@@ -31,6 +40,15 @@ def test_global_gate_and_feeding_golden_vector_tv2():
     assert evaluate(match)["cards"] == []
 
 
+def test_no_card_is_a_valid_evaluated_result_golden_tv1():
+    result = evaluate(_match(), {"team": "RADIANT", "won": True})
+    assert result == {
+        "status": "EVALUATED",
+        "contract_version": "post-match-insights 1.0.0",
+        "cards": [],
+    }
+
+
 def test_global_positions_and_missing_evidence_fail_closed():
     match = _match()
     match["players"][0]["position"] = "POSITION_2"
@@ -42,6 +60,11 @@ def test_global_positions_and_missing_evidence_fail_closed():
 
 def test_tier_b_classifier_is_mirror_symmetric_and_deterministic():
     match = _match()
+    for player in match["players"]:
+        if player["team"] == "DIRE":
+            player["stats"]["networthPerMinute"] = [
+                value // 2 for value in player["stats"]["networthPerMinute"]
+            ]
     first = classify_tier_b(match, "RADIANT")
     assert first == classify_tier_b(match, "RADIANT")
     mirrored = classify_tier_b(match, "DIRE")["label"]
@@ -52,9 +75,13 @@ def test_tier_b_classifier_is_mirror_symmetric_and_deterministic():
         "UNCLEAR": "UNCLEAR",
         "SHORT_WINDOW": "SHORT_WINDOW",
     }
-    assert mirrored == expected.get(
-        first["label"], first["label"].replace("_FOR", "_AGAINST").replace("_AGAINST", "_FOR")
-    )
+    if first["label"].endswith("_FOR"):
+        mirror = first["label"][:-4] + "_AGAINST"
+    elif first["label"].endswith("_AGAINST"):
+        mirror = first["label"][:-8] + "_FOR"
+    else:
+        mirror = expected[first["label"]]
+    assert mirrored == mirror
     assert 0 <= first["confidence"] <= 1
 
 
@@ -82,3 +109,211 @@ def test_ladder_boundary_rounding():
     assert severity(12, (12, 20, 30)) == (1, 0.0)
     assert severity(30, (12, 20, 30)) == (3, 2.0)
     assert severity(11.9, (12, 20, 30)) is None
+
+
+def _positions():
+    return {slot: slot % 5 + 1 for slot in range(10)}
+
+
+def _opendota_snapshot():
+    times = list(range(0, 2401, 60))
+    players = []
+    for slot in (*range(5), *range(128, 133)):
+        players.append(
+            {
+                "player_slot": slot,
+                "hero_id": slot + 1,
+                "account_id": None,
+                "leaver_status": 0,
+                "times": times,
+                "networth_t": [1000 + i * 100 for i in range(len(times))],
+                "lh_t": [i * 5 for i in range(len(times))],
+                "deaths_log": [],
+                "purchase_log": [],
+            }
+        )
+    return {
+        "match_id": 99,
+        "start_time": 1000,
+        "duration": 2400,
+        "radiant_win": True,
+        "game_mode": 22,
+        "lobby_type": 7,
+        "version": 1,
+        "human_players": 10,
+        "players": players,
+    }
+
+
+def _stratz_snapshot():
+    players = []
+    for slot in (*range(5), *range(128, 133)):
+        players.append(
+            {
+                "playerSlot": slot,
+                "isRadiant": slot < 128,
+                "heroId": slot + 1,
+                "leaverStatus": "NONE",
+                "itemPurchases": [],
+                "stats": {
+                    "networth": 10000,
+                    "numLastHits": 100,
+                    "numDenies": 0,
+                    "goldPerMinute": 300,
+                    "experiencePerMinute": 300,
+                    "heroDamage": 1000,
+                    "towerDamage": 0,
+                    "heroHealing": 0,
+                    "goldSpent": 5000,
+                    "level": 20,
+                    "kills": 0,
+                    "deaths": 0,
+                    "assists": 0,
+                    "networthPerMinute": [1000 + i * 100 for i in range(41)],
+                    "lastHitsPerMinute": [5] * 41,
+                    "campStack": [0] * 40,
+                    "deathEvents": [],
+                    "itemUsed": [],
+                    "wards": [],
+                    "wardDestruction": [],
+                },
+            }
+        )
+    return {
+        "id": 99,
+        "startDateTime": 1000,
+        "durationSeconds": 2400,
+        "didRadiantWin": True,
+        "gameMode": "ALL_PICK_RANKED",
+        "lobbyType": "RANKED",
+        "numHumanPlayers": 10,
+        "isStats": True,
+        "players": players,
+        "towerDeaths": [],
+    }
+
+
+def test_provider_snapshot_adapter_uses_existing_neutral_replay_projection():
+    od = from_provider_snapshot(_opendota_snapshot(), "opendota", _positions())
+    sz = from_provider_snapshot(_stratz_snapshot(), "stratz", _positions())
+    assert global_ineligibility(od) is None
+    assert global_ineligibility(sz) is None
+    assert len(od["players"][0]["stats"]["networthPerMinute"]) == 41
+    assert len(sz["players"][0]["stats"]["lastHitsPerMinute"]) == 10
+    assert evaluate(od, {"team": "RADIANT", "won": True, "player_slot": 0})["status"] == "EVALUATED"
+    assert evaluate(sz, {"team": "RADIANT", "won": True, "player_slot": 0})["status"] == "EVALUATED"
+
+
+def test_history_counterpart_accepts_canonical_position_strings():
+    players = [
+        {"team": "DIRE", "position": "POSITION_3", "lane": "OFF_LANE"},
+        {"team": "DIRE", "position": "POSITION_3", "lane": "SAFE_LANE"},
+    ]
+    viewer = {"team": "RADIANT", "lane": "OFF_LANE"}
+    assert _counterpart(players, viewer, "CARRY") is players[1]
+
+
+def test_stats_only_vision_tv11_unmatched_clear_is_unresolved():
+    match = _match(bucket="TURBO", duration_seconds=1560)
+    for player in match["players"]:
+        player["stats"].update(wards=[], wardDestruction=[])
+    match["players"][0]["stats"]["wards"] = [
+        {"time": 400, "x": 100, "y": 100, "type": 0},
+        {"time": 410, "x": 150, "y": 140, "type": 0},
+        {"time": 900, "x": 120, "y": 110, "type": 0},
+        {"time": 950, "x": 180, "y": 60, "type": 0},
+    ]
+    match["players"][5]["stats"]["wards"] = [{"time": 440, "x": 102, "y": 101, "type": 1}]
+    match["players"][5]["stats"]["wardDestruction"] = [
+        {"time": 450, "isWard": True},
+        {"time": 470, "isWard": True},
+        {"time": 1000, "isWard": True},
+    ]
+    cards, summary = _vision(match, "RADIANT", [0] * 50)
+    assert cards == []
+    assert summary == {
+        "placed": 4,
+        "destroyed_total": 3,
+        "identified": 2,
+        "quick": 2,
+        "within_60s": 2,
+        "clears": [
+            {"time": 450, "placed_at": 400, "life": 50, "x": 100, "y": 100, "region": "OWN_HALF", "match_tier": "A"},
+            {"time": 470, "placed_at": 410, "life": 60, "x": 150, "y": 140, "region": "ENEMY_HALF", "match_tier": "C"},
+        ],
+    }
+
+
+def test_smoke_kills_enrichment_uses_bounded_windows_and_exact_counts():
+    match = _match(towerDeaths=[])
+    match["duration_seconds"] = 2520
+    smoke_times = [600, 700, 730, 1200, 1500, 1800, 2400]
+    own_smoke_times = [800]
+    victims = [650, 745, 1230, 1540, 1900, 2430]
+    kill_rows = [
+        {"time": time, "attackerHeroId": 6, "targetHeroId": 1}
+        for time in victims
+    ]
+    confirmed = [
+        {"time": time, "targetHeroId": 1, "isSmoke": True}
+        for time in (650, 745, 1540)
+    ]
+    for index, player in enumerate(match["players"]):
+        player["heroId"] = index + 1
+        used_times = smoke_times if index == 5 else own_smoke_times if index == 0 else []
+        player["stats"]["itemUsed"] = [
+            {"itemId": 188, "count": len(used_times)}
+        ]
+        player["deathEvents"] = kill_rows if index == 0 else []
+        player["playbackData"] = {
+            "itemUsedEvents": [
+                {"itemId": 188, "time": time} for time in used_times
+            ],
+            "killEvents": confirmed if index == 5 else [],
+        }
+    cards = evaluate(match, {"team": "RADIANT", "won": False})["cards"]
+    smoke = next(card for card in cards if card["candidate_id"] == "ENEMY_SMOKE_VOLUME")
+    assert smoke["slots"]["rate"] == 7 * 600 / 2520
+    assert smoke["enrichments"] == [{"kind": "SMOKE_TO_KILLS", "k": 5, "n": 7}]
+
+
+def test_annex_output_vectors_selection_tv3_tv5_tv6_tv7_tv8_tv9_tv12_tv13():
+    def card(candidate_id, band, level):
+        return {"candidate_id": candidate_id, "band": band, "level": level}
+    assert [c["candidate_id"] for c in select([card("ENEMY_STACKING", 3, 2.0)])] == [
+        "ENEMY_STACKING"
+    ]
+    assert [
+        c["candidate_id"]
+        for c in select([card("CLOSE_MOST_OF_GAME", 1, 0.462), card("LEAD_FLIP", 1, 0.262)])
+    ] == ["CLOSE_MOST_OF_GAME"]
+    assert [c["candidate_id"] for c in select([card("ENEMY_EARLY_ITEM", 2, 1.375)])] == [
+        "ENEMY_EARLY_ITEM"
+    ]
+    assert [c["candidate_id"] for c in select([card("ENEMY_EARLY_RICH", 2, 1.0)])] == [
+        "ENEMY_EARLY_RICH"
+    ]
+    assert [
+        c["candidate_id"]
+        for c in select(
+            [
+                card("ENEMY_SMOKE_VOLUME", 2, 1.0),
+                card("VISION_QUICK_CLEARS", 2, 1.0),
+                card("OWN_ITEM_VS_HISTORY", 1, 0.48),
+            ]
+        )
+    ] == ["ENEMY_SMOKE_VOLUME", "VISION_QUICK_CLEARS", "OWN_ITEM_VS_HISTORY"]
+    assert [c["candidate_id"] for c in select([card("ENEMY_EARLY_RICH", 2, 1.0)])] == [
+        "ENEMY_EARLY_RICH"
+    ]
+    assert [
+        c["candidate_id"]
+        for c in select(
+            [
+                card("LOST_FROM_AHEAD", 1, 0.027),
+                card("CLOSE_MOST_OF_GAME", 1, 0.1),
+                card("ENEMY_STACKING", 3, 3.0),
+                card("LEAD_FLIP", 1, 0.2),
+            ]
+        )
+    ] == ["LOST_FROM_AHEAD", "ENEMY_STACKING"]
