@@ -477,3 +477,29 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
   disagreements discovered after the refinement was queued.
 - Final refinement suite after that guard: **10 passed, 0 failed, 0 skipped**.
   Ruff, mypy (17 runtime/storage modules), docs (474 links) and whitespace pass.
+
+### Metric formulas and replay event projection
+
+- Implemented the 20 pure V1 metric calculators, keeping raw and normalized values
+  separate and returning reasons for absent, malformed or zero-denominator inputs.
+  Exact 10/20-minute checkpoints, cumulative series validation, unique opponent
+  positions, inclusive early-kill and tower-credit windows are tested.
+- Added immutable `replay-events-1` projections and source provenance to feature
+  materialization; older feature versions remain immutable. Retained fixtures
+  revealed valid negative level-one times, incomplete death durations and small
+  provider death-duration disagreements. No gaps or disagreements are fabricated
+  away. Canonical dead intervals must be complete and inside match time.
+- OpenDota assists, exact level times and attributed ward destruction are not
+  inferred. STRATZ operation 1.1.0 adds realized death duration and tower reports,
+  verified by retained evidence; older 1.0.0 snapshots remain readable with absent
+  inputs unavailable. No live verification is claimed for the expanded operation.
+- Pure formula/adapter verification: **35 passed, 0 failed, 0 skipped**. Broader
+  PostgreSQL/Redis/contract regression is recorded below after completion.
+- Pipeline eligibility, conflict reconciliation, persisted analysis, baseline/PB,
+  correction/rebuild, finalization and remaining goal phases are still pending.
+  No live provider calls, legacy analytical changes, recalibration or deployment.
+- Broader local regression: **191 passed, 0 failed, 0 skipped** (tracker,
+  PostgreSQL/Redis/Celery, provider clients, migrations and legacy report contracts).
+  After the additive query revision: **62 passed, 0 failed, 0 skipped**, including
+  older-operation materialization, provenance, event formulas and STRATZ clients.
+  Ruff, mypy (19 runtime/storage modules), docs (474 links) and whitespace pass.

@@ -15,6 +15,7 @@ from sqlalchemy import Connection, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
+from app.tracker.events import EVENT_VERSION, replay_events
 from app.tracker.evidence import canonical_json
 from app.tracker.normalization import (
     SUMMARY_VERSION,
@@ -30,7 +31,7 @@ from app.tracker.role_evidence import ROLE_EVIDENCE_VERSION, replay_role_inputs
 from app.tracker.roles import persist_positions, persist_summary_positions
 from app.tracker.schema import derived_features, match_players, matches, snapshots
 
-FEATURE_VERSION = f"{SUMMARY_VERSION}+{REPLAY_VERSION}+{ROLE_EVIDENCE_VERSION}"
+FEATURE_VERSION = f"{SUMMARY_VERSION}+{REPLAY_VERSION}+{ROLE_EVIDENCE_VERSION}+{EVENT_VERSION}"
 
 
 def _match_payload(snapshot: Mapping[str, Any], match_id: int) -> Mapping[str, Any]:
@@ -42,7 +43,7 @@ def _match_payload(snapshot: Mapping[str, Any], match_id: int) -> Mapping[str, A
             raise InvalidEvidence("Snapshot is not the requested match operation")
         return payload
     if snapshot["provider"] == "stratz":
-        if snapshot["operation"] != GET_TRACKER_MATCH_BATCH.name or snapshot["operation_version"] != GET_TRACKER_MATCH_BATCH.version or payload.get("errors"):
+        if snapshot["operation"] != GET_TRACKER_MATCH_BATCH.name or snapshot["operation_version"] not in {"1.0.0", GET_TRACKER_MATCH_BATCH.version} or payload.get("errors"):
             raise InvalidEvidence("Snapshot is not a successful supported historical operation")
         data = payload.get("data")
         player = data.get("player") if isinstance(data, Mapping) else None
@@ -64,6 +65,7 @@ def materialize_snapshot(connection: Connection, *, snapshot_id: str, match_id: 
     provider = cast(Provider, snapshot["provider"])
     summary = opendota_summary(raw) if provider == "opendota" else stratz_summary(raw)
     checkpoints = replay_checkpoints(raw, provider)
+    event_projection = replay_events(raw, provider)
     try:
         started_at = datetime.fromtimestamp(summary["started_at"], UTC)
     except (OverflowError, OSError, ValueError) as exc:
@@ -101,23 +103,24 @@ def materialize_snapshot(connection: Connection, *, snapshot_id: str, match_id: 
         "snapshot_id": snapshot_id, "provider": provider, "operation": snapshot["operation"],
         "operation_version": snapshot["operation_version"], "schema_version": snapshot["schema_version"],
         "digest": snapshot["digest"], "fetched_at": snapshot["fetched_at"].isoformat(),
-        "summary_version": SUMMARY_VERSION, "replay_version": REPLAY_VERSION,
+        "summary_version": SUMMARY_VERSION, "replay_version": REPLAY_VERSION, "event_version": EVENT_VERSION,
     }
     inputs_digest = hashlib.sha256(canonical_json({
         "snapshot_id": snapshot_id, "digest": snapshot["digest"],
         "feature_version": FEATURE_VERSION, "match_id": match_id,
     })).hexdigest()
     role_players = replay_role_inputs(raw, provider, summary)
-    for player, replay, role_player in zip(summary["players"], checkpoints["players"], role_players, strict=True):
+    for player, replay, role_player, event_player in zip(summary["players"], checkpoints["players"], role_players, event_projection["players"], strict=True):
         connection.execute(insert(derived_features).values(
             match_id=match_id, player_slot=player["player_slot"], feature_version=FEATURE_VERSION,
             inputs_digest=inputs_digest, created_at=func.now(),
             features={
                 "match": {k: v for k, v in summary.items() if k != "players"},
                 "summary": player, "checkpoints": replay["series"],
+                "events": event_player["events"], "match_events": event_player["match_events"],
                 "role_evidence": {k: role_player[k] for k in ("lane", "wards_placed", "role_source_paths")},
             },
-            provenance={**provenance, "source_paths": replay["source_paths"]},
+            provenance={**provenance, "source_paths": replay["source_paths"], "event_source_paths": event_player["source_paths"], "match_event_source_paths": event_projection["source_paths"]},
         ).on_conflict_do_nothing())
     persist_summary_positions(connection, match_id)
     replay_assignment = None

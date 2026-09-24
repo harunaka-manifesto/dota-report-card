@@ -207,3 +207,20 @@ no lane. OD observer+sentry counts and STRATZ ward-event counts agree for all te
 players in the retained pair. STRATZ's retained operation has no lane evidence.
 Empty validated ward lists mean zero; absent, malformed or unsupported events
 remain unavailable. Input projections include adapter version and source paths.
+
+## Metric measurements
+
+`metrics.py` calculates all 20 V1 role metrics from canonical facts, retaining raw
+and comparison values, ratio components and explicit unavailable reasons. It uses
+exact checkpoints, previous-to-current CS differences, team denominators, and
+complete dead intervals. Eligibility, source conflict withholding, baseline/PB
+selection and analytical publication belong to the pipeline and remain unfinished.
+
+`events.py` translates stored replay events into versioned immutable features with
+source paths. A negative level-one timestamp is valid pre-horn evidence; level six
+must have a nonnegative timestamp. Missing streams are not empty streams. OpenDota
+ward removal logs do not identify the destroyer, so they cannot supply vision
+denial. Missing assists or level timing remain unavailable. STRATZ operation 1.1.0 selects realized death durations and tower damage
+reports. Stored 1.0.0 snapshots remain readable, with these measurements unavailable
+when the fields are absent. Retained raw death durations can disagree across providers or be incomplete;
+the adapter preserves these facts without inventing intervals or reconciling values.

@@ -34,7 +34,7 @@ class GraphQLOperation:
 
 GET_TRACKER_MATCH_BATCH = GraphQLOperation(
     name="GetTrackerMatchBatch",
-    version="1.0.0",
+    version="1.1.0",
     purpose="Historical tracker evidence for all ten players with explicit bounded take.",
     response_model="TrackerRawMatchBatch",
     document="""
@@ -67,7 +67,8 @@ query GetTrackerMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!, $take: I
             creepLocation { id count gold xp }
             neutralLocation { id count gold xp }
           }
-          killEvents { time } deathEvents { time } assistEvents { time }
+          killEvents { time } deathEvents { time timeDead } assistEvents { time }
+          towerDamageReport { npcId damage }
           itemPurchases { time itemId }
           wards { time type positionX positionY }
           runes { time rune }

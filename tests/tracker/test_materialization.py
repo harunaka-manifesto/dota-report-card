@@ -52,6 +52,9 @@ def test_concurrent_materialization_one_match_ten_players_and_features(database)
         feature = c.execute(select(derived_features).where(derived_features.c.player_slot == 0)).mappings().one()
         assert feature["provenance"]["snapshot_id"] == snapshot_id
         assert feature["features"]["checkpoints"]["net_worth"]["1200"] == 5185
+        assert feature["features"]["events"]["wards"]
+        assert feature["provenance"]["event_version"] == "replay-events-1"
+        assert "wards" in feature["provenance"]["event_source_paths"]
 
 
 def test_replay_enrichment_preserves_summary_and_immutable_old_inputs(database):
@@ -72,6 +75,7 @@ def test_replay_enrichment_preserves_summary_and_immutable_old_inputs(database):
             derived_features.c.inputs_digest == before["inputs_digest"], derived_features.c.player_slot == 0,
         ))
         assert old_features["checkpoints"]["net_worth"] is None
+        assert old_features["events"] == {}
         assert c.scalar(select(snapshots.c.payload).where(snapshots.c.id == before_id))["version"] is None
 
 
@@ -109,3 +113,23 @@ def test_bad_or_mismatched_snapshot_cannot_create_partial_roster(database):
         assert c.scalar(select(func.count()).select_from(matches)) == 0
         assert c.scalar(select(func.count()).select_from(match_players)) == 0
         assert c.scalar(select(func.count()).select_from(derived_features)) == 0
+
+
+def test_prior_registered_operation_still_materializes_without_new_fields(database):
+    historical = raw("stratz")
+    for player in historical["players"]:
+        player["stats"].pop("towerDamageReport", None)
+        for death in player["stats"]["deathEvents"]:
+            death.pop("timeDead", None)
+    with database.begin() as c:
+        snapshot_id = save_snapshot(c, provider="stratz", operation=GET_TRACKER_MATCH_BATCH.name,
+            operation_version="1.0.0", schema_version="raw-1", subject=f"match:{MATCH_ID}",
+            fetched_at=datetime.now(UTC), payload={"data": {"player": {"matches": [historical]}}})
+        materialize_snapshot(c, snapshot_id=snapshot_id, match_id=MATCH_ID)
+        feature = c.execute(select(derived_features).where(derived_features.c.player_slot == 0)).mappings().one()
+        assert feature["features"]["events"]["dead_intervals"] is None
+        assert feature["features"]["events"]["tower_damage"] is None
+        assert feature["provenance"]["operation_version"] == "1.0.0"
+    assert GET_TRACKER_MATCH_BATCH.version == "1.1.0"
+    assert "deathEvents { time timeDead }" in GET_TRACKER_MATCH_BATCH.document
+    assert "towerDamageReport { npcId damage }" in GET_TRACKER_MATCH_BATCH.document
