@@ -303,3 +303,28 @@ def test_changes_cursor_never_skips_a_change_committed_after_the_read(database):
         "/history", headers=auth).json()["matches"][0]["ref"]
     assert after["full_refresh"] is False and after["changed_refs"] == [ref]
 
+
+def test_out_of_order_store_notification_cannot_bypass_the_free_foundation_gate(database):
+    """QA-7: a stale (older-signed) store update requested PRO while bootstrap was unsettled.
+
+    The current-update path withholds PRO until both Free modes settle; the
+    stale-update path skipped that gate and queued an ENTITLEMENT_REBUILD to PRO.
+    """
+    from app.tracker.entitlement import FakeAppStoreVerifier, apply_notification, submit_transaction
+    from app.tracker.schema import history_operations
+
+    from .test_entitlement import NOW, transaction
+    from .test_schema import identity
+
+    user_id, profile_id = identity(database)
+    newer = transaction(user_id, token="renewal", signed=NOW + timedelta(hours=1))
+    older = transaction(user_id, token="purchase", signed=NOW)
+    verifier = FakeAppStoreVerifier({"transaction:renewal": newer, "notification:purchase": older})
+    first = submit_transaction(database, user_id=user_id, signed_transaction="renewal", verifier=verifier, now=NOW)
+    assert first["desired_scope"] == "FREE" and first["operation_id"] is None
+    late = apply_notification(database, signed_notification="purchase", verifier=verifier, now=NOW)
+    with database.connect() as connection:
+        operations = connection.execute(select(history_operations.c.target_scope).where(
+            history_operations.c.profile_id == profile_id)).scalars().all()
+    assert late["stale"] is True and late["operation_id"] is None and operations == []
+

@@ -83,6 +83,17 @@ def _desired_scope(connection, user_id: str, now: datetime) -> str:
     return "PRO" if live else "FREE"
 
 
+def _gated_scope(connection, profile: Any, now: datetime) -> str:
+    """Store-desired scope, withheld at FREE until both Free bootstrap modes settle."""
+    if _desired_scope(connection, profile["user_id"], now) != "PRO":
+        return "FREE"
+    settled = connection.execute(select(bootstrap.c.mode).where(
+        bootstrap.c.profile_id == profile["id"], bootstrap.c.mode.in_(("STANDARD", "TURBO")),
+        bootstrap.c.completed_at.is_not(None),
+    )).scalars().all()
+    return "PRO" if set(settled) == {"STANDARD", "TURBO"} else "FREE"
+
+
 def _request_scope_change(connection, *, profile: Any, target: str, now: datetime,
                           reason: str) -> str | None:
     current = connection.execute(select(history_operations).where(
@@ -149,7 +160,7 @@ def _apply(engine: Engine, tx: StoreTransaction, *, now: datetime) -> dict[str, 
             raise EntitlementError("store transaction belongs to another account")
         # Older signed renewals/notifications cannot roll subscription state back.
         if existing and signed_at < existing["signed_at"]:
-            desired = _desired_scope(connection, user_id, now)
+            desired = _gated_scope(connection, profile, now)
             return {"scope": profile["active_scope"], "operation_id": _request_scope_change(
                 connection, profile=profile, target=desired, now=now, reason="STORE_UPDATE"
             ), "stale": True}
@@ -170,14 +181,7 @@ def _apply(engine: Engine, tx: StoreTransaction, *, now: datetime) -> dict[str, 
         ).returning(subscriptions.c.original_transaction_id)).scalar_one_or_none()
         if stored is None:
             raise EntitlementError("store transaction belongs to another account")
-        target = _desired_scope(connection, user_id, now)
-        if target == "PRO":
-            settled = connection.execute(select(bootstrap.c.mode).where(
-                bootstrap.c.profile_id == profile["id"], bootstrap.c.mode.in_(("STANDARD", "TURBO")),
-                bootstrap.c.completed_at.is_not(None),
-            )).scalars().all()
-            if set(settled) != {"STANDARD", "TURBO"}:
-                target = "FREE"
+        target = _gated_scope(connection, profile, now)
         operation_id = _request_scope_change(
             connection, profile=profile, target=target, now=now,
             reason="STORE_REVOKED" if target == "FREE" else "STORE_ACTIVE",
@@ -222,14 +226,7 @@ def reconcile_entitlement_scope(engine: Engine, *, user_id: str,
         ).with_for_update()).mappings().first()
         if profile is None:
             raise EntitlementError("a linked Steam account is required")
-        target = _desired_scope(connection, user_id, current)
-        if target == "PRO":
-            settled = connection.execute(select(bootstrap.c.mode).where(
-                bootstrap.c.profile_id == profile["id"], bootstrap.c.mode.in_(("STANDARD", "TURBO")),
-                bootstrap.c.completed_at.is_not(None),
-            )).scalars().all()
-            if set(settled) != {"STANDARD", "TURBO"}:
-                target = "FREE"
+        target = _gated_scope(connection, profile, current)
         operation_id = _request_scope_change(
             connection, profile=profile, target=target, now=current,
             reason="ENTITLEMENT_RECONCILE",
