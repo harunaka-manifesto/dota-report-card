@@ -750,3 +750,8 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 
 - The internal operations summary now groups persisted provider calls and billed/rate units by provider operation and the owning job's type/priority. Calls whose job no longer exists are explicitly unattributed. This is unit accounting; no price or currency conversion is invented.
 - Real PostgreSQL operations and legacy contract checks: **11 passed, 0 failed, 0 skipped**. Ruff and mypy pass. The broad tracker/migration/legacy contract regression at the previous checkpoint passed **275 tests**. A proposed two-consumer Celery in-process test failed because Kombu's test hub cannot poll concurrently (`RuntimeError: concurrent poll() invocation`); that invalid test was removed without claiming non-starvation. A separate-process proof remains required. No provider calls, push, merge or deployment.
+
+### Separate-process priority proof
+
+- A local integration test launches distinct real Celery P3 and P0 processes on Redis queues backed by the same PostgreSQL schema. It holds a P3 profile row lock after the P3 job is claimed, then verifies that the independent P0 worker completes its fresh link job while P3 remains running. Queue names are isolated and subprocesses are terminated after the check. This proves local process separation under contention, beyond an admission-policy unit assertion.
+- Local PostgreSQL/Redis worker suite plus legacy contract checks: **15 passed, 0 failed, 0 skipped**; ruff and whitespace checks pass. No provider calls. Production worker process configuration and deployment behavior remain unverified; no deployment, push or merge.

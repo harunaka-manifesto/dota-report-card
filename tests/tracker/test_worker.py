@@ -1,7 +1,10 @@
 import asyncio
 import os
+import subprocess
+import sys
 import time
 from datetime import timedelta
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -10,12 +13,13 @@ from app.tracker.acquisition import enqueue_fresh_summary
 from app.tracker.jobs import enqueue
 from app.tracker.linking import enqueue_roster_links
 from app.tracker.provider_control import ProviderGate
-from app.tracker.schema import account_matches, ingest_jobs
+from app.tracker.schema import account_matches, ingest_jobs, match_players, profiles
 from app.tracker.worker import WorkerPolicy, admission, create_worker_app, queue_metrics, run_one
 from celery import signals
 from celery.contrib.testing.worker import start_worker
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
+from .conftest import ROOT
 from .test_schema import MATCH_ID, identity, summary
 
 
@@ -129,6 +133,79 @@ def test_celery_redis_delivery_executes_database_job_and_duplicate_is_idle(datab
     finally:
         signals.task_postrun.disconnect(completed)
         app.close()
+
+
+def test_separate_p0_worker_is_not_starved_by_blocked_p3(database, redis_client):
+    """Two real Celery processes must keep their database-owned lanes independent."""
+    _, p3_profile = identity(database, 1001)
+    identity(database, 1002)
+    summary(database)
+    summary(database, MATCH_ID + 1)
+    with database.begin() as connection:
+        connection.execute(update(match_players).where(
+            match_players.c.match_id == MATCH_ID + 1,
+            match_players.c.player_slot == 0,
+        ).values(account_id=1002))
+        p3_job = enqueue_roster_links(connection, match_id=MATCH_ID, origin='HISTORICAL')[0]
+        p0_job = enqueue_roster_links(connection, match_id=MATCH_ID + 1, origin='LIVE')[0]
+    redis, namespace = redis_client
+    policy_for(redis_client)
+    suffix = uuid4().hex
+    queues = {priority: f'tracker-p{priority}-{suffix}' for priority in (0, 3)}
+    settings = Settings(database_url=database.url.render_as_string(hide_password=False),
+                        redis_url=os.environ['TEST_REDIS_URL'])
+    app = create_worker_app(settings)
+    environment = {**os.environ, 'DATABASE_URL': settings.database_url,
+                   'REDIS_URL': settings.redis_url, 'TRACKER_NAMESPACE': namespace,
+                   'PYTHONPATH': str(ROOT / 'services/api')}
+    workers = []
+
+    def start(priority):
+        worker = subprocess.Popen([
+            sys.executable, '-m', 'celery', '-A', 'app.tracker.worker:celery_app',
+            'worker', '-Q', queues[priority], '-n', f'tracker-p{priority}-{suffix}@localhost',
+            '--pool=solo', '--concurrency=1', '--without-gossip', '--without-mingle',
+            '--without-heartbeat', '--loglevel=WARNING',
+        ], cwd=ROOT, env=environment, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        workers.append(worker)
+        return worker
+
+    def wait_for(job_id, state, timeout=15):
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            with database.connect() as connection:
+                if connection.scalar(select(ingest_jobs.c.state).where(ingest_jobs.c.id == job_id)) == state:
+                    return True
+            time.sleep(0.05)
+        return False
+
+    try:
+        with database.connect() as blocker:
+            transaction = blocker.begin()
+            blocker.execute(select(profiles.c.id).where(profiles.c.id == p3_profile).with_for_update()).scalar_one()
+            try:
+                assert start(3).poll() is None
+                app.send_task('tracker.wake', args=[3], queue=queues[3])
+                assert wait_for(p3_job, 'RUNNING'), 'P3 worker did not claim its blocked job'
+                assert start(0).poll() is None
+                app.send_task('tracker.wake', args=[0], queue=queues[0])
+                assert wait_for(p0_job, 'COMPLETE'), 'P0 work was starved by P3'
+                with database.connect() as connection:
+                    assert connection.scalar(select(ingest_jobs.c.state).where(ingest_jobs.c.id == p3_job)) == 'RUNNING'
+            finally:
+                transaction.rollback()
+    finally:
+        for worker in workers:
+            worker.terminate()
+            try:
+                worker.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                worker.kill()
+                worker.wait(timeout=5)
+        app.close()
+        leftover = [queue for queue in queues.values() if redis.exists(queue)]
+        if leftover:
+            redis.delete(*leftover)
 
 
 async def test_p3_manual_pause_resumes_stored_work_without_provider_calls(database, redis_client):
