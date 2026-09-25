@@ -44,7 +44,7 @@ def _match_payload(snapshot: Mapping[str, Any], match_id: int) -> Mapping[str, A
             raise InvalidEvidence("Snapshot is not the requested match operation")
         return payload
     if snapshot["provider"] == "stratz":
-        if snapshot["operation"] != GET_TRACKER_MATCH_BATCH.name or snapshot["operation_version"] not in {"1.0.0", GET_TRACKER_MATCH_BATCH.version} or payload.get("errors"):
+        if snapshot["operation"] != GET_TRACKER_MATCH_BATCH.name or snapshot["operation_version"] not in {"1.0.0", "1.1.0", GET_TRACKER_MATCH_BATCH.version} or payload.get("errors"):
             raise InvalidEvidence("Snapshot is not a successful supported historical operation")
         data = payload.get("data")
         player = data.get("player") if isinstance(data, Mapping) else None

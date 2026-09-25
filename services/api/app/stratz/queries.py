@@ -34,7 +34,11 @@ class GraphQLOperation:
 
 GET_TRACKER_MATCH_BATCH = GraphQLOperation(
     name="GetTrackerMatchBatch",
-    version="1.1.0",
+    version="1.2.0",
+    # 1.1.0 priced 316,102 against the 310,000 cap (live, 2026-09-25) and never
+    # executed. Complexity follows the selection shape, not `take`, so this
+    # selection keeps only fields the tracker reads (normalization, events,
+    # replay series, role evidence, insights). Re-measure after any change.
     purpose="Historical tracker evidence for all ten players with explicit bounded take.",
     response_model="TrackerRawMatchBatch",
     document="""
@@ -42,36 +46,25 @@ query GetTrackerMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!, $take: I
   player(steamAccountId: $steamAccountId) {
     matches(request: { matchIds: $matchIds, take: $take }) {
       id didRadiantWin durationSeconds startDateTime endDateTime
-      gameMode lobbyType gameVersionId regionId parsedDateTime statsDateTime isStats
+      gameMode lobbyType parsedDateTime statsDateTime isStats
       numHumanPlayers firstBloodTime
       towerStatusRadiant towerStatusDire barracksStatusRadiant barracksStatusDire
-      radiantKills direKills radiantNetworthLeads radiantExperienceLeads
+      radiantKills direKills radiantNetworthLeads
       towerDeaths { time isRadiant npcId attacker }
-      pickBans { isPick isRadiant heroId bannedHeroId order playerIndex }
       players {
         steamAccountId playerSlot isRadiant isVictory heroId variant leaverStatus
         kills deaths assists numLastHits numDenies goldPerMinute experiencePerMinute
         networth level gold goldSpent heroDamage towerDamage heroHealing
         item0Id item1Id item2Id item3Id item4Id item5Id
         backpack0Id backpack1Id backpack2Id neutral0Id
-        abilities { abilityId level time isTalent }
         stats {
-          networthPerMinute goldPerMinute experiencePerMinute lastHitsPerMinute
-          deniesPerMinute heroDamagePerMinute heroDamageReceivedPerMinute
-          towerDamagePerMinute healPerMinute campStack level
+          networthPerMinute lastHitsPerMinute campStack level
           itemUsed { itemId count }
           wardDestruction { time isWard gold experience }
-          matchPlayerBuffEvent { time itemId abilityId stackCount }
-          farmDistributionReport {
-            buyBackGold abandonGold
-            creepLocation { id count gold xp }
-            neutralLocation { id count gold xp }
-          }
           killEvents { time } deathEvents { time timeDead } assistEvents { time }
           towerDamageReport { npcId damage }
           itemPurchases { time itemId }
-          wards { time type positionX positionY }
-          runes { time rune }
+          wards { time type }
         }
       }
     }

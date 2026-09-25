@@ -70,7 +70,7 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
     ).where(profiles.c.id == profile_id, profiles.c.active.is_(True), users.c.state == "ACTIVE")).mappings().one()
     source = connection.execute(select(snapshots).where(snapshots.c.id == snapshot_id)).mappings().one()
     if (source["provider"] != "stratz" or source["operation"] != GET_TRACKER_MATCH_BATCH.name
-            or source["operation_version"] not in {"1.0.0", GET_TRACKER_MATCH_BATCH.version}
+            or source["operation_version"] not in {"1.0.0", "1.1.0", GET_TRACKER_MATCH_BATCH.version}
             or source["schema_version"] != "raw-1"):
         raise InvalidEvidence("Unsupported historical snapshot")
     payload = source["payload"]
