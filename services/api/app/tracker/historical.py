@@ -116,6 +116,11 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
                         evidence_state="REPLAY_READY", replay_terminal_at=source["fetched_at"],
                         replay_role_assignment=projected["role_assignment"], terminal_reason=None,
                     ))
+                    if match["evidence_state"] == "REPLAY_UNAVAILABLE":
+                        # The only backward evidence transition: late historical re-admission.
+                        from app.tracker.rebuild import enqueue_readmissions
+
+                        enqueue_readmissions(connection, match_id)
                     if projected["role_assignment"] is not None:
                         enqueue_role_refinements(connection, match_id, projected["role_assignment"])
                 elif not parsed and match["evidence_state"] == "SUMMARY_READY":

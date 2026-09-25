@@ -92,6 +92,10 @@ async def run_one(database: Engine, redis: Redis, settings: Settings, *, priorit
             from app.tracker.rebuild import complete_scope_rebuild_job
 
             return complete_scope_rebuild_job(database, **args)
+        if job["job_type"] == "READMIT":
+            from app.tracker.rebuild import complete_readmit_job
+
+            return complete_readmit_job(database, **args)
         if job["job_type"] == "METHODOLOGY_REBUILD":
             from app.tracker.rebuild import complete_methodology_job
 

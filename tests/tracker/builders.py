@@ -10,7 +10,7 @@ from datetime import timedelta
 from app.tracker.finalization import complete_finalization_job, enqueue_finalization
 from app.tracker.jobs import claim
 from app.tracker.materialization import materialize_snapshot
-from app.tracker.schema import account_matches, matches, profiles
+from app.tracker.schema import account_matches, acquisitions, matches, profiles
 from sqlalchemy import func, select
 
 from .test_materialization import raw, save
@@ -44,6 +44,11 @@ def add_match(database, profile_id: str, *, index: int, origin: str = "LIVE", ro
         connection.execute(matches.update().where(matches.c.match_id == match_id).values(
             evidence_state="REPLAY_READY", replay_role_assignment=projection["role_assignment"],
             replay_terminal_at=func.clock_timestamp(),
+        ))
+        # The acquisition pointer names the parsed source finalization must use.
+        connection.execute(acquisitions.insert().values(
+            match_id=match_id, provider="opendota", operation="match", operation_version="1",
+            state="REPLAY_READY", attempts=1, snapshot_id=snapshot_id,
         ))
         connection.execute(account_matches.insert().values(
             profile_id=profile_id, match_id=match_id, account_id=account_id, player_slot=0,

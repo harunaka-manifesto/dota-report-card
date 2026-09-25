@@ -310,3 +310,61 @@ def complete_methodology_job(database: Engine, *, job_id: str, lease_token: str)
         run_methodology_rebuild(connection, profile_id=job["profile_id"])
         finish(connection, job)
         return "COMPLETE"
+
+
+# -- late replay recovery ---------------------------------------------------------------
+
+def enqueue_readmissions(connection: Connection, match_id: int) -> list[str]:
+    """REPLAY_UNAVAILABLE → REPLAY_READY happened through historical re-admission.
+
+    Each profile holding a READY link gets its own fenced P3 job; the shared
+    batch transaction never takes another account's locks.
+    """
+    queued = []
+    for profile_id in connection.scalars(select(account_matches.c.profile_id).join(
+        profiles, profiles.c.id == account_matches.c.profile_id,
+    ).where(account_matches.c.match_id == match_id, account_matches.c.lifecycle == "READY",
+            profiles.c.active.is_(True))):
+        try:
+            queued.append(enqueue(connection, dedup_key=f"readmit:{profile_id}:{match_id}", job_type="READMIT",
+                                  priority=3, profile_id=profile_id, match_id=match_id, payload={}))
+        except StaleJob:
+            continue
+    return queued
+
+
+def readmit(connection: Connection, *, profile_id: str, match_id: int) -> str:
+    """Re-analyse one finalized match from newly retained replay evidence.
+
+    Foundation §14.2: newly available history may change current PBs and later
+    comparisons at its true chronology position; it never celebrates, never
+    notifies, and the finalized role is kept (refinement is pre-READY only).
+    """
+    from .finalization import _selected_features
+
+    link = connection.execute(select(account_matches).where(
+        account_matches.c.profile_id == profile_id, account_matches.c.match_id == match_id,
+    ).with_for_update()).mappings().one_or_none()
+    match = connection.execute(select(matches).where(matches.c.match_id == match_id)).mappings().one()
+    if link is None or link["lifecycle"] != "READY" or match["evidence_state"] != "REPLAY_READY":
+        return "NOT_APPLICABLE"
+    features, snapshot_ids, feature_digest = _selected_features(connection, dict(match))
+    built = build_analysis(connection, profile_id=profile_id, link=dict(link), match=dict(match),
+                           features=features, snapshot_ids=snapshot_ids, feature_digest=feature_digest)
+    publish_analysis(connection, profile_id=profile_id, link=dict(link), match=dict(match), built=built,
+                     snapshot_ids=snapshot_ids, feature_digest=feature_digest)
+    progression = built["eligibility"].progression
+    if progression != "NONE":
+        revision = connection.scalar(select(profiles.c.active_revision).where(profiles.c.id == profile_id))
+        recompute_indexes(connection, profile_id=profile_id, revision=int(revision or 0), mode=progression,
+                          roles={link["effective_role"]})
+    return "READMITTED"
+
+
+def complete_readmit_job(database: Engine, *, job_id: str, lease_token: str) -> str:
+    with authorized_job(database, job_id, lease_token) as (connection, job):
+        if job["job_type"] != "READMIT" or job["profile_id"] is None or job["match_id"] is None:
+            raise ValueError("Expected readmission work")
+        outcome = readmit(connection, profile_id=job["profile_id"], match_id=job["match_id"])
+        finish(connection, job)
+        return outcome
