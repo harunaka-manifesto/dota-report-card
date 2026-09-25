@@ -1554,6 +1554,10 @@ def _attach_optional_history(
             continue
         item = card["slots"].get("item")
         patch = match.get("major_patch") if item else None
+        # Item cohorts are patch-scoped. Unknown patch metadata cannot silently
+        # widen the comparator to other patches.
+        if item and not patch:
+            continue
         value = card["slots"].get(
             {
                 "STACKS": "enemy",
@@ -1571,15 +1575,45 @@ def _attach_optional_history(
         if n >= 20 and metric in {"STACKS", "GOAL_MINUTE"}:
             record = value > max(window) if metric == "STACKS" else value < min(window)
             if record:
-                card["history_line"] = f"A record across your last {n} {bucket.title()} matches."
+                fact = "more camps were stacked" if metric == "STACKS" else "the earliest enemy hero reached the net-worth goal"
+                card["history_line"] = f"Across your last {n} {bucket.title()} matches, {fact}."
                 continue
-        if n >= 20 and metric in {"SMOKE_RATE", "ENEMY_ITEM_TIME"}:
-            record = value > max(window) if metric == "SMOKE_RATE" else value < min(window)
+        if n >= 20 and metric == "SMOKE_RATE":
+            record = value > max(window)
             if record:
-                card["history_line"] = f"A record across your last {n} {bucket.title()} matches."
+                card["history_line"] = f"The enemy teams you faced used Smoke at a higher rate than in any of your last {n} {bucket.title()} matches."
                 continue
+        if n >= 20 and metric == "ENEMY_ITEM_TIME":
+            margin = 60 if bucket == "STANDARD" else 30
+            record = min(window) - value >= margin
+            if record:
+                label = card["slots"].get("item_name", item)
+                amount = "1 minute" if margin == 60 else "30 seconds"
+                card["history_line"] = f"Their earliest {label} was at least {amount} earlier than in your last {n} {bucket.title()} matches."
+                continue
+        if n >= 30 and metric in {"SMOKE_RATE", "ENEMY_ITEM_TIME"}:
+            # Nearest-rank: p90 for high rates; p10 for lower item times.
+            ordered = sorted(window)
+            p = 0.9 if metric == "SMOKE_RATE" else 0.1
+            nearest = ordered[max(0, math.ceil(p * n) - 1)]
+            better = sum(prior > value for prior in window) if metric == "SMOKE_RATE" else sum(prior < value for prior in window)
+            extreme = value > nearest if metric == "SMOKE_RATE" else value < nearest
+            if extreme and better < 3:
+                if metric == "SMOKE_RATE":
+                    card["history_line"] = f"One of the 3 highest enemy Smoke rates across your last {n} {bucket.title()} matches."
+                else:
+                    card["history_line"] = f"One of the 3 earliest enemy {card['slots'].get('item_name', item)} purchases across your last {n} {bucket.title()} matches."
+                continue
+        if metric == "GOAL_MINUTE":
+            median_copy = _clock(round(statistics.median(window) * 60))
+        elif metric == "ENEMY_ITEM_TIME":
+            median_copy = _clock(round(statistics.median(window)))
+        elif metric == "SMOKE_RATE":
+            median_copy = f"{statistics.median(window):.2f} per 10 minutes"
+        else:
+            median_copy = f"{statistics.median(window):g}"
         card["history_line"] = (
-            f"The median across your last {n} {bucket.title()} matches was {statistics.median(window):g}."
+            f"The median across your last {n} {bucket.title()} matches was {median_copy}."
         )
 
 
@@ -1787,3 +1821,231 @@ def from_provider_snapshot(
         "players": players,
         "towerDeaths": towers,
     }
+
+
+def derive_history_observations(
+    match: dict[str, Any],
+    viewer: dict[str, Any],
+    *,
+    startDateTime: Any,
+    matchId: int,
+    major_patch: str | None = None,
+) -> list[dict[str, Any]]:
+    """Derive source-backed insight comparators from one retained canonical match.
+
+    The caller is responsible for selecting only strictly prior, entitled READY
+    matches. This function applies insight eligibility and emits only measurable
+    values; a missing field never becomes a zero observation.
+    """
+    if (
+        global_ineligibility(match) is not None
+        or feeding_guard(match)
+        or any(not isinstance(player.get("deathEvents"), list) for player in (_players(match) or []))
+        or type(matchId) is not int
+        or startDateTime is None
+    ):
+        return []
+    players = _players(match) or []
+    team = viewer.get("team")
+    slot = viewer.get("player_slot")
+    role = viewer.get("effective_role")
+    if team not in {"RADIANT", "DIRE"} or type(slot) is not int:
+        return []
+    own = next((player for player in players if player.get("player_slot") == slot), None)
+    if own is None or own.get("team") != team:
+        return []
+    bucket = match["bucket"]
+    observations: list[dict[str, Any]] = []
+
+    def add(metric: str, value: int | float, *, item: str | None = None) -> None:
+        observations.append({
+            "metric": metric,
+            "bucket": bucket,
+            "role": role,
+            "item": item,
+            "patch": major_patch,
+            "value": value,
+            "startDateTime": startDateTime,
+            "matchId": matchId,
+        })
+
+    if role in {"CARRY", "MID", "OFFLANE"}:
+        counterpart = _counterpart(players, viewer, role)
+        late = 10 if bucket == "STANDARD" else 8
+        if counterpart:
+            own_nw = (own.get("stats") or {}).get("networthPerMinute")
+            enemy_nw = (counterpart.get("stats") or {}).get("networthPerMinute")
+            if (
+                isinstance(own_nw, list) and isinstance(enemy_nw, list)
+                and len(own_nw) > late and len(enemy_nw) > late
+                and type(own_nw[late]) is int and type(enemy_nw[late]) is int
+            ):
+                add("LANE_GAP", own_nw[late] - enemy_nw[late])
+            hits = (counterpart.get("stats") or {}).get("lastHitsPerMinute")
+            if (
+                isinstance(hits, list) and len(hits) >= late
+                and all(type(value) is int and value >= 0 for value in hits[:late])
+            ):
+                add("COUNTERPART_CS", sum(hits[:late]))
+
+    purchases = own.get("itemPurchases")
+    if isinstance(purchases, list):
+        for item, _label in OWN_ITEMS:
+            times = [
+                row["time"] for row in purchases
+                if isinstance(row, dict) and row.get("item") == item and type(row.get("time")) is int
+            ]
+            if times:
+                add("FIRST_PURCHASE", min(times), item=item)
+
+    if bucket == "STANDARD" and match["duration_seconds"] >= 1200:
+        if all(
+            isinstance(player.get("campStack"), list)
+            and len(player["campStack"]) >= 20
+            and all(type(value) is int and value >= 0 for value in player["campStack"][:20])
+            for player in players
+        ):
+            enemy = "DIRE" if team == "RADIANT" else "RADIANT"
+            add("STACKS", sum(player["campStack"][19] for player in players if player["team"] == enemy))
+        if all(
+            isinstance((player.get("stats") or {}).get("itemUsed"), list)
+            and all(
+                isinstance(row, dict) and type(row.get("itemId")) is int
+                and type(row.get("count")) is int and row["count"] >= 0
+                for row in player["stats"]["itemUsed"]
+            )
+            for player in players
+        ):
+            enemy = "DIRE" if team == "RADIANT" else "RADIANT"
+            uses = sum(
+                row["count"] for player in players if player["team"] == enemy
+                for row in player["stats"]["itemUsed"] if row["itemId"] == 188
+            )
+            add("SMOKE_RATE", uses * 600 / match["duration_seconds"])
+
+    goal = 10000 if bucket == "STANDARD" else 15000
+    enemy = "DIRE" if team == "RADIANT" else "RADIANT"
+    goal_minutes = [
+        minute
+        for player in players if player["team"] == enemy
+        for curve in [player["stats"]["networthPerMinute"]]
+        if isinstance(curve, list)
+        for minute, value in enumerate(curve) if type(value) is int and value >= goal
+    ]
+    if goal_minutes:
+        add("GOAL_MINUTE", min(goal_minutes))
+
+    enemy_cores = [
+        player for player in players if player["team"] == enemy
+        and player.get("position") in {"POSITION_1", "POSITION_2", "POSITION_3", 1, 2, 3}
+    ]
+    if len(enemy_cores) == 3 and all(isinstance(player.get("itemPurchases"), list) for player in enemy_cores):
+        for item, _label, _standard, _turbo in ENEMY_ITEMS:
+            times = [
+                row["time"] for player in enemy_cores for row in player["itemPurchases"]
+                if isinstance(row, dict) and row.get("item") == item and type(row.get("time")) is int
+            ]
+            if times:
+                add("ENEMY_ITEM_TIME", min(times), item=item)
+    return observations
+
+
+def load_retained_history(connection: Any, *, profile_id: str, match_id: int) -> dict[str, Any]:
+    """Load current-contract comparator values from strictly prior retained snapshots.
+
+    This read-only adapter does no provider I/O. It excludes missing, malformed,
+    globally ineligible and feeding-guarded matches rather than treating unknown
+    telemetry as zero. The caller should invoke it inside the same ordered
+    finalization transaction used to choose the READY checkpoint.
+    """
+    from sqlalchemy import or_, select, true, tuple_
+
+    from app.tracker.materialization import _match_payload
+    from app.tracker.schema import (
+        account_matches,
+        analyses,
+        analysis_inputs,
+        matches,
+        profiles,
+        snapshots,
+    )
+
+    current = connection.execute(select(
+        account_matches.c.mode, account_matches.c.provider_started_at,
+        account_matches.c.provider_source_match_id,
+    ).where(account_matches.c.profile_id == profile_id, account_matches.c.match_id == match_id)).mappings().one_or_none()
+    if current is None or current["mode"] not in {"STANDARD", "TURBO"}:
+        return {"observations": []}
+    profile = connection.execute(select(
+        profiles.c.active_scope, profiles.c.original_linked_at,
+    ).where(profiles.c.id == profile_id, profiles.c.active.is_(True))).mappings().one_or_none()
+    if profile is None:
+        return {"observations": []}
+    prior = account_matches.alias("insight_prior")
+    entitled = true() if profile["active_scope"] == "PRO" else or_(
+        prior.c.origin == "BOOTSTRAP",
+        prior.c.provider_started_at >= profile["original_linked_at"],
+    )
+    rows = connection.execute(select(
+        prior.c.match_id, prior.c.player_slot, prior.c.effective_role,
+        prior.c.role_assignment, prior.c.active_analysis_id,
+        prior.c.provider_started_at, prior.c.provider_source_match_id,
+        matches.c.mode, matches.c.duration_seconds, matches.c.radiant_win,
+        matches.c.evidence_state,
+    ).join(matches, matches.c.match_id == prior.c.match_id).where(
+        prior.c.profile_id == profile_id,
+        prior.c.mode == current["mode"],
+        prior.c.lifecycle == "READY",
+        prior.c.active_analysis_id.is_not(None),
+        tuple_(prior.c.provider_started_at, prior.c.provider_source_match_id)
+        < (current["provider_started_at"], current["provider_source_match_id"]),
+        entitled,
+    ).order_by(prior.c.provider_started_at, prior.c.provider_source_match_id)).mappings().all()
+    observations: list[dict[str, Any]] = []
+    for row in rows:
+        analysis = connection.execute(select(
+            analyses.c.feature_version,
+        ).where(analyses.c.id == row["active_analysis_id"])).mappings().one_or_none()
+        if analysis is None:
+            continue
+        snapshot_ids = connection.scalars(select(analysis_inputs.c.snapshot_id).where(
+            analysis_inputs.c.analysis_id == row["active_analysis_id"],
+        ).order_by(analysis_inputs.c.snapshot_id)).all()
+        # A history observation must be traceable to one immutable provider view.
+        if len(snapshot_ids) != 1:
+            continue
+        snapshot = connection.execute(select(snapshots).where(snapshots.c.id == snapshot_ids[0])).mappings().one_or_none()
+        if snapshot is None or snapshot["payload"] is None:
+            continue
+        try:
+            raw = _match_payload(dict(snapshot), row["match_id"])
+            assignment = row["role_assignment"]
+            positions: dict[int, int | str | None] = {}
+            if isinstance(assignment, dict):
+                from app.tracker.schema import positions as position_table
+
+                position_rows = connection.execute(select(
+                    position_table.c.player_slot, position_table.c.position,
+                ).where(
+                    position_table.c.match_id == row["match_id"],
+                    position_table.c.evidence_profile == assignment.get("evidence_profile"),
+                    position_table.c.version == assignment.get("version"),
+                    position_table.c.inputs_digest == assignment.get("inputs_digest"),
+                )).all()
+                positions = {slot: position for slot, position in position_rows}
+            canonical = from_provider_snapshot(dict(raw), snapshot["provider"], positions)
+            canonical["major_patch"] = raw.get("majorPatch")
+            viewed_team = "RADIANT" if row["player_slot"] < 5 else "DIRE"
+            prior_observations = derive_history_observations(
+                canonical,
+                {"team": viewed_team, "player_slot": row["player_slot"],
+                 "effective_role": row["effective_role"],
+                 "lane": canonical["players"][row["player_slot"]].get("lane")},
+                startDateTime=int(row["provider_started_at"].timestamp()),
+                matchId=row["provider_source_match_id"],
+                major_patch=canonical.get("major_patch"),
+            )
+        except (KeyError, TypeError, ValueError):
+            continue
+        observations.extend(prior_observations)
+    return {"observations": observations}

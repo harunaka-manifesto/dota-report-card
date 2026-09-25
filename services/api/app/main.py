@@ -176,7 +176,10 @@ def create_app(
         return JSONResponse(_health_response(payload), status_code=200 if payload["ready"] else 503)
 
     app.include_router(router)
+    from app.tracker.app_store import verifier_from_environment
     from app.tracker.mobile_api import create_mobile_app
+
+    store_verifier = verifier_from_environment()
 
     apple_audience = os.getenv("TRACKER_APPLE_AUDIENCE")
     google_audience = os.getenv("TRACKER_GOOGLE_AUDIENCE")
@@ -187,7 +190,11 @@ def create_app(
             "google": {google_audience} if google_audience else set(),
         },
         steam_callback_url=os.getenv("TRACKER_STEAM_CALLBACK_URL"),
+        store_verifier=store_verifier,
     ))
+    from app.tracker.store_api import create_store_app
+
+    app.mount("/store", create_store_app(settings, verifier=store_verifier))
     from app.tracker.operations import create_operations_app
 
     app.mount("/internal/tracker", create_operations_app(

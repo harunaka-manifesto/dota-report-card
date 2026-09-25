@@ -37,6 +37,7 @@ from app.tracker.authentication import (
     rotate_refresh_token,
     verify_identity_token,
 )
+from app.tracker.entitlement import AppStoreVerifier, EntitlementError, submit_transaction
 from app.tracker.evidence import canonical_json
 from app.tracker.metrics import METRICS
 from app.tracker.retry import retry_match
@@ -52,6 +53,7 @@ from app.tracker.schema import (
     bootstrap,
     coverage,
     devices,
+    history_operations,
     idempotency_keys,
     identities,
     insight_results,
@@ -60,6 +62,7 @@ from app.tracker.schema import (
     metric_observations,
     personal_bests,
     profiles,
+    subscriptions,
     sync_state,
     users,
 )
@@ -125,6 +128,20 @@ class AccountView(BaseModel):
     scope: Literal["FREE", "PRO"]
     revision: int
     identity_methods: list[Literal["apple", "google", "email"]]
+
+
+class SubscriptionView(BaseModel):
+    billing_state: Literal["NONE", "ACTIVE", "EXPIRED", "REVOKED"]
+    expires_at: datetime | None
+    auto_renew: bool | None
+    scope: Literal["FREE", "PRO"]
+    scope_revision: int
+    scope_change: Literal["NONE", "PENDING", "RUNNING"]
+    target_scope: Literal["FREE", "PRO"] | None
+
+
+class TransactionRequest(BaseModel):
+    signed_transaction: str = Field(min_length=20, max_length=64000)
 
 
 class DeletionView(BaseModel):
@@ -495,8 +512,38 @@ def _idempotent(connection: Connection, *, owner: str, operation: str, key: str,
     return response
 
 
+def _subscription_view(connection: Connection, owner: str) -> SubscriptionView:
+    now = connection.execute(select(func.clock_timestamp())).scalar_one()
+    profile = _active_profile(connection, owner)
+    receipts = connection.execute(select(subscriptions).where(
+        subscriptions.c.user_id == owner,
+    ).order_by(subscriptions.c.signed_at.desc())).mappings().all()
+    active = next((receipt for receipt in receipts if receipt["expires_at"] > now and
+                   (receipt["revoked_at"] is None or receipt["revoked_at"] > now)), None)
+    latest = active or (receipts[0] if receipts else None)
+    operation = connection.execute(select(
+        history_operations.c.state, history_operations.c.target_scope,
+    ).where(
+        history_operations.c.profile_id == (profile["id"] if profile else ""),
+        history_operations.c.kind == "ENTITLEMENT_REBUILD",
+        history_operations.c.state.in_(("PENDING", "RUNNING")),
+    ).limit(1)).first()
+    billing_state: Literal["NONE", "ACTIVE", "EXPIRED", "REVOKED"] = "ACTIVE" if active else (
+        "NONE" if latest is None else "REVOKED" if latest["revoked_at"] is not None and
+        latest["revoked_at"] <= now else "EXPIRED")
+    return SubscriptionView(
+        billing_state=billing_state, expires_at=latest["expires_at"] if latest else None,
+        auto_renew=latest["auto_renew"] if latest else None,
+        scope=profile["active_scope"] if profile else "FREE",
+        scope_revision=profile["active_revision"] if profile else 0,
+        scope_change=operation.state if operation else "NONE",
+        target_scope=operation.target_scope if operation else None,
+    )
+
+
 def create_mobile_app(settings: Settings, *, database: Engine | None = None, redis: Redis | None = None,
-                      audiences: dict[str, set[str]] | None = None, steam_callback_url: str | None = None) -> FastAPI:
+                      audiences: dict[str, set[str]] | None = None, steam_callback_url: str | None = None,
+                      store_verifier: AppStoreVerifier | None = None) -> FastAPI:
     app = FastAPI(title="Dota Tracker Mobile API", version="1.0.0", openapi_url="/openapi.json")
     app.state.settings = settings
     app.state.database = database
@@ -505,6 +552,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
     app.state.steam_callback_url = steam_callback_url
     app.state.jwks = HttpJwksSource()
     app.state.steam_verifier = HttpSteamAssertionVerifier()
+    app.state.store_verifier = store_verifier
 
     @app.exception_handler(HTTPException)
     async def http_problem(_request: Request, exc: HTTPException) -> JSONResponse:
@@ -565,6 +613,40 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                            scope=profile["active_scope"] if profile else "FREE",
                            revision=profile["active_revision"] if profile else 0,
                            identity_methods=methods)
+
+    @app.get("/subscription", response_model=SubscriptionView)
+    async def subscription(request: Request, owner: Annotated[str, Depends(_user)]) -> SubscriptionView:
+        with _engine(request).connect() as connection:
+            return _subscription_view(connection, owner)
+
+    @app.post("/subscription/transactions", response_model=SubscriptionView)
+    async def submit_store_transaction(
+        request: Request, body: TransactionRequest, owner: Annotated[str, Depends(_user)],
+        idempotency_key: Annotated[str, Header(min_length=8, max_length=200)],
+    ) -> SubscriptionView:
+        verifier = app.state.store_verifier
+        if verifier is None:
+            raise HTTPException(503, "STORE_UNAVAILABLE")
+        digest = hashlib.sha256(body.signed_transaction.encode()).hexdigest()
+        with _engine(request).begin() as connection:
+            # Reserve the key first so a replay returns the earlier outcome
+            # without re-verifying or re-applying the transaction.
+            def publish() -> dict[str, object]:
+                return {"submitted": True}
+
+            _idempotent(connection, owner=owner, operation="STORE_TRANSACTION", key=idempotency_key,
+                        body={"transaction_digest": digest}, publish=publish)
+        try:
+            submit_transaction(_engine(request), user_id=owner, signed_transaction=body.signed_transaction,
+                               verifier=verifier)
+        except EntitlementError as exc:
+            message = str(exc)
+            code = ("STEAM_LINK_REQUIRED" if "Steam" in message else
+                    "TRANSACTION_OWNED_ELSEWHERE" if "another account" in message or "does not match" in message else
+                    "TRANSACTION_INVALID")
+            raise HTTPException(409 if code != "TRANSACTION_INVALID" else 400, code) from exc
+        with _engine(request).connect() as connection:
+            return _subscription_view(connection, owner)
 
     @app.delete("/account", response_model=DeletionView)
     async def delete_account(request: Request, owner: Annotated[str, Depends(_user)]) -> DeletionView:

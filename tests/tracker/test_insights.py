@@ -1,10 +1,13 @@
 from app.tracker.insights import (
+    _attach_optional_history,
     _counterpart,
     _vision,
     classify_tier_b,
+    derive_history_observations,
     evaluate,
     from_provider_snapshot,
     global_ineligibility,
+    load_retained_history,
     select,
     severity,
 )
@@ -317,3 +320,138 @@ def test_annex_output_vectors_selection_tv3_tv5_tv6_tv7_tv8_tv9_tv12_tv13():
             ]
         )
     ] == ["LOST_FROM_AHEAD", "ENEMY_STACKING"]
+
+
+def _history_rows(metric, values, *, item=None, patch=None):
+    return [
+        {
+            "metric": metric,
+            "bucket": "STANDARD",
+            "role": "MID",
+            "item": item,
+            "patch": patch,
+            "value": value,
+            "startDateTime": 100 + index,
+            "matchId": index + 1,
+        }
+        for index, value in enumerate(values)
+    ]
+
+
+def test_retained_history_line_precedence_rarity_and_integer_limits():
+    match = {"bucket": "STANDARD", "startDateTime": 1000, "matchId": 999,
+             "major_patch": "7.40"}
+    smoke = {"candidate_id": "ENEMY_SMOKE_VOLUME", "slots": {"rate": 3.85},
+             "history_line": None}
+    _attach_optional_history(
+        match, {}, {"observations": _history_rows("SMOKE_RATE", [*(value / 10 for value in range(10, 39)), 3.9])}, [smoke]
+    )
+    assert smoke["history_line"] == (
+        "One of the 3 highest enemy Smoke rates across your last 30 Standard matches."
+    )
+    stacks = {"candidate_id": "ENEMY_STACKING", "slots": {"enemy": 12},
+              "history_line": None}
+    _attach_optional_history(
+        match, {}, {"observations": _history_rows("STACKS", list(range(1, 31)))}, [stacks]
+    )
+    assert stacks["history_line"] == "The median across your last 30 Standard matches was 15.5."
+
+
+def test_retained_history_item_comparator_requires_same_patch_and_margin():
+    match = {"bucket": "STANDARD", "startDateTime": 1000, "matchId": 999,
+             "major_patch": "7.40"}
+    item = {"candidate_id": "ENEMY_EARLY_ITEM", "slots": {
+        "item": "item_black_king_bar", "item_name": "Black King Bar", "time": 1000,
+    }, "history_line": None}
+    rows = _history_rows("ENEMY_ITEM_TIME", [1200] * 29 + [1100],
+                         item="item_black_king_bar", patch="7.40")
+    _attach_optional_history(match, {}, {"observations": rows}, [item])
+    assert "at least 1 minute earlier" in item["history_line"]
+    item["history_line"] = None
+    _attach_optional_history(
+        {**match, "major_patch": None}, {}, {"observations": rows}, [item]
+    )
+    assert item["history_line"] is None
+
+
+def test_canonical_source_emits_only_measured_history_comparators():
+    match = _match(towerDeaths=[])
+    for slot, player in enumerate(match["players"]):
+        player["player_slot"] = slot
+        player["lane"] = "SAFE_LANE" if player["position"] in {"POSITION_1", "POSITION_5"} else (
+            "MID_LANE" if player["position"] == "POSITION_2" else "OFF_LANE"
+        )
+        player["heroId"] = slot + 1
+        player["campStack"] = [1] * 20
+        player["stats"]["lastHitsPerMinute"] = [5] * 10
+        player["stats"]["itemUsed"] = [{"itemId": 188, "count": 1}]
+        player["itemPurchases"] = [{"item": "item_black_king_bar", "time": 1000}]
+    # Radiant safe lane and Dire off lane occupy the same physical lane.
+    match["players"][7]["lane"] = "OFF_LANE"
+    result = derive_history_observations(
+        match, {"team": "RADIANT", "player_slot": 0, "effective_role": "CARRY",
+                "lane": "SAFE_LANE"},
+        startDateTime=1000, matchId=123, major_patch="7.40",
+    )
+    assert {(row["metric"], row.get("item")) for row in result} == {
+        ("LANE_GAP", None), ("COUNTERPART_CS", None),
+        ("FIRST_PURCHASE", "item_black_king_bar"), ("STACKS", None),
+        ("SMOKE_RATE", None), ("GOAL_MINUTE", None),
+        ("ENEMY_ITEM_TIME", "item_black_king_bar"),
+    }
+    match["players"][0]["stats"].pop("itemUsed")
+    assert all(row["metric"] != "SMOKE_RATE" for row in derive_history_observations(
+        match, {"team": "RADIANT", "player_slot": 0, "effective_role": "CARRY",
+                "lane": "SAFE_LANE"}, startDateTime=1000, matchId=123,
+    ))
+
+
+def test_retained_history_reads_only_prior_ready_provider_snapshots(database):
+    from datetime import timedelta
+
+    from app.tracker.materialization import materialize_snapshot
+    from app.tracker.schema import account_matches, matches, profiles
+    from sqlalchemy import select
+
+    from tests.tracker.test_finalization import _ready_link, _run
+    from tests.tracker.test_materialization import MATCH_ID, raw, save
+
+    profile_id = _ready_link(database)
+    with database.begin() as connection:
+        connection.execute(profiles.update().where(profiles.c.id == profile_id).values(
+            active_scope="PRO",
+        ))
+        current_time = connection.scalar(select(account_matches.c.provider_started_at).where(
+            account_matches.c.profile_id == profile_id,
+        ))
+        prior_id = MATCH_ID - 1
+        payload = raw()
+        payload["match_id"] = prior_id
+        payload["start_time"] -= 86400
+        snapshot_id = save(connection, payload)
+        projection = materialize_snapshot(connection, snapshot_id=snapshot_id, match_id=prior_id)
+        connection.execute(matches.update().where(matches.c.match_id == prior_id).values(
+            evidence_state="REPLAY_READY", replay_role_assignment=projection["role_assignment"],
+            started_at=current_time - timedelta(days=1),
+        ))
+        connection.execute(account_matches.insert().values(
+            profile_id=profile_id, match_id=prior_id, account_id=1001, player_slot=0,
+            lifecycle="ANALYZING", mode="STANDARD", effective_role="CARRY",
+            provider_started_at=current_time - timedelta(days=1),
+            provider_source_match_id=prior_id, origin="BOOTSTRAP",
+        ))
+    from app.tracker.finalization import complete_finalization_job, enqueue_finalization
+    from app.tracker.jobs import claim
+
+    with database.begin() as connection:
+        enqueue_finalization(connection, profile_id=profile_id, match_id=prior_id)
+        job = claim(connection, priority=3)
+    assert complete_finalization_job(database, job_id=job["id"], lease_token=job["lease_token"]) == "READY"
+    assert _run(database, profile_id, MATCH_ID) == "READY"
+    with database.connect() as connection:
+        history = load_retained_history(connection, profile_id=profile_id, match_id=MATCH_ID)
+    observations = history["observations"]
+    assert observations
+    assert all(row["matchId"] == prior_id for row in observations)
+    assert {row["metric"] for row in observations} >= {"GOAL_MINUTE", "STACKS"}
+    assert all(row["startDateTime"] < 2_000_000_000 for row in observations)

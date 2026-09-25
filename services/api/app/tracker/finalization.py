@@ -15,7 +15,7 @@ from .evidence import canonical_json
 from .history import BASELINE_VERSION, Observation, baseline, load_prior_observations, personal_best
 from .insights import CONTRACT_VERSION as INSIGHT_CONTRACT_VERSION
 from .insights import evaluate as evaluate_insights
-from .insights import from_provider_snapshot
+from .insights import from_provider_snapshot, load_retained_history
 from .jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from .materialization import FEATURE_VERSION, _match_payload
 from .metrics import measure, metric_ids
@@ -187,7 +187,9 @@ def _insight_result(connection: Connection, *, link: dict[str, Any], match: dict
     viewer = {"team": "RADIANT" if link["player_slot"] < 5 else "DIRE",
               "won": match["radiant_win"] == (link["player_slot"] < 5),
               "player_slot": link["player_slot"], "effective_role": link["effective_role"]}
-    return evaluate_insights(neutral, viewer)
+    # Comparators come only from strictly prior READY retained snapshots in scope.
+    history = load_retained_history(connection, profile_id=link["profile_id"], match_id=match["match_id"])
+    return evaluate_insights(neutral, viewer, history)
 
 
 def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, Any],
