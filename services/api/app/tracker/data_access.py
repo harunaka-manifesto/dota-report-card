@@ -98,3 +98,17 @@ def data_access_state(connection: Connection, account_id: int | None) -> str:
         dota_accounts.c.account_id == account_id))
     return "BLOCKED" if visibility == "BLOCKED" else "ACCESSIBLE" if visibility == "ACCESSIBLE" else "UNKNOWN"
 
+
+
+def defer_if_blocked(connection: Connection, job: dict[str, Any]) -> bool:
+    """New historical acquisition waits while access is withdrawn (settings §4).
+
+    Foreground sync keeps running: its pages are how restoration is observed.
+    The wait costs no failure attempt; recovery resumes from stored cursors.
+    """
+    from .jobs import reschedule
+
+    if data_access_state(connection, job["account_id"]) != "BLOCKED":
+        return False
+    reschedule(connection, job, delay_seconds=3600, error="DATA_ACCESS_BLOCKED", failure=False)
+    return True

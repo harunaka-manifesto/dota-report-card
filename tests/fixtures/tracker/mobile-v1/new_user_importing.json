@@ -104,6 +104,156 @@
       "last_matches": [],
       "local_date": "<date>",
       "mode": "STANDARD",
+      "role_summaries": [
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "carry.cs_10_to_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.dead_time.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.hero_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.last_hits_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.net_worth_at_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.tower_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "CARRY",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "mid.early_fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.lane_net_worth_advantage_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.level_6_time.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.net_worth_at_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.tower_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "MID",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "offlane.fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.lane_net_worth_advantage_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.net_worth_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.objective_involvement.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "OFFLANE",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "support.camps_stacked.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.healing.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.observer_wards_placed.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.vision_denial.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "SUPPORT",
+          "state": "UNSTARTED"
+        }
+      ],
       "today_matches": []
     },
     "status": 200

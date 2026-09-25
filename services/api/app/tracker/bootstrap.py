@@ -278,6 +278,10 @@ async def search_bootstrap_page(database: Engine, gate: ProviderGate, settings: 
     with authorized_job(database, job_id, lease_token) as (connection, job):
         if job["job_type"] != "BOOTSTRAP_SEARCH" or job["profile_id"] is None:
             raise ValueError("Expected private bootstrap search")
+        from app.tracker.data_access import defer_if_blocked
+
+        if defer_if_blocked(connection, job):
+            return "BLOCKED"
         cursor = dict(job["cursor"] or {})
         linked_at = connection.scalar(select(profiles.c.original_linked_at).where(profiles.c.id == job["profile_id"]))
         if linked_at is None:

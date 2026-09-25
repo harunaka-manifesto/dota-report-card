@@ -136,6 +136,10 @@ async def backfill_page(database: Engine, gate: ProviderGate, settings: Settings
     with authorized_job(database, job_id, lease_token) as (connection, job):
         if job["job_type"] not in SCANS or job["profile_id"] is None:
             raise ValueError("Expected profile history scan work")
+        from app.tracker.data_access import defer_if_blocked
+
+        if job["job_type"] == "PRO_BACKFILL" and defer_if_blocked(connection, job):
+            return "BLOCKED"
         cursor = dict(job["cursor"] or {})
         days = cursor.get("request_days", int(job["payload"]["ceiling_days"]) + 1)
         offset = cursor.get("offset", 0)

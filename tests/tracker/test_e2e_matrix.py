@@ -148,10 +148,12 @@ async def test_fresh_chain_two_owners_one_match_turbo_and_stage_one(database, re
             break
     client = TestClient(create_mobile_app(Settings(), database=database))
     auth = {"Authorization": f"Bearer {first_token}"}
-    stage_one = client.get("/history?mode=STANDARD", headers=auth).json()["matches"]
-    assert len(stage_one) == 1 and stage_one[0]["facts"] == "AVAILABLE"
-    assert stage_one[0]["performance"] == "PENDING" and stage_one[0]["role"] in {"CARRY", "MID", "OFFLANE", "SUPPORT"}
-    assert stage_one[0]["metrics"] == []
+    rows = client.get("/history?mode=STANDARD", headers=auth).json()["matches"]
+    assert len(rows) == 1 and rows[0]["lifecycle"] == "WAITING_FOR_DATA"
+    stage_one = client.get(f"/matches/{rows[0]['ref']}", headers=auth).json()
+    assert stage_one["facts"] == "AVAILABLE" and len(stage_one["players"]) == 10
+    assert stage_one["performance"] == "PENDING" and stage_one["role"] in {"CARRY", "MID", "OFFLANE", "SUPPORT"}
+    assert stage_one["metrics"] == []
 
     await _drain(database, redis_client, transport)
     with database.connect() as connection:

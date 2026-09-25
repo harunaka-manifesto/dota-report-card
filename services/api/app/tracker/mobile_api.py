@@ -216,6 +216,8 @@ class MetricView(BaseModel):
 class InsightCardView(BaseModel):
     template_id: str
     slots: dict[str, JsonValue]
+    # Versioned annex wording; it always states its sample size N.
+    history_line: str | None = None
 
 
 class InsightView(BaseModel):
@@ -248,6 +250,9 @@ class MatchView(BaseModel):
 class MatchDetailView(MatchView):
     role_revision: int
     correction_available: bool
+    # Current ownership (can change silently) versus the one-time celebration.
+    owns_personal_best: list[str] = Field(default_factory=list)
+    celebrated_personal_best: list[str] = Field(default_factory=list)
 
 
 class RoleEditRequest(BaseModel):
@@ -262,19 +267,52 @@ class RoleEditView(BaseModel):
     rebuilt_match_count: int | None = None
 
 
+class HistoryRow(BaseModel):
+    """An identity row, never a miniature Match Detail (history §4)."""
+    ref: str
+    mode: Mode | None
+    started_at: datetime
+    duration_seconds: int
+    hero_id: int
+    won: bool
+    role: Role | None
+    lifecycle: Lifecycle
+    progression: Literal["STANDARD", "TURBO", "NONE"] | None
+    progression_reason: str | None
+    has_insight_cards: bool
+    owns_personal_best: bool
+
+
 class HistoryView(BaseModel):
-    matches: list[MatchView]
+    matches: list[HistoryRow]
     next_cursor: str | None
 
 
 class MatchSummary(BaseModel):
     ref: str
-    mode: Mode
+    mode: Mode | None
     started_at: datetime
     lifecycle: Lifecycle
     role: Role | None
     hero_id: int
     won: bool
+    progression: Literal["STANDARD", "TURBO", "NONE"] | None = None
+    progression_reason: str | None = None
+
+
+class MetricTrendView(BaseModel):
+    metric_id: str
+    state: Literal["IMPROVING", "STABLE", "DECLINING", "INSUFFICIENT_HISTORY"] | None
+    reason: Literal["CALIBRATION_UNAVAILABLE"] | None
+    point_count: int
+
+
+class RoleSummaryView(BaseModel):
+    """Metric-named states only; no composite role verdict (home §6.2)."""
+    role: Role
+    state: Literal["UNSTARTED", "ACTIVE"]
+    last_played_at: datetime | None
+    metrics: list[MetricTrendView]
 
 
 class SlotView(BaseModel):
@@ -288,6 +326,7 @@ class HomeView(BaseModel):
     local_date: str
     today_matches: list[MatchSummary]
     last_matches: list[MatchSummary]
+    role_summaries: list[RoleSummaryView] = Field(default_factory=list)
     focus: SlotView = Field(default_factory=SlotView)
     challenge: SlotView = Field(default_factory=SlotView)
 
@@ -315,6 +354,8 @@ class ProgressPoint(BaseModel):
 class PersonalBestView(BaseModel):
     match_ref: str
     value: float
+    hero_id: int | None = None
+    achieved_at: datetime | None = None
 
 
 class TrendView(BaseModel):
@@ -572,6 +613,7 @@ def _match_view(connection, row) -> MatchView:
         observed = connection.execute(select(metric_observations).where(
             metric_observations.c.analysis_id == row["active_analysis_id"],
         ).order_by(metric_observations.c.metric_id)).mappings()
+        eligible = row["progression"] in {"STANDARD", "TURBO"}
         for metric in observed:
             baseline = metric["baseline_snapshot"]
             diagnostic = METRIC_CLASS.get(metric["metric_id"]) == "E"
@@ -581,10 +623,13 @@ def _match_view(connection, row) -> MatchView:
                 state="MEASURED" if measured else "NOT_AVAILABLE",
                 raw_value=metric["raw_value"], comparison_value=metric["comparison_value"],
                 unavailable_reason=metric["unavailable_reason"],
-                baseline_state="READY" if baseline.get("state") == "BASELINE_READY" else "BUILDING",
-                baseline_value=baseline.get("value"), prior_count=baseline.get("prior_count", 0),
+                # An ineligible match is fully viewable with no comparisons (match detail §7).
+                baseline_state=("NOT_AVAILABLE" if not eligible else
+                                "READY" if baseline.get("state") == "BASELINE_READY" else "BUILDING"),
+                baseline_value=baseline.get("value") if eligible else None,
+                prior_count=baseline.get("prior_count", 0) if eligible else 0,
                 # Absent for N/A and diagnostic-only metrics (mobile draft state table).
-                performance_state=metric["performance_state"] if measured and not diagnostic else None,
+                performance_state=metric["performance_state"] if eligible and measured and not diagnostic else None,
             ))
         result = connection.execute(select(insight_results).where(
             insight_results.c.analysis_id == row["active_analysis_id"],
@@ -594,12 +639,16 @@ def _match_view(connection, row) -> MatchView:
                 analyses.c.id == row["active_analysis_id"],
             )).scalar_one()
             status = analysis.get("insight_status", "NOT_ELIGIBLE(SOURCE_EVIDENCE)")
-            eligible = status == "EVALUATED"
+            evaluated = status == "EVALUATED"
+            # A match whose replay never arrived shows the normal zero-card state.
+            zero_card = (not evaluated and match["evidence_state"] == "REPLAY_UNAVAILABLE"
+                         and row["progression"] in {"STANDARD", "TURBO"})
             insight = InsightView(
-                state=Readiness.AVAILABLE if eligible else Readiness.UNAVAILABLE,
+                state=Readiness.AVAILABLE if evaluated or zero_card else Readiness.UNAVAILABLE,
                 contract_version=result["contract_version"],
-                reason=None if eligible else status.removeprefix("NOT_ELIGIBLE(").removesuffix(")"),
-                cards=[InsightCardView(template_id=card["candidate_id"], slots=card["slots"])
+                reason=None if evaluated or zero_card else status.removeprefix("NOT_ELIGIBLE(").removesuffix(")"),
+                cards=[InsightCardView(template_id=card["candidate_id"], slots=card["slots"],
+                                       history_line=card.get("history_line"))
                        for card in result["cards"]],
             )
     lane_context = "UNAVAILABLE"
@@ -623,6 +672,11 @@ def _match_view(connection, row) -> MatchView:
             ))
             if score is not None:
                 confidence = "HIGH" if score >= RolePolicy().confidence_threshold else "LOW"
+    terminal = row["lifecycle"] in {"UNAVAILABLE", "ACTION_REQUIRED"}
+    if terminal and row["active_analysis_id"] is None:
+        # No endless pending section: a failed match states a terminal outcome.
+        insight = InsightView(state=Readiness.UNAVAILABLE, contract_version=None,
+                              reason="MATCH_" + row["lifecycle"], cards=[])
     return MatchView(
         ref=row["public_ref"], mode=match["mode"] if match["mode"] in {"STANDARD", "TURBO"} else None,
         role_source=None if row["effective_role"] is None else "USER_CONFIRMED" if confirmed else "INFERRED",
@@ -630,7 +684,8 @@ def _match_view(connection, row) -> MatchView:
         lane_context=cast(Literal["DIFFICULT", "TYPICAL", "FAVOURABLE", "UNAVAILABLE"], lane_context),
         started_at=row["provider_started_at"], duration_seconds=match["duration_seconds"],
         lifecycle=_lifecycle(row["lifecycle"]), facts=Readiness.AVAILABLE,
-        performance=Readiness.AVAILABLE if row["lifecycle"] == "READY" else Readiness.PENDING,
+        performance=(Readiness.AVAILABLE if row["lifecycle"] == "READY" else
+                     Readiness.UNAVAILABLE if terminal else Readiness.PENDING),
         insights=insight, role=row["effective_role"], progression=row["progression"],
         progression_reason=row["progression_reason"],
         won=match["radiant_win"] == (row["player_slot"] < 5), players=players, metrics=metrics,
@@ -646,10 +701,62 @@ def _summary_view(connection, row) -> MatchSummary:
         match_players.c.player_slot == row["player_slot"],
     ))
     return MatchSummary(
-        ref=row["public_ref"], mode=row["mode"], started_at=row["provider_started_at"],
+        ref=row["public_ref"], mode=row["mode"] if row["mode"] in {"STANDARD", "TURBO"} else None,
+        started_at=row["provider_started_at"],
         lifecycle=_lifecycle(row["lifecycle"]), role=row["effective_role"], hero_id=hero_id,
         won=match.radiant_win == (row["player_slot"] < 5),
+        progression=row["progression"], progression_reason=row["progression_reason"],
     )
+
+
+def _history_row(connection, row) -> HistoryRow:
+    match = connection.execute(select(matches.c.radiant_win, matches.c.duration_seconds).where(
+        matches.c.match_id == row["match_id"])).one()
+    hero_id = connection.scalar(select(match_players.c.hero_id).where(
+        match_players.c.match_id == row["match_id"], match_players.c.player_slot == row["player_slot"]))
+    cards = connection.scalar(select(insight_results.c.cards).where(
+        insight_results.c.analysis_id == row["active_analysis_id"])) if row["active_analysis_id"] else None
+    owns = connection.scalar(select(personal_bests.c.metric_id).join(
+        profiles, (profiles.c.id == personal_bests.c.profile_id)
+        & (profiles.c.active_revision == personal_bests.c.revision)).where(
+        personal_bests.c.analysis_id == row["active_analysis_id"]).limit(1)) if row["active_analysis_id"] else None
+    return HistoryRow(
+        ref=row["public_ref"], mode=row["mode"] if row["mode"] in {"STANDARD", "TURBO"} else None,
+        started_at=row["provider_started_at"], duration_seconds=match.duration_seconds, hero_id=hero_id,
+        won=match.radiant_win == (row["player_slot"] < 5), role=row["effective_role"],
+        lifecycle=_lifecycle(row["lifecycle"]), progression=row["progression"],
+        progression_reason=row["progression_reason"], has_insight_cards=bool(cards), owns_personal_best=owns is not None,
+    )
+
+
+def _role_summaries(connection, profile, mode: str) -> list[RoleSummaryView]:
+    summaries = []
+    for role in Role:
+        last = connection.scalar(select(func.max(account_matches.c.provider_started_at)).where(
+            account_matches.c.profile_id == profile["id"], account_matches.c.progression == mode,
+            account_matches.c.effective_role == role.value, account_matches.c.lifecycle == "READY",
+            _visible(profile)))
+        trends = []
+        for metric_id in sorted(metric for metric in METRICS if metric.startswith(role.value.lower() + ".")):
+            rows = connection.execute(select(
+                account_matches.c.match_id, account_matches.c.provider_started_at,
+                metric_observations.c.baseline_snapshot,
+            ).join(metric_observations, metric_observations.c.analysis_id == account_matches.c.active_analysis_id).where(
+                account_matches.c.profile_id == profile["id"], _visible(profile),
+                account_matches.c.lifecycle == "READY", account_matches.c.progression == mode,
+                account_matches.c.effective_role == role.value, metric_observations.c.metric_id == metric_id,
+                metric_observations.c.comparison_value.is_not(None),
+            ).order_by(account_matches.c.provider_started_at, account_matches.c.provider_source_match_id)).mappings().all()
+            trend = evaluate_trend(metric_id, [TrendPoint(r["match_id"], r["provider_started_at"],
+                                                          r["baseline_snapshot"].get("value")) for r in rows])
+            trends.append(MetricTrendView(
+                metric_id=metric_id,
+                state=cast(Literal["IMPROVING", "STABLE", "DECLINING", "INSUFFICIENT_HISTORY"] | None, trend["state"]),
+                reason="CALIBRATION_UNAVAILABLE" if trend["reason"] == "UNCALIBRATED" else None,
+                point_count=cast(int, trend["point_count"])))
+        summaries.append(RoleSummaryView(role=role, state="ACTIVE" if last else "UNSTARTED",
+                                         last_played_at=last, metrics=trends))
+    return summaries
 
 
 def _cursor(profile_id: str, ref: str, mode: str, role: str | None, revision: int) -> str:
@@ -1092,11 +1199,20 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             )).mappings().one_or_none()
             if row is None:
                 raise HTTPException(404, "MATCH_NOT_FOUND")
+            owns = sorted(connection.scalars(select(personal_bests.c.metric_id).where(
+                personal_bests.c.profile_id == profile["id"],
+                personal_bests.c.revision == profile["active_revision"],
+                personal_bests.c.analysis_id == row["active_analysis_id"],
+            ))) if row["active_analysis_id"] else []
+            celebrated = sorted(connection.scalars(select(events.c.payload["metric_id"].astext).where(
+                events.c.profile_id == profile["id"], events.c.kind == "NEW_PB",
+                events.c.payload["match_id"].astext == str(row["match_id"]),
+            )))
             return MatchDetailView(**_match_view(connection, row).model_dump(),
                 role_revision=row["role_revision"],
                 correction_available=correction_available(
                     connection, profile_id=profile["id"], match_id=row["match_id"],
-                ))
+                ), owns_personal_best=owns, celebrated_personal_best=celebrated)
 
     @app.post("/matches/{match_ref}/role", response_model=RoleEditView)
     async def edit_role(request: Request, match_ref: str, body: RoleEditRequest,
@@ -1149,30 +1265,33 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
         return RetryView.model_validate(response)
 
     @app.get("/history", response_model=HistoryView)
-    async def history(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode,
+    async def history(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode | None = None,
                       role: Role | None = None, cursor: str | None = None,
                       limit: Annotated[int, Query(ge=1, le=50)] = 20) -> HistoryView:
+        """Every retained match, ineligible and unsupported-mode ones included when unfiltered."""
+        scope = mode.value if mode else "ALL"
         with _engine(request).connect() as connection:
             profile = _active_profile(connection, owner)
             if profile is None:
                 return HistoryView(matches=[], next_cursor=None)
-            query = select(account_matches).where(account_matches.c.profile_id == profile["id"],
-                                                   account_matches.c.mode == mode.value, _visible(profile))
+            query = select(account_matches).where(account_matches.c.profile_id == profile["id"], _visible(profile))
+            if mode is not None:
+                query = query.where(account_matches.c.mode == mode.value)
             if role is not None:
                 query = query.where(account_matches.c.effective_role == role.value)
             if cursor is not None:
                 pieces = cursor.split(".")
                 if len(pieces) != 2 or not hmac.compare_digest(
-                    cursor, _cursor(profile["id"], pieces[0], mode.value,
+                    cursor, _cursor(profile["id"], pieces[0], scope,
                                     role.value if role else None, profile["active_revision"]),
                 ):
                     raise HTTPException(400, "CURSOR_INVALID")
                 anchor = connection.execute(select(account_matches).where(
                     account_matches.c.profile_id == profile["id"],
                     account_matches.c.public_ref == pieces[0],
-                    account_matches.c.mode == mode.value,
                 )).mappings().one_or_none()
-                if anchor is None or role is not None and anchor["effective_role"] != role.value:
+                if (anchor is None or mode is not None and anchor["mode"] != mode.value
+                        or role is not None and anchor["effective_role"] != role.value):
                     raise HTTPException(400, "CURSOR_INVALID")
                 query = query.where(or_(
                     account_matches.c.provider_started_at < anchor["provider_started_at"],
@@ -1184,10 +1303,10 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 account_matches.c.provider_source_match_id.desc(),
             ).limit(limit + 1)).mappings().all()
             visible = rows[:limit]
-            next_cursor = (_cursor(profile["id"], visible[-1]["public_ref"], mode.value,
+            next_cursor = (_cursor(profile["id"], visible[-1]["public_ref"], scope,
                                    role.value if role else None, profile["active_revision"])
                            if len(rows) > limit else None)
-            return HistoryView(matches=[_match_view(connection, row) for row in visible],
+            return HistoryView(matches=[_history_row(connection, row) for row in visible],
                                next_cursor=next_cursor)
 
     @app.get("/home", response_model=HomeView)
@@ -1208,16 +1327,16 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             today_rows = connection.execute(base.where(
                 account_matches.c.provider_started_at >= start,
                 account_matches.c.provider_started_at < end,
-                account_matches.c.mode.in_(("STANDARD", "TURBO")),
             ).order_by(account_matches.c.provider_started_at.desc(),
                        account_matches.c.provider_source_match_id.desc()).limit(100)).mappings().all()
-            last_rows = connection.execute(base.where(
-                account_matches.c.mode == mode.value,
-            ).order_by(account_matches.c.provider_started_at.desc(),
-                       account_matches.c.provider_source_match_id.desc()).limit(5)).mappings().all()
+            # Last 5 spans both buckets and every lifecycle (home §7).
+            last_rows = connection.execute(base.order_by(
+                account_matches.c.provider_started_at.desc(),
+                account_matches.c.provider_source_match_id.desc()).limit(5)).mappings().all()
             return HomeView(mode=mode, local_date=today.isoformat(),
                             today_matches=[_summary_view(connection, row) for row in today_rows],
-                            last_matches=[_summary_view(connection, row) for row in last_rows])
+                            last_matches=[_summary_view(connection, row) for row in last_rows],
+                            role_summaries=_role_summaries(connection, profile, mode.value))
 
     @app.get("/coverage", response_model=CoverageView)
     async def coverage_status(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode) -> CoverageView:
@@ -1273,12 +1392,16 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 personal_bests.c.mode == mode.value, personal_bests.c.role == role.value,
                 personal_bests.c.metric_id == metric_id,
             )).one_or_none()
-            pb_ref = connection.scalar(select(account_matches.c.public_ref).where(
+            source = connection.execute(select(
+                account_matches.c.public_ref, account_matches.c.provider_started_at, match_players.c.hero_id,
+            ).join(match_players, (match_players.c.match_id == account_matches.c.match_id)
+                   & (match_players.c.player_slot == account_matches.c.player_slot)).where(
                 account_matches.c.active_analysis_id == pb.analysis_id,
                 account_matches.c.profile_id == profile["id"],
-            )) if pb else None
-            personal = (PersonalBestView(match_ref=pb_ref, value=pb.comparison_value)
-                        if pb is not None and pb_ref is not None else None)
+            )).first() if pb else None
+            personal = (PersonalBestView(match_ref=source.public_ref, value=pb.comparison_value,
+                                         hero_id=source.hero_id, achieved_at=source.provider_started_at)
+                        if pb is not None and source is not None else None)
         return ProgressView(mode=mode, role=role, metric_id=metric_id, points=points,
                             personal_best=personal, trend=TrendView(
                                 state=cast(Literal["IMPROVING", "STABLE", "DECLINING", "INSUFFICIENT_HISTORY"] | None,

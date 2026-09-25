@@ -204,6 +204,10 @@ async def acquire_historical_batch(database: Engine, gate: ProviderGate, setting
             raise ValueError("Invalid historical job payload")
         if any(type(value) is not int or not 0 < value < 2**63 for value in ids) or len(set(ids)) != len(ids):
             raise ValueError("Invalid historical job match IDs")
+        from app.tracker.data_access import defer_if_blocked
+
+        if defer_if_blocked(connection, job):
+            return "BLOCKED"
         snapshot_id = _retained_batch(connection, job_id, job["account_id"])
     if snapshot_id is None:
         def before_send() -> None:

@@ -79,7 +79,12 @@ def test_free_and_pro_share_one_fresh_path():
 
 
 def test_every_mobile_read_is_provider_free(database, monkeypatch):
+    from app.tracker.schema import ingest_jobs
+    from sqlalchemy import func, select
+
     personas = seed_demo(database)
+    with database.connect() as connection:
+        jobs_before = connection.scalar(select(func.count()).select_from(ingest_jobs))
 
     def refuse(*_args, **_kwargs):
         raise AssertionError("a product read attempted network I/O")
@@ -102,3 +107,6 @@ def test_every_mobile_read_is_provider_free(database, monkeypatch):
         if history.status_code == 200:
             for match in history.json()["matches"]:
                 assert client.get(f"/matches/{match['ref']}", headers=headers).status_code == 200
+    with database.connect() as connection:
+        # Reads never queue acquisition, backfill or rebuild work either.
+        assert connection.scalar(select(func.count()).select_from(ingest_jobs)) == jobs_before

@@ -423,11 +423,111 @@
         "title": "HistoryOperationView",
         "type": "object"
       },
+      "HistoryRow": {
+        "description": "An identity row, never a miniature Match Detail (history \u00a74).",
+        "properties": {
+          "duration_seconds": {
+            "title": "Duration Seconds",
+            "type": "integer"
+          },
+          "has_insight_cards": {
+            "title": "Has Insight Cards",
+            "type": "boolean"
+          },
+          "hero_id": {
+            "title": "Hero Id",
+            "type": "integer"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/Lifecycle"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Mode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "owns_personal_best": {
+            "title": "Owns Personal Best",
+            "type": "boolean"
+          },
+          "progression": {
+            "anyOf": [
+              {
+                "enum": [
+                  "STANDARD",
+                  "TURBO",
+                  "NONE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progression"
+          },
+          "progression_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progression Reason"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "won": {
+            "title": "Won",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ref",
+          "mode",
+          "started_at",
+          "duration_seconds",
+          "hero_id",
+          "won",
+          "role",
+          "lifecycle",
+          "progression",
+          "progression_reason",
+          "has_insight_cards",
+          "owns_personal_best"
+        ],
+        "title": "HistoryRow",
+        "type": "object"
+      },
       "HistoryView": {
         "properties": {
           "matches": {
             "items": {
-              "$ref": "#/components/schemas/MatchView"
+              "$ref": "#/components/schemas/HistoryRow"
             },
             "title": "Matches",
             "type": "array"
@@ -472,6 +572,13 @@
           },
           "mode": {
             "$ref": "#/components/schemas/Mode"
+          },
+          "role_summaries": {
+            "items": {
+              "$ref": "#/components/schemas/RoleSummaryView"
+            },
+            "title": "Role Summaries",
+            "type": "array"
           },
           "today_matches": {
             "items": {
@@ -525,6 +632,17 @@
       },
       "InsightCardView": {
         "properties": {
+          "history_line": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History Line"
+          },
           "slots": {
             "additionalProperties": {
               "$ref": "#/components/schemas/JsonValue"
@@ -603,6 +721,13 @@
       },
       "MatchDetailView": {
         "properties": {
+          "celebrated_personal_best": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Celebrated Personal Best",
+            "type": "array"
+          },
           "correction_available": {
             "title": "Correction Available",
             "type": "boolean"
@@ -647,6 +772,13 @@
                 "type": "null"
               }
             ]
+          },
+          "owns_personal_best": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Owns Personal Best",
+            "type": "array"
           },
           "performance": {
             "$ref": "#/components/schemas/Readiness"
@@ -774,78 +906,6 @@
             "$ref": "#/components/schemas/Lifecycle"
           },
           "mode": {
-            "$ref": "#/components/schemas/Mode"
-          },
-          "ref": {
-            "title": "Ref",
-            "type": "string"
-          },
-          "role": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Role"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "started_at": {
-            "format": "date-time",
-            "title": "Started At",
-            "type": "string"
-          },
-          "won": {
-            "title": "Won",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "ref",
-          "mode",
-          "started_at",
-          "lifecycle",
-          "role",
-          "hero_id",
-          "won"
-        ],
-        "title": "MatchSummary",
-        "type": "object"
-      },
-      "MatchView": {
-        "properties": {
-          "duration_seconds": {
-            "title": "Duration Seconds",
-            "type": "integer"
-          },
-          "facts": {
-            "$ref": "#/components/schemas/Readiness"
-          },
-          "insights": {
-            "$ref": "#/components/schemas/InsightView"
-          },
-          "lane_context": {
-            "default": "UNAVAILABLE",
-            "enum": [
-              "DIFFICULT",
-              "TYPICAL",
-              "FAVOURABLE",
-              "UNAVAILABLE"
-            ],
-            "title": "Lane Context",
-            "type": "string"
-          },
-          "lifecycle": {
-            "$ref": "#/components/schemas/Lifecycle"
-          },
-          "metrics": {
-            "items": {
-              "$ref": "#/components/schemas/MetricView"
-            },
-            "title": "Metrics",
-            "type": "array"
-          },
-          "mode": {
             "anyOf": [
               {
                 "$ref": "#/components/schemas/Mode"
@@ -854,16 +914,6 @@
                 "type": "null"
               }
             ]
-          },
-          "performance": {
-            "$ref": "#/components/schemas/Readiness"
-          },
-          "players": {
-            "items": {
-              "$ref": "#/components/schemas/PlayerFacts"
-            },
-            "title": "Players",
-            "type": "array"
           },
           "progression": {
             "anyOf": [
@@ -906,36 +956,6 @@
               }
             ]
           },
-          "role_confidence": {
-            "anyOf": [
-              {
-                "enum": [
-                  "HIGH",
-                  "LOW"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role Confidence"
-          },
-          "role_source": {
-            "anyOf": [
-              {
-                "enum": [
-                  "INFERRED",
-                  "USER_CONFIRMED"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Role Source"
-          },
           "started_at": {
             "format": "date-time",
             "title": "Started At",
@@ -950,19 +970,12 @@
           "ref",
           "mode",
           "started_at",
-          "duration_seconds",
           "lifecycle",
-          "facts",
-          "performance",
-          "insights",
           "role",
-          "progression",
-          "progression_reason",
-          "won",
-          "players",
-          "metrics"
+          "hero_id",
+          "won"
         ],
-        "title": "MatchView",
+        "title": "MatchSummary",
         "type": "object"
       },
       "MethodsView": {
@@ -984,6 +997,55 @@
           "methods"
         ],
         "title": "MethodsView",
+        "type": "object"
+      },
+      "MetricTrendView": {
+        "properties": {
+          "metric_id": {
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "point_count": {
+            "title": "Point Count",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "const": "CALIBRATION_UNAVAILABLE",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "IMPROVING",
+                  "STABLE",
+                  "DECLINING",
+                  "INSUFFICIENT_HISTORY"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          }
+        },
+        "required": [
+          "metric_id",
+          "state",
+          "reason",
+          "point_count"
+        ],
+        "title": "MetricTrendView",
         "type": "object"
       },
       "MetricView": {
@@ -1104,6 +1166,29 @@
       },
       "PersonalBestView": {
         "properties": {
+          "achieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Achieved At"
+          },
+          "hero_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hero Id"
+          },
           "match_ref": {
             "title": "Match Ref",
             "type": "string"
@@ -1808,6 +1893,49 @@
           "tier"
         ],
         "title": "RoleRowView",
+        "type": "object"
+      },
+      "RoleSummaryView": {
+        "description": "Metric-named states only; no composite role verdict (home \u00a76.2).",
+        "properties": {
+          "last_played_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Played At"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/MetricTrendView"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "state": {
+            "enum": [
+              "UNSTARTED",
+              "ACTIVE"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "state",
+          "last_played_at",
+          "metrics"
+        ],
+        "title": "RoleSummaryView",
         "type": "object"
       },
       "SessionView": {
@@ -2963,14 +3091,23 @@
     },
     "/history": {
       "get": {
+        "description": "Every retained match, ineligible and unsupported-mode ones included when unfiltered.",
         "operationId": "history_history_get",
         "parameters": [
           {
             "in": "query",
             "name": "mode",
-            "required": true,
+            "required": false,
             "schema": {
-              "$ref": "#/components/schemas/Mode"
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Mode"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mode"
             }
           },
           {

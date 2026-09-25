@@ -119,693 +119,85 @@
       "matches": [
         {
           "duration_seconds": 3589,
-          "facts": "AVAILABLE",
-          "insights": {
-            "cards": [],
-            "contract_version": null,
-            "reason": null,
-            "state": "PENDING"
-          },
-          "lane_context": "UNAVAILABLE",
+          "has_insight_cards": false,
+          "hero_id": 123,
           "lifecycle": "ACTION_REQUIRED",
-          "metrics": [],
           "mode": "STANDARD",
-          "performance": "PENDING",
-          "players": [
-            {
-              "assists": 29,
-              "deaths": 9,
-              "hero_id": 123,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 32,
-              "deaths": 13,
-              "hero_id": 9,
-              "kills": 6,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 21,
-              "deaths": 10,
-              "hero_id": 41,
-              "kills": 11,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 23,
-              "deaths": 15,
-              "hero_id": 36,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 11,
-              "deaths": 17,
-              "hero_id": 26,
-              "kills": 31,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 13,
-              "deaths": 13,
-              "hero_id": 74,
-              "kills": 29,
-              "team": "DIRE"
-            },
-            {
-              "assists": 30,
-              "deaths": 15,
-              "hero_id": 129,
-              "kills": 6,
-              "team": "DIRE"
-            },
-            {
-              "assists": 36,
-              "deaths": 11,
-              "hero_id": 22,
-              "kills": 11,
-              "team": "DIRE"
-            },
-            {
-              "assists": 28,
-              "deaths": 14,
-              "hero_id": 54,
-              "kills": 10,
-              "team": "DIRE"
-            },
-            {
-              "assists": 32,
-              "deaths": 15,
-              "hero_id": 68,
-              "kills": 5,
-              "team": "DIRE"
-            }
-          ],
+          "owns_personal_best": false,
           "progression": null,
           "progression_reason": null,
           "ref": "<ref:1>",
           "role": "SUPPORT",
-          "role_confidence": null,
-          "role_source": "INFERRED",
           "started_at": "<datetime>",
           "won": true
         },
         {
           "duration_seconds": 3589,
-          "facts": "AVAILABLE",
-          "insights": {
-            "cards": [],
-            "contract_version": null,
-            "reason": null,
-            "state": "PENDING"
-          },
-          "lane_context": "UNAVAILABLE",
+          "has_insight_cards": false,
+          "hero_id": 123,
           "lifecycle": "WAITING_FOR_PRIOR_MATCH",
-          "metrics": [],
           "mode": "STANDARD",
-          "performance": "PENDING",
-          "players": [
-            {
-              "assists": 29,
-              "deaths": 9,
-              "hero_id": 123,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 32,
-              "deaths": 13,
-              "hero_id": 9,
-              "kills": 6,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 21,
-              "deaths": 10,
-              "hero_id": 41,
-              "kills": 11,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 23,
-              "deaths": 15,
-              "hero_id": 36,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 11,
-              "deaths": 17,
-              "hero_id": 26,
-              "kills": 31,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 13,
-              "deaths": 13,
-              "hero_id": 74,
-              "kills": 29,
-              "team": "DIRE"
-            },
-            {
-              "assists": 30,
-              "deaths": 15,
-              "hero_id": 129,
-              "kills": 6,
-              "team": "DIRE"
-            },
-            {
-              "assists": 36,
-              "deaths": 11,
-              "hero_id": 22,
-              "kills": 11,
-              "team": "DIRE"
-            },
-            {
-              "assists": 28,
-              "deaths": 14,
-              "hero_id": 54,
-              "kills": 10,
-              "team": "DIRE"
-            },
-            {
-              "assists": 32,
-              "deaths": 15,
-              "hero_id": 68,
-              "kills": 5,
-              "team": "DIRE"
-            }
-          ],
+          "owns_personal_best": false,
           "progression": null,
           "progression_reason": null,
           "ref": "<ref:2>",
           "role": "SUPPORT",
-          "role_confidence": null,
-          "role_source": "INFERRED",
           "started_at": "<datetime>",
           "won": true
         },
         {
           "duration_seconds": 3589,
-          "facts": "AVAILABLE",
-          "insights": {
-            "cards": [],
-            "contract_version": null,
-            "reason": null,
-            "state": "PENDING"
-          },
-          "lane_context": "UNAVAILABLE",
+          "has_insight_cards": false,
+          "hero_id": 123,
           "lifecycle": "WAITING_FOR_DATA",
-          "metrics": [],
           "mode": "STANDARD",
-          "performance": "PENDING",
-          "players": [
-            {
-              "assists": 29,
-              "deaths": 9,
-              "hero_id": 123,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 32,
-              "deaths": 13,
-              "hero_id": 9,
-              "kills": 6,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 21,
-              "deaths": 10,
-              "hero_id": 41,
-              "kills": 11,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 23,
-              "deaths": 15,
-              "hero_id": 36,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 11,
-              "deaths": 17,
-              "hero_id": 26,
-              "kills": 31,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 13,
-              "deaths": 13,
-              "hero_id": 74,
-              "kills": 29,
-              "team": "DIRE"
-            },
-            {
-              "assists": 30,
-              "deaths": 15,
-              "hero_id": 129,
-              "kills": 6,
-              "team": "DIRE"
-            },
-            {
-              "assists": 36,
-              "deaths": 11,
-              "hero_id": 22,
-              "kills": 11,
-              "team": "DIRE"
-            },
-            {
-              "assists": 28,
-              "deaths": 14,
-              "hero_id": 54,
-              "kills": 10,
-              "team": "DIRE"
-            },
-            {
-              "assists": 32,
-              "deaths": 15,
-              "hero_id": 68,
-              "kills": 5,
-              "team": "DIRE"
-            }
-          ],
+          "owns_personal_best": false,
           "progression": null,
           "progression_reason": null,
           "ref": "<ref:3>",
           "role": "SUPPORT",
-          "role_confidence": null,
-          "role_source": "INFERRED",
           "started_at": "<datetime>",
           "won": true
         },
         {
           "duration_seconds": 3589,
-          "facts": "AVAILABLE",
-          "insights": {
-            "cards": [],
-            "contract_version": null,
-            "reason": null,
-            "state": "PENDING"
-          },
-          "lane_context": "UNAVAILABLE",
+          "has_insight_cards": false,
+          "hero_id": 123,
           "lifecycle": "UNAVAILABLE",
-          "metrics": [],
           "mode": "STANDARD",
-          "performance": "PENDING",
-          "players": [
-            {
-              "assists": 29,
-              "deaths": 9,
-              "hero_id": 123,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 32,
-              "deaths": 13,
-              "hero_id": 9,
-              "kills": 6,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 21,
-              "deaths": 10,
-              "hero_id": 41,
-              "kills": 11,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 23,
-              "deaths": 15,
-              "hero_id": 36,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 11,
-              "deaths": 17,
-              "hero_id": 26,
-              "kills": 31,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 13,
-              "deaths": 13,
-              "hero_id": 74,
-              "kills": 29,
-              "team": "DIRE"
-            },
-            {
-              "assists": 30,
-              "deaths": 15,
-              "hero_id": 129,
-              "kills": 6,
-              "team": "DIRE"
-            },
-            {
-              "assists": 36,
-              "deaths": 11,
-              "hero_id": 22,
-              "kills": 11,
-              "team": "DIRE"
-            },
-            {
-              "assists": 28,
-              "deaths": 14,
-              "hero_id": 54,
-              "kills": 10,
-              "team": "DIRE"
-            },
-            {
-              "assists": 32,
-              "deaths": 15,
-              "hero_id": 68,
-              "kills": 5,
-              "team": "DIRE"
-            }
-          ],
+          "owns_personal_best": false,
           "progression": null,
           "progression_reason": null,
           "ref": "<ref:4>",
           "role": null,
-          "role_confidence": null,
-          "role_source": null,
           "started_at": "<datetime>",
           "won": true
         },
         {
           "duration_seconds": 599,
-          "facts": "AVAILABLE",
-          "insights": {
-            "cards": [],
-            "contract_version": "post-match-insights 1.0.0",
-            "reason": "PROGRESSION",
-            "state": "UNAVAILABLE"
-          },
-          "lane_context": "UNAVAILABLE",
+          "has_insight_cards": false,
+          "hero_id": 123,
           "lifecycle": "READY",
-          "metrics": [
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": null,
-              "diagnostic_only": false,
-              "metric_id": "support.camps_stacked.v1",
-              "performance_state": null,
-              "prior_count": 0,
-              "raw_value": null,
-              "state": "NOT_AVAILABLE",
-              "unavailable_reason": "MATCH_ENDED_BEFORE_CHECKPOINT"
-            },
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": 0.573529412,
-              "diagnostic_only": false,
-              "metric_id": "support.fight_presence.v1",
-              "performance_state": "NOT_READY",
-              "prior_count": 0,
-              "raw_value": 0.573529412,
-              "state": "MEASURED",
-              "unavailable_reason": null
-            },
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": 490.81803005,
-              "diagnostic_only": false,
-              "metric_id": "support.healing.v1",
-              "performance_state": "NOT_READY",
-              "prior_count": 0,
-              "raw_value": 490.0,
-              "state": "MEASURED",
-              "unavailable_reason": null
-            },
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": null,
-              "diagnostic_only": false,
-              "metric_id": "support.observer_wards_placed.v1",
-              "performance_state": null,
-              "prior_count": 0,
-              "raw_value": null,
-              "state": "NOT_AVAILABLE",
-              "unavailable_reason": "MISSING_OR_MALFORMED_EVENTS"
-            },
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": null,
-              "diagnostic_only": false,
-              "metric_id": "support.vision_denial.v1",
-              "performance_state": null,
-              "prior_count": 0,
-              "raw_value": null,
-              "state": "NOT_AVAILABLE",
-              "unavailable_reason": "MISSING_OR_MALFORMED_EVENTS"
-            }
-          ],
           "mode": "STANDARD",
-          "performance": "AVAILABLE",
-          "players": [
-            {
-              "assists": 29,
-              "deaths": 9,
-              "hero_id": 123,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 32,
-              "deaths": 13,
-              "hero_id": 9,
-              "kills": 6,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 21,
-              "deaths": 10,
-              "hero_id": 41,
-              "kills": 11,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 23,
-              "deaths": 15,
-              "hero_id": 36,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 11,
-              "deaths": 17,
-              "hero_id": 26,
-              "kills": 31,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 13,
-              "deaths": 13,
-              "hero_id": 74,
-              "kills": 29,
-              "team": "DIRE"
-            },
-            {
-              "assists": 30,
-              "deaths": 15,
-              "hero_id": 129,
-              "kills": 6,
-              "team": "DIRE"
-            },
-            {
-              "assists": 36,
-              "deaths": 11,
-              "hero_id": 22,
-              "kills": 11,
-              "team": "DIRE"
-            },
-            {
-              "assists": 28,
-              "deaths": 14,
-              "hero_id": 54,
-              "kills": 10,
-              "team": "DIRE"
-            },
-            {
-              "assists": 32,
-              "deaths": 15,
-              "hero_id": 68,
-              "kills": 5,
-              "team": "DIRE"
-            }
-          ],
+          "owns_personal_best": false,
           "progression": "NONE",
           "progression_reason": "SHORT_OR_INVALID_DURATION",
           "ref": "<ref:5>",
           "role": "SUPPORT",
-          "role_confidence": "LOW",
-          "role_source": "INFERRED",
           "started_at": "<datetime>",
           "won": true
         },
         {
           "duration_seconds": 3589,
-          "facts": "AVAILABLE",
-          "insights": {
-            "cards": [],
-            "contract_version": "post-match-insights 1.0.0",
-            "reason": "POSITIONS",
-            "state": "UNAVAILABLE"
-          },
-          "lane_context": "UNAVAILABLE",
+          "has_insight_cards": false,
+          "hero_id": 123,
           "lifecycle": "READY",
-          "metrics": [
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": null,
-              "diagnostic_only": false,
-              "metric_id": "support.camps_stacked.v1",
-              "performance_state": null,
-              "prior_count": 0,
-              "raw_value": null,
-              "state": "NOT_AVAILABLE",
-              "unavailable_reason": "REPLAY_UNAVAILABLE"
-            },
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": 0.573529412,
-              "diagnostic_only": false,
-              "metric_id": "support.fight_presence.v1",
-              "performance_state": "NOT_READY",
-              "prior_count": 0,
-              "raw_value": 0.573529412,
-              "state": "MEASURED",
-              "unavailable_reason": null
-            },
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": 0.0,
-              "diagnostic_only": false,
-              "metric_id": "support.healing.v1",
-              "performance_state": "NOT_READY",
-              "prior_count": 0,
-              "raw_value": 0.0,
-              "state": "MEASURED",
-              "unavailable_reason": null
-            },
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": null,
-              "diagnostic_only": false,
-              "metric_id": "support.observer_wards_placed.v1",
-              "performance_state": null,
-              "prior_count": 0,
-              "raw_value": null,
-              "state": "NOT_AVAILABLE",
-              "unavailable_reason": "REPLAY_UNAVAILABLE"
-            },
-            {
-              "baseline_state": "BUILDING",
-              "baseline_value": null,
-              "comparison_value": null,
-              "diagnostic_only": false,
-              "metric_id": "support.vision_denial.v1",
-              "performance_state": null,
-              "prior_count": 0,
-              "raw_value": null,
-              "state": "NOT_AVAILABLE",
-              "unavailable_reason": "REPLAY_UNAVAILABLE"
-            }
-          ],
           "mode": "STANDARD",
-          "performance": "AVAILABLE",
-          "players": [
-            {
-              "assists": 29,
-              "deaths": 9,
-              "hero_id": 123,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 32,
-              "deaths": 13,
-              "hero_id": 9,
-              "kills": 6,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 21,
-              "deaths": 10,
-              "hero_id": 41,
-              "kills": 11,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 23,
-              "deaths": 15,
-              "hero_id": 36,
-              "kills": 10,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 11,
-              "deaths": 17,
-              "hero_id": 26,
-              "kills": 31,
-              "team": "RADIANT"
-            },
-            {
-              "assists": 13,
-              "deaths": 13,
-              "hero_id": 74,
-              "kills": 29,
-              "team": "DIRE"
-            },
-            {
-              "assists": 30,
-              "deaths": 15,
-              "hero_id": 129,
-              "kills": 6,
-              "team": "DIRE"
-            },
-            {
-              "assists": 36,
-              "deaths": 11,
-              "hero_id": 22,
-              "kills": 11,
-              "team": "DIRE"
-            },
-            {
-              "assists": 28,
-              "deaths": 14,
-              "hero_id": 54,
-              "kills": 10,
-              "team": "DIRE"
-            },
-            {
-              "assists": 32,
-              "deaths": 15,
-              "hero_id": 68,
-              "kills": 5,
-              "team": "DIRE"
-            }
-          ],
+          "owns_personal_best": false,
           "progression": "STANDARD",
           "progression_reason": null,
           "ref": "<ref:6>",
           "role": "SUPPORT",
-          "role_confidence": null,
-          "role_source": "INFERRED",
           "started_at": "<datetime>",
           "won": true
         }
@@ -836,6 +228,8 @@
           "hero_id": 123,
           "lifecycle": "ACTION_REQUIRED",
           "mode": "STANDARD",
+          "progression": null,
+          "progression_reason": null,
           "ref": "<ref:1>",
           "role": "SUPPORT",
           "started_at": "<datetime>",
@@ -845,6 +239,8 @@
           "hero_id": 123,
           "lifecycle": "WAITING_FOR_PRIOR_MATCH",
           "mode": "STANDARD",
+          "progression": null,
+          "progression_reason": null,
           "ref": "<ref:2>",
           "role": "SUPPORT",
           "started_at": "<datetime>",
@@ -854,6 +250,8 @@
           "hero_id": 123,
           "lifecycle": "WAITING_FOR_DATA",
           "mode": "STANDARD",
+          "progression": null,
+          "progression_reason": null,
           "ref": "<ref:3>",
           "role": "SUPPORT",
           "started_at": "<datetime>",
@@ -863,6 +261,8 @@
           "hero_id": 123,
           "lifecycle": "UNAVAILABLE",
           "mode": "STANDARD",
+          "progression": null,
+          "progression_reason": null,
           "ref": "<ref:4>",
           "role": null,
           "started_at": "<datetime>",
@@ -872,6 +272,8 @@
           "hero_id": 123,
           "lifecycle": "READY",
           "mode": "STANDARD",
+          "progression": "NONE",
+          "progression_reason": "SHORT_OR_INVALID_DURATION",
           "ref": "<ref:5>",
           "role": "SUPPORT",
           "started_at": "<datetime>",
@@ -880,26 +282,178 @@
       ],
       "local_date": "<date>",
       "mode": "STANDARD",
+      "role_summaries": [
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "carry.cs_10_to_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.dead_time.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.hero_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.last_hits_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.net_worth_at_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.tower_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "CARRY",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "mid.early_fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.lane_net_worth_advantage_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.level_6_time.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.net_worth_at_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.tower_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "MID",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "offlane.fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.lane_net_worth_advantage_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.net_worth_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.objective_involvement.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "OFFLANE",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": "<datetime>",
+          "metrics": [
+            {
+              "metric_id": "support.camps_stacked.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.healing.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.observer_wards_placed.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.vision_denial.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "SUPPORT",
+          "state": "ACTIVE"
+        }
+      ],
       "today_matches": []
     },
     "status": 200
   },
   "/matches/<ref:1>": {
     "body": {
+      "celebrated_personal_best": [],
       "correction_available": false,
       "duration_seconds": 3589,
       "facts": "AVAILABLE",
       "insights": {
         "cards": [],
         "contract_version": null,
-        "reason": null,
-        "state": "PENDING"
+        "reason": "MATCH_ACTION_REQUIRED",
+        "state": "UNAVAILABLE"
       },
       "lane_context": "UNAVAILABLE",
       "lifecycle": "ACTION_REQUIRED",
       "metrics": [],
       "mode": "STANDARD",
-      "performance": "PENDING",
+      "owns_personal_best": [],
+      "performance": "UNAVAILABLE",
       "players": [
         {
           "assists": 29,
@@ -986,6 +540,7 @@
   },
   "/matches/<ref:2>": {
     "body": {
+      "celebrated_personal_best": [],
       "correction_available": false,
       "duration_seconds": 3589,
       "facts": "AVAILABLE",
@@ -999,6 +554,7 @@
       "lifecycle": "WAITING_FOR_PRIOR_MATCH",
       "metrics": [],
       "mode": "STANDARD",
+      "owns_personal_best": [],
       "performance": "PENDING",
       "players": [
         {
@@ -1086,6 +642,7 @@
   },
   "/matches/<ref:3>": {
     "body": {
+      "celebrated_personal_best": [],
       "correction_available": false,
       "duration_seconds": 3589,
       "facts": "AVAILABLE",
@@ -1099,6 +656,7 @@
       "lifecycle": "WAITING_FOR_DATA",
       "metrics": [],
       "mode": "STANDARD",
+      "owns_personal_best": [],
       "performance": "PENDING",
       "players": [
         {
@@ -1186,20 +744,22 @@
   },
   "/matches/<ref:4>": {
     "body": {
+      "celebrated_personal_best": [],
       "correction_available": false,
       "duration_seconds": 3589,
       "facts": "AVAILABLE",
       "insights": {
         "cards": [],
         "contract_version": null,
-        "reason": null,
-        "state": "PENDING"
+        "reason": "MATCH_UNAVAILABLE",
+        "state": "UNAVAILABLE"
       },
       "lane_context": "UNAVAILABLE",
       "lifecycle": "UNAVAILABLE",
       "metrics": [],
       "mode": "STANDARD",
-      "performance": "PENDING",
+      "owns_personal_best": [],
+      "performance": "UNAVAILABLE",
       "players": [
         {
           "assists": 29,
@@ -1286,6 +846,7 @@
   },
   "/matches/<ref:5>": {
     "body": {
+      "celebrated_personal_best": [],
       "correction_available": true,
       "duration_seconds": 599,
       "facts": "AVAILABLE",
@@ -1299,7 +860,7 @@
       "lifecycle": "READY",
       "metrics": [
         {
-          "baseline_state": "BUILDING",
+          "baseline_state": "NOT_AVAILABLE",
           "baseline_value": null,
           "comparison_value": null,
           "diagnostic_only": false,
@@ -1311,31 +872,31 @@
           "unavailable_reason": "MATCH_ENDED_BEFORE_CHECKPOINT"
         },
         {
-          "baseline_state": "BUILDING",
+          "baseline_state": "NOT_AVAILABLE",
           "baseline_value": null,
           "comparison_value": 0.573529412,
           "diagnostic_only": false,
           "metric_id": "support.fight_presence.v1",
-          "performance_state": "NOT_READY",
+          "performance_state": null,
           "prior_count": 0,
           "raw_value": 0.573529412,
           "state": "MEASURED",
           "unavailable_reason": null
         },
         {
-          "baseline_state": "BUILDING",
+          "baseline_state": "NOT_AVAILABLE",
           "baseline_value": null,
           "comparison_value": 490.81803005,
           "diagnostic_only": false,
           "metric_id": "support.healing.v1",
-          "performance_state": "NOT_READY",
+          "performance_state": null,
           "prior_count": 0,
           "raw_value": 490.0,
           "state": "MEASURED",
           "unavailable_reason": null
         },
         {
-          "baseline_state": "BUILDING",
+          "baseline_state": "NOT_AVAILABLE",
           "baseline_value": null,
           "comparison_value": null,
           "diagnostic_only": false,
@@ -1347,7 +908,7 @@
           "unavailable_reason": "MISSING_OR_MALFORMED_EVENTS"
         },
         {
-          "baseline_state": "BUILDING",
+          "baseline_state": "NOT_AVAILABLE",
           "baseline_value": null,
           "comparison_value": null,
           "diagnostic_only": false,
@@ -1360,6 +921,7 @@
         }
       ],
       "mode": "STANDARD",
+      "owns_personal_best": [],
       "performance": "AVAILABLE",
       "players": [
         {
@@ -1447,14 +1009,15 @@
   },
   "/matches/<ref:6>": {
     "body": {
+      "celebrated_personal_best": [],
       "correction_available": true,
       "duration_seconds": 3589,
       "facts": "AVAILABLE",
       "insights": {
         "cards": [],
         "contract_version": "post-match-insights 1.0.0",
-        "reason": "POSITIONS",
-        "state": "UNAVAILABLE"
+        "reason": null,
+        "state": "AVAILABLE"
       },
       "lane_context": "UNAVAILABLE",
       "lifecycle": "READY",
@@ -1521,6 +1084,7 @@
         }
       ],
       "mode": "STANDARD",
+      "owns_personal_best": [],
       "performance": "AVAILABLE",
       "players": [
         {

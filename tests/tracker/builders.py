@@ -20,7 +20,7 @@ BASE_MATCH = 9_100_000_000
 
 def add_match(database, profile_id: str, *, index: int, origin: str = "LIVE", role: str = "SUPPORT",
               stack_bonus: int = 0, offset_days: float | None = None, account_id: int = 1001,
-              turbo: bool = False) -> int:
+              turbo: bool = False, edit=None, keep_role: bool = False) -> int:
     """Store one parsed match at `link date + offset_days` and attach an ANALYZING link."""
     match_id = BASE_MATCH + index
     payload = raw()
@@ -37,12 +37,16 @@ def add_match(database, profile_id: str, *, index: int, origin: str = "LIVE", ro
         payload["players"][0]["camps_stacked_t"] = [
             value + (stack_bonus if minute >= 20 else 0)
             for minute, value in enumerate(payload["players"][0]["camps_stacked_t"])]
+    if edit is not None:
+        edit(payload)
     with database.begin() as connection:
         snapshot_id = save(connection, payload)
         projection = materialize_snapshot(connection, snapshot_id=snapshot_id, match_id=match_id)
         match = connection.execute(select(matches).where(matches.c.match_id == match_id)).mappings().one()
         connection.execute(matches.update().where(matches.c.match_id == match_id).values(
-            evidence_state="REPLAY_READY", replay_role_assignment=projection["role_assignment"],
+            evidence_state="REPLAY_READY",
+            # keep_role: no replay refinement, so the linked summary role stands.
+            replay_role_assignment=None if keep_role else projection["role_assignment"],
             replay_terminal_at=func.clock_timestamp(),
         ))
         # The acquisition pointer names the parsed source finalization must use.
