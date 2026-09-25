@@ -11,8 +11,8 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from app.player_analysis_v7.research import inference
-from app.player_analysis_v7.research.recommendation import (
+from report_card.player_analysis_v7.research import inference
+from report_card.player_analysis_v7.research.recommendation import (
     ARM_LOSS,
     ARM_WIN,
     DOWNSTREAM_EXCLUSIONS,

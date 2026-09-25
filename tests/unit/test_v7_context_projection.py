@@ -6,7 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
-from app.player_analysis_v7.context_projection import (
+from report_card.player_analysis_v7.context_projection import (
     COMPATIBLE_POPULATION_SCHEMA_VERSION,
     CONTEXT_PROJECTION_SCHEMA_VERSION,
     FINDING_FACTOR_ORDER,
@@ -20,8 +20,8 @@ from app.player_analysis_v7.context_projection import (
     parse_context_projection,
     project_series,
 )
-from app.player_analysis_v7.research.features import Opportunity
-from app.player_analysis_v7.research.screen import encode, fit_context_projection
+from report_card.player_analysis_v7.research.features import Opportunity
+from report_card.player_analysis_v7.research.screen import encode, fit_context_projection
 
 
 def _factor(name: str, levels: list[str] | None = None) -> dict[str, object]:
@@ -117,7 +117,7 @@ def test_schema_and_all_sixteen_finding_contracts_validate() -> None:
     artifact = parse_context_projection(_document())
     assert set(artifact.dimensions) == set(FINDING_FACTOR_ORDER)
     assert "fit" not in __import__(
-        "app.player_analysis_v7.context_projection", fromlist=["__all__"]
+        "report_card.player_analysis_v7.context_projection", fromlist=["__all__"]
     ).__all__
 
 

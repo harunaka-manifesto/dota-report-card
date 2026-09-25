@@ -26,16 +26,16 @@ from app.core.config import (  # noqa: E402
     FREE_HISTORY_WINDOW_DAYS,
     Settings,
 )
-from app.dna.sessions import SessionPolicy, infer_sessions  # noqa: E402
 from app.ingestion.summary_normalize import (  # noqa: E402
     filter_history_window,
     normalize_summary_rows,
     previous_year_window,
 )
 from app.opendota.client import OpenDotaClient  # noqa: E402
-from app.player_analysis_v6.context_adjustment import match_context  # noqa: E402
-from app.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy  # noqa: E402
-from app.player_analysis_v6.metrics import (  # noqa: E402
+from report_card.dna.sessions import SessionPolicy, infer_sessions  # noqa: E402
+from report_card.player_analysis_v6.context_adjustment import match_context  # noqa: E402
+from report_card.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy  # noqa: E402
+from report_card.player_analysis_v6.metrics import (  # noqa: E402
     death_exposure_per_ten_minutes,
     finishing_share,
     involvement_per_minute,

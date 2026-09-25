@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.heroes.knowledge import (
+from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.heroes.knowledge import (
     EMPIRICAL_SUPPORT_BANDS,
     FUNCTIONAL_JOBS,
     HERO_DEMAND_FAMILIES,
@@ -13,15 +14,14 @@ from app.heroes.knowledge import (
     SnapshotHeroKnowledgeProvider,
     canonical_function_key,
 )
-from app.heroes.relationships import build_semantic_pool_profile
-from app.heroes.taxonomy import load_default_taxonomy
-from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.heroes.relationships import build_semantic_pool_profile
+from report_card.heroes.taxonomy import load_default_taxonomy
 
 ROOT = Path(__file__).parents[2]
 PILOT_PATH = (
-    ROOT / "services/api/app/heroes/data/knowledge/hero-knowledge-semantic-freeze-pilot-v1.json"
+    ROOT / "legacy/services/api/report_card/heroes/data/knowledge/hero-knowledge-semantic-freeze-pilot-v1.json"
 )
-FACTUAL_PATH = ROOT / "services/api/app/heroes/data/factual/2026-08-16.json"
+FACTUAL_PATH = ROOT / "legacy/services/api/report_card/heroes/data/factual/2026-08-16.json"
 FULL_VERSION = "hero-knowledge-semantic-freeze-full-roster-v1"
 
 

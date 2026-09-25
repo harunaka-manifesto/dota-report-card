@@ -21,15 +21,15 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-from app.heroes.taxonomy import load_default_taxonomy  # noqa: E402
-from app.player_analysis_v6.artifacts import load_context_baseline_artifact  # noqa: E402
-from app.player_analysis_v6.calibration import load_threshold_artifact  # noqa: E402
-from app.player_analysis_v6.calibration_corpus import load_calibration_corpus  # noqa: E402
-from app.player_analysis_v6.calibration_derivation import (  # noqa: E402
+from report_card.heroes.taxonomy import load_default_taxonomy  # noqa: E402
+from report_card.player_analysis_v6.artifacts import load_context_baseline_artifact  # noqa: E402
+from report_card.player_analysis_v6.calibration import load_threshold_artifact  # noqa: E402
+from report_card.player_analysis_v6.calibration_corpus import load_calibration_corpus  # noqa: E402
+from report_card.player_analysis_v6.calibration_derivation import (  # noqa: E402
     derive_profile_estimates,
     odd_even_session_ids,
 )
-from app.player_analysis_v6.calibration_evaluation import (  # noqa: E402
+from report_card.player_analysis_v6.calibration_evaluation import (  # noqa: E402
     HOLDOUT_VERSION,
     REVIEW_PACKET_VERSION,
     SYNTHETIC_VERSION,
@@ -39,13 +39,13 @@ from app.player_analysis_v6.calibration_evaluation import (  # noqa: E402
     ingest_review_evidence,
     sha256_file,
 )
-from app.player_analysis_v6.costs import free_cost_invariant  # noqa: E402
-from app.player_analysis_v6.family_statistics import (  # noqa: E402
+from report_card.player_analysis_v6.costs import free_cost_invariant  # noqa: E402
+from report_card.player_analysis_v6.family_statistics import (  # noqa: E402
     family_statistics,
     finite_sample_directional_p,
 )
-from app.player_analysis_v6.pipeline import analyze_free_dna_v6  # noqa: E402
-from app.player_analysis_v6.statistics import clustered_bootstrap  # noqa: E402
+from report_card.player_analysis_v6.pipeline import analyze_free_dna_v6  # noqa: E402
+from report_card.player_analysis_v6.statistics import clustered_bootstrap  # noqa: E402
 
 SCENARIOS = (
     "null_no_effect",
@@ -87,8 +87,11 @@ def _artifact_checksums(baseline: Path, thresholds: Path) -> dict[str, str]:
 
 
 def _evaluation_source_digest() -> str:
-    sources = [Path(__file__), *(ROOT / "services" / "api" / "app" / "player_analysis_v6").glob("*.py")]
-    taxonomy_root = ROOT / "services" / "api" / "app" / "heroes"
+    sources = [
+        Path(__file__),
+        *(ROOT / "legacy" / "services" / "api" / "report_card" / "player_analysis_v6").glob("*.py"),
+    ]
+    taxonomy_root = ROOT / "legacy" / "services" / "api" / "report_card" / "heroes"
     sources.extend((taxonomy_root / "taxonomy.py", *(taxonomy_root / "data").rglob("*.json")))
     digest = hashlib.sha256()
     for path in sorted(sources):

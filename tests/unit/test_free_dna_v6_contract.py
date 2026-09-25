@@ -5,12 +5,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from app.analysis.service import AnalysisService
-from app.analysis.source import MappingSource
-from app.api.report_schemas import validate_free_dna_report
 from app.core.config import Settings
-from app.player_analysis_v6.artifacts import ArtifactValidationError
-from app.storage.repository import InMemoryRepository
+from report_card.analysis.service import AnalysisService
+from report_card.analysis.source import MappingSource
+from report_card.api.report_schemas import validate_free_dna_report
+from report_card.player_analysis_v6.artifacts import ArtifactValidationError
+from report_card.storage.repository import InMemoryRepository
 
 _WINDOW_END = int(datetime.now(UTC).timestamp())
 _V6_FIXTURES = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "v6"

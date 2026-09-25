@@ -5,13 +5,13 @@ import json
 from pathlib import Path
 
 import pytest
-from app.api.report_schemas import validate_free_dna_report
-from app.api.story_payload_schemas_v61 import (
+from report_card.api.report_schemas import validate_free_dna_report
+from report_card.api.story_payload_schemas_v61 import (
     StoryCombatRowV61Schema,
     StoryPayloadV61Schema,
     validate_story_privacy,
 )
-from app.player_analysis_v61.story_selector import MODE_MAP_SHA256
+from report_card.player_analysis_v61.story_selector import MODE_MAP_SHA256
 
 
 def _payload() -> dict[str, object]:

@@ -1,7 +1,7 @@
-from app.dna.features.models import DnaFeatureSet
-from app.heroes.identity import HeroCard
-from app.heroes.recommendations import recommend_heroes
-from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
+from report_card.dna.features.models import DnaFeatureSet
+from report_card.heroes.identity import HeroCard
+from report_card.heroes.recommendations import recommend_heroes
+from report_card.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
 
 
 def _entry(hero_id: int, name: str, roles: tuple[str, ...], active: set[str]) -> HeroTaxonomyEntry:

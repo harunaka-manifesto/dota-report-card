@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.player_analysis_v7.research import archetype, ranking, recommendation
+from report_card.player_analysis_v7.research import archetype, ranking, recommendation
 
 from scripts.v7_build_content_catalog import CATALOG_VERSION, build
 

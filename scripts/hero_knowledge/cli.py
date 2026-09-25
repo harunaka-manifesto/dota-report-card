@@ -238,7 +238,7 @@ def _required_opendota(
 
 
 def _reviewed_semantics(settings: Settings, value: Path | None) -> dict[str, Any] | None:
-    path = value or (settings.root / "services/api/app/heroes/data/semantics/pilot-v1.json")
+    path = value or (settings.root / "legacy/services/api/report_card/heroes/data/semantics/pilot-v1.json")
     if not path.exists():
         return None
     snapshot = read_json(path)

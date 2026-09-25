@@ -3,30 +3,30 @@ from __future__ import annotations
 import re
 
 import pytest
-from app.analysis.service import _job_diagnostic_question
 from app.core.config import Settings
-from app.features.summary_models import SummaryMatchFeature
 from app.ingestion.summary_history_contract import request_manifest
-from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
-from app.player_analysis_v6.models import _freeze
-from app.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
-from app.player_analysis_v61.family_statistics import (
+from report_card.analysis.service import _job_diagnostic_question
+from report_card.features.summary_models import SummaryMatchFeature
+from report_card.player_analysis_v6.constants import FINDING_FAMILY_KEYS
+from report_card.player_analysis_v6.models import _freeze
+from report_card.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
+from report_card.player_analysis_v61.family_statistics import (
     v61_branch_p_values,
     v61_production_family_branch_p_values,
 )
-from app.player_analysis_v61.hierarchical import hierarchical_qualification
-from app.player_analysis_v61.identity import compose_identity_slots
-from app.player_analysis_v61.semantic_outcomes import (
+from report_card.player_analysis_v61.hierarchical import hierarchical_qualification
+from report_card.player_analysis_v61.identity import compose_identity_slots
+from report_card.player_analysis_v61.semantic_outcomes import (
     SEMANTIC_OUTCOME_CATALOG,
     SEMANTIC_OUTCOME_REGISTRY,
 )
-from app.reports.dna_assembly_v6 import _plain_json
-from app.reports.dna_assembly_v61 import (
+from report_card.reports.dna_assembly_v6 import _plain_json
+from report_card.reports.dna_assembly_v61 import (
     _post_loss_response_statistic,
     _protect_deep_handoffs,
     _semantic_bootstrap_evidence,
 )
-from app.storage.repository import InMemoryRepository
+from report_card.storage.repository import InMemoryRepository
 
 
 def test_hierarchy_never_tests_branches_under_a_failed_family() -> None:

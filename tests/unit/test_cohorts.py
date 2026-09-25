@@ -1,4 +1,4 @@
-from app.cohorts.selector import select_narrowest_cohort
+from report_card.cohorts.selector import select_narrowest_cohort
 
 
 def test_cohort_backoff_chooses_narrowest_valid_level() -> None:

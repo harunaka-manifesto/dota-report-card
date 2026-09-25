@@ -11,7 +11,7 @@ from typing import Any
 
 import pytest
 from app.ingestion.summary_history_contract import request_manifest
-from app.player_analysis_v61.calibration_corpus import (
+from report_card.player_analysis_v61.calibration_corpus import (
     CANONICAL_SCHEMA_VERSION,
     LEGACY_CANONICAL_SCHEMA_VERSION,
     validate_canonical_corpus,

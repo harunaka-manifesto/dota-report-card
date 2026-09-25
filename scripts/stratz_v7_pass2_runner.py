@@ -46,11 +46,11 @@ for _candidate in (str(ROOT), str(API_ROOT)):
     if _candidate not in sys.path:
         sys.path.insert(0, _candidate)
 
-from app.player_analysis_v7.research.durability import (  # noqa: E402
-    assert_durable_corpus_root,
-)
 from app.stratz.client import parse_rate_limit_headers  # noqa: E402
 from app.stratz.queries import GET_DEEP_MATCH_BATCH, GraphQLOperation  # noqa: E402
+from report_card.player_analysis_v7.research.durability import (  # noqa: E402
+    assert_durable_corpus_root,
+)
 
 # The pass-1 runner is the established acquisition architecture. Its transport,
 # ledger, redaction, atomic-write and rate-control primitives are reused rather

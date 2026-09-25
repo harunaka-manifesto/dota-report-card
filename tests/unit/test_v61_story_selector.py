@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 from app.ingestion.summary_normalize import normalize_summary_rows
-from app.player_analysis_v61.story_selector import (
+from report_card.player_analysis_v61.story_selector import (
     MODE_MAP_CATEGORIES,
     MODE_MAP_PATH,
     MODE_MAP_SHA256,

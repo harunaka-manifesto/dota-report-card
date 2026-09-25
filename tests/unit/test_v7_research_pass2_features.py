@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from app.player_analysis_v7.research.pass2_features import (
+from report_card.player_analysis_v7.research.pass2_features import (
     DEATH_CLUSTER_WINDOW_SECONDS,
     FEATURE_REGISTRY,
     LEAD_THRESHOLD_GOLD,

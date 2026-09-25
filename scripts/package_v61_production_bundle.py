@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 
 from app.core.config import Settings  # noqa: E402
 from app.core.release import artifact_bundle_digest, current_source_binding  # noqa: E402
-from app.player_analysis_v61.artifacts import (  # noqa: E402
+from report_card.player_analysis_v61.artifacts import (  # noqa: E402
     V61_SUPPORT_ARTIFACTS,
     load_v61_artifact_bundle,
     load_v61_production_beta_authorization,

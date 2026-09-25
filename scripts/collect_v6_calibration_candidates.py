@@ -16,9 +16,9 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-from app.cohorts.collector import CollectorPolicy, PublicMatchCollector  # noqa: E402
 from app.core.config import Settings  # noqa: E402
 from app.opendota.client import OpenDotaClient  # noqa: E402
+from report_card.cohorts.collector import CollectorPolicy, PublicMatchCollector  # noqa: E402
 
 Progress = Callable[[str], None]
 

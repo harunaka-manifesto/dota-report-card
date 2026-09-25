@@ -1,5 +1,5 @@
-from app.analysis.deep_scan import plan_diagnostic_deep_scan
-from app.features.summary_calculators import calculate_summary_features
+from report_card.analysis.deep_scan import plan_diagnostic_deep_scan
+from report_card.features.summary_calculators import calculate_summary_features
 
 
 def _summary(index: int, *, hero_id: int = 1) -> dict[str, object]:

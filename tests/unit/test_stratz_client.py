@@ -17,13 +17,6 @@ from app.core.errors import (
     StratzPartialResponse,
     StratzSchemaDrift,
 )
-from app.player_analysis_v7.research.archetype import fight_style_axes
-from app.player_analysis_v7.research.pass2_features import (
-    fight_conversion,
-    lane_vs_jungle_share,
-    vision_coverage,
-)
-from app.player_analysis_v7.runtime import analyze_v7
 from app.stratz.client import StratzClient, parse_rate_limit_headers
 from app.stratz.deep import normalize_deep_matches
 from app.stratz.queries import (
@@ -31,6 +24,13 @@ from app.stratz.queries import (
     GET_PLAYER_PROFILE,
     GET_ROLE_METRIC_MATCH_BATCH,
 )
+from report_card.player_analysis_v7.research.archetype import fight_style_axes
+from report_card.player_analysis_v7.research.pass2_features import (
+    fight_conversion,
+    lane_vs_jungle_share,
+    vision_coverage,
+)
+from report_card.player_analysis_v7.runtime import analyze_v7
 
 from tests.unit.test_v7_runtime_service import _history
 

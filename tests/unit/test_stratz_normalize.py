@@ -6,7 +6,7 @@ from pathlib import Path
 
 from app.providers.base import HistoryWindow, RequestLedger
 from app.stratz.models import StratzHistory, StratzHistoryPage
-from app.stratz.normalize import normalize_stratz_history, normalize_stratz_page
+from report_card.stratz.normalize import normalize_stratz_history, normalize_stratz_page
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "stratz" / "get_player_history_page.json"
 ACCOUNT_ID = 123456789

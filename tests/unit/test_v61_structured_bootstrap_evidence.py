@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import pytest
-from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
-from app.player_analysis_v61.family_statistics import (
+from report_card.player_analysis_v6.constants import FINDING_FAMILY_KEYS
+from report_card.player_analysis_v61.family_statistics import (
     _post_loss_branch_bootstrap_p_values,
     v61_production_family_branch_p_values,
 )
-from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
-from app.reports.dna_assembly_v61 import (
+from report_card.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
+from report_card.reports.dna_assembly_v61 import (
     _post_loss_bootstrap_metrics,
     _post_loss_response_statistic,
     _semantic_bootstrap_evidence,

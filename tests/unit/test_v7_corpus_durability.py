@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from app.player_analysis_v7.research.durability import (
+from report_card.player_analysis_v7.research.durability import (
     OVERRIDE_ACKNOWLEDGEMENT,
     OVERRIDE_ENV,
     VOLATILE_ROOTS,
@@ -113,14 +113,14 @@ def test_the_acknowledgement_states_the_consequence() -> None:
 
 
 def test_the_corpus_loader_refuses_a_volatile_root() -> None:
-    from app.player_analysis_v7.research.corpus import CorpusError, corpus_paths
+    from report_card.player_analysis_v7.research.corpus import CorpusError, corpus_paths
 
     with pytest.raises((VolatileCorpusRoot, CorpusError)):
         corpus_paths("/private/tmp/not-a-corpus")
 
 
 def test_the_freeze_loader_refuses_a_volatile_root() -> None:
-    from app.player_analysis_v7.research.corpus import CorpusError, freeze_paths
+    from report_card.player_analysis_v7.research.corpus import CorpusError, freeze_paths
 
     with pytest.raises((VolatileCorpusRoot, CorpusError)):
         freeze_paths("/private/tmp/not-a-freeze")

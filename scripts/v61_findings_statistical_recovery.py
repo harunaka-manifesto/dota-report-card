@@ -47,12 +47,12 @@ def _install_offline_guard() -> None:
 
 _install_offline_guard()
 
-from app.player_analysis_v61.calibration_corpus import load_canonical_corpus  # noqa: E402
-from app.player_analysis_v61.corpus_reuse import sha256_file  # noqa: E402
-from app.player_analysis_v61.family_statistics import (  # noqa: E402
+from report_card.player_analysis_v61.calibration_corpus import load_canonical_corpus  # noqa: E402
+from report_card.player_analysis_v61.corpus_reuse import sha256_file  # noqa: E402
+from report_card.player_analysis_v61.family_statistics import (  # noqa: E402
     _empirical_two_sided_p,
 )
-from app.player_analysis_v61.semantic_outcomes import (  # noqa: E402
+from report_card.player_analysis_v61.semantic_outcomes import (  # noqa: E402
     SEMANTIC_OUTCOME_CATALOG,
 )
 
@@ -255,10 +255,10 @@ def _source_has(path: Path, needle: str) -> bool:
 
 
 def _code_audit() -> dict[str, Any]:
-    assembly = ROOT / "services/api/app/reports/dna_assembly_v61.py"
-    statistics_path = ROOT / "services/api/app/player_analysis_v61/family_statistics.py"
-    hierarchy = ROOT / "services/api/app/player_analysis_v61/hierarchical.py"
-    relationships = ROOT / "services/api/app/player_analysis_v61/relationships.py"
+    assembly = ROOT / "legacy/services/api/report_card/reports/dna_assembly_v61.py"
+    statistics_path = ROOT / "legacy/services/api/report_card/player_analysis_v61/family_statistics.py"
+    hierarchy = ROOT / "legacy/services/api/report_card/player_analysis_v61/hierarchical.py"
+    relationships = ROOT / "legacy/services/api/report_card/player_analysis_v61/relationships.py"
     checks = [
         ("raw family evidence is calculated", assembly, "portfolio_shape = build_portfolio_shape(matches"),
         ("production bootstrap is calculated", assembly, "_weighted_production_bootstrap("),
@@ -286,52 +286,52 @@ def _code_audit() -> dict[str, Any]:
         "runtime_chain": [
             {
                 "transition": "raw family evidence → family estimator",
-                "source": "services/api/app/reports/dna_assembly_v61.py:1096-1121",
+                "source": "legacy/services/api/report_card/reports/dna_assembly_v61.py:1096-1121",
                 "state": "CALCULATED",
             },
             {
                 "transition": "family estimator → bootstrap/resampling",
-                "source": "services/api/app/reports/dna_assembly_v61.py:1123-1145; :660-919",
+                "source": "legacy/services/api/report_card/reports/dna_assembly_v61.py:1123-1145; :660-919",
                 "state": "CALCULATED",
             },
             {
                 "transition": "bootstrap/resampling → family statistic",
-                "source": "services/api/app/reports/dna_assembly_v61.py:609-657; services/api/app/player_analysis_v61/family_statistics.py:19-26",
+                "source": "legacy/services/api/report_card/reports/dna_assembly_v61.py:609-657; legacy/services/api/report_card/player_analysis_v61/family_statistics.py:19-26",
                 "state": "CALCULATED",
             },
             {
                 "transition": "family statistic → family multiplicity correction",
-                "source": "services/api/app/player_analysis_v61/hierarchical.py:23-35",
+                "source": "legacy/services/api/report_card/player_analysis_v61/hierarchical.py:23-35",
                 "state": "CALCULATED + ENFORCED",
             },
             {
                 "transition": "family statistic → branch statistic",
-                "source": "services/api/app/reports/dna_assembly_v61.py:1220-1244",
+                "source": "legacy/services/api/report_card/reports/dna_assembly_v61.py:1220-1244",
                 "state": "CALCULATED",
             },
             {
                 "transition": "branch statistic → branch correction",
-                "source": "services/api/app/player_analysis_v61/hierarchical.py:35-55",
+                "source": "legacy/services/api/report_card/player_analysis_v61/hierarchical.py:35-55",
                 "state": "CALCULATED + ENFORCED",
             },
             {
                 "transition": "branch correction → inherited V6 state",
-                "source": "services/api/app/reports/dna_assembly_v61.py:1246-1261",
+                "source": "legacy/services/api/report_card/reports/dna_assembly_v61.py:1246-1261",
                 "state": "INHERITED_FROM_V6 + ENFORCED",
             },
             {
                 "transition": "inherited V6 state → support/effect/stability/semantic checks",
-                "source": "services/api/app/reports/dna_assembly_v61.py:1246-1261",
+                "source": "legacy/services/api/report_card/reports/dna_assembly_v61.py:1246-1261",
                 "state": "RECORDED_ONLY / IGNORED",
             },
             {
                 "transition": "checks → publication eligibility",
-                "source": "services/api/app/reports/dna_assembly_v61.py:1256-1262",
+                "source": "legacy/services/api/report_card/reports/dna_assembly_v61.py:1256-1262",
                 "state": "ENFORCED for V6 flag, branch, rollout, cap, Pool completeness only",
             },
             {
                 "transition": "publication eligibility → report assembly",
-                "source": "services/api/app/reports/dna_assembly_v61.py:1263-1322",
+                "source": "legacy/services/api/report_card/reports/dna_assembly_v61.py:1263-1322",
                 "state": "CALCULATED + ENFORCED",
             },
         ],
@@ -1669,7 +1669,7 @@ The candidate is a new analytical lineage. Do not label changed estimates as
 ## Estimator interface
 
 Add an internal pure interface, preferably in
-`services/api/app/player_analysis_v61/production_statistics.py` or a new
+`legacy/services/api/report_card/player_analysis_v61/production_statistics.py` or a new
 research-only module:
 
 ```python
@@ -1763,23 +1763,23 @@ existing strict schema requires.
 
 Change only the future candidate implementation surfaces:
 
-- `services/api/app/player_analysis_v61/production_statistics.py`: add the
+- `legacy/services/api/report_card/player_analysis_v61/production_statistics.py`: add the
   corrected p helper, explicit point/draw interface, and session-cluster
   inference result;
-- `services/api/app/player_analysis_v61/family_statistics.py`: route candidate
+- `legacy/services/api/report_card/player_analysis_v61/family_statistics.py`: route candidate
   inference to the corrected helper; retain fixture-only helpers only if tests
   explicitly label them fixture-only;
-- `services/api/app/player_analysis_v61/relationships.py`: expose direct
+- `legacy/services/api/report_card/player_analysis_v61/relationships.py`: expose direct
   post-loss transition and completed-session position estimands with stable
   session grouping;
-- `services/api/app/reports/dna_assembly_v61.py`: use the family-specific
+- `legacy/services/api/report_card/reports/dna_assembly_v61.py`: use the family-specific
   evidence vectors, apply the single state machine, remove the inherited V6
   publication veto for the candidate version, and emit one retained semantic
   label per family;
-- `services/api/app/player_analysis_v61/semantic_outcomes.py` and `copy.py`:
+- `legacy/services/api/report_card/player_analysis_v61/semantic_outcomes.py` and `copy.py`:
   add a new versioned candidate registry/copy surface only after the five
   retained branches and deferred branches are reviewed;
-- `services/api/app/player_analysis_v61/versions.py`: add new candidate
+- `legacy/services/api/report_card/player_analysis_v61/versions.py`: add new candidate
   version keys without changing frozen V6.1 values;
 - `scripts/build_v61_calibration_artifacts.py` (new candidate path only): pass
   `completed_sessions_by_profile` into threshold derivation; do not overwrite
@@ -1792,7 +1792,7 @@ Change only the future candidate implementation surfaces:
 - `infra/runtime-artifacts/free_dna_v61/6.1.0/**`;
 - existing frozen V6.1 source binding and release metadata;
 - the revealed holdout and all historical evidence files;
-- `services/api/app/player_analysis_v6/**` semantics, unless an explicitly
+- `legacy/services/api/report_card/player_analysis_v6/**` semantics, unless an explicitly
   reviewed compatibility adapter is required and proves V6 behavior unchanged;
 - database, Redis, providers, environment variables, flags, deployment files;
 - frontend/presentation code and persisted report fixtures in this analytical

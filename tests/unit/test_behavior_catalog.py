@@ -1,6 +1,6 @@
-from app.behavior.catalog import validate_behavior_catalog
-from app.behavior.elements.registry import ELEMENT_REGISTRY, EXPECTED_ELEMENT_KEYS
-from app.behavior.patterns.registry import (
+from report_card.behavior.catalog import validate_behavior_catalog
+from report_card.behavior.elements.registry import ELEMENT_REGISTRY, EXPECTED_ELEMENT_KEYS
+from report_card.behavior.patterns.registry import (
     EXPECTED_PATTERN_KEYS,
     PATTERN_REGISTRY,
     RETIRED_PATTERN_KEYS,

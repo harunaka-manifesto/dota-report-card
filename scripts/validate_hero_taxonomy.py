@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services/api"))
 
-from app.heroes.taxonomy import load_default_taxonomy  # noqa: E402
+from report_card.heroes.taxonomy import load_default_taxonomy  # noqa: E402
 
 
 def main() -> None:

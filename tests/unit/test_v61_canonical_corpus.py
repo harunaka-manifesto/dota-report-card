@@ -8,12 +8,12 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
-from app.dna.sessions import infer_sessions
 from app.ingestion.summary_history_contract import (
     normalize_canonical_summary_history,
     request_manifest,
 )
-from app.player_analysis_v61.calibration_corpus import (
+from report_card.dna.sessions import infer_sessions
+from report_card.player_analysis_v61.calibration_corpus import (
     CANONICAL_SCHEMA_VERSION,
     CANONICAL_SESSION_POLICY,
     LEGACY_CANONICAL_SCHEMA_VERSION,
@@ -21,13 +21,13 @@ from app.player_analysis_v61.calibration_corpus import (
     canonical_history,
     validate_canonical_corpus,
 )
-from app.player_analysis_v61.calibration_evaluation import validate_runtime_parity
-from app.player_analysis_v61.corpus_reuse import (
+from report_card.player_analysis_v61.calibration_evaluation import validate_runtime_parity
+from report_card.player_analysis_v61.corpus_reuse import (
     CANONICAL_AUDIT_VERSION,
     audit_reuse,
     require_compatible_audit,
 )
-from app.player_analysis_v61.versions import MODEL_VERSION, REPORT_VERSION
+from report_card.player_analysis_v61.versions import MODEL_VERSION, REPORT_VERSION
 
 from scripts.collect_v61_calibration_histories import collect_profile
 from scripts.evaluate_v61_calibration import _runtime_parity
@@ -501,7 +501,7 @@ def test_canonical_audit_supports_v21_windows_without_leaking_timestamps(tmp_pat
 def test_canonical_only_requires_latest_v21_schema(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import app.player_analysis_v61.corpus_reuse as reuse
+    import report_card.player_analysis_v61.corpus_reuse as reuse
 
     audit_path = tmp_path / "audit.json"
     corpus_path = tmp_path / "corpus.json"
@@ -518,7 +518,7 @@ def test_canonical_only_requires_latest_v21_schema(
             "authorization": {"reuse_authorized": True},
             "aggregate_identifier_free": True,
         }
-        from app.player_analysis_v61.corpus_reuse import audit_checksum
+        from report_card.player_analysis_v61.corpus_reuse import audit_checksum
 
         audit["audit_checksum"] = audit_checksum(audit)
         return audit

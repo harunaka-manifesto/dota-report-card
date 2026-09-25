@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from app.behavior.context_baseline import resolve_leave_group_out_baseline
-from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
 from app.ingestion.summary_normalize import NormalizedSummaryMatch, normalize_summary_rows
+from report_card.behavior.context_baseline import resolve_leave_group_out_baseline
+from report_card.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
 
 
 def _taxonomy() -> HeroTaxonomy:

@@ -28,18 +28,21 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-from app.heroes.taxonomy import load_default_taxonomy  # noqa: E402
-from app.player_analysis_v6.artifacts import load_context_baseline_artifact  # noqa: E402
-from app.player_analysis_v6.calibration import REQUIRED_THRESHOLD_KEYS  # noqa: E402
-from app.player_analysis_v6.calibration_corpus import (  # noqa: E402
+from report_card.heroes.taxonomy import load_default_taxonomy  # noqa: E402
+from report_card.player_analysis_v6.artifacts import load_context_baseline_artifact  # noqa: E402
+from report_card.player_analysis_v6.calibration import REQUIRED_THRESHOLD_KEYS  # noqa: E402
+from report_card.player_analysis_v6.calibration_corpus import (  # noqa: E402
     load_calibration_corpus,
     migrate_calibration_corpus,
 )
-from app.player_analysis_v6.calibration_derivation import (  # noqa: E402
+from report_card.player_analysis_v6.calibration_derivation import (  # noqa: E402
     derive_profile_estimates,
     odd_even_session_ids,
 )
-from app.player_analysis_v6.constants import BASELINE_VERSION, THRESHOLDS_VERSION  # noqa: E402
+from report_card.player_analysis_v6.constants import (  # noqa: E402
+    BASELINE_VERSION,
+    THRESHOLDS_VERSION,
+)
 
 BASELINE_METRICS = (
     "outcome",

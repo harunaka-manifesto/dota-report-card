@@ -24,11 +24,11 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 sys.path.insert(0, str(ROOT / "tests" / "unit"))
 
-from app.api.report_schemas import validate_free_dna_report  # noqa: E402
-from app.api.story_payload_schemas_v61 import StoryPayloadV61Schema  # noqa: E402
 from app.ingestion.summary_normalize import normalize_summary_rows  # noqa: E402
-from app.player_analysis_v61.story_projection import build_story_payload  # noqa: E402
-from app.player_analysis_v61.story_selector import select_story_matches  # noqa: E402
+from report_card.api.report_schemas import validate_free_dna_report  # noqa: E402
+from report_card.api.story_payload_schemas_v61 import StoryPayloadV61Schema  # noqa: E402
+from report_card.player_analysis_v61.story_projection import build_story_payload  # noqa: E402
+from report_card.player_analysis_v61.story_selector import select_story_matches  # noqa: E402
 from test_free_dna_v61_contract import _generate  # noqa: E402
 
 OUTPUT_DIR = ROOT / "apps" / "web" / "tests" / "fixtures" / "persisted-reports"

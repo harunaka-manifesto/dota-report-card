@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from app.stratz.item_vocabulary import (
+from report_card.stratz.item_vocabulary import (
     ItemInfo,
     is_consumable,
     is_real_item,
@@ -16,7 +16,10 @@ from app.stratz.item_vocabulary import (
 @pytest.fixture
 def vocab_path() -> Path:
     """Return the path to the committed item vocabulary file."""
-    return Path(__file__).resolve().parents[2] / "services" / "api" / "app" / "stratz" / "item_vocabulary.json"
+    return (
+        Path(__file__).resolve().parents[2]
+        / "legacy" / "services" / "api" / "report_card" / "stratz" / "item_vocabulary.json"
+    )
 
 
 class TestLoadItemVocabulary:
@@ -176,7 +179,7 @@ def test_recipes_are_not_real_items() -> None:
     Counting both would double-count every build, which would corrupt any
     measurement of when a player's build comes together.
     """
-    from app.stratz.item_vocabulary import is_real_item, is_recipe, load_item_vocabulary
+    from report_card.stratz.item_vocabulary import is_real_item, is_recipe, load_item_vocabulary
 
     vocabulary = load_item_vocabulary()
     recipes = [item for item in vocabulary.values() if is_recipe(item)]
@@ -191,7 +194,7 @@ def test_recipes_are_not_real_items() -> None:
 def test_bottle_is_a_real_item_not_a_consumable() -> None:
     """Bottle holds an inventory slot all game; its timing is a build milestone."""
 
-    from app.stratz.item_vocabulary import is_consumable, is_real_item, load_item_vocabulary
+    from report_card.stratz.item_vocabulary import is_consumable, is_real_item, load_item_vocabulary
 
     bottle = next(
         i for i in load_item_vocabulary().values() if i.short_name == "bottle"
@@ -201,7 +204,7 @@ def test_bottle_is_a_real_item_not_a_consumable() -> None:
 
 
 def test_the_real_item_set_is_the_expected_size() -> None:
-    from app.stratz.item_vocabulary import is_real_item, load_item_vocabulary
+    from report_card.stratz.item_vocabulary import is_real_item, load_item_vocabulary
 
     vocabulary = load_item_vocabulary()
     real = [item for item in vocabulary.values() if is_real_item(item)]

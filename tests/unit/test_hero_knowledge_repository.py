@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.heroes.knowledge import HeroKnowledgeRepository
+from report_card.heroes.knowledge import HeroKnowledgeRepository
 
 
 def test_runtime_repository_reads_version_and_hero(tmp_path: Path) -> None:

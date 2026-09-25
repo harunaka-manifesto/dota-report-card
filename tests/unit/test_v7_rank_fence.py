@@ -9,8 +9,10 @@ easily.
 from __future__ import annotations
 
 import pytest
-from app.player_analysis_v7.research.corpus import FORBIDDEN_FIELD_TOKENS
-from app.player_analysis_v7.research.rank_fence import (
+from pydantic import BaseModel
+from report_card.player_analysis_v7 import report_contract
+from report_card.player_analysis_v7.research.corpus import FORBIDDEN_FIELD_TOKENS
+from report_card.player_analysis_v7.research.rank_fence import (
     ANALYTICAL_MODULES,
     NON_ANALYTICAL_MODULES,
     RankFenceViolation,
@@ -20,9 +22,6 @@ from app.player_analysis_v7.research.rank_fence import (
     shape_signature,
     unlisted_research_modules,
 )
-from pydantic import BaseModel
-
-from services.api.app.player_analysis_v7 import report_contract
 
 # --------------------------------------------------------------------------
 # static scan

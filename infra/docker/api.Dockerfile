@@ -3,6 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY services ./services
+COPY legacy/services ./legacy/services
 COPY migrations ./migrations
 COPY scripts/verify_v61_runtime_package.py ./scripts/verify_v61_runtime_package.py
 COPY infra/runtime-artifacts/free_dna_v61/6.1.0/ ./runtime-artifacts/free_dna_v61/6.1.0/
@@ -12,7 +13,7 @@ RUN python scripts/verify_v61_runtime_package.py /app/runtime-artifacts/free_dna
 RUN chmod -R a-w /app/runtime-artifacts/free_dna_v61/6.1.0
 RUN addgroup --system app && adduser --system --ingroup app --no-create-home app
 
-ENV PYTHONPATH=/app/services/api \
+ENV PYTHONPATH=/app/services/api:/app/legacy/services/api \
     FREE_DNA_V61_ARTIFACT_DIR=/app/runtime-artifacts/free_dna_v61/6.1.0 \
     FREE_DNA_V61_BASELINE_ARTIFACT=/app/runtime-artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json \
     FREE_DNA_V61_THRESHOLD_ARTIFACT=/app/runtime-artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json \

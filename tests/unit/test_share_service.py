@@ -1,4 +1,4 @@
-from app.share.service import RENDERER_VERSION, build_share_svg, share_cache_key
+from report_card.share.service import RENDERER_VERSION, build_share_svg, share_cache_key
 
 
 def _report() -> dict[str, object]:

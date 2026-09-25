@@ -11,7 +11,7 @@ import statistics
 from typing import Any
 
 import pytest
-from app.player_analysis_v7.research.archetype import (
+from report_card.player_analysis_v7.research.archetype import (
     FIGHT_STYLE_LEVELS,
     GRID_LABELS,
     MIN_MATCHES,

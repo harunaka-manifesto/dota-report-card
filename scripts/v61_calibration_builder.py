@@ -19,19 +19,19 @@ from pathlib import Path
 from typing import Any
 
 from app.ingestion.summary_history_contract import sha256_payload
-from app.player_analysis_v6.baselines import BaselineResolver
-from app.player_analysis_v6.calibration import REQUIRED_THRESHOLD_KEYS
-from app.player_analysis_v6.calibration_derivation import (
+from report_card.player_analysis_v6.baselines import BaselineResolver
+from report_card.player_analysis_v6.calibration import REQUIRED_THRESHOLD_KEYS
+from report_card.player_analysis_v6.calibration_derivation import (
     derive_profile_estimates,
     odd_even_session_ids,
 )
-from app.player_analysis_v6.context_adjustment import adjusted_value_for_match
-from app.player_analysis_v6.metrics import (
+from report_card.player_analysis_v6.context_adjustment import adjusted_value_for_match
+from report_card.player_analysis_v6.metrics import (
     death_exposure_per_ten_minutes,
     involvement_per_minute,
     taxonomy_labels,
 )
-from app.player_analysis_v61.artifacts import (
+from report_card.player_analysis_v61.artifacts import (
     BASELINE_VERSION,
     FREEZE_RECORD_VERSION,
     THRESHOLDS_VERSION,
@@ -39,24 +39,24 @@ from app.player_analysis_v61.artifacts import (
     V61_SUPPORT_ARTIFACTS,
     load_context_baseline_artifact_v61,
 )
-from app.player_analysis_v61.calibration_corpus import (
+from report_card.player_analysis_v61.calibration_corpus import (
     CANONICAL_SCHEMA_VERSION,
     MINIMUM_USABLE_MATCHES,
     canonical_rows,
     load_canonical_corpus,
 )
-from app.player_analysis_v61.corpus_reuse import (
+from report_card.player_analysis_v61.corpus_reuse import (
     EXPECTED_HOLDOUT_COUNT,
     EXPECTED_SPLIT_SEED,
     EXPECTED_TRAIN_COUNT,
     profile_digest,
     sha256_file,
 )
-from app.player_analysis_v61.legacy_adapter import (
+from report_card.player_analysis_v61.legacy_adapter import (
     adapt_canonical_rows,
 )
-from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
-from app.player_analysis_v61.versions import VERSION_MATRIX
+from report_card.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
+from report_card.player_analysis_v61.versions import VERSION_MATRIX
 
 BUILDER_VERSION = "v61-calibration-builder-2.0.0"
 PRIOR_VERSION = "summary-priors-6.1.0"
@@ -490,7 +490,7 @@ def build_distance_calibration(
     distances: list[float] = []
     deltas: dict[str, list[float]] = defaultdict(list)
     for profile_rows in by_profile.values():
-        from app.player_analysis_v61.portfolio_shape import cross_fitted_distance_records
+        from report_card.player_analysis_v61.portfolio_shape import cross_fitted_distance_records
 
         records = cross_fitted_distance_records(profile_rows, taxonomy)
         distances.extend(record.combined_distance for record in records)

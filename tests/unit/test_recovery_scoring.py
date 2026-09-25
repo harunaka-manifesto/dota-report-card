@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import pytest
-from app.behavior.context_baseline import BaselineResolution
-from app.behavior.elements.service import (
+from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.behavior.context_baseline import BaselineResolution
+from report_card.behavior.elements.service import (
     SummaryBehaviorContext,
     _score_post_loss_performance_response,
 )
-from app.dna.features.models import DnaFeatureSet
-from app.dna.sessions import infer_sessions
-from app.heroes.taxonomy import HeroTaxonomy
-from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.dna.features.models import DnaFeatureSet
+from report_card.dna.sessions import infer_sessions
+from report_card.heroes.taxonomy import HeroTaxonomy
 
 
 def _context(transitions_by_session: tuple[int, ...], residual_by_session: tuple[float, ...]) -> SummaryBehaviorContext:
@@ -89,7 +89,7 @@ def test_recovery_authority_is_session_clustered(monkeypatch) -> None:
             reference_match_ids=(100, 101, 102),
         )
 
-    monkeypatch.setattr("app.behavior.elements.service.resolve_leave_group_out_baseline", fixed_baseline)
+    monkeypatch.setattr("report_card.behavior.elements.service.resolve_leave_group_out_baseline", fixed_baseline)
     result = _score_post_loss_performance_response(context)
 
     assert result.status != "unavailable"
@@ -110,7 +110,7 @@ def test_recovery_availability_keeps_transition_session_and_context_gates(monkey
             reference_match_ids=(100, 101, 102),
         )
 
-    monkeypatch.setattr("app.behavior.elements.service.resolve_leave_group_out_baseline", fixed_baseline)
+    monkeypatch.setattr("report_card.behavior.elements.service.resolve_leave_group_out_baseline", fixed_baseline)
 
     too_few_transitions = _score_post_loss_performance_response(_context((10, 10, 9), (0.1, 0.1, 0.1)))
     assert too_few_transitions.score is None
@@ -133,7 +133,7 @@ def test_recovery_availability_keeps_transition_session_and_context_gates(monkey
             return None
         return fixed_baseline()
 
-    monkeypatch.setattr("app.behavior.elements.service.resolve_leave_group_out_baseline", partial_baseline)
+    monkeypatch.setattr("report_card.behavior.elements.service.resolve_leave_group_out_baseline", partial_baseline)
     too_little_context = _score_post_loss_performance_response(context)
     assert too_little_context.score is None
     assert "insufficient_role_function_context_overlap" in too_little_context.missing_reasons

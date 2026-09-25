@@ -2,17 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.behavior.actions import build_versatile_core_action
-from app.heroes.knowledge import (
+from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.behavior.actions import build_versatile_core_action
+from report_card.heroes.knowledge import (
     COVERAGE_FAMILIES,
     HERO_DEMAND_FAMILIES,
     FullRosterHeroKnowledgeProvider,
     NormalizedHeroKnowledge,
     SnapshotHeroKnowledgeProvider,
 )
-from app.heroes.recommendations import recommend_semantic_heroes
-from app.heroes.taxonomy import load_default_taxonomy
-from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.heroes.recommendations import recommend_semantic_heroes
+from report_card.heroes.taxonomy import load_default_taxonomy
 
 
 @dataclass(frozen=True)

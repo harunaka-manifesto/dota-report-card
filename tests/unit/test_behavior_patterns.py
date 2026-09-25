@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from app.behavior.elements.registry import ELEMENT_REGISTRY
-from app.behavior.evidence import BehaviorEvidence
-from app.behavior.models import ElementResult
-from app.behavior.patterns.service import evaluate_patterns
+from report_card.behavior.elements.registry import ELEMENT_REGISTRY
+from report_card.behavior.evidence import BehaviorEvidence
+from report_card.behavior.models import ElementResult
+from report_card.behavior.patterns.service import evaluate_patterns
 
 
 def _element(key: str, score: float | None = 0.5, *, status: str = "available") -> ElementResult:

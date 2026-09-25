@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from app.player_analysis_v61.story_payload import (
+from report_card.player_analysis_v61.story_payload import (
     build_busiest_day_module,
     build_busiest_week_module,
     build_hero_era_payoff_module,

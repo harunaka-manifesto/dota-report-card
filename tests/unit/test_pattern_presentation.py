@@ -1,22 +1,22 @@
 from __future__ import annotations
 
-from app.behavior.display_bands import (
+from report_card.behavior.display_bands import (
     death_exposure_band,
     presence_band,
     relative_performance_band,
     session_bucket_label,
     session_curve_band,
 )
-from app.behavior.models import PatternResult
-from app.behavior.outcomes import SEMANTIC_OUTCOME_BRANCHES, SEMANTIC_OUTCOME_VERSION
-from app.behavior.presentation import (
+from report_card.behavior.models import PatternResult
+from report_card.behavior.outcomes import SEMANTIC_OUTCOME_BRANCHES, SEMANTIC_OUTCOME_VERSION
+from report_card.behavior.presentation import (
     PATTERN_PRESENTATION_CONTRACT,
     PATTERN_PRESENTATION_VERSION,
     build_pattern_presentation,
 )
-from app.content.renderer import resolve_pattern_presentation_copy
-from app.heroes.knowledge import TaxonomyHeroKnowledgeProvider
-from app.heroes.taxonomy import HeroTaxonomy, HeroTaxonomyEntry
+from report_card.content.renderer import resolve_pattern_presentation_copy
+from report_card.heroes.knowledge import TaxonomyHeroKnowledgeProvider
+from report_card.heroes.taxonomy import HeroTaxonomy, HeroTaxonomyEntry
 
 
 def _pattern(key: str, *, status: str = "suppressed", confidence: str = "unavailable") -> PatternResult:

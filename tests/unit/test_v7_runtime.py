@@ -4,17 +4,17 @@ import math
 from typing import Any
 
 import pytest
-from app.player_analysis_v7 import runtime
-from app.player_analysis_v7.context_projection import (
+from report_card.player_analysis_v7 import runtime
+from report_card.player_analysis_v7.context_projection import (
     ContextProjectionError,
     load_context_projection,
 )
-from app.player_analysis_v7.population import load_population_parameters
-from app.player_analysis_v7.research import inference, recommendation, screen
-from app.player_analysis_v7.research.features import Opportunity
-from app.player_analysis_v7.research.pass2_observations import OBSERVATION_REGISTRY
-from app.player_analysis_v7.research.registry import FAMILY_BY_NAME
-from app.player_analysis_v7.runtime import _estimate, _recommendation, parsed_rows
+from report_card.player_analysis_v7.population import load_population_parameters
+from report_card.player_analysis_v7.research import inference, recommendation, screen
+from report_card.player_analysis_v7.research.features import Opportunity
+from report_card.player_analysis_v7.research.pass2_observations import OBSERVATION_REGISTRY
+from report_card.player_analysis_v7.research.registry import FAMILY_BY_NAME
+from report_card.player_analysis_v7.runtime import _estimate, _recommendation, parsed_rows
 
 
 def _series(key: str, *, recommendation_projection: bool = False) -> tuple[list[Opportunity], str | None, str | None]:

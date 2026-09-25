@@ -11,10 +11,10 @@ unopened, and no reserved split can be read by anything on the analysis path.
 from __future__ import annotations
 
 import pytest
-from app.player_analysis_v7 import acquisition_policy as acq
-from app.player_analysis_v7 import report_contract
-from app.player_analysis_v7.research import archetype, ranking, recommendation
-from app.player_analysis_v7.research.corpus import (
+from report_card.player_analysis_v7 import acquisition_policy as acq
+from report_card.player_analysis_v7 import report_contract
+from report_card.player_analysis_v7.research import archetype, ranking, recommendation
+from report_card.player_analysis_v7.research.corpus import (
     CALIBRATION_RESERVED,
     RESERVED_SPLITS,
     SEALED_VALIDATION,
@@ -22,7 +22,7 @@ from app.player_analysis_v7.research.corpus import (
     ReservedSplitAccess,
     iter_players,
 )
-from app.player_analysis_v7.research.owner_decisions import (
+from report_card.player_analysis_v7.research.owner_decisions import (
     CALIBRATION_RESERVED_SPENT,
     CARRIED_FORWARD,
     DECISIONS,

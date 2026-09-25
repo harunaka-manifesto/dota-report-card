@@ -13,11 +13,13 @@ import json
 from typing import Any
 
 import pytest
-from app.analysis.source import MappingSource
-from app.api.routes import router
 from app.core.config import Settings
 from app.main import create_app
-from app.player_analysis_v7.capability_payload import (
+from fastapi.testclient import TestClient
+from pydantic import ValidationError
+from report_card.analysis.source import MappingSource
+from report_card.api.routes import router
+from report_card.player_analysis_v7.capability_payload import (
     CAPABILITY_KEYS,
     V7_CAPABILITY_SCHEMA_VERSION,
     WITHHELD_DIMENSIONS,
@@ -29,16 +31,19 @@ from app.player_analysis_v7.capability_payload import (
     V7Provenance,
     availability_map,
 )
-from app.player_analysis_v7.descriptive import (
+from report_card.player_analysis_v7.descriptive import (
     DescriptiveFacts,
     HeroCast,
     ReportScope,
     TimeWindow,
 )
-from app.player_analysis_v7.display_semantics import build_display_semantics
-from app.player_analysis_v7.lifecycle import V7ReportLifecycle, analytical_identity
-from app.player_analysis_v7.public_projection import PublicProjection, build_public_projection
-from app.player_analysis_v7.report_contract import (
+from report_card.player_analysis_v7.display_semantics import build_display_semantics
+from report_card.player_analysis_v7.lifecycle import V7ReportLifecycle, analytical_identity
+from report_card.player_analysis_v7.public_projection import (
+    PublicProjection,
+    build_public_projection,
+)
+from report_card.player_analysis_v7.report_contract import (
     ArchetypeSection,
     Finding,
     PointEstimateWithInterval,
@@ -46,9 +51,7 @@ from app.player_analysis_v7.report_contract import (
     Recommendation,
     RecommendationObservation,
 )
-from app.storage.repository import InMemoryRepository
-from fastapi.testclient import TestClient
-from pydantic import ValidationError
+from report_card.storage.repository import InMemoryRepository
 
 
 def finding(key: str, section: str, z: float, reliability: float) -> Finding:

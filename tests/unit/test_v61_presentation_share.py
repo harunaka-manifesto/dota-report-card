@@ -3,14 +3,14 @@ from __future__ import annotations
 from copy import deepcopy
 
 import pytest
-from app.analysis.source import MappingSource
 from app.core.config import Settings
 from app.main import create_app
-from app.player_analysis_v6.story import build_v61_presentation_metadata
-from app.reports.dna_assembly_v61 import _apply_v61_presentation
-from app.share.service import build_share_svg
-from app.storage.repository import InMemoryRepository
 from fastapi.testclient import TestClient
+from report_card.analysis.source import MappingSource
+from report_card.player_analysis_v6.story import build_v61_presentation_metadata
+from report_card.reports.dna_assembly_v61 import _apply_v61_presentation
+from report_card.share.service import build_share_svg
+from report_card.storage.repository import InMemoryRepository
 
 PAGE_LABELS = {
     "self-estimate": "Start",

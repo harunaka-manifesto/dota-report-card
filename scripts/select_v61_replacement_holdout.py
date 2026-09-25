@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
+from report_card.player_analysis_v61.calibration_corpus import (  # noqa: E402
     CANONICAL_SCHEMA_VERSION,
     CANONICAL_WINDOW_DAYS,
     CANONICAL_WINDOW_SECONDS,
@@ -29,7 +29,7 @@ from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
     load_canonical_corpus,
     validate_canonical_corpus,
 )
-from app.player_analysis_v61.corpus_reuse import profile_digest  # noqa: E402
+from report_card.player_analysis_v61.corpus_reuse import profile_digest  # noqa: E402
 
 from scripts.prepare_v61_replacement_holdout import (  # noqa: E402
     ORDER_DIGEST_FORMAT,

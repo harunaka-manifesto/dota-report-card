@@ -42,13 +42,13 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
-from app.player_analysis_v7.research.archetype import (  # noqa: E402
+from report_card.player_analysis_v7.research.archetype import (  # noqa: E402
     ARCHETYPE_VERSION,
     MODE_STRATA,
 )
-from app.player_analysis_v7.research.owner_decisions import DECISIONS_VERSION  # noqa: E402
-from app.player_analysis_v7.research.ranking import RANKING_MODEL_VERSION  # noqa: E402
-from app.player_analysis_v7.research.recommendation import (  # noqa: E402
+from report_card.player_analysis_v7.research.owner_decisions import DECISIONS_VERSION  # noqa: E402
+from report_card.player_analysis_v7.research.ranking import RANKING_MODEL_VERSION  # noqa: E402
+from report_card.player_analysis_v7.research.recommendation import (  # noqa: E402
     RECOMMENDATION_VERSION,
 )
 

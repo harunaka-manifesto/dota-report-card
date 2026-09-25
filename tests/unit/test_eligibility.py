@@ -1,4 +1,4 @@
-from app.ingestion.eligibility import ExclusionReason, assess_match
+from report_card.ingestion.eligibility import ExclusionReason, assess_match
 
 
 def base_match() -> dict[str, object]:

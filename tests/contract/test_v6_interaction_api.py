@@ -1,8 +1,8 @@
-from app.analysis.source import MappingSource
 from app.core.config import Settings
 from app.main import create_app
-from app.storage.repository import InMemoryRepository
 from fastapi.testclient import TestClient
+from report_card.analysis.source import MappingSource
+from report_card.storage.repository import InMemoryRepository
 
 
 def _client(*, local_deep_bypass: bool = True) -> tuple[TestClient, str]:

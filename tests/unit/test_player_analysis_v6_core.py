@@ -3,7 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from app.player_analysis_v6 import (
+from report_card.player_analysis_v6 import (
     PUBLIC_ELEMENT_KEYS,
     STORY_BEAT_KEYS,
     BaselineCell,
@@ -23,12 +23,12 @@ from app.player_analysis_v6 import (
     qualify_family,
     shannon_effective_count,
 )
-from app.player_analysis_v6 import post_loss as post_loss_module
-from app.player_analysis_v6 import statistics as statistics_module
-from app.player_analysis_v6.elements import _transfer_direction
-from app.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy
-from app.player_analysis_v6.post_loss import compute_post_loss_response
-from app.player_analysis_v6.session_drift import session_position_buckets
+from report_card.player_analysis_v6 import post_loss as post_loss_module
+from report_card.player_analysis_v6 import statistics as statistics_module
+from report_card.player_analysis_v6.elements import _transfer_direction
+from report_card.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy
+from report_card.player_analysis_v6.post_loss import compute_post_loss_response
+from report_card.player_analysis_v6.session_drift import session_position_buckets
 
 
 def _match(index: int, *, session: int | None = None, hero: int | None = None) -> SimpleNamespace:

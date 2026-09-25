@@ -38,31 +38,33 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
-from app.player_analysis_v7.research import inference  # noqa: E402
-from app.player_analysis_v7.research.corpus import (  # noqa: E402
+from report_card.player_analysis_v7.research import inference  # noqa: E402
+from report_card.player_analysis_v7.research.corpus import (  # noqa: E402
     DISCOVERY,
     SEALED_VALIDATION,
     corpus_paths,
 )
-from app.player_analysis_v7.research.features import load_frames  # noqa: E402
-from app.player_analysis_v7.research.owner_decisions import (  # noqa: E402
+from report_card.player_analysis_v7.research.features import load_frames  # noqa: E402
+from report_card.player_analysis_v7.research.owner_decisions import (  # noqa: E402
     DECISIONS_VERSION,
     SEALED_VALIDATION_APPROVED,
 )
-from app.player_analysis_v7.research.pass2_features import group_rows_by_account  # noqa: E402
-from app.player_analysis_v7.research.pass2_observations import (  # noqa: E402
+from report_card.player_analysis_v7.research.pass2_features import (  # noqa: E402
+    group_rows_by_account,
+)
+from report_card.player_analysis_v7.research.pass2_observations import (  # noqa: E402
     OBSERVATION_REGISTRY,
     chronological,
 )
-from app.player_analysis_v7.research.pass2_tables import (  # noqa: E402
+from report_card.player_analysis_v7.research.pass2_tables import (  # noqa: E402
     is_pass2_product_context,
     iter_pass2_players,
 )
-from app.player_analysis_v7.research.ranking import (  # noqa: E402
+from report_card.player_analysis_v7.research.ranking import (  # noqa: E402
     INTERVAL_Z,
     rank_player,
 )
-from app.player_analysis_v7.research.recommendation import (  # noqa: E402
+from report_card.player_analysis_v7.research.recommendation import (  # noqa: E402
     ARM_LOSS,
     ARM_WIN,
     build_personal_contrast_matrix,
@@ -73,8 +75,8 @@ from app.player_analysis_v7.research.recommendation import (  # noqa: E402
     priority,
     standardized_gap,
 )
-from app.player_analysis_v7.research.registry import FAMILY_BY_NAME  # noqa: E402
-from app.player_analysis_v7.research.tournament import collect  # noqa: E402
+from report_card.player_analysis_v7.research.registry import FAMILY_BY_NAME  # noqa: E402
+from report_card.player_analysis_v7.research.tournament import collect  # noqa: E402
 
 from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
 from scripts.v7_finding_pipeline import (  # noqa: E402

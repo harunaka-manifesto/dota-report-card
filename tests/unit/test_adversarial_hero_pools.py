@@ -6,24 +6,24 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from app.behavior.actions import build_versatile_core_action
-from app.behavior.outcomes import classify_pattern_outcome, classify_recommendation_state
-from app.content.renderer import resolve_pattern_presentation_copy
-from app.hero_portfolio.common_thread import compute_common_thread
-from app.hero_portfolio.config import PORTFOLIO_CONFIG
-from app.hero_portfolio.eligibility import build_hero_eligibility
-from app.hero_portfolio.exception import compute_hero_exception
-from app.heroes.knowledge import (
+from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.behavior.actions import build_versatile_core_action
+from report_card.behavior.outcomes import classify_pattern_outcome, classify_recommendation_state
+from report_card.content.renderer import resolve_pattern_presentation_copy
+from report_card.hero_portfolio.common_thread import compute_common_thread
+from report_card.hero_portfolio.config import PORTFOLIO_CONFIG
+from report_card.hero_portfolio.eligibility import build_hero_eligibility
+from report_card.hero_portfolio.exception import compute_hero_exception
+from report_card.heroes.knowledge import (
     DOTA_POSITIONS,
     HERO_DEMAND_FAMILIES,
     POSITION_CREDIBILITY_BANDS,
     NormalizedHeroKnowledge,
     SnapshotHeroKnowledgeProvider,
 )
-from app.heroes.recommendations import recommend_semantic_heroes
-from app.heroes.relationships import build_semantic_pool_profile
-from app.heroes.taxonomy import load_default_taxonomy
-from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.heroes.recommendations import recommend_semantic_heroes
+from report_card.heroes.relationships import build_semantic_pool_profile
+from report_card.heroes.taxonomy import load_default_taxonomy
 
 ROOT = Path(__file__).parents[2]
 REGISTRY_PATH = ROOT / "tests/fixtures/adversarial/hero-pools.json"

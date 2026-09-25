@@ -27,10 +27,10 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
-from app.player_analysis_v7 import acquisition_policy as acq  # noqa: E402
-from app.player_analysis_v7 import report_contract as contract  # noqa: E402
-from app.player_analysis_v7.research import archetype, ranking, recommendation  # noqa: E402
-from app.player_analysis_v7.research.owner_decisions import (  # noqa: E402
+from report_card.player_analysis_v7 import acquisition_policy as acq  # noqa: E402
+from report_card.player_analysis_v7 import report_contract as contract  # noqa: E402
+from report_card.player_analysis_v7.research import archetype, ranking, recommendation  # noqa: E402
+from report_card.player_analysis_v7.research.owner_decisions import (  # noqa: E402
     DECISIONS,
     DECISIONS_VERSION,
     NEEDS_RESERVED_SPLIT,

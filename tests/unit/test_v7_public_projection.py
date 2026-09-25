@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 import pytest
-from app.player_analysis_v7.descriptive import (
+from report_card.player_analysis_v7.descriptive import (
     DescriptiveFacts,
     HeroCast,
     ReportScope,
     TimeWindow,
 )
-from app.player_analysis_v7.display_semantics import build_display_semantics
-from app.player_analysis_v7.public_projection import (
+from report_card.player_analysis_v7.display_semantics import build_display_semantics
+from report_card.player_analysis_v7.public_projection import (
     PublicFinding,
     PublicProjection,
     PublicWindow,
     build_public_projection,
 )
-from app.player_analysis_v7.report_contract import Finding, PointEstimateWithInterval
+from report_card.player_analysis_v7.report_contract import Finding, PointEstimateWithInterval
 
 
 def _facts() -> DescriptiveFacts:

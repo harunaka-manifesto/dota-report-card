@@ -22,7 +22,7 @@ from app.ingestion.summary_history_contract import (  # noqa: E402
     SUMMARY_HISTORY_RETRY_LIMIT,
     SUMMARY_HISTORY_WINDOW_DAYS,
 )
-from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
+from report_card.player_analysis_v61.calibration_corpus import (  # noqa: E402
     MINIMUM_USABLE_MATCHES,
 )
 

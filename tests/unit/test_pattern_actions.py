@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from app.api.report_schemas import (
+from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.api.report_schemas import (
     BehaviorPatternSchema,
     BouncebackActionSchema,
     PartialTransferDiagnosticSchema,
@@ -10,7 +11,7 @@ from app.api.report_schemas import (
     ProvenFlexibilityActionSchema,
     VersatileCoreActionSchema,
 )
-from app.behavior.actions import (
+from report_card.behavior.actions import (
     _p03_claim,
     _p03_signal_coverage,
     attach_pattern_actions,
@@ -25,11 +26,15 @@ from app.behavior.actions import (
     build_session_curve_action,
     build_versatile_core_action,
 )
-from app.behavior.models import PatternResult
-from app.behavior.ranking import rank_pattern_highlights
-from app.heroes.knowledge import FullRosterHeroKnowledgeProvider
-from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry, load_default_taxonomy
-from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.behavior.models import PatternResult
+from report_card.behavior.ranking import rank_pattern_highlights
+from report_card.heroes.knowledge import FullRosterHeroKnowledgeProvider
+from report_card.heroes.taxonomy import (
+    TRAITS,
+    HeroTaxonomy,
+    HeroTaxonomyEntry,
+    load_default_taxonomy,
+)
 
 
 def _taxonomy() -> HeroTaxonomy:

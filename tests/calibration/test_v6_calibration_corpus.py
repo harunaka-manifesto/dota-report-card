@@ -5,7 +5,7 @@ import json
 import stat
 
 import pytest
-from app.player_analysis_v6.calibration_corpus import (
+from report_card.player_analysis_v6.calibration_corpus import (
     CalibrationCorpusError,
     load_calibration_corpus,
     migrate_calibration_corpus,

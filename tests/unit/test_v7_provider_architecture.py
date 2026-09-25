@@ -3,11 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from app.analysis.source import FixtureOpenDotaSource
 from app.core.config import Settings, validate_runtime_configuration
 from app.main import create_app
-from app.providers import build_v7_provider, provider_cache_key
-from app.stratz import (
+from report_card.analysis.source import FixtureOpenDotaSource
+from report_card.providers import build_v7_provider, provider_cache_key
+from report_card.stratz import (
     GET_PARSED_MATCH_CORE,
     GET_PARSED_MATCHES_BATCH,
     GET_PLAYER_HISTORY_PAGE,

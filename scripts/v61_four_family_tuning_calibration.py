@@ -17,11 +17,13 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-from app.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
-from app.player_analysis_v61.calibration_corpus import load_canonical_corpus  # noqa: E402
-from app.player_analysis_v61.corpus_reuse import profile_digest, sha256_file  # noqa: E402
-from app.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
-from app.player_analysis_v61.portfolio_shape import cross_fitted_distance_records  # noqa: E402
+from report_card.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
+from report_card.player_analysis_v61.calibration_corpus import load_canonical_corpus  # noqa: E402
+from report_card.player_analysis_v61.corpus_reuse import profile_digest, sha256_file  # noqa: E402
+from report_card.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
+from report_card.player_analysis_v61.portfolio_shape import (  # noqa: E402
+    cross_fitted_distance_records,
+)
 from v61_calibration_builder import _raw_components  # noqa: E402
 from v61_findings_statistical_hardening import (  # noqa: E402
     _offline_guard,

@@ -22,13 +22,16 @@ _API_ROOT = REPO_ROOT / "services" / "api"
 if str(_API_ROOT) not in sys.path:
     sys.path.insert(0, str(_API_ROOT))
 
-from app.player_analysis_v7.research.corpus import (  # noqa: E402
+from report_card.player_analysis_v7.research.corpus import (  # noqa: E402
     DISCOVERY,
     corpus_paths,
     manifest_digests,
 )
-from app.player_analysis_v7.research.features import FEATURE_VERSION, load_frames  # noqa: E402
-from app.player_analysis_v7.research.registry import (  # noqa: E402
+from report_card.player_analysis_v7.research.features import (  # noqa: E402
+    FEATURE_VERSION,
+    load_frames,
+)
+from report_card.player_analysis_v7.research.registry import (  # noqa: E402
     CANDIDATE_DEFINITION_VERSION,
     FAMILIES,
     FAMILY_BY_NAME,
@@ -36,7 +39,7 @@ from app.player_analysis_v7.research.registry import (  # noqa: E402
     digest,
     registry_payload,
 )
-from app.player_analysis_v7.research.screen import (  # noqa: E402
+from report_card.player_analysis_v7.research.screen import (  # noqa: E402
     DEFAULT_SEED,
     SCREEN_VERSION,
     effect_vectors,

@@ -5,21 +5,21 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from app.analysis import service as analysis_service_module
-from app.analysis.service import AnalysisService
-from app.analysis.source import MappingSource
 from app.core.config import Settings
-from app.player_analysis_v61 import artifacts as artifact_module
-from app.player_analysis_v61 import holdout_evaluation
-from app.player_analysis_v61.artifacts import (
+from report_card.analysis import service as analysis_service_module
+from report_card.analysis.service import AnalysisService
+from report_card.analysis.source import MappingSource
+from report_card.player_analysis_v61 import artifacts as artifact_module
+from report_card.player_analysis_v61 import holdout_evaluation
+from report_card.player_analysis_v61.artifacts import (
     FREEZE_RECORD_VERSION,
     V61_BUILD_MANIFEST_VERSION,
     V61_SUPPORT_ARTIFACTS,
     ArtifactValidationError,
     validate_v61_freeze_record,
 )
-from app.player_analysis_v61.calibration_corpus import CANONICAL_SCHEMA_VERSION
-from app.player_analysis_v61.calibration_evaluation import build_v61_calibration_evaluation
+from report_card.player_analysis_v61.calibration_corpus import CANONICAL_SCHEMA_VERSION
+from report_card.player_analysis_v61.calibration_evaluation import build_v61_calibration_evaluation
 
 from scripts import build_v61_calibration_artifacts as builder
 from scripts import package_v61_production_bundle as packager

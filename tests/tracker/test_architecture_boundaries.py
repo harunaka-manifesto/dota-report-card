@@ -15,7 +15,7 @@ from scripts.tracker_seed_demo import seed_demo
 TRACKER = Path(__file__).parents[2] / "services/api/app/tracker"
 LLM_SDKS = ("anthropic", "openai", "langchain", "google.generativeai", "google.genai", "cohere",
             "mistralai", "ollama", "transformers", "litellm")
-PROVIDER_PACKAGES = ("app.opendota", "app.stratz", "app.providers")
+PROVIDER_PACKAGES = ("app.opendota", "report_card.stratz", "report_card.providers")
 # The acquisition and derivation layers, which ADR 0004 places below entitlement.
 BELOW_ENTITLEMENT = ("acquisition.py", "replay_acquisition.py", "historical.py", "historical_summary.py",
                      "sync.py", "linking.py", "materialization.py", "normalization.py", "replay.py",
@@ -38,6 +38,70 @@ def _imports(path: Path) -> set[str]:
                 base = "app.tracker." + base
             names.add(base)
     return names
+
+
+def test_tracker_static_import_closure_never_reaches_report_card_or_app_main():
+    """The relocation goal's closure rule: report_card (the deprecated-but-live
+    Free DNA / legacy package) and app.main (the deploy composition root) must
+    never be pulled in by the tracker's own static import graph. If either
+    were reachable, app.tracker would no longer be safely deployable without
+    the legacy package.
+    """
+    repo_root = Path(__file__).parents[2]
+    app_dir = repo_root / "services/api/app"
+
+    def module_name_for(path: Path) -> str:
+        rel = path.relative_to(repo_root / "services/api")
+        parts = list(rel.parts)
+        parts[-1] = parts[-1][: -len(".py")] if parts[-1] != "__init__.py" else None
+        parts = [p for p in parts if p is not None and p != "__init__.py"]
+        return ".".join(parts) if parts else "app"
+
+    def module_imports(path: Path, mod: str) -> set[str]:
+        tree = ast.parse(path.read_text())
+        found: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                found.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom):
+                if node.level and node.level > 0:
+                    # All tracker modules are flat (app.tracker.<name>), so a
+                    # single-level relative import resolves within the package.
+                    base = "app.tracker"
+                    if node.module:
+                        base += "." + node.module
+                    found.add(base)
+                elif node.module:
+                    found.add(node.module)
+        return found
+
+    all_modules: dict[str, Path] = {}
+    for path in app_dir.rglob("*.py"):
+        if "__pycache__" in path.parts:
+            continue
+        all_modules[module_name_for(path)] = path
+
+    graph: dict[str, set[str]] = {
+        mod: module_imports(path, mod) for mod, path in all_modules.items()
+    }
+
+    visited: set[str] = set()
+    frontier = [mod for mod in all_modules if mod == "app.tracker" or mod.startswith("app.tracker.")]
+    visited.update(frontier)
+    while frontier:
+        current = frontier.pop()
+        for imported in graph.get(current, ()):  # noqa: B905
+            candidate = imported
+            while candidate and candidate not in all_modules and "." in candidate:
+                candidate = candidate.rsplit(".", 1)[0]
+            if candidate in all_modules and candidate not in visited:
+                visited.add(candidate)
+                frontier.append(candidate)
+
+    assert "app.main" not in visited
+    assert not any(m.startswith("report_card") for m in visited)
+    for mod in visited:
+        assert not mod.startswith("report_card"), mod
 
 
 def test_no_runtime_llm_sdk_is_imported_anywhere_in_the_tracker():

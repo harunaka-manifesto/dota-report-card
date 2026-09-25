@@ -12,12 +12,23 @@ API_ROOT = ROOT / "services" / "api"
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
-from app.behavior.elements.registry import ELEMENT_REGISTRY, ELEMENT_REGISTRY_VERSION  # noqa: E402
-from app.behavior.patterns.registry import PATTERN_REGISTRY, PATTERN_REGISTRY_VERSION  # noqa: E402
-from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS, PUBLIC_ELEMENT_KEYS  # noqa: E402
-from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG  # noqa: E402
-from app.player_analysis_v61.supporting_signals import SUPPORTING_SIGNAL_CATALOG  # noqa: E402
-from app.player_analysis_v61.versions import (  # noqa: E402
+from report_card.behavior.elements.registry import (  # noqa: E402
+    ELEMENT_REGISTRY,
+    ELEMENT_REGISTRY_VERSION,
+)
+from report_card.behavior.patterns.registry import (  # noqa: E402
+    PATTERN_REGISTRY,
+    PATTERN_REGISTRY_VERSION,
+)
+from report_card.player_analysis_v6.constants import (  # noqa: E402
+    FINDING_FAMILY_KEYS,
+    PUBLIC_ELEMENT_KEYS,
+)
+from report_card.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG  # noqa: E402
+from report_card.player_analysis_v61.supporting_signals import (  # noqa: E402
+    SUPPORTING_SIGNAL_CATALOG,
+)
+from report_card.player_analysis_v61.versions import (  # noqa: E402
     SEMANTIC_OUTCOMES_VERSION,
     VERSION_SURFACES,
 )

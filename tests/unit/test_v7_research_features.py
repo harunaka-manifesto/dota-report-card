@@ -4,8 +4,8 @@ import dataclasses
 from typing import Any
 
 import pytest
-from app.player_analysis_v7.research.corpus import ReservedSplitAccess
-from app.player_analysis_v7.research.features import (
+from report_card.player_analysis_v7.research.corpus import ReservedSplitAccess
+from report_card.player_analysis_v7.research.features import (
     COMFORT_POOL_SIZE,
     EXTRACTORS,
     LAYOFF_SECONDS,
@@ -28,7 +28,7 @@ from app.player_analysis_v7.research.features import (
     transfer_outcome,
     warmup_first_match,
 )
-from app.player_analysis_v7.research.registry import FAMILIES, FAMILY_BY_NAME
+from report_card.player_analysis_v7.research.registry import FAMILIES, FAMILY_BY_NAME
 
 HOUR = 3600
 
@@ -76,14 +76,14 @@ def frame(rows: list[dict[str, Any]], parsed: dict[int, dict[str, Any]] | None =
 
 @pytest.mark.parametrize("split", ["CALIBRATION_RESERVED", "SEALED_VALIDATION"])
 def test_discovery_loader_cannot_reach_a_reserved_split(tmp_path, split: str) -> None:
-    from app.player_analysis_v7.research.corpus import CorpusPaths
+    from report_card.player_analysis_v7.research.corpus import CorpusPaths
 
     with pytest.raises(ReservedSplitAccess):
         load_frames(CorpusPaths(tmp_path), frozenset({split}))
 
 
 def test_discovery_loader_rejects_a_reserved_split_even_when_mixed_with_discovery(tmp_path) -> None:
-    from app.player_analysis_v7.research.corpus import CorpusPaths
+    from report_card.player_analysis_v7.research.corpus import CorpusPaths
 
     with pytest.raises(ReservedSplitAccess):
         load_frames(CorpusPaths(tmp_path), frozenset({"DISCOVERY", "SEALED_VALIDATION"}))

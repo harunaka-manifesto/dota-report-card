@@ -29,7 +29,7 @@ from scripts.hero_knowledge.validate import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = ROOT / "services/api/app/heroes/data"
+DATA_ROOT = ROOT / "legacy/services/api/report_card/heroes/data"
 FACTUAL_PATH = DATA_ROOT / "factual/2026-08-16.json"
 EDITORIAL_PATH = DATA_ROOT / "editorial/2026-08-16.json"
 SEMANTICS_PATH = DATA_ROOT / "semantics/full-roster-v1.json"
@@ -446,7 +446,7 @@ def _derived_ref(hero_id: int, section: str, key: str) -> str:
 
 def _trait_ref(hero_id: int, trait: str) -> str:
     return _source_ref(
-        "services/api/app/heroes/data/editorial/2026-08-16.json",
+        "legacy/services/api/report_card/heroes/data/editorial/2026-08-16.json",
         f"hero:{hero_id}#trait:{trait}",
     )
 
@@ -649,10 +649,10 @@ def _build_full_semantics(factual: dict[str, Any], editorial: dict[str, Any]) ->
         _catalog_add(
             catalog,
             _source_ref(
-                "services/api/app/heroes/data/editorial/2026-08-16.json", f"hero:{hero_id}#traits"
+                "legacy/services/api/report_card/heroes/data/editorial/2026-08-16.json", f"hero:{hero_id}#traits"
             ),
             namespace="editorial",
-            source_file="services/api/app/heroes/data/editorial/2026-08-16.json",
+            source_file="legacy/services/api/report_card/heroes/data/editorial/2026-08-16.json",
         )
         hero_key = str(factual_row.get("key", ""))
         function_scores = _function_scores(hero_key, traits, text, strategy_text)
@@ -685,7 +685,7 @@ def _build_full_semantics(factual: dict[str, Any], editorial: dict[str, Any]) ->
                     catalog,
                     _trait_ref(hero_id, trait),
                     namespace="editorial",
-                    source_file="services/api/app/heroes/data/editorial/2026-08-16.json",
+                    source_file="legacy/services/api/report_card/heroes/data/editorial/2026-08-16.json",
                 )
             _catalog_add(catalog, derived_ref, namespace="derived", rule_version=SEMANTICS_VERSION)
             function_refs[function] = refs
@@ -706,7 +706,7 @@ def _build_full_semantics(factual: dict[str, Any], editorial: dict[str, Any]) ->
                     catalog,
                     _trait_ref(hero_id, trait),
                     namespace="editorial",
-                    source_file="services/api/app/heroes/data/editorial/2026-08-16.json",
+                    source_file="legacy/services/api/report_card/heroes/data/editorial/2026-08-16.json",
                 )
             _catalog_add(catalog, derived_ref, namespace="derived", rule_version=SEMANTICS_VERSION)
             demand_refs[demand] = refs
@@ -812,13 +812,13 @@ def _build_full_semantics(factual: dict[str, Any], editorial: dict[str, Any]) ->
         )
     # Add the two top-level review references to the same catalog used by all
     # field-level references, keeping resolution strict and deterministic.
-    top_editorial_ref = "editorial:services/api/app/heroes/data/editorial/2026-08-16.json#snapshot"
+    top_editorial_ref = "editorial:legacy/services/api/report_card/heroes/data/editorial/2026-08-16.json#snapshot"
     top_derived_ref = f"derived:{SEMANTICS_VERSION}#rule-set"
     _catalog_add(
         catalog,
         top_editorial_ref,
         namespace="editorial",
-        source_file="services/api/app/heroes/data/editorial/2026-08-16.json",
+        source_file="legacy/services/api/report_card/heroes/data/editorial/2026-08-16.json",
     )
     _catalog_add(catalog, top_derived_ref, namespace="derived", rule_version=SEMANTICS_VERSION)
     return {
@@ -851,7 +851,7 @@ def _build_full_semantics(factual: dict[str, Any], editorial: dict[str, Any]) ->
             "editorial": {
                 "namespace": "editorial",
                 "status": "available",
-                "source_file": "services/api/app/heroes/data/editorial/2026-08-16.json",
+                "source_file": "legacy/services/api/report_card/heroes/data/editorial/2026-08-16.json",
             },
             "derived": {
                 "namespace": "derived",

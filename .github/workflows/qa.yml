@@ -57,7 +57,7 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --extra dev
-      - run: uv run ruff check services/api tests
+      - run: uv run ruff check services/api legacy/services/api tests scripts
       - run: uv run mypy
       - run: make test
       - name: V7 STRATZ fixture and architecture tests

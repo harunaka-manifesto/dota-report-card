@@ -1,16 +1,19 @@
 from __future__ import annotations
 
-from app.player_analysis_v61.estimators import (
+from report_card.player_analysis_v61.estimators import (
     duration_context_involvement,
     information_weighted_consistency,
     overdispersed_death_exposure,
     stabilized_finishing,
 )
-from app.player_analysis_v61.portfolio_shape import (
+from report_card.player_analysis_v61.portfolio_shape import (
     build_portfolio_shape,
     cross_fitted_distance_records,
 )
-from app.player_analysis_v61.relationships import result_response_summary, session_position_curve
+from report_card.player_analysis_v61.relationships import (
+    result_response_summary,
+    session_position_curve,
+)
 
 
 def _match(

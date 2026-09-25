@@ -18,17 +18,19 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "services/api"))
 
-from app.player_analysis_v7.context_projection import (  # noqa: E402
+from report_card.player_analysis_v7.context_projection import (  # noqa: E402
     CONTEXT_PROJECTION_SCHEMA_VERSION,
     FINDING_FACTOR_ORDER,
     RECOMMENDATION_FACTOR_ORDER,
     SHIPPING_FINDING_IDS,
     artifact_digest,
 )
-from app.player_analysis_v7.research.archetype import ARCHETYPE_VERSION  # noqa: E402
-from app.player_analysis_v7.research.owner_decisions import DECISIONS_VERSION  # noqa: E402
-from app.player_analysis_v7.research.ranking import RANKING_MODEL_VERSION  # noqa: E402
-from app.player_analysis_v7.research.recommendation import RECOMMENDATION_VERSION  # noqa: E402
+from report_card.player_analysis_v7.research.archetype import ARCHETYPE_VERSION  # noqa: E402
+from report_card.player_analysis_v7.research.owner_decisions import DECISIONS_VERSION  # noqa: E402
+from report_card.player_analysis_v7.research.ranking import RANKING_MODEL_VERSION  # noqa: E402
+from report_card.player_analysis_v7.research.recommendation import (  # noqa: E402
+    RECOMMENDATION_VERSION,
+)
 
 LINEAGE_ID = "v7-new-lineage-2026-09-08"
 COMPATIBILITY_ID = "v7-new-lineage-2026-09-08-context-population-1"

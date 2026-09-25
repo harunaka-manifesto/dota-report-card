@@ -19,26 +19,26 @@ API_ROOT = ROOT / "services" / "api"
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
-from app.behavior.outcomes import (  # noqa: E402
+from report_card.behavior.outcomes import (  # noqa: E402
     SEMANTIC_OUTCOME_BRANCHES,
     SEMANTIC_OUTCOME_IDS,
     SEMANTIC_OUTCOME_VERSION,
     SEMANTIC_RECOMMENDATION_BRANCHES,
     SEMANTIC_RECOMMENDATION_IDS,
 )
-from app.behavior.patterns.registry import PATTERN_REGISTRY  # noqa: E402
-from app.behavior.presentation import PATTERN_PRESENTATION_CONTRACT  # noqa: E402
-from app.content.catalog import (  # noqa: E402
+from report_card.behavior.patterns.registry import PATTERN_REGISTRY  # noqa: E402
+from report_card.behavior.presentation import PATTERN_PRESENTATION_CONTRACT  # noqa: E402
+from report_card.content.catalog import (  # noqa: E402
     copy_version,
     load_free_dna_semantic_copy,
     semantic_copy_version,
 )
-from app.content.renderer import (  # noqa: E402
+from report_card.content.renderer import (  # noqa: E402
     resolve_pattern_presentation_copy,
     validate_copy_catalog,
 )
-from app.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION  # noqa: E402
-from app.player_analysis_v61.versions import SEMANTIC_COPY_VERSION  # noqa: E402
+from report_card.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION  # noqa: E402
+from report_card.player_analysis_v61.versions import SEMANTIC_COPY_VERSION  # noqa: E402
 
 OUTPUT_PATH = ROOT / "docs" / "generated" / "free-dna-v5.2-copy-review.md"
 V61_OUTPUT_PATH = ROOT / "docs" / "generated" / "free-dna-v6.1-copy-review.md"
@@ -262,8 +262,8 @@ def render_catalog() -> str:
 
 
 def render_v61_catalog() -> str:
-    from app.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
-    from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
+    from report_card.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
+    from report_card.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY
 
     lines = [
         "# Free DNA V6.1 copy review catalog",

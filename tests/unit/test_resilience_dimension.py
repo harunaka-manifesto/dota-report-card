@@ -1,6 +1,6 @@
-from app.dna.dimensions.resilience import score
-from app.dna.features.models import DnaFeatureSet
-from app.dna.sessions import Session
+from report_card.dna.dimensions.resilience import score
+from report_card.dna.features.models import DnaFeatureSet
+from report_card.dna.sessions import Session
 
 
 def _features(

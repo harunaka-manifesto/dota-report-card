@@ -2,12 +2,12 @@ import asyncio
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
-from app.analysis.service import AnalysisService
 from app.core.cache import MemoryCache
 from app.core.config import MATCH_HISTORY_LIMIT, Settings
-from app.features.calculators import calculate_match_feature
-from app.ingestion.normalize import normalize_match
-from app.storage.repository import InMemoryRepository
+from report_card.analysis.service import AnalysisService
+from report_card.features.calculators import calculate_match_feature
+from report_card.ingestion.normalize import normalize_match
+from report_card.storage.repository import InMemoryRepository
 
 
 class EmptySource:
@@ -46,23 +46,23 @@ def test_free_compatibility_fingerprint_includes_v4_versions(monkeypatch) -> Non
     service = AnalysisService(EmptySource(), settings=Settings())
     baseline = service._compatibility_model_version("free")
     version_targets = (
-        "app.dna.sessions.SESSION_VERSION",
-        "app.dna.features.models.FEATURE_VERSION",
-        "app.dna.pipeline.DNA_SCORING_VERSION",
-        "app.heroes.taxonomy.TAXONOMY_VERSION",
-        "app.reports.dna_assembly.REPORT_SCHEMA_VERSION",
-        "app.reports.dna_assembly.REPORT_STORY_VERSION",
-        "app.hero_portfolio.version.HERO_PORTFOLIO_VERSION",
-        "app.hero_portfolio.version.HERO_MIRROR_VERSION",
-        "app.hero_portfolio.version.HERO_RELATIONSHIPS_VERSION",
-        "app.hero_portfolio.version.HERO_EXPRESSIONS_VERSION",
-        "app.hero_portfolio.version.HERO_RELIABILITY_VERSION",
-        "app.hero_portfolio.version.HERO_MATCHUPS_VERSION",
-        "app.hero_portfolio.version.HERO_SYNERGIES_VERSION",
-        "app.hero_portfolio.version.HERO_SITUATIONS_VERSION",
-        "app.hero_portfolio.version.PATTERN_ACTIONS_VERSION",
-        "app.hero_portfolio.config.PORTFOLIO_CONFIG_VERSION",
-        "app.share.service.RENDERER_VERSION",
+        "report_card.dna.sessions.SESSION_VERSION",
+        "report_card.dna.features.models.FEATURE_VERSION",
+        "report_card.dna.pipeline.DNA_SCORING_VERSION",
+        "report_card.heroes.taxonomy.TAXONOMY_VERSION",
+        "report_card.reports.dna_assembly.REPORT_SCHEMA_VERSION",
+        "report_card.reports.dna_assembly.REPORT_STORY_VERSION",
+        "report_card.hero_portfolio.version.HERO_PORTFOLIO_VERSION",
+        "report_card.hero_portfolio.version.HERO_MIRROR_VERSION",
+        "report_card.hero_portfolio.version.HERO_RELATIONSHIPS_VERSION",
+        "report_card.hero_portfolio.version.HERO_EXPRESSIONS_VERSION",
+        "report_card.hero_portfolio.version.HERO_RELIABILITY_VERSION",
+        "report_card.hero_portfolio.version.HERO_MATCHUPS_VERSION",
+        "report_card.hero_portfolio.version.HERO_SYNERGIES_VERSION",
+        "report_card.hero_portfolio.version.HERO_SITUATIONS_VERSION",
+        "report_card.hero_portfolio.version.PATTERN_ACTIONS_VERSION",
+        "report_card.hero_portfolio.config.PORTFOLIO_CONFIG_VERSION",
+        "report_card.share.service.RENDERER_VERSION",
     )
     for target in version_targets:
         with monkeypatch.context() as context:
@@ -74,7 +74,7 @@ def test_free_compatibility_fingerprint_includes_v4_versions(monkeypatch) -> Non
 def test_v61_story_versions_invalidate_compatibility_fingerprint(monkeypatch) -> None:
     """Every story extension surface participates in cache compatibility."""
 
-    from app.player_analysis_v61 import versions as versions_module
+    from report_card.player_analysis_v61 import versions as versions_module
 
     # V6.1 construction requires release artifacts, but the compatibility
     # calculation itself only needs the settings and artifact checksum map.
@@ -117,8 +117,8 @@ def test_cache_ttl_expires_even_when_marked_immutable() -> None:
 
 
 def test_legacy_analysis_names_remain_compatible() -> None:
-    from app.analysis.source import AnalysisSource, OpenDotaAnalysisSource
-    from app.reports.dna_assembly import (
+    from report_card.analysis.source import AnalysisSource, OpenDotaAnalysisSource
+    from report_card.reports.dna_assembly import (
         assemble_free_dna_report_v4,
         assemble_free_dna_report_v5,
         assemble_legacy_free_dna_report,

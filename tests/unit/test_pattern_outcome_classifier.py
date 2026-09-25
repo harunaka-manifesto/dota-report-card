@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from app.behavior.outcomes import (
+from report_card.behavior.outcomes import (
     SEMANTIC_OUTCOME_IDS,
     SEMANTIC_RECOMMENDATION_IDS,
     classify_pattern_outcome,
     classify_recommendation_state,
 )
-from app.behavior.presentation import _safe_semantic_presentation_state
+from report_card.behavior.presentation import _safe_semantic_presentation_state
 
 CASES_PATH = Path(__file__).parents[1] / "fixtures/semantic_freeze/pattern-outcome-cases.json"
 

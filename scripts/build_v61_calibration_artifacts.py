@@ -20,21 +20,21 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from app.core.release import current_source_binding  # noqa: E402
-from app.player_analysis_v61.artifacts import (  # noqa: E402
+from report_card.player_analysis_v61.artifacts import (  # noqa: E402
     V61_SUPPORT_ARTIFACTS,
     load_v61_artifact_bundle,
 )
-from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
+from report_card.player_analysis_v61.calibration_corpus import (  # noqa: E402
     load_canonical_corpus,
 )
-from app.player_analysis_v61.corpus_reuse import (  # noqa: E402
+from report_card.player_analysis_v61.corpus_reuse import (  # noqa: E402
     CompatibilityAuditError,
     audit_reuse,
     require_compatible_audit,
     sha256_file,
 )
-from app.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
-from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG  # noqa: E402
+from report_card.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
+from report_card.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG  # noqa: E402
 from v61_calibration_builder import (  # noqa: E402
     FREEZE_RECORD_NAME,
     FREEZE_RECORD_VERSION,
@@ -184,7 +184,7 @@ def _baseline(args: argparse.Namespace) -> int:
 
 def _support(args: argparse.Namespace) -> int:
     rows, _split, train, _holdout, audit = _load_training_inputs(args)
-    from app.player_analysis_v61.artifacts import load_context_baseline_artifact_v61
+    from report_card.player_analysis_v61.artifacts import load_context_baseline_artifact_v61
 
     taxonomy = current_taxonomy_mapping()
     resolver = load_context_baseline_artifact_v61(args.baseline_input).resolver()
@@ -251,7 +251,7 @@ def _freeze(args: argparse.Namespace) -> int:
     missing = [name for name in V61_SUPPORT_ARTIFACTS[:-1] if not (artifact_dir / name).is_file()]
     if missing:
         raise ValueError(f"freeze is missing staged artifacts: {missing}")
-    from app.player_analysis_v61.artifacts import (
+    from report_card.player_analysis_v61.artifacts import (
         load_context_baseline_artifact_v61,
         load_threshold_artifact_v61,
     )

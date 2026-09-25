@@ -5,19 +5,22 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from app.player_analysis_v6.artifacts import (
+from report_card.player_analysis_v6.artifacts import (
     ArtifactValidationError,
     load_context_baseline_artifact,
     validate_context_baseline_artifact,
 )
-from app.player_analysis_v6.calibration import (
+from report_card.player_analysis_v6.calibration import (
     REQUIRED_THRESHOLD_KEYS,
     load_threshold_artifact,
     validate_threshold_artifact,
 )
-from app.player_analysis_v6.context_adjustment import adjusted_value_for_match
-from app.player_analysis_v6.family_statistics import benjamini_hochberg_five, family_statistics
-from app.player_analysis_v6.statistics import clustered_bootstrap
+from report_card.player_analysis_v6.context_adjustment import adjusted_value_for_match
+from report_card.player_analysis_v6.family_statistics import (
+    benjamini_hochberg_five,
+    family_statistics,
+)
+from report_card.player_analysis_v6.statistics import clustered_bootstrap
 
 from scripts.build_v6_calibration_artifacts import (
     build_baseline,

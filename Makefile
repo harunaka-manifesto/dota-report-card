@@ -22,10 +22,10 @@ db-migrate:
 	uv run alembic upgrade head
 
 dev:
-	uv run uvicorn app.main:app --app-dir services/api --reload --port 8000
+	PYTHONPATH=legacy/services/api:$$PYTHONPATH uv run uvicorn app.main:app --app-dir services/api --reload --port 8000
 
 lint:
-	$(RUFF) check services/api tests
+	$(RUFF) check services/api legacy/services/api tests scripts
 	cd apps/web && ./node_modules/.bin/next lint
 
 typecheck:

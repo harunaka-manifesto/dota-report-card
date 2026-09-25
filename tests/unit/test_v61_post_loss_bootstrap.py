@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from app.player_analysis_v61.family_statistics import (
+from report_card.player_analysis_v61.family_statistics import (
     _ordered_post_loss_statistic,
     _post_loss_branch_bootstrap_p_values,
     _post_loss_family_bootstrap_p,

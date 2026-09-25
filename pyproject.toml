@@ -34,18 +34,19 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["services/api"]
+where = ["services/api", "legacy/services/api"]
 
 [tool.setuptools.package-dir]
 "" = "services/api"
+"report_card" = "legacy/services/api/report_card"
 
 # The frozen population parameters are data the runtime cannot start without,
 # so they must ship inside the installed package. Without this, packages.find
 # collects the modules and silently drops the .json beside them.
 [tool.setuptools.package-data]
-"app.player_analysis_v7" = ["data/*.json"]
-"app.stratz" = ["*.json"]
-"app.heroes" = ["data/*.json", "data/*/*.json"]
+"report_card.player_analysis_v7" = ["data/*.json"]
+"report_card.stratz" = ["*.json"]
+"report_card.heroes" = ["data/*.json", "data/*/*.json"]
 
 [tool.ruff]
 line-length = 100
@@ -58,7 +59,7 @@ ignore = ["B008", "E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["services/api", "."]
+pythonpath = ["services/api", "legacy/services/api", "."]
 asyncio_mode = "auto"
 markers = [
   "live: opt-in network smoke test",
@@ -67,6 +68,7 @@ markers = [
 
 [tool.mypy]
 python_version = "3.11"
-files = ["services/api/app"]
+files = ["services/api/app", "legacy/services/api/report_card"]
+mypy_path = ["services/api", "legacy/services/api"]
 ignore_missing_imports = true
 warn_unused_ignores = true

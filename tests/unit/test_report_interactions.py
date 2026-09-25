@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from app.storage.repository import (
+from report_card.storage.repository import (
     InMemoryRepository,
     InteractionRevisionConflict,
 )

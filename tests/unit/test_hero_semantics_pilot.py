@@ -6,7 +6,7 @@ from pathlib import Path
 from scripts.hero_knowledge.validate import validate_semantic_layer
 
 ROOT = Path(__file__).parents[2]
-SEMANTICS_PATH = ROOT / "services/api/app/heroes/data/semantics/pilot-v1.json"
+SEMANTICS_PATH = ROOT / "legacy/services/api/report_card/heroes/data/semantics/pilot-v1.json"
 
 
 def test_ten_hero_semantic_pilot_is_approved_and_vocab_bounded() -> None:

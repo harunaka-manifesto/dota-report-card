@@ -6,15 +6,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Final
 
-from app.heroes.knowledge import SnapshotHeroKnowledgeProvider
-from app.heroes.recommendations import RecommendationIntent, recommend_semantic_heroes
 from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.heroes.knowledge import SnapshotHeroKnowledgeProvider
+from report_card.heroes.recommendations import RecommendationIntent, recommend_semantic_heroes
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/generated/hero-knowledge-pilot-review.md"
 PILOT_SNAPSHOT = (
     ROOT
-    / "services/api/app/heroes/data/knowledge/hero-knowledge-semantic-freeze-pilot-v1.json"
+    / "legacy/services/api/report_card/heroes/data/knowledge/hero-knowledge-semantic-freeze-pilot-v1.json"
 )
 
 

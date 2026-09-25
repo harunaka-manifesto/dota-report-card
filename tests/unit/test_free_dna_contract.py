@@ -6,16 +6,16 @@ from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
-from app.analysis.service import AnalysisService
-from app.analysis.source import MappingSource
-from app.api.report_schemas import validate_free_dna_report
 from app.core.config import Settings
 from app.core.security import parse_player_identifier
 from app.identity.steam import SteamWebResolver
 from app.main import create_app
-from app.share.service import build_share_svg
-from app.storage.repository import InMemoryRepository
 from fastapi.testclient import TestClient
+from report_card.analysis.service import AnalysisService
+from report_card.analysis.source import MappingSource
+from report_card.api.report_schemas import validate_free_dna_report
+from report_card.share.service import build_share_svg
+from report_card.storage.repository import InMemoryRepository
 
 _TEST_WINDOW_END = int(datetime.now(UTC).timestamp())
 

@@ -4,11 +4,11 @@ import json
 from pathlib import Path
 
 import pytest
-from app.player_analysis_v61.artifacts import (
+from report_card.player_analysis_v61.artifacts import (
     ArtifactValidationError,
     load_v61_production_beta_authorization,
 )
-from app.player_analysis_v61.calibration_evaluation import (
+from report_card.player_analysis_v61.calibration_evaluation import (
     build_v61_production_beta_authorization,
 )
 

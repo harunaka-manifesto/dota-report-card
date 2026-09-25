@@ -23,19 +23,22 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services" / "api"))
 
-from app.player_analysis_v7.research.corpus import (  # noqa: E402
+from report_card.player_analysis_v7.research.corpus import (  # noqa: E402
     DISCOVERY,
     corpus_paths,
     manifest_digests,
 )
-from app.player_analysis_v7.research.features import FEATURE_VERSION, load_frames  # noqa: E402
-from app.player_analysis_v7.research.inference import INFERENCE_VERSION  # noqa: E402
-from app.player_analysis_v7.research.registry import (  # noqa: E402
+from report_card.player_analysis_v7.research.features import (  # noqa: E402
+    FEATURE_VERSION,
+    load_frames,
+)
+from report_card.player_analysis_v7.research.inference import INFERENCE_VERSION  # noqa: E402
+from report_card.player_analysis_v7.research.registry import (  # noqa: E402
     CANDIDATE_DEFINITION_VERSION,
     FAMILY_BY_NAME,
 )
-from app.player_analysis_v7.research.screen import spearman  # noqa: E402
-from app.player_analysis_v7.research.tournament import Denominators, evaluate  # noqa: E402
+from report_card.player_analysis_v7.research.screen import spearman  # noqa: E402
+from report_card.player_analysis_v7.research.tournament import Denominators, evaluate  # noqa: E402
 
 PORTFOLIO_VERSION = "v7-portfolio-analysis-1.0.0"
 

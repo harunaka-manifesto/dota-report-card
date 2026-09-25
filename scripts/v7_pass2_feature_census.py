@@ -2,7 +2,7 @@
 """Aggregate-only measurement run over ``pass2_features``' eight dimensions.
 
 For every Pass-2 DISCOVERY account, computes all eight Finding dimensions
-from ``app.player_analysis_v7.research.pass2_features`` and writes an **aggregate-only**
+from ``report_card.player_analysis_v7.research.pass2_features`` and writes an **aggregate-only**
 summary: per dimension, how many players got a value, the median
 observation count behind those values, and the p5/p25/p50/p75/p95 of the
 value itself (of ``primary`` for a plain dimension; of both ``primary`` and
@@ -27,13 +27,13 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-from app.player_analysis_v7.research.pass2_features import (  # noqa: E402
+from report_card.player_analysis_v7.research.pass2_features import (  # noqa: E402
     FEATURE_REGISTRY,
     FEATURE_VERSION,
     FeatureResult,
     group_rows_by_account,
 )
-from app.player_analysis_v7.research.pass2_tables import (  # noqa: E402
+from report_card.player_analysis_v7.research.pass2_tables import (  # noqa: E402
     is_pass2_product_context,
     iter_pass2_players,
 )

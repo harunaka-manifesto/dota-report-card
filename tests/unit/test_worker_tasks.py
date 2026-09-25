@@ -1,6 +1,6 @@
 import asyncio
 
-from app.workers import tasks
+from report_card.workers import tasks
 
 
 class _LoopBoundAsyncClient:

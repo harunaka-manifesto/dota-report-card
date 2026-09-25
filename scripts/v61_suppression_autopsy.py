@@ -20,18 +20,20 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-import app.reports.dna_assembly_v61 as assembly  # noqa: E402
-from app.analysis.budget import DataCostLedger  # noqa: E402
-from app.api.report_schemas_v61 import validate_free_dna_report_v61  # noqa: E402
-from app.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
-from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
+import report_card.reports.dna_assembly_v61 as assembly  # noqa: E402
+from report_card.analysis.budget import DataCostLedger  # noqa: E402
+from report_card.api.report_schemas_v61 import validate_free_dna_report_v61  # noqa: E402
+from report_card.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
+from report_card.player_analysis_v61.calibration_corpus import (  # noqa: E402
     canonical_history,
     load_canonical_corpus,
 )
-from app.player_analysis_v61.corpus_reuse import profile_digest, sha256_file  # noqa: E402
-from app.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
-from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY  # noqa: E402
-from app.player_analysis_v61.versions import MODEL_VERSION  # noqa: E402
+from report_card.player_analysis_v61.corpus_reuse import profile_digest, sha256_file  # noqa: E402
+from report_card.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
+from report_card.player_analysis_v61.semantic_outcomes import (  # noqa: E402
+    SEMANTIC_OUTCOME_REGISTRY,
+)
+from report_card.player_analysis_v61.versions import MODEL_VERSION  # noqa: E402
 
 FAMILIES = ("pool_shape", "transfer", "post_loss_response", "combat_expression", "session_drift")
 Q_GRID = (0.01, 0.025, 0.05, 0.075, 0.10)

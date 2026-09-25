@@ -1,6 +1,6 @@
-from app.analysis.service import AnalysisService
-from app.analysis.source import FixtureOpenDotaSource
 from app.core.config import Settings
+from report_card.analysis.service import AnalysisService
+from report_card.analysis.source import FixtureOpenDotaSource
 
 
 async def test_free_report_fails_closed_without_thirty_eligible_matches() -> None:

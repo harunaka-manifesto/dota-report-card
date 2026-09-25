@@ -49,32 +49,34 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
-from app.player_analysis_v7.research import inference  # noqa: E402
-from app.player_analysis_v7.research.corpus import (  # noqa: E402
+from report_card.player_analysis_v7.research import inference  # noqa: E402
+from report_card.player_analysis_v7.research.corpus import (  # noqa: E402
     CANDIDATE_TEST_LEDGER,
     DISCOVERY,
     corpus_paths,
     manifest_digests,
 )
-from app.player_analysis_v7.research.features import (  # noqa: E402
+from report_card.player_analysis_v7.research.features import (  # noqa: E402
     FEATURE_VERSION,
     Opportunity,
     load_frames,
 )
-from app.player_analysis_v7.research.pass2_features import (  # noqa: E402
+from report_card.player_analysis_v7.research.pass2_features import (  # noqa: E402
     FEATURE_VERSION as PASS2_FEATURE_VERSION,
 )
-from app.player_analysis_v7.research.pass2_features import group_rows_by_account  # noqa: E402
-from app.player_analysis_v7.research.pass2_observations import (  # noqa: E402
+from report_card.player_analysis_v7.research.pass2_features import (  # noqa: E402
+    group_rows_by_account,
+)
+from report_card.player_analysis_v7.research.pass2_observations import (  # noqa: E402
     OBSERVATION_REGISTRY,
     OBSERVATION_VERSION,
     chronological,
 )
-from app.player_analysis_v7.research.pass2_tables import (  # noqa: E402
+from report_card.player_analysis_v7.research.pass2_tables import (  # noqa: E402
     is_pass2_product_context,
     iter_pass2_players,
 )
-from app.player_analysis_v7.research.ranking import (  # noqa: E402
+from report_card.player_analysis_v7.research.ranking import (  # noqa: E402
     FINDING_FLOOR,
     FINDING_SECTIONS,
     RANKING_MODEL_VERSION,
@@ -87,11 +89,11 @@ from app.player_analysis_v7.research.ranking import (  # noqa: E402
     rank_player,
     select_stratified,
 )
-from app.player_analysis_v7.research.registry import (  # noqa: E402
+from report_card.player_analysis_v7.research.registry import (  # noqa: E402
     CANDIDATE_DEFINITION_VERSION,
     FAMILY_BY_NAME,
 )
-from app.player_analysis_v7.research.tournament import collect  # noqa: E402
+from report_card.player_analysis_v7.research.tournament import collect  # noqa: E402
 
 from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
 

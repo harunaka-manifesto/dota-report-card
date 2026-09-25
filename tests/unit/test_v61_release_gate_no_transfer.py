@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from app.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
-from app.player_analysis_v61.family_statistics import (
+from report_card.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY
+from report_card.player_analysis_v61.family_statistics import (
     _transfer_branch_bootstrap_p_values,
     _transfer_family_bootstrap_p,
 )
-from app.player_analysis_v61.hierarchical import hierarchical_qualification
-from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
+from report_card.player_analysis_v61.hierarchical import hierarchical_qualification
+from report_card.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_CATALOG
 
 
 def test_reference_no_transfer_reaches_public_hierarchy_with_tight_bootstrap() -> None:

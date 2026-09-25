@@ -29,9 +29,9 @@ def main() -> None:
             dist / "dota_report_card-0.1.0.tar.gz",
         )
         smoke = """
-from app.heroes.taxonomy import load_default_taxonomy
-from app.player_analysis_v7.service import V7RuntimeService
-from app.stratz.item_vocabulary import load_item_vocabulary
+from report_card.heroes.taxonomy import load_default_taxonomy
+from report_card.player_analysis_v7.service import V7RuntimeService
+from report_card.stratz.item_vocabulary import load_item_vocabulary
 
 items = load_item_vocabulary()
 taxonomy = load_default_taxonomy()

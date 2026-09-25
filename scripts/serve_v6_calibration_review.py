@@ -19,7 +19,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-from app.player_analysis_v6.calibration_evaluation import (  # noqa: E402
+from report_card.player_analysis_v6.calibration_evaluation import (  # noqa: E402
     REVIEW_PACKET_VERSION,
     atomic_json,
 )

@@ -5,13 +5,13 @@ from datetime import UTC, datetime
 from typing import Any
 
 import pytest
-from app.api.story_payload_schemas_v61 import StoryPayloadV61Schema
 from app.ingestion.summary_normalize import normalize_summary_rows
-from app.player_analysis_v61.story_projection import (
+from report_card.api.story_payload_schemas_v61 import StoryPayloadV61Schema
+from report_card.player_analysis_v61.story_projection import (
     build_story_payload,
     story_input_sha256,
 )
-from app.player_analysis_v61.story_selector import select_story_matches
+from report_card.player_analysis_v61.story_selector import select_story_matches
 
 TAXONOMY_CHECKSUMS = {
     "factual_checksum": "56b0c0fb2f9f1e75d3649b655780197d12a845edb26ccb0d2645370b42e2cb89",

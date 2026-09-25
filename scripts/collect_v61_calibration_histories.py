@@ -19,7 +19,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
 from app.core.config import Settings  # noqa: E402
-from app.dna.sessions import infer_sessions  # noqa: E402
 from app.ingestion.summary_history_contract import (  # noqa: E402
     IGNORED_FIELDS,
     SUMMARY_HISTORY_NORMALIZATION_VERSION,
@@ -40,7 +39,8 @@ from app.ingestion.summary_normalize import (  # noqa: E402
     previous_year_window,
 )
 from app.opendota.client import OpenDotaClient  # noqa: E402
-from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
+from report_card.dna.sessions import infer_sessions  # noqa: E402
+from report_card.player_analysis_v61.calibration_corpus import (  # noqa: E402
     CANONICAL_SESSION_POLICY,
     LEGACY_CANONICAL_SCHEMA_VERSION,
     MINIMUM_USABLE_MATCHES,

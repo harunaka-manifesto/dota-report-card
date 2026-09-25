@@ -4,7 +4,9 @@ from copy import deepcopy
 from typing import Any
 
 import pytest
-from app.progression.role_metrics import (
+from app.stratz.deep import normalize_deep_matches
+from app.stratz.queries import GET_ROLE_METRIC_MATCH_BATCH
+from report_card.progression.role_metrics import (
     EARLY_FIGHT_CUTOFF_SECONDS,
     OBJECTIVE_PROXIMITY_WINDOW_SECONDS,
     ROLE_METRIC_SPECS,
@@ -20,8 +22,6 @@ from app.progression.role_metrics import (
     support_fight_presence,
     support_healing,
 )
-from app.stratz.deep import normalize_deep_matches
-from app.stratz.queries import GET_ROLE_METRIC_MATCH_BATCH
 
 
 def _row(

@@ -14,32 +14,32 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
-from app.player_analysis_v7.context_projection import load_context_projection  # noqa: E402
-from app.player_analysis_v7.population import load_population_parameters  # noqa: E402
-from app.player_analysis_v7.research import inference  # noqa: E402
-from app.player_analysis_v7.research.features import PlayerFrame, extract  # noqa: E402
-from app.player_analysis_v7.research.pass2_observations import (  # noqa: E402
-    OBSERVATION_REGISTRY,
-    chronological,
-)
-from app.player_analysis_v7.research.pass2_tables import (  # noqa: E402
-    is_pass2_product_context,
-)
-from app.player_analysis_v7.research.registry import FAMILY_BY_NAME  # noqa: E402
-from app.player_analysis_v7.runtime import (  # noqa: E402
-    _archetype,
-    _estimate,
-    _finding_rows,
-    _recommendation,
-    analyze_v7,
-    parsed_rows,
-)
 from app.providers.base import (  # noqa: E402
     CanonicalProfile,
     HistoryWindow,
     ProviderProvenance,
     V7CanonicalHistory,
     V7CanonicalMatch,
+)
+from report_card.player_analysis_v7.context_projection import load_context_projection  # noqa: E402
+from report_card.player_analysis_v7.population import load_population_parameters  # noqa: E402
+from report_card.player_analysis_v7.research import inference  # noqa: E402
+from report_card.player_analysis_v7.research.features import PlayerFrame, extract  # noqa: E402
+from report_card.player_analysis_v7.research.pass2_observations import (  # noqa: E402
+    OBSERVATION_REGISTRY,
+    chronological,
+)
+from report_card.player_analysis_v7.research.pass2_tables import (  # noqa: E402
+    is_pass2_product_context,
+)
+from report_card.player_analysis_v7.research.registry import FAMILY_BY_NAME  # noqa: E402
+from report_card.player_analysis_v7.runtime import (  # noqa: E402
+    _archetype,
+    _estimate,
+    _finding_rows,
+    _recommendation,
+    analyze_v7,
+    parsed_rows,
 )
 
 

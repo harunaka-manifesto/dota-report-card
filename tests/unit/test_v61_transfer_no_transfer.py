@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from app.player_analysis_v61.estimators import continuous_transfer
-from app.player_analysis_v61.family_statistics import _transfer_component_bootstrap_p
-from app.player_analysis_v61.portfolio_shape import DistanceRecord
+from report_card.player_analysis_v61.estimators import continuous_transfer
+from report_card.player_analysis_v61.family_statistics import _transfer_component_bootstrap_p
+from report_card.player_analysis_v61.portfolio_shape import DistanceRecord
 
 
 def _reference_records() -> tuple[DistanceRecord, ...]:

@@ -11,21 +11,26 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 
-from app.behavior.elements.registry import ELEMENT_REGISTRY  # noqa: E402
-from app.behavior.patterns.registry import PATTERN_REGISTRY  # noqa: E402
 from app.ingestion.summary_history_contract import (  # noqa: E402
     SUMMARY_HISTORY_PROJECTION,
     request_manifest,
 )
-from app.player_analysis_v6.constants import (  # noqa: E402
+from report_card.behavior.elements.registry import ELEMENT_REGISTRY  # noqa: E402
+from report_card.behavior.patterns.registry import PATTERN_REGISTRY  # noqa: E402
+from report_card.player_analysis_v6.constants import (  # noqa: E402
     FINDING_FAMILY_KEYS,
     PUBLIC_ELEMENT_KEYS,
 )
-from app.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY  # noqa: E402
-from app.player_analysis_v61.semantic_outcomes import SEMANTIC_OUTCOME_REGISTRY  # noqa: E402
-from app.player_analysis_v61.supporting_signals import SUPPORTING_SIGNAL_REGISTRY  # noqa: E402
-from app.player_analysis_v61.versions import VERSION_SURFACES  # noqa: E402
+from report_card.player_analysis_v61.copy import SEMANTIC_COPY_REGISTRY  # noqa: E402
+from report_card.player_analysis_v61.semantic_outcomes import (  # noqa: E402
+    SEMANTIC_OUTCOME_REGISTRY,
+)
+from report_card.player_analysis_v61.supporting_signals import (  # noqa: E402
+    SUPPORTING_SIGNAL_REGISTRY,
+)
+from report_card.player_analysis_v61.versions import VERSION_SURFACES  # noqa: E402
 
 ACTIVE_DOCS = (
     ROOT / "README.md",
@@ -63,6 +68,7 @@ TRACKER_DOCS = ROOT / "docs" / "tracker"
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 ACTIVE_SOURCE_ROOTS = (
     ROOT / "services",
+    ROOT / "legacy",
     ROOT / "apps",
     ROOT / "packages",
     ROOT / "tests",

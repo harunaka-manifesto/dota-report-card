@@ -13,23 +13,23 @@ import statistics
 from typing import Any
 
 import pytest
-from app.player_analysis_v7.research.pass2_features import (
+from report_card.player_analysis_v7.research.pass2_features import (
     FEATURE_REGISTRY,
     MIN_OBSERVATIONS,
 )
-from app.player_analysis_v7.research.pass2_features import (
+from report_card.player_analysis_v7.research.pass2_features import (
     closer_vs_comeback as census_closer_vs_comeback,
 )
-from app.player_analysis_v7.research.pass2_features import (
+from report_card.player_analysis_v7.research.pass2_features import (
     deaths_alone_share as census_deaths_alone_share,
 )
-from app.player_analysis_v7.research.pass2_features import (
+from report_card.player_analysis_v7.research.pass2_features import (
     lane_to_map as census_lane_to_map,
 )
-from app.player_analysis_v7.research.pass2_features import (
+from report_card.player_analysis_v7.research.pass2_features import (
     spike_usage as census_spike_usage,
 )
-from app.player_analysis_v7.research.pass2_observations import (
+from report_card.player_analysis_v7.research.pass2_observations import (
     ARM_AHEAD,
     ARM_BEHIND,
     ARM_LOST_LANE,

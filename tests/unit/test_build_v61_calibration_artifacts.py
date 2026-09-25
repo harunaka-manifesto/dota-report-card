@@ -7,12 +7,12 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from app.player_analysis_v6.calibration import REQUIRED_THRESHOLD_KEYS
-from app.player_analysis_v61.artifacts import (
+from report_card.player_analysis_v6.calibration import REQUIRED_THRESHOLD_KEYS
+from report_card.player_analysis_v61.artifacts import (
     load_context_baseline_artifact_v61,
     load_threshold_artifact_v61,
 )
-from app.player_analysis_v61.calibration_corpus import (
+from report_card.player_analysis_v61.calibration_corpus import (
     CANONICAL_SCHEMA_VERSION,
     LEGACY_CANONICAL_SCHEMA_VERSION,
 )

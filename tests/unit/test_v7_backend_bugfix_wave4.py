@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 
 import pytest
-from app.player_analysis_v7.capability_payload import V7CapabilityPayload
-from app.player_analysis_v7.runtime import analyze_v7
 from pydantic import ValidationError
+from report_card.player_analysis_v7.capability_payload import V7CapabilityPayload
+from report_card.player_analysis_v7.runtime import analyze_v7
 
 from tests.unit.test_v7_capability_payload import payload
 from tests.unit.test_v7_runtime_service import _deep_row, _history

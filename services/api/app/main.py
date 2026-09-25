@@ -9,10 +9,14 @@ from typing import Any, cast
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from report_card.analysis.service import AnalysisService
+from report_card.analysis.source import FixtureOpenDotaSource, OpenDotaAnalysisSource
+from report_card.api.routes import router
+from report_card.features.models import MatchFeature
+from report_card.player_analysis_v7.service import V7RuntimeService
+from report_card.providers import build_v7_provider
+from report_card.storage.repository import InMemoryRepository, SqlAlchemyRepository
 
-from app.analysis.service import AnalysisService
-from app.analysis.source import FixtureOpenDotaSource, OpenDotaAnalysisSource
-from app.api.routes import router
 from app.core.cache import RedisCache
 from app.core.config import Settings, get_settings, validate_runtime_configuration
 from app.core.errors import AppError
@@ -20,13 +24,9 @@ from app.core.logging import configure_logging
 from app.core.metrics import record_metric
 from app.core.release import build_release_identity
 from app.core.security import RateLimiter
-from app.features.models import MatchFeature
 from app.identity.steam import SteamWebResolver
 from app.opendota.client import OpenDotaClient
 from app.opendota.parse_client import OpenDotaParseClient
-from app.player_analysis_v7.service import V7RuntimeService
-from app.providers import build_v7_provider
-from app.storage.repository import InMemoryRepository, SqlAlchemyRepository
 
 
 def create_app(

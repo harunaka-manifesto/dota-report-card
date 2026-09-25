@@ -4,7 +4,7 @@ import copy
 from types import SimpleNamespace
 
 import pytest
-from app.player_analysis_v6.calibration_evaluation import (
+from report_card.player_analysis_v6.calibration_evaluation import (
     CalibrationEvaluationError,
     atomic_json,
     build_evaluation_artifact,

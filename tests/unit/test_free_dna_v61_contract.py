@@ -8,27 +8,27 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from app.analysis.service import AnalysisService
-from app.analysis.source import MappingSource
-from app.api.report_schemas import validate_free_dna_report
 from app.core.config import Settings
 from app.ingestion.summary_history_contract import (
     SUMMARY_HISTORY_PROJECTION,
     history_completeness,
     normalize_canonical_summary_history,
 )
-from app.player_analysis_v6.artifacts import ArtifactValidationError
-from app.player_analysis_v6.constants import FINDING_FAMILY_KEYS
-from app.player_analysis_v61.calibration_corpus import normalize_calibration_history
-from app.player_analysis_v61.portfolio_shape import chronological_thirds
-from app.player_analysis_v61.semantic_outcomes import (
+from report_card.analysis.service import AnalysisService
+from report_card.analysis.source import MappingSource
+from report_card.api.report_schemas import validate_free_dna_report
+from report_card.player_analysis_v6.artifacts import ArtifactValidationError
+from report_card.player_analysis_v6.constants import FINDING_FAMILY_KEYS
+from report_card.player_analysis_v61.calibration_corpus import normalize_calibration_history
+from report_card.player_analysis_v61.portfolio_shape import chronological_thirds
+from report_card.player_analysis_v61.semantic_outcomes import (
     SEMANTIC_OUTCOME_CATALOG,
     SEMANTIC_OUTCOME_REGISTRY,
 )
-from app.player_analysis_v61.story_selector import select_story_matches
-from app.player_analysis_v61.supporting_signals import SUPPORTING_SIGNAL_CATALOG
-from app.reports import dna_assembly_v61 as dna_assembly_v61_module
-from app.storage.repository import InMemoryRepository
+from report_card.player_analysis_v61.story_selector import select_story_matches
+from report_card.player_analysis_v61.supporting_signals import SUPPORTING_SIGNAL_CATALOG
+from report_card.reports import dna_assembly_v61 as dna_assembly_v61_module
+from report_card.storage.repository import InMemoryRepository
 
 _FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "v6"
 _ANALYTICAL_SOURCE_SHA = "f85e88a277ffb365e76dd6eeac6f5009c7bd0165"
@@ -248,7 +248,7 @@ def test_story_extension_does_not_change_ap_only_legacy_surfaces(
         selection = original_selector(matches)
         return replace(selection, matches=selection.matches[:29])
 
-    monkeypatch.setattr("app.analysis.service.select_story_matches", no_story_selection)
+    monkeypatch.setattr("report_card.analysis.service.select_story_matches", no_story_selection)
     without_story, _ = _generate(rows=rows)
     monkeypatch.undo()
     with_story, _ = _generate(rows=rows)

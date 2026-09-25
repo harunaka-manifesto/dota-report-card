@@ -3,14 +3,14 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from app.analysis.budget import CostPolicy, DataCostLedger
-from app.analysis.deep_scan import acquire_selected_matches, evaluate_deep_hypotheses
-from app.analysis.service import AnalysisService
 from app.core.config import Settings
-from app.features.summary_calculators import calculate_summary_features
-from app.hypotheses.models import Hypothesis, MatchPredicate
-from app.selection.models import CandidateMatch, SelectedMatch, SelectionPlan
-from app.storage.repository import InMemoryRepository
+from report_card.analysis.budget import CostPolicy, DataCostLedger
+from report_card.analysis.deep_scan import acquire_selected_matches, evaluate_deep_hypotheses
+from report_card.analysis.service import AnalysisService
+from report_card.features.summary_calculators import calculate_summary_features
+from report_card.hypotheses.models import Hypothesis, MatchPredicate
+from report_card.selection.models import CandidateMatch, SelectedMatch, SelectionPlan
+from report_card.storage.repository import InMemoryRepository
 
 
 class TrackingSource:

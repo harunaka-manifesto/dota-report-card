@@ -22,9 +22,10 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 
-from app.heroes.taxonomy import load_default_taxonomy  # noqa: E402
-from app.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy  # noqa: E402
+from report_card.heroes.taxonomy import load_default_taxonomy  # noqa: E402
+from report_card.player_analysis_v6.hero_portfolio import load_v6_hero_taxonomy  # noqa: E402
 
 RAW_PATH = HERE / "raw-history.json"
 OUTPUT_PATH = HERE / "analysis-summary.json"

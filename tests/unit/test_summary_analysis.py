@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-from app.analysis.budget import BudgetState, CostPolicy, DataCostLedger
-from app.analysis.deep_scan import plan_deep_scan
-from app.dna.sessions import infer_sessions
-from app.features.summary_calculators import calculate_summary_features
-from app.ingestion.coverage import ParseCoverage, has_required_families, missing_required_families
 from app.ingestion.summary_normalize import normalize_summary_rows
-from app.patterns.detector import detect_patterns
+from report_card.analysis.budget import BudgetState, CostPolicy, DataCostLedger
+from report_card.analysis.deep_scan import plan_deep_scan
+from report_card.dna.sessions import infer_sessions
+from report_card.features.summary_calculators import calculate_summary_features
+from report_card.ingestion.coverage import (
+    ParseCoverage,
+    has_required_families,
+    missing_required_families,
+)
+from report_card.patterns.detector import detect_patterns
 
 
 def _summary(

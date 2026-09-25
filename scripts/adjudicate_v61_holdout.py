@@ -15,7 +15,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
-from app.player_analysis_v61.holdout_evaluation import _one_finding_per_family  # noqa: E402
+from report_card.player_analysis_v61.holdout_evaluation import _one_finding_per_family  # noqa: E402
 
 ADJUDICATION_TOOL_VERSION = "v61-holdout-adjudication-1.0.0"
 CLASSIFICATION = "post_hoc_verifier_adjudication_from_immutable_consumed_holdout"

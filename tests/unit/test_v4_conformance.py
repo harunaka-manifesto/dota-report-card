@@ -3,25 +3,30 @@ from __future__ import annotations
 from dataclasses import replace
 
 import pytest
-from app.analysis.budget import DataCostLedger
-from app.behavior.elements.registry import ELEMENT_REGISTRY, zone_for_score
-from app.behavior.evidence import BehaviorEvidence
-from app.behavior.models import ElementResult, PatternResult
-from app.behavior.patterns.service import _qualification, evaluate_patterns
-from app.behavior.ranking import pattern_ranking_breakdown, rank_pattern_highlights
-from app.hero_portfolio.behavior import (
+from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.analysis.budget import DataCostLedger
+from report_card.behavior.elements.registry import ELEMENT_REGISTRY, zone_for_score
+from report_card.behavior.evidence import BehaviorEvidence
+from report_card.behavior.models import ElementResult, PatternResult
+from report_card.behavior.patterns.service import _qualification, evaluate_patterns
+from report_card.behavior.ranking import pattern_ranking_breakdown, rank_pattern_highlights
+from report_card.hero_portfolio.behavior import (
     deaths_per_ten_minutes,
     events_per_minute,
     finishing_kill_share,
 )
-from app.hero_portfolio.common_thread import compute_common_thread
-from app.hero_portfolio.eligibility import build_hero_eligibility
-from app.hero_portfolio.evolution import _distribution_shift, compute_pool_evolution
-from app.hero_portfolio.exception import compute_hero_exception
-from app.hero_portfolio.mirror import _behavior_labels, _shrink, _similarity, compute_hero_mirror
-from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
-from app.ingestion.summary_normalize import normalize_summary_rows
-from app.reports.dna_assembly import _free_cost
+from report_card.hero_portfolio.common_thread import compute_common_thread
+from report_card.hero_portfolio.eligibility import build_hero_eligibility
+from report_card.hero_portfolio.evolution import _distribution_shift, compute_pool_evolution
+from report_card.hero_portfolio.exception import compute_hero_exception
+from report_card.hero_portfolio.mirror import (
+    _behavior_labels,
+    _shrink,
+    _similarity,
+    compute_hero_mirror,
+)
+from report_card.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
+from report_card.reports.dna_assembly import _free_cost
 
 
 def _element(

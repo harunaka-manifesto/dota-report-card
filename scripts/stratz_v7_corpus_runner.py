@@ -37,15 +37,15 @@ if str(ROOT) not in sys.path:
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))
 
-from app.player_analysis_v7.research.durability import (  # noqa: E402
-    assert_durable_corpus_root,
-)
 from app.stratz.client import parse_rate_limit_headers  # noqa: E402
 from app.stratz.models import STRATZ_ENUM_VOCABULARY  # noqa: E402
 from app.stratz.queries import (  # noqa: E402
     GET_PARSED_ACQUISITION_BATCH,
     GET_PLAYER_HISTORY_PAGE,
     GraphQLOperation,
+)
+from report_card.player_analysis_v7.research.durability import (  # noqa: E402
+    assert_durable_corpus_root,
 )
 
 from scripts.stratz_v7_acquisition_freeze import (  # noqa: E402

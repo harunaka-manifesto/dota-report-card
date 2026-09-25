@@ -12,16 +12,16 @@ import json
 from pathlib import Path
 
 import pytest
-from app.player_analysis_v7.context_projection import artifact_digest
-from app.player_analysis_v7.population import (
+from report_card.player_analysis_v7.context_projection import artifact_digest
+from report_card.player_analysis_v7.population import (
     ARCHETYPE_CUT_KEYS,
     POPULATION_PARAMETERS_PATH,
     POPULATION_PARAMETERS_VERSION,
     PopulationParametersError,
     load_population_parameters,
 )
-from app.player_analysis_v7.research.archetype import MODE_STRATA
-from app.player_analysis_v7.research.recommendation import RECOMMENDATION_REGISTRY
+from report_card.player_analysis_v7.research.archetype import MODE_STRATA
+from report_card.player_analysis_v7.research.recommendation import RECOMMENDATION_REGISTRY
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PIPELINE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-new-lineage-finding-fit-2026-09-08.json"

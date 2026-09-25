@@ -13,19 +13,19 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "api"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from app.analysis.budget import DataCostLedger  # noqa: E402
 from app.core.release import current_source_binding  # noqa: E402
-from app.dna.sessions import infer_sessions  # noqa: E402
-from app.player_analysis_v61.artifacts import (  # noqa: E402
+from report_card.analysis.budget import DataCostLedger  # noqa: E402
+from report_card.dna.sessions import infer_sessions  # noqa: E402
+from report_card.player_analysis_v61.artifacts import (  # noqa: E402
     load_v61_artifact_bundle,
     validate_v61_freeze_record,
 )
-from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
+from report_card.player_analysis_v61.calibration_corpus import (  # noqa: E402
     CANONICAL_SESSION_POLICY,
     canonical_history,
     load_canonical_corpus,
 )
-from app.player_analysis_v61.calibration_evaluation import (  # noqa: E402
+from report_card.player_analysis_v61.calibration_evaluation import (  # noqa: E402
     REQUIRED_STATE_A_CHECKS,
     build_release_evaluation,
     build_review_packet,
@@ -37,14 +37,14 @@ from app.player_analysis_v61.calibration_evaluation import (  # noqa: E402
     validate_aggregate_payload,
     validate_runtime_parity,
 )
-from app.player_analysis_v61.corpus_reuse import (  # noqa: E402
+from report_card.player_analysis_v61.corpus_reuse import (  # noqa: E402
     load_compatibility_audit,
     sha256_file,
 )
-from app.player_analysis_v61.holdout_evaluation import evaluate_holdout  # noqa: E402
-from app.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
-from app.player_analysis_v61.versions import MODEL_VERSION  # noqa: E402
-from app.reports.dna_assembly_v61 import assemble_free_dna_report_v61  # noqa: E402
+from report_card.player_analysis_v61.holdout_evaluation import evaluate_holdout  # noqa: E402
+from report_card.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
+from report_card.player_analysis_v61.versions import MODEL_VERSION  # noqa: E402
+from report_card.reports.dna_assembly_v61 import assemble_free_dna_report_v61  # noqa: E402
 from v61_calibration_builder import atomic_json, split_from_manifest  # noqa: E402
 
 DEFAULT_CORPUS = ROOT / ".local/calibration/v61/canonical-corpus.json"

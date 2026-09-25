@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from app.player_analysis_v6.baselines import BaselineCell, BaselineResolver
-from app.player_analysis_v6.calibration_derivation import (
+from report_card.player_analysis_v6.baselines import BaselineCell, BaselineResolver
+from report_card.player_analysis_v6.calibration_derivation import (
     derive_profile_estimates,
     odd_even_session_ids,
 )

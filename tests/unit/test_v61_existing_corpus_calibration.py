@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import pytest
-from app.player_analysis_v61.calibration_evaluation import validate_aggregate_payload
-from app.player_analysis_v61.legacy_adapter import (
+from report_card.player_analysis_v61.calibration_evaluation import validate_aggregate_payload
+from report_card.player_analysis_v61.legacy_adapter import (
     adapt_legacy_row,
     legacy_canonical_history,
     redacted_runtime_record,

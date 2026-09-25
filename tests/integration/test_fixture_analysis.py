@@ -1,8 +1,8 @@
 from datetime import UTC, datetime
 
-from app.analysis.service import AnalysisService
-from app.analysis.source import FixtureOpenDotaSource, MappingSource
 from app.core.config import Settings
+from report_card.analysis.service import AnalysisService
+from report_card.analysis.source import FixtureOpenDotaSource, MappingSource
 
 _TEST_WINDOW_END = int(datetime.now(UTC).timestamp())
 

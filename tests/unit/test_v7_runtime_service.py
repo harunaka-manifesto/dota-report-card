@@ -2,11 +2,8 @@ from __future__ import annotations
 
 import dataclasses
 
-from app.analysis.source import MappingSource
 from app.core.config import Settings
 from app.main import create_app
-from app.player_analysis_v7.runtime import analyze_v7, history_rows
-from app.player_analysis_v7.service import DEEP_CACHE_ENDPOINT, V7RuntimeService
 from app.providers.base import (
     CanonicalProfile,
     HistoryWindow,
@@ -14,8 +11,11 @@ from app.providers.base import (
     V7CanonicalHistory,
     V7CanonicalMatch,
 )
-from app.storage.repository import InMemoryRepository
 from fastapi.testclient import TestClient
+from report_card.analysis.source import MappingSource
+from report_card.player_analysis_v7.runtime import analyze_v7, history_rows
+from report_card.player_analysis_v7.service import DEEP_CACHE_ENDPOINT, V7RuntimeService
+from report_card.storage.repository import InMemoryRepository
 
 
 def _history() -> V7CanonicalHistory:

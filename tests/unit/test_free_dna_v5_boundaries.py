@@ -3,20 +3,20 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime, timedelta
 
-from app.analysis.source import MappingSource
-from app.api.report_schemas import SessionCurveActionSchema
-from app.behavior.actions import build_session_curve_action
 from app.core.config import FREE_HISTORY_WINDOW_DAYS, Settings
-from app.dna.breakpoints import detect_breakpoint
-from app.dna.performance import build_performance_map, performance_proxy
-from app.dna.recency import effective_sample_size, recency_weight, session_weight
-from app.dna.sessions import SessionPolicy, infer_sessions
-from app.heroes.taxonomy import HeroTaxonomy
 from app.ingestion.summary_normalize import (
     filter_history_window,
     normalize_summary_rows,
 )
-from app.storage.repository import InMemoryRepository
+from report_card.analysis.source import MappingSource
+from report_card.api.report_schemas import SessionCurveActionSchema
+from report_card.behavior.actions import build_session_curve_action
+from report_card.dna.breakpoints import detect_breakpoint
+from report_card.dna.performance import build_performance_map, performance_proxy
+from report_card.dna.recency import effective_sample_size, recency_weight, session_weight
+from report_card.dna.sessions import SessionPolicy, infer_sessions
+from report_card.heroes.taxonomy import HeroTaxonomy
+from report_card.storage.repository import InMemoryRepository
 
 
 def _row(

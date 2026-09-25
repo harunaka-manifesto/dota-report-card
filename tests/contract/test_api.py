@@ -1,9 +1,9 @@
 import asyncio
 
-from app.analysis.source import FixtureOpenDotaSource, MappingSource
 from app.core.config import Settings
 from app.main import create_app
 from fastapi.testclient import TestClient
+from report_card.analysis.source import FixtureOpenDotaSource, MappingSource
 
 
 def test_health_contract() -> None:

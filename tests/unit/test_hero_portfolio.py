@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from app.hero_portfolio.common_thread import compute_common_thread
-from app.hero_portfolio.eligibility import build_hero_eligibility
-from app.hero_portfolio.exception import compute_hero_exception
-from app.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
 from app.ingestion.summary_normalize import normalize_summary_rows
+from report_card.hero_portfolio.common_thread import compute_common_thread
+from report_card.hero_portfolio.eligibility import build_hero_eligibility
+from report_card.hero_portfolio.exception import compute_hero_exception
+from report_card.heroes.taxonomy import TRAITS, HeroTaxonomy, HeroTaxonomyEntry
 
 
 def _taxonomy(*, outlier: bool = False) -> HeroTaxonomy:

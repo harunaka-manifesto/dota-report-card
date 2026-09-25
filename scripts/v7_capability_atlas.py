@@ -18,14 +18,14 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services" / "api"))
 
-from app.player_analysis_v7.research.corpus import (  # noqa: E402
+from report_card.player_analysis_v7.research.corpus import (  # noqa: E402
     CANDIDATE_TEST,
     DISCOVERY,
     corpus_paths,
     iter_players,
     read_json,
 )
-from app.player_analysis_v7.research.tables import (  # noqa: E402
+from report_card.player_analysis_v7.research.tables import (  # noqa: E402
     SESSION_GAP_SECONDS,
     expected_trajectory_length,
     has_role_context,

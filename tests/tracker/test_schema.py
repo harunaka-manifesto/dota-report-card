@@ -9,14 +9,14 @@ from uuid import uuid4
 import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
-from app.analysis.source import FixtureOpenDotaSource
 from app.core.config import Settings
 from app.main import create_app
 from app.storage.database import check_database_revision
 from app.storage.models import RawPayloadRecord, ReportRecord
-from app.storage.repository import SqlAlchemyRepository
 from app.tracker import schema as s
 from fastapi.testclient import TestClient
+from report_card.analysis.source import FixtureOpenDotaSource
+from report_card.storage.repository import SqlAlchemyRepository
 from sqlalchemy import Engine, delete, func, insert, inspect, select, text, update
 from sqlalchemy.exc import IntegrityError
 

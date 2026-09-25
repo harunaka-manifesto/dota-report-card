@@ -4,7 +4,8 @@ from copy import deepcopy
 from typing import Any
 
 import pytest
-from app.player_analysis_v7.report_contract import (
+from pydantic import ValidationError
+from report_card.player_analysis_v7.report_contract import (
     ArchetypeSection,
     BetweenMatchResponse,
     ClosingSection,
@@ -41,7 +42,6 @@ from app.player_analysis_v7.report_contract import (
     WhatToImproveSection,
     WinLossValue,
 )
-from pydantic import ValidationError
 
 
 def _core_contrast() -> CoreHeroGoodContrast:
@@ -436,7 +436,7 @@ def _forbidden_field_names() -> set[str]:
 
 
 def test_no_model_declares_an_identifier_field() -> None:
-    from app.player_analysis_v7 import report_contract as module
+    from report_card.player_analysis_v7 import report_contract as module
 
     forbidden = _forbidden_field_names()
     checked_any = False

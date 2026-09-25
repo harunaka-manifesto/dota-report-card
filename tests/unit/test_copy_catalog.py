@@ -1,9 +1,15 @@
-from app.behavior.elements.registry import EXPECTED_ELEMENT_KEYS
-from app.behavior.outcomes import SEMANTIC_OUTCOME_BRANCHES, SEMANTIC_RECOMMENDATION_BRANCHES
-from app.behavior.patterns.registry import EXPECTED_PATTERN_KEYS
-from app.behavior.presentation import PATTERN_PRESENTATION_CONTRACT, PatternPresentationPayload
-from app.content.catalog import load_free_dna_copy
-from app.content.renderer import (
+from report_card.behavior.elements.registry import EXPECTED_ELEMENT_KEYS
+from report_card.behavior.outcomes import (
+    SEMANTIC_OUTCOME_BRANCHES,
+    SEMANTIC_RECOMMENDATION_BRANCHES,
+)
+from report_card.behavior.patterns.registry import EXPECTED_PATTERN_KEYS
+from report_card.behavior.presentation import (
+    PATTERN_PRESENTATION_CONTRACT,
+    PatternPresentationPayload,
+)
+from report_card.content.catalog import load_free_dna_copy
+from report_card.content.renderer import (
     resolve_element_copy,
     resolve_evolution_copy,
     resolve_page_copy,
@@ -12,7 +18,7 @@ from app.content.renderer import (
     resolve_portfolio_copy,
     validate_copy_catalog,
 )
-from app.reports.dna_assembly import _pattern_presentation_copy
+from report_card.reports.dna_assembly import _pattern_presentation_copy
 
 
 def test_copy_catalog_covers_every_active_model_entry() -> None:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 
 import pytest
-from app.player_analysis_v7.research.redteam import (
+from report_card.player_analysis_v7.research.redteam import (
     bonferroni_level,
     disattenuated_agreement,
     expected_qualified_share,

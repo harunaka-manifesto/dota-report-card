@@ -1,4 +1,4 @@
-from app.heroes.taxonomy import TRAITS, load_default_taxonomy
+from report_card.heroes.taxonomy import TRAITS, load_default_taxonomy
 
 
 def test_checked_in_taxonomy_uses_stable_ids_and_complete_editorial_rows() -> None:

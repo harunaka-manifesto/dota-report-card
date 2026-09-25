@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.player_analysis_v61.family_statistics import (
+from report_card.player_analysis_v61.family_statistics import (
     _simes_p,
     _transfer_branch_bootstrap_p_values,
     _transfer_family_bootstrap_p,

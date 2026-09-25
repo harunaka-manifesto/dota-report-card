@@ -4,9 +4,9 @@ from datetime import UTC, datetime
 
 import pytest
 from app.core.config import Settings
-from app.player_analysis_v7.lifecycle import V7ReportLifecycle
 from app.storage.models import Base, ReportRecord
-from app.storage.repository import SqlAlchemyRepository
+from report_card.player_analysis_v7.lifecycle import V7ReportLifecycle
+from report_card.storage.repository import SqlAlchemyRepository
 from sqlalchemy import update
 
 

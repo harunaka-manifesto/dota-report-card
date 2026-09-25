@@ -43,42 +43,45 @@ _API_ROOT = REPO_ROOT / "services" / "api"
 if str(_API_ROOT) not in sys.path:
     sys.path.insert(0, str(_API_ROOT))
 
-from app.player_analysis_v7.research.corpus import (  # noqa: E402
+from report_card.player_analysis_v7.research.corpus import (  # noqa: E402
     CANDIDATE_TEST,
     DISCOVERY,
     corpus_paths,
     manifest_digests,
     read_json,
 )
-from app.player_analysis_v7.research.features import FEATURE_VERSION, load_frames  # noqa: E402
-from app.player_analysis_v7.research.inference import (  # noqa: E402
+from report_card.player_analysis_v7.research.features import (  # noqa: E402
+    FEATURE_VERSION,
+    load_frames,
+)
+from report_card.player_analysis_v7.research.inference import (  # noqa: E402
     INFERENCE_VERSION,
     design_digest,
     design_payload,
 )
-from app.player_analysis_v7.research.registry import (  # noqa: E402
+from report_card.player_analysis_v7.research.registry import (  # noqa: E402
     CANDIDATE_DEFINITION_VERSION,
     FAMILY_BY_NAME,
     REGISTRY_VERSION,
     digest,
     registry_payload,
 )
-from app.player_analysis_v7.research.screen import DEFAULT_SEED, spearman  # noqa: E402
-from app.player_analysis_v7.research.tournament import (  # noqa: E402
+from report_card.player_analysis_v7.research.screen import DEFAULT_SEED, spearman  # noqa: E402
+from report_card.player_analysis_v7.research.tournament import (  # noqa: E402
     TOURNAMENT_VERSION,
     Denominators,
     agreement,
     collect,
     evaluate,
 )
-from app.player_analysis_v7.research.variants import (  # noqa: E402
+from report_card.player_analysis_v7.research.variants import (  # noqa: E402
     parsed_only,
     restrict_to_level,
     session_gap_override,
     volume_capped,
     without_non_chosen_hero_modes,
 )
-from app.player_analysis_v7.research.verdicts import (  # noqa: E402
+from report_card.player_analysis_v7.research.verdicts import (  # noqa: E402
     CONTROL_CHRONOLOGICAL_BAND,
     VERDICT_BY_FAMILY,
     VERDICT_VERSION,

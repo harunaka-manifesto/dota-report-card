@@ -1,9 +1,9 @@
-from app.player_analysis_v61.calibration_evaluation import (
+from report_card.player_analysis_v61.calibration_evaluation import (
     REQUIRED_STATE_A_CHECKS,
     build_release_evaluation,
     run_synthetic_evaluation,
 )
-from app.player_analysis_v61.experimental import (
+from report_card.player_analysis_v61.experimental import (
     evaluate_experimental_candidates,
     run_stationary_experimental_simulations,
 )

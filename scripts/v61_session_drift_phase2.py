@@ -39,7 +39,6 @@ sys.path.insert(0, str(ROOT / "services" / "api"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from app.core.config import Settings  # noqa: E402
-from app.dna.sessions import infer_sessions  # noqa: E402
 from app.ingestion.summary_history_contract import (  # noqa: E402
     REQUIRED_FIELDS,
     SUMMARY_HISTORY_NORMALIZATION_VERSION,
@@ -56,8 +55,9 @@ from app.ingestion.summary_normalize import (  # noqa: E402
     filter_history_window,
     previous_year_window,
 )
-from app.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
-from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
+from report_card.dna.sessions import infer_sessions  # noqa: E402
+from report_card.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402
+from report_card.player_analysis_v61.calibration_corpus import (  # noqa: E402
     CANONICAL_SCHEMA_VERSION,
     CANONICAL_SESSION_POLICY,
     CANONICAL_WINDOW_SECONDS,
@@ -66,8 +66,8 @@ from app.player_analysis_v61.calibration_corpus import (  # noqa: E402
     canonical_rows,
     validate_canonical_corpus,
 )
-from app.player_analysis_v61.corpus_reuse import sha256_file  # noqa: E402
-from app.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
+from report_card.player_analysis_v61.corpus_reuse import sha256_file  # noqa: E402
+from report_card.player_analysis_v61.legacy_adapter import current_taxonomy_mapping  # noqa: E402
 from v61_four_family_inference_design import (  # noqa: E402
     _family_p,
     _simulate_type1,

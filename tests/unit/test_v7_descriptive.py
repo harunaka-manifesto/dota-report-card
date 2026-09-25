@@ -4,8 +4,6 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
-from app.player_analysis_v7.assembly import assemble_v7_capability
-from app.player_analysis_v7.descriptive import derive_descriptive_facts
 from app.providers.base import (
     CanonicalProfile,
     HistoryWindow,
@@ -13,6 +11,8 @@ from app.providers.base import (
     V7CanonicalHistory,
     V7CanonicalMatch,
 )
+from report_card.player_analysis_v7.assembly import assemble_v7_capability
+from report_card.player_analysis_v7.descriptive import derive_descriptive_facts
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/v7/master-plan-descriptive-states.json"
 
