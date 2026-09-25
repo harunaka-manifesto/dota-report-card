@@ -318,3 +318,31 @@ async def test_p3_work_runs_before_any_stratz_window_is_observed(database, redis
     assert outcome["STANDARD"] in {"READY", "READY_WITH_GAPS"} and outcome["TURBO"] == "NO_MATCHES_FOUND"
     assert links == {imported["match_id"]: ("BOOTSTRAP", "READY"), live["match_id"]: ("LIVE", "READY")}
 
+
+async def test_disabled_stratz_hands_batches_to_the_summary_route(database, redis_client):
+    """A credential/IP-binding disable lasts until an operator reset; bootstrap must not wait on it."""
+    import httpx
+    from app.tracker.mobile_api import create_mobile_app
+    from app.tracker.provider_control import ProviderGate
+    from fastapi.testclient import TestClient
+
+    from .test_independent_qa import _sync
+
+    profile_id, token, imported, live, fake = _bootstrap_scenario(database, "disabled-stratz")
+    redis, namespace = redis_client
+    ProviderGate(redis, namespace=namespace, provider="stratz").observe({}, status=403)
+    stratz_requests = []
+
+    def transport(request: httpx.Request) -> httpx.Response:
+        if request.url.host.endswith("stratz.com"):
+            stratz_requests.append(request)
+            return httpx.Response(500)
+        return fake(request)
+
+    settings = Settings(stratz_api_token="dev-token")
+    _sync(TestClient(create_mobile_app(settings, database=database)), token, "sync-disabled-stratz")
+    await _drain_production_like(database, redis_client, httpx.MockTransport(transport), settings=settings)
+    outcome, links = _settled(database, profile_id)
+    assert stratz_requests == []
+    assert outcome["STANDARD"] in {"READY", "READY_WITH_GAPS"}
+    assert links == {imported["match_id"]: ("BOOTSTRAP", "READY"), live["match_id"]: ("LIVE", "READY")}

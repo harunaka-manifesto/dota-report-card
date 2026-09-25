@@ -235,6 +235,13 @@ async def acquire_historical_batch(database: Engine, gate: ProviderGate, setting
                 await StratzClient(settings, http_client=http).get_tracker_match_batch(job["account_id"], ids)
         except ProviderDeferred as exc:
             with authorized_job(database, job_id, lease_token) as (connection, current):
+                if exc.reason == "CREDENTIAL_OR_IP_BLOCKED":
+                    # Disabled until an operator reset: settle through per-match summaries.
+                    for match_id in ids:
+                        enqueue_historical_summary(connection, profile_id=job["profile_id"], match_id=match_id,
+                                                   origin=origin)
+                    finish(connection, current)
+                    return "SOURCE_DISABLED"
                 reschedule(connection, current, delay_seconds=exc.delay, error=exc.reason, failure=False)
             return "DEFERRED"
         except StratzRateLimited:
