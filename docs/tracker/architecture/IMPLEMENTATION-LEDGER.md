@@ -107,7 +107,7 @@ Detailed local logs: `/tmp/tracker-foundation-baseline/`. The baseline import gr
 
 ## Path mapping
 
-R1: `#swiftMigration/` → `docs/tracker/` with `git mv`, preserving all 186 original files plus the three baseline evidence files. Five outward Markdown destinations repaired. Legacy documentation is fenced in place because tooling and historical references still use those paths.
+R1: `#swiftMigration/` → `docs/tracker/` with `git mv`, preserving all 186 original files plus the three baseline evidence files. Five outward Markdown destinations repaired. Legacy documentation is fenced in place because tooling and historical references still use those paths. (superseded 2026-09-25: relocated to `legacy/`, see "Legacy relocation — 2026-09-25" below.)
 
 Baseline checkpoint: `b4bf302`. R1 checkpoint: `ae9aaed`. Verification: documentation check passes, covering 57 tracker Markdown documents and 451 local destinations with zero missing paths; checker regression test and ruff pass. All 189 files from the baseline checkpoint survive relocation. Only seven tracker Markdown files changed (five outward-link fixes, archive README, and this ledger). A first filename audit mishandled Git-quoted Unicode names; rerun with NUL-delimited paths verified every file.
 
@@ -998,3 +998,75 @@ Full pytest with both URLs and `RUN_POSTGRES_MIGRATION_TEST=1`: **1791 passed, 0
 (the five opt-in live smoke tests). Ruff (`services/api tests`) pass; mypy (302 files) pass;
 docs-check pass; traceability `--strict` pass; legacy API-client regeneration produces no diff.
 Not deployed, not pushed, not merged.
+
+## Legacy relocation — 2026-09-25
+
+**Owner decision:** move all legacy report-card material into root `legacy/`, delete the
+unrelated `dota-news-scraper` tool, and keep reusable research (`research/`,
+`heroes_metadata/`, `assets/`, `docs/tracker/reference/`) outside `legacy/` since it is not
+report-card-specific. Purpose: stop AI agents from mistaking legacy V5–V7 material, report-era
+docs, and the legacy knowledge graph for tracker truth, while keeping the live legacy product's
+production safety rules enforceable from a single `legacy/AGENTS.md`.
+
+### Path map (directory granularity)
+
+| Old | New |
+|---|---|
+| `services/api/report_card/` (Python package) | `legacy/services/api/report_card/` |
+| `services/api/app/{analysis,player_analysis_v6,player_analysis_v61,player_analysis_v7,dna,patterns,behavior,cohorts,content,features,hero_portfolio,heroes,hypotheses,insights,progression,reports,selection,share,…}` | `legacy/services/api/report_card/{…}` (same subpackage names) |
+| `apps/web/` | `legacy/apps/web/` |
+| `packages/` | `legacy/packages/` |
+| `scripts/` (report-card build/release/data scripts) | `legacy/scripts/` |
+| `infra/runtime-artifacts/` | `legacy/infra/runtime-artifacts/` |
+| `tests/{contract,integration (legacy portion),unit (legacy portion),calibration,fixtures/{v6,v7,adversarial,semantic_freeze,stratz,hero_knowledge}}` | `legacy/tests/{…}` |
+| `docs/{architecture,product,qa,ui-revamp,decisions,design,evidence,generated,operations,prompts,agent}` | `legacy/docs/{…}` |
+| `graphify-out/` | `legacy/graphify-out/` |
+| `research/` (V6.1/V7 report corpora) | `legacy/research/` (tracker-reusable corpora stayed at root `research/`) |
+| `ARCHITECTURE.md` (report-card system architecture) | `legacy/ARCHITECTURE.md` |
+| `dota-news-scraper/` | deleted (unrelated tool, not a tracker or report-card dependency) |
+| `AGENTS.md` (17-section report-card operating contract) | `legacy/AGENTS.md`; root `AGENTS.md` rewritten as the tracker operating guide |
+
+Unchanged at root: `services/api/app/{core,storage,opendota,stratz,providers,ingestion,identity,tracker,workers}`, `app/main.py`, `migrations/`, `infra/docker`, `infra/compose.yaml`, `heroes_metadata/`, `assets/`.
+
+### Closure rule used for the Python split
+
+- Root/legacy boundary: `services/api/app/tracker/` plus `migrations/versions/0006+` is tracker;
+  everything under the `report_card` package is legacy. Shared infrastructure (`core`, `storage`,
+  `opendota`, `stratz`, `providers`, `ingestion`, `identity`) stayed at the root because both
+  products import it; `app/main.py` remains the single composition root and `app/workers/tasks.py`
+  remains the single worker entrypoint shim so Railway's command line does not change.
+- R3 (the `stratz.deep` → `player_analysis_v7.research.corpus` research coupling recorded
+  earlier in this ledger) is resolved: `stratz.field_policy` was split out of the legacy V7
+  research module (`85b8741`) so the shared `stratz` package no longer imports legacy research
+  code. `player_analysis_v7` itself, and its own internal use of the research corpus, stayed in
+  `legacy/services/api/report_card/` unchanged — that coupling is legacy-internal and out of
+  tracker scope.
+
+### Deploy prerequisites before pushing `main`
+
+- **Vercel:** Root Directory must be changed to `legacy/apps/web` before the next deploy, with
+  "include files outside the Root Directory" left on, because `legacy/apps/web` imports
+  `legacy/packages`.
+- **Railway:** unchanged — `infra/docker/api.Dockerfile` path, `uvicorn app.main:app`, and
+  `celery -A app.workers.tasks.celery_app` all still resolve after the split.
+- **Database backup** before applying migrations `0006`–`0015` to production, since this is the
+  first deploy that carries the tracker schema.
+- `TRACKER_CURSOR_SECRET` (≥32 chars) must be set in the production environment before the
+  mobile `/history` and `/changes` routes can serve (they fail closed to 503 without it).
+- Tracker worker and beat services are not yet provisioned on Railway; `infra/compose.yaml`'s
+  `tracker` profile defines them for local/staging use, but production process provisioning is
+  an open deployment task, not part of this relocation.
+
+### Commits
+
+```
+85b8741 refactor(api): split STRATZ field policy out of legacy V7 research
+c7c2597 refactor(legacy): move report-card python packages to legacy/services/api/report_card
+03bdd78 refactor(legacy): move web, packages, runtime artifacts, scripts, and tests into legacy/
+449baaa fix(legacy): repair every reference broken by the legacy/ split; wire up build and CI
+b35cef0 fix: time-of-day-proof home buckets test, relocated stratz make target
+dd4cf6f chore: remove unrelated dota-news-scraper tool
+d1e5c0e refactor(docs): move legacy documentation, research corpora, and generated artifacts
+9fd3f83 fix: repair path references broken by the legacy docs relocation
+2e42809 build: split docs-check into tracker and legacy documentation checks
+```

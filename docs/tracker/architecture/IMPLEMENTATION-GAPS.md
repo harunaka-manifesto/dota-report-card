@@ -38,7 +38,7 @@ Where a gap is genuinely a defect in the current system, it is marked as such.
 ### G-1 — STRATZ deep batch is 8, and the deep operation omits an explicit page size
 
 **Class:** REQUIRED
-**Where:** `services/api/app/player_analysis_v7/acquisition_policy.py` (`MATCHES_PER_REQUEST = 8`), `services/api/app/stratz/queries.py` (`GetDeepMatchBatch`), `services/api/app/player_analysis_v7/service.py`
+**Where:** `legacy/services/api/report_card/player_analysis_v7/acquisition_policy.py` (`MATCHES_PER_REQUEST = 8`), `services/api/app/stratz/queries.py` (`GetDeepMatchBatch`), `legacy/services/api/report_card/player_analysis_v7/service.py`
 **Conflicts with:** [`PROVIDER-CAPABILITIES-AND-ROUTING.md`](PROVIDER-CAPABILITIES-AND-ROUTING.md) §5.2
 
 `GET_DEEP_MATCH_BATCH` calls `player.matches(request: { matchIds: $matchIds })` with **no explicit page size**. The provider's default page is 10, so the operation returns at most 10 matches regardless of how many ids are passed. Both investigations independently confirmed this (TESTED: passing 8, 20, 50 and 100 ids each returned 10). The policy constant of 8 was chosen conservatively on top of a behaviour that was never a provider ceiling.
@@ -54,7 +54,7 @@ With an explicit page size the **unchanged** field selection returned 50 fully r
 ### G-2 — Replay parsing is entitlement-gated
 
 **Class:** BLOCKER
-**Where:** `services/api/app/analysis/deep_scan.py` (parse requests occur only inside the deep-scan path, behind `decision.allowed`); `services/api/app/analysis/service.py` (`analysis_mode`, `entitlement_decision`); `services/api/app/opendota/client.py` (docstring: the read client deliberately has *no* parse method, "which keeps the v1 no-auto-parse rule enforceable at the transport boundary"); [`../../../legacy/ARCHITECTURE.md`](../../../legacy/ARCHITECTURE.md) ("Free … never hydrates match details or requests replay parsing").
+**Where:** `legacy/services/api/report_card/analysis/deep_scan.py` (parse requests occur only inside the deep-scan path, behind `decision.allowed`); `legacy/services/api/report_card/analysis/service.py` (`analysis_mode`, `entitlement_decision`); `services/api/app/opendota/client.py` (docstring: the read client deliberately has *no* parse method, "which keeps the v1 no-auto-parse rule enforceable at the transport boundary"); [`../../../legacy/ARCHITECTURE.md`](../../../legacy/ARCHITECTURE.md) ("Free … never hydrates match details or requests replay parsing").
 
 **Conflicts with:** [ADR 0004](decisions/0004-entitlement-above-the-data-foundation.md), [ADR 0003](decisions/0003-progressive-post-match-readiness.md), [`FEATURE-DATA-DEPENDENCY-MATRIX.md`](FEATURE-DATA-DEPENDENCY-MATRIX.md) §3
 
@@ -143,7 +143,7 @@ Without a coverage record there is no honest way to produce `READY_WITH_GAPS`, n
 ### G-9 — Parse-request cost is modelled at 5 rate units; the vendor documents 10
 
 **Class:** FOLLOW-UP
-**Where:** `services/api/app/analysis/budget.py` — `CostPolicy.parse_request_units: float = 5.0`
+**Where:** `legacy/services/api/report_card/analysis/budget.py` — `CostPolicy.parse_request_units: float = 5.0`
 **Conflicts with:** [`PROVIDER-CAPABILITIES-AND-ROUTING.md`](PROVIDER-CAPABILITIES-AND-ROUTING.md) §5.1 (VERIFIED from the vendor's own spec)
 
 The docstring correctly calls these "deployment-specific relative units, not a baked-in monetary price", so this is not strictly a bug. But the scarcest real budget is rate units, and modelling the binding constraint at half its true cost will under-estimate exactly the thing most likely to break first.
