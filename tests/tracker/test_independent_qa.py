@@ -226,3 +226,51 @@ async def test_failed_bootstrap_search_resumes_on_the_next_foreground_trigger(da
     assert outcome == {"STANDARD": "NO_MATCHES_FOUND", "TURBO": "NO_MATCHES_FOUND"}
     assert lifecycle == "READY"
 
+
+async def test_rediscovery_resumes_an_exhausted_fresh_summary(database, redis_client):
+    """QA-5: a SUMMARY job that exhausted its retries was never retried again.
+
+    The match stayed DISCOVERED with no link, and every later discovery merged
+    into the FAILED job (dedup key `summary:<match_id>`), so the match was lost
+    for every owner. Re-discovery on the next foreground sync must resume it.
+    """
+    from app.tracker.acquisition import acquire_fresh_summary
+    from app.tracker.jobs import claim
+    from app.tracker.provider_control import ProviderGate
+    from app.tracker.schema import ingest_jobs
+
+    now = datetime.now(UTC)
+    profile_id, token = _linked_owner(database, "summary-outage", 1001, now - timedelta(days=2))
+    live = _match(9_400_000_041, now - timedelta(hours=6), 1001)
+    good = httpx.MockTransport(WindowedOpenDota(1001, [live]))
+    client = TestClient(create_mobile_app(Settings(), database=database))
+    _sync(client, token, "sync-summary-1")
+    redis, namespace = redis_client
+    gate = ProviderGate(redis, namespace=namespace, provider="opendota")
+    gate.observe(HEADERS, status=200)
+    from app.tracker.worker import WorkerPolicy, run_one
+    # The first history page journals the match and queues its shared summary.
+    assert await run_one(database, redis, Settings(), priority=0, policy=WorkerPolicy(namespace=namespace),
+                         transport=good) == "DEFERRED"
+    outage = httpx.MockTransport(lambda request: httpx.Response(502, json={}, headers=HEADERS))
+    for _ in range(5):
+        gate.observe(HEADERS, status=200)
+        with database.begin() as connection:
+            connection.execute(update(ingest_jobs).where(ingest_jobs.c.job_type == "SUMMARY").values(
+                run_after=func.clock_timestamp() - timedelta(seconds=1)))
+            job = claim(connection, priority=connection.scalar(select(ingest_jobs.c.priority).where(
+                ingest_jobs.c.job_type == "SUMMARY")))
+        await acquire_fresh_summary(database, gate, Settings(), job_id=job["id"], lease_token=job["lease_token"],
+                                    transport=outage)
+    await _drain(database, redis_client, good, rounds=5)  # the first discovery completes
+    with database.begin() as connection:
+        assert connection.scalar(select(ingest_jobs.c.state).where(ingest_jobs.c.job_type == "SUMMARY")) == "FAILED"
+        assert connection.scalar(select(sync_state.c.state)) == "UP_TO_DATE"
+        connection.execute(update(sync_state).values(retry_after=None))
+    _sync(client, token, "sync-summary-2")
+    await _drain(database, redis_client, good, rounds=20)
+    with database.connect() as connection:
+        lifecycle = connection.scalar(select(account_matches.c.lifecycle).where(
+            account_matches.c.profile_id == profile_id, account_matches.c.match_id == live["match_id"]))
+    assert lifecycle == "READY"
+

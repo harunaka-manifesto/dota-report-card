@@ -27,7 +27,14 @@ def enqueue_fresh_summary(connection: Connection, match_id: int) -> str:
     if type(match_id) is not int or not 0 < match_id < 2**63:
         raise ValueError("Invalid match ID")
     connection.execute(insert(matches).values(match_id=match_id, discovered_at=func.now()).on_conflict_do_nothing())
-    return enqueue(connection, dedup_key=f"summary:{match_id}", job_type="SUMMARY", priority=0, payload={}, match_id=match_id)
+    job_id = enqueue(connection, dedup_key=f"summary:{match_id}", job_type="SUMMARY", priority=0, payload={}, match_id=match_id)
+    # Re-discovery is the foreground retry for a summary that exhausted its bounded attempts.
+    connection.execute(ingest_jobs.update().where(
+        ingest_jobs.c.id == job_id, ingest_jobs.c.state == "FAILED",
+        select(matches.c.evidence_state).where(matches.c.match_id == match_id).scalar_subquery() == "DISCOVERED",
+    ).values(state="PENDING", priority=0, attempts=0, run_after=func.clock_timestamp(),
+             lease_token=None, lease_until=None, last_error=None))
+    return job_id
 
 
 def stored_match_snapshot(connection: Connection, match_id: int, *, replay_only: bool = False) -> str | None:
