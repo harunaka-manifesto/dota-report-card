@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field, JsonValue
 from redis import Redis
-from sqlalchemy import Connection, Engine, and_, func, or_, select, true
+from sqlalchemy import Connection, Engine, and_, func, or_, select, text, true
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.config import Settings
@@ -1551,8 +1551,13 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
     async def changes(request: Request, owner: Annotated[str, Depends(_user)],
                       after: str | None = None) -> ChangesView:
         with _engine(request).connect() as connection:
+            # updated_at is stamped at write time, not commit time: the cursor may not
+            # pass the oldest in-flight writing transaction, or its change is skipped.
+            now = connection.execute(text(
+                "SELECT least(clock_timestamp(), (SELECT min(xact_start) FROM pg_stat_activity"
+                " WHERE datname = current_database() AND backend_xid IS NOT NULL AND pid <> pg_backend_pid()))"
+            )).scalar_one()
             profile = _active_profile(connection, owner)
-            now = connection.execute(select(func.clock_timestamp())).scalar_one()
             if profile is None:
                 return ChangesView(cursor=_changes_cursor(owner, now, 0), changed_refs=[], full_refresh=True)
             cursor = _changes_cursor(profile["id"], now, profile["active_revision"])

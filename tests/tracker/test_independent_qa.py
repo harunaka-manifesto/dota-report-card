@@ -274,3 +274,32 @@ async def test_rediscovery_resumes_an_exhausted_fresh_summary(database, redis_cl
             account_matches.c.profile_id == profile_id, account_matches.c.match_id == live["match_id"]))
     assert lifecycle == "READY"
 
+
+def test_changes_cursor_never_skips_a_change_committed_after_the_read(database):
+    """QA-6: `/changes` returned `clock_timestamp()` as its cursor.
+
+    `updated_at` is stamped when a row is written, not when the transaction
+    commits. A finalization that wrote before the read but committed after it
+    fell behind the returned cursor and was never reported (no full refresh).
+    """
+    from .builders import add_match
+
+    now = datetime.now(UTC)
+    profile_id, token = _linked_owner(database, "changes", 1001, now - timedelta(days=5))
+    match_id = add_match(database, profile_id, index=1, offset_days=1)
+    client = TestClient(create_mobile_app(Settings(), database=database))
+    auth = {"Authorization": f"Bearer {token}"}
+    first = client.get("/changes", headers=auth).json()
+    assert first["full_refresh"] is True
+    with database.connect() as writer:
+        transaction = writer.begin()
+        writer.execute(update(account_matches).where(account_matches.c.match_id == match_id).values(
+            lifecycle="WAITING_FOR_PRIOR_MATCH"))
+        during = client.get("/changes", headers=auth, params={"after": first["cursor"]}).json()
+        assert during["changed_refs"] == []  # not committed yet
+        transaction.commit()
+    after = client.get("/changes", headers=auth, params={"after": during["cursor"]}).json()
+    ref = TestClient(create_mobile_app(Settings(), database=database)).get(
+        "/history", headers=auth).json()["matches"][0]["ref"]
+    assert after["full_refresh"] is False and after["changed_refs"] == [ref]
+
