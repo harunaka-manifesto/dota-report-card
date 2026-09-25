@@ -76,6 +76,7 @@ copy-review-catalog-check:
 
 docs-check:
 	$(PYTHON) scripts/check_docs.py
+	$(PYTHON) legacy/scripts/check_legacy_docs.py
 
 hero-knowledge-refresh:
 	$(PYTHON) -m legacy.scripts.hero_knowledge.cli refresh --force-refresh
