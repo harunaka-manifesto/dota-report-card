@@ -851,3 +851,87 @@ Real PostgreSQL 16 (55432) and Redis 7.2.16 (56379), `TEST_POSTGRES_URL`/`TEST_R
 Live provider calls in the Opus continuation: **0**. Cumulative for the branch: OpenDota 3 reads + 1 processing request (13 rate units, 4 billing units), STRATZ 0. Deployed: **no**. Pushed: **no**. Merged: **no**.
 
 Not claimed as verified: production Apple/Google/Steam/App Store behaviour, APNs delivery, live STRATZ batching limits, live provider rate ceilings, calibrated context adjustment, Profile claims and trend labels (all fail-closed and listed above).
+
+## Independent QA — 2026-09-25
+
+Adversarial audit of `codex/tracker-backend-foundation` from `6b52ced` by an agent that did not
+write the code. Real PostgreSQL 16 (55432) and Redis 7.2.16 (56379); every regression test drives
+real entry points (mobile HTTP, `worker.run_one`, job handlers) with only provider HTTP faked, and
+each failed before its fix. All tests live in `tests/tracker/test_independent_qa.py`. Live provider
+calls: **0** (no OpenDota, no STRATZ).
+
+### Defects found and fixed
+
+| # | Severity | Symptom | Root cause | Fix | Test |
+|---|---|---|---|---|---|
+| QA-1 | High | Pre-link matches from the last 7 days became LIVE links: hidden from Free History, READY events/push for imported play, bootstrap link pre-empted | Foreground discovery window ignored the link date; LIVE link job had no link-date check | `294a6a4` — discovery rejects `BEFORE_LINK`; LIVE link refuses pre-link matches | `test_foreground_sync_never_links_pre_link_matches_as_live` |
+| QA-2 | High | A player away more than 7 days permanently lost the matches in between (app_foundation §4.1) | Mobile `/sync` always requested a fixed 7-day window; `complete_through` was recorded but never read | `294a6a4` — window reaches back to `complete_through`, or the earliest owner link date before any complete discovery | `test_foreground_sync_discovers_everything_since_the_last_authoritative_boundary` |
+| QA-3 | High | Bootstrap never terminal, so every live match of the mode waited forever, whenever a historical batch failed terminally — including every batch while no STRATZ token is configured | Exhausted batch left candidates unsettled; `StratzForbidden`/schema drift/invalid responses were not caught | `898a6da` — all STRATZ provider errors retry; exhaustion falls back to per-match OpenDota summaries | `test_terminal_historical_batch_failure_settles_bootstrap_through_summary_fallback` |
+| QA-4 | High | Same permanent live-work stall after a bootstrap search failed 5 times (e.g. a 3-minute OpenDota outage) | FAILED search had no resumption path | `e434eac` — `POST /sync` reopens it from its stored cursor | `test_failed_bootstrap_search_resumes_on_the_next_foreground_trigger` |
+| QA-5 | Medium-high | A match whose shared summary failed 5 times was lost for every owner | Re-discovery merged into the FAILED job via its dedup key | `04666ac` — re-discovery reopens a FAILED summary for a still-DISCOVERED match | `test_rediscovery_resumes_an_exhausted_fresh_summary` |
+| QA-6 | Medium | `/changes` could permanently skip a change (no full refresh) | Cursor was read-time `clock_timestamp()`; `updated_at` is write time, commits come later | `74ef62b` — cursor bounded by the oldest in-flight writing transaction (`pg_stat_activity`, same DB role) | `test_changes_cursor_never_skips_a_change_committed_after_the_read` |
+| QA-7 | Low-medium | Out-of-order App Store notification queued a PRO rebuild during an unsettled bootstrap | Stale-update path skipped the Free-foundation gate | `65c5adf` — one gated scope decision for all store paths | `test_out_of_order_store_notification_cannot_bypass_the_free_foundation_gate` |
+| QA-8 | Medium (deployment-gated) | Push throughput capped at 6 bundles/min system-wide; a RETRY bundle blocked all accounts for up to 1 h | `deliver_pending` sent only the oldest bundle per 10 s beat tick | `5ddb14b` — one tick visits up to 100 due bundles | `test_one_notify_tick_delivers_every_due_bundle_and_a_retry_blocks_no_one` |
+| QA-9 | Low (hardening) | Steam assertion accepted when `openid.signed` omitted the claimed identity | OpenID 2.0 §10.1 signed-field list not enforced | `4572a60` | `test_steam_assertion_requires_the_identity_fields_to_be_signed` |
+
+QA-1/QA-2 exposed a test-fixture premise error: `identity()` links on 2026-09-21 while the stored
+fixture match started 2026-09-09, yet 18 tests treated that match as live. Those tests now pass an
+earlier link date (`LINKED_AT`); assertions are unchanged.
+
+### Areas checked and found sound (with evidence)
+
+- **Finalization ordering** (`finalization.py`, `history.py`): chronology key and tie-break by
+  `provider_source_match_id`; `recompute_indexes` filters READY, `progression == mode`, entitled,
+  current versions, per profile. `ACTION_REQUIRED` blocking later same-bucket work matches
+  app_foundation §4.4 (only READY / ineligible / UNAVAILABLE release it). No LIVE↔BOOTSTRAP
+  wait cycle: LIVE waits on its mode's bootstrap, bootstrap links wait only on earlier links, and
+  after QA-1 no LIVE link predates the link date. NEW_PB requires `origin == LIVE`; rebuild,
+  readmit and role correction never insert NEW_PB/MATCH_READY.
+- **Entitlement**: every mobile/profile/insight history read uses `scope.entitled` (grep of
+  `account_matches`/`personal_bests`/`baselines` reads in `mobile_api.py`, `profile.py`,
+  `shares.py`, `insights.py`); scope rebuild is one savepointed transaction, a second run of the
+  same operation returns STALE.
+- **Jobs/fences**: `authorized_job` user → profile → job lock order; deletion, switch, retry and
+  role correction take user then profile first; `reschedule(failure=False)` is attempt-neutral.
+- **Immutability**: `tracker_reject_mutation` is BEFORE UPDATE on the ten ledger tables; no
+  DELETE+INSERT workaround exists (only current-pointer tables `baselines`/`personal_bests` are
+  deleted and rebuilt). DELETE is not trigger-guarded (profile deletion cascades by design).
+- **Provider control**: processing lane 10 rate / 1 billing unit, header-only capacity, single
+  probe before headers, 401/403 disable shared through Redis, every attempted call recorded in
+  `finally`.
+- **Authentication**: refresh rotation with family revocation on reuse; revoked/replaced session
+  access tokens stop immediately.
+- **Context**: with no APPROVED parameter set adjustment is exactly 0 and performance `NOT_READY`.
+
+### Traceability spot-check
+
+25 `covered` rules sampled deterministically plus five tied to QA-1…QA-5. Six downgraded to
+`partial` with notes (history#11.10 — its Match Detail comparison compares a call with itself —
+history#11.7, match_detail#11.4, onboarding#17.2, profile#11.10, settings_account#11.16).
+app_foundation#18.7, onboarding#15.5, #15.7, #15.11 and #17.7 stayed `covered` only by adding the
+new regression tests; their original citations never exercised the defective paths. New counts:
+**244 covered, 25 owner-blocked, 29 client-only, 7 partial**.
+
+### Final gates
+
+Full pytest with both URLs and `RUN_POSTGRES_MIGRATION_TEST=1`: **1781 passed, 0 failed, 2 skipped**
+(the two opt-in live smoke tests). Ruff (`services/api tests`) pass; mypy (302 files) pass;
+docs-check pass; traceability `--strict` pass; legacy API-client regeneration produces no diff.
+Not deployed, not pushed, not merged.
+
+### Remaining doubts (not fixed)
+
+- `data_access.history_withdrawn` flips BLOCKED on one empty first page when an accepted in-window
+  discovery exists. A transient provider `[]` would show DATA_ACCESS_BLOCKED until the next
+  non-empty page restores access. Needs a confirmation policy (operational decision).
+- Live finalization does not wait for older RECOVERY/HISTORICAL imports, so a live match's
+  comparison can omit a settled-later older match, and a NEW_PB can be celebrated while a better
+  older import is still in flight (then current PB moves silently). Consistent with the Opus
+  continuation's design choice; the SSOT (§4.4 "predecessor") is ambiguous for imports.
+- `READMIT` re-analyses the recovered match only; later comparisons that excluded its N/A
+  replay metrics are not re-analysed (arguably required by §9.2 immutability).
+- Mobile cursors are HMAC-signed with the profile id as key, not a server secret.
+- `test_architecture_boundaries` token check misses `insights.load_retained_history`, which reads
+  `scope.entitled` for comparator selection (by design, but contradicts the module README line).
+- Pro expiry is applied only on a store notification or explicit reconcile; no periodic sweep.
+- A FAILED `PRO_BACKFILL` lets Pro activate with partial history silently.

@@ -254,9 +254,11 @@
     "tests/tracker/test_sync.py::test_pages_journal_rejections_include_turbo_and_complete_only_at_empty_page",
     "tests/tracker/test_bootstrap.py::test_bootstrap_page_reuses_recorded_evidence_after_rollback",
     "tests/tracker/test_bootstrap.py::test_shifted_offset_page_does_not_advance_coverage",
-    "tests/tracker/test_sync.py::test_duplicate_delivery_cannot_send_twice"
+    "tests/tracker/test_sync.py::test_duplicate_delivery_cannot_send_twice",
+    "tests/tracker/test_independent_qa.py::test_foreground_sync_discovers_everything_since_the_last_authoritative_boundary",
+    "tests/tracker/test_independent_qa.py::test_rediscovery_resumes_an_exhausted_fresh_summary"
    ],
-   "note": "Items journaled with outcomes atomically with cursor; rollback reuses stored page without refetch; duplicates cannot resend."
+   "note": "Items journaled with outcomes atomically with cursor; rollback reuses stored page without refetch; duplicates cannot resend. Independent QA 2026-09-25: the originally cited tests did not exercise the defective path (QA-1..QA-5); regression tests added."
   },
   {
    "id": "app_foundation#18.8",
@@ -862,13 +864,13 @@
    "source": "history/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Every row shows its mode; no aggregate mixes Standard and Turbo.",
-   "status": "covered",
+   "status": "partial",
    "tests": [
     "tests/tracker/test_history.py::test_five_prior_gate_exact_chronology_and_identity_isolation",
     "tests/tracker/test_role_correction.py::test_rebuild_replays_five_prior_history_and_keeps_other_series",
     "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
    ],
-   "note": "Rows carry mode (golden); baselines isolate buckets; rebuild leaves Turbo series untouched."
+   "note": "Rows carry mode (golden); baselines isolate buckets; rebuild leaves Turbo series untouched. Independent QA 2026-09-25: cited tests prove Standard/Turbo aggregate isolation, not that every /history row exposes its mode."
   },
   {
    "id": "history#11.8",
@@ -899,11 +901,11 @@
    "source": "history/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "A calendar or mode filter changes what is listed without changing any canonical calculation.",
-   "status": "covered",
+   "status": "partial",
    "tests": [
     "tests/tracker/test_contract_rules_more.py::test_history_filters_never_change_canonical_values"
    ],
-   "note": "Filtered rows are identical to unfiltered ones; empty filter differs from empty account (/bootstrap)."
+   "note": "Filtered rows are identical to unfiltered ones; empty filter differs from empty account (/bootstrap). Independent QA 2026-09-25: the cited filter matches every row or none, and its Match Detail check compares a call with itself; a narrowing filter is never compared."
   },
   {
    "id": "history#11.11",
@@ -1579,11 +1581,11 @@
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Readiness advancing while the screen is open adds sections without replacing Stage-1 content, and replays no celebration.",
-   "status": "covered",
+   "status": "partial",
    "tests": [
     "tests/tracker/test_contract_rules_more.py::test_stage_one_facts_are_unchanged_after_ready"
    ],
-   "note": "Stage-1 players, timing and result identical before and after READY."
+   "note": "Stage-1 players, timing and result identical before and after READY. Independent QA 2026-09-25: asserts Stage-1 facts are unchanged after READY; does not assert sections are added rather than replaced, or that no celebration fires."
   },
   {
    "id": "match_detail#11.5",
@@ -1864,9 +1866,11 @@
    "tests": [
     "tests/tracker/test_history.py::test_database_prior_selection_respects_entitlement_and_active_finalization",
     "tests/tracker/test_mobile_api.py::test_mobile_match_ref_is_opaque_and_cannot_cross_accounts",
-    "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses"
+    "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses",
+    "tests/tracker/test_independent_qa.py::test_foreground_sync_never_links_pre_link_matches_as_live",
+    "tests/tracker/test_independent_qa.py::test_foreground_sync_discovers_everything_since_the_last_authoritative_boundary"
    ],
-   "note": "Free priors = BOOTSTRAP + LIVE, HISTORICAL excluded; pre-link HISTORICAL match 404 on Free; revert to Free restores same state."
+   "note": "Free priors = BOOTSTRAP + LIVE, HISTORICAL excluded; pre-link HISTORICAL match 404 on Free; revert to Free restores same state. Independent QA 2026-09-25: the originally cited tests did not exercise the defective path (QA-1..QA-5); regression tests added."
   },
   {
    "id": "onboarding#15.6",
@@ -1886,9 +1890,10 @@
    "rule": "Imports never produce per-match notifications, PBs, achievements, baseline-ready events or celebrations.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_contract_rules.py::test_import_that_beats_the_record_updates_pb_silently_without_celebration"
+    "tests/tracker/test_contract_rules.py::test_import_that_beats_the_record_updates_pb_silently_without_celebration",
+    "tests/tracker/test_independent_qa.py::test_foreground_sync_never_links_pre_link_matches_as_live"
    ],
-   "note": "Bootstrap-origin match that beats the record updates the PB silently, no NEW_PB or READY event."
+   "note": "Bootstrap-origin match that beats the record updates the PB silently, no NEW_PB or READY event. Independent QA 2026-09-25: the originally cited tests did not exercise the defective path (QA-1..QA-5); regression tests added."
   },
   {
    "id": "onboarding#15.8",
@@ -1931,9 +1936,10 @@
     "tests/tracker/test_stratz_acquisition.py::test_single_attempt_unavailable_distinct_from_empty_source_page",
     "tests/tracker/test_bootstrap.py::test_undated_page_cannot_create_false_coverage",
     "tests/tracker/test_sync.py::test_bounded_sync_failure_never_advances_complete_boundary",
-    "tests/tracker/test_historical_summary.py::test_private_deep_profile_routes_to_summary_without_claiming_empty_history"
+    "tests/tracker/test_historical_summary.py::test_private_deep_profile_routes_to_summary_without_claiming_empty_history",
+    "tests/tracker/test_independent_qa.py::test_failed_bootstrap_search_resumes_on_the_next_foreground_trigger"
    ],
-   "note": "Failures never finish search or set coverage. Caveat: terminal SUMMARY_404 settles as NO_ELIGIBLE_MATCHES (test_terminal_summary_absence...)."
+   "note": "Failures never finish search or set coverage. Caveat: terminal SUMMARY_404 settles as NO_ELIGIBLE_MATCHES (test_terminal_summary_absence...). Independent QA 2026-09-25: the originally cited tests did not exercise the defective path (QA-1..QA-5); regression tests added."
   },
   {
    "id": "onboarding#15.12",
@@ -2034,12 +2040,12 @@
    "source": "onboarding/SSOT.md",
    "section": "17. Acceptance rules",
    "rule": "No single `ONBOARDING_COMPLETE` flag conflates account, Steam, bootstrap and baseline readiness.",
-   "status": "covered",
+   "status": "partial",
    "tests": [
     "tests/tracker/test_mobile_api.py::test_mobile_account_requires_session_and_keeps_identity_private",
     "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
    ],
-   "note": "Account (steam_linked), per-mode bootstrap outcomes and readiness are separate endpoints/fields; no ONBOARDING_COMPLETE in pinned schema."
+   "note": "Account (steam_linked), per-mode bootstrap outcomes and readiness are separate endpoints/fields; no ONBOARDING_COMPLETE in pinned schema. Independent QA 2026-09-25: account and bootstrap fields are shown separate in one snapshot; no divergent-state case proves independent tracking."
   },
   {
    "id": "onboarding#17.3",
@@ -2094,9 +2100,11 @@
    "status": "covered",
    "tests": [
     "tests/tracker/test_bootstrap.py::test_bootstrap_completion_waits_for_analyses_and_coverage_then_emits_once",
-    "tests/tracker/test_bootstrap.py::test_bootstrap_search_journals_both_modes_and_original_window"
+    "tests/tracker/test_bootstrap.py::test_bootstrap_search_journals_both_modes_and_original_window",
+    "tests/tracker/test_independent_qa.py::test_terminal_historical_batch_failure_settles_bootstrap_through_summary_fallback",
+    "tests/tracker/test_independent_qa.py::test_failed_bootstrap_search_resumes_on_the_next_foreground_trigger"
    ],
-   "note": "search_finished alone not terminal; waits for link terminal and non-pending coverage; event needs both modes."
+   "note": "search_finished alone not terminal; waits for link terminal and non-pending coverage; event needs both modes. Independent QA 2026-09-25: the originally cited tests did not exercise the defective path (QA-1..QA-5); regression tests added."
   },
   {
    "id": "onboarding#17.8",
@@ -2354,11 +2362,11 @@
    "source": "profile/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "Matches without a resolved role are excluded from role claims and surfaced as a correction affordance.",
-   "status": "covered",
+   "status": "partial",
    "tests": [
     "tests/tracker/test_contract_rules.py::test_profile_withholds_role_shape_with_unassigned_matches_and_uses_mixed_fallback"
    ],
-   "note": "Unassigned matches excluded from role map and reported as unassigned_count."
+   "note": "Unassigned matches excluded from role map and reported as unassigned_count. Independent QA 2026-09-25: unassigned matches are excluded from role claims; no assertion that a correction affordance is surfaced for them."
   },
   {
    "id": "profile#11.11",
@@ -3498,12 +3506,12 @@
    "source": "settings_account/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Declining notifications changes nothing about tracking or readiness.",
-   "status": "covered",
+   "status": "partial",
    "tests": [
     "tests/tracker/test_notifications.py::test_ready_events_are_live_only_coalesced_and_never_queued_retroactively",
     "tests/tracker/test_notifications.py::test_permission_revocation_suppresses_pending_without_affecting_events"
    ],
-   "note": "Disabled/revoked permission suppresses only the outbox; READY events unaffected."
+   "note": "Disabled/revoked permission suppresses only the outbox; READY events unaffected. Independent QA 2026-09-25: shows suppressed delivery keeps the event; does not show finalization/bootstrap/Home are unaffected by declining notifications."
   },
   {
    "id": "settings_account#11.17",
