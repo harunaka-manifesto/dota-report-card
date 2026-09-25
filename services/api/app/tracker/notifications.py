@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import timedelta
-from typing import Protocol
+from typing import Any, Protocol
 from uuid import uuid4
 
 from sqlalchemy import Connection, func, select
@@ -83,8 +83,12 @@ class FakePushTransport:
 
 
 def deliver_pending(connection: Connection,
-                    send: PushTransport | Callable[[str, dict[str, object], str], object]) -> int:
-    """Send one pending bundle with a stable collapse key; returns devices reached.
+                    send: PushTransport | Callable[[str, dict[str, object], str], object],
+                    *, limit: int = 100) -> int:
+    """Send every due pending bundle (up to `limit`) with stable collapse keys.
+
+    Returns devices reached. A bundle left PENDING for RETRY never blocks the
+    bundles behind it; they are visited in creation order in this same tick.
 
     Suppressed without sending when: the account/profile generation moved, the
     user disabled notifications, no granted token remains, a device reported
@@ -97,12 +101,15 @@ def deliver_pending(connection: Connection,
         notification_outbox.c.state == "PENDING",
         notification_outbox.c.created_at < now - timedelta(seconds=MAX_AGE_SECONDS),
     ).values(state="CANCELLED"))
-    candidate = connection.execute(select(notification_outbox.c.id,
+    candidates = connection.execute(select(notification_outbox.c.id,
         notification_outbox.c.user_id, notification_outbox.c.profile_id).where(
         notification_outbox.c.state == "PENDING",
-    ).order_by(notification_outbox.c.created_at).limit(1)).mappings().first()
-    if candidate is None:
-        return 0
+    ).order_by(notification_outbox.c.created_at, notification_outbox.c.id).limit(limit)).mappings().all()
+    return sum(_deliver_one(connection, send, candidate, now) for candidate in candidates)
+
+
+def _deliver_one(connection: Connection, send: PushTransport | Callable[[str, dict[str, object], str], object],
+                 candidate: Any, now: Any) -> int:
     user = connection.execute(select(users).where(users.c.id == candidate["user_id"]).with_for_update()).mappings().one()
     profile = connection.execute(select(profiles).where(profiles.c.id == candidate["profile_id"]).with_for_update()).mappings().one()
     row = connection.execute(select(notification_outbox).where(

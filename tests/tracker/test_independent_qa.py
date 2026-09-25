@@ -328,3 +328,33 @@ def test_out_of_order_store_notification_cannot_bypass_the_free_foundation_gate(
             history_operations.c.profile_id == profile_id)).scalars().all()
     assert late["stale"] is True and late["operation_id"] is None and operations == []
 
+
+def test_one_notify_tick_delivers_every_due_bundle_and_a_retry_blocks_no_one(database):
+    """QA-8: `deliver_pending` sent one bundle per beat tick (10 s) for the whole system.
+
+    It always picked the oldest PENDING bundle, so a bundle whose device answered
+    RETRY blocked every other account until it went stale (1 h), and throughput
+    was capped at six bundles a minute; later bundles were cancelled unsent.
+    """
+    from uuid import uuid4
+
+    from app.tracker.notifications import RETRY, FakePushTransport, deliver_pending, record_ready
+    from app.tracker.schema import devices, notification_outbox, users
+
+    from .test_schema import identity
+
+    owners = [identity(database, 2001 + index) for index in range(3)]
+    with database.begin() as connection:
+        for index, (user_id, profile_id) in enumerate(owners):
+            connection.execute(users.update().where(users.c.id == user_id).values(notifications_enabled=True))
+            connection.execute(devices.insert().values(
+                id=str(uuid4()), user_id=user_id, push_token=f"token-{index}", permission="GRANTED",
+                last_active_at=datetime.now(UTC) - timedelta(hours=2)))
+            record_ready(connection, profile_id=profile_id, match_id=100 + index, origin="LIVE")
+    transport = FakePushTransport({"token-0": RETRY})
+    with database.begin() as connection:
+        assert deliver_pending(connection, transport) == 2
+    with database.connect() as connection:
+        states = dict(connection.execute(select(notification_outbox.c.user_id, notification_outbox.c.state)).all())
+    assert states == {owners[0][0]: "PENDING", owners[1][0]: "SENT", owners[2][0]: "SENT"}
+
