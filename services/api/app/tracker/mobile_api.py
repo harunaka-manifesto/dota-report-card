@@ -37,6 +37,7 @@ from app.tracker.authentication import (
     rotate_refresh_token,
     verify_identity_token,
 )
+from app.tracker.bootstrap import resume_bootstrap_search
 from app.tracker.context import METRIC_CLASS
 from app.tracker.data_access import data_access_state, restore_access
 from app.tracker.entitlement import AppStoreVerifier, EntitlementError, submit_transaction
@@ -1159,10 +1160,12 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             profile = _active_profile(connection, owner)
             if profile is None:
                 raise HTTPException(409, "STEAM_LINK_REQUIRED")
+            def publish() -> dict[str, object]:
+                resume_bootstrap_search(connection, profile["id"])
+                return {"accepted": request_account_sync(connection, profile["account_id"], scope_days=7) is not None}
+
             response = _idempotent(connection, owner=owner, operation="SYNC", key=idempotency_key,
-                body={}, publish=lambda: {"accepted": request_account_sync(
-                    connection, profile["account_id"], scope_days=7,
-                ) is not None})
+                                   body={}, publish=publish)
         return SyncRequestView.model_validate(response)
 
     @app.put("/devices/{device_ref}", status_code=204)

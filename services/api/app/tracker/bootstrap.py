@@ -46,6 +46,24 @@ def request_bootstrap_search(connection: Connection, profile_id: str, *, attempt
     )
 
 
+def resume_bootstrap_search(connection: Connection, profile_id: str) -> bool:
+    """Reopen an exhausted search on a foreground trigger (onboarding §5.3).
+
+    Temporary provider failure keeps bootstrap non-terminal; bounded automatic
+    retries stop at rest, and the next app open resumes from the stored cursor.
+    """
+    unfinished = connection.scalar(select(bootstrap.c.mode).where(
+        bootstrap.c.profile_id == profile_id, bootstrap.c.search_finished.is_(False)).limit(1))
+    if unfinished is None:
+        return False
+    reopened = connection.execute(ingest_jobs.update().where(
+        ingest_jobs.c.profile_id == profile_id, ingest_jobs.c.job_type == "BOOTSTRAP_SEARCH",
+        ingest_jobs.c.state == "FAILED",
+    ).values(state="PENDING", attempts=0, run_after=func.clock_timestamp(), lease_token=None,
+             lease_until=None, last_error=None).returning(ingest_jobs.c.id)).first()
+    return reopened is not None
+
+
 def _select_initial_candidates(connection: Connection, profile_id: str) -> None:
     """Acquire the first 30 per mode; later eligibility may require replacements."""
     for mode in ("STANDARD", "TURBO"):

@@ -177,3 +177,52 @@ async def test_terminal_historical_batch_failure_settles_bootstrap_through_summa
     assert [state for state, _ in batch] == ["FAILED"]
     assert outcome["STANDARD"] in {"READY", "READY_WITH_GAPS"} and outcome["TURBO"] == "NO_MATCHES_FOUND"
     assert links == {imported["match_id"]: ("BOOTSTRAP", "READY"), live["match_id"]: ("LIVE", "READY")}
+
+
+async def _fail_bootstrap_search(database, redis_client, attempts: int = 5) -> None:
+    from app.tracker.bootstrap import search_bootstrap_page
+    from app.tracker.jobs import claim
+    from app.tracker.provider_control import ProviderGate
+    from app.tracker.schema import ingest_jobs
+
+    redis, namespace = redis_client
+    gate = ProviderGate(redis, namespace=namespace, provider="opendota")
+    outage = httpx.MockTransport(lambda request: httpx.Response(502, json={}, headers=HEADERS))
+    for _ in range(attempts):
+        gate.observe(HEADERS, status=200)  # keep the breaker closed: count real attempts only
+        with database.begin() as connection:
+            connection.execute(update(ingest_jobs).where(ingest_jobs.c.job_type == "BOOTSTRAP_SEARCH").values(
+                run_after=func.clock_timestamp() - timedelta(seconds=1)))
+            job = claim(connection, priority=3)
+        assert job is not None and job["job_type"] == "BOOTSTRAP_SEARCH"
+        await search_bootstrap_page(database, gate, Settings(), job_id=job["id"], lease_token=job["lease_token"],
+                                    transport=outage)
+
+
+async def test_failed_bootstrap_search_resumes_on_the_next_foreground_trigger(database, redis_client):
+    """QA-4: a bootstrap search that exhausted its retries stayed FAILED forever.
+
+    Onboarding §5.3: temporary retries keep bootstrap non-terminal; live work of
+    each mode waits for it (§15). With no path back, every live match waited in
+    WAITING_FOR_PRIOR_MATCH permanently. The next app open must resume it.
+    """
+    from app.tracker.schema import bootstrap, ingest_jobs
+
+    now = datetime.now(UTC)
+    linked_at = now - timedelta(days=1)
+    profile_id, token = _steam_owner(database, "search-failure", 1001, linked_at)
+    await _fail_bootstrap_search(database, redis_client)
+    with database.connect() as connection:
+        assert connection.scalar(select(ingest_jobs.c.state).where(
+            ingest_jobs.c.job_type == "BOOTSTRAP_SEARCH")) == "FAILED"
+    live = _match(9_400_000_031, now - timedelta(hours=6), 1001)
+    client = TestClient(create_mobile_app(Settings(), database=database))
+    _sync(client, token, "sync-after-outage")
+    await _drain(database, redis_client, httpx.MockTransport(WindowedOpenDota(1001, [live])), rounds=20)
+    with database.connect() as connection:
+        outcome = dict(connection.execute(select(bootstrap.c.mode, bootstrap.c.outcome)).all())
+        lifecycle = connection.scalar(select(account_matches.c.lifecycle).where(
+            account_matches.c.profile_id == profile_id))
+    assert outcome == {"STANDARD": "NO_MATCHES_FOUND", "TURBO": "NO_MATCHES_FOUND"}
+    assert lifecycle == "READY"
+
