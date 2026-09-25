@@ -5,13 +5,14 @@ Two products share this repository. Read this router, then the rules for the pro
 | Product | Status | Authoritative sources |
 |---|---|---|
 | **Dota Tracker** (native iOS + tracker backend) | Current product; backend under implementation, not deployed | [Tracker SSOTs](docs/tracker/README.md), [architecture and ADRs](docs/tracker/architecture/README.md), [runbook](docs/tracker/operations/README.md), [ledger](docs/tracker/architecture/IMPLEMENTATION-LEDGER.md) |
-| **Dota Report Card / Free DNA** (web + legacy `/v1` API) | Deprecated but **live in production** | The operating contract below, [production safety](docs/agent/production-safety.md), [legacy boundaries](docs/legacy/README.md) |
+| **Dota Report Card / Free DNA** (web + legacy `/v1` API) | Deprecated but **live in production** | The operating contract below, [production safety](legacy/docs/agent/production-safety.md), [legacy boundaries](legacy/README.md) |
 
 Tracker work:
 
 - Product meaning comes only from `docs/tracker/**` feature SSOTs; system behaviour from
-  `docs/tracker/architecture/`. Report-era documents, `graphify-out/`, `api.json` and
-  `docs/{architecture,product,qa,ui-revamp,prompts,progression}/` are not tracker truth.
+  `docs/tracker/architecture/`. Report-era documents, `legacy/graphify-out/`,
+  `docs/tracker/reference/opendota-openapi.json` and
+  `legacy/docs/{architecture,product,qa,ui-revamp}/` are not tracker truth.
 - Tracker code lives in `services/api/app/tracker/` and `migrations/versions/0006+`. It must not
   change legacy tables, routes, persisted reports or retention.
 - Changes that alter ADR 0001–0005 decisions (client boundary, canonical boundary, `match_id` as
@@ -66,11 +67,11 @@ A change is NOT safe merely because the build, lint, TypeScript, unit tests, or
 synthetic fixtures pass, or because newly generated reports work. Backward
 compatibility with persisted reports is a release requirement.
 
-Read [production safety](docs/agent/production-safety.md) before changing
+Read [production safety](legacy/docs/agent/production-safety.md) before changing
 production-connected code or release behavior.
 
 Agents designing or changing analytical behavior must also read
-[analytical learnings and gotchas](docs/agent/analytical-learnings-and-gotchas.md).
+[analytical learnings and gotchas](legacy/docs/agent/analytical-learnings-and-gotchas.md).
 
 ## 3. TASK CLASSIFICATION
 
@@ -116,7 +117,7 @@ versioned public contract. When a field is absent:
 The entire report MUST NOT crash because presentation-only information is
 unavailable.
 
-Read [persisted report compatibility](docs/agent/persisted-report-compatibility.md)
+Read [persisted report compatibility](legacy/docs/agent/persisted-report-compatibility.md)
 for the compatibility boundary and degradation rules.
 
 ## 5. RUNTIME JSON > TYPES
@@ -170,7 +171,7 @@ payload shapes get new fixtures. The recommended location is:
 
 Historical compatibility is a release gate, not a best-effort check.
 
-Read [testing and release gates](docs/agent/testing-and-release-gates.md)
+Read [testing and release gates](legacy/docs/agent/testing-and-release-gates.md)
 before changing a report renderer.
 
 ## 8. REAL PRODUCTION-SHAPED FIXTURES
@@ -285,7 +286,7 @@ Current V6.1 release references:
 These are historical/current V6.1 release references. They MUST change only
 as part of an explicitly authorized analytical release.
 
-Read [analytical release invariants](docs/agent/analytical-release-invariants.md)
+Read [analytical release invariants](legacy/docs/agent/analytical-release-invariants.md)
 for the source, artifact, and deployment identity boundary.
 
 ## 13. OPENDOTA COST PROTECTION

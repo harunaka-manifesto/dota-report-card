@@ -3,7 +3,7 @@
 A runtime request has one player. Every V7 analytical output is
 population-relative, so the parameters that place a player on the population
 spread cannot be fitted per request -- they are frozen once from DISCOVERY and
-shipped with the app. See ``docs/architecture/v7-runtime-capability-payload.md``
+shipped with the app. See ``legacy/docs/architecture/v7-runtime-capability-payload.md``
 section 1.
 
 Everything here **fails closed**. An unknown dimension raises rather than

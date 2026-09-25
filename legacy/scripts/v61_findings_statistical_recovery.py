@@ -1905,7 +1905,7 @@ def main() -> int:
         raise SystemExit(f"expected 791 trace records, found {len(records)}")
 
     code_audit = _code_audit()
-    old_report_display_path = Path("docs/evidence/free-dna-v6.1-suppression-autopsy-2026-08-27.md")
+    old_report_display_path = Path("legacy/docs/evidence/free-dna-v6.1-suppression-autopsy-2026-08-27.md")
     diagnosis = {
         "claims": [
             {"claim": "791 tuning profiles evaluated offline", "status": "CONFIRMED", "evidence": "trace records=791, errors=0"},
@@ -1958,7 +1958,7 @@ def main() -> int:
     _write_json(output / "aggregate_summary.json", aggregate)
     prompt = _implementation_prompt(specs)
     prompt_path = ROOT / "docs/prompts/v61-findings-recovery-implementation.md"
-    report_path = ROOT / "docs/evidence/free-dna-v6.1-findings-statistical-recovery-2026-08-27.md"
+    report_path = ROOT / "legacy/docs/evidence/free-dna-v6.1-findings-statistical-recovery-2026-08-27.md"
     prompt_path.parent.mkdir(parents=True, exist_ok=True)
     prompt_path.write_text(prompt, encoding="utf-8")
     report_path.parent.mkdir(parents=True, exist_ok=True)

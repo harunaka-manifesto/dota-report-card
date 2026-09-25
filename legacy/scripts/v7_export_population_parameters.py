@@ -63,7 +63,7 @@ POPULATION_PARAMETERS_VERSION = "v7-population-parameters-1.0.0"
 #: fresh fit would claim a reproducibility the repository does not have.
 DERIVATION_METHOD = "DERIVED FROM COMMITTED DISCOVERY EVIDENCE — NOT REFIT FROM SOURCE CORPUS"
 
-EVIDENCE = REPO_ROOT / "docs" / "evidence"
+EVIDENCE = REPO_ROOT / "legacy" / "docs" / "evidence"
 PIPELINE_EVIDENCE = EVIDENCE / "v7-finding-pipeline-2026-09-05.json"
 RECOMMENDATION_EVIDENCE = EVIDENCE / "v7-recommendation-selection-2026-09-06.json"
 ARCHETYPE_EVIDENCE = EVIDENCE / "v7-archetype-axes-2026-09-06.json"

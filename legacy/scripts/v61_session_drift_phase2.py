@@ -2716,7 +2716,7 @@ def _analyze(paths: Mapping[str, Path], local_root: Path, *, multiplicity_repeti
     collection_info = _write_collection_artifacts(paths, status="ANALYZED")
     aggregate["cost"] = collection_info["cost"]
     _private_write(paths["diagnostics"] / "aggregate_summary.json", aggregate)
-    evidence_path = ROOT / "docs" / "evidence" / "free-dna-v6.1-session-drift-phase2-execution-2026-08-28.md"
+    evidence_path = ROOT / "legacy" / "docs" / "evidence" / "free-dna-v6.1-session-drift-phase2-execution-2026-08-28.md"
     evidence_path.parent.mkdir(parents=True, exist_ok=True)
     evidence_path.write_text(
         _evidence_markdown(

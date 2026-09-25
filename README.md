@@ -64,38 +64,38 @@ Mirror. Deep Scan remains an explicit separate mode with its own budgets.
 Before modifying this repository, read [AGENTS.md](AGENTS.md).
 
 It contains mandatory production, compatibility, testing, and release rules.
-Detailed references live in [docs/agent/](docs/agent/).
+Detailed references live in [legacy/docs/agent/](legacy/docs/agent/).
 
 ## Architecture
 
 - [Architecture](ARCHITECTURE.md)
-- [Free DNA system](docs/architecture/free-dna-system.md)
-- [Elements](docs/architecture/elements.md)
-- [Patterns](docs/architecture/patterns.md)
-- [Pattern presentation](docs/architecture/pattern-presentation.md)
-- [Hero relationships](docs/architecture/hero-relationships.md)
-- [Hero matchups and synergies](docs/architecture/hero-matchups-and-synergies.md)
-- [Hero Portfolio](docs/architecture/hero-portfolio.md)
-- [Report flow](docs/architecture/report-flow.md)
-- [Data provenance](docs/architecture/data-provenance.md)
-- [Model catalog](docs/architecture/model-catalog.md)
-- [Free DNA V6.1 feature graph](docs/architecture/free-dna-v6.1-feature-graph.md)
+- [Free DNA system](legacy/docs/architecture/free-dna-system.md)
+- [Elements](legacy/docs/architecture/elements.md)
+- [Patterns](legacy/docs/architecture/patterns.md)
+- [Pattern presentation](legacy/docs/architecture/pattern-presentation.md)
+- [Hero relationships](legacy/docs/architecture/hero-relationships.md)
+- [Hero matchups and synergies](legacy/docs/architecture/hero-matchups-and-synergies.md)
+- [Hero Portfolio](legacy/docs/architecture/hero-portfolio.md)
+- [Report flow](legacy/docs/architecture/report-flow.md)
+- [Data provenance](legacy/docs/architecture/data-provenance.md)
+- [Model catalog](legacy/docs/architecture/model-catalog.md)
+- [Free DNA V6.1 feature graph](legacy/docs/architecture/free-dna-v6.1-feature-graph.md)
 
 The archive contains superseded material and is not the active implementation
 contract.
 
 The V6.0 implementation record is retained as V6.1 lineage evidence. Its
 statistical and Deep contracts are documented in
-[V6 statistics](docs/architecture/free-dna-v6-statistics.md) and
-[Deep diagnostics v2](docs/architecture/deep-diagnostics-v2.md). Build reviewed
+[V6 statistics](legacy/docs/architecture/free-dna-v6-statistics.md) and
+[Deep diagnostics v2](legacy/docs/architecture/deep-diagnostics-v2.md). Build reviewed
 artifacts with `scripts/build_v6_calibration_artifacts.py`; do not place
 production artifacts in `tests/fixtures/v6`. The operator workflow is in the
-[V6 release and rollback runbook](docs/operations/free-dna-v6-release.md). The
+[V6 release and rollback runbook](legacy/docs/operations/free-dna-v6-release.md). The
 V6.1 status, compatibility matrix, and release boundary are in the
-[V6.1 feature graph](docs/architecture/free-dna-v6.1-feature-graph.md) and
-[V6.1 release gates](docs/qa/free-dna-v6.1-release-gates.md).
-The V7 provider boundary is [documented here](docs/architecture/stratz-v7-provider-contract.md),
-and analytical agents must read the [learnings and gotchas manual](docs/agent/analytical-learnings-and-gotchas.md).
+[V6.1 feature graph](legacy/docs/architecture/free-dna-v6.1-feature-graph.md) and
+[V6.1 release gates](legacy/docs/qa/free-dna-v6.1-release-gates.md).
+The V7 provider boundary is [documented here](legacy/docs/architecture/stratz-v7-provider-contract.md),
+and analytical agents must read the [learnings and gotchas manual](legacy/docs/agent/analytical-learnings-and-gotchas.md).
 
 ## Verification
 

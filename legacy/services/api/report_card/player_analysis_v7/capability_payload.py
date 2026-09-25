@@ -1,6 +1,6 @@
 """The frontend-facing V7 capability payload.
 
-Implements `docs/architecture/v7-runtime-capability-payload.md`.
+Implements `legacy/docs/architecture/v7-runtime-capability-payload.md`.
 
 **Capability-oriented, not screen-oriented.** The payload says what is true
 about a player; it never says what to show first. Sequence, hierarchy and

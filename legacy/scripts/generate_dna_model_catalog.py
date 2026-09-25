@@ -34,7 +34,7 @@ from report_card.player_analysis_v61.versions import (  # noqa: E402
     VERSION_SURFACES,
 )
 
-CATALOG_PATH = ROOT / "docs" / "architecture" / "model-catalog.md"
+CATALOG_PATH = ROOT / "legacy" / "docs" / "architecture" / "model-catalog.md"
 BEGIN = "<!-- BEGIN GENERATED MODEL CATALOG -->"
 END = "<!-- END GENERATED MODEL CATALOG -->"
 

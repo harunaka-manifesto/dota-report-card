@@ -1,6 +1,6 @@
 """Per-player Finding ranking for V7.
 
-This module implements ``docs/evidence/v7-finding-ranking-model-2026-09-05.md``.
+This module implements ``legacy/docs/evidence/v7-finding-ranking-model-2026-09-05.md``.
 It answers a different question than ``report_card.player_analysis_v7.research.inference``: that
 module asks whether a player's effect is *distinguishable from the
 population*; this module assumes the effect is real for the player and asks

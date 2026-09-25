@@ -18,6 +18,7 @@ def main() -> None:
     research_files = {
         path.relative_to(ROOT).as_posix()
         for path in research_root.glob("*.md")
+        if path.name != "README.md"
     }
     referenced_files = {
         str((hero.provenance or {}).get("research_file"))

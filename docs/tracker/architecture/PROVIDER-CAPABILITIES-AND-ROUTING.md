@@ -60,7 +60,7 @@ Conflating the two is the specific failure this document exists to prevent. "We 
 
 ## 4. Capability matrix
 
-Two independent investigations produced capability matrices on 2026-09-20. They agree on every material point; where their granularity differs, the more conservative reading is used here. Full matrices: [`evidence/post-match-ingestion-probe-2026-09-20.md`](evidence/post-match-ingestion-probe-2026-09-20.md) §5 and [`../../evidence/provider-post-match-architecture-investigation-2026-09-20.md`](../../evidence/provider-post-match-architecture-investigation-2026-09-20.md) §5.
+Two independent investigations produced capability matrices on 2026-09-20. They agree on every material point; where their granularity differs, the more conservative reading is used here. Full matrices: [`evidence/post-match-ingestion-probe-2026-09-20.md`](evidence/post-match-ingestion-probe-2026-09-20.md) §5 and [`evidence/provider-post-match-architecture-investigation-2026-09-20.md`](evidence/provider-post-match-architecture-investigation-2026-09-20.md) §5.
 
 **Class** answers "what does this cost us architecturally?":
 

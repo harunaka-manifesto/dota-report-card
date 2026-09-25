@@ -39,7 +39,7 @@ batch size until it trips.
 `PlayerType.matchesGroupBy(request:)` exists and was never fetched. If it
 aggregates server-side it is a large cost lever. It is also a **provenance
 risk**: an aggregate we did not compute is an aggregate we cannot version, and
-`docs/evidence-contract.md` requires methodology versioning on every public
+`legacy/docs/evidence-contract.md` requires methodology versioning on every public
 Element. Worth measuring, probably not worth using.
 
 **Status: BLOCKED — needs payload.** Query `C2` below.

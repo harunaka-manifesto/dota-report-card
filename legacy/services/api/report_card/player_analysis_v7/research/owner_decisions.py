@@ -1,6 +1,6 @@
 """The owner's nine V7 selections, recorded so code can be checked against them.
 
-`docs/evidence/v7-owner-selection-packet-2026-09-06.md` put nine decisions to
+`legacy/docs/evidence/v7-owner-selection-packet-2026-09-06.md` put nine decisions to
 the owner; this is what came back, on 2026-09-06. It is a record, not a
 mechanism — nothing here computes anything. Its job is to give the tests a
 single place to compare the implementation against, so a constant cannot drift
@@ -72,7 +72,7 @@ DECISIONS: dict[str, Decision] = {
                 "apart. The interval is wider than the band, and because it is "
                 "dominated by within-player measurement error, more accounts cannot "
                 "narrow it. See "
-                "docs/evidence/v7-cut-point-calibration-dry-run-2026-09-06.md.",
+                "legacy/docs/evidence/v7-cut-point-calibration-dry-run-2026-09-06.md.",
             ),
         ),
         Decision(

@@ -12,11 +12,11 @@ computations) has an unambiguous target to fill in. It deliberately does not:
 
 Sources of truth for the shapes defined here:
 
-- ``docs/evidence/v7-report-narrative-and-data-requirements-2026-09-04.md``
+- ``legacy/docs/evidence/v7-report-narrative-and-data-requirements-2026-09-04.md``
   (section-by-section spec, section numbers referenced in docstrings below),
-- ``docs/evidence/v7-finding-ranking-model-2026-09-05.md`` (what a Finding
+- ``legacy/docs/evidence/v7-finding-ranking-model-2026-09-05.md`` (what a Finding
   carries: z, reliability, score, direction, interval),
-- ``docs/evidence/v7-improvement-recommendation-model-2026-09-05.md`` (what
+- ``legacy/docs/evidence/v7-improvement-recommendation-model-2026-09-05.md`` (what
   the single section-5 recommendation carries).
 
 Conventions are matched to the existing V6.1 payload style in
@@ -82,7 +82,7 @@ Findings and recommendations are expected to land on positive or negative."""
 # calibrated. A Finding carries its ``direction``, its ``score`` and its
 # ``estimate`` (a shrunk point estimate with an interval), which say everything
 # a band would have said and say it at the precision the data supports.
-# See docs/evidence/v7-cut-point-calibration-dry-run-2026-09-06.md.
+# See legacy/docs/evidence/v7-cut-point-calibration-dry-run-2026-09-06.md.
 
 ReportSectionKey = Literal[
     "history",

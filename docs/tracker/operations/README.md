@@ -18,7 +18,7 @@ Related pages: [provider operations](providers.md) · [deployment notes](deploym
 | Tracker tests | `tests/tracker/` (PostgreSQL + Redis required), `tests/unit/test_migrations.py` |
 | Sanitized fixtures | `tests/fixtures/tracker/` (provider specimens, golden mobile responses) |
 | Local seed, OpenAPI export, traceability | `scripts/tracker_seed_demo.py`, `scripts/tracker_export_openapi.py`, `scripts/tracker_traceability.py` |
-| Live legacy report product (still in production) | `apps/web/`, legacy `/v1` routes, `services/api/app/{analysis,player_analysis_*,…}` — see [legacy boundaries](../../legacy/README.md) |
+| Live legacy report product (still in production) | `apps/web/`, legacy `/v1` routes, `services/api/app/{analysis,player_analysis_*,…}` — see [legacy boundaries](../../../legacy/README.md) |
 
 ## Local dependencies
 

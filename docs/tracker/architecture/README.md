@@ -151,7 +151,7 @@ Kept deliberately light. Only metadata that earns its place.
 
 **Every feature SSOT affected by this architecture carries an `## Architecture dependencies` section** linking back to the specific sections it relies on — not restating them.
 
-**Diagrams are Mermaid**, consistent with the rest of the repository (`docs/architecture/`, `ARCHITECTURE.md`). A diagram exists only where it removes ambiguity that prose leaves. No diagram duplicates a paragraph.
+**Diagrams are Mermaid**, consistent with the rest of the repository (`legacy/docs/architecture/`, `ARCHITECTURE.md`). A diagram exists only where it removes ambiguity that prose leaves. No diagram duplicates a paragraph.
 
 **Evidence tags** are preserved verbatim from the source investigations and MUST NOT be upgraded:
 

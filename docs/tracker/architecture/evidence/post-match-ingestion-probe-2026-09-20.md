@@ -220,7 +220,7 @@ Individual Token comfortably covers a six-figure DAU product under the architect
 **TESTED** header confirmation: unauthenticated → `x-rate-limit-remaining-minute: 59`,
 `x-rate-limit-remaining-day: 2999`. With our key → `x-rate-limit-remaining-minute: 2999`, **no day header at all**.
 
-**VERIFIED** from OpenDota's own OpenAPI spec (bundled at `api.json` in this repo):
+**VERIFIED** from OpenDota's own OpenAPI spec (bundled at `docs/tracker/reference/opendota-openapi.json` in this repo):
 `POST /request/{match_id}` — *"This call counts as 10 calls for rate limit (but not billing) purposes."*
 So a parse request bills $0.0001 and consumes 10 of the 3,000/min budget → 300 parse requests/min ceiling.
 

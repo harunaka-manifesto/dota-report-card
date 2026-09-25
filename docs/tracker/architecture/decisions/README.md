@@ -10,7 +10,7 @@
 
 A record of one architecturally significant decision: its context, the decision, and what it costs us. ADRs capture **why**. The architecture documents capture **what the system must now do**. Do not put normative system rules only in an ADR, and do not put rationale only in an architecture document.
 
-Format follows the convention already in this repository ([`../../../decisions/`](../../../decisions/)): `NNNN-kebab-title.md`, with `Date`, `Status`, `## Context`, `## Decision`, `## Consequences`.
+Format follows the convention already in this repository ([`../../../../legacy/docs/decisions/`](../../../../legacy/docs/decisions/)): `NNNN-kebab-title.md`, with `Date`, `Status`, `## Context`, `## Decision`, `## Consequences`.
 
 ---
 

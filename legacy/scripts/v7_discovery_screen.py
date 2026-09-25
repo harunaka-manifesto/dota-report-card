@@ -4,8 +4,8 @@
 DISCOVERY only. No provider call, no reserved split, no raw payload written.
 Every table in the Luna B evidence document is reproducible from this script.
 
-    uv run python scripts/v7_discovery_screen.py \
-        --corpus-root <corpus> --out docs/evidence/<name>.json
+    uv run python legacy/scripts/v7_discovery_screen.py \
+        --corpus-root <corpus> --out legacy/docs/evidence/<name>.json
 """
 
 from __future__ import annotations

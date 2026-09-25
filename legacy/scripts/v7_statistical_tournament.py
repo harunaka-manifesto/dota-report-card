@@ -4,18 +4,18 @@
 Three stages, in this order and no other:
 
     # 1. freeze the inference design, before any confirmation data is touched
-    uv run python scripts/v7_statistical_tournament.py freeze-design \
-        --out docs/evidence/v7-inference-design-2026-09-03.json
+    uv run python legacy/scripts/v7_statistical_tournament.py freeze-design \
+        --out legacy/docs/evidence/v7-inference-design-2026-09-03.json
 
     # 2. everything that may be iterated on: DISCOVERY only
-    uv run python scripts/v7_statistical_tournament.py discovery \
-        --corpus-root <corpus> --design docs/evidence/v7-inference-design-2026-09-03.json \
-        --out docs/evidence/v7-statistical-tournament-discovery-2026-09-03.json
+    uv run python legacy/scripts/v7_statistical_tournament.py discovery \
+        --corpus-root <corpus> --design legacy/docs/evidence/v7-inference-design-2026-09-03.json \
+        --out legacy/docs/evidence/v7-statistical-tournament-discovery-2026-09-03.json
 
     # 3. exactly one confirmation pass
-    uv run python scripts/v7_statistical_tournament.py candidate-test \
-        --corpus-root <corpus> --design docs/evidence/v7-inference-design-2026-09-03.json \
-        --out docs/evidence/v7-statistical-tournament-candidate-test-2026-09-03.json
+    uv run python legacy/scripts/v7_statistical_tournament.py candidate-test \
+        --corpus-root <corpus> --design legacy/docs/evidence/v7-inference-design-2026-09-03.json \
+        --out legacy/docs/evidence/v7-statistical-tournament-candidate-test-2026-09-03.json
 
 The confirmation stage refuses to run unless the frozen design file exists and
 its digest still matches the code, and it appends one line to an access ledger
@@ -124,7 +124,7 @@ SESSION_FAMILIES = (
 #: information-eligible afterwards.
 VOLUME_CAP = 500
 
-LEDGER = REPO_ROOT / "docs" / "evidence" / "v7-candidate-test-access-ledger.jsonl"
+LEDGER = REPO_ROOT / "legacy" / "docs" / "evidence" / "v7-candidate-test-access-ledger.jsonl"
 
 
 def _repo_relative(path: Path) -> str:

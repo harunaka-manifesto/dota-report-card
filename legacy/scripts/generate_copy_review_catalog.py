@@ -41,8 +41,8 @@ from report_card.content.renderer import (  # noqa: E402
 from report_card.heroes.recommendations import SEMANTIC_RECOMMENDATION_VERSION  # noqa: E402
 from report_card.player_analysis_v61.versions import SEMANTIC_COPY_VERSION  # noqa: E402
 
-OUTPUT_PATH = ROOT / "docs" / "generated" / "free-dna-v5.2-copy-review.md"
-V61_OUTPUT_PATH = ROOT / "docs" / "generated" / "free-dna-v6.1-copy-review.md"
+OUTPUT_PATH = ROOT / "legacy" / "docs" / "generated" / "free-dna-v5.2-copy-review.md"
+V61_OUTPUT_PATH = ROOT / "legacy" / "docs" / "generated" / "free-dna-v6.1-copy-review.md"
 
 
 def _fields(value: object) -> set[str]:

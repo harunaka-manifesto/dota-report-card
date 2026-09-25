@@ -1,6 +1,6 @@
 """Section 5: the single improvement, chosen from the player's own gap.
 
-Implements `docs/evidence/v7-improvement-recommendation-model-2026-09-05.md`.
+Implements `legacy/docs/evidence/v7-improvement-recommendation-model-2026-09-05.md`.
 
 The Finding ranking answers *what is most distinctively you*. This answers a
 different question, and reusing the ranking for it would be wrong: the most

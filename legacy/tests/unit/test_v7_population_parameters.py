@@ -24,10 +24,10 @@ from report_card.player_analysis_v7.research.archetype import MODE_STRATA
 from report_card.player_analysis_v7.research.recommendation import RECOMMENDATION_REGISTRY
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-PIPELINE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-new-lineage-finding-fit-2026-09-08.json"
-ARCHETYPE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-new-lineage-archetype-fit-2026-09-08.json"
+PIPELINE_EVIDENCE = REPO_ROOT / "legacy" / "docs" / "evidence" / "v7-new-lineage-finding-fit-2026-09-08.json"
+ARCHETYPE_EVIDENCE = REPO_ROOT / "legacy" / "docs" / "evidence" / "v7-new-lineage-archetype-fit-2026-09-08.json"
 RECOMMENDATION_EVIDENCE = (
-    REPO_ROOT / "docs" / "evidence" / "v7-new-lineage-recommendation-fit-2026-09-08.json"
+    REPO_ROOT / "legacy" / "docs" / "evidence" / "v7-new-lineage-recommendation-fit-2026-09-08.json"
 )
 
 
@@ -189,7 +189,15 @@ def test_the_artifact_records_its_source_evidence_digests() -> None:
 
     p = params()
     for entry in p.source_evidence.values():
+        # The frozen artifact's "path" field records where the evidence lived
+        # when the artifact was written (`docs/evidence/...`). Repository
+        # reorganization later moved evidence under `legacy/docs/evidence/`;
+        # the frozen artifact is not rewritten for that move (it is
+        # digest-pinned via artifact_sha256), so resolve the recorded path
+        # against both locations.
         path = REPO_ROOT / entry["path"]
+        if not path.is_file():
+            path = REPO_ROOT / "legacy" / entry["path"]
         assert path.is_file()
         assert hashlib.sha256(path.read_bytes()).hexdigest() == entry["sha256"]
 

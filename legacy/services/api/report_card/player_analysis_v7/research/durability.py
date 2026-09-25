@@ -3,7 +3,7 @@
 On 2026-09-07 the Pass-1 history corpus was lost from
 ``/private/tmp/dota-report-card-v7-research/.local`` -- roughly 2,900 provider
 requests of irreplaceable data, gone at every layer
-(``docs/evidence/v7-corpus-loss-incident-2026-09-07.md``). This module exists
+(``legacy/docs/evidence/v7-corpus-loss-incident-2026-09-07.md``). This module exists
 so that cannot happen quietly a second time.
 
 **The check resolves symlinks, and that is the whole point.** The lost corpus
@@ -76,7 +76,7 @@ def assert_durable_corpus_root(
     raise VolatileCorpusRoot(
         f"{purpose} resolves to {resolved}, which is volatile storage. "
         "A V7 corpus was lost from exactly such a path on 2026-09-07; see "
-        "docs/evidence/v7-corpus-loss-incident-2026-09-07.md. Note that the "
+        "legacy/docs/evidence/v7-corpus-loss-incident-2026-09-07.md. Note that the "
         "path as written may look durable -- this check follows symlinks. "
         f"To proceed anyway set {OVERRIDE_ENV} to the exact phrase "
         f"{OVERRIDE_ACKNOWLEDGEMENT!r}."

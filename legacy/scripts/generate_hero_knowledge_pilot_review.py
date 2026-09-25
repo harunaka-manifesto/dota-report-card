@@ -11,7 +11,7 @@ from report_card.heroes.knowledge import SnapshotHeroKnowledgeProvider
 from report_card.heroes.recommendations import RecommendationIntent, recommend_semantic_heroes
 
 ROOT = Path(__file__).resolve().parents[2]
-OUTPUT = ROOT / "docs/generated/hero-knowledge-pilot-review.md"
+OUTPUT = ROOT / "legacy/docs/generated/hero-knowledge-pilot-review.md"
 PILOT_SNAPSHOT = (
     ROOT
     / "legacy/services/api/report_card/heroes/data/knowledge/hero-knowledge-semantic-freeze-pilot-v1.json"

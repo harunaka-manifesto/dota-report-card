@@ -21,7 +21,7 @@ from report_card.player_analysis_v7.research.ranking import (
     z,
 )
 
-# Regression anchors from docs/evidence/v7-finding-ranking-model-2026-09-05.md
+# Regression anchors from legacy/docs/evidence/v7-finding-ranking-model-2026-09-05.md
 # section 3. The published table rounds tau/SE/D to 3-4 significant figures,
 # so reproduction is checked to within 1e-3 rather than exact equality against
 # the rounded 3-decimal headline figure.
@@ -467,7 +467,7 @@ def test_reliability_reproduces_every_published_family() -> None:
     payload = json.loads(
         (
             Path(__file__).resolve().parents[3]
-            / "docs/evidence/v7-statistical-tournament-discovery-2026-09-03.json"
+            / "legacy/docs/evidence/v7-statistical-tournament-discovery-2026-09-03.json"
         ).read_text(encoding="utf-8")
     )
     expected = {

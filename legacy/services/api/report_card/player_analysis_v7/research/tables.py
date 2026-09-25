@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import Any
 
 # Verified from payload evidence over the completed corpus (see
-# docs/evidence/v7-canonical-tables-and-capability-atlas-2026-09-03.md):
+# legacy/docs/evidence/v7-canonical-tables-and-capability-atlas-2026-09-03.md):
 #
 #   radiant_networth_leads[i]  cumulative signed Radiant-minus-Dire net worth
 #                              LEVEL at minute i, not an increment

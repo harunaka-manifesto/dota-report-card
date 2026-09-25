@@ -14,9 +14,9 @@ Two **independent** provider investigations were run on 2026-09-20 against live 
 | Report | Location | Emphasis |
 |---|---|---|
 | **Post-match ingestion probe** | [`post-match-ingestion-probe-2026-09-20.md`](post-match-ingestion-probe-2026-09-20.md) | Latency-forward. Larger measured latency cohorts; batching and complexity mechanics; scale and cost simulation. |
-| **Provider architecture investigation** | [`../../../evidence/provider-post-match-architecture-investigation-2026-09-20.md`](../../../evidence/provider-post-match-architecture-investigation-2026-09-20.md) | Structure-forward. Provider-independence discipline; entity model; immutable snapshots; explicit refusal to convert probes into promises. |
+| **Provider architecture investigation** | [`provider-post-match-architecture-investigation-2026-09-20.md`](provider-post-match-architecture-investigation-2026-09-20.md) | Structure-forward. Provider-independence discipline; entity model; immutable snapshots; explicit refusal to convert probes into promises. |
 
-The second report lives under the repository-wide `docs/evidence/` tree with the rest of the evidence archive. It is **linked, not copied** — duplicating it would create two versions of the same evidence.
+The second report is colocated in this directory.
 
 ---
 
@@ -86,7 +86,7 @@ Both reports state their own limits, and those limits are carried forward rather
 
 ## Refreshing this evidence
 
-1. Run the probe. Record it under `docs/evidence/` with its date, exactly as these two were.
+1. Run the probe. Record it under `docs/tracker/architecture/evidence/` with its date, exactly as these two were.
 2. Update the operational numbers in [`../PROVIDER-CAPABILITIES-AND-ROUTING.md`](../PROVIDER-CAPABILITIES-AND-ROUTING.md) §5 and bump its `Evidence date`.
 3. Update this reconciliation if the new evidence changes a resolution.
 4. **Only if the architecture must change:** write a new ADR, supersede the affected one, then run the SSOT propagation audit.

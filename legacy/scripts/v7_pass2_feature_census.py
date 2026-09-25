@@ -136,7 +136,7 @@ def main() -> int:
     parser.add_argument(
         "--out",
         default=str(
-            ROOT / "docs" / "evidence" / "v7-pass2-feature-census-2026-09-05.json"
+            ROOT / "legacy" / "docs" / "evidence" / "v7-pass2-feature-census-2026-09-05.json"
         ),
     )
     args = parser.parse_args()

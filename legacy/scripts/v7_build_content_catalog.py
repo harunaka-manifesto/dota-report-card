@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Emit the machine-readable V7 content catalog from the live registries.
 
-The prose catalogs in ``docs/product/`` are written by hand and can drift from
+The prose catalogs in ``legacy/docs/product/`` are written by hand and can drift from
 the code. This file cannot: every dimension key, label, threshold, weight and
 canonical copy string below is read from the module that owns it at build time,
 so a rename or a re-weighting either shows up here or fails the test that
@@ -41,11 +41,11 @@ from report_card.player_analysis_v7.research.owner_decisions import (  # noqa: E
 CATALOG_VERSION = "v7-content-catalog-1.0.0"
 
 #: Measured on DISCOVERY; the pipeline evidence is the source.
-PIPELINE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-finding-pipeline-2026-09-05.json"
+PIPELINE_EVIDENCE = REPO_ROOT / "legacy" / "docs" / "evidence" / "v7-finding-pipeline-2026-09-05.json"
 RECOMMENDATION_EVIDENCE = (
-    REPO_ROOT / "docs" / "evidence" / "v7-recommendation-selection-2026-09-06.json"
+    REPO_ROOT / "legacy" / "docs" / "evidence" / "v7-recommendation-selection-2026-09-06.json"
 )
-ARCHETYPE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-archetype-axes-2026-09-06.json"
+ARCHETYPE_EVIDENCE = REPO_ROOT / "legacy" / "docs" / "evidence" / "v7-archetype-axes-2026-09-06.json"
 
 #: Human-readable concepts. The only hand-written map here, kept because a
 #: dimension key is not a display string and the backend has nowhere else to
@@ -355,7 +355,7 @@ def build() -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--out", default=str(REPO_ROOT / "docs" / "product" / "v7-content-catalog.json")
+        "--out", default=str(REPO_ROOT / "legacy" / "docs" / "product" / "v7-content-catalog.json")
     )
     parser.add_argument(
         "--check",

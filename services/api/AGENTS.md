@@ -6,7 +6,7 @@ These rules apply to FastAPI routes, report assembly, public schemas,
 analytical services, storage, workers, and backend release work.
 
 Before designing or changing a Finding, read the repository's
-[analytical learnings and gotchas](../../docs/agent/analytical-learnings-and-gotchas.md).
+[analytical learnings and gotchas](../../legacy/docs/agent/analytical-learnings-and-gotchas.md).
 V7 work must remain STRATZ-native and must not inherit V6/V6.1 analytical
 meaning without a new, explicitly versioned release decision.
 
@@ -76,7 +76,7 @@ publication change, identity qualification change, or artifact regeneration is
 allowed without explicit analytical-release authorization.
 
 The current V6.1 analytical source SHA and frozen artifact bundle digest are
-recorded in [analytical release invariants](../../docs/agent/analytical-release-invariants.md).
+recorded in [analytical release invariants](../../legacy/docs/agent/analytical-release-invariants.md).
 A deployed code SHA is a separate identity and must not be substituted for
 either reference.
 
@@ -87,5 +87,5 @@ requested, do not merge main, deploy Vercel production, deploy Railway, modify
 production environment variables, toggle production flags, or change release
 metadata. Return a validated commit and wait.
 
-See [production safety](../../docs/agent/production-safety.md) and
-[testing and release gates](../../docs/agent/testing-and-release-gates.md).
+See [production safety](../../legacy/docs/agent/production-safety.md) and
+[testing and release gates](../../legacy/docs/agent/testing-and-release-gates.md).

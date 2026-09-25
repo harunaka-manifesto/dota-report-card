@@ -120,7 +120,7 @@ Verified semantics, and the measurement that established each one
    0.302, mean 0.303 — and does NOT approximate ``gold_spent`` or
    ``networth`` as a whole (mean/median ratio to ``networth`` is far off
    and highly variable). This is expected: per
-   ``docs/evidence/v7-pass2-production-collection-2026-09-04.md`` §2b,
+   ``legacy/docs/evidence/v7-pass2-production-collection-2026-09-04.md`` §2b,
    ancient-camp and bounty-rune gold were traded away for the complexity
    budget, and kill/tower/comeback gold were never in these buckets to
    begin with. ``lane_vs_jungle_gold()`` therefore answers "how much of
@@ -156,7 +156,7 @@ from report_card.player_analysis_v7.research.durability import assert_durable_co
 from report_card.player_analysis_v7.research.rank_fence import assert_row_is_analysis_safe
 
 # Pass 2 collects DISCOVERY only (see
-# docs/evidence/v7-pass2-production-collection-2026-09-04.md §4). Mirrors
+# legacy/docs/evidence/v7-pass2-production-collection-2026-09-04.md §4). Mirrors
 # the runner's own constant; not imported from the runner to avoid pulling
 # in its network/collection dependencies for a read-only reader.
 PASS2_SPLIT = "DISCOVERY"
@@ -318,7 +318,7 @@ def team_lead_curve(row: dict[str, Any]) -> list[int] | None:
     """The team net-worth lead, oriented to the sampled player.
 
     The provider reports the lead from Radiant's point of view (verified
-    in Pass 1; see ``docs/evidence/v7-canonical-tables-and-capability-atlas-2026-09-03.md``
+    in Pass 1; see ``legacy/docs/evidence/v7-canonical-tables-and-capability-atlas-2026-09-03.md``
     §2). Pass 2 rows carry the same match-level ``radiant_networth_leads``
     array as Pass 1, so this reuses ``tables.player_networth_lead`` rather
     than re-deriving the sign rule — only the ``is_radiant`` field has
@@ -547,7 +547,7 @@ def is_pass2_product_context(row: dict[str, Any]) -> bool:
 #
 # stats.actionsPerMinute is collected but stored under
 # quarantined_trajectories, never alongside the analytical trajectories
-# (see docs/evidence/v7-pass2-production-collection-2026-09-04.md §2).
+# (see legacy/docs/evidence/v7-pass2-production-collection-2026-09-04.md §2).
 # Click rate is a legitimate behavioural descriptor AND correlates with
 # skill, so it must never drift into a Finding unreviewed. trajectory()
 # raises if asked for it; the only way to reach it is the function below,

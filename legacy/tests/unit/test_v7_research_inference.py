@@ -654,7 +654,7 @@ def test_the_current_freeze_on_disk_still_matches_the_code() -> None:
 
     from legacy.scripts.v7_statistical_tournament import REPO_ROOT, _check_design
 
-    frozen = Path(REPO_ROOT) / "docs" / "evidence" / "v7-inference-design-2026-09-03.json"
+    frozen = Path(REPO_ROOT) / "legacy" / "docs" / "evidence" / "v7-inference-design-2026-09-03.json"
     if not frozen.is_file():  # pragma: no cover - only when the artefact is absent
         pytest.skip("frozen design artefact not present")
     payload = _check_design(str(frozen))

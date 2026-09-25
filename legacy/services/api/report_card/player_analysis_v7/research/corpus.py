@@ -36,7 +36,8 @@ FREEZE_ROOT_ENV = "V7_FREEZE_ROOT"
 #: Ledgering after the fact does not work: an aborted read leaves the data seen
 #: and the ledger clean, which is exactly the failure this control exists for.
 CANDIDATE_TEST_LEDGER = (
-    Path(__file__).resolve().parents[6] / "docs" / "evidence" / "v7-candidate-test-access-ledger.jsonl"
+    Path(__file__).resolve().parents[6]
+    / "legacy" / "docs" / "evidence" / "v7-candidate-test-access-ledger.jsonl"
 )
 
 class CorpusError(RuntimeError):

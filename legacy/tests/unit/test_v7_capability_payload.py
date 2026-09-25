@@ -3,7 +3,7 @@
 The payload is what a frontend agent codes against, so an invariant that is
 documented but unenforced is worse than none: it invites a design built on a
 promise the backend does not keep. Every invariant in
-``docs/architecture/v7-runtime-capability-payload.md`` section 4 is tested here
+``legacy/docs/architecture/v7-runtime-capability-payload.md`` section 4 is tested here
 with both a passing and a failing case.
 """
 

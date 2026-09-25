@@ -1,7 +1,7 @@
 """Per-player Finding estimands over the V7 Pass-2 corpus.
 
 This module is **feature extraction only**: one function per Finding
-dimension (`docs/evidence/v7-report-narrative-and-data-requirements-2026-09-04.md`
+dimension (`legacy/docs/evidence/v7-report-narrative-and-data-requirements-2026-09-04.md`
 §2.10), each folding a player's own product-context rows into a single
 value (or a win/loss-style contrast) plus the observation count it rests
 on. It does not rank, z-score, or assess reliability — that is a separate

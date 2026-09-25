@@ -16,7 +16,7 @@ from report_card.player_analysis_v7.research import archetype, ranking, recommen
 from legacy.scripts.v7_build_content_catalog import CATALOG_VERSION, build
 
 CATALOG_PATH = (
-    Path(__file__).resolve().parents[3] / "docs" / "product" / "v7-content-catalog.json"
+    Path(__file__).resolve().parents[3] / "legacy" / "docs" / "product" / "v7-content-catalog.json"
 )
 
 
@@ -27,7 +27,7 @@ def _committed() -> dict:
 def test_the_committed_catalog_matches_a_fresh_build() -> None:
     expected = json.dumps(build(), indent=2, sort_keys=True) + "\n"
     assert CATALOG_PATH.read_text(encoding="utf-8") == expected, (
-        "docs/product/v7-content-catalog.json is stale; regenerate it with "
+        "legacy/docs/product/v7-content-catalog.json is stale; regenerate it with "
         "legacy/scripts/v7_build_content_catalog.py"
     )
 
