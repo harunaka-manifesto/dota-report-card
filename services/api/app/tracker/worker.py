@@ -60,11 +60,12 @@ def admission(database: Engine, redis: Redis, priority: int, policy: WorkerPolic
     p1 = queue_metrics(database)[1]
     reason = "P1_DEPTH" if p1["depth"] >= policy.p1_depth_limit else "P1_AGE" if p1["oldest_seconds"] >= policy.p1_age_seconds else None
     if reason is None:
-        for provider in ("opendota", "stratz"):
-            utilization = ProviderGate(redis, namespace=policy.namespace, provider=provider).utilization()
-            if utilization is None or utilization >= policy.quota_utilization_limit:
-                reason = "PROVIDER_BUDGET"
-                break
+        # OpenDota serves the fresh path, so background work yields to it. STRATZ is
+        # called only by P3 batches: its window is learned from their own discovery
+        # read and enforced per request by its gate. Requiring it here deadlocked P3.
+        utilization = ProviderGate(redis, namespace=policy.namespace, provider="opendota").utilization()
+        if utilization is None or utilization >= policy.quota_utilization_limit:
+            reason = "PROVIDER_BUDGET"
     if priority == 3:
         return reason
     if reason and not redis.set(f"{policy.namespace}:p2-pressure-slot", "1", nx=True, ex=policy.p2_pressure_interval_seconds):

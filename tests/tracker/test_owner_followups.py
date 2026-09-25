@@ -250,3 +250,71 @@ def test_production_cursor_endpoints_fail_closed_without_a_secret_but_the_app_st
         assert client.get("/history", headers=headers).status_code == 503
         assert client.get("/changes", headers=headers).status_code == 503
         assert client.get("/account", headers=headers).status_code == 200
+
+
+# -- live smoke findings --------------------------------------------------------------
+
+async def _drain_production_like(database, redis_client, transport, *, settings=None, rounds: int = 40) -> None:
+    """Like the e2e drain, but only OpenDota's window is ever observed, as in production."""
+    from app.tracker.provider_control import ProviderGate
+    from app.tracker.worker import WorkerPolicy, run_one
+
+    from .test_e2e_matrix import HEADERS, _due
+
+    redis, namespace = redis_client
+    policy = WorkerPolicy(namespace=namespace)
+    ProviderGate(redis, namespace=namespace, provider="opendota").observe(HEADERS, status=200)
+    for _ in range(rounds):
+        _due(database)
+        progressed = False
+        for priority in range(4):
+            for _step in range(20):
+                outcome = await run_one(database, redis, settings or Settings(), priority=priority, policy=policy,
+                                        transport=transport)
+                if outcome in {"IDLE", "OPERATOR_PAUSED", "PROVIDER_BUDGET", "P1_DEPTH", "P1_AGE", "P2_REDUCED_SHARE"}:
+                    break
+                progressed = True
+        if not progressed:
+            return
+
+
+def _bootstrap_scenario(database, subject: str):
+    from datetime import UTC, datetime
+
+    from .test_independent_qa import WindowedOpenDota, _match, _steam_owner
+
+    now = datetime.now(UTC)
+    linked_at = now - timedelta(days=1)
+    profile_id, token = _steam_owner(database, subject, 1001, linked_at)
+    imported = _match(9_400_000_031, linked_at - timedelta(days=2), 1001)
+    live = _match(9_400_000_032, now - timedelta(hours=6), 1001)
+    return profile_id, token, imported, live, WindowedOpenDota(1001, [imported, live])
+
+
+def _settled(database, profile_id: str) -> tuple[dict, dict]:
+    from app.tracker.schema import bootstrap
+
+    with database.connect() as connection:
+        outcome = dict(connection.execute(select(bootstrap.c.mode, bootstrap.c.outcome).where(
+            bootstrap.c.profile_id == profile_id)).all())
+        links = {row.match_id: (row.origin, row.lifecycle) for row in connection.execute(select(
+            account_matches.c.match_id, account_matches.c.origin, account_matches.c.lifecycle).where(
+            account_matches.c.profile_id == profile_id))}
+    return outcome, links
+
+
+async def test_p3_work_runs_before_any_stratz_window_is_observed(database, redis_client):
+    """Only P3 work calls STRATZ, so requiring a known STRATZ window to admit P3 deadlocked it."""
+    import httpx
+    from app.tracker.mobile_api import create_mobile_app
+    from fastapi.testclient import TestClient
+
+    from .test_independent_qa import _sync
+
+    profile_id, token, imported, live, fake = _bootstrap_scenario(database, "unobserved-stratz")
+    _sync(TestClient(create_mobile_app(Settings(), database=database)), token, "sync-unobserved-stratz")
+    await _drain_production_like(database, redis_client, httpx.MockTransport(fake))
+    outcome, links = _settled(database, profile_id)
+    assert outcome["STANDARD"] in {"READY", "READY_WITH_GAPS"} and outcome["TURBO"] == "NO_MATCHES_FOUND"
+    assert links == {imported["match_id"]: ("BOOTSTRAP", "READY"), live["match_id"]: ("LIVE", "READY")}
+
