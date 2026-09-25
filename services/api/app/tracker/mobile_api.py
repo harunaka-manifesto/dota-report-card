@@ -40,6 +40,12 @@ from app.tracker.authentication import (
 from app.tracker.evidence import canonical_json
 from app.tracker.metrics import METRICS
 from app.tracker.retry import retry_match
+from app.tracker.role_correction import (
+    RoleCorrectionConflict,
+    RoleCorrectionUnavailable,
+    correct_role,
+    correction_available,
+)
 from app.tracker.schema import (
     account_matches,
     analyses,
@@ -204,6 +210,23 @@ class MatchView(BaseModel):
     won: bool
     players: list[PlayerFacts]
     metrics: list[MetricView]
+
+
+class MatchDetailView(MatchView):
+    role_revision: int
+    correction_available: bool
+
+
+class RoleEditRequest(BaseModel):
+    role: Role
+    expected_role_revision: int = Field(ge=0)
+
+
+class RoleEditView(BaseModel):
+    role: Role
+    role_revision: int
+    rebuilt: bool
+    rebuilt_match_count: int | None = None
 
 
 class HistoryView(BaseModel):
@@ -693,8 +716,8 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 devices.c.id == str(device_ref), devices.c.user_id == owner,
             ))
 
-    @app.get("/matches/{match_ref}", response_model=MatchView)
-    async def match_detail(request: Request, match_ref: str, owner: Annotated[str, Depends(_user)]) -> MatchView:
+    @app.get("/matches/{match_ref}", response_model=MatchDetailView)
+    async def match_detail(request: Request, match_ref: str, owner: Annotated[str, Depends(_user)]) -> MatchDetailView:
         with _engine(request).connect() as connection:
             profile = _active_profile(connection, owner)
             row = connection.execute(select(account_matches).where(
@@ -704,7 +727,46 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             )).mappings().one_or_none()
             if row is None:
                 raise HTTPException(404, "MATCH_NOT_FOUND")
-            return _match_view(connection, row)
+            return MatchDetailView(**_match_view(connection, row).model_dump(),
+                role_revision=row["role_revision"],
+                correction_available=correction_available(
+                    connection, profile_id=profile["id"], match_id=row["match_id"],
+                ))
+
+    @app.post("/matches/{match_ref}/role", response_model=RoleEditView)
+    async def edit_role(request: Request, match_ref: str, body: RoleEditRequest,
+                        owner: Annotated[str, Depends(_user)],
+                        idempotency_key: Annotated[str, Header(min_length=8, max_length=200)]) -> RoleEditView:
+        with _engine(request).begin() as connection:
+            if connection.scalar(select(users.c.id).where(users.c.id == owner).with_for_update()) is None:
+                raise HTTPException(401, "SESSION_INVALID")
+            profile = _active_profile(connection, owner)
+            row = connection.execute(select(account_matches.c.match_id).where(
+                account_matches.c.profile_id == (profile["id"] if profile else ""),
+                account_matches.c.public_ref == match_ref,
+                _visible(profile) if profile else true(),
+            )).first()
+            if row is None or profile is None:
+                raise HTTPException(404, "MATCH_NOT_FOUND")
+
+            def publish() -> dict[str, object]:
+                try:
+                    result = correct_role(connection, profile_id=profile["id"], match_id=row.match_id,
+                                          role=body.role.value,
+                                          expected_role_revision=body.expected_role_revision)
+                except RoleCorrectionConflict as exc:
+                    raise HTTPException(409, "ROLE_REVISION_STALE") from exc
+                except RoleCorrectionUnavailable as exc:
+                    raise HTTPException(409, "ROLE_CORRECTION_UNAVAILABLE") from exc
+                return {"role": result["effective_role"], "role_revision": result["role_revision"],
+                        "rebuilt": result["rebuilt"],
+                        "rebuilt_match_count": result.get("rebuilt_match_count")}
+
+            response = _idempotent(connection, owner=owner, operation="MATCH_ROLE", key=idempotency_key,
+                                   body={"match_ref": match_ref, "role": body.role.value,
+                                         "expected_role_revision": body.expected_role_revision},
+                                   publish=publish)
+        return RoleEditView.model_validate(response)
 
     @app.post("/matches/{match_ref}/retry", response_model=RetryView)
     async def retry(request: Request, match_ref: str, owner: Annotated[str, Depends(_user)],

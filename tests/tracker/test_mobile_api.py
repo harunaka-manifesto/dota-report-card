@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from uuid import uuid4
 
 import pytest
 from app.core.config import Settings
@@ -13,11 +14,14 @@ from app.tracker.schema import (
     identities,
     matches,
     profiles,
+    provider_calls,
+    role_assertions,
 )
 from app.tracker.steam_identity import STEAM_ID_BASE
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from .test_finalization import _ready_link, _run
 from .test_materialization import MATCH_ID, raw, save
 from .test_steam_identity import FakeVerifier, assertion
 
@@ -117,6 +121,53 @@ def test_mobile_match_ref_is_opaque_and_cannot_cross_accounts(database):
     with database.begin() as c:
         c.execute(profiles.update().where(profiles.c.id == "profile-mobile-owner").values(active_scope="PRO"))
     assert owner_client.get(f"/matches/{public_ref}", headers=owner_headers).status_code == 200
+
+
+def test_mobile_role_edit_is_scoped_idempotent_and_source_backed(database):
+    profile_id = _ready_link(database)
+    assert _run(database, profile_id) == "READY"
+    with database.begin() as connection:
+        owner = connection.scalar(select(profiles.c.user_id).where(profiles.c.id == profile_id))
+        started_at = connection.scalar(select(account_matches.c.provider_started_at).where(
+            account_matches.c.profile_id == profile_id,
+        ))
+        connection.execute(profiles.update().where(profiles.c.id == profile_id).values(
+            original_linked_at=started_at,
+        ))
+        connection.execute(identities.insert().values(
+            id=str(uuid4()), user_id=owner, issuer="https://accounts.google.com",
+            subject="mobile-role-owner", verified_at=datetime.now(UTC),
+        ))
+    client, headers, authenticated_owner = _client(database, "mobile-role-owner")
+    assert authenticated_owner == owner
+    other, other_headers, _ = _client(database, "mobile-role-other")
+    with database.connect() as connection:
+        row = connection.execute(select(account_matches).where(
+            account_matches.c.profile_id == profile_id,
+        )).mappings().one()
+        ref = row["public_ref"]
+        next_role = "MID" if row["effective_role"] != "MID" else "CARRY"
+        calls_before = connection.scalar(select(provider_calls.c.id).limit(1))
+    detail = client.get(f"/matches/{ref}", headers=headers)
+    assert detail.status_code == 200
+    assert detail.json()["role_revision"] == 0
+    assert detail.json()["correction_available"] is True
+    assert other.get(f"/matches/{ref}", headers=other_headers).status_code == 404
+    request_headers = {**headers, "Idempotency-Key": "role-edit-local-001"}
+    body = {"role": next_role, "expected_role_revision": 0}
+    changed = client.post(f"/matches/{ref}/role", json=body, headers=request_headers)
+    assert changed.status_code == 200
+    assert changed.json() == {"role": next_role, "role_revision": 1,
+                              "rebuilt": True, "rebuilt_match_count": 1}
+    assert client.post(f"/matches/{ref}/role", json=body, headers=request_headers).json() == changed.json()
+    assert other.post(f"/matches/{ref}/role", json=body,
+                      headers={**other_headers, "Idempotency-Key": "role-edit-other-001"}).status_code == 404
+    assert client.post(f"/matches/{ref}/role", json=body,
+                       headers={**headers, "Idempotency-Key": "role-edit-stale-002"}).status_code == 409
+    assert client.get(f"/matches/{ref}", headers=headers).json()["role"] == next_role
+    with database.connect() as connection:
+        assert connection.scalar(select(provider_calls.c.id).limit(1)) == calls_before
+        assert connection.scalar(select(role_assertions.c.revision)) == 1
 
 
 def test_mobile_openapi_is_separate_and_uses_closed_enums(database):

@@ -190,6 +190,88 @@ def _insight_result(connection: Connection, *, link: dict[str, Any], match: dict
     return evaluate_insights(neutral, viewer)
 
 
+def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, Any],
+                   match: dict[str, Any], features: list[dict[str, Any]],
+                   snapshot_ids: list[str], feature_digest: str) -> dict[str, Any]:
+    """Calculate one match's analytical output from retained inputs, without writes.
+
+    This is the reusable boundary for finalization and future retained-data rebuilds.
+    The caller owns the transaction and publication side effects.
+    """
+    player = features[link["player_slot"]]
+    position_map = _positions(connection, link)
+    integrity = player.get("integrity", {}).get("verdict")
+    quarantined = match["quarantined_fields"] or []
+    if any(path in {"duration_seconds", "mode", "game_mode", "lobby_type"} or
+           (isinstance(path, str) and path.endswith(".leaver_status")) for path in quarantined):
+        integrity = "UNKNOWN"
+    eligibility = classify(
+        mode=link["mode"], duration_seconds=match["duration_seconds"],
+        effective_role=link["effective_role"],
+        leaver_status=player["summary"].get("leaver_status"), integrity=integrity,
+    )
+    if eligibility.progression == "NONE" or quarantined:
+        # ponytail: withhold all cards on source disagreement until each card has a verified field dependency map.
+        insight: dict[str, Any] = {"status": "NOT_ELIGIBLE(PROGRESSION)" if eligibility.progression == "NONE"
+                   else "NOT_ELIGIBLE(SOURCE_DISAGREEMENT)",
+                   "contract_version": INSIGHT_CONTRACT_VERSION, "cards": []}
+    else:
+        insight = _insight_result(connection, link=link, match=match,
+                                  snapshot_id=snapshot_ids[0],
+                                  position_map=cast(dict[int, int | str | None], position_map))
+    metric_rows: list[dict[str, Any]] = []
+    pb_rows: list[dict[str, Any]] = []
+    for metric_id in metric_ids(link["effective_role"]):
+        measured = measure(
+            metric_id, players=features, player_slot=link["player_slot"],
+            duration_seconds=match["duration_seconds"],
+            replay_ready=match["evidence_state"] == "REPLAY_READY", positions=position_map,
+        )
+        if _metric_conflict(metric_id, link["player_slot"], quarantined):
+            measured = type(measured)(metric_id, None, None, reason="SOURCE_DISAGREEMENT")
+        current = Observation(
+            match["match_id"], link["provider_started_at"],
+            link["mode"] if link["mode"] in {"STANDARD", "TURBO"} else "STANDARD",
+            link["effective_role"], metric_id, measured.comparison_value,
+            eligibility.progression != "NONE",
+        )
+        priors = load_prior_observations(
+            connection, profile_id=profile_id, current=current,
+            analysis_version=ANALYSIS_VERSION, baseline_version=BASELINE_VERSION,
+        ) if eligibility.progression != "NONE" else []
+        reference = baseline(current, priors)
+        pb = personal_best(current, priors, celebrate=link["origin"] == "LIVE")
+        context = evaluate(ContextInput(
+            metric_id=metric_id, role=link["effective_role"], mode=current.mode,
+            hero_id=player["summary"].get("hero_id"), position=position_map.get(link["player_slot"]),
+            lane=None, is_radiant=link["player_slot"] < 5, players=(),
+            comparison_value=measured.comparison_value,
+            baseline=reference["value"] if isinstance(reference["value"], (int, float)) else None,
+            prior_count=cast(int, reference["prior_count"]),
+        ), None)
+        metric_rows.append({
+            "metric_id": metric_id, "metric_version": metric_id.rsplit(".", 1)[-1],
+            "raw_value": measured.raw_value, "comparison_value": measured.comparison_value,
+            "unavailable_reason": measured.reason, "baseline_snapshot": reference,
+            "context_h": context.delta_hero, "context_e": context.delta_lane,
+            "performance_state": context.performance_state,
+        })
+        if eligibility.progression != "NONE" and measured.comparison_value is not None:
+            pb_rows.append({"metric_id": metric_id, "current": current, "priors": priors, "pb": pb})
+    inputs_digest = hashlib.sha256(canonical_json({
+        "analysis_version": ANALYSIS_VERSION, "baseline_version": BASELINE_VERSION,
+        "feature_version": FEATURE_VERSION, "feature_digest": feature_digest,
+        "profile_id": profile_id, "match_id": link["match_id"],
+        "role": link["effective_role"], "role_revision": link["role_revision"],
+        "progression": eligibility.progression, "metric_rows": metric_rows,
+        "insight_result": insight,
+        "quarantined_fields": quarantined,
+    })).hexdigest()
+    return {"eligibility": eligibility, "insight": insight, "metric_rows": metric_rows,
+            "pb_rows": pb_rows, "inputs_digest": inputs_digest,
+            "quarantined_fields": quarantined}
+
+
 def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str) -> str:
     """Publish metrics/history once after terminal evidence, in bucket chronology order."""
     with authorized_job(database, job_id, lease_token) as (connection, job):
@@ -267,76 +349,15 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
             reschedule(connection, job, delay_seconds=30, error="AWAITING_PRIOR_MATCH", failure=False)
             return "WAITING_FOR_PRIOR_MATCH"
         features, snapshot_ids, feature_digest = _selected_features(connection, match)
-        player = features[link["player_slot"]]
-        position_map = _positions(connection, link)
-        integrity = player.get("integrity", {}).get("verdict")
-        quarantined = match["quarantined_fields"] or []
-        if any(path in {"duration_seconds", "mode", "game_mode", "lobby_type"} or
-               (isinstance(path, str) and path.endswith(".leaver_status")) for path in quarantined):
-            integrity = "UNKNOWN"
-        eligibility = classify(
-            mode=link["mode"], duration_seconds=match["duration_seconds"],
-            effective_role=link["effective_role"],
-            leaver_status=player["summary"].get("leaver_status"), integrity=integrity,
-        )
-        insight: dict[str, Any]
-        if eligibility.progression == "NONE" or quarantined:
-            # ponytail: withhold all cards on source disagreement until each card has a verified field dependency map.
-            insight = {"status": "NOT_ELIGIBLE(PROGRESSION)" if eligibility.progression == "NONE"
-                       else "NOT_ELIGIBLE(SOURCE_DISAGREEMENT)",
-                       "contract_version": INSIGHT_CONTRACT_VERSION, "cards": []}
-        else:
-            insight = _insight_result(connection, link=link, match=match,
-                                      snapshot_id=snapshot_ids[0],
-                                      position_map=cast(dict[int, int | str | None], position_map))
-        metric_rows: list[dict[str, Any]] = []
-        pb_rows: list[dict[str, Any]] = []
-        for metric_id in metric_ids(link["effective_role"]):
-            measured = measure(
-                metric_id, players=features, player_slot=link["player_slot"],
-                duration_seconds=match["duration_seconds"],
-                replay_ready=match["evidence_state"] == "REPLAY_READY", positions=position_map,
-            )
-            if _metric_conflict(metric_id, link["player_slot"], quarantined):
-                measured = type(measured)(metric_id, None, None, reason="SOURCE_DISAGREEMENT")
-            current = Observation(
-                match["match_id"], link["provider_started_at"],
-                link["mode"] if link["mode"] in {"STANDARD", "TURBO"} else "STANDARD",
-                link["effective_role"], metric_id, measured.comparison_value,
-                eligibility.progression != "NONE",
-            )
-            priors = load_prior_observations(
-                connection, profile_id=job["profile_id"], current=current,
-                analysis_version=ANALYSIS_VERSION, baseline_version=BASELINE_VERSION,
-            ) if eligibility.progression != "NONE" else []
-            reference = baseline(current, priors)
-            pb = personal_best(current, priors, celebrate=link["origin"] == "LIVE")
-            context = evaluate(ContextInput(
-                metric_id=metric_id, role=link["effective_role"], mode=current.mode,
-                hero_id=player["summary"].get("hero_id"), position=position_map.get(link["player_slot"]),
-                lane=None, is_radiant=link["player_slot"] < 5, players=(),
-                comparison_value=measured.comparison_value,
-                baseline=reference["value"] if isinstance(reference["value"], (int, float)) else None,
-                prior_count=cast(int, reference["prior_count"]),
-            ), None)
-            metric_rows.append({
-                "metric_id": metric_id, "metric_version": metric_id.rsplit(".", 1)[-1],
-                "raw_value": measured.raw_value, "comparison_value": measured.comparison_value,
-                "unavailable_reason": measured.reason, "baseline_snapshot": reference,
-                "context_h": context.delta_hero, "context_e": context.delta_lane,
-                "performance_state": context.performance_state,
-            })
-            if eligibility.progression != "NONE" and measured.comparison_value is not None:
-                pb_rows.append({"metric_id": metric_id, "current": current, "priors": priors, "pb": pb})
-        inputs_digest = hashlib.sha256(canonical_json({
-            "analysis_version": ANALYSIS_VERSION, "baseline_version": BASELINE_VERSION,
-            "feature_version": FEATURE_VERSION, "feature_digest": feature_digest,
-            "profile_id": job["profile_id"], "match_id": job["match_id"],
-            "role": link["effective_role"], "role_revision": link["role_revision"],
-            "progression": eligibility.progression, "metric_rows": metric_rows,
-            "insight_result": insight,
-            "quarantined_fields": quarantined,
-        })).hexdigest()
+        built = build_analysis(connection, profile_id=job["profile_id"], link=link, match=match,
+                               features=features, snapshot_ids=snapshot_ids,
+                               feature_digest=feature_digest)
+        eligibility = built["eligibility"]
+        insight = built["insight"]
+        metric_rows = built["metric_rows"]
+        pb_rows = built["pb_rows"]
+        inputs_digest = built["inputs_digest"]
+        quarantined = built["quarantined_fields"]
         analysis_id = str(uuid4())
         connection.execute(analyses.insert().values(
             id=analysis_id, profile_id=job["profile_id"], match_id=job["match_id"],
