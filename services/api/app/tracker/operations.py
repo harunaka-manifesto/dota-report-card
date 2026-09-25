@@ -57,6 +57,18 @@ class ProviderControlView(BaseModel):
     failure_code: str | None
 
 
+class FailureView(BaseModel):
+    source: str
+    reason: str
+    count: int
+
+
+class RetryView(BaseModel):
+    job_type: str
+    attempted: int
+    retried: int
+
+
 class OperationsView(BaseModel):
     queues: list[QueueView]
     providers: list[ProviderView]
@@ -64,6 +76,8 @@ class OperationsView(BaseModel):
     latency: list[LatencyView]
     provider_control: list[ProviderControlView]
     p3_paused: bool | None
+    failures: list[FailureView]
+    retries: list[RetryView]
 
 
 def create_operations_app(settings: Settings, *, database: Engine | None = None,
@@ -91,6 +105,20 @@ def create_operations_app(settings: Settings, *, database: Engine | None = None,
             failed = dict(connection.execute(select(
                 ingest_jobs.c.priority, func.count(),
             ).where(ingest_jobs.c.state == "FAILED").group_by(ingest_jobs.c.priority)).all())
+            job_failures = connection.execute(select(
+                ingest_jobs.c.job_type, ingest_jobs.c.last_error, func.count(),
+            ).where(ingest_jobs.c.last_error.is_not(None)).group_by(
+                ingest_jobs.c.job_type, ingest_jobs.c.last_error,
+            )).all()
+            replay_failures = connection.execute(select(
+                matches.c.terminal_reason, func.count(),
+            ).where(matches.c.evidence_state == "REPLAY_UNAVAILABLE").group_by(
+                matches.c.terminal_reason,
+            )).all()
+            retry_counts = connection.execute(select(
+                ingest_jobs.c.job_type, func.count().filter(ingest_jobs.c.attempts > 0),
+                func.count().filter(ingest_jobs.c.attempts > 1),
+            ).group_by(ingest_jobs.c.job_type)).all()
             calls = connection.execute(select(
                 provider_calls.c.provider, provider_calls.c.operation,
                 func.count(), func.count(distinct(provider_calls.c.match_id)),
@@ -166,6 +194,13 @@ def create_operations_app(settings: Settings, *, database: Engine | None = None,
                       for mode, capability, state, count in spans],
             latency=latencies,
             provider_control=control, p3_paused=p3_paused,
+            failures=[FailureView(source=f"JOB:{kind}", reason=reason, count=count)
+                      for kind, reason, count in job_failures] + [
+                FailureView(source="REPLAY", reason=reason, count=count)
+                for reason, count in replay_failures
+            ],
+            retries=[RetryView(job_type=kind, attempted=attempted, retried=retried)
+                     for kind, attempted, retried in retry_counts],
         )
 
     return app

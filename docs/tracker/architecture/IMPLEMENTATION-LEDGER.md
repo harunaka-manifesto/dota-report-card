@@ -740,3 +740,8 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 
 - The authenticated internal summary now reads Redis provider circuit state and the P3 pause flag alongside its database metrics. It distinguishes unknown, open, disabled, closed and Redis-unavailable states and reports the bounded remaining open time and non-secret failure code. This read performs no quota admission or provider call.
 - Real PostgreSQL/Redis operations and legacy API contract checks: **6 passed, 0 failed, 0 skipped**. Ruff and mypy pass. Remaining Phase H gaps include retry-reason distribution, cost attribution, controlled Celery priority/non-starvation proof and production worker wiring; this card stays in progress.
+
+### Retained retry and replay failure visibility
+
+- The isolated operations summary groups current job `last_error` values by job type, replay-unavailable terminal reasons, and attempted versus retried job counts by type. These are retained current-state counts, not a lifetime failure history. It makes no provider call and does not change mobile or legacy APIs.
+- Real PostgreSQL operations and legacy API contract checks: **11 passed, 0 failed, 0 skipped**. Ruff and mypy pass. The first test fixture violated the existing ten-player roster constraint; the fixture was corrected and rerun. Cost attribution, failure-rate time windows, controlled Celery priority/non-starvation proof and production worker wiring remain open.

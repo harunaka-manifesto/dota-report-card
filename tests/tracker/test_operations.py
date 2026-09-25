@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from app.core.config import Settings
 from app.tracker.mobile_api import create_mobile_app
 from app.tracker.operations import create_operations_app
-from app.tracker.schema import provider_calls
+from app.tracker.schema import ingest_jobs, match_players, matches, provider_calls
 from fastapi.testclient import TestClient
 
 
@@ -59,3 +59,34 @@ def test_operations_reads_shared_circuit_and_pause_state(database, redis_client,
     assert body["provider_control"][1]["name"] == "stratz"
     assert body["provider_control"][1]["state"] == "OPEN"
     assert 0 < body["provider_control"][1]["open_seconds"] <= 30
+
+
+def test_operations_reports_retained_retry_and_replay_reasons(database):
+    now = datetime.now(UTC)
+    with database.begin() as connection:
+        connection.execute(matches.insert().values(match_id=101, discovered_at=now))
+        connection.execute(match_players.insert(), [
+            {"match_id": 101, "player_slot": slot, "hero_id": slot + 1,
+             "team": "RADIANT" if slot < 5 else "DIRE", "summary": {}}
+            for slot in range(10)
+        ])
+        connection.execute(matches.update().where(matches.c.match_id == 101).values(
+            started_at=now, duration_seconds=1800, mode="STANDARD", radiant_win=True,
+            header={}, summary_ready_at=now, evidence_state="REPLAY_UNAVAILABLE",
+            terminal_reason="PARSE_UNAVAILABLE", replay_terminal_at=now,
+        ))
+        connection.execute(ingest_jobs.insert().values(
+            id="operations-retry-job", dedup_key="operations-retry-job", job_type="REPLAY",
+            priority=2, state="FAILED", run_after=now, created_at=now, attempts=3,
+            payload={}, last_error="RATE_LIMITED",
+        ))
+    client = TestClient(create_operations_app(Settings(), database=database,
+                                              token="local-operations-test-token"))
+    response = client.get("/summary", headers={"X-Tracker-Operations-Token": "local-operations-test-token"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["failures"] == [
+        {"source": "JOB:REPLAY", "reason": "RATE_LIMITED", "count": 1},
+        {"source": "REPLAY", "reason": "PARSE_UNAVAILABLE", "count": 1},
+    ]
+    assert body["retries"] == [{"job_type": "REPLAY", "attempted": 1, "retried": 1}]
