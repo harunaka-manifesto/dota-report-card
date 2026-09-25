@@ -9,7 +9,10 @@ Current development targets the native iOS **Dota Tracker**. Start with its
 [product documentation](docs/tracker/README.md),
 [architecture](docs/tracker/architecture/README.md), and
 [implementation ledger](docs/tracker/architecture/IMPLEMENTATION-LEDGER.md).
-The tracker backend is under implementation; the ledger records verified progress.
+The tracker backend (`services/api/app/tracker/`, mobile API at `/mobile/v1`) is implemented
+and verified locally against PostgreSQL and Redis but not deployed; the ledger records what is
+verified, what remains open for owner decisions, and the external blockers. To run and test it,
+see the [tracker runbook](docs/tracker/operations/README.md).
 
 ## Live legacy report product
 

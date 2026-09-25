@@ -16,6 +16,7 @@ It is organised by **product feature**. Pick the feature you are working on, ope
 | Know **how the system behaves** — data, providers, readiness, storage, scale | [`architecture/README.md`](architecture/README.md) |
 | Know what data a screen needs before it can render | [`architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) |
 | Understand *why* a decision was made | [`architecture/decisions/`](architecture/decisions/) for architecture · [`_archive/`](_archive/) for product |
+| Run, test or operate the backend | [`operations/README.md`](operations/README.md) · [mobile API](api/README.md) · [implementation ledger](architecture/IMPLEMENTATION-LEDGER.md) |
 
 Every feature folder contains exactly two files. There are no "final-v2", "latest" or "research" documents next to them.
 

@@ -1,5 +1,9 @@
 Read /AGENTS.md first. These instructions extend the root rules for apps/web.
 
+`apps/web` is the live legacy report-card frontend. It is not the Dota Tracker client: the
+tracker is a native iOS app whose only backend boundary is `/mobile/v1`
+([mobile API](../../docs/tracker/api/README.md)). Do not add tracker features here.
+
 # Frontend Agent Rules
 
 These rules apply to Next.js, React, styling, report rendering, browser QA,

@@ -1,3 +1,31 @@
+# Repository router for agents
+
+Two products share this repository. Read this router, then the rules for the product you touch.
+
+| Product | Status | Authoritative sources |
+|---|---|---|
+| **Dota Tracker** (native iOS + tracker backend) | Current product; backend under implementation, not deployed | [Tracker SSOTs](docs/tracker/README.md), [architecture and ADRs](docs/tracker/architecture/README.md), [runbook](docs/tracker/operations/README.md), [ledger](docs/tracker/architecture/IMPLEMENTATION-LEDGER.md) |
+| **Dota Report Card / Free DNA** (web + legacy `/v1` API) | Deprecated but **live in production** | The operating contract below, [production safety](docs/agent/production-safety.md), [legacy boundaries](docs/legacy/README.md) |
+
+Tracker work:
+
+- Product meaning comes only from `docs/tracker/**` feature SSOTs; system behaviour from
+  `docs/tracker/architecture/`. Report-era documents, `graphify-out/`, `api.json` and
+  `docs/{architecture,product,qa,ui-revamp,prompts,progression}/` are not tracker truth.
+- Tracker code lives in `services/api/app/tracker/` and `migrations/versions/0006+`. It must not
+  change legacy tables, routes, persisted reports or retention.
+- Changes that alter ADR 0001–0005 decisions (client boundary, canonical boundary, `match_id` as
+  the unit of work, two-stage single finalization, entitlement above data, no runtime LLM, new
+  infrastructure, STRATZ on the fresh path) need a new ADR. Routing policy, batch sizes, retry
+  ladders, operational thresholds and worker counts do not.
+- Open owner decisions are listed in the ledger; implement fail-closed behaviour, never invent
+  product values.
+
+The rules below remain binding for the live legacy product and for any change that could
+affect it (deployment, persisted reports, OpenDota cost, frozen V6.1 invariants).
+
+---
+
 # Dota Report Card — Agent Operating Contract
 
 This file MUST be read before making changes to this repository.

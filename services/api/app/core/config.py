@@ -226,7 +226,9 @@ class Settings:
                 os.getenv("OPENDOTA_TIMEOUT_SECONDS", str(cls.opendota_timeout_seconds))
             ),
             stratz_base_url=os.getenv("STRATZ_BASE_URL", cls.stratz_base_url),
-            stratz_api_token=os.getenv("STRATZ_API_TOKEN") or None,
+            # STRATZ_API_TOKEN is canonical; the older local name STRATZ_API_KEY is
+            # accepted only as a fallback so existing developer .env files keep working.
+            stratz_api_token=os.getenv("STRATZ_API_TOKEN") or os.getenv("STRATZ_API_KEY") or None,
             stratz_user_agent=os.getenv("STRATZ_USER_AGENT", cls.stratz_user_agent),
             stratz_timeout_seconds=float(
                 os.getenv("STRATZ_TIMEOUT_SECONDS", str(cls.stratz_timeout_seconds))

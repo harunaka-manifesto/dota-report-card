@@ -81,3 +81,13 @@ def test_secrets_are_local_only_and_env_example_has_empty_token() -> None:
     assert "STRATZ_API_TOKEN=" in env_example
     assert "STRATZ_API_TOKEN=<" not in env_example
     assert ".env" in Path(".gitignore").read_text()
+
+
+def test_stratz_token_prefers_canonical_name_and_accepts_legacy_local_alias(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("STRATZ_API_TOKEN", raising=False)
+    monkeypatch.setenv("STRATZ_API_KEY", "legacy-name-fixture")
+    assert Settings.from_env().stratz_api_token == "legacy-name-fixture"
+    monkeypatch.setenv("STRATZ_API_TOKEN", "canonical-fixture")
+    assert Settings.from_env().stratz_api_token == "canonical-fixture"
