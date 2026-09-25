@@ -19,6 +19,7 @@ from uuid import uuid4
 from sqlalchemy import Connection, Engine, func, or_, select, true, tuple_, update
 from sqlalchemy.dialects.postgresql import insert
 
+from .backfill import historical_work_pending
 from .finalization import (
     ANALYSIS_VERSION,
     FEATURE_VERSION,
@@ -37,7 +38,6 @@ from .schema import (
     derived_features,
     events,
     history_operations,
-    ingest_jobs,
     matches,
     profiles,
     snapshots,
@@ -168,11 +168,7 @@ def run_scope_rebuild(connection: Connection, *, profile_id: str, operation_id: 
         connection.execute(update(history_operations).where(history_operations.c.id == operation_id)
                            .values(state="CANCELLED", completed_at=func.clock_timestamp()))
         return "CANCELLED"
-    backfill = connection.scalar(select(ingest_jobs.c.id).where(
-        ingest_jobs.c.profile_id == profile_id, ingest_jobs.c.job_type == "PRO_BACKFILL",
-        ingest_jobs.c.state.in_(("PENDING", "RUNNING")),
-    ).limit(1)) if operation["target_scope"] == "PRO" else None
-    if backfill is not None:
+    if operation["target_scope"] == "PRO" and historical_work_pending(connection, profile_id):
         # Keep the coherent Free state active until Pro acquisition catches up.
         connection.execute(update(history_operations).where(history_operations.c.id == operation_id)
                            .values(state="RUNNING"))

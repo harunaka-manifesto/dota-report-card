@@ -165,9 +165,16 @@ def _metric_conflict(metric_id: str, slot: int, quarantined: list[str]) -> bool:
 
 
 def _prior_pending(connection: Connection, link: dict[str, Any]) -> bool:
+    """An earlier unresolved same-bucket match blocks this one.
+
+    Live work never waits on imported history (bootstrap is gated per mode
+    separately); imports insert at their chronology position and update current
+    truth at their own checkpoint, so fresh matches keep flowing.
+    """
     prior = account_matches.alias("prior")
     return connection.scalar(select(prior.c.match_id).where(
         prior.c.profile_id == link["profile_id"], prior.c.mode == link["mode"],
+        prior.c.origin == "LIVE" if link["origin"] == "LIVE" else true(),
         or_(prior.c.progression.is_(None), prior.c.progression != "NONE"),
         prior.c.lifecycle.not_in(("READY", "UNAVAILABLE")),
         or_(prior.c.provider_started_at < link["provider_started_at"],

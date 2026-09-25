@@ -63,6 +63,11 @@ def _publish_page(connection: Connection, job: dict[str, Any], snapshot: dict[st
     if not isinstance(rows, list) or len(rows) > 200:
         raise ValueError("Invalid history page")
     floor = job["created_at"] - timedelta(days=job["payload"]["scope_days"])
+    from app.tracker.data_access import observe_history_page
+
+    # Before journaling this page: a known in-window match that vanished means
+    # access was withdrawn, which differs from "still syncing".
+    observe_history_page(connection, account_id=job["account_id"], window_start=floor, offset=offset, rows=rows)
     for index, raw in enumerate(rows):
         row = raw if isinstance(raw, dict) else {}
         match_id = row.get("match_id")

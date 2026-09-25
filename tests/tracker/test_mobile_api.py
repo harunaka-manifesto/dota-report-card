@@ -108,7 +108,7 @@ def test_mobile_match_ref_is_opaque_and_cannot_cross_accounts(database):
     assert other_client.get("/history?mode=STANDARD", headers=other_headers).json()["matches"] == []
     home = owner_client.get("/home?mode=STANDARD&time_zone=Asia/Jakarta", headers=owner_headers)
     assert home.status_code == 200 and home.json()["last_matches"][0]["ref"] == public_ref
-    assert home.json()["focus"] == home.json()["challenge"] == "UNAVAILABLE"
+    assert home.json()["focus"] == home.json()["challenge"] == {"state": "UNAVAILABLE", "reason": "NOT_CONTRACTED"}
     assert owner_client.get("/home?mode=STANDARD&time_zone=Not_A_Zone", headers=owner_headers).status_code == 400
     cursor = _cursor("profile-mobile-owner", public_ref, "STANDARD", None, 0)
     assert owner_client.get("/history", params={"mode": "STANDARD", "cursor": cursor}, headers=owner_headers).json()["matches"] == []

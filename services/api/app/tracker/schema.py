@@ -210,6 +210,7 @@ account_matches = Table(
     Column("retrying", Boolean, nullable=False, server_default=text("false")),
     Column("failure_stage", String(64)),
     Column("failure_reason", String(64)),
+    Column("updated_at", DateTime(timezone=True), nullable=False, server_default=text("clock_timestamp()")),
     ForeignKeyConstraint(
         ["profile_id", "account_id"], [profiles.c.id, profiles.c.account_id], ondelete="CASCADE"
     ),
@@ -237,6 +238,7 @@ account_matches = Table(
         name="ck_tracker_finalized",
     ),
     CheckConstraint("provider_source_match_id = match_id", name="ck_tracker_source_identity"),
+    Index("ix_tracker_link_updates", "profile_id", "updated_at"),
     Index(
         "ix_tracker_chronology",
         "profile_id",

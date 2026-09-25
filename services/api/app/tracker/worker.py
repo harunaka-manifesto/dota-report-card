@@ -110,6 +110,10 @@ async def run_one(database: Engine, redis: Redis, settings: Settings, *, priorit
             return await acquire_historical_batch(database, historical_gate, settings, **args, transport=transport)
         if job["job_type"] == "HISTORICAL_SUMMARY":
             return await acquire_historical_summary(database, gate, settings, **args, transport=transport)
+        if job["job_type"] in {"PRO_BACKFILL", "ACCESS_RECOVERY"}:
+            from app.tracker.backfill import backfill_page
+
+            return await backfill_page(database, gate, settings, **args, transport=transport)
         if job["job_type"] == "BOOTSTRAP_SEARCH":
             return await search_bootstrap_page(database, gate, settings, **args, transport=transport)
         raise ValueError("Unsupported tracker job type")

@@ -111,8 +111,12 @@ def _request_scope_change(connection, *, profile: Any, target: str, now: datetim
         created_at=now, completed_at=None,
         dedup_key=f"entitlement:{profile['id']}:{profile['active_revision'] + 1}:{target}:{operation_id}",
     ))
+    from app.tracker.backfill import pro_history_days, request_pro_backfill
     from app.tracker.rebuild import enqueue_scope_rebuild
 
+    if target == "PRO":
+        # Same-kind P3 acquisition; one per profile generation, reused on resubscription.
+        request_pro_backfill(connection, profile["id"], ceiling_days=pro_history_days())
     enqueue_scope_rebuild(connection, profile_id=profile["id"], operation_id=operation_id)
     return operation_id
 

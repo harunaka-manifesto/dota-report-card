@@ -30,7 +30,7 @@ from app.tracker.schema import (
 from app.tracker.sync import _saved_page
 
 
-def request_bootstrap_search(connection: Connection, profile_id: str) -> str:
+def request_bootstrap_search(connection: Connection, profile_id: str, *, attempt: str | None = None) -> str:
     """Start one P3 scan for both independent mode ledgers, once per profile generation."""
     owner = connection.execute(select(profiles, users.c.generation.label("user_generation"), users.c.state).join(
         users, users.c.id == profiles.c.user_id,
@@ -40,7 +40,8 @@ def request_bootstrap_search(connection: Connection, profile_id: str) -> str:
     for mode in ("STANDARD", "TURBO"):
         connection.execute(insert(bootstrap).values(profile_id=profile_id, mode=mode).on_conflict_do_nothing())
     return enqueue(
-        connection, dedup_key=f"bootstrap-search:{profile_id}:{owner['generation']}:{owner['user_generation']}",
+        connection, dedup_key=f"bootstrap-search:{profile_id}:{owner['generation']}:{owner['user_generation']}"
+        + (f":{attempt}" if attempt else ""),
         job_type="BOOTSTRAP_SEARCH", priority=3, profile_id=profile_id, payload={},
     )
 
@@ -175,7 +176,11 @@ def settle_bootstrap(connection: Connection, profile_id: str) -> bool:
             coverage.c.state == "GAP",
         ))
         if bucket["discovered_count"] == 0:
-            outcome = "NO_MATCHES_FOUND"
+            from app.tracker.data_access import data_access_state
+
+            account_id = connection.scalar(select(profiles.c.account_id).where(profiles.c.id == profile_id))
+            outcome = ("DATA_ACCESS_BLOCKED" if data_access_state(connection, account_id) == "BLOCKED"
+                       else "NO_MATCHES_FOUND")
         elif bucket["eligible_count"] == 0:
             outcome = "NO_ELIGIBLE_MATCHES"
         else:
