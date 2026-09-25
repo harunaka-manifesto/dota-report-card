@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from datetime import timedelta
+from typing import Protocol
 from uuid import uuid4
 
 from sqlalchemy import Connection, func, select
@@ -56,8 +58,45 @@ def record_ready(connection: Connection, *, profile_id: str, match_id: int, orig
     return event_id
 
 
-def deliver_pending(connection: Connection, send: Callable[[str, dict[str, object], str], None]) -> int:
-    """Send a bounded pending bundle with a stable collapse key through an injected transport."""
+DELIVERED = "DELIVERED"
+INVALID_TOKEN = "INVALID_TOKEN"
+RETRY = "RETRY"
+FOREGROUND_SECONDS = 60
+MAX_AGE_SECONDS = 3600
+
+
+class PushTransport(Protocol):
+    """Platform push adapter. APNs needs HTTP/2 and deployment credentials; the
+    repository ships only this interface and the deterministic fake."""
+
+    def send(self, token: str, payload: dict[str, object], collapse_id: str) -> str: ...
+
+
+class FakePushTransport:
+    def __init__(self, results: dict[str, str] | None = None) -> None:
+        self.results = results or {}
+        self.sent: list[tuple[str, dict[str, object], str]] = []
+
+    def send(self, token: str, payload: dict[str, object], collapse_id: str) -> str:
+        self.sent.append((token, payload, collapse_id))
+        return self.results.get(token, DELIVERED)
+
+
+def deliver_pending(connection: Connection,
+                    send: PushTransport | Callable[[str, dict[str, object], str], object]) -> int:
+    """Send one pending bundle with a stable collapse key; returns devices reached.
+
+    Suppressed without sending when: the account/profile generation moved, the
+    user disabled notifications, no granted token remains, a device reported
+    foreground activity recently (the app updates directly, best effort), or
+    the bundle is too old to be relevant. Invalid tokens are cleared. None of
+    this touches processing or readiness.
+    """
+    now = connection.execute(select(func.clock_timestamp())).scalar_one()
+    connection.execute(notification_outbox.update().where(
+        notification_outbox.c.state == "PENDING",
+        notification_outbox.c.created_at < now - timedelta(seconds=MAX_AGE_SECONDS),
+    ).values(state="CANCELLED"))
     candidate = connection.execute(select(notification_outbox.c.id,
         notification_outbox.c.user_id, notification_outbox.c.profile_id).where(
         notification_outbox.c.state == "PENDING",
@@ -72,18 +111,40 @@ def deliver_pending(connection: Connection, send: Callable[[str, dict[str, objec
     ).with_for_update(skip_locked=True)).mappings().first()
     if row is None:
         return 0
-    tokens = connection.scalars(select(devices.c.push_token).where(
+    device_rows = connection.execute(select(devices.c.id, devices.c.push_token, devices.c.last_active_at).where(
         devices.c.user_id == row["user_id"], devices.c.permission == "GRANTED",
         devices.c.push_token.is_not(None), devices.c.push_token != "",
-    )).all()
-    if user["state"] != "ACTIVE" or user["generation"] != row["user_generation"] or not user["notifications_enabled"] or not profile["active"] or not tokens:
+    )).mappings().all()
+    foreground = connection.scalar(select(devices.c.id).where(
+        devices.c.user_id == row["user_id"],
+        devices.c.last_active_at >= now - timedelta(seconds=FOREGROUND_SECONDS),
+    ).limit(1)) is not None
+    if (user["state"] != "ACTIVE" or user["generation"] != row["user_generation"] or not user["notifications_enabled"]
+            or not profile["active"] or not device_rows or foreground):
         connection.execute(notification_outbox.update().where(
             notification_outbox.c.id == row["id"],
         ).values(state="SUPPRESSED"))
         return 0
-    for token in set(tokens):
-        send(token, row["payload"], row["dedup_key"])
+    reached = 0
+    retry = False
+    for device in {item["push_token"]: item for item in device_rows}.values():
+        sender = send.send if hasattr(send, "send") else send
+        outcome = sender(device["push_token"], row["payload"], row["dedup_key"]) or DELIVERED
+        if outcome == INVALID_TOKEN:
+            connection.execute(devices.update().where(devices.c.id == device["id"]).values(push_token=None))
+        elif outcome == RETRY:
+            retry = True
+        else:
+            reached += 1
+    if retry and not reached:
+        return 0  # stays PENDING; the stable collapse key dedupes a later resend
     connection.execute(notification_outbox.update().where(
         notification_outbox.c.id == row["id"],
-    ).values(state="SENT", sent_at=func.clock_timestamp()))
-    return len(set(tokens))
+    ).values(state="SENT" if reached else "SUPPRESSED", sent_at=func.clock_timestamp() if reached else None))
+    return reached
+
+
+def transport_from_environment() -> PushTransport | None:
+    """No production push adapter is configured in this repository (APNs credentials
+    and an HTTP/2 client are deployment prerequisites)."""
+    return None

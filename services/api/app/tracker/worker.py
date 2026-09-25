@@ -144,9 +144,29 @@ def create_worker_app(settings: Settings) -> Celery:
         task_ignore_result=True, task_create_missing_queues=True,
         task_soft_time_limit=90, task_time_limit=110,
         broker_transport_options={"visibility_timeout": 300},
-        beat_schedule={f"tracker-wake-p{p}": {"task": "tracker.wake", "schedule": 5.0,
-                       "args": [p], "options": {"queue": f"tracker-p{p}", "expires": 10}} for p in range(4)},
+        beat_schedule={
+            **{f"tracker-wake-p{p}": {"task": "tracker.wake", "schedule": 5.0,
+                                      "args": [p], "options": {"queue": f"tracker-p{p}", "expires": 10}}
+               for p in range(4)},
+            "tracker-notify": {"task": "tracker.notify", "schedule": 10.0,
+                               "options": {"queue": "tracker-p1", "expires": 20}},
+        },
     )
+
+    @app.task(name="tracker.notify", shared=False)
+    def notify() -> int:
+        # Outbox delivery is best effort and never gates processing.
+        from app.tracker.notifications import deliver_pending, transport_from_environment
+
+        transport = transport_from_environment()
+        if transport is None:
+            return 0
+        database = create_database_engine(settings)
+        try:
+            with database.begin() as connection:
+                return deliver_pending(connection, transport)
+        finally:
+            database.dispose()
 
     @app.task(name="tracker.wake", shared=False, bind=True)
     def wake(task: Any, priority: int) -> str:
