@@ -1,319 +1,86 @@
-# Repository router for agents
+# Dota Tracker — Agent Operating Contract
 
-Two products share this repository. Read this router, then the rules for the product you touch.
+This repository's current product is **Dota Tracker** (native iOS client, elsewhere; this repo
+holds the tracker backend). A deprecated but **live-in-production** legacy product, Dota Report
+Card / Free DNA, lives entirely under `legacy/`. Read this file before making any change here.
 
-| Product | Status | Authoritative sources |
-|---|---|---|
-| **Dota Tracker** (native iOS + tracker backend) | Current product; backend under implementation, not deployed | [Tracker SSOTs](docs/tracker/README.md), [architecture and ADRs](docs/tracker/architecture/README.md), [runbook](docs/tracker/operations/README.md), [ledger](docs/tracker/architecture/IMPLEMENTATION-LEDGER.md) |
-| **Dota Report Card / Free DNA** (web + legacy `/v1` API) | Deprecated but **live in production** | The operating contract below, [production safety](legacy/docs/agent/production-safety.md), [legacy boundaries](legacy/README.md) |
+## Where truth lives
 
-Tracker work:
+| Question | Authoritative source |
+|---|---|
+| What a tracker feature means | that feature's `docs/tracker/<feature>/SSOT.md` |
+| Cross-product rules (identity, lifecycle, metrics, entitlement, versioning) | [`docs/tracker/app_foundation/SSOT.md`](docs/tracker/app_foundation/SSOT.md) |
+| How the tracker system behaves (ingestion, providers, storage, scaling) | [`docs/tracker/architecture/README.md`](docs/tracker/architecture/README.md) and its ADRs in `architecture/decisions/` |
+| Progress and open owner decisions | [`docs/tracker/architecture/IMPLEMENTATION-LEDGER.md`](docs/tracker/architecture/IMPLEMENTATION-LEDGER.md) |
+| Running and verifying the backend | [`docs/tracker/operations/README.md`](docs/tracker/operations/README.md) |
+| The mobile API contract | [`docs/tracker/api/README.md`](docs/tracker/api/README.md) |
 
-- Product meaning comes only from `docs/tracker/**` feature SSOTs; system behaviour from
-  `docs/tracker/architecture/`. Report-era documents, `legacy/graphify-out/`,
-  `docs/tracker/reference/opendota-openapi.json` and
-  `legacy/docs/{architecture,product,qa,ui-revamp}/` are not tracker truth.
-- Tracker code lives in `services/api/app/tracker/` and `migrations/versions/0006+`. It must not
-  change legacy tables, routes, persisted reports or retention.
-- Changes that alter ADR 0001–0005 decisions (client boundary, canonical boundary, `match_id` as
-  the unit of work, two-stage single finalization, entitlement above data, no runtime LLM, new
-  infrastructure, STRATZ on the fresh path) need a new ADR. Routing policy, batch sizes, retry
-  ladders, operational thresholds and worker counts do not.
-- Open owner decisions are listed in the ledger; implement fail-closed behaviour, never invent
+`docs/tracker/_archive/` is superseded product history — evidence only, never active truth.
+
+## Map of the repository
+
+- **Current (tracker):** `services/api/app/tracker/`, `migrations/versions/0006` onward,
+  `tests/tracker/`, `docs/tracker/`.
+- **Legacy (live, deprecated report card):** everything under `legacy/` — `legacy/apps/web`
+  (Next.js/Vercel), `legacy/services/api/report_card` (the `report_card` Python package),
+  `legacy/packages`, `legacy/scripts`, `legacy/tests`, `legacy/infra/runtime-artifacts`,
+  `legacy/docs` (including `legacy/docs/agent/*` safety manuals), `legacy/graphify-out`,
+  `legacy/research`, `legacy/README.md`, `legacy/ARCHITECTURE.md`.
+- **Reusable reference data, not product truth for either product:** `research/`,
+  `heroes_metadata/`, `assets/`, `docs/tracker/reference/` (vendor OpenAPI specs), and the
+  untracked, private `.local/` corpora. Never read, list, or move `.local/`.
+- **Shared runtime, used by BOTH products:** see below.
+
+## Do not use `legacy/` for tracker work
+
+`legacy/` material — V5–V7 analytics, report-era docs, `legacy/graphify-out`, legacy ADRs under
+`legacy/docs/decisions/` — is **not** tracker truth. Do not read, cite, or copy from it when
+designing or implementing tracker behavior.
+
+Enter `legacy/` only when the task explicitly concerns the live report card, or a change that
+could affect it. In that case, read `legacy/AGENTS.md` first — it carries the full legacy
+operating contract and production-safety rules.
+
+## Tracker rules
+
+- Tracker code lives in `services/api/app/tracker/` and `migrations/versions/0006+`. It must
+  not change legacy tables, routes, persisted reports, or retention.
+- Changes that alter ADR 0001–0005 decisions (client boundary, canonical boundary, `match_id`
+  as the unit of work, two-stage single finalization, entitlement above data, no runtime LLM,
+  new infrastructure, STRATZ on the fresh path) need a new ADR. Routing policy, batch sizes,
+  retry ladders, operational thresholds, and worker counts do not.
+- Open owner decisions are listed in the ledger. Implement fail-closed behaviour; never invent
   product values.
 
-The rules below remain binding for the live legacy product and for any change that could
-affect it (deployment, persisted reports, OpenDota cost, frozen V6.1 invariants).
-
----
-
-# Dota Report Card — Agent Operating Contract
-
-This file MUST be read before making changes to this repository.
-
-It applies to all coding, design, QA, infrastructure, documentation, and release agents.
-
-If a task conflicts with this file, STOP and report the conflict instead of improvising.
-
-## 1. PRODUCT PRINCIPLE
-
-PHARMA BACKSTAGE. SPOTIFY WRAPPED ONSTAGE.
-
-Backstage means analytical rigor, evidence, reproducibility, bounded claims,
-privacy, and versioned methodology.
-
-Onstage means an understandable, personal, narrative experience with low
-cognitive load, progressive disclosure, and shareability.
-
-Do not expose analytical complexity merely because it exists. Do not weaken
-analytical rigor merely to simplify presentation.
-
-## 2. PRODUCTION IS LIVE
-
-The production system is:
-
-    Vercel / Next.js frontend
-            ↓
-    Railway / FastAPI API
-            ├── PostgreSQL
-            ├── Redis
-            └── Celery worker
-
-Persisted user reports exist. Existing reports are production data contracts.
-A renderer may receive a report generated by an earlier production
-implementation, not only the newest fixture.
-
-A change is NOT safe merely because the build, lint, TypeScript, unit tests, or
-synthetic fixtures pass, or because newly generated reports work. Backward
-compatibility with persisted reports is a release requirement.
-
-Read [production safety](legacy/docs/agent/production-safety.md) before changing
-production-connected code or release behavior.
-
-Agents designing or changing analytical behavior must also read
-[analytical learnings and gotchas](legacy/docs/agent/analytical-learnings-and-gotchas.md).
-
-## 3. TASK CLASSIFICATION
-
-Before implementation, classify the task as one or more of:
-
-- PRESENTATION / UI
-- FRONTEND APPLICATION
-- BACKEND
-- ANALYTICAL
-- DATABASE
-- INFRASTRUCTURE
-- RELEASE / DEPLOYMENT
-- DOCUMENTATION
-
-If the user requests UI or presentation work, backend, analytical, database,
-infrastructure, and deployment changes are OUT OF SCOPE unless explicitly
-authorized.
-
-If crossing a boundary appears necessary, STOP and report:
-
-1. what additional layer must change;
-2. why it must change;
-3. whether an in-scope alternative exists; and
-4. what compatibility risks the expansion introduces.
-
-Do not silently turn a UI task into a full-stack task.
-
-## 4. PERSISTED REPORT COMPATIBILITY
-
-The frontend MUST support valid persisted reports created by current and
-previous production implementations. A presentation change MUST NOT require
-report regeneration.
-
-Presentation-only fields are optional unless explicitly guaranteed by a
-versioned public contract. When a field is absent:
-
-- missing story_band → omit band-specific UI;
-- missing chronology → omit chronology UI;
-- missing identity slots → omit Signature UI;
-- missing comparison rows → render only evidence that exists;
-- missing optional copy → omit it.
-
-The entire report MUST NOT crash because presentation-only information is
-unavailable.
-
-Read [persisted report compatibility](legacy/docs/agent/persisted-report-compatibility.md)
-for the compatibility boundary and degradation rules.
-
-## 5. RUNTIME JSON > TYPES
-
-TypeScript types represent developer expectations. Persisted JSON represents
-runtime reality. A non-optional TypeScript property does not prove that every
-persisted report contains the property.
-
-Report renderers SHOULD use one compatibility boundary:
-
-    raw API or persisted report JSON
-            ↓
-    runtime validation / normalization
-            ↓
-    story composition
-            ↓
-    UI renderer
-
-Normalization may repair structure. It MUST NOT fabricate analytical meaning.
-
-## 6. NEVER FABRICATE ANALYTICAL INFORMATION
-
-Presentation compatibility MUST NEVER invent:
-
-- findings;
-- confidence;
-- evidence;
-- evidence references;
-- statistical significance;
-- semantic outcomes;
-- identity slots;
-- causal explanations;
-- cohort membership; or
-- analytical classifications.
-
-If required information is unavailable, degrade or omit the presentation.
-Never invent data to keep a UI populated.
-
-## 7. UI RELEASE COMPATIBILITY TESTS
-
-Every material report UI change MUST test:
-
-1. a newest/current report fixture; and
-2. at least one sanitized persisted-production fixture from a previous
-   production implementation.
-
-Historical fixtures MUST NOT be overwritten when the contract evolves. New
-payload shapes get new fixtures. The recommended location is:
-
-    apps/web/tests/fixtures/persisted-reports/
-
-Historical compatibility is a release gate, not a best-effort check.
-
-Read [testing and release gates](legacy/docs/agent/testing-and-release-gates.md)
-before changing a report renderer.
-
-## 8. REAL PRODUCTION-SHAPED FIXTURES
-
-At least one compatibility fixture MUST be derived from the structural shape
-of a real persisted production report. Sanitize:
-
-- account IDs;
-- Steam IDs;
-- report IDs;
-- match IDs;
-- session IDs;
-- access tokens;
-- protected cohort references; and
-- other private identifiers.
-
-Preserve:
-
-- missing fields;
-- null fields;
-- nesting;
-- array shapes;
-- optional states;
-- published/suppressed structure;
-- hero portfolio structure;
-- identity structure; and
-- supporting evidence structure.
-
-Do not rebuild the fixture solely from the latest TypeScript types.
-
-## 9. MANDATORY REPORT BROWSER QA
-
-For a material report renderer change, require the current fixture and a
-historical fixture. Exercise:
-
-- first-to-last traversal;
-- backward traversal;
-- Next;
-- Back;
-- keyboard navigation;
-- Evidence;
-- Methodology;
-- Share;
-- End;
-- Read Again;
-- 375px mobile;
-- desktop;
-- reduced motion;
-- horizontal overflow checks;
-- browser pageerror detection;
-- unexpected console error detection; and
-- hydration error detection.
-
-HTTP 200 alone is not success.
-
-## 10. PREVIEW BEFORE PRODUCTION
-
-The required flow for a major report UI change is:
-
-    feature branch
-        → automated tests
-        → Vercel Preview
-        → existing persisted report smoke test
-        → owner review
-        → merge
-        → production
-
-Use an EXISTING report when possible. Do not generate a new report merely for
-UI QA. Do not spend OpenDota calls on presentation validation.
-
-## 11. CHANGE-SCOPE AUDIT
-
-Before completion, inspect the task-base diff:
-
-    git diff --name-only <task-base>...HEAD
-
-If a UI-only task touches any of these, explicitly justify it:
-
-- services/api/;
-- services/worker/;
-- infra/;
-- migrations/;
-- runtime-artifacts/ or infra/runtime-artifacts/; or
-- analytical/model code.
-
-Unexpected cross-layer changes are a blocker. A commit called “UI revamp”
-MUST NOT conceal backend contract changes.
-
-## 12. FROZEN ANALYTICAL RELEASE INVARIANTS
-
-For V6.1 presentation work, unless explicitly authorized, DO NOT:
-
-- retrain;
-- recalibrate;
-- rerun holdout;
-- alter thresholds;
-- alter estimators;
-- alter significance logic;
-- alter family qualification;
-- alter publication logic;
-- alter identity qualification;
-- regenerate frozen artifacts; or
-- change analytical source binding.
-
-Current V6.1 release references:
-
-- analytical source SHA:
-  f85e88a277ffb365e76dd6eeac6f5009c7bd0165
-- frozen artifact bundle digest:
-  22206d20b84bf9ee73b93c64177443e1bb585ccdb818c188ac40d9acfcb358f9
-
-These are historical/current V6.1 release references. They MUST change only
-as part of an explicitly authorized analytical release.
-
-Read [analytical release invariants](legacy/docs/agent/analytical-release-invariants.md)
-for the source, artifact, and deployment identity boundary.
-
-## 13. OPENDOTA COST PROTECTION
-
-Do not make OpenDota calls solely to validate UI, layout, presentation,
-compatibility, or release wiring.
-
-Use stored reports, fixtures, persisted data, recorded responses, and existing
-evidence. Do not regenerate reports if an existing persisted report can test
-the same behavior.
-
-## 14. DEPLOYMENT PERMISSION
-
-Implementation permission is NOT deployment permission.
-
-Unless explicitly requested, DO NOT:
-
-- merge main;
-- deploy Vercel production;
-- deploy Railway;
-- modify production environment variables;
-- toggle production flags; or
-- change release metadata.
-
-Return a validated commit and wait.
-
-## 15. REQUIRED COMPLETION REPORT
+## Shared code affects the live legacy product
+
+`services/api/app/{core,storage,opendota,stratz,providers,ingestion,identity}`, `app/main.py`
+(the composition root that mounts both the tracker and the legacy `/v1` API), the
+`app/workers/tasks.py` worker entrypoint shim, `migrations/`, and `infra/` serve **both**
+products. A change there can affect the live legacy product even on a tracker-only task. Follow
+the production-safety rules below whenever you touch these paths.
+
+## Production safety (binds every agent, because `main` deploys the live legacy product)
+
+- **No deployment without an explicit owner request.** Do not merge to `main`, deploy Vercel
+  production, deploy Railway, modify production environment variables, or toggle production
+  flags. Return a validated commit and wait.
+- **Release gates.** `legacy/tests/` and the legacy import paths (`report_card`, its
+  subpackages) are release gates for anything that could reach the live product. A change that
+  could affect the legacy product is not safe merely because tracker tests pass.
+- **Provider cost protection.** Do not make OpenDota or STRATZ calls solely to validate UI,
+  layout, or wiring — for either product. Use stored data, fixtures, and recorded responses.
+- **Frozen V6.1 analytical artifacts.** Analytical source SHA `f85e88a277ffb365e76dd6eeac6f5009c7bd0165`
+  and frozen artifact bundle digest
+  `22206d20b84bf9ee73b93c64177443e1bb585ccdb818c188ac40d9acfcb358f9` must not change outside an
+  explicitly authorized analytical release. See
+  [`legacy/docs/agent/analytical-release-invariants.md`](legacy/docs/agent/analytical-release-invariants.md).
+- **Deploy entrypoints are fixed.** The Railway and Vercel dashboards depend on these paths and
+  commands; do not rename or move them: `infra/docker/api.Dockerfile`, `uvicorn app.main:app`,
+  `celery -A app.workers.tasks.celery_app`, `alembic upgrade head`, and the Vercel root
+  `legacy/apps/web`.
+
+## Required completion report
 
 Every implementation agent MUST return:
 
@@ -336,28 +103,3 @@ Every implementation agent MUST return:
     OPENDOTA QA CALLS: <number>
     DEPLOYED: YES / NO
     SAFE TO MERGE: YES / NO
-
-## 16. STOP CONDITIONS
-
-STOP instead of improvising if:
-
-- task scope must unexpectedly expand;
-- compatibility cannot be guaranteed;
-- presentation work seems to require analytical changes;
-- production state differs from assumed state;
-- required release artifacts are missing;
-- main unexpectedly diverged;
-- private user data would need to be committed;
-- UI work requires a schema-breaking change; or
-- success would require fabricated release evidence.
-
-## 17. FINAL RULE OF THUMB
-
-If a change makes today’s newly generated report work but breaks yesterday’s
-persisted report, the change is incomplete.
-
-If a UI only works after changing analytical output, presentation has not been
-safely isolated.
-
-If missing information can be represented by omission, omit it instead of
-inventing it.
