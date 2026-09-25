@@ -1,8 +1,11 @@
-Read /AGENTS.md first. These instructions extend the root rules for apps/web.
+> Legacy report card — deprecated, live in production. Not tracker truth.
 
-`apps/web` is the live legacy report-card frontend. It is not the Dota Tracker client: the
+Read `/legacy/AGENTS.md` first (and `/AGENTS.md` for the shared-code rule). These instructions
+extend the legacy rules for `legacy/apps/web`.
+
+`legacy/apps/web` is the live legacy report-card frontend. It is not the Dota Tracker client: the
 tracker is a native iOS app whose only backend boundary is `/mobile/v1`
-([mobile API](../../docs/tracker/api/README.md)). Do not add tracker features here.
+([mobile API](../../../docs/tracker/api/README.md)). Do not add tracker features here.
 
 # Frontend Agent Rules
 
@@ -82,7 +85,7 @@ persisted report when possible. HTTP 200 alone is not a UX success criterion.
 Historical fixtures are additive. Do not overwrite an old fixture when the
 payload contract evolves. The recommended directory is:
 
-    apps/web/tests/fixtures/persisted-reports/
+    legacy/apps/web/tests/fixtures/persisted-reports/
 
 See [testing and release gates](../../docs/agent/testing-and-release-gates.md)
 and [production safety](../../docs/agent/production-safety.md) for the full

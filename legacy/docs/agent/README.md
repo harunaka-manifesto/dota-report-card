@@ -1,6 +1,8 @@
 # Agent Documentation
 
-Start with the [repository agent operating contract](../../AGENTS.md).
+> Legacy report card — deprecated, live in production. Not tracker truth.
+
+Start with the [legacy agent operating contract](../../AGENTS.md).
 It is mandatory before making changes; it wins if a detailed document
 accidentally conflicts with it.
 

@@ -1,6 +1,8 @@
 # Testing and Release Gates
 
-Read the [root agent operating contract](../../AGENTS.md) first. This document
+> Legacy report card — deprecated, live in production. Not tracker truth.
+
+Read the [legacy agent operating contract](../../AGENTS.md) first. This document
 defines the gates for frontend, API, report, analytical, and release changes.
 The gates are operational requirements; they are not all currently enforced by
 CI.
@@ -61,7 +63,7 @@ identifiers without flattening away the structural case.
 
 Recommended fixture directory:
 
-    apps/web/tests/fixtures/persisted-reports/
+    legacy/apps/web/tests/fixtures/persisted-reports/
 
 Fixtures are additive. Do not overwrite or “refresh” an old fixture when a
 contract evolves. Add a new fixture for a new payload shape.

@@ -1,6 +1,8 @@
 # Analytical Release Invariants
 
-Read the [root agent operating contract](../../AGENTS.md) first. This document
+> Legacy report card — deprecated, live in production. Not tracker truth.
+
+Read the [legacy agent operating contract](../../AGENTS.md) first. This document
 defines the boundary between product/presentation work and an analytical
 release.
 

@@ -1,5 +1,7 @@
 # Documentation
 
+> Legacy report card — deprecated, live in production. Not tracker truth.
+
 Current product: [Dota Tracker V1](../../docs/tracker/README.md).
 Current system behavior and ADRs: [tracker architecture](../../docs/tracker/architecture/README.md).
 Agent safety: [production safety](agent/production-safety.md).

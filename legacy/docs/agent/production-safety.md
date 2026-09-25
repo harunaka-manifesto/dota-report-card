@@ -1,6 +1,8 @@
 # Production Safety
 
-Read the [root agent operating contract](../../AGENTS.md) first. This manual
+> Legacy report card — deprecated, live in production. Not tracker truth.
+
+Read the [legacy agent operating contract](../../AGENTS.md) first. This manual
 is for future Luna-, Sol-, and Codex-style coding agents working on a live
 production product.
 

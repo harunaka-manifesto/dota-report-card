@@ -1,8 +1,10 @@
 # Documentation archive
 
+> Legacy report card — deprecated, live in production. Not tracker truth.
+
 The archive contains superseded plans, UX blueprints, and QA snapshots. They
-remain available for provenance and migration history. The active contract is
-in [the current architecture notes](../architecture/README.md).
+remain available for provenance and migration history. The legacy report-card
+contract is in [the current architecture notes](../architecture/README.md).
 
 ## Archive convention
 

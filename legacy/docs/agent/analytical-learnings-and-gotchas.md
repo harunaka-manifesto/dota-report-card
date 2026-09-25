@@ -1,5 +1,7 @@
 # Analytical learnings and gotchas
 
+> Legacy report card — deprecated, live in production. Not tracker truth.
+
 This is mandatory reading before designing or changing a Finding. It is a
 practical guardrail for the V7 STRATZ rebuild, derived from the V6/V6.1
 release record and the STRATZ field research. It does not define a Finding,

@@ -1,6 +1,8 @@
 # Persisted Report Compatibility
 
-Read the [root agent operating contract](../../AGENTS.md) first. This is the
+> Legacy report card — deprecated, live in production. Not tracker truth.
+
+Read the [legacy agent operating contract](../../AGENTS.md) first. This is the
 primary compatibility manual for report producers, API consumers, and
 frontend renderers.
 
@@ -248,7 +250,7 @@ Sanitization must preserve the cases that expose compatibility bugs:
 
 Store compatibility fixtures in the recommended directory:
 
-    apps/web/tests/fixtures/persisted-reports/
+    legacy/apps/web/tests/fixtures/persisted-reports/
 
 The directory is a convention for future fixture work. A current fixture and a
 historical fixture are separate artifacts. When the contract evolves, add a
