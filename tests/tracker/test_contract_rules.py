@@ -90,13 +90,15 @@ def test_history_rows_are_identity_only_and_every_retained_match_is_listed(datab
 
 def test_home_last_five_spans_buckets_today_and_four_metric_named_role_summaries(database):
     now = datetime.now(UTC)
-    client, headers, profile_id, _ = _client(database, linked=now - timedelta(days=3))
+    # Anchor on UTC midnight so the day buckets hold at any time of day.
+    midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    client, headers, profile_id, _ = _client(database, linked=midnight - timedelta(days=3))
     history(database, profile_id, [0], offset_days=[1])
     turbo = add_match(database, profile_id, index=2, turbo=True, offset_days=2)
     assert finalize(database, profile_id, turbo) == "READY"
     unsupported = add_match(database, profile_id, index=3, edit=_unsupported, offset_days=2.5)
     assert finalize(database, profile_id, unsupported) == "READY"
-    today = add_match(database, profile_id, index=4, offset_days=3 - 1 / 24)
+    today = add_match(database, profile_id, index=4, offset_days=3 + (now - midnight) / timedelta(days=2))
     with database.begin() as connection:
         connection.execute(update(account_matches).where(account_matches.c.match_id == today)
                            .values(lifecycle="WAITING_FOR_PROVIDER"))

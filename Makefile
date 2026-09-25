@@ -41,7 +41,7 @@ test-tracker:
 	$(PYTEST) -q tests/tracker
 
 test-v7-stratz:
-	$(PYTEST) -q tests/unit/test_stratz_client.py tests/unit/test_stratz_normalize.py tests/unit/test_v7_provider_architecture.py
+	$(PYTEST) -q tests/unit/test_stratz_client.py legacy/tests/unit/test_stratz_normalize.py legacy/tests/unit/test_v7_provider_architecture.py
 
 test-contract:
 	$(PYTEST) -q legacy/tests/contract
