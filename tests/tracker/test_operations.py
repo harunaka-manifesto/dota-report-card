@@ -30,6 +30,10 @@ def test_operations_requires_separate_secret_and_stays_out_of_mobile_schema(data
         "name": "opendota", "operation": "match", "calls": 1, "unique_matches": 1,
         "errors": 1, "rate_limited": 1, "billed_units": 0, "rate_units": 1,
     }]
+    assert body["usage_attribution"] == [{
+        "provider": "opendota", "operation": "match", "job_type": None,
+        "priority": None, "calls": 1, "billed_units": 0, "rate_units": 1,
+    }]
     assert len(body["latency"]) == 3
     assert "summary" not in create_mobile_app(Settings(), database=database).openapi()["paths"]
 
@@ -80,6 +84,11 @@ def test_operations_reports_retained_retry_and_replay_reasons(database):
             priority=2, state="FAILED", run_after=now, created_at=now, attempts=3,
             payload={}, last_error="RATE_LIMITED",
         ))
+        connection.execute(provider_calls.insert().values(
+            id=2, provider="opendota", operation="replay", operation_version="1",
+            match_id=101, job_id="operations-retry-job", status=200, latency_ms=40,
+            billed_units=3, rate_units=1, called_at=now,
+        ))
     client = TestClient(create_operations_app(Settings(), database=database,
                                               token="local-operations-test-token"))
     response = client.get("/summary", headers={"X-Tracker-Operations-Token": "local-operations-test-token"})
@@ -90,3 +99,7 @@ def test_operations_reports_retained_retry_and_replay_reasons(database):
         {"source": "REPLAY", "reason": "PARSE_UNAVAILABLE", "count": 1},
     ]
     assert body["retries"] == [{"job_type": "REPLAY", "attempted": 1, "retried": 1}]
+    assert body["usage_attribution"] == [{
+        "provider": "opendota", "operation": "replay", "job_type": "REPLAY",
+        "priority": 2, "calls": 1, "billed_units": 3, "rate_units": 1,
+    }]

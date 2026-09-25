@@ -69,6 +69,16 @@ class RetryView(BaseModel):
     retried: int
 
 
+class UsageAttributionView(BaseModel):
+    provider: str
+    operation: str
+    job_type: str | None
+    priority: int | None
+    calls: int
+    billed_units: int
+    rate_units: int
+
+
 class OperationsView(BaseModel):
     queues: list[QueueView]
     providers: list[ProviderView]
@@ -78,6 +88,7 @@ class OperationsView(BaseModel):
     p3_paused: bool | None
     failures: list[FailureView]
     retries: list[RetryView]
+    usage_attribution: list[UsageAttributionView]
 
 
 def create_operations_app(settings: Settings, *, database: Engine | None = None,
@@ -127,6 +138,15 @@ def create_operations_app(settings: Settings, *, database: Engine | None = None,
                 func.coalesce(func.sum(provider_calls.c.billed_units), 0),
                 func.coalesce(func.sum(provider_calls.c.rate_units), 0),
             ).group_by(provider_calls.c.provider, provider_calls.c.operation)).all()
+            usage = connection.execute(select(
+                provider_calls.c.provider, provider_calls.c.operation,
+                ingest_jobs.c.job_type, ingest_jobs.c.priority, func.count(),
+                func.coalesce(func.sum(provider_calls.c.billed_units), 0),
+                func.coalesce(func.sum(provider_calls.c.rate_units), 0),
+            ).select_from(provider_calls.outerjoin(
+                ingest_jobs, provider_calls.c.job_id == ingest_jobs.c.id,
+            )).group_by(provider_calls.c.provider, provider_calls.c.operation,
+                        ingest_jobs.c.job_type, ingest_jobs.c.priority)).all()
             spans = connection.execute(select(
                 coverage.c.mode, coverage.c.evidence_class, coverage.c.state, func.count(),
             ).group_by(coverage.c.mode, coverage.c.evidence_class, coverage.c.state)).all()
@@ -201,6 +221,10 @@ def create_operations_app(settings: Settings, *, database: Engine | None = None,
             ],
             retries=[RetryView(job_type=kind, attempted=attempted, retried=retried)
                      for kind, attempted, retried in retry_counts],
+            usage_attribution=[UsageAttributionView(
+                provider=provider, operation=operation, job_type=kind, priority=priority,
+                calls=count, billed_units=billed, rate_units=units,
+            ) for provider, operation, kind, priority, count, billed, units in usage],
         )
 
     return app

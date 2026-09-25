@@ -745,3 +745,8 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 
 - The isolated operations summary groups current job `last_error` values by job type, replay-unavailable terminal reasons, and attempted versus retried job counts by type. These are retained current-state counts, not a lifetime failure history. It makes no provider call and does not change mobile or legacy APIs.
 - Real PostgreSQL operations and legacy API contract checks: **11 passed, 0 failed, 0 skipped**. Ruff and mypy pass. The first test fixture violated the existing ten-player roster constraint; the fixture was corrected and rerun. Cost attribution, failure-rate time windows, controlled Celery priority/non-starvation proof and production worker wiring remain open.
+
+### Provider usage attribution
+
+- The internal operations summary now groups persisted provider calls and billed/rate units by provider operation and the owning job's type/priority. Calls whose job no longer exists are explicitly unattributed. This is unit accounting; no price or currency conversion is invented.
+- Real PostgreSQL operations and legacy contract checks: **11 passed, 0 failed, 0 skipped**. Ruff and mypy pass. The broad tracker/migration/legacy contract regression at the previous checkpoint passed **275 tests**. A proposed two-consumer Celery in-process test failed because Kombu's test hub cannot poll concurrently (`RuntimeError: concurrent poll() invocation`); that invalid test was removed without claiming non-starvation. A separate-process proof remains required. No provider calls, push, merge or deployment.
