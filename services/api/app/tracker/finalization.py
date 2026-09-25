@@ -563,6 +563,10 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
 
             publish_profile_checkpoint(connection, profile_id=job["profile_id"], cause="PLAY",
                                        modes=(link["mode"],))
+        if link["mode"] in {"STANDARD", "TURBO"}:
+            from .rebuild import request_closure_rebuild
+
+            request_closure_rebuild(connection, link=link)
         if link["origin"] == "BOOTSTRAP":
             from .bootstrap import settle_bootstrap
 

@@ -148,3 +148,47 @@ def test_worker_beat_schedules_the_daily_backfill_retry():
     assert app.conf.beat_schedule["tracker-backfill-retry"]["task"] == "tracker.retry_backfills"
     assert "tracker.retry_backfills" in app.tasks
 
+
+async def test_out_of_order_import_rebuilds_later_comparisons_through_the_worker(database, redis_client):
+    """A recovered match finalized after later READY matches is folded into their comparisons."""
+    from app.tracker.provider_control import ProviderGate
+    from app.tracker.worker import WorkerPolicy, run_one
+
+    from .test_e2e_matrix import HEADERS
+
+    _, profile_id = identity(database)
+    history(database, profile_id, [0, 1, 2, 3, 4, 5])
+    later = add_match(database, profile_id, index=21)
+    assert finalize(database, profile_id, later) == "READY"
+    with database.connect() as connection:
+        later_before, baselines_before = _observations(connection, later)
+
+    recovered = add_match(database, profile_id, index=20, origin="RECOVERY", stack_bonus=9)
+    assert finalize(database, profile_id, recovered) == "READY"
+    with database.begin() as connection:
+        events_before = connection.scalar(select(func.count()).select_from(events).where(
+            events.c.kind != "PROFILE_CHANGE"))
+        [job] = connection.execute(select(ingest_jobs).where(ingest_jobs.c.job_type == "CLOSURE_REBUILD")).mappings().all()
+        assert job["priority"] == 3 and job["profile_id"] == profile_id
+        connection.execute(update(ingest_jobs).where(ingest_jobs.c.id == job["id"]).values(
+            run_after=func.clock_timestamp() - timedelta(seconds=1)))
+    redis, namespace = redis_client
+    for provider in ("opendota", "stratz"):
+        ProviderGate(redis, namespace=namespace, provider=provider).observe(HEADERS, status=200)
+    assert await run_one(database, redis, Settings(), priority=3, policy=WorkerPolicy(namespace=namespace)) == "COMPLETE"
+
+    with database.connect() as connection:
+        later_after, baselines_after = _observations(connection, later)
+        assert later_after != later_before
+        assert any(baselines_after[metric] != baselines_before[metric] for metric in baselines_before)
+        # A rebuild never celebrates or writes per-match events.
+        assert connection.scalar(select(func.count()).select_from(events).where(
+            events.c.kind != "PROFILE_CHANGE")) == events_before
+
+
+def test_in_order_finalization_queues_no_closure_rebuild(database):
+    _, profile_id = identity(database)
+    history(database, profile_id, [0, 1, 2])
+    with database.connect() as connection:
+        assert connection.scalar(select(func.count()).select_from(ingest_jobs).where(
+            ingest_jobs.c.job_type == "CLOSURE_REBUILD")) == 0

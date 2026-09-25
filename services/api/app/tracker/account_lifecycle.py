@@ -29,7 +29,8 @@ from app.tracker.schema import (
 SWITCH_COOLDOWN = timedelta(days=90)
 # Import and rebuild work that must be terminal before a switch (settings §3.2).
 _HISTORICAL_JOB_TYPES = ("BOOTSTRAP_SEARCH", "HISTORICAL_BATCH", "HISTORICAL_SUMMARY", "PRO_BACKFILL",
-                         "ACCESS_RECOVERY", "SCOPE_REBUILD", "METHODOLOGY_REBUILD", "READMIT")
+                         "ACCESS_RECOVERY", "SCOPE_REBUILD", "METHODOLOGY_REBUILD", "READMIT",
+                         "CLOSURE_REBUILD")
 
 
 class AccountLifecycleError(ValueError):

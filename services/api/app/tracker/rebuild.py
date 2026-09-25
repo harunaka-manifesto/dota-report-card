@@ -12,7 +12,7 @@ except the single in-app scope-change summary allowed by settings §5.1.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -38,6 +38,7 @@ from .schema import (
     derived_features,
     events,
     history_operations,
+    ingest_jobs,
     matches,
     profiles,
     snapshots,
@@ -309,6 +310,66 @@ def complete_methodology_job(database: Engine, *, job_id: str, lease_token: str)
         # RebuildUnavailable propagates: the whole transaction rolls back, the
         # previous coherent state stays published and the worker retries/fails.
         run_methodology_rebuild(connection, profile_id=job["profile_id"])
+        finish(connection, job)
+        return "COMPLETE"
+
+
+# -- out-of-order finalization -------------------------------------------------------
+
+def request_closure_rebuild(connection: Connection, *, link: dict[str, Any], delay_seconds: int = 60) -> str | None:
+    """Queue a replay of READY links later than one finalized out of order.
+
+    Imports and recoveries may finalize after later matches in their bucket;
+    those later comparisons must then read the new value. Requests coalesce
+    into one pending P3 job per profile holding each mode's earliest point, and
+    the job waits for historical work to settle so a batch replays once.
+    Must run holding the profile lock (the finalization transaction).
+    """
+    profile = connection.execute(select(profiles).where(profiles.c.id == link["profile_id"])).mappings().one()
+    boundary = (link["provider_started_at"], link["provider_source_match_id"])
+    key = tuple_(account_matches.c.provider_started_at, account_matches.c.provider_source_match_id)
+    bucket = select(account_matches.c.match_id).where(
+        account_matches.c.profile_id == link["profile_id"], account_matches.c.mode == link["mode"],
+        account_matches.c.lifecycle == "READY", _visible(profile),
+    )
+    visible = connection.scalar(bucket.where(account_matches.c.match_id == link["match_id"]))
+    later = connection.scalar(bucket.where(key > boundary).limit(1))
+    if visible is None or later is None:
+        return None
+    point = [boundary[0].isoformat(), boundary[1]]
+    pending = connection.execute(select(ingest_jobs).where(
+        ingest_jobs.c.profile_id == link["profile_id"], ingest_jobs.c.job_type == "CLOSURE_REBUILD",
+        ingest_jobs.c.state == "PENDING",
+    ).with_for_update().limit(1)).mappings().first()
+    if pending is None:
+        return enqueue(connection, dedup_key=f"closure:{link['profile_id']}:{uuid4()}", job_type="CLOSURE_REBUILD",
+                       priority=3, profile_id=link["profile_id"], payload={"start": {link["mode"]: point}},
+                       run_after=connection.execute(select(func.clock_timestamp())).scalar_one()
+                       + timedelta(seconds=delay_seconds))
+    starts = dict(pending["payload"]["start"])
+    current = starts.get(link["mode"])
+    if current is None or (datetime.fromisoformat(current[0]), current[1]) > boundary:
+        starts[link["mode"]] = point
+        connection.execute(update(ingest_jobs).where(ingest_jobs.c.id == pending["id"]).values(
+            payload={**pending["payload"], "start": starts}))
+    return str(pending["id"])
+
+
+def complete_closure_job(database: Engine, *, job_id: str, lease_token: str) -> str:
+    with authorized_job(database, job_id, lease_token) as (connection, job):
+        if job["job_type"] != "CLOSURE_REBUILD" or job["profile_id"] is None:
+            raise ValueError("Expected closure rebuild work")
+        if historical_work_pending(connection, job["profile_id"]):
+            reschedule(connection, job, delay_seconds=60, error="AWAITING_HISTORY", failure=False)
+            return "DEFERRED"
+        profile = connection.execute(select(profiles).where(profiles.c.id == job["profile_id"])).mappings().one()
+        starts: dict[str, tuple[Any, int] | None] = {
+            mode: (datetime.fromisoformat(point[0]), int(point[1])) for mode, point in job["payload"]["start"].items()}
+        # RebuildUnavailable propagates: the previous coherent state stays published.
+        replay_closure(connection, profile=dict(profile), modes=tuple(starts), start=starts, inclusive=False)
+        from .profile import publish_profile_checkpoint
+
+        publish_profile_checkpoint(connection, profile_id=job["profile_id"], cause="IMPORT", modes=tuple(starts))
         finish(connection, job)
         return "COMPLETE"
 
