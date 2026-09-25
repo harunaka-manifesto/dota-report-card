@@ -8,31 +8,31 @@ Operational evidence, not a product or architecture contract.
 - Branch: `codex/tracker-backend-foundation`.
 - Authorized: BACKEND, DATABASE, ANALYTICAL (new tracker only), DOCUMENTATION, local INFRASTRUCTURE. No release/deployment.
 - Existing untracked `docs/prompts/tracker-backend-foundation-goal.md` is user-owned and remains untouched.
-- Current step: Phases C–H have verified partial checkpoints. Controlled providers, ordered finalization, Free bootstrap, tracker identity, isolated mobile routes, insight persistence, account lifecycle, entitlement boundary and an operations readout exist. Rebuild/correction, Profile publication, production integrations, full mobile inventory and goal-wide E2E evidence remain pending. Checkpoint entries below govern the exact status; none of these phases is declared complete.
+- Current step (2026-09-25, Opus continuation): Phases A–I are implemented and verified locally against PostgreSQL 16 + Redis 7 + real Celery workers, within the limits recorded below. Not deployed. Remaining items are owner decisions, external credentials/evidence, and the operational items listed under *External blockers*; each is fail-closed in code. See *Continuation by Opus* for checkpoints and the final audit.
 
 ## Gap status
 
 | Gap | Work | Status | Code / verification / commit |
 |---|---|---|---|
-| G-1 | STRATZ batching | Partial | 50-ID deep batches and size/cost splitting; expanded selection/live ceiling unproven |
-| G-2 | Shared fresh replay enrichment | Partial | Shared bounded path, terminal propagation and private finalization; full E2E matrix pending |
-| G-3 | Persisted evidence readiness | Partial | Separate summary/replay states, immutable snapshots and private READY path; recovery/rebuild pending |
-| G-4 | Classifier evidence profiles | Partial | Summary and replay profiles/refinement implemented; provisional calibration and correction remain |
-| G-5 | Global matches and account links | Partial | Shared match/roster and generation-fenced links; full lifecycle pending |
-| G-6 | Priority queues | Partial | Dedicated P0–P3 workers and pressure admission; E2E non-starvation gate pending |
-| G-7 | Job deduplication and locks | Partial | Leases, source-call recovery and unique jobs; full pipeline duplicate-effect gate pending |
-| G-8 | Sync and coverage | Partial | Durable discovery, match coverage and per-mode bootstrap outcome publication; interval/recovery E2E pending |
-| G-9 | Rate and billing units | Partial | Separate Redis read/processing lanes and persisted units; live-limit evidence pending |
-| G-10 | Turbo-inclusive history | Implemented, E2E pending | Explicit `significant=0` in tracker readers; see Phase C tests |
-| G-11 | Snapshot provenance | Partial | Immutable source snapshots and final analysis lineage; rebuild lineage gate pending |
-| G-12 | Trigger-based raw tiering | Trigger-deferred; policy review pending | See IMPLEMENTATION-GAPS.md; no closure evidence yet |
-| G-13 | Independent versions and digest | Partial | Source/feature/role/parameter versions and digests exist; complete analysis rebuild gate pending |
-| G-14 | Four-role public boundary | Partial | Internal positions map to four mobile roles; correction and full contract tests pending |
-| G-15 | Account-match lifecycle | Partial | Private lifecycle, ordered finalizer and retained-evidence Retry; full E2E matrix pending |
+| G-1 | STRATZ batching | Implemented; live ceiling unproven | 50-ID deep batches, size/cost splitting, OpenDota summary fallback (`test_historical*.py`). Live batch ceiling needs STRATZ calls, blocked by the IP-binding safety check |
+| G-2 | Shared fresh replay enrichment | Verified locally | One replay path per match shared by owners; terminal propagation; late recovery re-admission (`test_e2e_matrix.py`, `test_replay_acquisition.py`) |
+| G-3 | Persisted evidence readiness | Verified locally | Separate summary/replay states, immutable snapshots, provider-free rebuilds (`test_rebuild.py`, `test_architecture_boundaries.py`) |
+| G-4 | Role evidence profiles | Implemented; calibration owner-gated | Summary/replay profiles, refinement, user correction with context recompute; provisional weights versioned |
+| G-5 | Global matches and account links | Verified locally | Shared match rows, generation-fenced links, switch/deletion/relink isolation (`test_account_lifecycle.py`, `test_e2e_matrix.py`) |
+| G-6 | Priority queues | Verified locally | Dedicated P0–P3 Celery processes; separate-process non-starvation proof (`test_worker.py`) |
+| G-7 | Job deduplication and locks | Verified locally | Leases, generation fences, duplicate delivery and crash recovery; rebuilds idempotent (`test_rebuild.py`, `test_e2e_matrix.py`) |
+| G-8 | Sync and coverage | Verified locally | Discovery, coverage, bootstrap outcomes, data-access recovery (`test_sync.py`, `test_bootstrap.py`, `test_backfill.py`) |
+| G-9 | Rate and billing units | Implemented; live limits partial | Separate read/processing lanes, persisted units, attribution readout; plan ceiling observed only from headers of the 4 live calls |
+| G-10 | Turbo-inclusive history | Verified locally | `significant=0` readers; both buckets through the E2E matrix |
+| G-11 | Snapshot provenance | Verified locally | Immutable snapshots, analysis lineage and digest; rebuild reuses identical rows |
+| G-12 | Trigger-based raw tiering | Trigger-deferred | See IMPLEMENTATION-GAPS.md; no trigger condition met, deliberately not built |
+| G-13 | Independent versions and digest | Verified locally | Version/parameter-set bumps rebuild only stale closures (`test_rebuild.py`, `test_contract_rules_more.py`) |
+| G-14 | Four-role public boundary | Verified locally | Four mobile roles, correction, closed enums, golden fixtures (`test_mobile_*.py`) |
+| G-15 | Account-match lifecycle | Verified locally | Private lifecycle, ordered finalizer, Retry, scope rebuild during in-flight enrichment (`test_e2e_matrix.py`) |
 
 ## V1 capability work outside the gap list
 
-Pending: production identity/store/push integrations; resumable Pro history; entitlement rebuild; full deletion/legal settlement; notification delivery; population context artifact; complete deterministic insight vectors; Profile claims; rebuild/correction; remaining mobile routes; seed and golden fixtures; PostgreSQL/Redis/Celery E2E; acceptance traceability. All 20 metric formulas are persisted, but calibrated adjustment and the rebuild gate are not complete.
+Implemented and locally verified: entitlement scope rebuilds, resumable Pro backfill and access recovery, methodology/parameter rebuilds, late replay re-admission, role correction, Profile checkpoints (fixed values only), shares, settings, recovery routing, deletion fencing, notification delivery through a transport interface, seed and golden fixtures, the PostgreSQL/Redis/Celery E2E matrix and SSOT acceptance traceability. Not production-integrated: APNs transport, Apple/Google/Steam production credentials, App Store revocation checks, an approved context parameter artifact, calibrated Profile claims and trend labels.
 
 ## Engineering decisions
 
@@ -61,6 +61,10 @@ All remain open; no product choices are inferred from missing UI content.
 | Home default bucket | Standard / Turbo / last selected | Require explicit selected bucket |
 | Shared canonical rows after deletion | Retain shared evidence / legal removal policy | Record legal gate; remove user scope and fence jobs |
 | Subscription renewal at deletion | Store-managed cancellation guidance / approved alternative | Verify platform capabilities; do not claim server cancellation |
+| Profile claim parameters (Profile SSOT §12) | Approve values / keep withheld | Claims, hero tags and Right now return `CALIBRATION_PENDING`; no values invented |
+| Trend calibration | Approve thresholds / defer | Trend state uncalibrated with reason |
+| Bootstrap summary-404 semantics | Count as not found / retry / separate outcome | Current: the match is `SOURCE_MISSING` and ineligible (`UNAVAILABLE:SUMMARY_404`); it counts as discovered, not eligible, so an all-404 bucket settles `NO_ELIGIBLE_MATCHES` |
+| First-link privacy | Accept `NO_MATCHES_FOUND` / require a provider privacy signal | Private-at-first-link is indistinguishable from empty history without a positive signal |
 
 ## External blockers and environment
 
@@ -68,6 +72,10 @@ All remain open; no product choices are inferred from missing UI content.
 - Web node_modules absent: web checks cannot execute until installed.
 - STRATZ concurrent production token use not established: zero live calls permitted until safety is established or a dev token is available.
 - Production identity/store/push credentials and approved calibration artifacts require later verification.
+- No APNs HTTP/2 transport ships; `transport_from_environment()` returns none and the beat task delivers nothing.
+- App Store JWS verification has no OCSP/revocation check (network I/O); operational follow-up.
+- No Swift OpenAPI generator installed: the mobile OpenAPI document is linted structurally but no Swift dry run was performed.
+- Docker absent: the compose `tracker` profile is documented, not executed; the same layout ran as local processes.
 
 ## Live provider call ledger
 
@@ -87,7 +95,7 @@ Commands: `make <target> PYTHON=.venv/bin/python PYTEST=.venv/bin/pytest RUFF=.v
 | Backend ruff | — | 0 | — | Pass |
 | Backend mypy | 254 files | 0 | — | Pass |
 | Web lint/typecheck | — | — | — | Commands unavailable: node_modules missing |
-| docs-check | — | 2 findings | — | Pre-existing classifier-domain ban flags tracker role doc and user goal |
+| docs-check | — | 2 findings | — | Baseline: classifier-domain ban flagged a tracker role doc and the user goal. Passes after R1/R2 (see final audit) |
 | DNA catalog | — | 0 | — | Current |
 | Taxonomy | 127 heroes | 0 | — | Pass |
 
@@ -793,3 +801,53 @@ Handoff state verified before changes: branch `codex/tracker-backend-foundation`
 - `tracker/data_access.py`: positive-evidence detection (a history page that no longer returns an accepted in-window match) sets `BLOCKED`; bootstrap settles `DATA_ACCESS_BLOCKED` instead of `NO_MATCHES_FOUND` when blocked; confirmation (or a later non-empty page) re-anchors recovery to the original link date, restarts a blocked bootstrap and queues post-link recovery. Links and Pro are untouched. Limitation: an account private at first link with no prior evidence cannot be distinguished from an empty history and settles `NO_MATCHES_FOUND`; a positive provider privacy signal is needed (external evidence item).
 - Mobile: `GET /profile`, `POST /profile/favourite-hero`, `POST /shares`, `GET /shares/{ref}` (+ `image.svg`), `GET/PATCH /settings`, `GET /recovery`, `POST /data-access/confirm`, `GET /history-operation`, `GET /changes` (signed cursor; migration `0015_tracker_link_updated_at` adds a trigger-maintained `updated_at`), body ETags with 304, `request_id` in problems, match `role_source`/`role_confidence`/`lane_context`, metric `diagnostic_only` and absent performance for N/A/diagnostic metrics, Home slots `{UNAVAILABLE, NOT_CONTRACTED}`.
 - Evidence: `test_backfill.py` (2), `test_mobile_inventory.py` (4). Full tracker + migration units + contract: **310 passed, 0 failed, 0 skipped**. No live provider calls in this continuation so far.
+
+### Push delivery boundary (`853910e`)
+
+- `notifications.deliver_pending` sends READY bundles through a `PushTransport` interface: foreground suppression (device active within 60 s), stale cancellation (older than 1 h), invalid-token clearing, retry keeps the bundle pending with the same collapse key. The `tracker.notify` beat task delivers only when `transport_from_environment()` returns a transport; none ships (APNs is a deployment gate). Evidence: `test_notifications.py` with `FakePushTransport`.
+
+### Seed, golden fixtures and OpenAPI (`4324ec3`)
+
+- `make seed-demo` (`scripts/tracker_seed_demo.py`) creates thirteen provider-free personas covering the bootstrap outcomes, Stage 1/2 and failures, N/A beside a measured zero, corrected roles, uncalibrated trend, PB celebration, Free/Pro importing/active/expired, switch cooldown, sync error, data access blocked and deletion. `tests/fixtures/tracker/mobile-v1/` holds one golden file per persona; `test_mobile_golden.py` compares (never rewrites) them, diffs the live schema against `docs/tracker/api/mobile-openapi-v1.json` (`make tracker-openapi`), lints it and scans for pipeline/provider vocabulary.
+
+### Entitlement above data and provider-free reads (`84f9f11`)
+
+- `tracker/scope.py` is the only entitled-history filter. `test_architecture_boundaries.py` statically forbids scope reads in acquisition/feature/role/metric/insight modules and runtime LLM or provider imports, and runs every mobile read for every seeded persona with real HTTP transports disabled.
+
+### Goal-wide E2E matrix and late re-admission (`5c6f291`)
+
+- `test_e2e_matrix.py`: foreground sync → shared summary → private links for two owners → one replay path per match → ordered finalization → mobile reads, in both buckets; bootstrap-deferred live work; stale provider responses; reads during provider outage; scope rebuild during in-flight enrichment.
+- **Defect fixed:** a match that became READY with `REPLAY_UNAVAILABLE` and later received replay evidence was never re-analysed. A fenced per-profile `READMIT` job now re-analyses affected READY links with no events.
+
+### SSOT acceptance alignment (`5a2d4bd`)
+
+- History rows are identity rows across all retained matches; Home's last five span both buckets and carry four role summaries; failed matches report terminal readiness; ineligible matches expose no comparisons; replay-unavailable matches show the normal zero-card state; Progress PBs carry hero and date; Match Detail separates current PB ownership from the one-time celebration. Historical acquisition defers while data access is blocked; switch preflight waits for every import/rebuild job type. The unreleased golden fixtures and OpenAPI export were regenerated for this contract before any client consumed them.
+
+### Acceptance traceability (`26c5024`, `d260736`, final audit)
+
+- Four independent read-only audits classified all 305 rules; `scripts/tracker_traceability.py --strict` fails if a cited test does not exist. Gap tests added in `test_contract_rules.py` / `test_contract_rules_more.py`.
+- Final counts: **250 covered, 25 owner-blocked, 29 client-only, 1 partial** (`settings_account#10.7`: Free-path cost viability with zero payers is operational, not testable). `match_detail#11.16` closed by `test_match_detail_cards_render_in_engine_order_with_no_reordering`.
+
+### Documentation and R2 fencing (`99b0aab`)
+
+- Runbook (`docs/tracker/operations/`), provider operations, deployment notes (not performed), mobile API guide (`docs/tracker/api/README.md`), tracker module map, agent router at the top of `AGENTS.md`, README fences on legacy prototype packages (`progression`, `insights`, `features`, `player_analysis_v7`). `STRATZ_API_TOKEN` is the canonical setting; `STRATZ_API_KEY` remains a fallback.
+- R3 (relocating the `stratz.deep` → `player_analysis_v7.research.corpus` import) was not done: it needs parity tests against the live legacy path and is not required by the tracker.
+
+### Final gate run and audit — 2026-09-25
+
+Real PostgreSQL 16 (55432) and Redis 7.2.16 (56379), `TEST_POSTGRES_URL`/`TEST_REDIS_URL` and `RUN_POSTGRES_MIGRATION_TEST=1` set.
+
+| Gate | Result |
+|---|---|
+| Full pytest (legacy + tracker + contract + integration + Postgres migration) | **1772 passed, 0 failed, 2 skipped** (both opt-in live smoke tests; no live calls) |
+| ruff (`services/api tests`, tracker scripts) | Pass. `scripts/stratz_v7_pass1_recollect.py` has 2 pre-existing findings outside the lint gate |
+| mypy (`services/api/app`, 302 files) | Pass |
+| docs-check | Pass (62 tracker documents, 493 local links) |
+| Legacy `/v1` API client regeneration | No diff |
+| Hero taxonomy / DNA catalog | Pass / current |
+| Traceability `--strict` | 250 covered, 25 owner-blocked, 29 client-only, 1 partial |
+| Web lint/typecheck/build, browser E2E | Not run: `apps/web/node_modules` absent; no web files changed except the `apps/web/AGENTS.md` note |
+
+Live provider calls in the Opus continuation: **0**. Cumulative for the branch: OpenDota 3 reads + 1 processing request (13 rate units, 4 billing units), STRATZ 0. Deployed: **no**. Pushed: **no**. Merged: **no**.
+
+Not claimed as verified: production Apple/Google/Steam/App Store behaviour, APNs delivery, live STRATZ batching limits, live provider rate ceilings, calibrated context adjustment, Profile claims and trend labels (all fail-closed and listed above).

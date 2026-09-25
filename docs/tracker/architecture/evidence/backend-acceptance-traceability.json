@@ -1715,12 +1715,13 @@
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Cards render in engine order; no client reordering, merging or padding.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
     "tests/tracker/test_insights.py::test_selection_applies_single_story_rule_class_and_cap_golden_tv4",
-    "tests/tracker/test_insights.py::test_annex_output_vectors_selection_tv3_tv5_tv6_tv7_tv8_tv9_tv12_tv13"
+    "tests/tracker/test_insights.py::test_annex_output_vectors_selection_tv3_tv5_tv6_tv7_tv8_tv9_tv12_tv13",
+    "tests/tracker/test_contract_rules_more.py::test_match_detail_cards_render_in_engine_order_with_no_reordering"
    ],
-   "note": "Engine selection order tested; API pass-through order untested (no golden fixture has cards)."
+   "note": "Engine selection order tested; API pass-through order is now tested directly against the mobile match-detail endpoint."
   },
   {
    "id": "match_detail#11.17",
