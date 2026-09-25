@@ -1,0 +1,3986 @@
+{
+  "components": {
+    "schemas": {
+      "AccountView": {
+        "properties": {
+          "identity_methods": {
+            "items": {
+              "enum": [
+                "apple",
+                "google",
+                "email"
+              ],
+              "type": "string"
+            },
+            "title": "Identity Methods",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "scope": {
+            "enum": [
+              "FREE",
+              "PRO"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "ACTIVE",
+              "DELETION_PENDING"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "steam_linked": {
+            "title": "Steam Linked",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "state",
+          "steam_linked",
+          "scope",
+          "revision",
+          "identity_methods"
+        ],
+        "title": "AccountView",
+        "type": "object"
+      },
+      "BootstrapModeView": {
+        "properties": {
+          "discovered_count": {
+            "title": "Discovered Count",
+            "type": "integer"
+          },
+          "eligible_count": {
+            "title": "Eligible Count",
+            "type": "integer"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "enum": [
+                  "NO_STEAM_LINKED",
+                  "DATA_ACCESS_BLOCKED",
+                  "NO_MATCHES_FOUND",
+                  "NO_ELIGIBLE_MATCHES",
+                  "READY",
+                  "READY_WITH_GAPS"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "settled_count": {
+            "title": "Settled Count",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "NOT_STARTED",
+              "SEARCHING",
+              "PROCESSING",
+              "COMPLETE"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "status",
+          "outcome",
+          "discovered_count",
+          "eligible_count",
+          "settled_count"
+        ],
+        "title": "BootstrapModeView",
+        "type": "object"
+      },
+      "BootstrapView": {
+        "properties": {
+          "modes": {
+            "items": {
+              "$ref": "#/components/schemas/BootstrapModeView"
+            },
+            "title": "Modes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "modes"
+        ],
+        "title": "BootstrapView",
+        "type": "object"
+      },
+      "CelebrationView": {
+        "properties": {
+          "celebrated_at": {
+            "format": "date-time",
+            "title": "Celebrated At",
+            "type": "string"
+          },
+          "match_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Ref"
+          },
+          "metric_id": {
+            "title": "Metric Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_id",
+          "match_ref",
+          "celebrated_at"
+        ],
+        "title": "CelebrationView",
+        "type": "object"
+      },
+      "ChangesView": {
+        "properties": {
+          "changed_refs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Changed Refs",
+            "type": "array"
+          },
+          "cursor": {
+            "title": "Cursor",
+            "type": "string"
+          },
+          "full_refresh": {
+            "title": "Full Refresh",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "cursor",
+          "changed_refs",
+          "full_refresh"
+        ],
+        "title": "ChangesView",
+        "type": "object"
+      },
+      "CoverageInterval": {
+        "properties": {
+          "capability": {
+            "enum": [
+              "MATCH_FACTS",
+              "DETAILED_METRICS"
+            ],
+            "title": "Capability",
+            "type": "string"
+          },
+          "end_at": {
+            "format": "date-time",
+            "title": "End At",
+            "type": "string"
+          },
+          "start_at": {
+            "format": "date-time",
+            "title": "Start At",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "KNOWN",
+              "GAP",
+              "PENDING"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "capability",
+          "start_at",
+          "end_at",
+          "state"
+        ],
+        "title": "CoverageInterval",
+        "type": "object"
+      },
+      "CoverageView": {
+        "properties": {
+          "intervals": {
+            "items": {
+              "$ref": "#/components/schemas/CoverageInterval"
+            },
+            "title": "Intervals",
+            "type": "array"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          }
+        },
+        "required": [
+          "mode",
+          "intervals"
+        ],
+        "title": "CoverageView",
+        "type": "object"
+      },
+      "DataAccessConfirmView": {
+        "properties": {
+          "recovery": {
+            "enum": [
+              "STARTED",
+              "NOT_NEEDED"
+            ],
+            "title": "Recovery",
+            "type": "string"
+          }
+        },
+        "required": [
+          "recovery"
+        ],
+        "title": "DataAccessConfirmView",
+        "type": "object"
+      },
+      "DeletionView": {
+        "properties": {
+          "state": {
+            "const": "DELETION_PENDING",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state"
+        ],
+        "title": "DeletionView",
+        "type": "object"
+      },
+      "DeviceRequest": {
+        "properties": {
+          "permission": {
+            "enum": [
+              "UNKNOWN",
+              "GRANTED",
+              "DENIED"
+            ],
+            "title": "Permission",
+            "type": "string"
+          },
+          "push_token": {
+            "anyOf": [
+              {
+                "maxLength": 4096,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Push Token"
+          }
+        },
+        "required": [
+          "permission"
+        ],
+        "title": "DeviceRequest",
+        "type": "object"
+      },
+      "FavouriteRequest": {
+        "properties": {
+          "hero_id": {
+            "anyOf": [
+              {
+                "exclusiveMaximum": 1000.0,
+                "exclusiveMinimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hero Id"
+          }
+        },
+        "title": "FavouriteRequest",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HeroCountView": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "hero_id": {
+            "title": "Hero Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "hero_id",
+          "count"
+        ],
+        "title": "HeroCountView",
+        "type": "object"
+      },
+      "HistoryOperationView": {
+        "properties": {
+          "access_recovery": {
+            "enum": [
+              "NONE",
+              "RUNNING",
+              "COMPLETE"
+            ],
+            "title": "Access Recovery",
+            "type": "string"
+          },
+          "bootstrap": {
+            "items": {
+              "$ref": "#/components/schemas/BootstrapModeView"
+            },
+            "title": "Bootstrap",
+            "type": "array"
+          },
+          "data_access": {
+            "enum": [
+              "ACCESSIBLE",
+              "BLOCKED",
+              "UNKNOWN"
+            ],
+            "title": "Data Access",
+            "type": "string"
+          },
+          "history_import": {
+            "enum": [
+              "NONE",
+              "RUNNING",
+              "COMPLETE"
+            ],
+            "title": "History Import",
+            "type": "string"
+          },
+          "scope_change": {
+            "enum": [
+              "NONE",
+              "PENDING",
+              "RUNNING"
+            ],
+            "title": "Scope Change",
+            "type": "string"
+          },
+          "target_scope": {
+            "anyOf": [
+              {
+                "enum": [
+                  "FREE",
+                  "PRO"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Scope"
+          }
+        },
+        "required": [
+          "bootstrap",
+          "scope_change",
+          "target_scope",
+          "history_import",
+          "access_recovery",
+          "data_access"
+        ],
+        "title": "HistoryOperationView",
+        "type": "object"
+      },
+      "HistoryView": {
+        "properties": {
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/MatchView"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "matches",
+          "next_cursor"
+        ],
+        "title": "HistoryView",
+        "type": "object"
+      },
+      "HomeView": {
+        "properties": {
+          "challenge": {
+            "$ref": "#/components/schemas/SlotView"
+          },
+          "focus": {
+            "$ref": "#/components/schemas/SlotView"
+          },
+          "last_matches": {
+            "items": {
+              "$ref": "#/components/schemas/MatchSummary"
+            },
+            "title": "Last Matches",
+            "type": "array"
+          },
+          "local_date": {
+            "title": "Local Date",
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "today_matches": {
+            "items": {
+              "$ref": "#/components/schemas/MatchSummary"
+            },
+            "title": "Today Matches",
+            "type": "array"
+          }
+        },
+        "required": [
+          "mode",
+          "local_date",
+          "today_matches",
+          "last_matches"
+        ],
+        "title": "HomeView",
+        "type": "object"
+      },
+      "IdentityLineView": {
+        "properties": {
+          "confirmed": {
+            "title": "Confirmed",
+            "type": "boolean"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "template_id": {
+            "enum": [
+              "MOSTLY_ROLE_SO_FAR",
+              "BIT_OF_EVERYTHING"
+            ],
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "role",
+          "confirmed"
+        ],
+        "title": "IdentityLineView",
+        "type": "object"
+      },
+      "InsightCardView": {
+        "properties": {
+          "slots": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Slots",
+            "type": "object"
+          },
+          "template_id": {
+            "title": "Template Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "template_id",
+          "slots"
+        ],
+        "title": "InsightCardView",
+        "type": "object"
+      },
+      "InsightView": {
+        "properties": {
+          "cards": {
+            "items": {
+              "$ref": "#/components/schemas/InsightCardView"
+            },
+            "title": "Cards",
+            "type": "array"
+          },
+          "contract_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Version"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "state": {
+            "$ref": "#/components/schemas/Readiness"
+          }
+        },
+        "required": [
+          "state",
+          "contract_version",
+          "reason",
+          "cards"
+        ],
+        "title": "InsightView",
+        "type": "object"
+      },
+      "JsonValue": {},
+      "Lifecycle": {
+        "enum": [
+          "WAITING_FOR_DATA",
+          "ANALYZING",
+          "WAITING_FOR_PRIOR_MATCH",
+          "ACTION_REQUIRED",
+          "READY",
+          "UNAVAILABLE"
+        ],
+        "title": "Lifecycle",
+        "type": "string"
+      },
+      "MatchDetailView": {
+        "properties": {
+          "correction_available": {
+            "title": "Correction Available",
+            "type": "boolean"
+          },
+          "duration_seconds": {
+            "title": "Duration Seconds",
+            "type": "integer"
+          },
+          "facts": {
+            "$ref": "#/components/schemas/Readiness"
+          },
+          "insights": {
+            "$ref": "#/components/schemas/InsightView"
+          },
+          "lane_context": {
+            "default": "UNAVAILABLE",
+            "enum": [
+              "DIFFICULT",
+              "TYPICAL",
+              "FAVOURABLE",
+              "UNAVAILABLE"
+            ],
+            "title": "Lane Context",
+            "type": "string"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/Lifecycle"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/MetricView"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Mode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "performance": {
+            "$ref": "#/components/schemas/Readiness"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerFacts"
+            },
+            "title": "Players",
+            "type": "array"
+          },
+          "progression": {
+            "anyOf": [
+              {
+                "enum": [
+                  "STANDARD",
+                  "TURBO",
+                  "NONE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progression"
+          },
+          "progression_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progression Reason"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "role_confidence": {
+            "anyOf": [
+              {
+                "enum": [
+                  "HIGH",
+                  "LOW"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Confidence"
+          },
+          "role_revision": {
+            "title": "Role Revision",
+            "type": "integer"
+          },
+          "role_source": {
+            "anyOf": [
+              {
+                "enum": [
+                  "INFERRED",
+                  "USER_CONFIRMED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Source"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "won": {
+            "title": "Won",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ref",
+          "mode",
+          "started_at",
+          "duration_seconds",
+          "lifecycle",
+          "facts",
+          "performance",
+          "insights",
+          "role",
+          "progression",
+          "progression_reason",
+          "won",
+          "players",
+          "metrics",
+          "role_revision",
+          "correction_available"
+        ],
+        "title": "MatchDetailView",
+        "type": "object"
+      },
+      "MatchSummary": {
+        "properties": {
+          "hero_id": {
+            "title": "Hero Id",
+            "type": "integer"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/Lifecycle"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "won": {
+            "title": "Won",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ref",
+          "mode",
+          "started_at",
+          "lifecycle",
+          "role",
+          "hero_id",
+          "won"
+        ],
+        "title": "MatchSummary",
+        "type": "object"
+      },
+      "MatchView": {
+        "properties": {
+          "duration_seconds": {
+            "title": "Duration Seconds",
+            "type": "integer"
+          },
+          "facts": {
+            "$ref": "#/components/schemas/Readiness"
+          },
+          "insights": {
+            "$ref": "#/components/schemas/InsightView"
+          },
+          "lane_context": {
+            "default": "UNAVAILABLE",
+            "enum": [
+              "DIFFICULT",
+              "TYPICAL",
+              "FAVOURABLE",
+              "UNAVAILABLE"
+            ],
+            "title": "Lane Context",
+            "type": "string"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/Lifecycle"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/MetricView"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Mode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "performance": {
+            "$ref": "#/components/schemas/Readiness"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerFacts"
+            },
+            "title": "Players",
+            "type": "array"
+          },
+          "progression": {
+            "anyOf": [
+              {
+                "enum": [
+                  "STANDARD",
+                  "TURBO",
+                  "NONE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progression"
+          },
+          "progression_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progression Reason"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "role_confidence": {
+            "anyOf": [
+              {
+                "enum": [
+                  "HIGH",
+                  "LOW"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Confidence"
+          },
+          "role_source": {
+            "anyOf": [
+              {
+                "enum": [
+                  "INFERRED",
+                  "USER_CONFIRMED"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Source"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "won": {
+            "title": "Won",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ref",
+          "mode",
+          "started_at",
+          "duration_seconds",
+          "lifecycle",
+          "facts",
+          "performance",
+          "insights",
+          "role",
+          "progression",
+          "progression_reason",
+          "won",
+          "players",
+          "metrics"
+        ],
+        "title": "MatchView",
+        "type": "object"
+      },
+      "MethodsView": {
+        "properties": {
+          "methods": {
+            "items": {
+              "enum": [
+                "apple",
+                "google",
+                "email"
+              ],
+              "type": "string"
+            },
+            "title": "Methods",
+            "type": "array"
+          }
+        },
+        "required": [
+          "methods"
+        ],
+        "title": "MethodsView",
+        "type": "object"
+      },
+      "MetricView": {
+        "properties": {
+          "baseline_state": {
+            "enum": [
+              "BUILDING",
+              "READY",
+              "NOT_AVAILABLE"
+            ],
+            "title": "Baseline State",
+            "type": "string"
+          },
+          "baseline_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Value"
+          },
+          "comparison_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comparison Value"
+          },
+          "diagnostic_only": {
+            "default": false,
+            "title": "Diagnostic Only",
+            "type": "boolean"
+          },
+          "metric_id": {
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "performance_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ABOVE",
+                  "IN_LINE",
+                  "BELOW",
+                  "NOT_READY"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Performance State"
+          },
+          "prior_count": {
+            "title": "Prior Count",
+            "type": "integer"
+          },
+          "raw_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Value"
+          },
+          "state": {
+            "enum": [
+              "MEASURED",
+              "NOT_AVAILABLE"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          }
+        },
+        "required": [
+          "metric_id",
+          "state",
+          "raw_value",
+          "comparison_value",
+          "unavailable_reason",
+          "baseline_state",
+          "baseline_value",
+          "prior_count",
+          "performance_state"
+        ],
+        "title": "MetricView",
+        "type": "object"
+      },
+      "Mode": {
+        "enum": [
+          "STANDARD",
+          "TURBO"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "PersonalBestView": {
+        "properties": {
+          "match_ref": {
+            "title": "Match Ref",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "match_ref",
+          "value"
+        ],
+        "title": "PersonalBestView",
+        "type": "object"
+      },
+      "PlayerFacts": {
+        "properties": {
+          "assists": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assists"
+          },
+          "deaths": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deaths"
+          },
+          "hero_id": {
+            "title": "Hero Id",
+            "type": "integer"
+          },
+          "kills": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kills"
+          },
+          "team": {
+            "enum": [
+              "RADIANT",
+              "DIRE"
+            ],
+            "title": "Team",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hero_id",
+          "team",
+          "kills",
+          "deaths",
+          "assists"
+        ],
+        "title": "PlayerFacts",
+        "type": "object"
+      },
+      "ProfileChangeView": {
+        "properties": {
+          "cause": {
+            "enum": [
+              "PLAY",
+              "ROLE_CORRECTION",
+              "IMPORT",
+              "ENTITLEMENT",
+              "METHODOLOGY"
+            ],
+            "title": "Cause",
+            "type": "string"
+          },
+          "changed_at": {
+            "format": "date-time",
+            "title": "Changed At",
+            "type": "string"
+          },
+          "updated": {
+            "title": "Updated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "changed_at",
+          "cause",
+          "updated"
+        ],
+        "title": "ProfileChangeView",
+        "type": "object"
+      },
+      "ProfileCoverageView": {
+        "properties": {
+          "earliest_known_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Earliest Known At"
+          },
+          "more_arriving": {
+            "title": "More Arriving",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "earliest_known_at",
+          "more_arriving"
+        ],
+        "title": "ProfileCoverageView",
+        "type": "object"
+      },
+      "ProfileHeaderView": {
+        "properties": {
+          "bucket_phrase": {
+            "enum": [
+              "MOSTLY_THIS_MODE",
+              "STANDARD_AND_TURBO"
+            ],
+            "title": "Bucket Phrase",
+            "type": "string"
+          },
+          "eligible_count": {
+            "title": "Eligible Count",
+            "type": "integer"
+          },
+          "first_match_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Match At"
+          },
+          "getting_to_know": {
+            "title": "Getting To Know",
+            "type": "boolean"
+          },
+          "last_played_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Played At"
+          },
+          "tracked_count": {
+            "title": "Tracked Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "tracked_count",
+          "eligible_count",
+          "first_match_at",
+          "last_played_at",
+          "getting_to_know",
+          "bucket_phrase"
+        ],
+        "title": "ProfileHeaderView",
+        "type": "object"
+      },
+      "ProfilePersonalBestView": {
+        "properties": {
+          "achieved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Achieved At"
+          },
+          "hero_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hero Id"
+          },
+          "match_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Match Ref"
+          },
+          "metric_id": {
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "role",
+          "metric_id",
+          "value",
+          "match_ref",
+          "hero_id",
+          "achieved_at"
+        ],
+        "title": "ProfilePersonalBestView",
+        "type": "object"
+      },
+      "ProfileView": {
+        "properties": {
+          "bucket_selector_visible": {
+            "title": "Bucket Selector Visible",
+            "type": "boolean"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/ProfileChangeView"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/InsightCardView"
+            },
+            "title": "Claims",
+            "type": "array"
+          },
+          "claims_state": {
+            "enum": [
+              "CALIBRATION_PENDING",
+              "EVALUATED"
+            ],
+            "title": "Claims State",
+            "type": "string"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/ProfileCoverageView"
+          },
+          "default_mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "favourite_hero_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Favourite Hero Id"
+          },
+          "header": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileHeaderView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "heroes": {
+            "items": {
+              "$ref": "#/components/schemas/RoleHeroesView"
+            },
+            "title": "Heroes",
+            "type": "array"
+          },
+          "identity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IdentityLineView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "personal_bests": {
+            "items": {
+              "$ref": "#/components/schemas/ProfilePersonalBestView"
+            },
+            "title": "Personal Bests",
+            "type": "array"
+          },
+          "personal_bests_state": {
+            "enum": [
+              "READY",
+              "INSUFFICIENT"
+            ],
+            "title": "Personal Bests State",
+            "type": "string"
+          },
+          "recent_celebrations": {
+            "items": {
+              "$ref": "#/components/schemas/CelebrationView"
+            },
+            "title": "Recent Celebrations",
+            "type": "array"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "right_now_state": {
+            "const": "CALIBRATION_PENDING",
+            "title": "Right Now State",
+            "type": "string"
+          },
+          "role_map": {
+            "items": {
+              "$ref": "#/components/schemas/RoleRowView"
+            },
+            "title": "Role Map",
+            "type": "array"
+          },
+          "role_shape_withheld": {
+            "anyOf": [
+              {
+                "const": "UNASSIGNED_ROLES",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Shape Withheld"
+          },
+          "state": {
+            "enum": [
+              "READY",
+              "NOT_READY",
+              "DATA_ACCESS_BLOCKED"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "unassigned_count": {
+            "title": "Unassigned Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mode",
+          "state",
+          "revision",
+          "bucket_selector_visible",
+          "default_mode",
+          "header",
+          "identity",
+          "role_shape_withheld",
+          "role_map",
+          "unassigned_count",
+          "heroes",
+          "favourite_hero_id",
+          "claims_state",
+          "claims",
+          "right_now_state",
+          "personal_bests_state",
+          "personal_bests",
+          "recent_celebrations",
+          "changes",
+          "coverage"
+        ],
+        "title": "ProfileView",
+        "type": "object"
+      },
+      "ProgressPoint": {
+        "properties": {
+          "baseline_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Value"
+          },
+          "match_ref": {
+            "title": "Match Ref",
+            "type": "string"
+          },
+          "prior_count": {
+            "title": "Prior Count",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "match_ref",
+          "started_at",
+          "value",
+          "baseline_value",
+          "prior_count"
+        ],
+        "title": "ProgressPoint",
+        "type": "object"
+      },
+      "ProgressView": {
+        "properties": {
+          "metric_id": {
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "personal_best": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonalBestView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ProgressPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "trend": {
+            "$ref": "#/components/schemas/TrendView"
+          }
+        },
+        "required": [
+          "mode",
+          "role",
+          "metric_id",
+          "points",
+          "personal_best",
+          "trend"
+        ],
+        "title": "ProgressView",
+        "type": "object"
+      },
+      "Readiness": {
+        "enum": [
+          "PENDING",
+          "AVAILABLE",
+          "UNAVAILABLE"
+        ],
+        "title": "Readiness",
+        "type": "string"
+      },
+      "RecoveryView": {
+        "properties": {
+          "data_access": {
+            "enum": [
+              "ACCESSIBLE",
+              "BLOCKED",
+              "UNKNOWN"
+            ],
+            "title": "Data Access",
+            "type": "string"
+          },
+          "identity_recovery": {
+            "const": "UNAVAILABLE",
+            "default": "UNAVAILABLE",
+            "title": "Identity Recovery",
+            "type": "string"
+          },
+          "identity_recovery_reason": {
+            "const": "NOT_CONTRACTED",
+            "default": "NOT_CONTRACTED",
+            "title": "Identity Recovery Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data_access"
+        ],
+        "title": "RecoveryView",
+        "type": "object"
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "maxLength": 512,
+            "minLength": 20,
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest",
+        "type": "object"
+      },
+      "RetryView": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accepted"
+        ],
+        "title": "RetryView",
+        "type": "object"
+      },
+      "Role": {
+        "enum": [
+          "CARRY",
+          "MID",
+          "OFFLANE",
+          "SUPPORT"
+        ],
+        "title": "Role",
+        "type": "string"
+      },
+      "RoleEditRequest": {
+        "properties": {
+          "expected_role_revision": {
+            "minimum": 0.0,
+            "title": "Expected Role Revision",
+            "type": "integer"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "role",
+          "expected_role_revision"
+        ],
+        "title": "RoleEditRequest",
+        "type": "object"
+      },
+      "RoleEditView": {
+        "properties": {
+          "rebuilt": {
+            "title": "Rebuilt",
+            "type": "boolean"
+          },
+          "rebuilt_match_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rebuilt Match Count"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "role_revision": {
+            "title": "Role Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "role",
+          "role_revision",
+          "rebuilt"
+        ],
+        "title": "RoleEditView",
+        "type": "object"
+      },
+      "RoleHeroesView": {
+        "properties": {
+          "most_played": {
+            "items": {
+              "$ref": "#/components/schemas/HeroCountView"
+            },
+            "title": "Most Played",
+            "type": "array"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "role_matches": {
+            "title": "Role Matches",
+            "type": "integer"
+          },
+          "tags_state": {
+            "enum": [
+              "INSUFFICIENT_MATCHES",
+              "CALIBRATION_PENDING"
+            ],
+            "title": "Tags State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "role_matches",
+          "most_played",
+          "tags_state"
+        ],
+        "title": "RoleHeroesView",
+        "type": "object"
+      },
+      "RoleRowView": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share"
+          },
+          "tier": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ANCHOR",
+                  "REGULAR",
+                  "OCCASIONAL",
+                  "RARE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tier"
+          }
+        },
+        "required": [
+          "role",
+          "count",
+          "share",
+          "tier"
+        ],
+        "title": "RoleRowView",
+        "type": "object"
+      },
+      "SessionView": {
+        "properties": {
+          "access_expires_at": {
+            "format": "date-time",
+            "title": "Access Expires At",
+            "type": "string"
+          },
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "refresh_token",
+          "access_expires_at",
+          "expires_at"
+        ],
+        "title": "SessionView",
+        "type": "object"
+      },
+      "SettingsPatch": {
+        "properties": {
+          "notifications_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notifications Enabled"
+          }
+        },
+        "title": "SettingsPatch",
+        "type": "object"
+      },
+      "SettingsView": {
+        "properties": {
+          "notifications_enabled": {
+            "title": "Notifications Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "notifications_enabled"
+        ],
+        "title": "SettingsView",
+        "type": "object"
+      },
+      "ShareRequest": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "PROFILE",
+              "PERSONAL_BEST"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "metric_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Id"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          }
+        },
+        "required": [
+          "kind",
+          "mode"
+        ],
+        "title": "ShareRequest",
+        "type": "object"
+      },
+      "ShareView": {
+        "properties": {
+          "achieved_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Achieved On"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "hero_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hero Id"
+          },
+          "kind": {
+            "enum": [
+              "PROFILE",
+              "PERSONAL_BEST"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "metric_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metric Id"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "ref",
+          "kind",
+          "mode",
+          "generated_at"
+        ],
+        "title": "ShareView",
+        "type": "object"
+      },
+      "SignInRequest": {
+        "properties": {
+          "identity_token": {
+            "maxLength": 16384,
+            "minLength": 20,
+            "title": "Identity Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "identity_token"
+        ],
+        "title": "SignInRequest",
+        "type": "object"
+      },
+      "SlotView": {
+        "description": "An honest, non-fabricated slot: no content model is contracted (home \u00a74\u2013\u00a75).",
+        "properties": {
+          "reason": {
+            "const": "NOT_CONTRACTED",
+            "default": "NOT_CONTRACTED",
+            "title": "Reason",
+            "type": "string"
+          },
+          "state": {
+            "const": "UNAVAILABLE",
+            "default": "UNAVAILABLE",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "title": "SlotView",
+        "type": "object"
+      },
+      "SteamCompleteRequest": {
+        "properties": {
+          "fields": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Fields",
+            "type": "object"
+          }
+        },
+        "required": [
+          "fields"
+        ],
+        "title": "SteamCompleteRequest",
+        "type": "object"
+      },
+      "SteamCompleteView": {
+        "properties": {
+          "linked": {
+            "const": true,
+            "default": true,
+            "title": "Linked",
+            "type": "boolean"
+          }
+        },
+        "title": "SteamCompleteView",
+        "type": "object"
+      },
+      "SteamStartView": {
+        "properties": {
+          "authorization_url": {
+            "title": "Authorization Url",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "authorization_url",
+          "state"
+        ],
+        "title": "SteamStartView",
+        "type": "object"
+      },
+      "SubscriptionView": {
+        "properties": {
+          "auto_renew": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auto Renew"
+          },
+          "billing_state": {
+            "enum": [
+              "NONE",
+              "ACTIVE",
+              "EXPIRED",
+              "REVOKED"
+            ],
+            "title": "Billing State",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "scope": {
+            "enum": [
+              "FREE",
+              "PRO"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "scope_change": {
+            "enum": [
+              "NONE",
+              "PENDING",
+              "RUNNING"
+            ],
+            "title": "Scope Change",
+            "type": "string"
+          },
+          "scope_revision": {
+            "title": "Scope Revision",
+            "type": "integer"
+          },
+          "target_scope": {
+            "anyOf": [
+              {
+                "enum": [
+                  "FREE",
+                  "PRO"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Scope"
+          }
+        },
+        "required": [
+          "billing_state",
+          "expires_at",
+          "auto_renew",
+          "scope",
+          "scope_revision",
+          "scope_change",
+          "target_scope"
+        ],
+        "title": "SubscriptionView",
+        "type": "object"
+      },
+      "SwitchPreflightView": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "cause": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cause"
+          },
+          "days_remaining": {
+            "title": "Days Remaining",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "available",
+          "cause",
+          "days_remaining"
+        ],
+        "title": "SwitchPreflightView",
+        "type": "object"
+      },
+      "SyncRequestView": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accepted"
+        ],
+        "title": "SyncRequestView",
+        "type": "object"
+      },
+      "SyncView": {
+        "properties": {
+          "data_access": {
+            "default": "UNKNOWN",
+            "enum": [
+              "ACCESSIBLE",
+              "BLOCKED",
+              "UNKNOWN"
+            ],
+            "title": "Data Access",
+            "type": "string"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          },
+          "state": {
+            "enum": [
+              "IDLE",
+              "CHECKING",
+              "UP_TO_DATE",
+              "SYNC_ERROR"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "last_checked_at"
+        ],
+        "title": "SyncView",
+        "type": "object"
+      },
+      "TransactionRequest": {
+        "properties": {
+          "signed_transaction": {
+            "maxLength": 64000,
+            "minLength": 20,
+            "title": "Signed Transaction",
+            "type": "string"
+          }
+        },
+        "required": [
+          "signed_transaction"
+        ],
+        "title": "TransactionRequest",
+        "type": "object"
+      },
+      "TrendView": {
+        "properties": {
+          "point_count": {
+            "title": "Point Count",
+            "type": "integer"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "const": "CALIBRATION_UNAVAILABLE",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "IMPROVING",
+                  "STABLE",
+                  "DECLINING",
+                  "INSUFFICIENT_HISTORY"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "point_count"
+        ],
+        "title": "TrendView",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "Dota Tracker Mobile API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/account": {
+      "delete": {
+        "operationId": "delete_account_account_delete",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Account"
+      },
+      "get": {
+        "operationId": "account_account_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Account"
+      }
+    },
+    "/account/identities": {
+      "get": {
+        "operationId": "account_identities_account_identities_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Account Identities"
+      }
+    },
+    "/account/identities/{method}": {
+      "post": {
+        "operationId": "add_identity_account_identities__method__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "method",
+            "required": true,
+            "schema": {
+              "enum": [
+                "apple",
+                "google"
+              ],
+              "title": "Method",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Identity"
+      }
+    },
+    "/account/steam-switch/complete": {
+      "post": {
+        "operationId": "steam_switch_complete_account_steam_switch_complete_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SteamCompleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SteamCompleteView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Steam Switch Complete"
+      }
+    },
+    "/account/steam-switch/preflight": {
+      "get": {
+        "operationId": "steam_switch_preflight_account_steam_switch_preflight_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwitchPreflightView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Steam Switch Preflight"
+      }
+    },
+    "/account/steam-switch/start": {
+      "post": {
+        "operationId": "steam_switch_start_account_steam_switch_start_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SteamStartView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Steam Switch Start"
+      }
+    },
+    "/auth/apple": {
+      "post": {
+        "operationId": "apple_auth_apple_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Apple"
+      }
+    },
+    "/auth/email": {
+      "post": {
+        "operationId": "email_auth_auth_email_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Email Auth"
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "operationId": "google_auth_google_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Google"
+      }
+    },
+    "/bootstrap": {
+      "get": {
+        "operationId": "bootstrap_status_bootstrap_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BootstrapView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Bootstrap Status"
+      }
+    },
+    "/changes": {
+      "get": {
+        "operationId": "changes_changes_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangesView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Changes"
+      }
+    },
+    "/coverage": {
+      "get": {
+        "operationId": "coverage_status_coverage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Mode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Coverage Status"
+      }
+    },
+    "/data-access/confirm": {
+      "post": {
+        "operationId": "confirm_data_access_data_access_confirm_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataAccessConfirmView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Data Access"
+      }
+    },
+    "/devices/{device_ref}": {
+      "delete": {
+        "operationId": "remove_device_devices__device_ref__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "device_ref",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Device Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Device"
+      },
+      "put": {
+        "operationId": "register_device_devices__device_ref__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "device_ref",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Device Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Register Device"
+      }
+    },
+    "/history": {
+      "get": {
+        "operationId": "history_history_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Mode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Role"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "History"
+      }
+    },
+    "/history-operation": {
+      "get": {
+        "operationId": "history_operation_history_operation_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryOperationView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "History Operation"
+      }
+    },
+    "/home": {
+      "get": {
+        "operationId": "home_home_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Mode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_zone",
+            "required": true,
+            "schema": {
+              "title": "Time Zone",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Home"
+      }
+    },
+    "/matches/{match_ref}": {
+      "get": {
+        "operationId": "match_detail_matches__match_ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "match_ref",
+            "required": true,
+            "schema": {
+              "title": "Match Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchDetailView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Match Detail"
+      }
+    },
+    "/matches/{match_ref}/retry": {
+      "post": {
+        "operationId": "retry_matches__match_ref__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "match_ref",
+            "required": true,
+            "schema": {
+              "title": "Match Ref",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetryView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Retry"
+      }
+    },
+    "/matches/{match_ref}/role": {
+      "post": {
+        "operationId": "edit_role_matches__match_ref__role_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "match_ref",
+            "required": true,
+            "schema": {
+              "title": "Match Ref",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleEditRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleEditView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Edit Role"
+      }
+    },
+    "/profile": {
+      "get": {
+        "operationId": "profile_view_profile_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Mode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Profile View"
+      }
+    },
+    "/profile/favourite-hero": {
+      "post": {
+        "operationId": "favourite_hero_profile_favourite_hero_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Mode"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavouriteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Favourite Hero"
+      }
+    },
+    "/progress": {
+      "get": {
+        "operationId": "progress_progress_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Mode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "metric_id",
+            "required": true,
+            "schema": {
+              "title": "Metric Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Progress"
+      }
+    },
+    "/readiness": {
+      "get": {
+        "operationId": "readiness_readiness_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Readiness"
+      }
+    },
+    "/recovery": {
+      "get": {
+        "operationId": "recovery_recovery_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Recovery"
+      }
+    },
+    "/sessions/logout": {
+      "post": {
+        "operationId": "logout_sessions_logout_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Logout"
+      }
+    },
+    "/sessions/refresh": {
+      "post": {
+        "operationId": "refresh_sessions_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Refresh"
+      }
+    },
+    "/settings": {
+      "get": {
+        "operationId": "settings_view_settings_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Settings View"
+      },
+      "patch": {
+        "operationId": "settings_patch_settings_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Settings Patch"
+      }
+    },
+    "/shares": {
+      "post": {
+        "operationId": "create_share_route_shares_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Share Route"
+      }
+    },
+    "/shares/{share_ref}": {
+      "get": {
+        "operationId": "read_share_shares__share_ref__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "share_ref",
+            "required": true,
+            "schema": {
+              "title": "Share Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Share"
+      }
+    },
+    "/shares/{share_ref}/image.svg": {
+      "get": {
+        "operationId": "share_image_shares__share_ref__image_svg_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "share_ref",
+            "required": true,
+            "schema": {
+              "title": "Share Ref",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Share Image"
+      }
+    },
+    "/steam/links": {
+      "post": {
+        "operationId": "steam_start_steam_links_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SteamStartView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Steam Start"
+      }
+    },
+    "/steam/links/complete": {
+      "post": {
+        "operationId": "steam_complete_steam_links_complete_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SteamCompleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SteamCompleteView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Steam Complete"
+      }
+    },
+    "/subscription": {
+      "get": {
+        "operationId": "subscription_subscription_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Subscription"
+      }
+    },
+    "/subscription/transactions": {
+      "post": {
+        "operationId": "submit_store_transaction_subscription_transactions_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submit Store Transaction"
+      }
+    },
+    "/sync": {
+      "post": {
+        "operationId": "sync_sync_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncRequestView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Sync"
+      }
+    }
+  }
+}

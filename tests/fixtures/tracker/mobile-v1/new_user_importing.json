@@ -1,0 +1,216 @@
+{
+  "/account": {
+    "body": {
+      "identity_methods": [
+        "google"
+      ],
+      "revision": 0,
+      "scope": "FREE",
+      "state": "ACTIVE",
+      "steam_linked": true
+    },
+    "status": 200
+  },
+  "/account/steam-switch/preflight": {
+    "body": {
+      "available": false,
+      "cause": "HISTORICAL_WORK_RUNNING",
+      "days_remaining": 0
+    },
+    "status": 200
+  },
+  "/bootstrap": {
+    "body": {
+      "modes": [
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "STANDARD",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        },
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "TURBO",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        }
+      ]
+    },
+    "status": 200
+  },
+  "/coverage?mode=STANDARD": {
+    "body": {
+      "intervals": [],
+      "mode": "STANDARD"
+    },
+    "status": 200
+  },
+  "/history-operation": {
+    "body": {
+      "access_recovery": "NONE",
+      "bootstrap": [
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "STANDARD",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        },
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "TURBO",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        }
+      ],
+      "data_access": "ACCESSIBLE",
+      "history_import": "NONE",
+      "scope_change": "NONE",
+      "target_scope": null
+    },
+    "status": 200
+  },
+  "/history?mode=STANDARD": {
+    "body": {
+      "matches": [],
+      "next_cursor": null
+    },
+    "status": 200
+  },
+  "/history?mode=TURBO": {
+    "body": {
+      "matches": [],
+      "next_cursor": null
+    },
+    "status": 200
+  },
+  "/home?mode=STANDARD&time_zone=UTC": {
+    "body": {
+      "challenge": {
+        "reason": "NOT_CONTRACTED",
+        "state": "UNAVAILABLE"
+      },
+      "focus": {
+        "reason": "NOT_CONTRACTED",
+        "state": "UNAVAILABLE"
+      },
+      "last_matches": [],
+      "local_date": "<date>",
+      "mode": "STANDARD",
+      "today_matches": []
+    },
+    "status": 200
+  },
+  "/profile?mode=STANDARD": {
+    "body": {
+      "bucket_selector_visible": false,
+      "changes": [],
+      "claims": [],
+      "claims_state": "CALIBRATION_PENDING",
+      "coverage": {
+        "earliest_known_at": null,
+        "more_arriving": true
+      },
+      "default_mode": "STANDARD",
+      "favourite_hero_id": null,
+      "header": null,
+      "heroes": [],
+      "identity": null,
+      "mode": "STANDARD",
+      "personal_bests": [],
+      "personal_bests_state": "INSUFFICIENT",
+      "recent_celebrations": [],
+      "revision": 0,
+      "right_now_state": "CALIBRATION_PENDING",
+      "role_map": [],
+      "role_shape_withheld": null,
+      "state": "NOT_READY",
+      "unassigned_count": 0
+    },
+    "status": 200
+  },
+  "/profile?mode=TURBO": {
+    "body": {
+      "bucket_selector_visible": false,
+      "changes": [],
+      "claims": [],
+      "claims_state": "CALIBRATION_PENDING",
+      "coverage": {
+        "earliest_known_at": null,
+        "more_arriving": true
+      },
+      "default_mode": "STANDARD",
+      "favourite_hero_id": null,
+      "header": null,
+      "heroes": [],
+      "identity": null,
+      "mode": "TURBO",
+      "personal_bests": [],
+      "personal_bests_state": "INSUFFICIENT",
+      "recent_celebrations": [],
+      "revision": 0,
+      "right_now_state": "CALIBRATION_PENDING",
+      "role_map": [],
+      "role_shape_withheld": null,
+      "state": "NOT_READY",
+      "unassigned_count": 0
+    },
+    "status": 200
+  },
+  "/progress?mode=STANDARD&role=SUPPORT&metric_id=support.camps_stacked.v1": {
+    "body": {
+      "metric_id": "support.camps_stacked.v1",
+      "mode": "STANDARD",
+      "personal_best": null,
+      "points": [],
+      "role": "SUPPORT",
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      }
+    },
+    "status": 200
+  },
+  "/readiness": {
+    "body": {
+      "data_access": "ACCESSIBLE",
+      "last_checked_at": null,
+      "state": "IDLE"
+    },
+    "status": 200
+  },
+  "/recovery": {
+    "body": {
+      "data_access": "ACCESSIBLE",
+      "identity_recovery": "UNAVAILABLE",
+      "identity_recovery_reason": "NOT_CONTRACTED"
+    },
+    "status": 200
+  },
+  "/settings": {
+    "body": {
+      "notifications_enabled": false
+    },
+    "status": 200
+  },
+  "/subscription": {
+    "body": {
+      "auto_renew": null,
+      "billing_state": "NONE",
+      "expires_at": null,
+      "scope": "FREE",
+      "scope_change": "NONE",
+      "scope_revision": 0,
+      "target_scope": null
+    },
+    "status": 200
+  }
+}

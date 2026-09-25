@@ -6,7 +6,7 @@ MYPY ?= uv run mypy
 PNPM ?= pnpm
 WEB_BIN ?= apps/web/node_modules/.bin
 
-.PHONY: install infra-up infra-down db-migrate dev lint typecheck test test-tracker test-v7-stratz test-contract test-integration test-e2e test-live-smoke api-client taxonomy-validate dna-catalog dna-catalog-check copy-review-catalog copy-review-catalog-check docs-check hero-knowledge-refresh
+.PHONY: seed-demo tracker-openapi install infra-up infra-down db-migrate dev lint typecheck test test-tracker test-v7-stratz test-contract test-integration test-e2e test-live-smoke api-client taxonomy-validate dna-catalog dna-catalog-check copy-review-catalog copy-review-catalog-check docs-check hero-knowledge-refresh
 
 install:
 	uv sync --extra dev
@@ -87,3 +87,12 @@ tracker-worker:
 
 tracker-beat:
 	uv run celery -A app.tracker.worker:celery_app beat --loglevel=INFO
+
+# Fixture-backed local personas for every mobile state; no provider calls.
+seed-demo:
+	@test -n "$(DATABASE_URL)" || (echo "DATABASE_URL must point at a migrated local PostgreSQL database" && exit 1)
+	$(PYTHON) -m scripts.tracker_seed_demo
+
+# Re-export the isolated mobile OpenAPI document after a reviewed contract change.
+tracker-openapi:
+	$(PYTHON) -m scripts.tracker_export_openapi
