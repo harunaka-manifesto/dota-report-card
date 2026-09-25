@@ -154,6 +154,8 @@ def create_worker_app(settings: Settings) -> Celery:
                for p in range(4)},
             "tracker-notify": {"task": "tracker.notify", "schedule": 10.0,
                                "options": {"queue": "tracker-p1", "expires": 20}},
+            "tracker-backfill-retry": {"task": "tracker.retry_backfills", "schedule": 3600.0,
+                                       "options": {"queue": "tracker-p3", "expires": 600}},
         },
     )
 
@@ -169,6 +171,17 @@ def create_worker_app(settings: Settings) -> Celery:
         try:
             with database.begin() as connection:
                 return deliver_pending(connection, transport)
+        finally:
+            database.dispose()
+
+    @app.task(name="tracker.retry_backfills", shared=False)
+    def retry_backfills() -> int:
+        from app.tracker.backfill import retry_failed_pro_backfills
+
+        database = create_database_engine(settings)
+        try:
+            with database.begin() as connection:
+                return retry_failed_pro_backfills(connection)
         finally:
             database.dispose()
 

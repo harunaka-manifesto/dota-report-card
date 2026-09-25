@@ -27,11 +27,13 @@ from app.tracker.historical import enqueue_historical_batch
 from app.tracker.jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from app.tracker.provider_control import ProviderDeferred, ProviderGate
 from app.tracker.provider_transport import ControlledTransport
-from app.tracker.schema import account_matches, ingest_jobs, profiles, users
+from app.tracker.schema import account_matches, ingest_jobs, profiles, subscriptions, users
 from app.tracker.sync import _saved_page
 
 HISTORICAL_WORK = ("PRO_BACKFILL", "ACCESS_RECOVERY", "HISTORICAL_BATCH", "HISTORICAL_SUMMARY")
 SCANS = {"PRO_BACKFILL": ("PRE_LINK", "HISTORICAL"), "ACCESS_RECOVERY": ("POST_LINK", "RECOVERY")}
+# A failed Pro scan is reopened once a day for a week while Pro stays live.
+DAILY_BACKFILL_RETRIES = 7
 
 
 def pro_history_days() -> int | None:
@@ -67,6 +69,37 @@ def request_access_recovery(connection: Connection, profile_id: str, *, episode:
     return enqueue(connection, dedup_key=f"access-recovery:{profile_id}:{owner['generation']}:{episode}",
                    job_type="ACCESS_RECOVERY", priority=3, profile_id=profile_id,
                    payload={"ceiling_days": days})
+
+
+def retry_failed_pro_backfills(connection: Connection, *, now: datetime | None = None, limit: int = 100) -> int:
+    """Reopen Pro scans that exhausted their attempts at least a day ago.
+
+    Pro activates from retained data when a scan fails; this background ladder
+    completes the history later. The scan resumes at its committed cursor, and
+    the ceiling failure (PAGINATION_LIMIT) is deterministic, so never retried.
+    """
+    if now is None:
+        now = connection.execute(select(func.clock_timestamp())).scalar_one()
+    retries = func.coalesce(ingest_jobs.c.cursor["daily_retries"].as_integer(), 0)
+    live_pro = select(subscriptions.c.original_transaction_id).where(
+        subscriptions.c.user_id == profiles.c.user_id, subscriptions.c.expires_at > now,
+        (subscriptions.c.revoked_at.is_(None)) | (subscriptions.c.revoked_at > now),
+    ).exists()
+    rows = connection.execute(select(ingest_jobs.c.id, ingest_jobs.c.cursor).join(
+        profiles, profiles.c.id == ingest_jobs.c.profile_id,
+    ).where(
+        ingest_jobs.c.job_type == "PRO_BACKFILL", ingest_jobs.c.state == "FAILED",
+        ingest_jobs.c.last_error != "PAGINATION_LIMIT", ingest_jobs.c.run_after <= now - timedelta(days=1),
+        retries < DAILY_BACKFILL_RETRIES, profiles.c.active.is_(True), live_pro,
+    ).order_by(ingest_jobs.c.run_after).limit(limit).with_for_update(of=ingest_jobs, skip_locked=True)).mappings().all()
+    for row in rows:
+        cursor = dict(row["cursor"] or {})
+        cursor.pop("request_lease_token", None)
+        cursor["daily_retries"] = int(cursor.get("daily_retries", 0)) + 1
+        connection.execute(ingest_jobs.update().where(ingest_jobs.c.id == row["id"]).values(
+            state="PENDING", priority=3, attempts=0, run_after=func.clock_timestamp(), cursor=cursor,
+            lease_token=None, lease_until=None, last_error=None))
+    return len(rows)
 
 
 def historical_work_pending(connection: Connection, profile_id: str) -> bool:
