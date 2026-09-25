@@ -12,8 +12,8 @@ from app.core.config import Settings
 from app.core.errors import (
     ProfileUnavailable,
     StratzGraphQLError,
+    StratzProviderError,
     StratzRateLimited,
-    StratzUnavailable,
 )
 from app.stratz.client import StratzClient
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
@@ -190,6 +190,20 @@ def _split_for_size(connection: Connection, job: dict[str, Any], ids: list[int],
     return True
 
 
+def _fail_batch(connection: Connection, job: dict[str, Any], ids: list[int], origin: str) -> str:
+    """Retry the batch; once exhausted, hand each match to the per-match summary route.
+
+    A terminally failed batch must still let every selected match settle, or a
+    bootstrap mode (and every live match waiting on it) never becomes terminal.
+    """
+    reschedule(connection, job, delay_seconds=30, error="HISTORICAL_BATCH_FAILED")
+    if job["attempts"] < 5:
+        return "DEFERRED"
+    for match_id in ids:
+        enqueue_historical_summary(connection, profile_id=job["profile_id"], match_id=match_id, origin=origin)
+    return "FAILED"
+
+
 async def acquire_historical_batch(database: Engine, gate: ProviderGate, settings: Settings, *,
                                    job_id: str, lease_token: str,
                                    transport: httpx.AsyncBaseTransport | None = None) -> str:
@@ -238,21 +252,24 @@ async def acquire_historical_batch(database: Engine, gate: ProviderGate, setting
                     enqueue_historical_summary(connection, profile_id=job["profile_id"], match_id=match_id, origin=origin)
                 finish(connection, current)
             return "SOURCE_MISSING"
-        except (StratzGraphQLError, StratzUnavailable, httpx.TransportError) as exc:
+        except (StratzProviderError, httpx.TransportError) as exc:
             with authorized_job(database, job_id, lease_token) as (connection, current):
                 if _split_for_size(connection, current, ids, origin, exc):
                     return "SPLIT"
-                reschedule(connection, current, delay_seconds=30, error="HISTORICAL_BATCH_FAILED")
-                return "FAILED" if current["attempts"] >= 5 else "DEFERRED"
+                return _fail_batch(connection, current, ids, origin)
         with authorized_job(database, job_id, lease_token) as (connection, _):
             snapshot_id = _retained_batch(connection, job_id, job["account_id"])
             if snapshot_id is None:
                 raise InvalidEvidence("Historical response was not retained")
-    with authorized_job(database, job_id, lease_token) as (connection, current):
-        results = materialize_historical_batch(connection, snapshot_id=snapshot_id, profile_id=job["profile_id"],
-                                               requested_ids=ids, origin=origin)
-        for match_id, state in results.items():
-            if state in {"SOURCE_MISSING", "INVALID_SOURCE"}:
-                enqueue_historical_summary(connection, profile_id=job["profile_id"], match_id=match_id, origin=origin)
-        finish(connection, current)
+    try:
+        with authorized_job(database, job_id, lease_token) as (connection, current):
+            results = materialize_historical_batch(connection, snapshot_id=snapshot_id, profile_id=job["profile_id"],
+                                                   requested_ids=ids, origin=origin)
+            for match_id, state in results.items():
+                if state in {"SOURCE_MISSING", "INVALID_SOURCE"}:
+                    enqueue_historical_summary(connection, profile_id=job["profile_id"], match_id=match_id, origin=origin)
+            finish(connection, current)
+    except InvalidEvidence:
+        with authorized_job(database, job_id, lease_token) as (connection, current):
+            return _fail_batch(connection, current, ids, origin)
     return "COMPLETE"

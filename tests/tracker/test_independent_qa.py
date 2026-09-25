@@ -137,3 +137,43 @@ async def test_foreground_sync_discovers_everything_since_the_last_authoritative
             account_matches.c.profile_id == profile_id)))
     assert later["match_id"] in linked
     assert min(fake.history_days[-1:]) >= 11
+
+
+def _steam_owner(database, subject: str, account_id: int, linked_at: datetime) -> tuple[str, str]:
+    from app.tracker.steam_identity import attach_verified_steam_profile
+
+    user_id, tokens = create_user_session(database, VerifiedIdentity(
+        "google", "https://accounts.google.com", subject, None))
+    profile_id = attach_verified_steam_profile(database, user_id=user_id, account_id=account_id, now=linked_at)
+    return profile_id, tokens.access_token
+
+
+async def test_terminal_historical_batch_failure_settles_bootstrap_through_summary_fallback(database, redis_client):
+    """QA-3: a bootstrap batch that failed terminally left its candidates unsettled forever.
+
+    Here STRATZ is unusable (no token, as in the current deployment gate): every
+    batch attempt raised an uncaught provider error until the job FAILED. The
+    mode never settled, so every live match of that mode waited forever. The
+    retained-evidence route must fall back to the per-match summary source.
+    """
+    from app.tracker.schema import bootstrap, ingest_jobs
+
+    now = datetime.now(UTC)
+    linked_at = now - timedelta(days=1)
+    profile_id, token = _steam_owner(database, "batch-failure", 1001, linked_at)
+    imported = _match(9_400_000_021, linked_at - timedelta(days=2), 1001)
+    live = _match(9_400_000_022, now - timedelta(hours=6), 1001)
+    fake = WindowedOpenDota(1001, [imported, live])
+    client = TestClient(create_mobile_app(Settings(), database=database))
+    _sync(client, token, "sync-batch-failure")
+    await _drain(database, redis_client, httpx.MockTransport(fake), rounds=40)
+    with database.connect() as connection:
+        batch = connection.execute(select(ingest_jobs.c.state, ingest_jobs.c.last_error).where(
+            ingest_jobs.c.job_type == "HISTORICAL_BATCH")).all()
+        outcome = dict(connection.execute(select(bootstrap.c.mode, bootstrap.c.outcome)).all())
+        links = {row.match_id: (row.origin, row.lifecycle) for row in connection.execute(select(
+            account_matches.c.match_id, account_matches.c.origin, account_matches.c.lifecycle).where(
+            account_matches.c.profile_id == profile_id))}
+    assert [state for state, _ in batch] == ["FAILED"]
+    assert outcome["STANDARD"] in {"READY", "READY_WITH_GAPS"} and outcome["TURBO"] == "NO_MATCHES_FOUND"
+    assert links == {imported["match_id"]: ("BOOTSTRAP", "READY"), live["match_id"]: ("LIVE", "READY")}
