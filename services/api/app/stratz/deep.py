@@ -7,7 +7,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from app.core.errors import StratzSchemaDrift
-from app.player_analysis_v7.research.corpus import forbidden_fields_in
+from app.stratz.field_policy import forbidden_fields_in
 
 _CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 _TRAJECTORIES = (
