@@ -1,3 +1,24 @@
+x-tracker-worker: &tracker-worker
+  build:
+    context: ..
+    dockerfile: infra/docker/api.Dockerfile
+  profiles: [tracker]
+  environment:
+    APP_ENV: production
+    OPENDOTA_SOURCE: live
+    OPENDOTA_BASE_URL: ${OPENDOTA_BASE_URL-https://api.opendota.com/api}
+    OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
+    STRATZ_API_TOKEN: ${STRATZ_API_TOKEN-}
+    DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
+    REDIS_URL: redis://redis:6379/0
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    migrate:
+      condition: service_completed_successfully
+
 services:
   migrate:
     build:
@@ -103,6 +124,26 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+
+  tracker-beat:
+    <<: *tracker-worker
+    command: celery -A app.tracker.worker:celery_app beat --loglevel=INFO
+
+  tracker-p0:
+    <<: *tracker-worker
+    command: celery -A app.tracker.worker:celery_app worker -Q tracker-p0 -n tracker-p0@%h --concurrency=1 --loglevel=INFO
+
+  tracker-p1:
+    <<: *tracker-worker
+    command: celery -A app.tracker.worker:celery_app worker -Q tracker-p1 -n tracker-p1@%h --concurrency=1 --loglevel=INFO
+
+  tracker-p2:
+    <<: *tracker-worker
+    command: celery -A app.tracker.worker:celery_app worker -Q tracker-p2 -n tracker-p2@%h --concurrency=1 --loglevel=INFO
+
+  tracker-p3:
+    <<: *tracker-worker
+    command: celery -A app.tracker.worker:celery_app worker -Q tracker-p3 -n tracker-p3@%h --concurrency=1 --loglevel=INFO
 
   web:
     build:

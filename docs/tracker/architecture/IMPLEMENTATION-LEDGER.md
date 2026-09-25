@@ -755,3 +755,8 @@ Observed quota header: `x-rate-limit-remaining-minute: 2999`; **no limit/capacit
 
 - A local integration test launches distinct real Celery P3 and P0 processes on Redis queues backed by the same PostgreSQL schema. It holds a P3 profile row lock after the P3 job is claimed, then verifies that the independent P0 worker completes its fresh link job while P3 remains running. Queue names are isolated and subprocesses are terminated after the check. This proves local process separation under contention, beyond an admission-policy unit assertion.
 - Local PostgreSQL/Redis worker suite plus legacy contract checks: **15 passed, 0 failed, 0 skipped**; ruff and whitespace checks pass. No provider calls. Production worker process configuration and deployment behavior remain unverified; no deployment, push or merge.
+
+### Opt-in local tracker worker layout
+
+- `infra/compose.yaml` now has an explicit `tracker` profile with one beat and four separate single-concurrency P0–P3 worker services. The existing legacy report worker command is unchanged. The tracker services depend on migration completion and healthy PostgreSQL/Redis; default Compose startup does not activate the profile.
+- YAML parses and a configuration assertion verifies distinct queues, profile isolation, migration dependency and untouched legacy worker. Local worker plus legacy contract checks: **16 passed, 0 failed, 0 skipped**; ruff and whitespace checks pass. Docker/Compose is unavailable here, so this is not an actual container startup or Railway deployment proof. No provider calls, push, merge or deployment.

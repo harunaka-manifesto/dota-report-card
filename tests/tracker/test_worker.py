@@ -8,6 +8,7 @@ from uuid import uuid4
 
 import httpx
 import pytest
+import yaml
 from app.core.config import Settings
 from app.tracker.acquisition import enqueue_fresh_summary
 from app.tracker.jobs import enqueue
@@ -28,6 +29,20 @@ def policy_for(redis_client):
     for provider in ('opendota', 'stratz'):
         ProviderGate(redis, namespace=namespace, provider=provider).observe({'x-ratelimit-limit-minute': '1000', 'x-ratelimit-remaining-minute': '1000'}, status=200)
     return WorkerPolicy(namespace=namespace)
+
+
+def test_compose_tracker_profile_keeps_legacy_worker_and_separates_queues():
+    services = yaml.safe_load((ROOT / 'infra/compose.yaml').read_text())['services']
+    assert services['worker']['command'] == 'celery -A app.workers.tasks.celery_app worker --loglevel=INFO --concurrency=4'
+    assert services['tracker-beat']['profiles'] == ['tracker']
+    assert 'app.tracker.worker:celery_app beat' in services['tracker-beat']['command']
+    for priority in range(4):
+        service = services[f'tracker-p{priority}']
+        assert service['profiles'] == ['tracker']
+        assert service['command'].count(' -Q ') == 1
+        assert f' -Q tracker-p{priority} ' in service['command']
+        assert '--concurrency=1' in service['command']
+        assert service['depends_on']['migrate']['condition'] == 'service_completed_successfully'
 
 
 def test_backpressure_checks_before_claim_and_reduces_p2_share(database, redis_client):
