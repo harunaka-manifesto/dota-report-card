@@ -1,12 +1,12 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY apps/web/package.json apps/web/pnpm-lock.yaml* ./
+COPY legacy/apps/web/package.json legacy/apps/web/pnpm-lock.yaml* ./
 RUN corepack enable && pnpm install --frozen-lockfile=false
 
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY apps/web ./
+COPY legacy/apps/web ./
 ARG API_BASE_URL=http://api:8000
 ENV API_BASE_URL=$API_BASE_URL
 RUN corepack enable && pnpm build

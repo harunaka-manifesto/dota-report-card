@@ -5,8 +5,8 @@ COPY pyproject.toml README.md ./
 COPY services ./services
 COPY legacy/services ./legacy/services
 COPY migrations ./migrations
-COPY scripts/verify_v61_runtime_package.py ./scripts/verify_v61_runtime_package.py
-COPY infra/runtime-artifacts/free_dna_v61/6.1.0/ ./runtime-artifacts/free_dna_v61/6.1.0/
+COPY legacy/scripts/verify_v61_runtime_package.py ./scripts/verify_v61_runtime_package.py
+COPY legacy/infra/runtime-artifacts/free_dna_v61/6.1.0/ ./runtime-artifacts/free_dna_v61/6.1.0/
 COPY alembic.ini ./
 RUN pip install --no-cache-dir .
 RUN python scripts/verify_v61_runtime_package.py /app/runtime-artifacts/free_dna_v61/6.1.0
