@@ -93,11 +93,12 @@ def rebuild_inputs(connection: Connection, link: dict[str, Any]) -> dict[str, An
 
 
 def replay_closure(connection: Connection, *, profile: Any, modes: tuple[str, ...],
-                   start: dict[str, tuple[Any, int] | None] | None = None) -> int:
+                   start: dict[str, tuple[Any, int] | None] | None = None, inclusive: bool = True) -> int:
     """Recompute READY links visible under the profile's in-transaction scope.
 
-    `start` limits each mode to links at or after a chronology key: that is the
-    smallest closure, since only later observations read an earlier value.
+    `start` limits each mode to links at or after a chronology key (strictly
+    after when not `inclusive`): that is the smallest closure, since only later
+    observations read an earlier value.
     """
     rebuilt = 0
     for mode in modes:
@@ -110,8 +111,8 @@ def replay_closure(connection: Connection, *, profile: Any, modes: tuple[str, ..
         if start is not None and boundary is None:
             continue
         if boundary is not None:
-            query = query.where(tuple_(account_matches.c.provider_started_at,
-                                       account_matches.c.provider_source_match_id) >= boundary)
+            key = tuple_(account_matches.c.provider_started_at, account_matches.c.provider_source_match_id)
+            query = query.where(key >= boundary if inclusive else key > boundary)
         links = [dict(row) for row in connection.execute(query.order_by(
             account_matches.c.provider_started_at, account_matches.c.provider_source_match_id,
         ).with_for_update()).mappings()]
@@ -339,6 +340,8 @@ def readmit(connection: Connection, *, profile_id: str, match_id: int) -> str:
     Foundation §14.2: newly available history may change current PBs and later
     comparisons at its true chronology position; it never celebrates, never
     notifies, and the finalized role is kept (refinement is pre-READY only).
+    Every later link in the bucket is replayed so no comparison keeps reading
+    the pre-replay value.
     """
     from .finalization import _selected_features
 
@@ -358,6 +361,9 @@ def readmit(connection: Connection, *, profile_id: str, match_id: int) -> str:
         revision = connection.scalar(select(profiles.c.active_revision).where(profiles.c.id == profile_id))
         recompute_indexes(connection, profile_id=profile_id, revision=int(revision or 0), mode=progression,
                           roles={link["effective_role"]})
+    profile = connection.execute(select(profiles).where(profiles.c.id == profile_id).with_for_update()).mappings().one()
+    replay_closure(connection, profile=dict(profile), modes=(link["mode"],), inclusive=False,
+                   start={link["mode"]: (link["provider_started_at"], link["provider_source_match_id"])})
     return "READMITTED"
 
 
