@@ -186,6 +186,10 @@ def settle_bootstrap(connection: Connection, profile_id: str) -> bool:
             bootstrap.c.completed_at.is_(None),
         ).values(outcome=outcome, completed_at=now))
 
+    from app.tracker.profile import publish_profile_checkpoint
+
+    # Settled modes publish their first coherent Profile; importing modes keep waiting.
+    publish_profile_checkpoint(connection, profile_id=profile_id, cause="IMPORT")
     terminal = connection.execute(select(bootstrap).where(
         bootstrap.c.profile_id == profile_id,
     ).order_by(bootstrap.c.mode)).mappings().all()

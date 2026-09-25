@@ -18,8 +18,12 @@ from datetime import date
 from pathlib import Path
 from typing import cast
 
+from sqlalchemy import Connection, func, select
+from sqlalchemy.dialects.postgresql import insert
+
 from .context import METRIC_CLASS, HeroLevel, MetricParameters, ParameterSet
 from .metrics import METRICS
+from .schema import parameter_sets
 
 ROLE_POSITION = {"CARRY": 1, "MID": 2, "OFFLANE": 3}
 ROLE_NAMES = {"CARRY": "Carry", "MID": "Mid", "OFFLANE": "Offlane"}
@@ -258,8 +262,12 @@ def _verified_artifact(artifact: Mapping[str, object]) -> bool:
 
 def load_parameter_set(path: Path) -> ParameterSet:
     """Load a verified published artifact into the context evaluator's contract."""
-    artifact = json.loads(path.read_text())
-    if (not isinstance(artifact, dict) or artifact.get("schema_version") != "tracker-context-parameters-v1"
+    return parameter_set_from_artifact(json.loads(path.read_text()))
+
+
+def parameter_set_from_artifact(artifact: object) -> ParameterSet:
+    """Verify an artifact's integrity and validation record, then map it."""
+    if (not isinstance(artifact, Mapping) or artifact.get("schema_version") != "tracker-context-parameters-v1"
             or not _verified_artifact(artifact)):
         raise ValueError("population parameter artifact failed integrity validation")
     validation = artifact.get("validation")
@@ -312,3 +320,49 @@ def publish_artifact(artifact: Mapping[str, object], directory: Path) -> Path:
     finally:
         temporary.unlink(missing_ok=True)
     return destination
+
+
+CONTEXT_PARAMETER_KIND = "CONTEXT_POPULATION"
+# Production analysis reads only owner-approved artifacts. Tests may widen this
+# to clearly labelled TEST_ONLY fixtures; PROVISIONAL is never consumed.
+ACTIVE_PARAMETER_STATUSES: tuple[str, ...] = ("APPROVED",)
+
+
+def register_parameter_artifact(connection: Connection, artifact: Mapping[str, object], *,
+                                status: str) -> str:
+    """Store a validated artifact as an immutable parameter-set row.
+
+    Registering does not trigger rebuilds by itself; the methodology rebuild
+    sweep compares each analysis's stamped version with the current one.
+    """
+    if status not in {"APPROVED", "TEST_ONLY", "PROVISIONAL"}:
+        raise ValueError("Unsupported parameter-set status")
+    parameter_set_from_artifact(artifact)
+    version = cast(str, artifact["version"])
+    digest = cast(str, artifact["sha256"])
+    connection.execute(insert(parameter_sets).values(
+        version=version, kind=CONTEXT_PARAMETER_KIND, digest=digest, status=status,
+        parameters=dict(artifact), provenance={"source": artifact.get("source"),
+                                               "input_sha256": artifact.get("input_sha256")},
+        created_at=func.clock_timestamp(),
+    ).on_conflict_do_nothing())
+    existing = connection.execute(select(parameter_sets).where(
+        parameter_sets.c.version == version,
+    )).mappings().one()
+    if existing["kind"] != CONTEXT_PARAMETER_KIND or existing["digest"] != digest or existing["status"] != status:
+        raise ValueError("Parameter-set version is immutable")
+    return version
+
+
+def current_context_parameters(connection: Connection) -> ParameterSet | None:
+    """The newest active artifact, or None: adjustment then degrades to zero."""
+    row = connection.execute(select(parameter_sets.c.parameters).where(
+        parameter_sets.c.kind == CONTEXT_PARAMETER_KIND,
+        parameter_sets.c.status.in_(ACTIVE_PARAMETER_STATUSES),
+    ).order_by(parameter_sets.c.created_at.desc(), parameter_sets.c.version.desc()).limit(1)).scalar_one_or_none()
+    if row is None:
+        return None
+    try:
+        return parameter_set_from_artifact(row)
+    except (KeyError, TypeError, ValueError):
+        return None

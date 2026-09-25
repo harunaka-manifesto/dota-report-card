@@ -508,6 +508,21 @@ profile_claim_checkpoints = Table(
     CheckConstraint("mode IN ('STANDARD', 'TURBO')", name="ck_tracker_claim_checkpoint_mode"),
     CheckConstraint("state IN ('CANDIDATE', 'CONFIRMED', 'FADING', 'RETIRED')", name="ck_tracker_claim_checkpoint_state"),
 )
+# The last coherent Profile projection per bucket; reads never recompute it.
+profile_states = Table(
+    "tracker_profile_states",
+    metadata,
+    Column("profile_id", ForeignKey(profiles.c.id, ondelete="CASCADE"), primary_key=True),
+    Column("mode", String(16), primary_key=True),
+    Column("revision", BigInteger, nullable=False),
+    Column("checkpoint_seq", BigInteger, nullable=False),
+    Column("cause", String(24), nullable=False),
+    Column("state", JSONB, nullable=False),
+    Column("digest", String(64), nullable=False),
+    Column("published_at", DateTime(timezone=True), nullable=False),
+    CheckConstraint("mode IN ('STANDARD', 'TURBO')", name="ck_tracker_profile_state_mode"),
+    CheckConstraint("checkpoint_seq > 0", name="ck_tracker_profile_state_seq"),
+)
 events = Table(
     "tracker_events",
     metadata,

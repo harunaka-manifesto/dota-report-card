@@ -6,10 +6,10 @@ from statistics import median
 from typing import Any, cast
 from uuid import uuid4
 
-from sqlalchemy import Connection, Engine, and_, func, or_, select
+from sqlalchemy import Connection, Engine, and_, delete, func, or_, select, true, update
 from sqlalchemy.dialects.postgresql import insert
 
-from .context import ContextInput, evaluate
+from .context import METRIC_CLASS, ContextInput, DraftPlayer, evaluate
 from .eligibility import classify
 from .evidence import canonical_json
 from .history import BASELINE_VERSION, Observation, baseline, load_prior_observations, personal_best
@@ -18,7 +18,8 @@ from .insights import evaluate as evaluate_insights
 from .insights import from_provider_snapshot, load_retained_history
 from .jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from .materialization import FEATURE_VERSION, _match_payload
-from .metrics import measure, metric_ids
+from .metrics import LOWER_IS_BETTER, measure, metric_ids
+from .population_parameters import current_context_parameters
 from .roles import ROLES
 from .schema import (
     account_matches,
@@ -192,6 +193,50 @@ def _insight_result(connection: Connection, *, link: dict[str, Any], match: dict
     return evaluate_insights(neutral, viewer, history)
 
 
+LANES = {"SAFE": "SAFE_LANE", "MID": "MID_LANE", "OFF": "OFF_LANE"}
+ROLE_POSITION = {"CARRY": 1, "MID": 2, "OFFLANE": 3}
+
+
+def _draft(features: list[dict[str, Any]], position_map: dict[int, int | None]) -> tuple[DraftPlayer, ...]:
+    players = []
+    for slot, feature in enumerate(features):
+        position = position_map.get(slot)
+        hero_id = feature["summary"].get("hero_id")
+        players.append(DraftPlayer(
+            hero_id if type(hero_id) is int else None,
+            position if type(position) is int else None,
+            LANES.get(str((feature.get("role_evidence") or {}).get("lane"))),
+            slot < 5,
+        ))
+    return tuple(players)
+
+
+def _viewer_position(role: str, internal: int | None) -> int | None:
+    """A core role implies its lane position; Support keeps a 4/5 assignment.
+
+    A user correction changes the effective role only. When the internal
+    assignment disagrees, draft checks fail closed rather than inventing a slot.
+    """
+    if role in ROLE_POSITION:
+        return ROLE_POSITION[role]
+    return internal if role == "SUPPORT" and internal in {4, 5} else None
+
+
+def _prior_terms(connection: Connection, *, profile_id: str, match_ids: list[int], metric_id: str,
+                 parameter_version: str | None) -> tuple[tuple[float | None, ...], tuple[float | None, ...]]:
+    if parameter_version is None or not match_ids:
+        return (), ()
+    rows = {row.match_id: (row.context_h, row.context_e) for row in connection.execute(select(
+        account_matches.c.match_id, metric_observations.c.context_h, metric_observations.c.context_e,
+    ).join(metric_observations, metric_observations.c.analysis_id == account_matches.c.active_analysis_id).where(
+        account_matches.c.profile_id == profile_id, account_matches.c.match_id.in_(match_ids),
+        metric_observations.c.metric_id == metric_id,
+        metric_observations.c.parameter_set_version == parameter_version,
+    ))}
+    return (tuple(rows.get(match_id, (None, None))[0] for match_id in match_ids),
+            tuple(rows.get(match_id, (None, None))[1] for match_id in match_ids))
+
+
 def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, Any],
                    match: dict[str, Any], features: list[dict[str, Any]],
                    snapshot_ids: list[str], feature_digest: str) -> dict[str, Any]:
@@ -223,6 +268,12 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
                                   position_map=cast(dict[int, int | str | None], position_map))
     metric_rows: list[dict[str, Any]] = []
     pb_rows: list[dict[str, Any]] = []
+    parameters = current_context_parameters(connection)
+    parameter_version = parameters.version if parameters is not None else None
+    draft = _draft(features, cast(dict[int, int | None], position_map))
+    viewer = draft[link["player_slot"]]
+    viewer_position = _viewer_position(link["effective_role"], viewer.position)
+    lane_context = "UNAVAILABLE"
     for metric_id in metric_ids(link["effective_role"]):
         measured = measure(
             metric_id, players=features, player_slot=link["player_slot"],
@@ -243,19 +294,31 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         ) if eligibility.progression != "NONE" else []
         reference = baseline(current, priors)
         pb = personal_best(current, priors, celebrate=link["origin"] == "LIVE")
+        prior_h, prior_e = _prior_terms(
+            connection, profile_id=profile_id,
+            match_ids=cast(list[int], reference["source_match_ids"]), metric_id=metric_id,
+            parameter_version=parameter_version,
+        )
         context = evaluate(ContextInput(
             metric_id=metric_id, role=link["effective_role"], mode=current.mode,
-            hero_id=player["summary"].get("hero_id"), position=position_map.get(link["player_slot"]),
-            lane=None, is_radiant=link["player_slot"] < 5, players=(),
+            hero_id=viewer.hero_id, position=viewer_position, lane=viewer.lane,
+            is_radiant=link["player_slot"] < 5, players=draft,
             comparison_value=measured.comparison_value,
             baseline=reference["value"] if isinstance(reference["value"], (int, float)) else None,
             prior_count=cast(int, reference["prior_count"]),
-        ), None)
+            prior_hero_levels=prior_h, prior_lane_scores=prior_e,
+        ), parameters if eligibility.progression != "NONE" else None)
+        if context.lane_context != "UNAVAILABLE":
+            lane_context = context.lane_context
+        uses_lane = METRIC_CLASS[metric_id] in {"C", "C*"}
         metric_rows.append({
             "metric_id": metric_id, "metric_version": metric_id.rsplit(".", 1)[-1],
             "raw_value": measured.raw_value, "comparison_value": measured.comparison_value,
             "unavailable_reason": measured.reason, "baseline_snapshot": reference,
-            "context_h": context.delta_hero, "context_e": context.delta_lane,
+            # Persisted window terms h and E (annex §8), not the derived deltas.
+            "context_h": context.hero_level,
+            "context_e": context.lane_score if uses_lane else None,
+            "parameter_set_version": parameter_version,
             "performance_state": context.performance_state,
         })
         if eligibility.progression != "NONE" and measured.comparison_value is not None:
@@ -267,11 +330,118 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         "role": link["effective_role"], "role_revision": link["role_revision"],
         "progression": eligibility.progression, "metric_rows": metric_rows,
         "insight_result": insight,
-        "quarantined_fields": quarantined,
+        "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
+        "lane_context": lane_context,
     })).hexdigest()
     return {"eligibility": eligibility, "insight": insight, "metric_rows": metric_rows,
             "pb_rows": pb_rows, "inputs_digest": inputs_digest,
-            "quarantined_fields": quarantined}
+            "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
+            "lane_context": lane_context}
+
+
+def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
+    return {"progression": built["eligibility"].progression, "reason": built["eligibility"].reason,
+            "insight_status": built["insight"]["status"],
+            "insight_contract_version": built["insight"]["contract_version"],
+            "parameter_set_version": built["parameter_set_version"],
+            "lane_context": built["lane_context"]}
+
+
+def publish_analysis(connection: Connection, *, profile_id: str, link: dict[str, Any],
+                     match: dict[str, Any], built: dict[str, Any], snapshot_ids: list[str],
+                     feature_digest: str) -> str:
+    """Store (or reuse) one immutable analysis and move the link's active pointer.
+
+    Identity is (profile, match, analysis_version, inputs_digest), so a repeated
+    rebuild reuses the same row and writes no duplicate observations.
+    """
+    digest = built["inputs_digest"]
+    analysis_id = connection.execute(insert(analyses).values(
+        id=str(uuid4()), profile_id=profile_id, match_id=link["match_id"],
+        feature_version=FEATURE_VERSION, analysis_version=ANALYSIS_VERSION,
+        baseline_version=BASELINE_VERSION, inputs_digest=digest, result=analysis_result(built),
+        provenance={"source_snapshot_ids": snapshot_ids, "feature_digest": feature_digest,
+                    "quarantined_fields": built["quarantined_fields"]},
+        created_at=func.clock_timestamp(),
+    ).on_conflict_do_nothing(constraint="uq_tracker_analysis_identity").returning(analyses.c.id)).scalar_one_or_none()
+    if analysis_id is None:
+        analysis_id = connection.scalar(select(analyses.c.id).where(
+            analyses.c.profile_id == profile_id, analyses.c.match_id == link["match_id"],
+            analyses.c.analysis_version == ANALYSIS_VERSION, analyses.c.inputs_digest == digest,
+        ))
+        if analysis_id is None:
+            raise RuntimeError("Analysis identity insert did not resolve")
+    else:
+        for snapshot_id in snapshot_ids:
+            connection.execute(analysis_inputs.insert().values(analysis_id=analysis_id, snapshot_id=snapshot_id))
+        connection.execute(metric_observations.insert(), [
+            {"analysis_id": analysis_id, **row} for row in built["metric_rows"]
+        ])
+        connection.execute(insight_results.insert().values(
+            analysis_id=analysis_id, contract_version=built["insight"]["contract_version"],
+            inputs_digest=digest, cards=built["insight"]["cards"],
+            created_at=func.clock_timestamp(),
+        ))
+    connection.execute(update(account_matches).where(
+        account_matches.c.profile_id == profile_id, account_matches.c.match_id == link["match_id"],
+    ).values(active_analysis_id=analysis_id, progression=built["eligibility"].progression,
+             progression_reason=built["eligibility"].reason))
+    return analysis_id
+
+
+def recompute_indexes(connection: Connection, *, profile_id: str, revision: int, mode: str,
+                      roles: set[str] | None = None) -> None:
+    """Rewrite current baseline and PB pointers from every entitled READY row.
+
+    Current truth is derived from all known history, so a match admitted at an
+    older chronology position (import, backfill, recovery) cannot overwrite a
+    newer rolling window or a better later record.
+    """
+    profile = connection.execute(select(profiles.c.active_scope, profiles.c.original_linked_at).where(
+        profiles.c.id == profile_id,
+    )).mappings().one()
+    entitled = true() if profile["active_scope"] == "PRO" else or_(
+        account_matches.c.origin == "BOOTSTRAP",
+        account_matches.c.provider_started_at >= profile["original_linked_at"],
+    )
+    role_filter = true() if roles is None else account_matches.c.effective_role.in_(roles)
+    for table in (baselines, personal_bests):
+        connection.execute(delete(table).where(
+            table.c.profile_id == profile_id, table.c.revision == revision, table.c.mode == mode,
+            true() if roles is None else table.c.role.in_(roles),
+        ))
+    metric_rows = connection.execute(select(
+        account_matches.c.match_id, account_matches.c.effective_role,
+        metric_observations.c.metric_id, metric_observations.c.metric_version,
+        metric_observations.c.comparison_value, analyses.c.id.label("analysis_id"),
+    ).join(analyses, analyses.c.id == account_matches.c.active_analysis_id).join(
+        metric_observations, metric_observations.c.analysis_id == analyses.c.id,
+    ).where(
+        account_matches.c.profile_id == profile_id, account_matches.c.mode == mode,
+        account_matches.c.lifecycle == "READY", account_matches.c.progression == mode,
+        role_filter, entitled, analyses.c.analysis_version == ANALYSIS_VERSION,
+        analyses.c.baseline_version == BASELINE_VERSION,
+        metric_observations.c.comparison_value.is_not(None),
+    ).order_by(account_matches.c.provider_started_at, account_matches.c.provider_source_match_id)).mappings().all()
+    series: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    for row in metric_rows:
+        series.setdefault((row["effective_role"], row["metric_id"], row["metric_version"]), []).append(dict(row))
+    for (role, metric_id, metric_version), rows in series.items():
+        last = rows[-20:]
+        snapshot = {"version": BASELINE_VERSION,
+                    "state": "BASELINE_READY" if len(last) >= 5 else "BASELINE_BUILDING",
+                    "prior_count": len(last),
+                    "value": median(row["comparison_value"] for row in last) if len(last) >= 5 else None,
+                    "source_match_ids": [row["match_id"] for row in last]}
+        key = dict(profile_id=profile_id, revision=revision, mode=mode, role=role,
+                   metric_id=metric_id, metric_version=metric_version)
+        connection.execute(insert(baselines).values(**key, baseline_version=BASELINE_VERSION, snapshot=snapshot))
+        if len(rows) >= 6:
+            # min/max return the first extreme in chronology order: ties keep the earliest.
+            best = (min if metric_id in LOWER_IS_BETTER else max)(rows, key=lambda row: row["comparison_value"])
+            connection.execute(insert(personal_bests).values(
+                **key, analysis_id=best["analysis_id"], comparison_value=best["comparison_value"],
+            ))
 
 
 def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str) -> str:
@@ -355,62 +525,29 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
                                features=features, snapshot_ids=snapshot_ids,
                                feature_digest=feature_digest)
         eligibility = built["eligibility"]
-        insight = built["insight"]
-        metric_rows = built["metric_rows"]
         pb_rows = built["pb_rows"]
-        inputs_digest = built["inputs_digest"]
-        quarantined = built["quarantined_fields"]
-        analysis_id = str(uuid4())
-        connection.execute(analyses.insert().values(
-            id=analysis_id, profile_id=job["profile_id"], match_id=job["match_id"],
-            feature_version=FEATURE_VERSION, analysis_version=ANALYSIS_VERSION,
-            baseline_version=BASELINE_VERSION, inputs_digest=inputs_digest,
-            result={"progression": eligibility.progression, "reason": eligibility.reason,
-                    "insight_status": insight["status"],
-                    "insight_contract_version": insight["contract_version"]},
-            provenance={"source_snapshot_ids": snapshot_ids, "feature_digest": feature_digest,
-                        "quarantined_fields": quarantined}, created_at=func.clock_timestamp(),
-        ))
-        for snapshot_id in snapshot_ids:
-            connection.execute(analysis_inputs.insert().values(analysis_id=analysis_id, snapshot_id=snapshot_id))
-        for row in metric_rows:
-            connection.execute(metric_observations.insert().values(analysis_id=analysis_id, **row))
-        connection.execute(insight_results.insert().values(
-            analysis_id=analysis_id, contract_version=insight["contract_version"],
-            inputs_digest=inputs_digest, cards=insight["cards"],
-            created_at=func.clock_timestamp(),
-        ))
-        revision = connection.scalar(select(profiles.c.active_revision).where(profiles.c.id == job["profile_id"]))
-        if revision is None:
-            raise ValueError("Profile revision unavailable")
-        for item in pb_rows:
-            current, priors, pb = item["current"], item["priors"], item["pb"]
-            observed = sorted([*priors, current], key=lambda row: row.chronology)[-20:]
-            rolling = {"version": BASELINE_VERSION, "state": "BASELINE_READY" if len(observed) >= 5 else "BASELINE_BUILDING",
-                       "prior_count": len(observed), "value": median(row.comparison_value for row in observed) if len(observed) >= 5 else None,
-                       "source_match_ids": [row.match_id for row in observed]}
-            key = dict(profile_id=job["profile_id"], revision=revision, mode=current.mode,
-                       role=current.role, metric_id=current.metric_id, metric_version=current.metric_id.rsplit(".", 1)[-1])
-            connection.execute(insert(baselines).values(**key, baseline_version=BASELINE_VERSION, snapshot=rolling)
-                               .on_conflict_do_update(index_elements=list(key), set_={"snapshot": rolling}))
-            if pb["source_match_id"] == current.match_id:
-                connection.execute(insert(personal_bests).values(
-                    **key, analysis_id=analysis_id, comparison_value=current.comparison_value,
-                ).on_conflict_do_update(index_elements=list(key), set_={
-                    "analysis_id": analysis_id, "comparison_value": current.comparison_value,
-                }))
-                if pb["new_pb"]:
-                    connection.execute(insert(events).values(
-                        id=str(uuid4()), profile_id=job["profile_id"], kind="NEW_PB",
-                        dedup_key=f"pb:{job['profile_id']}:{job['match_id']}:{current.metric_id}:{ANALYSIS_VERSION}",
-                        payload={"metric_id": current.metric_id, "match_id": current.match_id},
-                        created_at=func.clock_timestamp(),
-                    ).on_conflict_do_nothing())
+        analysis_id = publish_analysis(connection, profile_id=job["profile_id"], link=link, match=match,
+                                       built=built, snapshot_ids=snapshot_ids, feature_digest=feature_digest)
         connection.execute(account_matches.update().where(
             account_matches.c.profile_id == job["profile_id"], account_matches.c.match_id == job["match_id"],
         ).values(lifecycle="READY", retrying=False, progression=eligibility.progression,
                  progression_reason=eligibility.reason, active_analysis_id=analysis_id,
                  finalized_at=func.clock_timestamp(), failure_stage=None, failure_reason=None))
+        revision = connection.scalar(select(profiles.c.active_revision).where(profiles.c.id == job["profile_id"]))
+        if revision is None:
+            raise ValueError("Profile revision unavailable")
+        if eligibility.progression != "NONE":
+            recompute_indexes(connection, profile_id=job["profile_id"], revision=revision,
+                              mode=eligibility.progression, roles={link["effective_role"]})
+        for item in pb_rows:
+            current, pb = item["current"], item["pb"]
+            if pb["new_pb"]:
+                connection.execute(insert(events).values(
+                    id=str(uuid4()), profile_id=job["profile_id"], kind="NEW_PB",
+                    dedup_key=f"pb:{job['profile_id']}:{job['match_id']}:{current.metric_id}:{ANALYSIS_VERSION}",
+                    payload={"metric_id": current.metric_id, "match_id": current.match_id},
+                    created_at=func.clock_timestamp(),
+                ).on_conflict_do_nothing())
         from .coverage import record_match_coverage
 
         record_match_coverage(connection, profile_id=job["profile_id"], match_id=job["match_id"])
@@ -418,6 +555,11 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
 
         record_ready(connection, profile_id=job["profile_id"], match_id=job["match_id"],
                      origin=link["origin"])
+        if link["origin"] == "LIVE" and link["mode"] in {"STANDARD", "TURBO"}:
+            from .profile import publish_profile_checkpoint
+
+            publish_profile_checkpoint(connection, profile_id=job["profile_id"], cause="PLAY",
+                                       modes=(link["mode"],))
         if link["origin"] == "BOOTSTRAP":
             from .bootstrap import settle_bootstrap
 

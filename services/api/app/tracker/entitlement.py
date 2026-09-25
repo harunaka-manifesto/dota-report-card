@@ -111,6 +111,9 @@ def _request_scope_change(connection, *, profile: Any, target: str, now: datetim
         created_at=now, completed_at=None,
         dedup_key=f"entitlement:{profile['id']}:{profile['active_revision'] + 1}:{target}:{operation_id}",
     ))
+    from app.tracker.rebuild import enqueue_scope_rebuild
+
+    enqueue_scope_rebuild(connection, profile_id=profile["id"], operation_id=operation_id)
     return operation_id
 
 
@@ -248,14 +251,15 @@ def reconcile_bootstrap_entitlement(connection: Connection, *, profile_id: str,
 
 def complete_scope_rebuild(engine: Engine, *, user_id: str, operation_id: str,
                            now: datetime | None = None) -> int:
-    """Atomically publish an already rebuilt scope at its persisted cutoff.
+    """Replay retained history under the operation's scope and publish atomically.
 
-    The caller must finish/replay all stored inputs before calling this. This
-    function only commits the revision pointer and entitlement scope together.
+    The worker path (`rebuild.complete_scope_rebuild_job`) and this direct call
+    share `rebuild.run_scope_rebuild`; both publish scope, revision and every
+    derived pointer in one transaction.
     """
+    from app.tracker.rebuild import run_scope_rebuild
+
     current = _utc(now or datetime.now(UTC))
-    cancelled = False
-    revision = 0
     with engine.begin() as connection:
         user = connection.execute(select(users.c.state).where(users.c.id == user_id).with_for_update()).scalar_one_or_none()
         if user != "ACTIVE":
@@ -265,35 +269,20 @@ def complete_scope_rebuild(engine: Engine, *, user_id: str, operation_id: str,
         ).with_for_update()).mappings().one_or_none()
         if profile is None:
             raise EntitlementError("scope rebuild is no longer active")
-        operation = connection.execute(select(history_operations).where(
+        operation = connection.execute(select(history_operations.c.state).where(
             history_operations.c.id == operation_id,
             history_operations.c.profile_id == profile["id"],
-        ).with_for_update()).mappings().first()
+        )).scalar_one_or_none()
         if operation is None:
             raise EntitlementError("scope rebuild not found")
-        if operation["state"] not in {"PENDING", "RUNNING"}:
-            raise EntitlementError("scope rebuild is no longer active")
-        if operation["target_revision"] != profile["active_revision"] + 1:
-            raise EntitlementError("scope rebuild revision is stale")
-        if operation["target_scope"] != _desired_scope(connection, user_id, current):
-            connection.execute(update(history_operations).where(
-                history_operations.c.id == operation_id
-            ).values(state="CANCELLED", completed_at=current))
-            cancelled = True
-        else:
-            updated = connection.execute(update(profiles).where(
-                profiles.c.id == profile["id"], profiles.c.active_revision == profile["active_revision"],
-            ).values(active_scope=operation["target_scope"],
-                     active_revision=operation["target_revision"]))
-            if updated.rowcount != 1:
-                raise EntitlementError("profile revision changed")
-            connection.execute(update(history_operations).where(
-                history_operations.c.id == operation_id
-            ).values(state="COMPLETE", completed_at=current))
-            revision = int(operation["target_revision"])
-    if cancelled:
+        outcome = run_scope_rebuild(connection, profile_id=profile["id"], operation_id=operation_id,
+                                    now=current)
+        revision = connection.scalar(select(profiles.c.active_revision).where(profiles.c.id == profile["id"]))
+    if outcome == "WAITING_FOR_HISTORY":
+        raise EntitlementError("scope rebuild is waiting for historical acquisition")
+    if outcome != "COMPLETE":
         raise EntitlementError("scope transaction is no longer active")
-    return revision
+    return int(revision or 0)
 
 
 def fake_digest(token: str) -> str:

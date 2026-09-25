@@ -227,35 +227,39 @@ def evaluate(context: ContextInput, parameters: ParameterSet | None) -> ContextR
                 else:
                     lane_reason = "LANE_THRESHOLDS_UNAVAILABLE"
 
+    # h is a persisted per-observation term (annex §8 step 6): computed whenever
+    # the class uses it, independent of this match's baseline gates, so later
+    # matches have window priors. Adjustment (step 8) applies the gates.
+    if cls in {"B", "C", "C*"} and context.mode == "STANDARD":
+        if cls == "C*":
+            own_lane = _physical_lane(context.lane, bool(context.is_radiant))
+            counterpart_position = 2 if context.role == "MID" else 1
+            counterparts = [player for player in context.players
+                            if player.is_radiant != context.is_radiant
+                            and player.position == counterpart_position
+                            and own_lane is not None and lane_score is not None
+                            and _physical_lane(player.lane, player.is_radiant) == own_lane]
+            viewer = parameters.hero_levels.get((int(context.hero_id or 0), int(context.position or 0), context.metric_id))
+            paired = (parameters.hero_levels.get((int(counterparts[0].hero_id or 0), counterpart_position, context.metric_id))
+                      if len(counterparts) == 1 else None)
+            if (viewer and paired and _finite(viewer.value) and _finite(paired.value)
+                    and type(viewer.match_count) is int and type(paired.match_count) is int
+                    and viewer.match_count >= 300 and paired.match_count >= 300):
+                hero_level = viewer.value - paired.value
+        else:
+            own = parameters.hero_levels.get((int(context.hero_id or 0), int(context.position or 0), context.metric_id))
+            if (own and _finite(own.value) and type(own.match_count) is int
+                    and own.match_count >= 300):
+                hero_level = own.value
     if (cls in {"B", "C", "C*"} and context.mode == "STANDARD"
-            and context.baseline is not None and context.prior_count >= 5):
-        if context.baseline > metric.floor + metric.floor_tolerance:
-            if cls == "C*":
-                own_lane = _physical_lane(context.lane, bool(context.is_radiant))
-                counterpart_position = 2 if context.role == "MID" else 1
-                counterparts = [player for player in context.players
-                                if player.is_radiant != context.is_radiant
-                                and player.position == counterpart_position
-                                and own_lane is not None and lane_score is not None
-                                and _physical_lane(player.lane, player.is_radiant) == own_lane]
-                viewer = parameters.hero_levels.get((int(context.hero_id or 0), int(context.position or 0), context.metric_id))
-                paired = (parameters.hero_levels.get((int(counterparts[0].hero_id or 0), counterpart_position, context.metric_id))
-                          if len(counterparts) == 1 else None)
-                if (viewer and paired and _finite(viewer.value) and _finite(paired.value)
-                        and type(viewer.match_count) is int and type(paired.match_count) is int
-                        and viewer.match_count >= 300 and paired.match_count >= 300):
-                    hero_level = viewer.value - paired.value
-            else:
-                own = parameters.hero_levels.get((int(context.hero_id or 0), int(context.position or 0), context.metric_id))
-                if (own and _finite(own.value) and type(own.match_count) is int
-                        and own.match_count >= 300):
-                    hero_level = own.value
-            if hero_level is not None and len([x for x in context.prior_hero_levels if x is not None and _finite(x)]) >= 3:
-                prior_h = [float(x) for x in context.prior_hero_levels if x is not None and _finite(x)]
-                delta_h = max(-0.75 * metric.sigma_pop, min(0.75 * metric.sigma_pop, hero_level - median(prior_h)))
-            if cls in {"C", "C*"} and lane_score is not None and len([x for x in context.prior_lane_scores if x is not None and _finite(x)]) >= 3:
-                prior_e = [float(x) for x in context.prior_lane_scores if x is not None and _finite(x)]
-                delta_e = max(-0.6 * metric.sigma_pop, min(0.6 * metric.sigma_pop, lane_score - median(prior_e)))
+            and context.baseline is not None and context.prior_count >= 5
+            and context.baseline > metric.floor + metric.floor_tolerance):
+        if hero_level is not None and len([x for x in context.prior_hero_levels if x is not None and _finite(x)]) >= 3:
+            prior_h = [float(x) for x in context.prior_hero_levels if x is not None and _finite(x)]
+            delta_h = max(-0.75 * metric.sigma_pop, min(0.75 * metric.sigma_pop, hero_level - median(prior_h)))
+        if cls in {"C", "C*"} and lane_score is not None and len([x for x in context.prior_lane_scores if x is not None and _finite(x)]) >= 3:
+            prior_e = [float(x) for x in context.prior_lane_scores if x is not None and _finite(x)]
+            delta_e = max(-0.6 * metric.sigma_pop, min(0.6 * metric.sigma_pop, lane_score - median(prior_e)))
 
     expectation = context.baseline
     residual = None

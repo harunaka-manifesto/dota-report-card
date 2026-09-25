@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import Settings, get_settings
 
-EXPECTED_SCHEMA_REVISION = "0013_tracker_profile_relink"
+EXPECTED_SCHEMA_REVISION = "0014_tracker_profile_states"
 POSTGRESQL_DRIVERS = frozenset({"postgres", "postgresql", "postgresql+psycopg2"})
 
 

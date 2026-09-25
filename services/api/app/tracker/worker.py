@@ -88,6 +88,14 @@ async def run_one(database: Engine, redis: Redis, settings: Settings, *, priorit
             return complete_role_job(database, **args)
         if job["job_type"] == "FINALIZE":
             return complete_finalization_job(database, **args)
+        if job["job_type"] == "SCOPE_REBUILD":
+            from app.tracker.rebuild import complete_scope_rebuild_job
+
+            return complete_scope_rebuild_job(database, **args)
+        if job["job_type"] == "METHODOLOGY_REBUILD":
+            from app.tracker.rebuild import complete_methodology_job
+
+            return complete_methodology_job(database, **args)
         if job["job_type"] == "LINK_MATCH":
             complete_link_job(database, **args, replay_delay_seconds=policy.replay_delay_seconds)
             return "COMPLETE"
