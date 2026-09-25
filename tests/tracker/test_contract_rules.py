@@ -116,6 +116,15 @@ def test_home_last_five_spans_buckets_today_and_four_metric_named_role_summaries
         assert not {"metrics", "insights", "performance", "lane_context"} & set(entry)
     unauthenticated = client.get("/home?mode=STANDARD&time_zone=UTC")
     assert unauthenticated.status_code == 401
+    # The acknowledged entry keeps its place and updates in place once analysis persists.
+    ref = home["today_matches"][0]["ref"]
+    with database.begin() as connection:
+        connection.execute(update(account_matches).where(account_matches.c.match_id == today)
+                           .values(lifecycle="ANALYZING"))
+    assert finalize(database, profile_id, today) == "READY"
+    again = client.get("/home?mode=STANDARD&time_zone=UTC", headers=headers).json()
+    assert [(entry["ref"], entry["lifecycle"]) for entry in again["today_matches"]] == [(ref, "READY")]
+    assert again["last_matches"][0]["ref"] == ref
 
 
 def test_pb_ownership_is_distinct_from_celebration_and_progress_pb_has_context(database):
@@ -132,6 +141,10 @@ def test_pb_ownership_is_distinct_from_celebration_and_progress_pb_has_context(d
     assert rows[owners[0]]["owns_personal_best"] is True and rows[earlier]["owns_personal_best"] is False
     progress = client.get("/progress", params={"mode": "STANDARD", "role": "SUPPORT", "metric_id": metric},
                           headers=headers).json()
+    # Progress carries observations, baselines, trend and PB only: no matchup or adjustment.
+    assert set(progress) == {"mode", "role", "metric_id", "points", "personal_best", "trend"}
+    assert all(set(point) == {"match_ref", "started_at", "value", "baseline_value", "prior_count"}
+               for point in progress["points"])
     best = progress["personal_best"]
     assert best["match_ref"] == owners[0] and best["value"] == 13.0
     assert best["hero_id"] == 123 and best["achieved_at"]
@@ -246,3 +259,30 @@ def test_failed_switch_never_starts_the_cooldown_and_success_isolates_old_state(
     assert progress["points"] == [] and progress["personal_best"] is None
     assert client.get("/account", headers=headers).json()["scope"] == "FREE"
     assert other_client.get("/history", headers=other_headers).status_code == 200
+
+
+def test_match_detail_terminal_zero_card_and_ineligible_states(database):
+    from scripts.tracker_seed_demo import seed_demo
+
+    persona = seed_demo(database)["match_states"]
+    client = TestClient(create_mobile_app(Settings(), database=database))
+    headers = {"Authorization": f"Bearer {persona['access_token']}"}
+    details = [client.get(f"/matches/{row['ref']}", headers=headers).json()
+               for row in client.get("/history", headers=headers).json()["matches"]]
+    by_life = {}
+    for detail in details:
+        by_life.setdefault(detail["lifecycle"], []).append(detail)
+    for failed in by_life["UNAVAILABLE"] + by_life["ACTION_REQUIRED"]:
+        # No endless pending section: failures state a terminal outcome.
+        assert failed["performance"] == "UNAVAILABLE" and failed["insights"]["state"] == "UNAVAILABLE"
+    for waiting in by_life["WAITING_FOR_DATA"] + by_life["WAITING_FOR_PRIOR_MATCH"]:
+        assert waiting["facts"] == "AVAILABLE" and waiting["performance"] == "PENDING"
+    ready = by_life["READY"]
+    no_replay = next(d for d in ready if d["progression"] == "STANDARD")
+    assert no_replay["insights"] == {"state": "AVAILABLE", "contract_version": no_replay["insights"]["contract_version"],
+                                     "reason": None, "cards": []}
+    ineligible = next(d for d in ready if d["progression"] == "NONE")
+    assert ineligible["progression_reason"] == "SHORT_OR_INVALID_DURATION"
+    assert ineligible["metrics"] and all(
+        metric["baseline_state"] == "NOT_AVAILABLE" and metric["baseline_value"] is None
+        and metric["performance_state"] is None for metric in ineligible["metrics"])

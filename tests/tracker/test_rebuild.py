@@ -52,6 +52,14 @@ def _observation(connection, profile_id, match_id, metric=METRIC):
             metric_observations.c.metric_id == metric)).mappings().one()
 
 
+def _cards(connection, match_id):
+    from app.tracker.schema import insight_results
+
+    return connection.execute(select(insight_results.c.cards, insight_results.c.contract_version).join(
+        account_matches, account_matches.c.active_analysis_id == insight_results.c.analysis_id,
+    ).where(account_matches.c.match_id == match_id)).one()
+
+
 def _pb(connection, profile_id, revision):
     row = connection.execute(select(personal_bests.c.analysis_id, personal_bests.c.comparison_value).where(
         personal_bests.c.profile_id == profile_id, personal_bests.c.revision == revision,
@@ -164,6 +172,7 @@ def test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effe
     standard = history(database, profile_id, [0, 1, 2, 3, 4, 5, 6])
     with database.connect() as connection:
         assert _observation(connection, profile_id, standard[-1])["parameter_set_version"] is None
+        cards_before = _cards(connection, standard[-1])
 
     parameters = _test_parameters("test-only-context-v1")
     with database.begin() as connection:
@@ -195,6 +204,8 @@ def test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effe
         assert run_methodology_rebuild(connection, profile_id=profile_id) == 0
     with database.connect() as connection:
         assert _counts(connection) == rebuilt
+        # Insight cards never read context terms or lane labels (match detail §10.9).
+        assert _cards(connection, standard[-1]) == cards_before
 
 
 def test_profile_checkpoint_serves_fallback_identity_and_withholds_uncalibrated_claims(database):
