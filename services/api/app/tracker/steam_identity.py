@@ -195,6 +195,9 @@ def verify_steam_assertion(
         or fields.get("openid.return_to") != expected_return_to
         or not expected_return_to.startswith("https://")
         or identity != claimed
+        # OpenID 2.0 §10.1: the signature must cover every field this check relies on.
+        or not {"op_endpoint", "claimed_id", "identity", "return_to", "response_nonce"}
+        <= set(fields.get("openid.signed", "").split(","))
         or len(steam_id) != 17
         or not steam_id.isascii()
         or not steam_id.isdigit()

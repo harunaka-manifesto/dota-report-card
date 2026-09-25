@@ -358,3 +358,21 @@ def test_one_notify_tick_delivers_every_due_bundle_and_a_retry_blocks_no_one(dat
         states = dict(connection.execute(select(notification_outbox.c.user_id, notification_outbox.c.state)).all())
     assert states == {owners[0][0]: "PENDING", owners[1][0]: "SENT", owners[2][0]: "SENT"}
 
+
+def test_steam_assertion_requires_the_identity_fields_to_be_signed():
+    """QA-9 (hardening): OpenID 2.0 §10.1 — `claimed_id`, `identity`, `return_to` and
+    `response_nonce` must be covered by `openid.signed`; an assertion whose signature
+    does not cover the claimed identity cannot authorize a Steam link, whatever
+    `check_authentication` says about the fields it did sign."""
+    import pytest
+    from app.tracker.steam_identity import SteamLinkError, verify_steam_assertion
+
+    from .test_steam_identity import NOW, RETURN_TO, FakeNonces, FakeVerifier, assertion
+
+    for signed in ("op_endpoint,return_to,response_nonce", "op_endpoint,claimed_id,return_to,response_nonce",
+                   "op_endpoint,claimed_id,identity,response_nonce", "claimed_id,identity,return_to,response_nonce"):
+        with pytest.raises(SteamLinkError):
+            verify_steam_assertion(assertion(**{"openid.signed": signed}), expected_return_to=RETURN_TO,
+                                   verifier=FakeVerifier(), nonces=FakeNonces(), now=NOW)
+    assert verify_steam_assertion(assertion(), expected_return_to=RETURN_TO, verifier=FakeVerifier(),
+                                  nonces=FakeNonces(), now=NOW) > 0
