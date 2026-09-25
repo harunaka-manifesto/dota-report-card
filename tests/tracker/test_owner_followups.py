@@ -192,3 +192,61 @@ def test_in_order_finalization_queues_no_closure_rebuild(database):
     with database.connect() as connection:
         assert connection.scalar(select(func.count()).select_from(ingest_jobs).where(
             ingest_jobs.c.job_type == "CLOSURE_REBUILD")) == 0
+
+
+def _signed(key: bytes, message: str) -> str:
+    import hashlib
+    import hmac
+
+    return hmac.new(key, message.encode("ascii"), hashlib.sha256).hexdigest()[:24]
+
+
+def test_history_and_changes_cursors_are_keyed_by_a_server_secret(database, monkeypatch):
+    """Knowing the profile id is not enough to mint a cursor the server accepts."""
+    from app.tracker.mobile_api import create_mobile_app
+    from fastapi.testclient import TestClient
+
+    from .test_contract_rules import _client
+
+    monkeypatch.setenv("TRACKER_CURSOR_SECRET", "s" * 32)
+    _, headers, profile_id, _ = _client(database, "cursor-owner")
+    history(database, profile_id, [0, 1, 2])
+    client = TestClient(create_mobile_app(Settings(), database=database))
+    paged = client.get("/history?mode=STANDARD&limit=1", headers=headers).json()
+    ref = paged["next_cursor"].split(".")[0]
+    assert client.get("/history", params={"mode": "STANDARD", "limit": 1, "cursor": paged["next_cursor"]},
+                      headers=headers).status_code == 200
+    # The former scheme keyed the MAC by the (internal) profile id.
+    forged = f"{ref}.{_signed(profile_id.encode('ascii'), f'{ref}:STANDARD::0')}"
+    assert client.get("/history", params={"mode": "STANDARD", "cursor": forged}, headers=headers).status_code == 400
+    changes = client.get("/changes", headers=headers).json()["cursor"]
+    micros, revision, _ = changes.split(".")
+    forged_changes = f"{micros}.{revision}.{_signed(profile_id.encode('ascii'), f'{micros}|{revision}')}"
+    assert client.get("/changes", params={"after": forged_changes}, headers=headers).json()["full_refresh"] is True
+    assert client.get("/changes", params={"after": changes}, headers=headers).json()["full_refresh"] is False
+
+    # A rotated secret invalidates outstanding cursors instead of honouring them.
+    monkeypatch.setenv("TRACKER_CURSOR_SECRET", "r" * 32)
+    rotated = TestClient(create_mobile_app(Settings(), database=database))
+    assert rotated.get("/history", params={"mode": "STANDARD", "cursor": paged["next_cursor"]},
+                       headers=headers).status_code == 400
+
+
+def test_production_cursor_endpoints_fail_closed_without_a_secret_but_the_app_starts(database, monkeypatch):
+    """The mobile app is mounted in the live legacy API: startup must survive, cursors must not."""
+    from app.tracker.mobile_api import create_mobile_app
+    from fastapi.testclient import TestClient
+
+    from .test_contract_rules import _client
+
+    _, headers, profile_id, _ = _client(database, "cursor-prod")
+    history(database, profile_id, [0])
+    for value in (None, "short"):
+        if value is None:
+            monkeypatch.delenv("TRACKER_CURSOR_SECRET", raising=False)
+        else:
+            monkeypatch.setenv("TRACKER_CURSOR_SECRET", value)
+        client = TestClient(create_mobile_app(Settings(app_env="production"), database=database))
+        assert client.get("/history", headers=headers).status_code == 503
+        assert client.get("/changes", headers=headers).status_code == 503
+        assert client.get("/account", headers=headers).status_code == 200

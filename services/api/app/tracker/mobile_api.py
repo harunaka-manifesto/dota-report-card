@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import os
 from collections.abc import Callable
 from datetime import UTC, datetime, time, timedelta
 from enum import StrEnum
@@ -760,10 +761,39 @@ def _role_summaries(connection, profile, mode: str) -> list[RoleSummaryView]:
     return summaries
 
 
-def _cursor(profile_id: str, ref: str, mode: str, role: str | None, revision: int) -> str:
-    message = f"{ref}:{mode}:{role or ''}:{revision}".encode("ascii")
-    signature = hmac.new(profile_id.encode("ascii"), message, hashlib.sha256).hexdigest()[:24]
-    return f"{ref}.{signature}"
+DEVELOPMENT_CURSOR_SECRET = b"tracker-development-cursor-secret"
+
+
+def cursor_secret(settings: Settings) -> bytes | None:
+    """Server-held MAC key for opaque cursors; None when production lacks one.
+
+    This app is mounted inside the live legacy API, so a missing secret must
+    not stop startup: cursor endpoints fail closed instead. Rotating the secret
+    invalidates outstanding cursors (History answers CURSOR_INVALID, Changes
+    asks for a full refresh), so clients recover by refetching.
+    """
+    value = os.getenv("TRACKER_CURSOR_SECRET", "")
+    if len(value) >= 32:
+        return value.encode("utf-8")
+    if settings.app_env == "production":
+        return None
+    return DEVELOPMENT_CURSOR_SECRET
+
+
+def _cursor_key(request: Request) -> bytes:
+    key: bytes | None = request.app.state.cursor_key
+    if key is None:
+        raise HTTPException(503, "CURSOR_SECRET_UNCONFIGURED")
+    return key
+
+
+def _mac(key: bytes, profile_id: str, message: str) -> str:
+    return hmac.new(key, f"{profile_id}|{message}".encode("ascii"), hashlib.sha256).hexdigest()[:24]
+
+
+def _cursor(key: bytes, profile_id: str, ref: str, mode: str, role: str | None, revision: int) -> str:
+    message = f"{ref}:{mode}:{role or ''}:{revision}"
+    return f"{ref}.{_mac(key, profile_id, message)}"
 
 
 def _methods(connection, owner: str) -> list[Literal["apple", "google", "email"]]:
@@ -906,11 +936,9 @@ def _profile_view(connection: Connection, profile, mode: Mode) -> ProfileView:
     )
 
 
-def _changes_cursor(profile_id: str, at: datetime, revision: int) -> str:
+def _changes_cursor(key: bytes, profile_id: str, at: datetime, revision: int) -> str:
     micros = round(at.timestamp() * 1_000_000)
-    signature = hmac.new(profile_id.encode("ascii"), f"{micros}|{revision}".encode("ascii"),
-                         hashlib.sha256).hexdigest()[:24]
-    return f"{micros}.{revision}.{signature}"
+    return f"{micros}.{revision}.{_mac(key, profile_id, f'changes:{micros}|{revision}')}"
 
 
 def _subscription_view(connection: Connection, owner: str) -> SubscriptionView:
@@ -954,6 +982,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
     app.state.jwks = HttpJwksSource()
     app.state.steam_verifier = HttpSteamAssertionVerifier()
     app.state.store_verifier = store_verifier
+    app.state.cursor_key = cursor_secret(settings)
 
     @app.exception_handler(HTTPException)
     async def http_problem(_request: Request, exc: HTTPException) -> JSONResponse:
@@ -1273,6 +1302,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                       limit: Annotated[int, Query(ge=1, le=50)] = 20) -> HistoryView:
         """Every retained match, ineligible and unsupported-mode ones included when unfiltered."""
         scope = mode.value if mode else "ALL"
+        key = _cursor_key(request)
         with _engine(request).connect() as connection:
             profile = _active_profile(connection, owner)
             if profile is None:
@@ -1285,7 +1315,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             if cursor is not None:
                 pieces = cursor.split(".")
                 if len(pieces) != 2 or not hmac.compare_digest(
-                    cursor, _cursor(profile["id"], pieces[0], scope,
+                    cursor, _cursor(key, profile["id"], pieces[0], scope,
                                     role.value if role else None, profile["active_revision"]),
                 ):
                     raise HTTPException(400, "CURSOR_INVALID")
@@ -1306,7 +1336,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 account_matches.c.provider_source_match_id.desc(),
             ).limit(limit + 1)).mappings().all()
             visible = rows[:limit]
-            next_cursor = (_cursor(profile["id"], visible[-1]["public_ref"], scope,
+            next_cursor = (_cursor(key, profile["id"], visible[-1]["public_ref"], scope,
                                    role.value if role else None, profile["active_revision"])
                            if len(rows) > limit else None)
             return HistoryView(matches=[_history_row(connection, row) for row in visible],
@@ -1550,6 +1580,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
     @app.get("/changes", response_model=ChangesView)
     async def changes(request: Request, owner: Annotated[str, Depends(_user)],
                       after: str | None = None) -> ChangesView:
+        key = _cursor_key(request)
         with _engine(request).connect() as connection:
             # updated_at is stamped at write time, not commit time: the cursor may not
             # pass the oldest in-flight writing transaction, or its change is skipped.
@@ -1559,8 +1590,8 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             )).scalar_one()
             profile = _active_profile(connection, owner)
             if profile is None:
-                return ChangesView(cursor=_changes_cursor(owner, now, 0), changed_refs=[], full_refresh=True)
-            cursor = _changes_cursor(profile["id"], now, profile["active_revision"])
+                return ChangesView(cursor=_changes_cursor(key, owner, now, 0), changed_refs=[], full_refresh=True)
+            cursor = _changes_cursor(key, profile["id"], now, profile["active_revision"])
             since = None
             if after is not None:
                 pieces = after.split(".")
@@ -1570,7 +1601,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 except (ValueError, IndexError, OverflowError):
                     stamp, revision = None, -1
                 if (stamp is not None and len(pieces) == 3 and revision == profile["active_revision"]
-                        and hmac.compare_digest(after, _changes_cursor(profile["id"], stamp, revision))):
+                        and hmac.compare_digest(after, _changes_cursor(key, profile["id"], stamp, revision))):
                     since = stamp
             if since is None:
                 # Unknown, foreign or pre-revision cursor: the client refetches.

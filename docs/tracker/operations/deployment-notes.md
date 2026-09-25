@@ -14,6 +14,7 @@ this repository deploys, and the tracker backend has not been deployed.
 | App Store root certificate and bundle id (`TRACKER_APP_STORE_ROOT_CERT_PATH`, `TRACKER_APP_STORE_BUNDLE_ID`) | JWS chains must end in the pinned Apple Root CA G3. The notification endpoint is `/store/app-store/notifications`. | Owner credentials required; revocation (OCSP) checking is a follow-up. |
 | APNs credentials and an HTTP/2 push transport | Outbox bundles are delivered through `PushTransport`; no production transport ships. | Not implemented beyond the interface and fake. |
 | `TRACKER_INTERNAL_TOKEN` | Operations readout authentication; separate from mobile sessions. | Operator secret. |
+| `TRACKER_CURSOR_SECRET` (at least 32 characters, shared by all API replicas) | MAC key for History and Changes cursors. Without it, production `/history` and `/changes` answer 503 while the rest of the API starts. Rotating it invalidates outstanding cursors; clients refetch. | Operator secret. |
 | Approved context parameter set | Without one, adjustment is zero and performance states are `NOT_READY`. | Owner/calibration gate. |
 
 ## Order

@@ -6,7 +6,7 @@ from app.core.config import Settings
 from app.tracker.authentication import VerifiedIdentity, create_user_session
 from app.tracker.jobs import StaleJob, authorized_job, claim, enqueue
 from app.tracker.materialization import materialize_snapshot
-from app.tracker.mobile_api import _cursor, create_mobile_app
+from app.tracker.mobile_api import DEVELOPMENT_CURSOR_SECRET, _cursor, create_mobile_app
 from app.tracker.schema import (
     account_matches,
     dota_accounts,
@@ -110,7 +110,7 @@ def test_mobile_match_ref_is_opaque_and_cannot_cross_accounts(database):
     assert home.status_code == 200 and home.json()["last_matches"][0]["ref"] == public_ref
     assert home.json()["focus"] == home.json()["challenge"] == {"state": "UNAVAILABLE", "reason": "NOT_CONTRACTED"}
     assert owner_client.get("/home?mode=STANDARD&time_zone=Not_A_Zone", headers=owner_headers).status_code == 400
-    cursor = _cursor("profile-mobile-owner", public_ref, "STANDARD", None, 0)
+    cursor = _cursor(DEVELOPMENT_CURSOR_SECRET, "profile-mobile-owner", public_ref, "STANDARD", None, 0)
     assert owner_client.get("/history", params={"mode": "STANDARD", "cursor": cursor}, headers=owner_headers).json()["matches"] == []
     assert owner_client.get("/history", params={"mode": "TURBO", "cursor": cursor}, headers=owner_headers).status_code == 400
     with database.begin() as c:
