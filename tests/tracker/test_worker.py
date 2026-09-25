@@ -21,7 +21,7 @@ from celery.contrib.testing.worker import start_worker
 from sqlalchemy import func, select, update
 
 from .conftest import ROOT
-from .test_schema import MATCH_ID, identity, summary
+from .test_schema import LINKED_AT, MATCH_ID, identity, summary
 
 
 def policy_for(redis_client):
@@ -87,7 +87,7 @@ def test_due_age_excludes_future_schedule_and_quota_pauses_backfills(database, r
 async def test_worker_routes_summary_and_link_without_other_lane_claim(database, redis_client):
     from .test_materialization import raw
 
-    identity(database, 1001)
+    identity(database, 1001, linked_at=LINKED_AT)
     redis, _ = redis_client
     policy = policy_for(redis_client)
     with database.begin() as c:
@@ -106,7 +106,7 @@ async def test_worker_routes_summary_and_link_without_other_lane_claim(database,
 
 
 def test_celery_redis_delivery_executes_database_job_and_duplicate_is_idle(database, redis_client, monkeypatch):
-    identity(database, 1001)
+    identity(database, 1001, linked_at=LINKED_AT)
     summary(database)
     summary(database, MATCH_ID + 1)
     redis, namespace = redis_client
@@ -152,8 +152,8 @@ def test_celery_redis_delivery_executes_database_job_and_duplicate_is_idle(datab
 
 def test_separate_p0_worker_is_not_starved_by_blocked_p3(database, redis_client):
     """Two real Celery processes must keep their database-owned lanes independent."""
-    _, p3_profile = identity(database, 1001)
-    identity(database, 1002)
+    _, p3_profile = identity(database, 1001, linked_at=LINKED_AT)
+    identity(database, 1002, linked_at=LINKED_AT)
     summary(database)
     summary(database, MATCH_ID + 1)
     with database.begin() as connection:
@@ -224,7 +224,7 @@ def test_separate_p0_worker_is_not_starved_by_blocked_p3(database, redis_client)
 
 
 async def test_p3_manual_pause_resumes_stored_work_without_provider_calls(database, redis_client):
-    identity(database, 1001)
+    identity(database, 1001, linked_at=LINKED_AT)
     summary(database)
     redis, namespace = redis_client
     policy = policy_for(redis_client)

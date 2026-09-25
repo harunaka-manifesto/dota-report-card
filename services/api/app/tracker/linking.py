@@ -62,6 +62,12 @@ def complete_link_job(database: Engine, *, job_id: str, lease_token: str, replay
         match = connection.execute(select(matches).where(matches.c.match_id == job["match_id"]).with_for_update()).mappings().one()
         if match["evidence_state"] == "DISCOVERED":
             raise InvalidEvidence("A complete summary is required before linking")
+        if origin == "LIVE":
+            linked_at = connection.scalar(select(profiles.c.original_linked_at).where(profiles.c.id == job["profile_id"]))
+            if match["started_at"] < linked_at:
+                # Pre-link history belongs to bootstrap/historical import, never to live work.
+                finish(connection, job)
+                return None
         roster = connection.execute(select(match_players).where(
             match_players.c.match_id == job["match_id"], match_players.c.account_id == job["account_id"],
         )).mappings().all()

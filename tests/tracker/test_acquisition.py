@@ -20,11 +20,11 @@ from sqlalchemy import func, select
 
 from .test_materialization import MATCH_ID, raw
 from .test_provider_transport import gate_for
-from .test_schema import identity
+from .test_schema import LINKED_AT, identity
 
 
 def prepare(database):
-    identity(database, 1001)
+    identity(database, 1001, linked_at=LINKED_AT)
     with database.begin() as c:
         job_id = acquisition.enqueue_fresh_summary(c, MATCH_ID)
         assert acquisition.enqueue_fresh_summary(c, MATCH_ID) == job_id

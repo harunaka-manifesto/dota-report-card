@@ -22,7 +22,15 @@ def prepare(database):
     with database.begin() as c:
         snapshot_id = save(c, payload)
         materialize_snapshot(c, snapshot_id=snapshot_id, match_id=MATCH_ID)
+    link_before_match(database)
     return owners
+
+
+def link_before_match(database):
+    # A LIVE link is only for matches played on or after the link date.
+    with database.begin() as c:
+        started = c.scalar(select(matches.c.started_at).where(matches.c.match_id == MATCH_ID))
+        c.execute(profiles.update().values(original_linked_at=started - timedelta(days=1)))
 
 
 def test_two_users_one_match_schedule_one_replay_with_zero_provider_work(database):
@@ -89,6 +97,7 @@ def test_history_link_does_not_enqueue_fresh_processing_or_rewrite_existing_link
 def test_absent_or_conflicting_account_identity_never_authorizes_link(database):
     owners = prepare(database)
     _, absent_profile = identity(database, 1003)
+    link_before_match(database)
     with database.begin() as c:
         enqueue(c, dedup_key="absent", job_type="LINK_MATCH", priority=0, payload={"origin": "LIVE"}, match_id=MATCH_ID, profile_id=absent_profile)
         c.execute(matches.update().values(quarantined_fields=["players.0.account_id"]))

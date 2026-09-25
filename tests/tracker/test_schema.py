@@ -26,13 +26,17 @@ NOW = datetime(2026, 9, 21, tzinfo=UTC)
 MATCH_ID = 9_000_000_001
 
 
-def identity(database: Engine, account_id: int = 1001) -> tuple[str, str]:
+# Linked before every stored fixture match: pass it where LIVE links are exercised.
+LINKED_AT = datetime(2026, 9, 1, tzinfo=UTC)
+
+
+def identity(database: Engine, account_id: int = 1001, linked_at: datetime = NOW) -> tuple[str, str]:
     user_id, profile_id = str(uuid4()), str(uuid4())
     with database.begin() as c:
         c.execute(insert(s.users).values(id=user_id, created_at=NOW))
         c.execute(insert(s.dota_accounts).values(account_id=account_id))
         c.execute(insert(s.profiles).values(
-            id=profile_id, user_id=user_id, account_id=account_id, original_linked_at=NOW,
+            id=profile_id, user_id=user_id, account_id=account_id, original_linked_at=linked_at,
         ))
     return user_id, profile_id
 

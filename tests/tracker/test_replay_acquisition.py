@@ -21,7 +21,7 @@ from sqlalchemy import func, select
 
 from .test_materialization import MATCH_ID, raw, save
 from .test_provider_transport import gate_for
-from .test_schema import identity
+from .test_schema import LINKED_AT, identity
 
 POLICY = ReplayPolicy(poll_delays=(1, 2))
 
@@ -35,7 +35,7 @@ def payload(parsed=False):
 
 
 def prepare(database, *, parsed=False):
-    identity(database, 1001)
+    identity(database, 1001, linked_at=LINKED_AT)
     with database.begin() as c:
         snapshot_id = save(c, payload(parsed))
         materialize_snapshot(c, snapshot_id=snapshot_id, match_id=MATCH_ID)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
@@ -22,6 +23,7 @@ from app.tracker.schema import (
     account_discoveries,
     ingest_jobs,
     matches,
+    profiles,
     provider_calls,
     snapshots,
     sync_state,
@@ -42,6 +44,12 @@ def request_account_sync(connection: Connection, account_id: int, *, scope_days:
     now = connection.execute(select(func.clock_timestamp())).scalar_one()
     if row["retry_after"] is not None and row["retry_after"] > now:
         return None
+    # Reach back to the last authoritative boundary (or the earliest owner's link
+    # date before any complete discovery), so no missed match falls outside scope.
+    boundary = datetime.fromisoformat(cursor["complete_through"]) if cursor.get("complete_through") else connection.scalar(
+        select(func.min(profiles.c.original_linked_at)).where(profiles.c.account_id == account_id, profiles.c.active.is_(True)))
+    if boundary is not None:
+        scope_days = max(scope_days, math.ceil((now - boundary).total_seconds() / 86400) + 1)
     job_id = enqueue(connection, dedup_key=f"sync:{account_id}:{uuid4()}", job_type="SYNC", priority=0, account_id=account_id, payload={"scope_days": scope_days})
     connection.execute(sync_state.update().where(sync_state.c.account_id == account_id, sync_state.c.provider == "opendota").values(
         state="CHECKING", cursor={**cursor, "job_id": job_id}, retry_after=now + timedelta(seconds=debounce_seconds), blocked_reason=None,
@@ -63,6 +71,9 @@ def _publish_page(connection: Connection, job: dict[str, Any], snapshot: dict[st
     if not isinstance(rows, list) or len(rows) > 200:
         raise ValueError("Invalid history page")
     floor = job["created_at"] - timedelta(days=job["payload"]["scope_days"])
+    # Pre-link history is owned by bootstrap/historical import, never by live discovery.
+    first_link = connection.scalar(select(func.min(profiles.c.original_linked_at)).where(
+        profiles.c.account_id == job["account_id"], profiles.c.active.is_(True)))
     from app.tracker.data_access import observe_history_page
 
     # Before journaling this page: a known in-window match that vanished means
@@ -77,7 +88,8 @@ def _publish_page(connection: Connection, job: dict[str, Any], snapshot: dict[st
         timestamp = row.get("start_time")
         if type(timestamp) is int and 0 < timestamp <= 253402300799:
             started_at = datetime.fromtimestamp(timestamp, UTC)
-        reason = "INVALID_MATCH_ID" if not valid_id else "OUTSIDE_SYNC_WINDOW" if started_at is not None and started_at < floor else None
+        reason = ("INVALID_MATCH_ID" if not valid_id else "OUTSIDE_SYNC_WINDOW" if started_at is not None and started_at < floor
+                  else "BEFORE_LINK" if started_at is not None and first_link is not None and started_at < first_link else None)
         accepted = reason is None
         if accepted:
             assert isinstance(match_id, int)
