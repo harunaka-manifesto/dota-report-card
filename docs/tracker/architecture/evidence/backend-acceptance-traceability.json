@@ -6,12 +6,11 @@
    "source": "app_foundation/SSOT.md",
    "section": "2. Product invariants",
    "rule": "**No opaque judgment.** V1 MUST NOT present an overall match score, letter grade, composite performance score, player rating, percentile, arbitrary good/bad-player judgment, or opaque AI verdict.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_architecture_boundaries.py::test_no_runtime_llm_sdk_is_imported_anywhere_in_the_tracker",
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields"
    ],
-   "note": "No runtime LLM proven and OpenAPI pinned (contains no score fields), but no test explicitly forbids score/grade/percentile/rating fields in payloads."
+   "note": "Checked-in mobile OpenAPI has no score/grade/rating/percentile/rank/verdict/composite/win-rate fields; Progress/MatchDetail field sets asserted."
   },
   {
    "id": "app_foundation#2.2",
@@ -47,13 +46,12 @@
    "source": "app_foundation/SSOT.md",
    "section": "2. Product invariants",
    "rule": "**Standard and Turbo are separate progression worlds.** They MAY use identical methodology, but MUST NOT share baselines, trends, Personal Bests, observations, queues, blockers, or progression histories.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_history.py::test_five_prior_gate_exact_chronology_and_identity_isolation",
-    "tests/tracker/test_role_correction.py::test_rebuild_replays_five_prior_history_and_keeps_other_series",
-    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects"
+    "tests/tracker/test_contract_rules_more.py::test_other_bucket_and_turbo_pb_are_isolated_from_unresolved_standard_work",
+    "tests/tracker/test_e2e_matrix.py::test_live_match_during_unsettled_bootstrap_defers_only_its_mode"
    ],
-   "note": "Baseline/analysis isolation tested; no test shows unresolved Standard match not blocking Turbo, nor Turbo PB/trend isolation from Standard."
+   "note": "Unresolved Standard work never blocks Turbo; Turbo PB rows never mix with Standard."
   },
   {
    "id": "app_foundation#2.5",
@@ -140,23 +138,24 @@
    "source": "app_foundation/SSOT.md",
    "section": "2. Product invariants",
    "rule": "**No teammate attribution.** V1 MUST NOT estimate, score, label, or imply teammate quality, and MUST NOT attach any coefficient, adjustment or copy to a teammate's behaviour or hero.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_context.py::test_paired_hero_term_uses_only_viewer_and_counterpart",
+    "tests/tracker/test_contract_rules_more.py::test_insight_copy_never_claims_causes_or_judges_teammates",
     "tests/tracker/test_context.py::test_context_input_contains_only_allowlisted_pre_match_and_personal_history_fields"
    ],
-   "note": "Context excludes teammate heroes/behaviour; no test scans server-generated insight card copy/slots for teammate-quality claims."
+   "note": "Context inputs allowlisted (no outcome/teammate behaviour); insight copy has no causal or teammate claims."
   },
   {
    "id": "app_foundation#2.12",
    "source": "app_foundation/SSOT.md",
    "section": "2. Product invariants",
    "rule": "**No causal explanation of the match result.** No surface may claim why a match was won or lost.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
+    "tests/tracker/test_contract_rules_more.py::test_insight_copy_never_claims_causes_or_judges_teammates",
     "tests/tracker/test_context.py::test_context_input_contains_only_allowlisted_pre_match_and_personal_history_fields"
    ],
-   "note": "Outcome is not a context input; insights.py copy juxtaposes result (e.g. 'and won') with no test forbidding causal phrasing."
+   "note": "Context inputs allowlisted (no outcome/teammate behaviour); insight copy has no causal or teammate claims."
   },
   {
    "id": "app_foundation#2.13",
@@ -172,13 +171,12 @@
    "source": "app_foundation/SSOT.md",
    "section": "18. Product-level acceptance rules",
    "rule": "Standard history never changes a Turbo baseline, trend, PB, queue or history, and vice versa.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_history.py::test_five_prior_gate_exact_chronology_and_identity_isolation",
-    "tests/tracker/test_role_correction.py::test_rebuild_replays_five_prior_history_and_keeps_other_series",
-    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects"
+    "tests/tracker/test_contract_rules_more.py::test_other_bucket_and_turbo_pb_are_isolated_from_unresolved_standard_work",
+    "tests/tracker/test_e2e_matrix.py::test_live_match_during_unsettled_bootstrap_defers_only_its_mode"
    ],
-   "note": "Baseline/rebuild isolation tested; cross-mode queue/blocker, PB and trend isolation untested (finalization.py:_prior_pending filters by mode)."
+   "note": "Unresolved Standard work never blocks Turbo; Turbo PB rows never mix with Standard."
   },
   {
    "id": "app_foundation#18.2",
@@ -393,12 +391,11 @@
    "source": "app_foundation/SSOT.md",
    "section": "18. Product-level acceptance rules",
    "rule": "A classifier rerun before finalization writes no history, emits no notification, and is not treated as a correction.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_role_refinement.py::test_replay_refinement_preserves_latest_assertion_and_exact_assignment",
-    "tests/tracker/test_role_refinement.py::test_finalization_and_generation_fences_prevent_late_refinement"
+    "tests/tracker/test_contract_rules_more.py::test_pre_finalization_refinement_creates_no_events_or_assertions"
    ],
-   "note": "Pre-finalization refinement leaves analysis/finalized_at empty; no assertion that it emits zero events or creates no role_assertions row."
+   "note": "Pre-finalization rerun writes no assertion, event or analysis."
   },
   {
    "id": "app_foundation#18.19",
@@ -483,11 +480,11 @@
    "source": "app_foundation/SSOT.md",
    "section": "18. Product-level acceptance rules",
    "rule": "No time decay, inactivity reset, Progress-specific retention cutoff, composite role trend, or overall progress score exists.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_history.py::test_last_twenty_median_but_pb_uses_entire_entitled_history"
+    "tests/tracker/test_contract_rules_more.py::test_progress_readiness_is_per_metric_inactivity_neutral_and_filters_validate"
    ],
-   "note": "Window is match-count based; no test with long inactivity gap, and no assertion that composite/overall progress score is absent."
+   "note": "Per-metric readiness differs within a role; a 200-day gap changes nothing; invalid metric rejected; unplayed role empty."
   },
   {
    "id": "app_foundation#18.26",
@@ -544,11 +541,12 @@
    "source": "app_foundation/SSOT.md",
    "section": "18. Product-level acceptance rules",
    "rule": "Lane context never appears in the same claim as the match result, and never softens a BELOW state.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
+    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_d_never_and_lane_label_is_standard_core_only",
+    "tests/tracker/test_contract_rules_more.py::test_insight_copy_never_claims_causes_or_judges_teammates"
    ],
-   "note": "State derives from adjusted expectation only; no test that DIFFICULT never upgrades BELOW or that insight copy excludes lane context."
+   "note": "Lane context never alters the performance label (difficult lane still BELOW); insight copy excludes lane context."
   },
   {
    "id": "app_foundation#18.31",
@@ -603,13 +601,12 @@
    "source": "app_foundation/SSOT.md",
    "section": "18. Product-level acceptance rules",
    "rule": "No surface introduces a score, grade, composite judgment, causal result explanation, teammate claim, or opaque AI verdict.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_architecture_boundaries.py::test_no_runtime_llm_sdk_is_imported_anywhere_in_the_tracker",
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary",
-    "tests/tracker/test_context.py::test_context_input_contains_only_allowlisted_pre_match_and_personal_history_fields"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields",
+    "tests/tracker/test_contract_rules_more.py::test_insight_copy_never_claims_causes_or_judges_teammates"
    ],
-   "note": "No LLM and pinned schema; no explicit test forbidding score/grade fields or scanning insight copy for causal/teammate claims."
+   "note": "No verdict fields in the contract; insight copy scanned for causal and teammate-judgement wording."
   },
   {
    "id": "history#10.1",
@@ -711,11 +708,11 @@
    "source": "history/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "No composite progression curve, score, grade, rating or percentage appears in History.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields"
    ],
-   "note": "No score/grade field in closed schema pinned by OpenAPI golden; no explicit negative assertion."
+   "note": "Checked-in mobile OpenAPI has no score/grade/rating/percentile/rank/verdict/composite/win-rate fields; Progress/MatchDetail field sets asserted."
   },
   {
    "id": "history#10.10",
@@ -731,9 +728,11 @@
    "source": "history/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "Filters never redefine canonical baseline, trend or PB math.",
-   "status": "partial",
-   "tests": [],
-   "note": "No test compares canonical values across filtered/unfiltered reads; code only filters listed rows (mobile_api.history); no calendar filter exists."
+   "status": "covered",
+   "tests": [
+    "tests/tracker/test_contract_rules_more.py::test_history_filters_never_change_canonical_values"
+   ],
+   "note": "Filtered rows are identical to unfiltered ones; empty filter differs from empty account (/bootstrap)."
   },
   {
    "id": "history#10.12",
@@ -900,22 +899,22 @@
    "source": "history/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "A calendar or mode filter changes what is listed without changing any canonical calculation.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_api.py::test_mobile_match_ref_is_opaque_and_cannot_cross_accounts"
+    "tests/tracker/test_contract_rules_more.py::test_history_filters_never_change_canonical_values"
    ],
-   "note": "Mode filter/cursor listing tested; no test that filters leave canonical values unchanged; no calendar filter implemented."
+   "note": "Filtered rows are identical to unfiltered ones; empty filter differs from empty account (/bootstrap)."
   },
   {
    "id": "history#11.11",
    "source": "history/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Empty-account, unlinked and empty-filter states are visually and semantically distinct.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_history_filters_never_change_canonical_values"
    ],
-   "note": "Bootstrap outcomes distinguish NO_STEAM_LINKED vs NO_MATCHES_FOUND; /history returns identical empty body; empty-filter state untested."
+   "note": "Filtered rows are identical to unfiltered ones; empty filter differs from empty account (/bootstrap)."
   },
   {
    "id": "history#11.12",
@@ -1148,11 +1147,11 @@
    "source": "home/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Home reflects the finalized state once analysis persists, without the user re-triggering anything.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_pipeline_e2e.py::test_stage_one_to_terminal_replay_and_mobile_ready"
+    "tests/tracker/test_contract_rules.py::test_home_last_five_spans_buckets_today_and_four_metric_named_role_summaries"
    ],
-   "note": "E2E shows /matches advancing to READY without re-trigger; no test re-reads /home after finalization."
+   "note": "Home re-read after finalization shows the same entry READY without a re-trigger."
   },
   {
    "id": "home#11.4",
@@ -1306,11 +1305,11 @@
    "source": "match_detail/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "Advancing readiness adds deep sections; it never replaces or invalidates Stage-1 content.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_pipeline_e2e.py::test_stage_one_to_terminal_replay_and_mobile_ready"
+    "tests/tracker/test_contract_rules_more.py::test_stage_one_facts_are_unchanged_after_ready"
    ],
-   "note": "Stage-1 facts AVAILABLE before and deep data after; no assertion that players/facts are unchanged after READY."
+   "note": "Stage-1 players, timing and result identical before and after READY."
   },
   {
    "id": "match_detail#10.4",
@@ -1328,12 +1327,11 @@
    "source": "match_detail/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "A permanently unavailable deep section is a settled fact stated once — never an error, an apology or a retry prompt.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_finalization.py::test_replay_unavailable_still_finalizes_with_reasoned_na_metrics",
-    "tests/tracker/test_pipeline_e2e.py::test_stage_one_to_terminal_replay_and_mobile_ready"
+    "tests/tracker/test_contract_rules_more.py::test_retry_is_refused_for_ready_matches_including_replay_unavailable"
    ],
-   "note": "Replay-unavailable is READY with reasoned N/A. No test that retry is refused for READY (retry.py guard untested)."
+   "note": "Retry on a READY replay-unavailable match returns 409 RETRY_NOT_AVAILABLE."
   },
   {
    "id": "match_detail#10.6",
@@ -1409,25 +1407,23 @@
    "source": "match_detail/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "History wording always states N and never exceeds its sample gate.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_insights.py::test_retained_history_line_precedence_rarity_and_integer_limits",
-    "tests/tracker/test_insights.py::test_retained_history_item_comparator_requires_same_patch_and_margin"
+    "tests/tracker/test_contract_rules_more.py::test_history_lines_state_n_and_respect_the_sample_gate"
    ],
-   "note": "History lines state N (30). n<10 gate untested; InsightCardView drops history_line so API never delivers it (mobile_api._match_view)."
+   "note": "No history line below the sample gate; lines state N; the API now carries history_line."
   },
   {
    "id": "match_detail#10.13",
    "source": "match_detail/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "One matchup badge per match, on the lane-metric group; `UNAVAILABLE` renders nothing.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_inventory.py::test_match_detail_exposes_role_source_confidence_lane_and_diagnostics",
-    "tests/tracker/test_context.py::test_missing_or_unvalidated_artifact_fails_closed",
-    "tests/tracker/test_context.py::test_lane_shape_or_enum_gaps_are_unavailable"
+    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_d_never_and_lane_label_is_standard_core_only",
+    "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
    ],
-   "note": "Single lane_context field per match; UNAVAILABLE when no parameters/lane gaps. Standard-cores-only suppression at match level untested."
+   "note": "B hero-only, C/C* hero+lane, D/A unadjusted; one lane label only for Standard cores; UNAVAILABLE otherwise."
   },
   {
    "id": "match_detail#10.14",
@@ -1477,48 +1473,46 @@
    "source": "match_detail/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "`objective_involvement` emits no performance state.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_context.py::test_metric_matrix_keeps_unadjusted_and_diagnostic_metrics_separate"
+    "tests/tracker/test_contract_rules_more.py::test_offlane_objective_involvement_is_diagnostic_and_correction_available_on_old_matches"
    ],
-   "note": "Context test yields NOT_READY only because parameters absent; API nulls class E performance_state but no offlane API test."
+   "note": "Objective involvement is diagnostic_only with no performance state in the API."
   },
   {
    "id": "match_detail#10.19",
    "source": "match_detail/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "Trend states do not appear on this surface.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields"
    ],
-   "note": "MatchView has no trend field (OpenAPI golden pinned); no explicit assertion."
+   "note": "Checked-in mobile OpenAPI has no score/grade/rating/percentile/rank/verdict/composite/win-rate fields; Progress/MatchDetail field sets asserted."
   },
   {
    "id": "match_detail#10.20",
    "source": "match_detail/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "Edit Role is available on every retained match with sufficient telemetry.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_api.py::test_mobile_role_edit_is_scoped_idempotent_and_source_backed",
-    "tests/tracker/test_role_correction.py::test_correction_stale_revision_and_missing_source_fail_closed",
-    "tests/tracker/test_role_correction.py::test_retained_non_progression_match_can_be_corrected_without_history_writes"
+    "tests/tracker/test_contract_rules_more.py::test_offlane_objective_involvement_is_diagnostic_and_correction_available_on_old_matches",
+    "tests/tracker/test_mobile_api.py::test_mobile_role_edit_is_scoped_idempotent_and_source_backed"
    ],
-   "note": "True for READY incl. non-progression; False when lineage missing. correction_available False for non-READY matches with summary telemetry (golden)."
+   "note": "Correction available on older and newer READY matches from retained evidence, independent of confidence."
   },
   {
    "id": "match_detail#10.21",
    "source": "match_detail/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "A correction rebuilds this match's metrics, comparisons, adjustments, PB state and insight result, deterministically, with no provider calls.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_role_correction.py::test_correction_remeasures_retained_source_and_is_idempotent",
-    "tests/tracker/test_role_correction.py::test_rebuild_replays_five_prior_history_and_keeps_other_series",
-    "tests/tracker/test_mobile_api.py::test_mobile_role_edit_is_scoped_idempotent_and_source_backed"
+    "tests/tracker/test_contract_rules_more.py::test_role_correction_recomputes_context_terms_for_the_new_role",
+    "tests/tracker/test_role_correction.py::test_correction_remeasures_retained_source_and_is_idempotent"
    ],
-   "note": "Rebuild re-measures metrics, baselines, PB, insight result, idempotent, zero provider calls. Adjustment/lane-context rebuild not asserted."
+   "note": "Correction re-measures under the new role with recomputed context terms and parameter-set stamp; idempotent, provider-free."
   },
   {
    "id": "match_detail#10.22",
@@ -1538,11 +1532,12 @@
    "source": "match_detail/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "No score, grade, causal result explanation, teammate claim or visibility claim appears.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields",
+    "tests/tracker/test_contract_rules_more.py::test_insight_copy_never_claims_causes_or_judges_teammates"
    ],
-   "note": "Closed schema has no score/grade fields; no explicit negative assertion; teammate/visibility claims untested."
+   "note": "No verdict fields in the contract; insight copy scanned for causal and teammate-judgement wording."
   },
   {
    "id": "match_detail#11.1",
@@ -1584,25 +1579,22 @@
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Readiness advancing while the screen is open adds sections without replacing Stage-1 content, and replays no celebration.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_pipeline_e2e.py::test_stage_one_to_terminal_replay_and_mobile_ready",
-    "tests/tracker/test_finalization.py::test_terminal_analysis_publishes_once_from_retained_source"
+    "tests/tracker/test_contract_rules_more.py::test_stage_one_facts_are_unchanged_after_ready"
    ],
-   "note": "Deep sections appear at READY; NEW_PB/event emitted once. No check that stage-1 content is unchanged."
+   "note": "Stage-1 players, timing and result identical before and after READY."
   },
   {
    "id": "match_detail#11.5",
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "A match whose replay will never arrive reaches READY, states that once, offers no Retry, and shows N/A — not zero — for its replay-derived metrics.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_finalization.py::test_replay_unavailable_still_finalizes_with_reasoned_na_metrics",
-    "tests/tracker/test_pipeline_e2e.py::test_stage_one_to_terminal_replay_and_mobile_ready",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_retry_is_refused_for_ready_matches_including_replay_unavailable"
    ],
-   "note": "READY with reasoned N/A, not zero. No test that retry is rejected for READY; 'stated once' is client."
+   "note": "Retry on a READY replay-unavailable match returns 409 RETRY_NOT_AVAILABLE."
   },
   {
    "id": "match_detail#11.6",
@@ -1658,37 +1650,35 @@
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Class A/D and Turbo metrics compare against \"your usual\"; class B/C/C\\* Standard metrics compare against the adjusted expectation.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation",
-    "tests/tracker/test_context.py::test_paired_hero_term_uses_only_viewer_and_counterpart",
-    "tests/tracker/test_context.py::test_turbo_floor_and_three_prior_gates_produce_no_adjustment",
-    "tests/tracker/test_context.py::test_metric_matrix_keeps_unadjusted_and_diagnostic_metrics_separate"
+    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_d_never_and_lane_label_is_standard_core_only",
+    "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
    ],
-   "note": "C/C* adjusted, A and Turbo unadjusted tested. B and D untested; without approved parameter set all states NOT_READY."
+   "note": "B hero-only, C/C* hero+lane, D/A unadjusted; one lane label only for Standard cores; UNAVAILABLE otherwise."
   },
   {
    "id": "match_detail#11.11",
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "`offlane.objective_involvement.v1` shows value + personal median only.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_context.py::test_metric_matrix_keeps_unadjusted_and_diagnostic_metrics_separate"
+    "tests/tracker/test_contract_rules_more.py::test_offlane_objective_involvement_is_diagnostic_and_correction_available_on_old_matches"
    ],
-   "note": "diagnostic_only flag and null performance_state coded in _match_view; no offlane API test of value+median only."
+   "note": "Objective involvement is diagnostic_only with no performance state in the API."
   },
   {
    "id": "match_detail#11.12",
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Exactly one matchup badge appears, on the lane-metric group, for Standard cores only; `UNAVAILABLE` shows nothing.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_inventory.py::test_match_detail_exposes_role_source_confidence_lane_and_diagnostics",
-    "tests/tracker/test_context.py::test_missing_or_unvalidated_artifact_fails_closed"
+    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_d_never_and_lane_label_is_standard_core_only",
+    "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
    ],
-   "note": "One lane_context per match; UNAVAILABLE when unparameterised. Turbo/support suppression and lane-metric grouping untested."
+   "note": "B hero-only, C/C* hero+lane, D/A unadjusted; one lane label only for Standard cores; UNAVAILABLE otherwise."
   },
   {
    "id": "match_detail#11.13",
@@ -1737,12 +1727,11 @@
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Every history claim states N and respects its sample gate.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_insights.py::test_retained_history_line_precedence_rarity_and_integer_limits",
-    "tests/tracker/test_insights.py::test_retained_history_item_comparator_requires_same_patch_and_margin"
+    "tests/tracker/test_contract_rules_more.py::test_history_lines_state_n_and_respect_the_sample_gate"
    ],
-   "note": "Lines include N; n<10 gate untested; history_line not exposed by InsightCardView."
+   "note": "No history line below the sample gate; lines state N; the API now carries history_line."
   },
   {
    "id": "match_detail#11.18",
@@ -1760,25 +1749,23 @@
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Edit Role is present on old, recent, high-confidence and low-confidence matches alike.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_api.py::test_mobile_role_edit_is_scoped_idempotent_and_source_backed",
-    "tests/tracker/test_mobile_inventory.py::test_match_detail_exposes_role_source_confidence_lane_and_diagnostics"
+    "tests/tracker/test_contract_rules_more.py::test_offlane_objective_involvement_is_diagnostic_and_correction_available_on_old_matches",
+    "tests/tracker/test_mobile_api.py::test_mobile_role_edit_is_scoped_idempotent_and_source_backed"
    ],
-   "note": "Available on READY inferred/confirmed matches; old vs recent and high vs low confidence not varied; non-READY matches return False."
+   "note": "Correction available on older and newer READY matches from retained evidence, independent of confidence."
   },
   {
    "id": "match_detail#11.20",
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "After a correction, the metric set, comparisons, adjustments, PB state and insight result all reflect the new role, with unsupported metrics as N/A.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_role_correction.py::test_correction_remeasures_retained_source_and_is_idempotent",
-    "tests/tracker/test_role_correction.py::test_rebuild_replays_five_prior_history_and_keeps_other_series",
-    "tests/tracker/test_mobile_api.py::test_mobile_role_edit_is_scoped_idempotent_and_source_backed"
+    "tests/tracker/test_contract_rules_more.py::test_role_correction_recomputes_context_terms_for_the_new_role"
    ],
-   "note": "Metric set switches to new role; baselines/PB/insight rebuilt. Adjustments and unsupported-as-N/A not asserted."
+   "note": "New role's metric set, context terms and reasoned N/A for unsupported metrics after correction."
   },
   {
    "id": "match_detail#11.21",
@@ -1989,23 +1976,22 @@
    "source": "onboarding/SSOT.md",
    "section": "15. Hard invariants",
    "rule": "A bootstrap match without replay-class evidence is a valid match with N/A replay metrics, never a failure.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_finalization.py::test_replay_unavailable_still_finalizes_with_reasoned_na_metrics",
-    "tests/tracker/test_historical_summary.py::test_missing_deep_row_falls_back_to_p3_summary_and_private_bootstrap_link"
+    "tests/tracker/test_contract_rules_more.py::test_bootstrap_origin_replay_unavailable_match_is_ready_counted_and_quiet"
    ],
-   "note": "N/A-finalization proven for LIVE origin; no test finalizes a BOOTSTRAP-origin REPLAY_UNAVAILABLE match to READY and counted."
+   "note": "Bootstrap-origin replay-unavailable match is READY, progression-eligible, reasoned N/A."
   },
   {
    "id": "onboarding#15.16",
    "source": "onboarding/SSOT.md",
    "section": "15. Hard invariants",
    "rule": "Bootstrap acquisition is identical for Free and Pro; Pro extends depth, not mechanism.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_backfill.py::test_purchase_backfills_only_unheld_pre_link_history_and_activation_waits"
+    "tests/tracker/test_contract_rules_more.py::test_bootstrap_under_pro_scope_is_identical_work_to_free"
    ],
-   "note": "Pro depth reuses HISTORICAL_BATCH mechanism; no bootstrap run under Pro scope; bootstrap.py absent from entitlement scan (no scope branch in code)."
+   "note": "Free and Pro profiles produce identical bootstrap acquisition work."
   },
   {
    "id": "onboarding#15.17",
@@ -2093,13 +2079,11 @@
    "source": "onboarding/SSOT.md",
    "section": "17. Acceptance rules",
    "rule": "Bootstrap survives force quit, logout, restart and reinstall without duplicating or resetting.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_bootstrap.py::test_bootstrap_search_journals_both_modes_and_original_window",
-    "tests/tracker/test_bootstrap.py::test_bootstrap_page_reuses_recorded_evidence_after_rollback",
-    "tests/tracker/test_jobs.py::test_checkpoint_survives_redelivery_and_failures_are_bounded"
+    "tests/tracker/test_contract_rules_more.py::test_logout_and_new_session_leave_bootstrap_work_intact"
    ],
-   "note": "Idempotent request, resumable cursor, redelivery proven; no test that logout/session revocation/relogin leaves bootstrap job and cursor intact."
+   "note": "Session revocation and a new sign-in leave the server-owned bootstrap job and cursor intact."
   },
   {
    "id": "onboarding#17.7",
@@ -2144,13 +2128,11 @@
    "source": "onboarding/SSOT.md",
    "section": "17. Acceptance rules",
    "rule": "A bootstrap match whose replay evidence is unobtainable is viewable, counted, and shows N/A — not zero — for its replay-derived metrics.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_finalization.py::test_replay_unavailable_still_finalizes_with_reasoned_na_metrics",
-    "tests/tracker/test_pipeline_e2e.py::test_stage_one_to_terminal_replay_and_mobile_ready",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_bootstrap_origin_replay_unavailable_match_is_ready_counted_and_quiet"
    ],
-   "note": "N/A-not-zero and counted proven for LIVE origin only; no BOOTSTRAP-origin REPLAY_UNAVAILABLE match finalized and asserted viewable/counted."
+   "note": "Bootstrap-origin replay-unavailable match is READY, progression-eligible, reasoned N/A."
   },
   {
    "id": "onboarding#17.11",
@@ -2168,12 +2150,11 @@
    "source": "onboarding/SSOT.md",
    "section": "17. Acceptance rules",
    "rule": "A Free and a Pro account bootstrap the same Free window by the same mechanism.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_backfill.py::test_purchase_backfills_only_unheld_pre_link_history_and_activation_waits",
-    "tests/tracker/test_entitlement.py::test_bootstrap_completion_reconciles_purchase_made_during_search"
+    "tests/tracker/test_contract_rules_more.py::test_bootstrap_under_pro_scope_is_identical_work_to_free"
    ],
-   "note": "No test runs bootstrap for a Pro account and compares with Free; bootstrap.py not in entitlement-free scan list."
+   "note": "Bootstrap work is byte-identical under Free and Pro scope."
   },
   {
    "id": "onboarding#17.13",
@@ -2215,11 +2196,12 @@
    "source": "onboarding/SSOT.md",
    "section": "17. Acceptance rules",
    "rule": "Exactly one idempotent bootstrap-completion event exists, and it is not queued for later permission grants.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
+    "tests/tracker/test_contract_rules_more.py::test_bootstrap_origin_replay_unavailable_match_is_ready_counted_and_quiet",
     "tests/tracker/test_bootstrap.py::test_bootstrap_completion_waits_for_analyses_and_coverage_then_emits_once"
    ],
-   "note": "Single idempotent event tested; no test that completion creates no outbox row later sent after permission grant (code never enqueues one)."
+   "note": "One completion event; nothing queued in the push outbox for later permission."
   },
   {
    "id": "onboarding#17.17",
@@ -2244,11 +2226,13 @@
    "source": "onboarding/SSOT.md",
    "section": "17. Acceptance rules",
    "rule": "Data-access recovery re-anchors to the original Steam-link date and records unrecoverable gaps.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_inventory.py::test_withdrawn_history_blocks_access_then_confirmation_reanchors_recovery"
+    "tests/tracker/test_contract_rules_more.py::test_access_recovery_scan_queues_only_post_link_unheld_matches",
+    "tests/tracker/test_mobile_inventory.py::test_withdrawn_history_blocks_access_then_confirmation_reanchors_recovery",
+    "tests/tracker/test_historical.py::test_retained_batch_materializes_replay_links_and_source_absence_once"
    ],
-   "note": "Anchor kept and ACCESS_RECOVERY enqueued; recovery scan never executed and unrecoverable-gap recording untested (backfill.py:request_access_recovery)."
+   "note": "Recovery anchored to the original link date queues post-link matches; absent sources are recorded as gaps."
   },
   {
    "id": "onboarding#17.20",
@@ -2269,11 +2253,11 @@
    "source": "profile/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "The Profile concludes; it does not measure. It never re-derives a Progress number.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_inventory.py::test_profile_pb_share_favourite_and_conditional_reads"
+    "tests/tracker/test_contract_rules_more.py::test_profile_and_progress_agree_buckets_stay_separate_and_gaps_are_absent"
    ],
-   "note": "Profile PBs read from shared personal_bests table; no test reconciles Profile values against /progress. Right now withheld."
+   "note": "Profile PB equals Progress PB; Standard and Turbo counts separate; GAP never shown as known history."
   },
   {
    "id": "profile#11.2",
@@ -2291,11 +2275,11 @@
    "source": "profile/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "Claims move slowly, with hysteresis and persistence. One match never changes identity.",
-   "status": "partial",
+   "status": "owner_blocked",
    "tests": [
     "tests/tracker/test_contract_rules.py::test_role_tiers_hold_within_three_points_and_fallback_lines"
    ],
-   "note": "±3 pp tier hysteresis tested; claim persistence values are owner/calibration-blocked (§12)."
+   "note": "Tier hysteresis verified; claim persistence gap and enter/exit values are unset §12 parameters."
   },
   {
    "id": "profile#11.4",
@@ -2315,12 +2299,11 @@
    "source": "profile/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "No overall score, grade, rating, percentile, radar, or rank-derived label.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields"
    ],
-   "note": "No score/grade fields exist; guarded only implicitly by pinned OpenAPI/golden payloads, no explicit negative assertion."
+   "note": "Checked-in mobile OpenAPI has no score/grade/rating/percentile/rank/verdict/composite/win-rate fields; Progress/MatchDetail field sets asserted."
   },
   {
    "id": "profile#11.6",
@@ -2336,12 +2319,11 @@
    "source": "profile/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "Every aggregate is per bucket; only Mode-Split compares buckets, and it never pools their matches.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_rebuild.py::test_profile_keeps_last_checkpoint_while_mode_import_runs",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_profile_and_progress_agree_buckets_stay_separate_and_gaps_are_absent"
    ],
-   "note": "Per-mode projection (build_projection filters mode) pinned in golden; no explicit cross-bucket isolation assertion. Mode-Split withheld (§12)."
+   "note": "Profile PB equals Progress PB; Standard and Turbo counts separate; GAP never shown as known history."
   },
   {
    "id": "profile#11.8",
@@ -2433,12 +2415,11 @@
    "source": "profile/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "No single-match analytics are copied onto the Profile.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields"
    ],
-   "note": "ProfileView carries no per-match analytics; only implicit via pinned schema/golden, no explicit assertion."
+   "note": "Checked-in mobile OpenAPI has no score/grade/rating/percentile/rank/verdict/composite/win-rate fields; Progress/MatchDetail field sets asserted."
   },
   {
    "id": "profile#11.17",
@@ -2467,12 +2448,11 @@
    "source": "profile/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "Missing history is absent, never zero and never a low value.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures",
-    "tests/tracker/test_rebuild.py::test_profile_checkpoint_serves_fallback_identity_and_withholds_uncalibrated_claims"
+    "tests/tracker/test_contract_rules_more.py::test_profile_and_progress_agree_buckets_stay_separate_and_gaps_are_absent"
    ],
-   "note": "No-history personas render empty/null; no test with a coverage GAP interval asserting Profile treats it as absent."
+   "note": "Profile PB equals Progress PB; Standard and Turbo counts separate; GAP never shown as known history."
   },
   {
    "id": "profile#11.20",
@@ -2588,12 +2568,9 @@
    "source": "profile/SSOT.md",
    "section": "14. Acceptance rules",
    "rule": "Hero tags are scoped to one bucket and one role; Favourite is only ever player-set.",
-   "status": "partial",
-   "tests": [
-    "tests/tracker/test_mobile_inventory.py::test_profile_pb_share_favourite_and_conditional_reads",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
-   ],
-   "note": "Favourite player-set covered; hero-tag scoping untestable, tags withheld CALIBRATION_PENDING (§12)."
+   "status": "owner_blocked",
+   "tests": [],
+   "note": "Hero-tag candidate floors and hysteresis are unset §12 parameters; tags are withheld (CALIBRATION_PENDING)."
   },
   {
    "id": "profile#14.10",
@@ -2609,12 +2586,11 @@
    "source": "profile/SSOT.md",
    "section": "14. Acceptance rules",
    "rule": "No composite score, grade, rating, radar or percentile appears anywhere.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields"
    ],
-   "note": "No such fields in schema; only implicit via pinned OpenAPI/golden, no explicit negative assertion."
+   "note": "Checked-in mobile OpenAPI has no score/grade/rating/percentile/rank/verdict/composite/win-rate fields; Progress/MatchDetail field sets asserted."
   },
   {
    "id": "profile#14.12",
@@ -2630,23 +2606,23 @@
    "source": "profile/SSOT.md",
    "section": "14. Acceptance rules",
    "rule": "A role correction rebuilds Profile aggregates in that bucket and records a Change event where displayed state changed.",
-   "status": "partial",
+   "status": "owner_blocked",
    "tests": [
     "tests/tracker/test_contract_rules.py::test_role_correction_republishes_profile_at_its_checkpoint"
    ],
-   "note": "Correction republishes the Profile checkpoint; the change receipt needs a confirmed identity, which waits on §12 calibration."
+   "note": "Correction republishes the checkpoint; a change receipt requires a confirmed identity, which needs §12 claim parameters."
   },
   {
    "id": "profile#14.14",
    "source": "profile/SSOT.md",
    "section": "14. Acceptance rules",
    "rule": "An import changes displayed state without creating celebrations or backdated change events.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses",
-    "tests/tracker/test_rebuild.py::test_late_older_match_cannot_take_newer_pb_or_rolling_window"
+    "tests/tracker/test_contract_rules_more.py::test_bootstrap_origin_replay_unavailable_match_is_ready_counted_and_quiet",
+    "tests/tracker/test_rebuild.py::test_profile_keeps_last_checkpoint_while_mode_import_runs"
    ],
-   "note": "No celebrations from imports tested; IMPORT checkpoint changing displayed state (bootstrap.settle_bootstrap) not asserted."
+   "note": "Settled import publishes one IMPORT checkpoint; importing buckets keep the prior one; no celebrations."
   },
   {
    "id": "profile#14.15",
@@ -2707,11 +2683,11 @@
    "source": "profile/SSOT.md",
    "section": "14. Acceptance rules",
    "rule": "The share card is built from the whitelisted projection only, and is unavailable without a confirmed identity line.",
-   "status": "partial",
+   "status": "owner_blocked",
    "tests": [
     "tests/tracker/test_mobile_inventory.py::test_profile_pb_share_favourite_and_conditional_reads"
    ],
-   "note": "PROFILE share refused without confirmed identity; PB share whitelist checked. Profile-card whitelist untestable until identity confirms."
+   "note": "Profile share refused without a confirmed identity (needs §12 calibration); PB share whitelist verified."
   },
   {
    "id": "profile#14.21",
@@ -2756,12 +2732,11 @@
    "source": "progress/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "Metrics within one role legitimately sit at different readiness; that is shown with the existing neutral states and never explained in backend terms.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures",
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary"
+    "tests/tracker/test_contract_rules_more.py::test_progress_readiness_is_per_metric_inactivity_neutral_and_filters_validate"
    ],
-   "note": "Vocabulary scan covers backend terms; no /progress test shows two same-role metrics at different readiness."
+   "note": "Per-metric readiness differs within a role; a 200-day gap changes nothing; invalid metric rejected; unplayed role empty."
   },
   {
    "id": "progress#11.4",
@@ -2793,12 +2768,11 @@
    "source": "progress/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "No composite: no role trend, player score, grade, rating, percentage, cross-role normalization, or all-role curve.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields"
    ],
-   "note": "ProgressView is per-metric only; no composite guarded solely by pinned schema/golden, no explicit assertion."
+   "note": "Checked-in mobile OpenAPI has no score/grade/rating/percentile/rank/verdict/composite/win-rate fields; Progress/MatchDetail field sets asserted."
   },
   {
    "id": "progress#11.7",
@@ -2871,11 +2845,11 @@
    "source": "progress/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "No time decay, inactivity penalty, trend expiry, season reset, or Progress-owned retention cutoff.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_history.py::test_database_prior_selection_respects_entitlement_and_active_finalization"
+    "tests/tracker/test_contract_rules_more.py::test_progress_readiness_is_per_metric_inactivity_neutral_and_filters_validate"
    ],
-   "note": "history.baseline has no time term; no test with long inactivity gap asserting baseline/trend unchanged."
+   "note": "Per-metric readiness differs within a role; a 200-day gap changes nothing; invalid metric rejected; unplayed role empty."
   },
   {
    "id": "progress#11.14",
@@ -2907,34 +2881,34 @@
    "source": "progress/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "One canonical methodology is displayed at a time; mixed timelines are never published.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects",
-    "tests/tracker/test_history.py::test_database_prior_selection_respects_entitlement_and_active_finalization"
+    "tests/tracker/test_contract_rules_more.py::test_baseline_version_bump_rebuilds_once_and_a_failed_migration_keeps_prior_state",
+    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects"
    ],
-   "note": "All stale analyses rebuilt, versions isolated; failed/partial migration keeping prior state is not tested."
+   "note": "Baseline-version bump rebuilds once then no-ops; a failed replay rolls back to the previous coherent pointers."
   },
   {
    "id": "progress#11.17",
    "source": "progress/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "Entitlement changes never masquerade as performance change.",
-   "status": "partial",
+   "status": "owner_blocked",
    "tests": [
-    "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses"
+    "tests/tracker/test_contract_rules_more.py::test_scope_expiry_reverts_pb_as_a_scope_change_not_a_loss"
    ],
-   "note": "Scope change emits only SCOPE_CHANGED, no performance events; no test of trend output after reduction (thresholds uncalibrated)."
+   "note": "Scope reduction emits no performance event; trend direction after reduction needs the owner-approved calibration artifact."
   },
   {
    "id": "progress#11.18",
    "source": "progress/SSOT.md",
    "section": "11. Hard invariants",
    "rule": "Win/loss never appears as a progression signal.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_metrics.py::test_twenty_metrics_no_control_proxy_and_two_lower_better_metrics"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields"
    ],
-   "note": "Fixed 20-metric registry has no win metric; no explicit assertion win/loss absent from Progress payload."
+   "note": "Checked-in mobile OpenAPI has no score/grade/rating/percentile/rank/verdict/composite/win-rate fields; Progress/MatchDetail field sets asserted."
   },
   {
    "id": "progress#12.1",
@@ -2968,45 +2942,45 @@
    "source": "progress/SSOT.md",
    "section": "12. Acceptance rules",
    "rule": "Two metrics in the same role at different readiness both render correctly, with no backend explanation shown.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_progress_readiness_is_per_metric_inactivity_neutral_and_filters_validate"
    ],
-   "note": "Vocabulary scan only; no /progress test with two same-role metrics at different baseline readiness."
+   "note": "Per-metric readiness differs within a role; a 200-day gap changes nothing; invalid metric rejected; unplayed role empty."
   },
   {
    "id": "progress#12.4",
    "source": "progress/SSOT.md",
    "section": "12. Acceptance rules",
    "rule": "A baseline-definition change recomputes history from stored data with zero provider calls.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
+    "tests/tracker/test_contract_rules_more.py::test_baseline_version_bump_rebuilds_once_and_a_failed_migration_keeps_prior_state",
     "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects"
    ],
-   "note": "Parameter-set rebuild tested with zero provider calls; BASELINE_VERSION bump path in rebuild.stale_boundaries not exercised."
+   "note": "Baseline-version bump rebuilds once then no-ops; a failed replay rolls back to the previous coherent pointers."
   },
   {
    "id": "progress#12.5",
    "source": "progress/SSOT.md",
    "section": "12. Acceptance rules",
    "rule": "Selecting a role and bucket shows only that track's metrics and series.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_history.py::test_five_prior_gate_exact_chronology_and_identity_isolation"
+    "tests/tracker/test_contract_rules_more.py::test_progress_readiness_is_per_metric_inactivity_neutral_and_filters_validate"
    ],
-   "note": "Computation isolation tested; /progress role/mode filtering and METRIC_INVALID not tested with mixed-track data."
+   "note": "Per-metric readiness differs within a role; a 200-day gap changes nothing; invalid metric rejected; unplayed role empty."
   },
   {
    "id": "progress#12.6",
    "source": "progress/SSOT.md",
    "section": "12. Acceptance rules",
    "rule": "No surface element aggregates metrics into a role-level verdict.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_mobile_openapi_is_checked_in_closed_and_free_of_pipeline_vocabulary",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_mobile_contract_has_no_score_grade_percentile_or_composite_fields"
    ],
-   "note": "No role-level verdict field exists; only implicit via pinned schema/golden."
+   "note": "Checked-in mobile OpenAPI has no score/grade/rating/percentile/rank/verdict/composite/win-rate fields; Progress/MatchDetail field sets asserted."
   },
   {
    "id": "progress#12.7",
@@ -3057,11 +3031,11 @@
    "source": "progress/SSOT.md",
    "section": "12. Acceptance rules",
    "rule": "A role never played in the selected bucket shows an unstarted state, not zeros.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_progress_readiness_is_per_metric_inactivity_neutral_and_filters_validate"
    ],
-   "note": "Golden pins empty points/null PB/INSUFFICIENT_HISTORY; API has no explicit unstarted state and no unplayed-role test."
+   "note": "Per-metric readiness differs within a role; a 200-day gap changes nothing; invalid metric rejected; unplayed role empty."
   },
   {
    "id": "progress#12.12",
@@ -3113,12 +3087,9 @@
    "source": "progress/SSOT.md",
    "section": "12. Acceptance rules",
    "rule": "An entitlement reduction that regresses a trend is not presented as decline.",
-   "status": "partial",
-   "tests": [
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures",
-    "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses"
-   ],
-   "note": "pro_expired shows INSUFFICIENT_HISTORY; no calibrated trend regression test (trend thresholds owner-blocked)."
+   "status": "owner_blocked",
+   "tests": [],
+   "note": "Trend states after an entitlement reduction depend on uncalibrated movement thresholds (open owner decision)."
   },
   {
    "id": "progress#12.17",
@@ -3173,13 +3144,12 @@
    "source": "settings_account/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "Switching is blocked during a non-terminal import or rebuild, and blocked when the target is owned by another account.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_account_lifecycle.py::test_switch_preflight_reports_cooldown_history_and_owned_target",
-    "tests/tracker/test_account_lifecycle.py::test_switch_back_to_archived_identity_creates_new_isolated_profile",
-    "tests/tracker/test_mobile_golden.py::test_seed_covers_required_states_and_matches_versioned_golden_fixtures"
+    "tests/tracker/test_contract_rules_more.py::test_switch_blocks_on_rebuild_only_and_reports_invalid_target",
+    "tests/tracker/test_account_lifecycle.py::test_switch_preflight_reports_cooldown_history_and_owned_target"
    ],
-   "note": "Blocks on pending HISTORICAL_BATCH, unsettled bootstrap, and owned target; history_operations-only rebuild block not isolated (golden pro_importing confounded with backfill)."
+   "note": "Rebuild-only operation blocks switching; invalid target reported; cooldown/owned/import causes asserted."
   },
   {
    "id": "settings_account#10.5",
@@ -3249,11 +3219,11 @@
    "source": "settings_account/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "Pro entitlement belongs to the app account; Pro-derived **history** is scoped to the Steam profile.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_account_lifecycle.py::test_switch_archives_fences_jobs_and_starts_fresh_bootstrap"
+    "tests/tracker/test_contract_rules_more.py::test_switch_keeps_pro_on_the_account_and_backfills_only_the_new_profile"
    ],
-   "note": "Subscription stays on user after switch and new profile starts FREE; no test of new profile's own Pro backfill/activation or old Pro history staying profile-scoped."
+   "note": "Pro stays on the account; the new profile gets its own backfill; archived history stays profile-scoped."
   },
   {
    "id": "settings_account#10.11",
@@ -3330,25 +3300,23 @@
    "source": "settings_account/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "Account deletion is immediate, outranks background work, releases the Steam link, and cancels renewal without a prorated refund.",
-   "status": "partial",
+   "status": "owner_blocked",
    "tests": [
-    "tests/tracker/test_account_lifecycle.py::test_deletion_immediately_fences_and_removes_private_profile_state",
-    "tests/tracker/test_mobile_api.py::test_mobile_deletion_revokes_session_and_fences_running_private_work",
-    "tests/tracker/test_jobs.py::test_deletion_generation_fences_late_private_publication"
+    "tests/tracker/test_contract_rules_more.py::test_deleted_account_releases_steam_identity_for_a_new_link",
+    "tests/tracker/test_mobile_api.py::test_mobile_deletion_revokes_session_and_fences_running_private_work"
    ],
-   "note": "Immediate fence, job cancellation, profile removal tested; Steam re-linkability after deletion not asserted; renewal cancellation/no-refund is owner-blocked (policy_gates)."
+   "note": "Fence, removal and Steam release verified; subscription renewal handling at deletion is an open owner/legal decision."
   },
   {
    "id": "settings_account#10.18",
    "source": "settings_account/SSOT.md",
    "section": "10. Hard invariants",
    "rule": "Accounts are never automatically merged, by any path including recovery.",
-   "status": "partial",
+   "status": "owner_blocked",
    "tests": [
-    "tests/tracker/test_authentication.py::test_auth_identity_collision_is_blocked_with_recovery_route",
-    "tests/tracker/test_account_lifecycle.py::test_switch_preflight_reports_cooldown_history_and_owned_target"
+    "tests/tracker/test_authentication.py::test_auth_identity_collision_is_blocked_with_recovery_route"
    ],
-   "note": "Identity collision blocked and owned-target switch refused; recovery path not contracted (owner-blocked), so 'including recovery' untestable."
+   "note": "Collision blocked, never merged; the recovery verification flow is an open owner decision."
   },
   {
    "id": "settings_account#11.1",
@@ -3377,12 +3345,12 @@
    "source": "settings_account/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "A switch attempt is blocked with a clear cause for each of: cooldown, non-terminal rebuild, target owned elsewhere, validation failure.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_account_lifecycle.py::test_switch_preflight_reports_cooldown_history_and_owned_target",
-    "tests/tracker/test_account_lifecycle.py::test_switch_back_to_archived_identity_creates_new_isolated_profile"
+    "tests/tracker/test_contract_rules_more.py::test_switch_blocks_on_rebuild_only_and_reports_invalid_target",
+    "tests/tracker/test_account_lifecycle.py::test_switch_preflight_reports_cooldown_history_and_owned_target"
    ],
-   "note": "Causes SWITCH_COOLDOWN, TARGET_OWNED_BY_ANOTHER_ACCOUNT, HISTORICAL_WORK_RUNNING asserted; validation-failure cause through switch flow and rebuild-only case untested."
+   "note": "Rebuild-only operation blocks switching; invalid target reported; cooldown/owned/import causes asserted."
   },
   {
    "id": "settings_account#11.4",
@@ -3434,11 +3402,13 @@
    "source": "settings_account/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Recovery re-anchors to the original Steam-link date and records unrecoverable gaps.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_mobile_inventory.py::test_withdrawn_history_blocks_access_then_confirmation_reanchors_recovery"
+    "tests/tracker/test_contract_rules_more.py::test_access_recovery_scan_queues_only_post_link_unheld_matches",
+    "tests/tracker/test_mobile_inventory.py::test_withdrawn_history_blocks_access_then_confirmation_reanchors_recovery",
+    "tests/tracker/test_historical.py::test_retained_batch_materializes_replay_links_and_source_absence_once"
    ],
-   "note": "Confirm keeps original_linked_at and enqueues ACCESS_RECOVERY+bootstrap; recording of unrecoverable gaps after recovery not asserted."
+   "note": "Recovery anchored to the original link date queues post-link matches; absent sources are recorded as gaps."
   },
   {
    "id": "settings_account#11.9",
@@ -3505,11 +3475,11 @@
    "source": "settings_account/SSOT.md",
    "section": "11. Acceptance rules",
    "rule": "Pro expiry that changes a PB presents it as entitlement scope, not as a lost record.",
-   "status": "partial",
+   "status": "covered",
    "tests": [
-    "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses"
+    "tests/tracker/test_contract_rules_more.py::test_scope_expiry_reverts_pb_as_a_scope_change_not_a_loss"
    ],
-   "note": "No NEW_PB on expiry and SCOPE_CHANGED emitted at activation; no test verifies PB reverting on expiry is tagged as scope change."
+   "note": "Expiry reverts the PB to the Free-scope best with a SCOPE_CHANGED event and no loss/negative event."
   },
   {
    "id": "settings_account#11.15",
