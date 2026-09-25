@@ -17,7 +17,7 @@ from report_card.heroes.knowledge import (
 from report_card.heroes.relationships import build_semantic_pool_profile
 from report_card.heroes.taxonomy import load_default_taxonomy
 
-ROOT = Path(__file__).parents[2]
+ROOT = Path(__file__).parents[3]
 PILOT_PATH = (
     ROOT / "legacy/services/api/report_card/heroes/data/knowledge/hero-knowledge-semantic-freeze-pilot-v1.json"
 )

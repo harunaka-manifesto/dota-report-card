@@ -5,6 +5,8 @@ __pycache__
 *.pyc
 apps/web/node_modules
 apps/web/.next
+legacy/apps/web/node_modules
+legacy/apps/web/.next
 tests
 coverage
 .mypy_cache

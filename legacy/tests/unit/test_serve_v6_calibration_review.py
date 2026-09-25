@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts.serve_v6_calibration_review import (
+from legacy.scripts.serve_v6_calibration_review import (
     ReviewInputError,
     ReviewState,
     _handler,

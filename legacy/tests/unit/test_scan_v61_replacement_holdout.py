@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 from app.core.errors import OpenDotaRateLimited
 
-from scripts import prepare_v61_replacement_holdout as precommit
-from scripts import scan_v61_replacement_holdout as scanner
+from legacy.scripts import prepare_v61_replacement_holdout as precommit
+from legacy.scripts import scan_v61_replacement_holdout as scanner
 
 RELEASE_SHA = "a" * 40
 SALT = b"scan-test-salt-012345678901234567890"

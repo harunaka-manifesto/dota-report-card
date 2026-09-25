@@ -4,9 +4,12 @@ import json
 import shutil
 from pathlib import Path
 
-from scripts.hero_knowledge.opendota.normalize import normalize_opendota_snapshot
-from scripts.hero_knowledge.validate import validate_opendota_snapshot
-from scripts.hero_knowledge.valve.normalize import normalize_hero_list, normalize_valve_snapshot
+from legacy.scripts.hero_knowledge.opendota.normalize import normalize_opendota_snapshot
+from legacy.scripts.hero_knowledge.validate import validate_opendota_snapshot
+from legacy.scripts.hero_knowledge.valve.normalize import (
+    normalize_hero_list,
+    normalize_valve_snapshot,
+)
 
 ROOT = Path(__file__).parents[2]
 VALVE = ROOT / "tests" / "fixtures" / "hero_knowledge" / "valve"

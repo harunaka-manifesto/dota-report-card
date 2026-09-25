@@ -14,7 +14,8 @@ from typing import Any
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
 from report_card.player_analysis_v61.artifacts import load_v61_artifact_bundle  # noqa: E402

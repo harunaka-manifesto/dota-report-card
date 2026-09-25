@@ -109,7 +109,7 @@ def test_v61_builder_rejects_rank_dimensions(tmp_path: Path) -> None:
 def test_bind_split_records_the_corpus_schema_from_payload(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, schema: str
 ) -> None:
-    from scripts import build_v61_calibration_artifacts as builder
+    from legacy.scripts import build_v61_calibration_artifacts as builder
 
     profile_ids = tuple(f"{index:064x}" for index in range(1_130))
     corpus = SimpleNamespace(

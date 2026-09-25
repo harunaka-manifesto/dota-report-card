@@ -15,6 +15,11 @@ node_modules/
 coverage/
 test-results/
 *.tsbuildinfo
+legacy/apps/web/node_modules/
+legacy/apps/web/.next/
+legacy/apps/web/coverage/
+legacy/apps/web/test-results/
+pnpm-workspace.yaml
 *.log
 services/api/.cache/
 tests/.tmp/

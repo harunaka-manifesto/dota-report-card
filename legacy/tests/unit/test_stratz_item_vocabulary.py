@@ -17,7 +17,7 @@ from report_card.stratz.item_vocabulary import (
 def vocab_path() -> Path:
     """Return the path to the committed item vocabulary file."""
     return (
-        Path(__file__).resolve().parents[2]
+        Path(__file__).resolve().parents[3]
         / "legacy" / "services" / "api" / "report_card" / "stratz" / "item_vocabulary.json"
     )
 

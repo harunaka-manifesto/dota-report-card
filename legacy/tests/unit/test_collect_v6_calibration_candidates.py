@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from scripts.collect_v6_calibration_candidates import collect_candidates, collect_until_target
+from legacy.scripts.collect_v6_calibration_candidates import (
+    collect_candidates,
+    collect_until_target,
+)
 
 
 class FakeOpenDotaClient:

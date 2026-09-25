@@ -19,7 +19,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
@@ -32,7 +32,7 @@ from app.ingestion.summary_history_contract import (  # noqa: E402
 )
 from app.ingestion.summary_normalize import previous_year_window  # noqa: E402
 
-from scripts.prepare_v61_replacement_holdout import (  # noqa: E402
+from legacy.scripts.prepare_v61_replacement_holdout import (  # noqa: E402
     EXPECTED_SALT_BYTES,
     EXPECTED_UNTOUCHED_RESERVE,
     ORDER_DIGEST_FORMAT,
@@ -41,7 +41,7 @@ from scripts.prepare_v61_replacement_holdout import (  # noqa: E402
     load_candidate_ids,
     sha256_file,
 )
-from scripts.prepare_v61_replacement_holdout import (  # noqa: E402
+from legacy.scripts.prepare_v61_replacement_holdout import (  # noqa: E402
     SCHEMA_VERSION as PRECOMMIT_SCHEMA_VERSION,
 )
 
@@ -683,7 +683,7 @@ def _load_archive_rows(
         raise ValueError("raw archive response is invalid")
     _validate_private_payload(payload)
     try:
-        from scripts.collect_v61_calibration_histories import (
+        from legacy.scripts.collect_v61_calibration_histories import (
             normalize_archived_summary_history,
         )
 
@@ -721,7 +721,7 @@ async def _normalize_archive(
     context: ScanContext,
 ) -> dict[str, Any]:
     rows = _load_archive_rows(path, candidate=candidate, context=context)
-    from scripts.collect_v61_calibration_histories import collect_profile
+    from legacy.scripts.collect_v61_calibration_histories import collect_profile
 
     profile = await collect_profile(
         _ArchivedSource(rows),
@@ -830,7 +830,7 @@ async def _scan_candidate(
     )
     await pacer.before_network_attempt()
     try:
-        from scripts.collect_v61_calibration_histories import collect_profile
+        from legacy.scripts.collect_v61_calibration_histories import collect_profile
 
         profile = await collect_profile(
             client,

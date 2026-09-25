@@ -15,9 +15,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 sys.path.insert(0, str(ROOT / "services" / "api"))
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "legacy" / "scripts"))
 
 from app.core.release import current_source_binding  # noqa: E402
 from report_card.player_analysis_v61.artifacts import (  # noqa: E402

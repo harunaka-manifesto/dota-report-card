@@ -57,7 +57,7 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --extra dev
-      - run: uv run ruff check services/api legacy/services/api tests scripts
+      - run: uv run ruff check services/api legacy/services/api tests legacy/tests scripts legacy/scripts
       - run: uv run mypy
       - run: make test
       - name: V7 STRATZ fixture and architecture tests
@@ -68,7 +68,7 @@ jobs:
       - run: make dna-catalog-check
       - run: make docs-check
       - run: make api-client
-      - run: git diff --exit-code -- packages/api-client/src/openapi-meta.ts
+      - run: git diff --exit-code -- legacy/packages/api-client/src/openapi-meta.ts
 
   web:
     name: Web build and browser QA
@@ -77,7 +77,7 @@ jobs:
       API_BASE_URL: https://api.example.invalid
     defaults:
       run:
-        working-directory: apps/web
+        working-directory: legacy/apps/web
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -87,7 +87,7 @@ jobs:
         with:
           node-version: "22"
           cache: pnpm
-          cache-dependency-path: apps/web/pnpm-lock.yaml
+          cache-dependency-path: legacy/apps/web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile --ignore-scripts
       - run: ./node_modules/.bin/next lint
       - run: ./node_modules/.bin/tsc --noEmit

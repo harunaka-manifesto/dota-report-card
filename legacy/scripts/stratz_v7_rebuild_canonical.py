@@ -26,10 +26,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.stratz_v7_corpus_runner import (  # noqa: E402
+from legacy.scripts.stratz_v7_corpus_runner import (  # noqa: E402
     canonicalize_history,
     canonicalize_parsed,
 )

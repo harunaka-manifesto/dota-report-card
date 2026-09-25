@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from scripts.stratz_v7_corpus_supervisor import seconds_until
+from legacy.scripts.stratz_v7_corpus_supervisor import seconds_until
 
 
 def test_seconds_until_handles_future_past_and_requires_timezone() -> None:

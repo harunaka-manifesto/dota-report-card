@@ -23,16 +23,16 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.stratz_v7_corpus_runner import (  # noqa: E402
+from legacy.scripts.stratz_v7_corpus_runner import (  # noqa: E402
     DEFAULT_FREEZE_DIR,
     DEFAULT_OUTPUT_DIR,
     DEFAULT_SOURCE_FRAME,
 )
-from scripts.stratz_v7_pass2_runner import DEFAULT_PASS2_OUTPUT_DIR  # noqa: E402
+from legacy.scripts.stratz_v7_pass2_runner import DEFAULT_PASS2_OUTPUT_DIR  # noqa: E402
 
 #: A pause whose resume time has already passed still gets a short floor, so a
 #: misreported reset cannot turn into a hot retry loop.
@@ -66,7 +66,7 @@ def read_state(output_dir: Path) -> dict[str, Any]:
 def collect_command(args: argparse.Namespace) -> list[str]:
     return [
         sys.executable,
-        str(ROOT / "scripts/stratz_v7_pass2_runner.py"),
+        str(ROOT / "legacy/scripts/stratz_v7_pass2_runner.py"),
         "collect",
         "--freeze-dir",
         str(args.freeze_dir),

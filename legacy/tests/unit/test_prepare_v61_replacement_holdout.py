@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from scripts import prepare_v61_replacement_holdout as tool
+from legacy.scripts import prepare_v61_replacement_holdout as tool
 
 RELEASE_SHA = "a" * 40
 SALT = b"replacement-test-salt-0123456789"

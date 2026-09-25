@@ -38,12 +38,12 @@ from typing import Any
 
 import httpx
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 try:
-    from scripts.stratz_v7_corpus_runner import (
+    from legacy.scripts.stratz_v7_corpus_runner import (
         DEFAULT_ENDPOINT,
         DEFAULT_FREEZE_DIR,
         DEFAULT_SOURCE_FRAME,
@@ -58,7 +58,7 @@ try:
     )
 except ImportError as exc:
     raise SystemExit(
-        "Could not import scripts.stratz_v7_corpus_runner. "
+        "Could not import legacy.scripts.stratz_v7_corpus_runner. "
         "Run this script from the V7 repo containing the original STRATZ corpus runner."
     ) from exc
 
@@ -304,7 +304,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
 
         # Offline preflight: validates bindings and writes no provider request.
         if not args.acknowledge_new_lineage_collection:
-            manifest = build_recollection_manifest(
+            _ = build_recollection_manifest(
                 output_dir=output_dir,
                 source_state=args.source_state,
                 cohort=cohort,
@@ -352,7 +352,7 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
 
         runner._save_state()
 
-        manifest = build_recollection_manifest(
+        _ = build_recollection_manifest(
             output_dir=output_dir,
             source_state=args.source_state,
             cohort=cohort,

@@ -4,9 +4,9 @@ import copy
 import json
 from pathlib import Path
 
-from scripts.hero_knowledge.validate import validate_semantic_layer
+from legacy.scripts.hero_knowledge.validate import validate_semantic_layer
 
-ROOT = Path(__file__).parents[2]
+ROOT = Path(__file__).parents[3]
 DATA_ROOT = ROOT / "legacy/services/api/report_card/heroes/data"
 SEMANTICS_PATH = DATA_ROOT / "semantics/full-roster-v1.json"
 FACTUAL_PATH = DATA_ROOT / "factual/2026-08-16.json"

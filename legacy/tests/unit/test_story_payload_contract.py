@@ -15,7 +15,11 @@ from report_card.player_analysis_v61.story_selector import MODE_MAP_SHA256
 
 
 def _payload() -> dict[str, object]:
-    fixture_path = Path(__file__).parents[1] / "fixtures" / "v61" / "current-story-payload.json"
+    # tests/fixtures/v61 stayed at the repo root (shared with tests/tracker),
+    # so reach past legacy/tests/unit -> legacy/tests -> legacy -> repo root.
+    fixture_path = (
+        Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "v61" / "current-story-payload.json"
+    )
     return copy.deepcopy(json.loads(fixture_path.read_text(encoding="utf-8")))
 
 

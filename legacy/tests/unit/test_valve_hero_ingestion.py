@@ -6,10 +6,13 @@ from pathlib import Path
 
 import httpx
 
-from scripts.hero_knowledge.client import SourceHttpClient
-from scripts.hero_knowledge.config import Settings
-from scripts.hero_knowledge.validate import validate_valve_snapshot
-from scripts.hero_knowledge.valve.normalize import normalize_hero_list, normalize_valve_snapshot
+from legacy.scripts.hero_knowledge.client import SourceHttpClient
+from legacy.scripts.hero_knowledge.config import Settings
+from legacy.scripts.hero_knowledge.validate import validate_valve_snapshot
+from legacy.scripts.hero_knowledge.valve.normalize import (
+    normalize_hero_list,
+    normalize_valve_snapshot,
+)
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "hero_knowledge" / "valve"
 

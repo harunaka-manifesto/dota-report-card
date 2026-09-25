@@ -13,7 +13,7 @@ from report_card.player_analysis_v6.calibration_evaluation import (
     validate_aggregate_payload,
 )
 
-from scripts.evaluate_v6_calibration import _review_items
+from legacy.scripts.evaluate_v6_calibration import _review_items
 
 
 def _synthetic(*, coverage: float = 0.95, fdr: float = 0.04) -> dict:

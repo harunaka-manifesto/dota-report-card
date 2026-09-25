@@ -9,8 +9,8 @@ import httpx
 import pytest
 from app.stratz.queries import GET_DEEP_MATCH_BATCH
 
-from scripts.stratz_v7_corpus_runner import PauseRun, StopRun
-from scripts.stratz_v7_pass2_runner import (
+from legacy.scripts.stratz_v7_corpus_runner import PauseRun, StopRun
+from legacy.scripts.stratz_v7_pass2_runner import (
     PASS2_BATCH_SIZE,
     PASS2_CANONICAL_SCHEMA,
     PASS2_MATCH_TARGET,
@@ -1105,7 +1105,7 @@ async def test_the_manifest_records_the_contract_and_the_untouched_splits(
 def test_supervisor_pause_arithmetic_never_returns_a_negative_delay() -> None:
     from datetime import UTC, datetime, timedelta
 
-    from scripts.stratz_v7_pass2_supervisor import seconds_until
+    from legacy.scripts.stratz_v7_pass2_supervisor import seconds_until
 
     now = datetime(2026, 9, 4, 12, 0, tzinfo=UTC)
     assert seconds_until((now + timedelta(seconds=90)).isoformat(), now=now) == 90
@@ -1113,7 +1113,7 @@ def test_supervisor_pause_arithmetic_never_returns_a_negative_delay() -> None:
 
 
 def test_supervisor_rejects_a_naive_resume_timestamp() -> None:
-    from scripts.stratz_v7_pass2_supervisor import seconds_until
+    from legacy.scripts.stratz_v7_pass2_supervisor import seconds_until
 
     with pytest.raises(ValueError, match="timezone"):
         seconds_until("2026-09-04T12:00:00")
@@ -1122,7 +1122,7 @@ def test_supervisor_rejects_a_naive_resume_timestamp() -> None:
 def test_supervisor_command_always_names_the_discovery_only_collector() -> None:
     import argparse
 
-    from scripts.stratz_v7_pass2_supervisor import collect_command
+    from legacy.scripts.stratz_v7_pass2_supervisor import collect_command
 
     args = argparse.Namespace(
         freeze_dir=Path("/f"),
@@ -1213,7 +1213,7 @@ async def test_a_paused_run_still_writes_an_inspectable_manifest(tmp_path: Path)
 
 
 def _controller(**remaining):
-    from scripts.stratz_v7_pass2_runner import Pass2RateController
+    from legacy.scripts.stratz_v7_pass2_runner import Pass2RateController
 
     controller = Pass2RateController(sleep=_no_sleep)
     controller.remaining.update(remaining)
@@ -1221,7 +1221,7 @@ def _controller(**remaining):
 
 
 def test_local_ceilings_start_at_the_providers_advertised_limits() -> None:
-    from scripts.stratz_v7_pass2_runner import PASS2_PROVIDER_LIMITS
+    from legacy.scripts.stratz_v7_pass2_runner import PASS2_PROVIDER_LIMITS
 
     # Measured from live headers: 8/150/1500/15000. Pass 1's conservative
     # 1,000/hour paused a real run while the provider still reported 1,129 left.
@@ -1265,7 +1265,7 @@ async def test_an_exhausted_day_pauses_to_midnight_not_to_the_hour() -> None:
 
 
 async def test_the_reserve_stops_short_of_zero() -> None:
-    from scripts.stratz_v7_pass2_runner import PASS2_RESERVES
+    from legacy.scripts.stratz_v7_pass2_runner import PASS2_RESERVES
 
     # One above the reserve proceeds; exactly at the reserve pauses, because the
     # counter is shared with any other session using the same key.
@@ -1292,7 +1292,7 @@ async def test_a_spent_second_window_sleeps_briefly_rather_than_pausing() -> Non
     async def _record(seconds: float) -> None:
         slept.append(seconds)
 
-    from scripts.stratz_v7_pass2_runner import Pass2RateController
+    from legacy.scripts.stratz_v7_pass2_runner import Pass2RateController
 
     controller = Pass2RateController(sleep=_record)
     controller.remaining.update({"second": 0, "minute": 100, "hour": 1000, "day": 14000})
@@ -1301,7 +1301,7 @@ async def test_a_spent_second_window_sleeps_briefly_rather_than_pausing() -> Non
 
 
 def test_boundary_helper_rounds_up_to_the_next_window() -> None:
-    from scripts.stratz_v7_pass2_runner import _next_boundary
+    from legacy.scripts.stratz_v7_pass2_runner import _next_boundary
 
     assert _next_boundary(3_600.0, 3_600.0) == 7_200.0
     assert _next_boundary(3_601.0, 3_600.0) == 7_200.0
@@ -1315,7 +1315,7 @@ async def test_a_rolling_local_window_does_not_override_the_providers_clock_wind
     # window straddling two of its hours.
     import time as _time
 
-    from scripts.stratz_v7_pass2_runner import Pass2RateController
+    from legacy.scripts.stratz_v7_pass2_runner import Pass2RateController
 
     controller = Pass2RateController(sleep=_no_sleep)
     controller.remaining.update({"second": 7, "minute": 120, "hour": 1194, "day": 12000})
@@ -1328,7 +1328,7 @@ async def test_a_rolling_local_window_does_not_override_the_providers_clock_wind
 async def test_the_local_backstop_still_applies_without_provider_headers() -> None:
     import time as _time
 
-    from scripts.stratz_v7_pass2_runner import Pass2RateController
+    from legacy.scripts.stratz_v7_pass2_runner import Pass2RateController
 
     controller = Pass2RateController(sleep=_no_sleep)
     now = _time.time()
@@ -1340,7 +1340,7 @@ async def test_the_local_backstop_still_applies_without_provider_headers() -> No
 async def test_a_partially_reported_bucket_set_uses_headers_where_it_has_them() -> None:
     import time as _time
 
-    from scripts.stratz_v7_pass2_runner import Pass2RateController
+    from legacy.scripts.stratz_v7_pass2_runner import Pass2RateController
 
     controller = Pass2RateController(sleep=_no_sleep)
     # Provider reports the hour but not the day: the hour is trusted, the day
@@ -1384,7 +1384,7 @@ def test_the_child_is_spawned_with_a_detached_stdin(monkeypatch, tmp_path) -> No
     # which was observed spinning for thirteen hours.
     import subprocess as _subprocess
 
-    import scripts.stratz_v7_pass2_supervisor as sup
+    import legacy.scripts.stratz_v7_pass2_supervisor as sup
 
     seen = {}
 
@@ -1411,7 +1411,7 @@ class _FakeParser:
 def test_a_child_that_never_progresses_stops_the_supervisor(monkeypatch, tmp_path) -> None:
     import subprocess as _subprocess
 
-    import scripts.stratz_v7_pass2_supervisor as sup
+    import legacy.scripts.stratz_v7_pass2_supervisor as sup
 
     calls = {"n": 0}
 
@@ -1434,7 +1434,7 @@ def test_a_child_that_never_progresses_stops_the_supervisor(monkeypatch, tmp_pat
 def test_real_progress_resets_the_stall_counter(monkeypatch, tmp_path) -> None:
     import subprocess as _subprocess
 
-    import scripts.stratz_v7_pass2_supervisor as sup
+    import legacy.scripts.stratz_v7_pass2_supervisor as sup
 
     progress = iter([100, 100, 250, 400, 400, 400])
 

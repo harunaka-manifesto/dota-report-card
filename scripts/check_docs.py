@@ -69,8 +69,6 @@ LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 ACTIVE_SOURCE_ROOTS = (
     ROOT / "services",
     ROOT / "legacy",
-    ROOT / "apps",
-    ROOT / "packages",
     ROOT / "tests",
     ROOT / "README.md",
     ROOT / "ARCHITECTURE.md",
@@ -178,7 +176,7 @@ def main() -> int:
     if manifest["physical_request_count"] != 1 or manifest["rank_or_mmr_used"] is not False:
         failures.append("canonical summary manifest violates the Free request boundary")
 
-    generator = ROOT / "scripts" / "generate_dna_model_catalog.py"
+    generator = ROOT / "legacy" / "scripts" / "generate_dna_model_catalog.py"
     result = subprocess.run(
         [sys.executable, str(generator), "--check"],
         cwd=ROOT,
@@ -189,7 +187,7 @@ def main() -> int:
     if result.returncode:
         failures.append(result.stdout.strip() or result.stderr.strip() or "generated catalog is stale")
 
-    copy_generator = ROOT / "scripts" / "generate_copy_review_catalog.py"
+    copy_generator = ROOT / "legacy" / "scripts" / "generate_copy_review_catalog.py"
     copy_result = subprocess.run(
         [sys.executable, str(copy_generator), "--check"],
         cwd=ROOT,

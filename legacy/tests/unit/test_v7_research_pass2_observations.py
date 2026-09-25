@@ -46,7 +46,7 @@ from report_card.player_analysis_v7.research.pass2_observations import (
     vision_coverage,
 )
 
-from tests.unit.test_v7_research_pass2_features import REAL_ITEM_ID, row, rows
+from legacy.tests.unit.test_v7_research_pass2_features import REAL_ITEM_ID, row, rows
 
 # --------------------------------------------------------------------------
 # registry shape

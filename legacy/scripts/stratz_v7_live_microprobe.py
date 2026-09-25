@@ -27,7 +27,7 @@ from typing import Any
 import httpx
 from dotenv import dotenv_values
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 API_ROOT = ROOT / "services" / "api"
 if str(API_ROOT) not in sys.path:
     sys.path.insert(0, str(API_ROOT))

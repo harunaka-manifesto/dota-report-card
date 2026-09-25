@@ -73,7 +73,7 @@ def test_upgrade_preserves_current_and_historical_report_reads(postgres: Engine)
     assert not any(name.startswith("tracker_") for name in inspect(postgres).get_table_names())
     report_ids: list[tuple[str, dict]] = []
     for path in (
-        ROOT / "apps/web/tests/fixtures/persisted-reports/v61-historical-production.json",
+        ROOT / "legacy/apps/web/tests/fixtures/persisted-reports/v61-historical-production.json",
         ROOT / "tests/fixtures/v61/current-story-payload.json",
     ):
         report_id = str(uuid4())

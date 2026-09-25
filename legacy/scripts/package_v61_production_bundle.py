@@ -10,7 +10,8 @@ import shutil
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
 from app.core.config import Settings  # noqa: E402

@@ -16,19 +16,19 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from scripts.hero_knowledge.manifest import (
+from legacy.scripts.hero_knowledge.manifest import (
     build_knowledge_snapshot,
     build_manifest,
     sha256_file,
     write_json,
 )
-from scripts.hero_knowledge.validate import (
+from legacy.scripts.hero_knowledge.validate import (
     assert_valid,
     validate_knowledge_snapshot,
     validate_semantic_layer,
 )
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 DATA_ROOT = ROOT / "legacy/services/api/report_card/heroes/data"
 FACTUAL_PATH = DATA_ROOT / "factual/2026-08-16.json"
 EDITORIAL_PATH = DATA_ROOT / "editorial/2026-08-16.json"

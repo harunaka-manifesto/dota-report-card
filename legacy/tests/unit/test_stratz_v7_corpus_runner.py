@@ -10,7 +10,7 @@ import httpx
 import pytest
 from app.stratz.queries import GET_PARSED_ACQUISITION_BATCH, GET_PLAYER_HISTORY_PAGE
 
-from scripts.stratz_v7_corpus_runner import (
+from legacy.scripts.stratz_v7_corpus_runner import (
     EXPECTED_FRAME_COUNT,
     EXPECTED_PARSED_COUNTS,
     EXPECTED_SPLIT_COUNTS,

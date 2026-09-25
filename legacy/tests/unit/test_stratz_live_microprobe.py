@@ -18,7 +18,7 @@ from app.stratz.queries import (
     V7_SCHEMA_SENTINEL,
 )
 
-from scripts.stratz_v7_live_microprobe import (
+from legacy.scripts.stratz_v7_live_microprobe import (
     SUBTYPE_ALIASES,
     MicroprobeRunner,
     extract_complexity,

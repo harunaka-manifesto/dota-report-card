@@ -6,15 +6,15 @@ from pathlib import Path
 
 import httpx
 
-from scripts.hero_knowledge.client import SourceHttpClient
-from scripts.hero_knowledge.config import Settings
-from scripts.hero_knowledge.opendota.client import OpenDotaClient
-from scripts.hero_knowledge.opendota.fetch import fetch_opendota_snapshot
-from scripts.hero_knowledge.opendota.normalize import normalize_opendota_snapshot
-from scripts.hero_knowledge.validate import validate_opendota_snapshot
-from scripts.hero_knowledge.valve.normalize import normalize_hero_list
-from scripts.hero_knowledge.valve_plus.fetch import fetch_valve_plus_snapshot
-from scripts.hero_knowledge.valve_plus.normalize import normalize_valve_plus_snapshot
+from legacy.scripts.hero_knowledge.client import SourceHttpClient
+from legacy.scripts.hero_knowledge.config import Settings
+from legacy.scripts.hero_knowledge.opendota.client import OpenDotaClient
+from legacy.scripts.hero_knowledge.opendota.fetch import fetch_opendota_snapshot
+from legacy.scripts.hero_knowledge.opendota.normalize import normalize_opendota_snapshot
+from legacy.scripts.hero_knowledge.validate import validate_opendota_snapshot
+from legacy.scripts.hero_knowledge.valve.normalize import normalize_hero_list
+from legacy.scripts.hero_knowledge.valve_plus.fetch import fetch_valve_plus_snapshot
+from legacy.scripts.hero_knowledge.valve_plus.normalize import normalize_valve_plus_snapshot
 
 ROOT = Path(__file__).parents[2]
 FIXTURES = ROOT / "tests" / "fixtures" / "hero_knowledge"

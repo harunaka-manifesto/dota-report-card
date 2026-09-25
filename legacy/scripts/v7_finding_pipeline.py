@@ -45,7 +45,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "legacy" / "services" / "api"))
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
@@ -95,7 +96,7 @@ from report_card.player_analysis_v7.research.registry import (  # noqa: E402
 )
 from report_card.player_analysis_v7.research.tournament import collect  # noqa: E402
 
-from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
+from legacy.scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
 
 PIPELINE_VERSION = "v7-finding-pipeline-1.0.0"
 

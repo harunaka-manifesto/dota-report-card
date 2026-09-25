@@ -31,7 +31,7 @@ from report_card.player_analysis_v7.research.archetype import (
     session_dispersion,
 )
 
-from tests.unit.test_v7_research_pass2_features import row
+from legacy.tests.unit.test_v7_research_pass2_features import row
 
 
 def event_row(match_id: int, *, kills: list[int], deaths: list[int], turbo: bool = False) -> dict[str, Any]:

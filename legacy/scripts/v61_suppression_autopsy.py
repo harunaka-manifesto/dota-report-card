@@ -17,7 +17,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
 import report_card.reports.dna_assembly_v61 as assembly  # noqa: E402

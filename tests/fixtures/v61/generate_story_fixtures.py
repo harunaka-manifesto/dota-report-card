@@ -1,7 +1,7 @@
 """Generate the checked-in V6.1 frontend fixtures from the canonical builder.
 
 The browser fixture server consumes the serialized payloads under
-``apps/web/tests/fixtures/persisted-reports``.  This generator intentionally
+``legacy/apps/web/tests/fixtures/persisted-reports``.  This generator intentionally
 uses the same normalized-row boundary and ``build_story_payload`` used by the
 API so fixture state, manifests, and finding-slot combinations cannot drift
 from the public contract.
@@ -22,7 +22,8 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "services" / "api"))
-sys.path.insert(0, str(ROOT / "tests" / "unit"))
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
+sys.path.insert(0, str(ROOT / "legacy" / "tests" / "unit"))
 
 from app.ingestion.summary_normalize import normalize_summary_rows  # noqa: E402
 from report_card.api.report_schemas import validate_free_dna_report  # noqa: E402
@@ -31,7 +32,7 @@ from report_card.player_analysis_v61.story_projection import build_story_payload
 from report_card.player_analysis_v61.story_selector import select_story_matches  # noqa: E402
 from test_free_dna_v61_contract import _generate  # noqa: E402
 
-OUTPUT_DIR = ROOT / "apps" / "web" / "tests" / "fixtures" / "persisted-reports"
+OUTPUT_DIR = ROOT / "legacy" / "apps" / "web" / "tests" / "fixtures" / "persisted-reports"
 TAXONOMY_CHECKSUMS = {
     "factual_checksum": "56b0c0fb2f9f1e75d3649b655780197d12a845edb26ccb0d2645370b42e2cb89",
     "editorial_checksum": "394190d3a4c8b067b9eda04975d8d7c1b19092a9f1c9a39d46266bfec5533e0d",

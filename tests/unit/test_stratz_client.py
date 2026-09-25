@@ -32,9 +32,11 @@ from report_card.player_analysis_v7.research.pass2_features import (
 )
 from report_card.player_analysis_v7.runtime import analyze_v7
 
-from tests.unit.test_v7_runtime_service import _history
+from legacy.tests.unit.test_v7_runtime_service import _history
 
-FIXTURE = Path(__file__).parents[1] / "fixtures" / "stratz" / "get_player_history_page.json"
+FIXTURE = (
+    Path(__file__).resolve().parents[2] / "legacy" / "tests" / "fixtures" / "stratz" / "get_player_history_page.json"
+)
 ACCOUNT_ID = 123456789
 
 

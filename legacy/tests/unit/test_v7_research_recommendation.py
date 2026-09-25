@@ -39,7 +39,7 @@ from report_card.player_analysis_v7.research.recommendation import (
     standardized_gap,
 )
 
-from tests.unit.test_v7_research_pass2_features import row
+from legacy.tests.unit.test_v7_research_pass2_features import row
 
 
 def match(match_id: int, *, won: bool, last_hits: list[int] | None = None) -> dict[str, Any]:

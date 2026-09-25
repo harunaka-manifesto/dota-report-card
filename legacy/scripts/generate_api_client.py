@@ -4,8 +4,8 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "packages/api-client/src/openapi-meta.ts"
+ROOT = Path(__file__).resolve().parents[2]
+OUTPUT = ROOT / "legacy" / "packages/api-client/src/openapi-meta.ts"
 
 
 def main() -> None:

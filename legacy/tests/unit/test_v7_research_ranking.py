@@ -466,7 +466,7 @@ def test_reliability_reproduces_every_published_family() -> None:
 
     payload = json.loads(
         (
-            Path(__file__).resolve().parents[2]
+            Path(__file__).resolve().parents[3]
             / "docs/evidence/v7-statistical-tournament-discovery-2026-09-03.json"
         ).read_text(encoding="utf-8")
     )

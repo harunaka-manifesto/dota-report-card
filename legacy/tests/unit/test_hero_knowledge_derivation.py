@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.hero_knowledge.derive.behavior import derive_behavior
-from scripts.hero_knowledge.derive.mechanics import derive_mechanics
-from scripts.hero_knowledge.valve.normalize import normalize_hero_detail, normalize_hero_list
+from legacy.scripts.hero_knowledge.derive.behavior import derive_behavior
+from legacy.scripts.hero_knowledge.derive.mechanics import derive_mechanics
+from legacy.scripts.hero_knowledge.valve.normalize import normalize_hero_detail, normalize_hero_list
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "hero_knowledge" / "valve"
 

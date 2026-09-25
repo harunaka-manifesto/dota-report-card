@@ -30,7 +30,8 @@ from typing import Any
 import httpx
 from dotenv import dotenv_values
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 API_ROOT = ROOT / "services" / "api"
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -48,7 +49,7 @@ from report_card.player_analysis_v7.research.durability import (  # noqa: E402
     assert_durable_corpus_root,
 )
 
-from scripts.stratz_v7_acquisition_freeze import (  # noqa: E402
+from legacy.scripts.stratz_v7_acquisition_freeze import (  # noqa: E402
     EXPECTED_FRAME_COUNT,
     load_source_frame,
     pseudonymize_account,

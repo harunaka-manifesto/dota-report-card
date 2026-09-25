@@ -29,9 +29,9 @@ from report_card.player_analysis_v61.corpus_reuse import (
 )
 from report_card.player_analysis_v61.versions import MODEL_VERSION, REPORT_VERSION
 
-from scripts.collect_v61_calibration_histories import collect_profile
-from scripts.evaluate_v61_calibration import _runtime_parity
-from scripts.v61_calibration_builder import (
+from legacy.scripts.collect_v61_calibration_histories import collect_profile
+from legacy.scripts.evaluate_v61_calibration import _runtime_parity
+from legacy.scripts.v61_calibration_builder import (
     build_summary_prior,
     profile_digest,
     split_from_manifest,
@@ -646,16 +646,16 @@ def test_runtime_parity_consumes_canonical_corpus_directly(tmp_path: Path, monke
         assert expected_dirty_worktree is False
         return bundle
 
-    monkeypatch.setattr("scripts.evaluate_v61_calibration.load_v61_artifact_bundle", load_bundle)
+    monkeypatch.setattr("legacy.scripts.evaluate_v61_calibration.load_v61_artifact_bundle", load_bundle)
     monkeypatch.setattr(
-        "scripts.evaluate_v61_calibration.assemble_free_dna_report_v61",
+        "legacy.scripts.evaluate_v61_calibration.assemble_free_dna_report_v61",
         lambda **_kwargs: {
             "schema_version": "free-dna-report-6.1.0",
             "versions": {"model": MODEL_VERSION},
             "selection_audit": {"complete": True},
         },
     )
-    monkeypatch.setattr("scripts.evaluate_v61_calibration._revision", lambda: ("a" * 40, False))
+    monkeypatch.setattr("legacy.scripts.evaluate_v61_calibration._revision", lambda: ("a" * 40, False))
     output = tmp_path / "runtime-parity.json"
 
     _runtime_parity(

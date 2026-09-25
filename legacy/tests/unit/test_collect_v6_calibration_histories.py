@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from scripts.collect_v6_calibration_histories import (
+from legacy.scripts.collect_v6_calibration_histories import (
     HISTORY_PROJECTIONS,
     RequestPacer,
     build_reference_data,

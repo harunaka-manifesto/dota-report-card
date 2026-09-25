@@ -17,10 +17,10 @@ from report_card.player_analysis_v61.calibration_corpus import (
     validate_canonical_corpus,
 )
 
-from scripts import build_v61_calibration_artifacts as builder
-from scripts import select_v61_replacement_holdout as selector
-from scripts.prepare_v61_replacement_holdout import _order_digest
-from tests.unit.test_v61_canonical_corpus import _canonical_profile
+from legacy.scripts import build_v61_calibration_artifacts as builder
+from legacy.scripts import select_v61_replacement_holdout as selector
+from legacy.scripts.prepare_v61_replacement_holdout import _order_digest
+from legacy.tests.unit.test_v61_canonical_corpus import _canonical_profile
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> str:

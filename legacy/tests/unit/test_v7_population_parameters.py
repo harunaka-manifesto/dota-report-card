@@ -23,7 +23,7 @@ from report_card.player_analysis_v7.population import (
 from report_card.player_analysis_v7.research.archetype import MODE_STRATA
 from report_card.player_analysis_v7.research.recommendation import RECOMMENDATION_REGISTRY
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 PIPELINE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-new-lineage-finding-fit-2026-09-08.json"
 ARCHETYPE_EVIDENCE = REPO_ROOT / "docs" / "evidence" / "v7-new-lineage-archetype-fit-2026-09-08.json"
 RECOMMENDATION_EVIDENCE = (

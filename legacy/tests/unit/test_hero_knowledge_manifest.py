@@ -5,11 +5,14 @@ import json
 import shutil
 from pathlib import Path
 
-from scripts.hero_knowledge.diff import diff_knowledge_snapshots
-from scripts.hero_knowledge.manifest import build_knowledge_snapshot
-from scripts.hero_knowledge.opendota.normalize import normalize_opendota_snapshot
-from scripts.hero_knowledge.validate import validate_knowledge_snapshot
-from scripts.hero_knowledge.valve.normalize import normalize_hero_list, normalize_valve_snapshot
+from legacy.scripts.hero_knowledge.diff import diff_knowledge_snapshots
+from legacy.scripts.hero_knowledge.manifest import build_knowledge_snapshot
+from legacy.scripts.hero_knowledge.opendota.normalize import normalize_opendota_snapshot
+from legacy.scripts.hero_knowledge.validate import validate_knowledge_snapshot
+from legacy.scripts.hero_knowledge.valve.normalize import (
+    normalize_hero_list,
+    normalize_valve_snapshot,
+)
 
 ROOT = Path(__file__).parents[2]
 VALVE = ROOT / "tests" / "fixtures" / "hero_knowledge" / "valve"
@@ -75,7 +78,7 @@ def test_knowledge_snapshot_has_provenance_and_preserves_provider_status(tmp_pat
     knowledge = build_knowledge_snapshot(
         valve,
         opendota,
-        repo_root=Path(__file__).parents[2],
+        repo_root=Path(__file__).parents[3],
         generated_at="2026-08-22T00:00:00Z",
         knowledge_version="hero-knowledge-test",
     )

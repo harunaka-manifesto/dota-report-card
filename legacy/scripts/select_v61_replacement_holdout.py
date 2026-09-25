@@ -14,7 +14,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
@@ -31,14 +32,14 @@ from report_card.player_analysis_v61.calibration_corpus import (  # noqa: E402
 )
 from report_card.player_analysis_v61.corpus_reuse import profile_digest  # noqa: E402
 
-from scripts.prepare_v61_replacement_holdout import (  # noqa: E402
+from legacy.scripts.prepare_v61_replacement_holdout import (  # noqa: E402
     ORDER_DIGEST_FORMAT,
     _order_digest,
     serialize_manifest,
     sha256_file,
     write_private_manifest,
 )
-from scripts.prepare_v61_replacement_holdout import (  # noqa: E402
+from legacy.scripts.prepare_v61_replacement_holdout import (  # noqa: E402
     SCHEMA_VERSION as PRECOMMIT_SCHEMA_VERSION,
 )
 

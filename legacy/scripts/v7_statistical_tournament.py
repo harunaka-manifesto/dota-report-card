@@ -36,7 +36,8 @@ import time
 from pathlib import Path
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "legacy" / "services" / "api"))
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 _API_ROOT = REPO_ROOT / "services" / "api"
@@ -88,7 +89,7 @@ from report_card.player_analysis_v7.research.verdicts import (  # noqa: E402
     VERDICTS,
 )
 
-from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
+from legacy.scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
 
 NEGATIVE_CONTROL = "side_sensitivity"
 EVALUATED = (*FROZEN_SERIOUS_CANDIDATES, NEGATIVE_CONTROL)

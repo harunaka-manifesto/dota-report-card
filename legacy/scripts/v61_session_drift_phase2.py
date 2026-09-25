@@ -34,9 +34,10 @@ import httpx
 import numpy as np
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 sys.path.insert(0, str(ROOT / "services" / "api"))
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "legacy" / "scripts"))
 
 from app.core.config import Settings  # noqa: E402
 from app.ingestion.summary_history_contract import (  # noqa: E402
@@ -471,7 +472,7 @@ def _validate_selected_local_data(local_root: Path) -> dict[str, Any]:
 
 def _preflight(paths: Mapping[str, Path], local_root: Path, salt: bytes) -> dict[str, Any]:
     local = _validate_selected_local_data(local_root)
-    artifact_dir = ROOT / "infra" / "runtime-artifacts" / "free_dna_v61" / "6.1.0"
+    artifact_dir = ROOT / "legacy" / "infra" / "runtime-artifacts" / "free_dna_v61" / "6.1.0"
     manifest = _read_json(artifact_dir / "build-manifest-6.1.0.json")
     if manifest["source"]["repository_commit"] != ANALYTICAL_SOURCE_SHA or manifest["source"]["dirty_worktree"] is not False:
         raise RuntimeError("frozen analytical artifact source binding mismatch")
@@ -1590,7 +1591,7 @@ def _analyze_profiles(
     local: Mapping[str, Any],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
     records = _profile_records(local, paths)
-    artifact_dir = ROOT / "infra" / "runtime-artifacts" / "free_dna_v61" / "6.1.0"
+    artifact_dir = ROOT / "legacy" / "infra" / "runtime-artifacts" / "free_dna_v61" / "6.1.0"
     bundle = load_v61_artifact_bundle(
         artifact_dir,
         expected_source_revision=ANALYTICAL_SOURCE_SHA,

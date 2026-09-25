@@ -47,7 +47,7 @@ class Settings:
 
     @classmethod
     def from_root(cls, root: str | Path | None = None) -> Settings:
-        resolved_root = Path(root or Path(__file__).resolve().parents[2]).resolve()
+        resolved_root = Path(root or Path(__file__).resolve().parents[3]).resolve()
         raw_data_root = Path(os.getenv("HERO_KNOWLEDGE_DATA_ROOT", "legacy/services/api/report_card/heroes/data"))
         data_root = raw_data_root if raw_data_root.is_absolute() else resolved_root / raw_data_root
         return cls(

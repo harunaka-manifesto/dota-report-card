@@ -13,7 +13,7 @@ from report_card.player_analysis_v7.research.redteam import (
     qualified_share_at_ratio,
 )
 
-from scripts.v7_qualification_ceiling import qualified_share
+from legacy.scripts.v7_qualification_ceiling import qualified_share
 
 
 def test_the_closed_form_agrees_with_the_ceiling_scripts_own_implementation() -> None:

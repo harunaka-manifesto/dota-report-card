@@ -94,7 +94,7 @@ def validate_semantic_layer(
             elif catalog_entry.get("namespace") != str(catalog_ref).split(":", 1)[0]:
                 errors.append(f"semantic.evidence_catalog.namespace_mismatch:{catalog_ref}")
     evidence_root = (
-        Path(repo_root) if repo_root is not None else Path(__file__).resolve().parents[2]
+        Path(repo_root) if repo_root is not None else Path(__file__).resolve().parents[3]
     )
     heroes = snapshot.get("heroes", [])
     if not isinstance(heroes, list) or not heroes:

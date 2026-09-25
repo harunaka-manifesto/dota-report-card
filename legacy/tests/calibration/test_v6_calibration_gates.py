@@ -22,7 +22,7 @@ from report_card.player_analysis_v6.family_statistics import (
 )
 from report_card.player_analysis_v6.statistics import clustered_bootstrap
 
-from scripts.build_v6_calibration_artifacts import (
+from legacy.scripts.build_v6_calibration_artifacts import (
     build_baseline,
     build_evaluation,
     build_thresholds,

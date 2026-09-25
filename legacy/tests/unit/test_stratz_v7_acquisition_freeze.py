@@ -5,7 +5,7 @@ from pathlib import Path
 
 from app.stratz.queries import GET_PARSED_ACQUISITION_BATCH, get_operation
 
-from scripts.stratz_v7_acquisition_freeze import (
+from legacy.scripts.stratz_v7_acquisition_freeze import (
     EXPECTED_FRAME_COUNT,
     PARSED_SUBSET_COUNTS,
     SAMPLE_SIZE,

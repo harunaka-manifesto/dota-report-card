@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from scripts.v7_qualification_ceiling import (
+from legacy.scripts.v7_qualification_ceiling import (
     REPORTED_CRITICAL_VALUES,
     portfolio_share_at_least,
     qualified_share,

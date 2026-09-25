@@ -126,7 +126,7 @@ def test_enabled_v6_rejects_mismatched_model_version() -> None:
 
 
 def test_compose_uses_identical_unlimited_v6_configuration_for_api_and_worker() -> None:
-    compose = (Path(__file__).resolve().parents[2] / "infra" / "compose.yaml").read_text(encoding="utf-8")
+    compose = (Path(__file__).resolve().parents[3] / "infra" / "compose.yaml").read_text(encoding="utf-8")
     assert "FREE_HISTORY_LIMIT" not in compose
     assert compose.count("/app/services/api/artifacts/free_dna_v6/6.0.0/context-baseline-2.0.0.json") == 2
     assert compose.count("/app/services/api/artifacts/free_dna_v6/6.0.0/metric-thresholds-6.0.0.json") == 2

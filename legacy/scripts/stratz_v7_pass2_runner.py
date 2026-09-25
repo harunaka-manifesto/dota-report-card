@@ -40,7 +40,8 @@ from typing import Any
 
 import httpx
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 API_ROOT = ROOT / "services" / "api"
 for _candidate in (str(ROOT), str(API_ROOT)):
     if _candidate not in sys.path:
@@ -57,7 +58,7 @@ from report_card.player_analysis_v7.research.durability import (  # noqa: E402
 # than reimplemented, so both passes fail and resume the same way. The
 # underscore-prefixed helpers are module-internal to that script by convention,
 # not by intent; importing them here keeps one implementation of each rule.
-from scripts.stratz_v7_corpus_runner import (  # noqa: E402
+from legacy.scripts.stratz_v7_corpus_runner import (  # noqa: E402
     DEFAULT_ENDPOINT,
     DEFAULT_FREEZE_DIR,
     DEFAULT_OUTPUT_DIR,

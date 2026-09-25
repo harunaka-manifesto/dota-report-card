@@ -16,7 +16,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "services" / "api"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "legacy" / "services" / "api"))
 
 from report_card.player_analysis_v7.research.corpus import (  # noqa: E402
     CANDIDATE_TEST,

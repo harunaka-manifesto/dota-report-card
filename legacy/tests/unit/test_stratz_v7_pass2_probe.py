@@ -11,8 +11,8 @@ from app.stratz.queries import (
     STRATZ_OPERATIONS,
 )
 
-import scripts.stratz_v7_pass2_probe as pass2
-from scripts.stratz_v7_pass2_probe import (
+import legacy.scripts.stratz_v7_pass2_probe as pass2
+from legacy.scripts.stratz_v7_pass2_probe import (
     BATCH_LADDER,
     MAX_PHYSICAL_CALLS,
     NoProbeTargetError,
@@ -418,7 +418,7 @@ def test_type_sentinel_covers_every_unresolved_pass_two_type() -> None:
 
 
 def test_type_sentinel_summary_lists_selectable_fields() -> None:
-    from scripts.stratz_v7_pass2_probe import summarise_type_sentinel
+    from legacy.scripts.stratz_v7_pass2_probe import summarise_type_sentinel
 
     payload = {
         "data": {
@@ -442,7 +442,7 @@ def test_type_sentinel_summary_lists_selectable_fields() -> None:
 
 
 def test_type_sentinel_summary_reports_an_absent_type() -> None:
-    from scripts.stratz_v7_pass2_probe import summarise_type_sentinel
+    from legacy.scripts.stratz_v7_pass2_probe import summarise_type_sentinel
 
     summary = summarise_type_sentinel({"data": {"towerDeath": None}})
     assert summary["towerDeath"] == {"present": False}
@@ -453,7 +453,7 @@ def test_item_vocabulary_tolerates_a_null_stat_block() -> None:
     # STRATZ returns "stat": null for some items. A .get("stat", {}) lookup
     # returns None for those and then raises on the next .get, which is how the
     # first live probe run failed.
-    from scripts.stratz_v7_pass2_probe import summarise_item_vocabulary
+    from legacy.scripts.stratz_v7_pass2_probe import summarise_item_vocabulary
 
     payload = {
         "data": {
@@ -474,7 +474,7 @@ def test_item_vocabulary_tolerates_a_null_stat_block() -> None:
 
 
 def test_item_vocabulary_survives_a_null_item_entry() -> None:
-    from scripts.stratz_v7_pass2_probe import summarise_item_vocabulary
+    from legacy.scripts.stratz_v7_pass2_probe import summarise_item_vocabulary
 
     payload = {"data": {"constants": {"items": [None, {"id": 1, "stat": {"cost": 5}}]}}}
     assert summarise_item_vocabulary(payload)["with_cost"] == 1

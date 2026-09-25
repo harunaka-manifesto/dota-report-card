@@ -14,11 +14,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from scripts.stratz_v7_corpus_runner import (  # noqa: E402
+from legacy.scripts.stratz_v7_corpus_runner import (  # noqa: E402
     DEFAULT_FREEZE_DIR,
     DEFAULT_OUTPUT_DIR,
     DEFAULT_SOURCE_FRAME,
@@ -51,7 +51,7 @@ def _state(output_dir: Path) -> dict[str, Any]:
 def _command(args: argparse.Namespace) -> list[str]:
     return [
         sys.executable,
-        str(ROOT / "scripts/stratz_v7_corpus_runner.py"),
+        str(ROOT / "legacy/scripts/stratz_v7_corpus_runner.py"),
         "--freeze-dir",
         str(args.freeze_dir),
         "--source-frame",

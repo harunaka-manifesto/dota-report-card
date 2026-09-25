@@ -38,7 +38,7 @@ from typing import Any
 
 import httpx
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 API_ROOT = ROOT / "services" / "api"
 for candidate in (str(ROOT), str(API_ROOT)):
     if candidate not in sys.path:
@@ -54,13 +54,13 @@ from app.stratz.queries import (  # noqa: E402
     GraphQLOperation,
 )
 
-from scripts.stratz_v7_corpus_runner import (  # noqa: E402
+from legacy.scripts.stratz_v7_corpus_runner import (  # noqa: E402
     DEFAULT_FREEZE_DIR,
     DEFAULT_OUTPUT_DIR,
     DEFAULT_SOURCE_FRAME,
     load_frozen_cohort,
 )
-from scripts.stratz_v7_live_microprobe import (  # noqa: E402
+from legacy.scripts.stratz_v7_live_microprobe import (  # noqa: E402
     extract_complexity,
     graphql_error_text,
     is_complexity_failure,

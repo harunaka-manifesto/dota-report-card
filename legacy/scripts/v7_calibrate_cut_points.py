@@ -34,7 +34,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "legacy" / "services" / "api"))
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "services" / "api"))
 
@@ -78,8 +79,8 @@ from report_card.player_analysis_v7.research.recommendation import (  # noqa: E4
 from report_card.player_analysis_v7.research.registry import FAMILY_BY_NAME  # noqa: E402
 from report_card.player_analysis_v7.research.tournament import collect  # noqa: E402
 
-from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
-from scripts.v7_finding_pipeline import (  # noqa: E402
+from legacy.scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES  # noqa: E402
+from legacy.scripts.v7_finding_pipeline import (  # noqa: E402
     DEPENDENCE_BATCH_LENGTHS,
     NEGATIVE_CONTROL,
     SECTION_BY_FAMILY,

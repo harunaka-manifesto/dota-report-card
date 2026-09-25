@@ -7,7 +7,7 @@ from pathlib import Path
 
 from app.ingestion.summary_history_contract import SUMMARY_HISTORY_PROJECTION
 
-from scripts.collect_v61_calibration_histories import (
+from legacy.scripts.collect_v61_calibration_histories import (
     collect_profiles,
     normalize_archived_summary_history,
 )

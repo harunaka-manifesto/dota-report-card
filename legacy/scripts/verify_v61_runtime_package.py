@@ -8,7 +8,27 @@ import hashlib
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+
+def _find_root(start: Path) -> Path:
+    """Locate the app/repo root regardless of how deep this file sits.
+
+    In-repo this file lives at ``legacy/scripts/verify_v61_runtime_package.py``
+    (two levels below the repo root). In the production image (see
+    ``infra/docker/api.Dockerfile``) it is copied to
+    ``/app/scripts/verify_v61_runtime_package.py`` (one level below ``/app``).
+    Both roots carry ``pyproject.toml``, so search upward for it instead of
+    assuming a fixed number of ``parents[]`` hops.
+    """
+
+    for candidate in (start, *start.parents):
+        if (candidate / "pyproject.toml").exists():
+            return candidate
+    # Fall back to the previous fixed-depth assumption if no marker is found.
+    return start.parents[2]
+
+
+ROOT = _find_root(Path(__file__).resolve())
+sys.path.insert(0, str(ROOT / "legacy" / "services" / "api"))
 sys.path.insert(0, str(ROOT / "services" / "api"))
 
 from app.core.release import artifact_bundle_digest  # noqa: E402

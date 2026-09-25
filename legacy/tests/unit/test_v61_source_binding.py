@@ -21,8 +21,8 @@ from report_card.player_analysis_v61.artifacts import (
 from report_card.player_analysis_v61.calibration_corpus import CANONICAL_SCHEMA_VERSION
 from report_card.player_analysis_v61.calibration_evaluation import build_v61_calibration_evaluation
 
-from scripts import build_v61_calibration_artifacts as builder
-from scripts import package_v61_production_bundle as packager
+from legacy.scripts import build_v61_calibration_artifacts as builder
+from legacy.scripts import package_v61_production_bundle as packager
 
 ANALYTICAL_SOURCE_SHA = "f85e88a277ffb365e76dd6eeac6f5009c7bd0165"
 APPROVED_SEMANTIC_ARTIFACT = (

@@ -635,7 +635,7 @@ def test_the_frozen_design_digest_is_stable_and_content_addressed() -> None:
 
 
 def test_a_changed_design_is_refused_against_a_stale_freeze(tmp_path: Any) -> None:
-    from scripts.v7_statistical_tournament import _check_design
+    from legacy.scripts.v7_statistical_tournament import _check_design
 
     stale = tmp_path / "design.json"
     stale.write_text(
@@ -652,7 +652,7 @@ def test_the_current_freeze_on_disk_still_matches_the_code() -> None:
 
     from report_card.player_analysis_v7.research.inference import design_digest
 
-    from scripts.v7_statistical_tournament import REPO_ROOT, _check_design
+    from legacy.scripts.v7_statistical_tournament import REPO_ROOT, _check_design
 
     frozen = Path(REPO_ROOT) / "docs" / "evidence" / "v7-inference-design-2026-09-03.json"
     if not frozen.is_file():  # pragma: no cover - only when the artefact is absent
@@ -665,8 +665,8 @@ def test_the_current_freeze_on_disk_still_matches_the_code() -> None:
 def test_the_evaluated_set_is_exactly_the_frozen_twelve_plus_the_control() -> None:
     from report_card.player_analysis_v7.research.registry import digest, registry_payload
 
-    from scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES
-    from scripts.v7_statistical_tournament import EVALUATED, NEGATIVE_CONTROL
+    from legacy.scripts.v7_discovery_screen import FROZEN_SERIOUS_CANDIDATES
+    from legacy.scripts.v7_statistical_tournament import EVALUATED, NEGATIVE_CONTROL
 
     assert len(FROZEN_SERIOUS_CANDIDATES) == 12
     assert set(EVALUATED) == set(FROZEN_SERIOUS_CANDIDATES) | {NEGATIVE_CONTROL}
