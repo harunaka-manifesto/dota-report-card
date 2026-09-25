@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import Connection, Engine, func, or_, select, true, tuple_, update
+from sqlalchemy import Connection, Engine, func, or_, select, tuple_, update
 from sqlalchemy.dialects.postgresql import insert
 
 from .backfill import historical_work_pending
@@ -43,6 +43,7 @@ from .schema import (
     snapshots,
     subscriptions,
 )
+from .scope import entitled
 
 MODES = ("STANDARD", "TURBO")
 
@@ -52,10 +53,7 @@ class RebuildUnavailable(ValueError):
 
 
 def _visible(profile: Any) -> Any:
-    if profile["active_scope"] == "PRO":
-        return true()
-    return or_(account_matches.c.origin == "BOOTSTRAP",
-               account_matches.c.provider_started_at >= profile["original_linked_at"])
+    return entitled(profile, account_matches)
 
 
 def rebuild_inputs(connection: Connection, link: dict[str, Any]) -> dict[str, Any]:

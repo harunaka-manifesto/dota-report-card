@@ -40,6 +40,7 @@ from .schema import (
     snapshots,
     users,
 )
+from .scope import entitled as entitled_history
 
 ANALYSIS_VERSION = "tracker-analysis-1"
 
@@ -404,13 +405,8 @@ def recompute_indexes(connection: Connection, *, profile_id: str, revision: int,
     older chronology position (import, backfill, recovery) cannot overwrite a
     newer rolling window or a better later record.
     """
-    profile = connection.execute(select(profiles.c.active_scope, profiles.c.original_linked_at).where(
-        profiles.c.id == profile_id,
-    )).mappings().one()
-    entitled = true() if profile["active_scope"] == "PRO" else or_(
-        account_matches.c.origin == "BOOTSTRAP",
-        account_matches.c.provider_started_at >= profile["original_linked_at"],
-    )
+    profile = connection.execute(select(profiles).where(profiles.c.id == profile_id)).mappings().one()
+    entitled = entitled_history(profile, account_matches)
     role_filter = true() if roles is None else account_matches.c.effective_role.in_(roles)
     for table in (baselines, personal_bests):
         connection.execute(delete(table).where(

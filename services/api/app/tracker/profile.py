@@ -18,7 +18,7 @@ from datetime import timedelta
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import Connection, func, or_, select, true
+from sqlalchemy import Connection, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from .evidence import canonical_json
@@ -33,6 +33,7 @@ from .schema import (
     profile_states,
     profiles,
 )
+from .scope import entitled
 
 PROFILE_VERSION = "profile-projection-1"
 ROLES = ("CARRY", "MID", "OFFLANE", "SUPPORT")
@@ -47,10 +48,7 @@ CLAIM_PARAMETERS: dict[str, Any] | None = None
 
 
 def _entitled(profile: Any) -> Any:
-    if profile["active_scope"] == "PRO":
-        return true()
-    return or_(account_matches.c.origin == "BOOTSTRAP",
-               account_matches.c.provider_started_at >= profile["original_linked_at"])
+    return entitled(profile, account_matches)
 
 
 def _tier(share: float, top: bool, previous: str | None) -> str:

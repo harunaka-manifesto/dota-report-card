@@ -87,17 +87,16 @@ def load_prior_observations(connection: Connection, *, profile_id: str, current:
     Call inside the profile-locked ordered finalization transaction. Historical
     acquisitions stay stored when a Pro profile returns to Free scope.
     """
-    from sqlalchemy import or_, select, true, tuple_
+    from sqlalchemy import select, tuple_
 
     from .schema import account_matches, analyses, metric_observations, profiles
+    from .scope import entitled as entitled_history
 
-    profile = connection.execute(select(profiles.c.active_scope, profiles.c.original_linked_at).where(
+    profile = connection.execute(select(profiles).where(
         profiles.c.id == profile_id, profiles.c.active.is_(True),
     )).mappings().one()
     prior = account_matches.alias("prior")
-    entitled = or_(prior.c.origin == "BOOTSTRAP", prior.c.provider_started_at >= profile["original_linked_at"])
-    if profile["active_scope"] == "PRO":
-        entitled = true()
+    entitled = entitled_history(profile, prior)
     rows = connection.execute(select(
         prior.c.provider_source_match_id, prior.c.provider_started_at, metric_observations.c.comparison_value,
     ).join(analyses, analyses.c.id == prior.c.active_analysis_id).join(

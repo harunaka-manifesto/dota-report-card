@@ -76,6 +76,7 @@ from app.tracker.schema import (
     sync_state,
     users,
 )
+from app.tracker.scope import entitled
 from app.tracker.shares import ShareUnavailable, create_share, render_svg
 from app.tracker.steam_identity import (
     HttpSteamAssertionVerifier,
@@ -531,10 +532,7 @@ def _active_profile(connection, user_id: str):
 
 
 def _visible(profile):
-    if profile["active_scope"] == "PRO":
-        return true()
-    return or_(account_matches.c.origin == "BOOTSTRAP",
-               account_matches.c.provider_started_at >= profile["original_linked_at"])
+    return entitled(profile, account_matches)
 
 
 def _problem(status: int, code: str) -> JSONResponse:

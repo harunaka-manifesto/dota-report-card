@@ -1958,7 +1958,7 @@ def load_retained_history(connection: Any, *, profile_id: str, match_id: int) ->
     telemetry as zero. The caller should invoke it inside the same ordered
     finalization transaction used to choose the READY checkpoint.
     """
-    from sqlalchemy import or_, select, true, tuple_
+    from sqlalchemy import select, tuple_
 
     from app.tracker.materialization import _match_payload
     from app.tracker.schema import (
@@ -1969,6 +1969,7 @@ def load_retained_history(connection: Any, *, profile_id: str, match_id: int) ->
         profiles,
         snapshots,
     )
+    from app.tracker.scope import entitled as entitled_history
 
     current = connection.execute(select(
         account_matches.c.mode, account_matches.c.provider_started_at,
@@ -1976,16 +1977,13 @@ def load_retained_history(connection: Any, *, profile_id: str, match_id: int) ->
     ).where(account_matches.c.profile_id == profile_id, account_matches.c.match_id == match_id)).mappings().one_or_none()
     if current is None or current["mode"] not in {"STANDARD", "TURBO"}:
         return {"observations": []}
-    profile = connection.execute(select(
-        profiles.c.active_scope, profiles.c.original_linked_at,
-    ).where(profiles.c.id == profile_id, profiles.c.active.is_(True))).mappings().one_or_none()
+    profile = connection.execute(select(profiles).where(
+        profiles.c.id == profile_id, profiles.c.active.is_(True),
+    )).mappings().one_or_none()
     if profile is None:
         return {"observations": []}
     prior = account_matches.alias("insight_prior")
-    entitled = true() if profile["active_scope"] == "PRO" else or_(
-        prior.c.origin == "BOOTSTRAP",
-        prior.c.provider_started_at >= profile["original_linked_at"],
-    )
+    entitled = entitled_history(profile, prior)
     rows = connection.execute(select(
         prior.c.match_id, prior.c.player_slot, prior.c.effective_role,
         prior.c.role_assignment, prior.c.active_analysis_id,

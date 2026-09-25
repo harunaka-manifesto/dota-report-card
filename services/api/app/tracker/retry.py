@@ -18,12 +18,13 @@ def retry_match(connection: Connection, *, user_id: str, match_ref: str) -> bool
     ).with_for_update()).mappings().one_or_none()
     if profile is None:
         raise ValueError("MATCH_NOT_FOUND")
+    from app.tracker.scope import entitled
+
     link = connection.execute(select(account_matches).where(
         account_matches.c.profile_id == profile["id"], account_matches.c.public_ref == match_ref,
+        entitled(profile, account_matches),
     ).with_for_update()).mappings().one_or_none()
     if link is None:
-        raise ValueError("MATCH_NOT_FOUND")
-    if profile["active_scope"] != "PRO" and link["origin"] != "BOOTSTRAP" and link["provider_started_at"] < profile["original_linked_at"]:
         raise ValueError("MATCH_NOT_FOUND")
     if link["lifecycle"] not in {"ACTION_REQUIRED", "UNAVAILABLE"}:
         raise ValueError("RETRY_NOT_AVAILABLE")
