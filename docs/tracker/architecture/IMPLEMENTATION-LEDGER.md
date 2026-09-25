@@ -14,7 +14,7 @@ Operational evidence, not a product or architecture contract.
 
 | Gap | Work | Status | Code / verification / commit |
 |---|---|---|---|
-| G-1 | STRATZ batching | Implemented; live ceiling unproven | 50-ID deep batches, size/cost splitting, OpenDota summary fallback (`test_historical*.py`). Live batch ceiling needs STRATZ calls, blocked by the IP-binding safety check |
+| G-1 | STRATZ batching | Verified live (2026-09-25) | `GetTrackerMatchBatch` 1.2.0 fits the complexity cap; one live 50-ID batch returned 200 with 49 matches REPLAY_READY and 1 handed to the summary route. Size/cost splitting and summary fallback (`test_historical*.py`, `test_live_provider_smoke.py`) |
 | G-2 | Shared fresh replay enrichment | Verified locally | One replay path per match shared by owners; terminal propagation; late recovery re-admission (`test_e2e_matrix.py`, `test_replay_acquisition.py`) |
 | G-3 | Persisted evidence readiness | Verified locally | Separate summary/replay states, immutable snapshots, provider-free rebuilds (`test_rebuild.py`, `test_architecture_boundaries.py`) |
 | G-4 | Role evidence profiles | Implemented; calibration owner-gated | Summary/replay profiles, refinement, user correction with context recompute; provisional weights versioned |
@@ -22,7 +22,7 @@ Operational evidence, not a product or architecture contract.
 | G-6 | Priority queues | Verified locally | Dedicated P0–P3 Celery processes; separate-process non-starvation proof (`test_worker.py`) |
 | G-7 | Job deduplication and locks | Verified locally | Leases, generation fences, duplicate delivery and crash recovery; rebuilds idempotent (`test_rebuild.py`, `test_e2e_matrix.py`) |
 | G-8 | Sync and coverage | Verified locally | Discovery, coverage, bootstrap outcomes, data-access recovery (`test_sync.py`, `test_bootstrap.py`, `test_backfill.py`) |
-| G-9 | Rate and billing units | Implemented; live limits partial | Separate read/processing lanes, persisted units, attribution readout; plan ceiling observed only from headers of the 4 live calls |
+| G-9 | Rate and billing units | Implemented; live limits observed | Separate read/processing lanes, persisted units, attribution readout. STRATZ headers observed live: 8/s, 150/min, 1,500/h, 15,000/day |
 | G-10 | Turbo-inclusive history | Verified locally | `significant=0` readers; both buckets through the E2E matrix |
 | G-11 | Snapshot provenance | Verified locally | Immutable snapshots, analysis lineage and digest; rebuild reuses identical rows |
 | G-12 | Trigger-based raw tiering | Trigger-deferred | See IMPLEMENTATION-GAPS.md; no trigger condition met, deliberately not built |
@@ -70,7 +70,7 @@ All remain open; no product choices are inferred from missing UI content.
 
 - PostgreSQL 16.15 installed locally. Redis 7.2.16 official archive SHA-256 verified and built under `/tmp/tracker-foundation-deps`; isolated services run only on localhost ports 55432/56379; Docker absent. Legacy PostgreSQL migration smoke, tracker concurrency and Redis integration checks pass (latest counts below).
 - Web node_modules absent: web checks cannot execute until installed.
-- STRATZ concurrent production token use not established: zero live calls permitted until safety is established or a dev token is available.
+- STRATZ: the owner authorized live calls from the development machine on 2026-09-25 (no deployed service uses the token). Production still needs a stable static egress IP.
 - Production identity/store/push credentials and approved calibration artifacts require later verification.
 - No APNs HTTP/2 transport ships; `transport_from_environment()` returns none and the beat task delivers nothing.
 - App Store JWS verification has no OCSP/revocation check (network I/O); operational follow-up.
@@ -79,7 +79,11 @@ All remain open; no product choices are inferred from missing UI content.
 
 ## Live provider call ledger
 
-OpenDota reads: 3; replay requests: 1; STRATZ calls: 0. Total: 13 rate units, 4 known billing units. No deployment.
+Before 2026-09-25: OpenDota reads 3; replay requests 1; STRATZ calls 0 (13 rate units, 4 known billing units).
+
+Owner-authorized live smoke, 2026-09-25 (see *Owner decisions and live smoke*): OpenDota **51 reads + 4 replay
+requests** (91 rate units, 55 known billing units); STRATZ **6 calls** (2 rejected for complexity, 4 succeeded).
+Cumulative: OpenDota 54 reads + 5 replay requests; STRATZ 6. No deployment.
 
 ## Baseline test results
 
@@ -935,3 +939,62 @@ Not deployed, not pushed, not merged.
   `scope.entitled` for comparator selection (by design, but contradicts the module README line).
 - Pro expiry is applied only on a store notification or explicit reconcile; no periodic sweep.
 - A FAILED `PRO_BACKFILL` lets Pro activate with partial history silently.
+
+## Owner decisions and live smoke — 2026-09-25
+
+The owner answered the independent QA doubts and authorized live OpenDota and STRATZ calls.
+
+### Decisions on the QA doubts
+
+| Doubt | Owner decision | Outcome |
+|---|---|---|
+| One empty history page marks data access BLOCKED | Keep; an empty history is a normal state for a new player; the client may later offer a "this looks wrong" sheet | No change. BLOCKED needs a previously accepted in-window match to vanish; a player with no history gets `NO_MATCHES_FOUND`; the next non-empty page restores access |
+| Live work does not wait for imports; PB can move silently | Expected | No change |
+| Late replay (READMIT) does not rebuild later comparisons | Must be retroactive | Fixed (`8cf0151`); the same gap for out-of-order imports and recoveries fixed too (`af29a2b`) |
+| No periodic Pro expiry sweep | Expected | No change |
+| Failed Pro backfill activates Pro with partial history | Expected; retry daily in the background | Implemented (`2a90a81`): at most 7 daily retries while Pro is live |
+| Cursors keyed by profile id | Use best practice | Fixed (`5b3ed40`): server secret `TRACKER_CURSOR_SECRET` |
+
+### Changes
+
+| # | Severity | Commit | Change |
+|---|---|---|---|
+| OD-1 | High | `8cf0151` | `readmit` replays every later READY link of the bucket after re-analysing the recovered match, in the same transaction, without events or notifications (`test_late_replay_readmission_rebuilds_later_comparisons`). |
+| OD-2 | High | `af29a2b` | A link finalized behind later READY links (recovery, Pro history after activation, late discovery) queues one coalesced P3 `CLOSURE_REBUILD` per profile holding each mode's earliest point. It waits for historical work to settle, replays later links from retained evidence and publishes an `IMPORT` Profile checkpoint (`test_out_of_order_import_rebuilds_later_comparisons_through_the_worker`). |
+| OD-3 | Medium | `2a90a81` | Hourly beat `tracker.retry_backfills` reopens a FAILED `PRO_BACKFILL` a day after its failure, at most 7 times, while Pro is live; resumes at its committed page; never retries `PAGINATION_LIMIT`. |
+| OD-4 | Medium | `5b3ed40` | History and Changes cursors are MACed with `TRACKER_CURSOR_SECRET` (≥32 chars) over the profile id and position; a forged profile-id-keyed cursor is rejected. The mobile app is mounted inside the live legacy API, so a missing production secret never blocks startup: `/history` and `/changes` answer 503. Rotation invalidates outstanding cursors. |
+
+### Defects found by the live smoke
+
+| # | Severity | Commit | Defect |
+|---|---|---|---|
+| LS-1 | Critical | `572f002` | P3 admission required a known STRATZ window, but that window is only learned from a STRATZ response and only P3 batches call STRATZ. In production no P3 work (bootstrap batches and finalization, imports, rebuilds, backfill) would ever run. The e2e drains pre-observed both gates and hid it. Admission now yields only to OpenDota; the STRATZ gate enforces its window per request (`test_p3_work_runs_before_any_stratz_window_is_observed`). |
+| LS-2 | Critical | `e944c58` | STRATZ rejected `GetTrackerMatchBatch` 1.1.0: complexity 316,102 against the 310,000 cap. Complexity follows the selection shape, not `take`, so every batch would have failed and fallen back to per-match summaries. 1.2.0 keeps only fields the tracker reads; retained 1.1.0 snapshots stay accepted. |
+| LS-3 | High | `6241145` | A credential or IP-binding 403 disables STRATZ until an operator reset, and every historical batch deferred without limit meanwhile, stalling bootstrap. A disabled source now hands the batch to the per-match summary route (`test_disabled_stratz_hands_batches_to_the_summary_route`). |
+
+### Live smoke evidence (`tests/tracker/test_live_provider_smoke.py`, opt-in)
+
+Existing public test/evidence account; local PostgreSQL 16 and Redis 7; real worker, gates and transports.
+
+- OpenDota fresh path: one `POST /sync` read history with the `date` window (65 rows: 59 accepted, 6
+  `BEFORE_LINK`), then 7 summaries materialized and linked with roles; every call 200.
+- One real match to READY: already-parsed match needed 1 summary read and no processing request;
+  finalized READY with 6 metrics; `/history` and `/matches/{ref}` read it back (performance
+  AVAILABLE). An earlier run of the same test with 4 unparsed matches exercised `POST /request`
+  (4 processing requests) and polling to READY.
+- STRATZ: one 5-ID and one 50-ID batch through `run_one` each returned 200 in one call; 49 of 50
+  REPLAY_READY, 1 `NOT_RETURNED_IN_BATCH` handed to the summary route. Headers: 8/s, 150/min,
+  1,500/h, 15,000/day. Two calls were rejected for complexity before LS-2.
+- Call totals are in the live call ledger above. No payload identifiers or credentials committed.
+
+### Deployment prerequisites added
+
+- `TRACKER_CURSOR_SECRET` (see deployment notes).
+- One beat schedule entry: `tracker-backfill-retry` (hourly, P3 queue).
+
+### Final gates
+
+Full pytest with both URLs and `RUN_POSTGRES_MIGRATION_TEST=1`: **1791 passed, 0 failed, 5 skipped**
+(the five opt-in live smoke tests). Ruff (`services/api tests`) pass; mypy (302 files) pass;
+docs-check pass; traceability `--strict` pass; legacy API-client regeneration produces no diff.
+Not deployed, not pushed, not merged.

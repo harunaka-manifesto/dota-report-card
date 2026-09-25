@@ -46,6 +46,11 @@ and records it. Before any live STRATZ call from a developer machine, establish 
 deployed service uses the same token, or use a separate development token. Production needs a
 stable static egress IP (see [deployment notes](deployment-notes.md)).
 
+STRATZ prices a query by its selection shape, not by `take`; the cap is 310,000. Any change to
+`GetTrackerMatchBatch` must be re-measured live (a 50-ID batch of 1.2.0 was accepted on
+2026-09-25; 1.1.0 was rejected at 316,102). A disabled STRATZ gate hands historical batches to the
+per-match OpenDota summary route.
+
 ## Budgets and the live call ledger
 
 The implementation goal's budgets and every live call made are recorded in the

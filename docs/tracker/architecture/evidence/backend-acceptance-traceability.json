@@ -129,7 +129,8 @@
     "tests/tracker/test_mobile_api.py::test_mobile_role_edit_is_scoped_idempotent_and_source_backed",
     "tests/tracker/test_retry.py::test_mobile_retry_is_idempotent_and_account_scoped",
     "tests/tracker/test_account_lifecycle.py::test_switch_back_to_archived_identity_creates_new_isolated_profile",
-    "tests/tracker/test_account_lifecycle.py::test_deletion_immediately_fences_and_removes_private_profile_state"
+    "tests/tracker/test_account_lifecycle.py::test_deletion_immediately_fences_and_removes_private_profile_state",
+    "tests/tracker/test_owner_followups.py::test_history_and_changes_cursors_are_keyed_by_a_server_secret"
    ],
    "note": "Cross-account match/history/role/retry reads 404; profile switch isolates; deletion removes private state."
   },
@@ -522,7 +523,9 @@
    "tests": [
     "tests/tracker/test_contract_rules.py::test_import_that_beats_the_record_updates_pb_silently_without_celebration",
     "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses",
-    "tests/tracker/test_e2e_matrix.py::test_late_replay_recovery_readmits_silently_without_celebration"
+    "tests/tracker/test_e2e_matrix.py::test_late_replay_recovery_readmits_silently_without_celebration",
+    "tests/tracker/test_owner_followups.py::test_late_replay_readmission_rebuilds_later_comparisons",
+    "tests/tracker/test_owner_followups.py::test_out_of_order_import_rebuilds_later_comparisons_through_the_worker"
    ],
    "note": "Import beating the record, scope rebuilds and late re-admission create no events or outbox rows."
   },
@@ -677,7 +680,8 @@
    "rule": "Ordering is by canonical chronology; late-recovered matches are inserted at their true position.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_contract_rules.py::test_history_rows_are_identity_only_and_every_retained_match_is_listed"
+    "tests/tracker/test_contract_rules.py::test_history_rows_are_identity_only_and_every_retained_match_is_listed",
+    "tests/tracker/test_owner_followups.py::test_out_of_order_import_rebuilds_later_comparisons_through_the_worker"
    ],
    "note": "Rows sorted by canonical start time; a later-admitted older match lands at its position."
   },
@@ -855,7 +859,8 @@
    "rule": "A recovered historical match appears at its true chronological position, not at the end.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_contract_rules.py::test_history_rows_are_identity_only_and_every_retained_match_is_listed"
+    "tests/tracker/test_contract_rules.py::test_history_rows_are_identity_only_and_every_retained_match_is_listed",
+    "tests/tracker/test_owner_followups.py::test_out_of_order_import_rebuilds_later_comparisons_through_the_worker"
    ],
    "note": "Late-admitted older match appears at its chronological position in /history."
   },
@@ -2415,7 +2420,8 @@
    "tests": [
     "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses",
     "tests/tracker/test_rebuild.py::test_late_older_match_cannot_take_newer_pb_or_rolling_window",
-    "tests/tracker/test_history.py::test_lower_direction_strict_tie_earliest_owner_and_silent_rebuild"
+    "tests/tracker/test_history.py::test_lower_direction_strict_tie_earliest_owner_and_silent_rebuild",
+    "tests/tracker/test_owner_followups.py::test_out_of_order_import_rebuilds_later_comparisons_through_the_worker"
    ],
    "note": "Import/scope rebuild adds no NEW_PB/MATCH_READY/other events; late BOOTSTRAP match emits no NEW_PB; celebrate=False suppresses."
   },
@@ -3207,7 +3213,8 @@
     "tests/tracker/test_backfill.py::test_purchase_backfills_only_unheld_pre_link_history_and_activation_waits",
     "tests/tracker/test_backfill.py::test_live_match_never_waits_on_imported_history",
     "tests/tracker/test_worker.py::test_separate_p0_worker_is_not_starved_by_blocked_p3",
-    "tests/tracker/test_jobs.py::test_parallel_enqueue_and_claim_are_durable_and_priority_isolated"
+    "tests/tracker/test_jobs.py::test_parallel_enqueue_and_claim_are_durable_and_priority_isolated",
+    "tests/tracker/test_owner_followups.py::test_failed_pro_backfill_is_retried_daily_while_pro_is_live"
    ],
    "note": "PRO_BACKFILL/HISTORICAL_BATCH claimed at P3; live match finalizes while import pending; P0 worker not starved by blocked P3 for another user."
   },
