@@ -34,7 +34,7 @@ class GraphQLOperation:
 
 GET_TRACKER_MATCH_BATCH = GraphQLOperation(
     name="GetTrackerMatchBatch",
-    version="1.2.0",
+    version="1.3.0",
     # 1.1.0 priced 316,102 against the 310,000 cap (live, 2026-09-25) and never
     # executed. Complexity follows the selection shape, not `take`, so this
     # selection keeps only fields the tracker reads (normalization, events,
@@ -45,7 +45,7 @@ GET_TRACKER_MATCH_BATCH = GraphQLOperation(
 query GetTrackerMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!, $take: Int!) {
   player(steamAccountId: $steamAccountId) {
     matches(request: { matchIds: $matchIds, take: $take }) {
-      id didRadiantWin durationSeconds startDateTime endDateTime
+      id didRadiantWin durationSeconds startDateTime endDateTime gameVersionId
       gameMode lobbyType parsedDateTime statsDateTime isStats
       numHumanPlayers firstBloodTime
       towerStatusRadiant towerStatusDire barracksStatusRadiant barracksStatusDire

@@ -135,6 +135,7 @@ def test_prior_registered_operation_still_materializes_without_new_fields(databa
         assert feature["features"]["events"]["dead_intervals"] is None
         assert feature["features"]["events"]["tower_damage"] is None
         assert feature["provenance"]["operation_version"] == "1.0.0"
-    assert GET_TRACKER_MATCH_BATCH.version == "1.2.0"
+    assert GET_TRACKER_MATCH_BATCH.version == "1.3.0"
+    assert "gameVersionId" in GET_TRACKER_MATCH_BATCH.document
     assert "deathEvents { time timeDead }" in GET_TRACKER_MATCH_BATCH.document
     assert "towerDamageReport { npcId damage }" in GET_TRACKER_MATCH_BATCH.document

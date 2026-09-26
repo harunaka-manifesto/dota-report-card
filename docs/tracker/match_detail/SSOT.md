@@ -4,6 +4,7 @@
 **Scope:** The single-match review surface: match identity and result, personal performance against a reasonable expectation, matchup context, role metrics, Personal Best state, deterministic post-match insight cards, role correction, and unavailability semantics.
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) — lifecycle, roles, metrics, baselines, context adjustment, PB, entitlement, rebuild.
 **Engineering annex:** the insight-card algorithms, thresholds, ladders, classifier constants and frozen reference tables live in [`../_archive/engine_specs/POST-MATCH-INSIGHTS-SSOT.md`](../_archive/engine_specs/POST-MATCH-INSIGHTS-SSOT.md) and its machine-readable contract. That annex is **engineering-normative for algorithms** and **subordinate to this document for product meaning**.
+**Item V2 annex:** [`ITEM-INSIGHTS-V2.md`](ITEM-INSIGHTS-V2.md) governs the two item cards on the latest validated lettered patch. The archived annex remains the V1 rule for older stored results.
 
 ## Architecture dependencies
 
@@ -366,7 +367,7 @@ Match Detail MUST NOT introduce:
 ## 9. Versioning
 
 - The insight result is computed when the match becomes READY, from the frozen source checkpoint and the ordered prior history available then. Later passive provider data never changes it.
-- A recap MUST NOT mix cards from different contract versions. A stored result whose version is not current MUST be either recomputed deterministically under the current version or not displayed.
+- A recap MUST NOT mix cards from different contract versions. Stored V1 insight results for matches before the latest validated lettered patch remain visible as a whole. New results on the latest validated lettered patch use V2 hero-role-mode item references; older patch results are never silently recast as V2. The mobile client must render both template versions before V2 is released.
 - Recomputation is deterministic and idempotent, and sends no notifications.
 - Entitlement changes do not rewrite already-computed results for display.
 - The personal-performance layer follows the foundation's rebuild rules: role correction, metric-version bump, or parameter-set bump, each a deterministic replay with no provider calls.

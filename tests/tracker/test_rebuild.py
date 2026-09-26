@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from app.tracker import finalization, rebuild
+from app.tracker import finalization, item_references, rebuild
 from app.tracker.context import HeroLevel, MetricParameters, ParameterSet
 from app.tracker.entitlement import (
     FakeAppStoreVerifier,
@@ -13,7 +13,11 @@ from app.tracker.entitlement import (
 )
 from app.tracker.jobs import claim
 from app.tracker.profile import publish_profile_checkpoint
-from app.tracker.rebuild import complete_scope_rebuild_job, run_methodology_rebuild
+from app.tracker.rebuild import (
+    complete_scope_rebuild_job,
+    run_item_insight_rebuild,
+    run_methodology_rebuild,
+)
 from app.tracker.schema import (
     account_matches,
     analyses,
@@ -90,6 +94,36 @@ def test_late_older_match_cannot_take_newer_pb_or_rolling_window(database):
         assert rolling["source_match_ids"][-1] == ids[-1] and late in rolling["source_match_ids"]
         assert connection.scalar(select(func.count()).select_from(events).where(
             events.c.kind == "NEW_PB", events.c.payload["match_id"].astext == str(late))) == 0
+
+
+def test_current_patch_item_rebuild_keeps_old_v1_and_has_no_external_effects(database, monkeypatch):
+    _, profile_id = identity(database)
+    old = add_match(database, profile_id, index=90, offset_days=-10, origin="HISTORICAL")
+    assert finalize(database, profile_id, old) == "READY"
+    monkeypatch.setattr(item_references, "CURRENT_PATCH", "7.41g")
+    current = add_match(database, profile_id, index=91, offset_days=0, origin="HISTORICAL")
+    assert finalize(database, profile_id, current) == "READY"
+    with database.connect() as connection:
+        old_before = connection.scalar(select(account_matches.c.active_analysis_id).where(
+            account_matches.c.match_id == old))
+        current_before = connection.scalar(select(account_matches.c.active_analysis_id).where(
+            account_matches.c.match_id == current))
+        before = _counts(connection)
+    monkeypatch.setattr(item_references, "CURRENT_PATCH", "7.41f")
+    with database.begin() as connection:
+        assert run_item_insight_rebuild(connection, profile_id=profile_id) == 1
+    with database.connect() as connection:
+        assert connection.scalar(select(account_matches.c.active_analysis_id).where(
+            account_matches.c.match_id == old)) == old_before
+        assert connection.scalar(select(account_matches.c.active_analysis_id).where(
+            account_matches.c.match_id == current)) != current_before
+        assert _cards(connection, old)[1] == "post-match-insights 1.0.0"
+        assert _cards(connection, current)[1] == "post-match-insights 2.0.0"
+        after = _counts(connection)
+        assert after["events"] == before["events"]
+        assert after["provider_calls"] == before["provider_calls"] == 0
+    with database.begin() as connection:
+        assert run_item_insight_rebuild(connection, profile_id=profile_id) == 0
 
 
 def test_scope_rebuild_expands_contracts_and_reuses_identical_analyses(database):

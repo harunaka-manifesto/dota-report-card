@@ -351,6 +351,7 @@ def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
     return {"progression": built["eligibility"].progression, "reason": built["eligibility"].reason,
             "insight_status": built["insight"]["status"],
             "insight_contract_version": built["insight"]["contract_version"],
+            "item_reference_digest": built["insight"].get("item_reference_digest"),
             "parameter_set_version": built["parameter_set_version"],
             "lane_context": built["lane_context"]}
 

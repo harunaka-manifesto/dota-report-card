@@ -564,23 +564,29 @@ def test_switch_keeps_pro_on_the_account_and_backfills_only_the_new_profile(data
     assert old_links == 2  # archived Pro-era history stays with its own profile
 
 
-def test_match_detail_cards_render_in_engine_order_with_no_reordering(database, monkeypatch):
+@pytest.mark.parametrize("version,first_id", [
+    ("post-match-insights 1.0.0", "ENEMY_EARLY_ITEM"),
+    ("post-match-insights 2.0.0", "ENEMY_HERO_ITEM_V2"),
+])
+def test_match_detail_cards_render_in_engine_order_with_no_reordering(database, monkeypatch, version, first_id):
     """match_detail#11.16: cards render in engine order; no client reordering, merging or padding."""
     engine_cards = [
-        {"candidate_id": "ZULU_CARD", "tier": "A", "family": "Zulu Family", "band": 2, "level": 2.1,
-         "rank_class": 2, "slots": {"value": 1}, "enrichments": [], "copy": "zulu copy"},
+        {"candidate_id": first_id, "tier": "A", "family": "Zulu Family", "band": 2, "level": 2.1,
+         "rank_class": 2, "slots": {"value": 1, "reference_digest": "a" * 64}, "enrichments": [], "copy": "zulu copy"},
         {"candidate_id": "ALPHA_CARD", "tier": "B", "family": "Alpha Family", "band": 1, "level": 1.2,
          "rank_class": 1, "slots": {"value": 2}, "enrichments": [], "copy": "alpha copy"},
         {"candidate_id": "MIKE_CARD", "tier": "A", "family": "Mike Family", "band": 3, "level": 3.0,
          "rank_class": 3, "slots": {"value": 3}, "enrichments": [], "copy": "mike copy"},
     ]
     monkeypatch.setattr(finalization, "evaluate_insights", lambda *args, **kwargs: {
-        "status": "EVALUATED", "contract_version": finalization.INSIGHT_CONTRACT_VERSION, "cards": engine_cards,
+        "status": "EVALUATED", "contract_version": version, "cards": engine_cards,
     })
     client, headers, profile_id, _ = _client(database)
     build_history(database, profile_id, [0])
     ref = client.get("/history", headers=headers).json()["matches"][0]["ref"]
     detail = client.get(f"/matches/{ref}", headers=headers).json()
+    assert detail["insights"]["contract_version"] == version
     assert [card["template_id"] for card in detail["insights"]["cards"]] == \
         [card["candidate_id"] for card in engine_cards]
     assert len(detail["insights"]["cards"]) == len(engine_cards)
+    assert detail["insights"]["cards"][0]["slots"]["reference_digest"] == "a" * 64
