@@ -1,10 +1,10 @@
 # Match Detail — SSOT
 
 **Status:** ACTIVE — feature contract
-**Scope:** The single-match review surface: match identity and result, personal performance against a reasonable expectation, matchup context, role metrics, Personal Best state, deterministic post-match insight cards, role correction, and unavailability semantics.
+**Scope:** The single-match review surface: match identity and result, personal performance against a reasonable expectation, matchup context, role metrics, factual key-item timings, Personal Best state, deterministic post-match insight cards, role correction, and unavailability semantics.
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) — lifecycle, roles, metrics, baselines, context adjustment, PB, entitlement, rebuild.
 **Engineering annex:** the insight-card algorithms, thresholds, ladders, classifier constants and frozen reference tables live in [`../_archive/engine_specs/POST-MATCH-INSIGHTS-SSOT.md`](../_archive/engine_specs/POST-MATCH-INSIGHTS-SSOT.md) and its machine-readable contract. That annex is **engineering-normative for algorithms** and **subordinate to this document for product meaning**.
-**Item V2 annex:** [`ITEM-INSIGHTS-V2.md`](ITEM-INSIGHTS-V2.md) governs the two item cards on the latest validated lettered patch. The archived annex remains the V1 rule for older stored results.
+**Item timing and item card annex:** [`ITEM-TIMINGS-V1.md`](ITEM-TIMINGS-V1.md) governs the factual key-item timeline, its comparisons, and the `ENEMY_HERO_ITEM` / `OWN_HERO_ITEM` insight cards — the single, final item-card design under `post-match-insights 2.0.0`. The backend contract is ready; iOS rendering is pending. Per-hero reference data is documented in [`ITEM-BUILD-PATTERNS-7.41.md`](ITEM-BUILD-PATTERNS-7.41.md).
 
 ## Architecture dependencies
 
@@ -154,7 +154,15 @@ When replay-class evidence will never arrive (`REPLAY_UNAVAILABLE`):
 - A legitimate measured zero stays zero and MUST remain visually distinguishable from N/A (§7.3).
 - A deep section with no evidence is **absent or explicitly unavailable**. It is never rendered with placeholder, zeroed or illustrative values.
 
-### 3A.9 Language
+### 3A.9 Item timings
+
+- Item timings are a factual timeline of key-item purchases, ordered from earliest to latest. Each item records its identity, display name, purchase time and one-based key-item order; item order does not recommend a build.
+- The timeline is available to every role. Only Carry, Mid and Offlane can receive population or personal comparisons; Support receives factual rows with `comparison: null`.
+- The Match Detail backend contract is ready and iOS rendering is pending. Its readiness states are `PENDING`, `UNAVAILABLE` and `AVAILABLE`; evidence exists with no key-item purchases as `AVAILABLE` with an empty list.
+- Item comparisons are keyed by hero × core role × mode × item — never by purchase order — and fail closed when evidence, compatible analysis, patch safety or sample thresholds are missing. Sparse cohorts produce no population claim. Full thresholds and snapshot rules are in [`ITEM-TIMINGS-V1.md`](ITEM-TIMINGS-V1.md).
+- The timeline and comparisons are replay-derived and persisted with the immutable finalized analysis. No provider fetch or runtime LLM is used to render or rebuild them.
+
+### 3A.10 Language
 
 Match Detail speaks in capabilities, never in pipeline vocabulary. It MUST NOT name a data provider or use "parse", "parser", "replay parse", "queue", "job", "quota" or "rate limit".
 
@@ -367,7 +375,8 @@ Match Detail MUST NOT introduce:
 ## 9. Versioning
 
 - The insight result is computed when the match becomes READY, from the frozen source checkpoint and the ordered prior history available then. Later passive provider data never changes it.
-- A recap MUST NOT mix cards from different contract versions. Stored V1 insight results for matches before the latest validated lettered patch remain visible as a whole. New results on the latest validated lettered patch use V2 hero-role-mode item references; older patch results are never silently recast as V2. The mobile client must render both template versions before V2 is released.
+- A recap MUST NOT mix cards from different contract versions. All post-match insight cards, including item cards, ship under the single `post-match-insights 2.0.0` contract; a stored result is never silently recast to a different contract version. The mobile client must support the stored template version before release.
+- `ENEMY_HERO_ITEM` and `OWN_HERO_ITEM` use the same frozen timeline and reference snapshot as `item_timings`. Analysis version changes and role correction use the provider-free rebuild path in [`ITEM-TIMINGS-V1.md`](ITEM-TIMINGS-V1.md).
 - Recomputation is deterministic and idempotent, and sends no notifications.
 - Entitlement changes do not rewrite already-computed results for display.
 - The personal-performance layer follows the foundation's rebuild rules: role correction, metric-version bump, or parameter-set bump, each a deterministic replay with no provider calls.

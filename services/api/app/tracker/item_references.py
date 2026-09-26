@@ -1,4 +1,4 @@
-"""Patch-scoped, de-identified hero item timing references for insight V2."""
+"""Patch-scoped, de-identified hero × role × mode × item timing references."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-# Store only strategic completed items. IDs follow the public Dota item catalog.
+# Core strategic items; KEY_ITEMS below extends them with the rest of the catalog.
 ITEMS = {
     1: ("item_blink", "Blink Dagger"),
     65: ("item_hand_of_midas", "Hand of Midas"),
@@ -51,7 +51,78 @@ ITEMS = {
     252: ("item_echo_sabre", "Echo Sabre"),
     263: ("item_hurricane_pike", "Hurricane Pike"),
 }
-ITEM_BY_KEY = {key: label for key, label in ITEMS.values()}
+# Key-item catalog, reviewed from the public dotaconstants item graph.
+# It contains strategic recipe-built items and every upgraded boot, plus Blink
+# Dagger. Consumables, neutral items, recipes, basic components, Boots of Speed,
+# Magic Stick and Magic Wand are deliberately absent.
+KEY_ITEMS = {
+    **ITEMS,
+    48: ("item_travel_boots", "Boots of Travel"),
+    50: ("item_phase_boots", "Phase Boots"),
+    63: ("item_power_treads", "Power Treads"),
+    79: ("item_mekansm", "Mekansm"),
+    81: ("item_vladmir", "Vladmir's Offering"),
+    96: ("item_sheepstick", "Scythe of Vyse"),
+    100: ("item_cyclone", "Eul's Scepter of Divinity"),
+    102: ("item_force_staff", "Force Staff"),
+    104: ("item_dagon", "Dagon"),
+    106: ("item_necronomicon", "Necronomicon"),
+    133: ("item_rapier", "Divine Rapier"),
+    135: ("item_monkey_king_bar", "Monkey King Bar"),
+    149: ("item_lesser_crit", "Crystalys"),
+    152: ("item_invis_sword", "Shadow Blade"),
+    162: ("item_sange", "Sange"),
+    164: ("item_helm_of_the_dominator", "Helm of the Dominator"),
+    170: ("item_yasha", "Yasha"),
+    180: ("item_arcane_boots", "Arcane Boots"),
+    185: ("item_ancient_janggo", "Drum of Endurance"),
+    190: ("item_veil_of_discord", "Veil of Discord"),
+    193: ("item_necronomicon_2", "Necronomicon 2"),
+    194: ("item_necronomicon_3", "Necronomicon 3"),
+    201: ("item_dagon_2", "Dagon 2"),
+    202: ("item_dagon_3", "Dagon 3"),
+    203: ("item_dagon_4", "Dagon 4"),
+    204: ("item_dagon_5", "Dagon 5"),
+    206: ("item_rod_of_atos", "Rod of Atos"),
+    208: ("item_abyssal_blade", "Abyssal Blade"),
+    210: ("item_heavens_halberd", "Heaven's Halberd"),
+    214: ("item_tranquil_boots", "Tranquil Boots"),
+    220: ("item_travel_boots_2", "Boots of Travel 2"),
+    223: ("item_meteor_hammer", "Meteor Hammer"),
+    229: ("item_solar_crest", "Solar Crest"),
+    231: ("item_guardian_greaves", "Guardian Greaves"),
+    232: ("item_aether_lens", "Aether Lens"),
+    254: ("item_glimmer_cape", "Glimmer Cape"),
+    256: ("item_aeon_disk", "Aeon Disk"),
+    259: ("item_kaya", "Kaya"),
+    267: ("item_spirit_vessel", "Spirit Vessel"),
+    269: ("item_holy_locket", "Holy Locket"),
+    273: ("item_kaya_and_sange", "Kaya and Sange"),
+    277: ("item_yasha_and_kaya", "Yasha and Kaya"),
+    534: ("item_witch_blade", "Witch Blade"),
+    598: ("item_mage_slayer", "Mage Slayer"),
+    600: ("item_overwhelming_blink", "Overwhelming Blink"),
+    603: ("item_swift_blink", "Swift Blink"),
+    604: ("item_arcane_blink", "Arcane Blink"),
+    610: ("item_wind_waker", "Wind Waker"),
+    635: ("item_helm_of_the_overlord", "Helm of the Overlord"),
+    692: ("item_eternal_shroud", "Eternal Shroud"),
+    908: ("item_wraith_pact", "Wraith Pact"),
+    911: ("item_revenants_brooch", "Revenant's Brooch"),
+    931: ("item_boots_of_bearing", "Boots of Bearing"),
+    939: ("item_harpoon", "Harpoon"),
+    1076: ("item_specialists_array", "Specialist's Array"),
+    1097: ("item_disperser", "Disperser"),
+    1107: ("item_phylactery", "Phylactery"),
+    1466: ("item_gungir", "Gleipnir"),
+    1806: ("item_devastator", "Parasma"),
+    1808: ("item_angels_demise", "Khanda"),
+    1852: ("item_essence_distiller", "Essence Distiller"),
+    1854: ("item_consecrated_wraps", "Consecrated Wraps"),
+    1856: ("item_crellas_crozier", "Crella's Crozier"),
+    1858: ("item_hydras_breath", "Hydra's Breath"),
+}
+KEY_ITEM_BY_KEY = {key: (item_id, label) for item_id, (key, label) in KEY_ITEMS.items()}
 
 # Release-day records are excluded because the public announcement's date is
 # insufficient to disambiguate games played before and after deployment.
@@ -118,24 +189,44 @@ def major_patch(raw: dict[str, Any], provider: str, started_at: int | None) -> s
     return "7.41" if day >= "2026-03-25" else None
 
 
-def normalize_purchases(rows: Any, provider: str, mode: str) -> list[dict[str, int | str]] | None:
-    if not isinstance(rows, list):
+def normalize_key_item_purchases(
+    rows: Any, provider: str, duration_seconds: int,
+) -> list[dict[str, int | str]] | None:
+    """Return the first valid purchase of each key item in deterministic order."""
+    if not isinstance(rows, list) or type(duration_seconds) is not int or duration_seconds < 0:
         return None
-    purchases = []
+    first: dict[int, int] = {}
     for row in rows:
         if not isinstance(row, dict) or type(row.get("time")) is not int:
             continue
+        second = row["time"]
+        if not 0 <= second <= duration_seconds:
+            continue
         if provider == "stratz":
             item_id = row.get("itemId")
-            item = ITEMS.get(item_id) if type(item_id) is int else None
-            key = item[0] if item else None
-        else:
+            item_id = item_id if type(item_id) is int and item_id in KEY_ITEMS else None
+        elif provider == "opendota":
             raw_key = row.get("key")
-            key = (raw_key if raw_key.startswith("item_") else f"item_{raw_key}") if isinstance(raw_key, str) else None
-        earliest = 180 if mode == "TURBO" else 300
-        if key in ITEM_BY_KEY and row["time"] >= earliest:
-            purchases.append({"item": key, "time": row["time"]})
-    return purchases
+            key = (
+                raw_key if raw_key.startswith("item_") else f"item_{raw_key}"
+            ) if isinstance(raw_key, str) else None
+            found = KEY_ITEM_BY_KEY.get(key) if key else None
+            item_id = found[0] if found else None
+        else:
+            raise ValueError("Unsupported provider")
+        if item_id is not None:
+            first[item_id] = min(first.get(item_id, second), second)
+    ordered = sorted(first.items(), key=lambda row: (row[1], row[0]))
+    return [
+        {
+            "item_id": item_id,
+            "item_key": KEY_ITEMS[item_id][0],
+            "item_name": KEY_ITEMS[item_id][1],
+            "purchase_time_seconds": second,
+            "key_item_order": index,
+        }
+        for index, (item_id, second) in enumerate(ordered, 1)
+    ]
 
 
 @lru_cache(maxsize=1)
@@ -150,3 +241,4 @@ def reference(patch: str | None, mode: str, hero: int, role: str, item: str) -> 
         return None
     data, _ = artifact()
     return data["references"].get(f"{mode}:{hero}:{role}:{item}")
+

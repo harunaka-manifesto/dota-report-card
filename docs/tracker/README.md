@@ -2,7 +2,7 @@
 
 This folder is the **active product documentation** for Dota Tracker V1 (native iOS).
 
-It is organised by **product feature**. Pick the feature you are working on, open its two files, and you have everything you need. You should not have to read research history to design or build a screen.
+It is organised by **product feature**. Start with the feature SSOT and design requirements, then follow any linked technical annexes. You should not have to read research history to design or build a screen.
 
 ---
 
@@ -18,7 +18,7 @@ It is organised by **product feature**. Pick the feature you are working on, ope
 | Understand *why* a decision was made | [`architecture/decisions/`](architecture/decisions/) for architecture · [`_archive/`](_archive/) for product |
 | Run, test or operate the backend | [`operations/README.md`](operations/README.md) · [mobile API](api/README.md) · [implementation ledger](architecture/IMPLEMENTATION-LEDGER.md) |
 
-Every feature folder contains exactly two files. There are no "final-v2", "latest" or "research" documents next to them.
+Every feature has an `SSOT.md` and `DESIGN-REQUIREMENTS.md`. A feature may also link a narrowly scoped technical annex when an algorithm or data contract needs more detail; there are no "final-v2", "latest" or "research" documents beside active feature truth.
 
 `architecture/` is the one non-feature folder. It answers *how the system behaves*, where the feature folders answer *what the product means*. Start at its [`README.md`](architecture/README.md).
 
@@ -32,7 +32,7 @@ Every feature folder contains exactly two files. There are no "final-v2", "lates
 | **Onboarding & Cold Start** | Getting a player from first launch to a linked, tracking account — and keeping a nearly-empty app honest while history arrives. | [SSOT](onboarding/SSOT.md) | [Design](onboarding/DESIGN-REQUIREMENTS.md) |
 | **Home** | The daily check-in and routing hub: today's matches or today's focus, a challenge slot, the four role progression summaries, and the last five matches. | [SSOT](home/SSOT.md) | [Design](home/DESIGN-REQUIREMENTS.md) |
 | **History** | The complete chronological record of what has been played, built for scanning and navigating into individual matches. | [SSOT](history/SSOT.md) | [Design](history/DESIGN-REQUIREMENTS.md) |
-| **Match Detail** | One match reviewed properly: personal performance against a fair expectation, matchup context, and 0–3 deterministic insight cards — kept strictly apart. | [SSOT](match_detail/SSOT.md) | [Design](match_detail/DESIGN-REQUIREMENTS.md) |
+| **Match Detail** | One match reviewed properly: personal performance against a fair expectation, matchup context, factual key-item timings, and 0–3 deterministic insight cards — kept strictly apart. The [item-timings backend contract](match_detail/ITEM-TIMINGS-V1.md) is ready; iOS rendering is pending. | [SSOT](match_detail/SSOT.md) | [Design](match_detail/DESIGN-REQUIREMENTS.md) |
 | **Progress** | Per-role, per-mode, per-metric progression: observation series, rolling baselines, trend states and Personal Bests. | [SSOT](progress/SSOT.md) | [Design](progress/DESIGN-REQUIREMENTS.md) |
 | **Profile** | Who the player is over the long term: identity line, role map, hero identity, durable claims with receipts, and what's moving right now. | [SSOT](profile/SSOT.md) | [Design](profile/DESIGN-REQUIREMENTS.md) |
 | **Settings, Account & Subscription** | Ongoing account management: auth methods, Steam switching, data-access recovery, subscription lifecycle, notifications and deletion. | [SSOT](settings_account/SSOT.md) | [Design](settings_account/DESIGN-REQUIREMENTS.md) |

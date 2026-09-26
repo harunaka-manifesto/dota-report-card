@@ -67,12 +67,20 @@ def test_terminal_analysis_publishes_once_from_retained_source(database):
         metric_count = len(metric_ids(link["effective_role"]))
         assert c.scalar(select(func.count()).select_from(metric_observations)) == metric_count
         assert c.scalar(select(func.count()).select_from(analyses)) == 1
+        frozen = c.scalar(select(analyses.c.result))["item_timings"]
+        assert frozen["state"] == "AVAILABLE"
+        assert frozen["contract_version"] == "item-timings-v1"
+        assert frozen["items"] == sorted(
+            frozen["items"], key=lambda item: (item["purchase_time_seconds"], item["item_id"]),
+        )
         insight = c.execute(select(insight_results)).mappings().one()
-        assert insight["contract_version"] == "post-match-insights 1.0.0"
+        # insights.CONTRACT_VERSION is fixed regardless of subpatch; item cards
+        # are gated separately, upstream in finalization's item timing lookup.
+        assert insight["contract_version"] == "post-match-insights 2.0.0"
         assert isinstance(insight["cards"], list) and len(insight["cards"]) <= 3
         projected = _match_view(c, link).model_dump()
         assert projected["insights"] == {
-            "state": "AVAILABLE", "contract_version": "post-match-insights 1.0.0",
+            "state": "AVAILABLE", "contract_version": "post-match-insights 2.0.0",
             "reason": None, "cards": [],
         }
         assert c.scalar(select(func.count()).select_from(events)) == 1

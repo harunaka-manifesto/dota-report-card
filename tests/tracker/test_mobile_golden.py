@@ -1,7 +1,10 @@
 """Golden mobile fixtures from the fixture-backed seed, plus contract scans.
 
-Fixtures under tests/fixtures/tracker/mobile-v1 are versioned and never
-overwritten: a contract change adds a new directory. To create a missing file
+Fixtures under tests/fixtures/tracker/mobile-v1-item-timings-v1 are versioned and
+never overwritten: a contract change adds a new directory. This directory was
+added when Match Detail gained the `item_timings` field; the prior
+tests/fixtures/tracker/mobile-v1 directory is left untouched as historical
+record of the pre-item-timings contract. To create a missing file
 deliberately, run with TRACKER_WRITE_MISSING_GOLDEN=1 and review it.
 """
 from __future__ import annotations
@@ -20,7 +23,7 @@ from sqlalchemy import select
 
 from scripts.tracker_seed_demo import seed_demo
 
-GOLDEN = Path(__file__).parents[1] / "fixtures/tracker/mobile-v1"
+GOLDEN = Path(__file__).parents[1] / "fixtures/tracker/mobile-v1-item-timings-v1"
 OPENAPI = Path(__file__).parents[2] / "docs/tracker/api/mobile-openapi-v1.json"
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")

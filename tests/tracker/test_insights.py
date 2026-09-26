@@ -1,8 +1,6 @@
 from app.tracker.insights import (
     _attach_optional_history,
     _counterpart,
-    _enemy_item_v2,
-    _own_item_v2,
     _vision,
     classify_tier_b,
     derive_history_observations,
@@ -50,7 +48,8 @@ def test_no_card_is_a_valid_evaluated_result_golden_tv1():
     result = evaluate(_match(), {"team": "RADIANT", "won": True})
     assert result == {
         "status": "EVALUATED",
-        "contract_version": "post-match-insights 1.0.0",
+        "contract_version": "post-match-insights 2.0.0",
+        "item_reference_digest": artifact()[1],
         "cards": [],
     }
 
@@ -102,7 +101,7 @@ def test_selection_applies_single_story_rule_class_and_cap_golden_tv4():
         card("OPP_START_VS_HISTORY", 2, 1.48),
         card("ENEMY_STACKING", 2, 1.0),
         card("ENEMY_EARLY_RICH", 2, 1.0),
-        card("ENEMY_EARLY_ITEM", 3, 2.429),
+        card("ENEMY_HERO_ITEM", 3, 2.429),
     ]
     assert [card["candidate_id"] for card in select(cards)] == [
         "COMEBACK_WIN",
@@ -221,7 +220,10 @@ def test_recorded_purchase_shapes_and_patch_translation():
     mapped_od = from_provider_snapshot(od, "opendota", _positions())
     assert mapped_od["major_patch"] == "7.41"
     assert mapped_od["subpatch"] == "7.41f"
-    assert mapped_od["players"][0]["itemPurchases"] == [{"item": "item_bfury", "time": 960}]
+    assert mapped_od["players"][0]["keyItemPurchases"] == [
+        {"item_id": 145, "item_key": "item_bfury", "item_name": "Battle Fury",
+         "purchase_time_seconds": 960, "key_item_order": 1},
+    ]
 
     sz = _stratz_snapshot()
     sz.update(startDateTime=started, gameVersionId=182)
@@ -232,7 +234,11 @@ def test_recorded_purchase_shapes_and_patch_translation():
     mapped_sz = from_provider_snapshot(sz, "stratz", _positions())
     assert mapped_sz["major_patch"] == "7.41"
     assert mapped_sz["subpatch"] == "7.41f"
-    assert mapped_sz["players"][0]["itemPurchases"] == [{"item": "item_manta", "time": 1000}]
+    # The earliest valid time across duplicate rows (a rebuy) wins.
+    assert mapped_sz["players"][0]["keyItemPurchases"] == [
+        {"item_id": 147, "item_key": "item_manta", "item_name": "Manta Style",
+         "purchase_time_seconds": 50, "key_item_order": 1},
+    ]
     sz.pop("gameVersionId")
     assert from_provider_snapshot(sz, "stratz", _positions())["subpatch"] is None
     assert subpatch(int(datetime(2026, 9, 15, tzinfo=UTC).timestamp()), major="7.41") is None
@@ -249,8 +255,8 @@ def test_sanitized_recorded_provider_fixtures_recover_same_item_purchases():
         raw = json.loads((root / f"{provider}.json").read_text())
         adapted = from_provider_snapshot(raw, provider, _positions())
         observed.append({
-            (player["player_slot"], row["item"]): row["time"]
-            for player in adapted["players"] for row in player.get("itemPurchases", [])
+            (player["player_slot"], row["item_key"]): row["purchase_time_seconds"]
+            for player in adapted["players"] for row in player.get("keyItemPurchases", [])
         })
     assert observed[0].keys() == observed[1].keys()
     assert all(abs(observed[0][key] - observed[1][key]) <= 1 for key in observed[0])
@@ -274,42 +280,28 @@ def test_hero_item_artifact_coverage_and_pa_medusa_relevance():
     )["median"]
     assert reference("7.41e", "STANDARD", 44, "CARRY", "item_bfury") is None
     assert reference("7.41f", "STANDARD", 54, "CARRY", "item_radiance") is None
-    assert data["coverage"]["STANDARD:94:OFFLANE"]["no_card_reason"]
+    assert data["coverage"]["STANDARD:94:OFFLANE"]["reason"]
 
 
-def test_v2_enemy_threshold_and_same_hero_record_at_n20():
-    ref = reference("7.41f", "STANDARD", 44, "CARRY", "item_bfury")
-    assert ref
-    match = {"bucket": "STANDARD", "major_patch": "7.41", "subpatch": "7.41f",
-             "startDateTime": 9999, "matchId": 999}
-    enemies = [(1, {"heroId": 44, "itemPurchases": [
-        {"item": "item_bfury", "time": ref["p10"] - 90}] }),
-               (2, {"heroId": 1, "itemPurchases": []}),
-               (3, {"heroId": 2, "itemPurchases": []})]
-    cards = _enemy_item_v2(match, enemies)
-    assert cards and cards[0]["candidate_id"] == "ENEMY_HERO_ITEM_V2"
-    assert cards[0]["slots"]["reference_median"] == ref["median"]
-    enemies[0][1]["itemPurchases"][0]["time"] = ref["p10"] - 59
-    assert not _enemy_item_v2(match, enemies)
+def test_additional_cards_are_appended_to_the_selected_cards():
+    extra_card = {
+        "candidate_id": "OWN_HERO_ITEM",
+        "tier": "A",
+        "family": "Power Spikes & Item Timings",
+        "band": 3,
+        "level": 0.3,
+        "rank_class": 2,
+        "slots": {},
+        "enrichments": [],
+        "copy": "extra card",
+        "history_line": "extra history",
+    }
 
-    own = {"heroId": 44, "itemPurchases": [{"item": "item_bfury", "time": 700}]}
-    rows = [{"metric": "FIRST_PURCHASE", "bucket": "STANDARD", "role": "CARRY",
-             "item": "item_bfury", "hero": 44, "patch": "7.41", "value": 900,
-             "startDateTime": i + 1, "matchId": i + 1} for i in range(20)]
-    assert not _own_item_v2(match, own, "CARRY", {"observations": rows[:19]})
-    record = _own_item_v2(match, own, "CARRY", {"observations": rows})
-    assert record and record[0]["slots"]["N"] == 20
-    rows[-1]["hero"] = 94
-    assert not _own_item_v2(match, own, "CARRY", {"observations": rows})
+    result = evaluate(_match(), cards=[], additional_cards=[extra_card])
 
-
-def test_stored_v1_and_latest_v2_contracts_remain_distinct():
-    old = evaluate(_match(subpatch="7.41e"), cards=[])
-    new = evaluate(_match(subpatch="7.41f"), cards=[])
-    assert old["contract_version"] == "post-match-insights 1.0.0"
-    assert new["contract_version"] == "post-match-insights 2.0.0"
-    assert "item_reference_digest" not in old
-    assert new["item_reference_digest"] == artifact()[1]
+    assert result["contract_version"] == "post-match-insights 2.0.0"
+    assert result["item_reference_digest"] == artifact()[1]
+    assert result["cards"] and result["cards"][0]["candidate_id"] == "OWN_HERO_ITEM"
 
 
 def test_history_counterpart_accepts_canonical_position_strings():
@@ -462,23 +454,6 @@ def test_retained_history_line_precedence_rarity_and_integer_limits():
     assert stacks["history_line"] == "The median across your last 30 Standard matches was 15.5."
 
 
-def test_retained_history_item_comparator_requires_same_patch_and_margin():
-    match = {"bucket": "STANDARD", "startDateTime": 1000, "matchId": 999,
-             "major_patch": "7.40"}
-    item = {"candidate_id": "ENEMY_EARLY_ITEM", "slots": {
-        "item": "item_black_king_bar", "item_name": "Black King Bar", "time": 1000,
-    }, "history_line": None}
-    rows = _history_rows("ENEMY_ITEM_TIME", [1200] * 29 + [1100],
-                         item="item_black_king_bar", patch="7.40")
-    _attach_optional_history(match, {}, {"observations": rows}, [item])
-    assert "at least 1 minute earlier" in item["history_line"]
-    item["history_line"] = None
-    _attach_optional_history(
-        {**match, "major_patch": None}, {}, {"observations": rows}, [item]
-    )
-    assert item["history_line"] is None
-
-
 def test_canonical_source_emits_only_measured_history_comparators():
     match = _match(towerDeaths=[])
     for slot, player in enumerate(match["players"]):
@@ -490,7 +465,9 @@ def test_canonical_source_emits_only_measured_history_comparators():
         player["campStack"] = [1] * 20
         player["stats"]["lastHitsPerMinute"] = [5] * 10
         player["stats"]["itemUsed"] = [{"itemId": 188, "count": 1}]
-        player["itemPurchases"] = [{"item": "item_black_king_bar", "time": 1000}]
+        player["keyItemPurchases"] = [
+            {"item_key": "item_black_king_bar", "purchase_time_seconds": 1000},
+        ]
     # Radiant safe lane and Dire off lane occupy the same physical lane.
     match["players"][7]["lane"] = "OFF_LANE"
     result = derive_history_observations(
@@ -500,9 +477,8 @@ def test_canonical_source_emits_only_measured_history_comparators():
     )
     assert {(row["metric"], row.get("item")) for row in result} == {
         ("LANE_GAP", None), ("COUNTERPART_CS", None),
-        ("FIRST_PURCHASE", "item_black_king_bar"), ("STACKS", None),
+        ("FIRST_KEY_ITEM_PURCHASE", "item_black_king_bar"), ("STACKS", None),
         ("SMOKE_RATE", None), ("GOAL_MINUTE", None),
-        ("ENEMY_ITEM_TIME", "item_black_king_bar"),
     }
     match["players"][0]["stats"].pop("itemUsed")
     assert all(row["metric"] != "SMOKE_RATE" for row in derive_history_observations(

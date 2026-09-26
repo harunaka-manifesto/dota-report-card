@@ -99,6 +99,7 @@ def test_mobile_match_ref_is_opaque_and_cannot_cross_accounts(database):
     body = owned.json()
     assert body["ref"] == public_ref
     assert body["facts"] == "AVAILABLE" and body["performance"] == "PENDING"
+    assert body["item_timings"]["state"] == "PENDING"
     assert len(body["players"]) == 10 and body["metrics"] == []
     assert str(MATCH_ID) not in owned.text and "account_id" not in owned.text
     hidden = other_client.get(f"/matches/{public_ref}", headers=other_headers)
@@ -152,6 +153,7 @@ def test_mobile_role_edit_is_scoped_idempotent_and_source_backed(database):
     assert detail.status_code == 200
     assert detail.json()["role_revision"] == 0
     assert detail.json()["correction_available"] is True
+    assert detail.json()["item_timings"]["state"] == "AVAILABLE"
     assert other.get(f"/matches/{ref}", headers=other_headers).status_code == 404
     request_headers = {**headers, "Idempotency-Key": "role-edit-local-001"}
     body = {"role": next_role, "expected_role_revision": 0}
@@ -165,6 +167,7 @@ def test_mobile_role_edit_is_scoped_idempotent_and_source_backed(database):
     assert client.post(f"/matches/{ref}/role", json=body,
                        headers={**headers, "Idempotency-Key": "role-edit-stale-002"}).status_code == 409
     assert client.get(f"/matches/{ref}", headers=headers).json()["role"] == next_role
+    assert client.get(f"/matches/{ref}", headers=headers).json()["item_timings"]["state"] == "AVAILABLE"
     with database.connect() as connection:
         assert connection.scalar(select(provider_calls.c.id).limit(1)) == calls_before
         assert connection.scalar(select(role_assertions.c.revision)) == 1

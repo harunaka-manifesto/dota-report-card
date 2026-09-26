@@ -1070,3 +1070,89 @@ d1e5c0e refactor(docs): move legacy documentation, research corpora, and generat
 9fd3f83 fix: repair path references broken by the legacy docs relocation
 2e42809 build: split docs-check into tracker and legacy documentation checks
 ```
+
+## Item timings and item insight cards — final — 2026-09-27
+
+**Status:** Backend implementation and contract are final. `ENEMY_HERO_ITEM` and `OWN_HERO_ITEM`
+under `post-match-insights 2.0.0` are the last item-card version the owner intends to ship; there
+is no planned V3/V4. iOS rendering is pending — the native iOS project does not exist yet.
+Verification is pending until the required tracker, API/OpenAPI, migration, lint, typecheck and
+documentation gates finish; this entry does not claim those gates passed.
+
+### Owner decisions
+
+- **Item-only baseline, not order-conditioned.** The population reference key is hero × core role
+  × mode × item. `key_item_order` is retained as a match-local fact and as descriptive corpus
+  research (`ITEM-BUILD-PATTERNS-7.41.md`), but it is never a baseline key and never gates a
+  comparison or a card. The order-conditioned V1 design in the previous version of this document
+  was replaced before any analysis used it.
+- **Own = population or personal, never personal-usual alone.** `OWN_HERO_ITEM` fires on the best
+  of `POPULATION_USUAL` or `PERSONAL_PREVIOUS_BEST`; `PERSONAL_USUAL` stays inline-only and never
+  produces a card, because a personal median alone was judged too weak a claim for a card.
+- **Boots upgrades and bare components excluded from cards by design.** Power Treads, Phase
+  Boots, Arcane Boots, Tranquil Boots, both Travel Boots tiers, Guardian Greaves, Boots of
+  Bearing, and bare Sange / Yasha / Kaya / Crystalys stay in the timeline and can drive an inline
+  comparison, but never become a card (`CARD_EXCLUDED_ITEMS`). The upgraded combination items
+  (e.g. Yasha and Kaya) are not excluded.
+- **Single final contract version.** `post-match-insights 2.0.0` is the only insight contract.
+  The V1 cards (`ENEMY_EARLY_ITEM`, `OWN_ITEM_VS_HISTORY`) and the order-conditioned `*_V2` /
+  `*_V3` candidates were never shipped; no stored analysis uses them, so there is no compatibility
+  burden.
+- **iOS pending.** The backend contract, artifact and card rules are frozen and ready; the native
+  iOS client does not exist yet, so rendering the states, comparison templates and card/history
+  copy from the content bank remains open work outside this repository.
+
+### Implementation
+
+- `item_references.py` (schema 3) is item-only: `KEY_ITEMS` catalog, `reference(patch, mode,
+  hero, role, item)`, and the `SUSPENDED_HEROES` / `SUSPENDED_ITEMS` patch-safety mapping.
+  `item_timings.py` builds the factual timeline, the `POPULATION_USUAL` → `PERSONAL_PREVIOUS_BEST`
+  → `PERSONAL_USUAL` inline comparison ladder, and the `ENEMY_HERO_ITEM` / `OWN_HERO_ITEM` cards.
+  Finalization persists the complete snapshot in immutable `tracker_analyses.result` JSONB. There
+  is no new table or migration.
+- Population comparisons and cards are limited to Carry, Mid and Offlane; every role, including
+  Support, receives factual timing rows. The patch-scoped artifact fails closed for sparse or
+  patch-unsafe cohorts and records full core-role coverage.
+- Artifact: **791 references** across the **762** hero × core-role × mode cells (127 heroes × 3
+  core roles × 2 modes) — **153** with a reference, **397** `sparse`, **196**
+  `patch_change_pending`, **16** `no_qualified_item`. Digest (sha256):
+  `801853401f4181f2afb53525219468ce20a11d601e63ef8a975852c615aae852`. Built from patches 7.41b–e
+  pooled, applied to validated subpatch 7.41f, claims name major patch "7.41".
+- Match Detail adds the structured `item_timings` block under `item-timings-v1`. Methodology and
+  role-correction rebuilds use retained purchase evidence and preserve the existing provider-free
+  rebuild boundary; `run_item_insight_rebuild` and `scripts/rebuild_current_patch_items.py` were
+  deleted — `rebuild.enqueue_methodology_rebuilds` is the only refresh rebuild path.
+- OpenDota QA calls: **0**. STRATZ QA calls: **0**. Deployment: **no**.
+
+### 50-card relevance review
+
+Offline review against the local corpus harness, zero provider calls. First pass (p25 gate only,
+boots/bare components allowed as cards): 34/50 judged relevant, and cards fired on most sampled
+games — this drove the tightened p10-margin, boots/components-excluded gate now shipped. Final
+sample under the shipped gate: **48/50 relevant, 0 incorrect purchase facts, 0 causal claims**.
+Sampling was stratified by card × mode × core role (4–5 cards per cell): Enemy Standard
+Carry 4, Mid 5, Offlane 4; Enemy Turbo 4/4/4; Own Standard Carry 5, Mid 4, Offlane 4; Own Turbo
+4/4/4. Phantom Assassin and Medusa appeared in the sample (PA Aghanim's Scepter and Black King
+Bar, Medusa Manta Style — all relevant). Under the shipped gates, cards fire on roughly 3,950 of
+the corpus's 39,935 core (Carry/Mid/Offlane) rows, combining `ENEMY_HERO_ITEM` and
+`OWN_HERO_ITEM`.
+
+The two cards judged not relevant (they passed the data gates but read as off-meta):
+
+| Hero | Role · mode | Card | Item | Verdict |
+|---|---|---|---|---|
+| Earthshaker | Mid · Turbo | ENEMY_HERO_ITEM | Yasha and Kaya | Not relevant — off-meta build |
+| Wraith King | Offlane · Standard | ENEMY_HERO_ITEM | Bloodthorn | Not relevant — off-meta build |
+
+### Figma content bank
+
+File `D3uhn7WPXFsX1DiCIVklyg`, page `575:4018` (Content bank), updated to the final item design:
+01 item templates replaced with `ENEMY_HERO_ITEM`, `OWN_HERO_ITEM` (population and previous-best)
+and their history lines; V1 `ENEMY_EARLY_ITEM` / `OWN_ITEM_VS_HISTORY` rows and the 02 item
+history rows removed; new frame `02a · Item timings` (12 `copy.match_detail.item_timings.*` keys
+plus a rendered Phantom Assassin timeline); 01a examples refreshed against the artifact; 00 counts
+(310 keyed entries, 16 rendered examples); 09 coverage regenerated from artifact digest
+`801853401f4181f2afb53525219468ce20a11d601e63ef8a975852c615aae852`. Programmatic key scan: no
+V1/V2/V3 item keys remain.
+
+No player identifiers appear in the review, the artifact, or this ledger entry.

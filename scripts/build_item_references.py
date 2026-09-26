@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services/api"))
 from app.tracker.item_references import (  # noqa: E402
     CURRENT_PATCH,
-    ITEMS,
+    KEY_ITEMS,
     PATCH_START,
     STRATZ_VERSION_IDS,
     subpatch,
@@ -30,8 +30,9 @@ SHARDS = OUT / "item_shards"
 ROLES = {"POSITION_1": "CARRY", "POSITION_2": "MID", "POSITION_3": "OFFLANE"}
 
 
-def scan(source: Path, wanted: set[str]) -> dict[str, dict]:
+def scan(source: Path, wanted: set[str]) -> dict[str, dict[str, dict[str, int]]]:
     totals: dict[str, Counter] = defaultdict(Counter)
+    ordered_totals: dict[str, Counter] = defaultdict(Counter)
     seen: set[tuple[int, int]] = set()
     for file in source.rglob("*.json"):
         try:
@@ -65,17 +66,40 @@ def scan(source: Path, wanted: set[str]) -> dict[str, dict]:
             purchases = (player.get("events") or {}).get("item_purchases")
             if not isinstance(purchases, list):
                 continue
-            first: dict[int, int] = {}
+            key_first: dict[int, int] = {}
+            duration = row.get("duration_seconds", row.get("duration"))
             for event in purchases:
                 if not isinstance(event, dict):
                     continue
                 item, second = event.get("item_id"), event.get("time")
-                earliest = 180 if mode == "TURBO" else 300
-                if type(item) is int and item in ITEMS and type(second) is int and earliest <= second <= 7200:
-                    first[item] = min(first.get(item, second), second)
-            for item, second in first.items():
+                if (
+                    type(item) is int and item in KEY_ITEMS and type(second) is int
+                    and type(duration) is int and 0 <= second <= duration
+                ):
+                    key_first[item] = min(key_first.get(item, second), second)
+            for order, (item, second) in enumerate(
+                sorted(key_first.items(), key=lambda purchase: (purchase[1], purchase[0])), 1,
+            ):
                 totals[patch][f"{base}:{item}:{second // 30}"] += 1
-    return {patch: dict(rows) for patch, rows in totals.items()}
+                # Build order is descriptive research input only; it never keys a reference.
+                ordered_totals[patch][f"{base}:{item}:{order}"] += 1
+    return {
+        patch: {
+            "counts": dict(totals[patch]),
+            "ordered_counts": dict(ordered_totals[patch]),
+        }
+        for patch in wanted
+    }
+
+
+def _percentile(bins: list[tuple[int, int]], purchased: int, frac: float) -> int:
+    target = math.ceil(frac * purchased)
+    so_far = 0
+    for bin_number, count in bins:
+        so_far += count
+        if so_far >= target:
+            return bin_number * 30 + 15
+    raise AssertionError("empty item histogram")
 
 
 def compose(shards: list[dict]) -> dict:
@@ -93,39 +117,36 @@ def compose(shards: list[dict]) -> dict:
     references: dict[str, dict] = {}
     coverage: dict[str, dict] = {}
     for base, total in sorted(games.items()):
-        choices = []
-        for (group, item), hist in hists.items():
-            if group != base:
+        hero = int(base.split(":")[1])
+        qualified: list[str] = []
+        pending = False
+        for (group, item), hist in sorted(hists.items()):
+            if group != base or item not in KEY_ITEMS:
                 continue
             purchased = sum(hist.values())
             if purchased < 50 or purchased / total < 0.20:
                 continue
-            ordered = sorted(hist.items())
-            def percentile(frac: float, purchased: int = purchased, ordered: list[tuple[int, int]] = ordered) -> int:
-                target = math.ceil(frac * purchased)
-                so_far = 0
-                for bin_number, count in ordered:
-                    so_far += count
-                    if so_far >= target:
-                        return bin_number * 30 + 15
-                raise AssertionError("empty item histogram")
-            key, label = ITEMS[item]
-            choices.append((purchased / total, key, label, purchased, percentile(.10), percentile(.50)))
-        hero = int(base.split(":")[1])
-        reviewed = [row for row in sorted(choices, reverse=True)
-                    if not suspended(hero, row[1])][:5]
-        # Keep a small set per hero/role/mode; no forced card on sparse pairs.
-        for rate, key, label, purchased, p10, median in reviewed:
+            key, label = KEY_ITEMS[item]
+            if suspended(hero, key):
+                pending = True
+                continue
+            bins = sorted(hist.items())
             references[f"{base}:{key}"] = {
-                "item_name": label, "p10": p10, "median": median,
-                "purchases": purchased, "rate": round(rate, 3),
+                "item_name": label,
+                "p10": _percentile(bins, purchased, .10),
+                "p25": _percentile(bins, purchased, .25),
+                "median": _percentile(bins, purchased, .50),
+                "purchase_count": purchased,
+                "cohort_games": total,
+                "purchase_rate": round(purchased / total, 3),
             }
+            qualified.append(key)
         coverage[base] = {
             "games": total,
-            "items": [row[1] for row in reviewed],
-            "no_card_reason": None if reviewed else (
-                "patch_change_pending" if choices else
-                "sparse_hero_role" if total < 50 else "no_qualified_item"
+            "items": qualified,
+            "reason": None if qualified else (
+                "patch_change_pending" if pending or suspended(hero, "") else
+                "sparse" if total < 50 else "no_qualified_item"
             ),
         }
     heroes = {int(base.split(":")[1]) for base in games}
@@ -133,10 +154,11 @@ def compose(shards: list[dict]) -> dict:
         for mode in ("STANDARD", "TURBO"):
             for role in ROLES.values():
                 coverage.setdefault(f"{mode}:{hero}:{role}", {
-                    "games": 0, "items": [], "no_card_reason": "sparse_hero_role",
+                    "games": 0, "items": [], "reason": "sparse",
                 })
-    return {"schema": 1, "major_patch": "7.41", "applies_to": CURRENT_PATCH,
-            "patches": [s["patch"] for s in shards], "references": references, "coverage": coverage}
+    return {"schema": 3, "major_patch": "7.41", "applies_to": CURRENT_PATCH,
+            "patches": [s["patch"] for s in shards], "references": references,
+            "coverage": coverage}
 
 
 def main() -> None:
@@ -149,7 +171,10 @@ def main() -> None:
         counts_by_patch = scan(args.source, wanted)
         SHARDS.mkdir(exist_ok=True)
         for patch in wanted:
-            (SHARDS / f"{patch}.json").write_text(json.dumps({"patch": patch, "counts": counts_by_patch.get(patch, {})}, sort_keys=True, separators=(",", ":")) + "\n")
+            result = counts_by_patch[patch]
+            (SHARDS / f"{patch}.json").write_text(json.dumps({
+                "patch": patch, **result,
+            }, sort_keys=True, separators=(",", ":")) + "\n")
     elif args.source or args.patch:
         parser.error("--source and --patch must be supplied together")
     all_paths = sorted(SHARDS.glob("7.41*.json"))
@@ -159,7 +184,8 @@ def main() -> None:
     shards = [json.loads(path.read_text()) for path in paths]
     result = compose(shards)
     (OUT / "item_references.json").write_text(json.dumps(result, sort_keys=True, separators=(",", ":")) + "\n")
-    print(json.dumps({"shards": result["patches"], "hero_role_mode": len(result["coverage"]), "references": len(result["references"])}, sort_keys=True))
+    print(json.dumps({"shards": result["patches"], "hero_role_mode": len(result["coverage"]),
+                      "references": len(result["references"])}, sort_keys=True))
 
 
 if __name__ == "__main__":

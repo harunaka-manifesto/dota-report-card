@@ -12,7 +12,7 @@ except the single in-app scope-change summary allowed by settings §5.1.
 """
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -39,7 +39,6 @@ from .schema import (
     events,
     history_operations,
     ingest_jobs,
-    insight_results,
     matches,
     profiles,
     snapshots,
@@ -48,35 +47,6 @@ from .schema import (
 from .scope import entitled
 
 MODES = ("STANDARD", "TURBO")
-
-
-def run_item_insight_rebuild(connection: Connection, *, profile_id: str) -> int:
-    """Re-evaluate retained 7.41f matches only, with no provider or event writes.
-
-    Caller holds user then profile locks. Earlier stored V1 results are untouched.
-    """
-    from .insights import ITEM_CONTRACT_VERSION
-    from .item_references import CURRENT_PATCH, PATCH_START
-
-    cutoff = datetime.fromisoformat(PATCH_START[CURRENT_PATCH]).replace(tzinfo=UTC)
-    profile = connection.execute(select(profiles).where(
-        profiles.c.id == profile_id, profiles.c.active.is_(True),
-    ).with_for_update()).mappings().one_or_none()
-    if profile is None:
-        return 0
-    boundaries: dict[str, tuple[Any, int] | None] = {}
-    for mode in MODES:
-        row = connection.execute(select(
-            account_matches.c.provider_started_at, account_matches.c.provider_source_match_id,
-        ).join(insight_results, insight_results.c.analysis_id == account_matches.c.active_analysis_id).where(
-            account_matches.c.profile_id == profile_id,
-            account_matches.c.mode == mode,
-            account_matches.c.lifecycle == "READY",
-            account_matches.c.provider_started_at >= cutoff,
-            insight_results.c.contract_version != ITEM_CONTRACT_VERSION,
-        ).order_by(account_matches.c.provider_started_at, account_matches.c.provider_source_match_id).limit(1)).first()
-        boundaries[mode] = (row.provider_started_at, row.provider_source_match_id) if row else None
-    return replay_closure(connection, profile=profile, modes=MODES, start=boundaries) if any(boundaries.values()) else 0
 
 
 class RebuildUnavailable(ValueError):

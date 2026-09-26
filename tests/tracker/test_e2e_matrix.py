@@ -154,6 +154,7 @@ async def test_fresh_chain_two_owners_one_match_turbo_and_stage_one(database, re
     assert stage_one["facts"] == "AVAILABLE" and len(stage_one["players"]) == 10
     assert stage_one["performance"] == "PENDING" and stage_one["role"] in {"CARRY", "MID", "OFFLANE", "SUPPORT"}
     assert stage_one["metrics"] == []
+    assert stage_one["item_timings"]["state"] == "PENDING"
 
     await _drain(database, redis_client, transport)
     with database.connect() as connection:
@@ -182,6 +183,8 @@ async def test_fresh_chain_two_owners_one_match_turbo_and_stage_one(database, re
             detail = client.get(f"/matches/{match['ref']}", headers=headers).json()
             assert detail["lifecycle"] == "READY" and detail["performance"] == "AVAILABLE"
             assert detail["progression"] == mode and detail["metrics"]
+            assert detail["item_timings"]["state"] == "AVAILABLE"
+            assert detail["item_timings"]["contract_version"] == "item-timings-v1"
     # Duplicate foreground syncs after READY only re-read history; nothing else repeats.
     before = len(fake.calls)
     with database.begin() as connection:

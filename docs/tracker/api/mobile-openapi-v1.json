@@ -706,6 +706,145 @@
         "title": "InsightView",
         "type": "object"
       },
+      "ItemTimingComparisonView": {
+        "properties": {
+          "baseline_seconds": {
+            "title": "Baseline Seconds",
+            "type": "integer"
+          },
+          "cohort_patch": {
+            "title": "Cohort Patch",
+            "type": "string"
+          },
+          "delta_seconds": {
+            "title": "Delta Seconds",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "POPULATION_USUAL",
+              "PERSONAL_PREVIOUS_BEST",
+              "PERSONAL_USUAL"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "sample_size": {
+            "title": "Sample Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "baseline_seconds",
+          "delta_seconds",
+          "sample_size",
+          "cohort_patch"
+        ],
+        "title": "ItemTimingComparisonView",
+        "type": "object"
+      },
+      "ItemTimingView": {
+        "properties": {
+          "comparison": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ItemTimingComparisonView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "integer"
+          },
+          "item_key": {
+            "title": "Item Key",
+            "type": "string"
+          },
+          "item_name": {
+            "title": "Item Name",
+            "type": "string"
+          },
+          "key_item_order": {
+            "title": "Key Item Order",
+            "type": "integer"
+          },
+          "purchase_time_seconds": {
+            "title": "Purchase Time Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "item_id",
+          "item_key",
+          "item_name",
+          "purchase_time_seconds",
+          "key_item_order",
+          "comparison"
+        ],
+        "title": "ItemTimingView",
+        "type": "object"
+      },
+      "ItemTimingsView": {
+        "properties": {
+          "contract_version": {
+            "anyOf": [
+              {
+                "const": "item-timings-v1",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Version"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemTimingView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "reference_digest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Digest"
+          },
+          "state": {
+            "$ref": "#/components/schemas/Readiness"
+          }
+        },
+        "required": [
+          "state",
+          "contract_version",
+          "reason",
+          "reference_digest",
+          "items"
+        ],
+        "title": "ItemTimingsView",
+        "type": "object"
+      },
       "JsonValue": {},
       "Lifecycle": {
         "enum": [
@@ -741,6 +880,9 @@
           },
           "insights": {
             "$ref": "#/components/schemas/InsightView"
+          },
+          "item_timings": {
+            "$ref": "#/components/schemas/ItemTimingsView"
           },
           "lane_context": {
             "default": "UNAVAILABLE",
@@ -890,6 +1032,7 @@
           "won",
           "players",
           "metrics",
+          "item_timings",
           "role_revision",
           "correction_available"
         ],

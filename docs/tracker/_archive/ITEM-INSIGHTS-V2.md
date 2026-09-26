@@ -1,5 +1,9 @@
 # Hero-specific item insight cards V2
 
+> **Superseded.** This V2 design never shipped. The final, shipped item-card design is
+> [`ITEM-TIMINGS-V1.md`](../match_detail/ITEM-TIMINGS-V1.md); this document is historical
+> evidence only.
+
 **Scope:** Carry, Mid, and Offlane in Standard and Turbo on validated patch 7.41f. The `/mobile/v1` route stays fixed; the iOS client must understand `ENEMY_HERO_ITEM_V2`, `OWN_HERO_ITEM_RECORD_V2`, and their slots before release. Older stored V1 results remain visible.
 
 ## Evidence and review

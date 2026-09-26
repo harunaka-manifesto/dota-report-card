@@ -92,3 +92,24 @@ parameter set is replayed from stored data by `rebuild.enqueue_methodology_rebui
 job per affected profile). Each bucket replays from its earliest stale chronology point in one
 transaction; a failure keeps the previous coherent state. Entitlement changes run as
 `SCOPE_REBUILD` jobs. None of these paths can reach a provider.
+
+## Item timing artifact refresh and rebuild
+
+The item timing algorithm, hero × core-role × mode × item cohort gates and the
+`ENEMY_HERO_ITEM` / `OWN_HERO_ITEM` card rules are specified in the [Match Detail annex](../match_detail/ITEM-TIMINGS-V1.md). This is the final item design — item-only baseline, order is descriptive only. The complete timeline and comparison snapshot live in immutable `tracker_analyses.result` JSONB; this feature adds no table or migration. The analysis version, checked-in reference artifact, backend contract and OpenAPI export advance together.
+
+For each lettered patch:
+
+1. Update the patch-date mapping and review patch notes for changed hero/item pairs. Keep affected pairs in `patch_change_pending` until current-letter timing evidence supports them. Pool earlier letter-patch evidence only for pairs the review marks unaffected.
+2. Build from the prepared normalized purchase-event corpus, not live provider responses. The existing builder entry point is:
+
+   ```bash
+   uv run python scripts/build_item_references.py --source <normalized-corpus> --patch <lettered-patch>
+   ```
+
+   `--patch` may be repeated to build more than one lettered patch's shard in one run.
+3. Commit the updated shards and `item_references.json`. Verify the deterministic digest, all 762 hero × core-role × mode coverage cells, explicit `sparse` / `patch_change_pending` / `no_qualified_item` outcomes, the purchase-count/purchase-rate thresholds, and the absence of player identifiers. Re-run the 50-card relevance review against the refreshed artifact.
+4. If the schema or algorithm changed, bump `ANALYSIS_VERSION`, regenerate the mobile schema with `make tracker-openapi`, and add Match Detail response fixtures under `tests/fixtures/tracker/mobile-v1-item-timings-v1/`. Never overwrite prior versioned goldens.
+5. Rebuild retained analyses through `rebuild.enqueue_methodology_rebuilds`. This is the only rebuild path for a refreshed artifact — it uses persisted evidence and is provider-free; role correction also recomputes the timeline and card snapshot from retained purchase events. Repeating a rebuild must remain deterministic and idempotent.
+
+Use stored fixtures and recorded provider responses for parity and API QA. Item-timing QA makes **0 OpenDota calls and 0 STRATZ calls**. Missing or sparse evidence remains unavailable or factual-only; do not fill a cohort or backfill a match with a live fetch.

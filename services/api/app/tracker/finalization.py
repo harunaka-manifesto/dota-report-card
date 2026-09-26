@@ -16,6 +16,10 @@ from .history import BASELINE_VERSION, Observation, baseline, load_prior_observa
 from .insights import CONTRACT_VERSION as INSIGHT_CONTRACT_VERSION
 from .insights import evaluate as evaluate_insights
 from .insights import from_provider_snapshot, load_retained_history
+from .item_timings import CONTRACT_VERSION as ITEM_TIMINGS_CONTRACT_VERSION
+from .item_timings import enemy_insight_cards as enemy_item_timing_insight_cards
+from .item_timings import evaluate as evaluate_item_timings
+from .item_timings import insight_cards as item_timing_insight_cards
 from .jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from .materialization import FEATURE_VERSION, _match_payload
 from .metrics import LOWER_IS_BETTER, measure, metric_ids
@@ -42,7 +46,7 @@ from .schema import (
 )
 from .scope import entitled as entitled_history
 
-ANALYSIS_VERSION = "tracker-analysis-1"
+ANALYSIS_VERSION = "tracker-analysis-2"
 
 
 def enqueue_finalization(connection: Connection, *, profile_id: str, match_id: int) -> str:
@@ -184,21 +188,51 @@ def _prior_pending(connection: Connection, link: dict[str, Any]) -> bool:
     ).limit(1)) is not None
 
 
-def _insight_result(connection: Connection, *, link: dict[str, Any], match: dict[str, Any],
-                    snapshot_id: str, position_map: dict[int, int | str | None]) -> dict[str, Any]:
+def _post_match_results(
+    connection: Connection,
+    *,
+    link: dict[str, Any],
+    match: dict[str, Any],
+    snapshot_id: str,
+    position_map: dict[int, int | str | None],
+    comparisons_allowed: bool,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     snapshot = connection.execute(select(snapshots).where(snapshots.c.id == snapshot_id)).mappings().one()
     try:
         raw = _match_payload(dict(snapshot), match["match_id"])
         neutral = from_provider_snapshot(dict(raw), snapshot["provider"], position_map)
     except (KeyError, TypeError, ValueError):
-        return {"status": "NOT_ELIGIBLE(SOURCE_EVIDENCE)",
-                "contract_version": INSIGHT_CONTRACT_VERSION, "cards": []}
+        return (
+            {"status": "NOT_ELIGIBLE(SOURCE_EVIDENCE)",
+             "contract_version": INSIGHT_CONTRACT_VERSION, "cards": []},
+            {"state": "UNAVAILABLE", "contract_version": ITEM_TIMINGS_CONTRACT_VERSION,
+             "reason": "SOURCE_EVIDENCE", "reference_digest": None,
+             "major_patch": None, "hero_id": None, "items": []},
+        )
     viewer = {"team": "RADIANT" if link["player_slot"] < 5 else "DIRE",
               "won": match["radiant_win"] == (link["player_slot"] < 5),
               "player_slot": link["player_slot"], "effective_role": link["effective_role"]}
     # Comparators come only from strictly prior READY retained snapshots in scope.
     history = load_retained_history(connection, profile_id=link["profile_id"], match_id=match["match_id"])
-    return evaluate_insights(neutral, viewer, history)
+    item_timings = evaluate_item_timings(
+        neutral, viewer, history, comparisons_allowed=comparisons_allowed,
+    )
+    player: dict[str, Any] = next(
+        (row for row in neutral.get("players", []) if row.get("player_slot") == link["player_slot"]),
+        {},
+    )
+    mode = neutral.get("bucket")
+    role = link["effective_role"]
+    hero = player.get("heroId")
+    extra = item_timing_insight_cards(
+        item_timings,
+        hero=hero,
+        role=role,
+        mode=mode,
+        subpatch=neutral.get("subpatch"),
+    ) if type(hero) is int and isinstance(role, str) and isinstance(mode, str) else []
+    extra.extend(enemy_item_timing_insight_cards(neutral, viewer))
+    return evaluate_insights(neutral, viewer, history, additional_cards=extra), item_timings
 
 
 LANES = {"SAFE": "SAFE_LANE", "MID": "MID_LANE", "OFF": "OFF_LANE"}
@@ -265,15 +299,22 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         effective_role=link["effective_role"],
         leaver_status=player["summary"].get("leaver_status"), integrity=integrity,
     )
+    comparisons_allowed = eligibility.progression != "NONE" and not quarantined
+    post_insight, item_timings = _post_match_results(
+        connection,
+        link=link,
+        match=match,
+        snapshot_id=snapshot_ids[0],
+        position_map=cast(dict[int, int | str | None], position_map),
+        comparisons_allowed=comparisons_allowed,
+    )
     if eligibility.progression == "NONE" or quarantined:
         # ponytail: withhold all cards on source disagreement until each card has a verified field dependency map.
         insight: dict[str, Any] = {"status": "NOT_ELIGIBLE(PROGRESSION)" if eligibility.progression == "NONE"
                    else "NOT_ELIGIBLE(SOURCE_DISAGREEMENT)",
                    "contract_version": INSIGHT_CONTRACT_VERSION, "cards": []}
     else:
-        insight = _insight_result(connection, link=link, match=match,
-                                  snapshot_id=snapshot_ids[0],
-                                  position_map=cast(dict[int, int | str | None], position_map))
+        insight = post_insight
     metric_rows: list[dict[str, Any]] = []
     pb_rows: list[dict[str, Any]] = []
     parameters = current_context_parameters(connection)
@@ -338,13 +379,14 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         "role": link["effective_role"], "role_revision": link["role_revision"],
         "progression": eligibility.progression, "metric_rows": metric_rows,
         "insight_result": insight,
+        "item_timings": item_timings,
         "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
         "lane_context": lane_context,
     })).hexdigest()
     return {"eligibility": eligibility, "insight": insight, "metric_rows": metric_rows,
             "pb_rows": pb_rows, "inputs_digest": inputs_digest,
             "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
-            "lane_context": lane_context}
+            "lane_context": lane_context, "item_timings": item_timings}
 
 
 def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
@@ -352,6 +394,7 @@ def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
             "insight_status": built["insight"]["status"],
             "insight_contract_version": built["insight"]["contract_version"],
             "item_reference_digest": built["insight"].get("item_reference_digest"),
+            "item_timings": built["item_timings"],
             "parameter_set_version": built["parameter_set_version"],
             "lane_context": built["lane_context"]}
 

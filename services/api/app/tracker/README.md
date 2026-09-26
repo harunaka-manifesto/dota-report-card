@@ -18,7 +18,7 @@ report product; legacy tables, routes and retention are untouched.
 | Acquisition (P0–P3) | `sync.py`, `acquisition.py`, `replay_acquisition.py`, `historical.py`, `historical_summary.py`, `bootstrap.py`, `backfill.py`, `data_access.py` |
 | Canonical translation | `normalization.py`, `replay.py`, `events.py`, `integrity.py`, `role_evidence.py`, `materialization.py` |
 | Work model | `jobs.py` (database-owned scheduling, leases, generation fences), `linking.py`, `worker.py` (Celery lanes), `retry.py` |
-| Analysis | `roles.py`, `eligibility.py`, `metrics.py`, `history.py`, `context.py`, `population_parameters.py`, `insights.py`, `trend.py`, `finalization.py` (the single publication point) |
+| Analysis | `roles.py`, `eligibility.py`, `metrics.py`, `history.py`, `context.py`, `population_parameters.py`, `item_references.py` (V2-compatible catalog and order-aware references), `item_timings.py` (ordered timeline and comparisons), `insights.py` (V1/V2/V3 candidates), `trend.py`, `finalization.py` (single publication point and frozen item-timing snapshot) |
 | Rebuilds | `role_correction.py`, `rebuild.py` (scope, methodology/parameter set, late re-admission) |
 | Entitlement above data | `scope.py` (the only entitled-history filter), `entitlement.py`, `app_store.py`, `store_api.py` |
 | Identity and lifecycle | `authentication.py`, `steam_identity.py`, `account_lifecycle.py` |
@@ -38,6 +38,10 @@ report product; legacy tables, routes and retention are untouched.
   its own mode's bootstrap.
 - Analyses are immutable and keyed by `(profile, match, analysis_version, inputs_digest)`;
   rebuilds reuse identical rows, so running any rebuild twice changes nothing.
+- Item timings extend the persisted result with an order-aware timeline and comparison snapshot.
+  Population comparisons are core-role-only; factual timelines include Support. Sparse or
+  patch-unsafe cohorts publish no population claim. Rebuilds use retained evidence and make no
+  provider calls.
 - Entitlement is read only through `scope.entitled` by history selection, rebuilds and
   projections. Acquisition, features, roles, metrics and insights never read it.
 - Mobile reads use persisted state only and never enqueue work.

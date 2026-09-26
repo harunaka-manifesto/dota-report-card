@@ -229,6 +229,31 @@ class InsightView(BaseModel):
     cards: list[InsightCardView]
 
 
+class ItemTimingComparisonView(BaseModel):
+    kind: Literal["POPULATION_USUAL", "PERSONAL_PREVIOUS_BEST", "PERSONAL_USUAL"]
+    baseline_seconds: int
+    delta_seconds: int
+    sample_size: int
+    cohort_patch: str
+
+
+class ItemTimingView(BaseModel):
+    item_id: int
+    item_key: str
+    item_name: str
+    purchase_time_seconds: int
+    key_item_order: int
+    comparison: ItemTimingComparisonView | None
+
+
+class ItemTimingsView(BaseModel):
+    state: Readiness
+    contract_version: Literal["item-timings-v1"] | None
+    reason: str | None
+    reference_digest: str | None
+    items: list[ItemTimingView]
+
+
 class MatchView(BaseModel):
     ref: str
     mode: Mode | None
@@ -250,6 +275,7 @@ class MatchView(BaseModel):
 
 
 class MatchDetailView(MatchView):
+    item_timings: ItemTimingsView
     role_revision: int
     correction_available: bool
     # Current ownership (can change silently) versus the one-time celebration.
@@ -691,6 +717,37 @@ def _match_view(connection, row) -> MatchView:
         insights=insight, role=row["effective_role"], progression=row["progression"],
         progression_reason=row["progression_reason"],
         won=match["radiant_win"] == (row["player_slot"] < 5), players=players, metrics=metrics,
+    )
+
+
+def _item_timings_view(connection: Connection, row) -> ItemTimingsView:
+    if row["active_analysis_id"] is None:
+        terminal = row["lifecycle"] in {"UNAVAILABLE", "ACTION_REQUIRED"}
+        return ItemTimingsView(
+            state=Readiness.UNAVAILABLE if terminal else Readiness.PENDING,
+            contract_version=None,
+            reason="MATCH_" + row["lifecycle"] if terminal else None,
+            reference_digest=None,
+            items=[],
+        )
+    result = connection.scalar(select(analyses.c.result).where(
+        analyses.c.id == row["active_analysis_id"],
+    ))
+    timing = result.get("item_timings") if isinstance(result, dict) else None
+    if not isinstance(timing, dict):
+        return ItemTimingsView(
+            state=Readiness.UNAVAILABLE,
+            contract_version=None,
+            reason="ANALYSIS_VERSION",
+            reference_digest=None,
+            items=[],
+        )
+    return ItemTimingsView(
+        state=timing.get("state", "UNAVAILABLE"),
+        contract_version=timing.get("contract_version"),
+        reason=timing.get("reason"),
+        reference_digest=timing.get("reference_digest"),
+        items=timing.get("items", []),
     )
 
 
@@ -1241,6 +1298,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 events.c.payload["match_id"].astext == str(row["match_id"]),
             )))
             return MatchDetailView(**_match_view(connection, row).model_dump(),
+                item_timings=_item_timings_view(connection, row),
                 role_revision=row["role_revision"],
                 correction_available=correction_available(
                     connection, profile_id=profile["id"], match_id=row["match_id"],

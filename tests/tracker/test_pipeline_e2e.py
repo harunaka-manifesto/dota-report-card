@@ -50,6 +50,10 @@ async def test_stage_one_to_terminal_replay_and_mobile_ready(database, redis_cli
     assert stage_one.status_code == 200
     assert stage_one.json()["facts"] == "AVAILABLE"
     assert stage_one.json()["performance"] == "PENDING"
+    assert stage_one.json()["item_timings"] == {
+        "state": "PENDING", "contract_version": None, "reason": None,
+        "reference_digest": None, "items": [],
+    }
     assert stage_one.json()["role"] in {"CARRY", "MID", "OFFLANE", "SUPPORT"}
     assert stage_one.json()["metrics"] == []
 
@@ -85,6 +89,13 @@ async def test_stage_one_to_terminal_replay_and_mobile_ready(database, redis_cli
     assert ready.json()["performance"] == "AVAILABLE"
     assert ready.json()["progression"] == "STANDARD"
     assert ready.json()["metrics"]
+    timings = ready.json()["item_timings"]
+    assert timings["state"] == "AVAILABLE"
+    assert timings["contract_version"] == "item-timings-v1"
+    assert timings["items"] == sorted(
+        timings["items"], key=lambda item: (item["purchase_time_seconds"], item["item_id"]),
+    )
+    assert all(item["comparison"] is None for item in timings["items"])
     if not parsed:
         assert any(metric["state"] == "NOT_AVAILABLE" for metric in ready.json()["metrics"])
     assert requests == (["POST", "GET"] if parsed else ["POST", "GET", "GET"])

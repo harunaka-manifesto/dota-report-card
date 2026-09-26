@@ -1,7 +1,7 @@
 # Feature ↔ Data Dependency Matrix
 
 **Status:** ACTIVE — authoritative for readiness classification
-**Last updated:** 2026-09-20
+**Last updated:** 2026-09-26
 **Scope:** For every product block, the minimum evidence that must exist before it can be considered ready, what it does while waiting, and what it does when that evidence will never arrive.
 **Depends on:** [`MATCH-INGESTION-AND-LIFECYCLE.md`](MATCH-INGESTION-AND-LIFECYCLE.md) §3 · [`PROVIDER-CAPABILITIES-AND-ROUTING.md`](PROVIDER-CAPABILITIES-AND-ROUTING.md) §4
 
@@ -90,6 +90,8 @@ Metric definitions are owned by [`../app_foundation/SSOT.md`](../app_foundation/
 | Personal Best state and `NEW_PB` | [`app_foundation`](../app_foundation/SSOT.md) §12 | **Final** + **History** | no | no | not shown | no PB evaluation for N/A metrics |
 | Progression eligibility + reason | [`app_foundation`](../app_foundation/SSOT.md) §6 | **Final** | no | no | not shown | stated with reason |
 | Insight cards (all 17 types) | [`match_detail`](../match_detail/SSOT.md) §5 | **Replay** → **Final** | no | no | pending affordance | **the normal no-card state** |
+| Item timing facts (key-item timeline) | [`match_detail`](../match_detail/SSOT.md) §3A.9 · [`ITEM-TIMINGS-V1`](../match_detail/ITEM-TIMINGS-V1.md) | **Replay** → **Final** | no | no | `item_timings.state = PENDING` while analysis runs | `UNAVAILABLE` without purchase evidence or compatible analysis; `AVAILABLE` with an empty list when no key item was bought |
+| Item timing comparisons | [`ITEM-TIMINGS-V1`](../match_detail/ITEM-TIMINGS-V1.md) | **Final**; **History** for personal comparisons | no | no | pending with the timeline | factual timing only (`comparison: null`) when population or personal gates do not qualify; Support is always factual-only |
 | Edit Role action | [`match_detail`](../match_detail/SSOT.md) §6 | **Summary** | no | n/a | available | "correction unavailable" if retained data no longer supports a rebuild |
 
 **Note on insight cards.** Every V1 card family — lead story, lane story, hidden enemy activity, power spikes and item timings, structure contradiction — is derived from replay-class evidence. A `REPLAY_UNAVAILABLE` match therefore renders the **normal, no-special-insight state**, which the product already defines as the majority experience ([`../match_detail/SSOT.md`](../match_detail/SSOT.md) §5.2). It is not an error and needs no special copy.

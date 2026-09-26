@@ -1,4 +1,4 @@
-"""Deterministic post-match insight primitives, versioned by the frozen V1 contract."""
+"""Deterministic post-match insight primitives, versioned by CONTRACT_VERSION."""
 
 from __future__ import annotations
 
@@ -9,8 +9,7 @@ from typing import Any, TypedDict, cast
 
 from app.tracker import item_references
 
-CONTRACT_VERSION = "post-match-insights 1.0.0"
-ITEM_CONTRACT_VERSION = "post-match-insights 2.0.0"
+CONTRACT_VERSION = "post-match-insights 2.0.0"
 TIER_B_VERSION = "tier-b-match-shape 2.0"
 LEAVERS = frozenset(
     {
@@ -41,7 +40,6 @@ TIE_ORDER = (
     "ENEMY_SMOKE_VOLUME",
     "ENEMY_STACKING",
     "LEAD_ERODED",
-    "OWN_ITEM_VS_HISTORY",
     "VISION_QUICK_CLEARS",
     "CLOSE_MOST_OF_GAME",
     "LEAD_FLIP",
@@ -49,35 +47,12 @@ TIE_ORDER = (
     "ENEMY_EARLY_RICH",
     "OPP_START_VS_HISTORY",
     "LATE_REVERSAL",
-    "ENEMY_EARLY_ITEM",
-    "ENEMY_HERO_ITEM_V2",
-    "OWN_HERO_ITEM_RECORD_V2",
+    "ENEMY_HERO_ITEM",
+    "OWN_HERO_ITEM",
     "VISION_REGION_SWEEP",
 )
-OWN_ITEMS = (
-    ("item_black_king_bar", "Black King Bar"),
-    ("item_blink", "Blink Dagger"),
-    ("item_radiance", "Radiance"),
-    ("item_hand_of_midas", "Hand of Midas"),
-    ("item_manta", "Manta Style"),
-    ("item_desolator", "Desolator"),
-    ("item_bfury", "Battle Fury"),
-    ("item_maelstrom", "Maelstrom"),
-    ("item_ultimate_scepter", "Aghanim's Scepter"),
-    ("item_orchid", "Orchid Malevolence"),
-)
-ENEMY_ITEMS = (
-    ("item_black_king_bar", "Black King Bar", (1288, 639), (1718, 930)),
-    ("item_blink", "Blink Dagger", (593, 267), (879, 450)),
-    ("item_manta", "Manta Style", (936, 462), (1372, 689)),
-    ("item_bfury", "Battle Fury", (721, 348), (945, 498)),
-    ("item_radiance", "Radiance", (826, 391), (1079, 558)),
-    ("item_desolator", "Desolator", (838, 389), (1280, 632)),
-    ("item_maelstrom", "Maelstrom", (669, 307), (915, 470)),
-    ("item_orchid", "Orchid Malevolence", (761, 363), (1330, 662)),
-)
 CLASS1 = frozenset({"COMEBACK_WIN", "LOST_FROM_AHEAD"})
-CLASS3 = frozenset({"ENEMY_EARLY_ITEM", "ENEMY_HERO_ITEM_V2", "VISION_REGION_SWEEP"})
+CLASS3 = frozenset({"ENEMY_HERO_ITEM", "VISION_REGION_SWEEP"})
 PHASE_EDGES = {"STANDARD": (20, 30, 40), "TURBO": (14, 20, 26)}
 START = {"STANDARD": 10, "TURBO": 8}
 REF = {
@@ -925,106 +900,7 @@ def _team_cards(match: dict[str, Any], team: str, L: list[int]) -> list[dict[str
             )
             if card:
                 cards.append(card)
-    core_opponents = []
-    for player in teams[enemy]:
-        position = player.get("position")
-        position = (
-            int(position[-1]) if isinstance(position, str) and position[-1:].isdigit() else position
-        )
-        if position in {1, 2, 3}:
-            core_opponents.append((position, player))
-    if match.get("subpatch") == item_references.CURRENT_PATCH:
-        cards.extend(_enemy_item_v2(match, core_opponents))
-    elif match.get("major_patch") and len(core_opponents) == 3 and all(
-        isinstance(player.get("itemPurchases"), list) for _, player in core_opponents
-    ):
-        best = None
-        for item, label, standard, turbo in ENEMY_ITEMS:
-            p5, typical = standard if bucket == "STANDARD" else turbo
-            purchases = []
-            for position, player in core_opponents:
-                times = [
-                    row["time"]
-                    for row in player["itemPurchases"]
-                    if isinstance(row, dict)
-                    and row.get("item") == item
-                    and type(row.get("time")) is int
-                ]
-                if times:
-                    purchases.append((min(times), position, player.get("heroId")))
-            if not purchases:
-                continue
-            time, position, hero = min(purchases)
-            margin = (p5 - time) / p5
-            if best is None or margin > best[0]:
-                best = (margin, item, label, time, position, hero, typical)
-        if best and best[0] >= 0.10:
-            margin, item, label, time, position, hero, typical = best
-            card = _ladder_card(
-                "ENEMY_EARLY_ITEM",
-                margin,
-                (0.10, 0.15, 0.22),
-                {
-                    "item": item,
-                    "item_name": label,
-                    "time": time,
-                    "position": position,
-                    "hero": hero,
-                    "typical_core_time": typical,
-                },
-                family="Power Spikes & Item Timings",
-                copy=f"Their {label} was bought at {_clock(time)}, about {max(0, round((typical - time) / 60))} minutes earlier than a typical core {label}.",
-            )
-            if card:
-                cards.append(card)
     return cards
-
-
-def _enemy_item_v2(
-    match: dict[str, Any], core_opponents: list[tuple[int, dict[str, Any]]]
-) -> list[dict[str, Any]]:
-    if len(core_opponents) != 3 or any(
-        not isinstance(player.get("itemPurchases"), list) for _, player in core_opponents
-    ):
-        return []
-    mode = match["bucket"]
-    margin_seconds = 60 if mode == "STANDARD" else 30
-    best: tuple[float, dict[str, Any]] | None = None
-    for position, player in core_opponents:
-        hero = player.get("heroId")
-        if type(hero) is not int:
-            continue
-        role = {1: "CARRY", 2: "MID", 3: "OFFLANE"}[position]
-        first: dict[str, int] = {}
-        for row in player["itemPurchases"]:
-            if isinstance(row, dict) and row.get("item") in item_references.ITEM_BY_KEY and type(row.get("time")) is int:
-                item = row["item"]
-                first[item] = min(first.get(item, row["time"]), row["time"])
-        for item, time in first.items():
-            ref = item_references.reference(match.get("subpatch"), mode, hero, role, item)
-            if not ref or ref["p10"] - time < margin_seconds or time > .9 * ref["p10"]:
-                continue
-            score = (ref["p10"] - time) / ref["p10"]
-            slots = {
-                "hero": hero, "role": role, "position": position,
-                "item": item, "item_name": ref["item_name"], "time": time,
-                "reference_p10": ref["p10"], "reference_median": ref["median"],
-                "reference_purchases": ref["purchases"],
-                "reference_digest": item_references.artifact()[1],
-            }
-            if best is None or score > best[0]:
-                best = (score, slots)
-    if best is None:
-        return []
-    score, slots = best
-    card = _ladder_card(
-        "ENEMY_HERO_ITEM_V2", score, (.10, .15, .22), slots,
-        family="Power Spikes & Item Timings",
-        copy=(f"Their {slots['item_name']} was bought at {_clock(slots['time'])}; "
-              f"the median for this hero as {slots['role'].title()} is "
-              f"{_clock(slots['reference_median'])}."),
-    )
-    return [card] if card else []
 
 
 def _region(x: int, y: int, side: str) -> str:
@@ -1544,100 +1420,7 @@ def _history_cards(
                         copy=f"Their hero had {value} last hits by {_clock(late * 60)}: the most an opposing {role.title()} has had against you across your last {len(window)} {bucket.title()} matches.",
                     )
                 )
-    purchases = player.get("itemPurchases")
-    if match.get("subpatch") == item_references.CURRENT_PATCH:
-        cards.extend(_own_item_v2(match, player, role, history))
-    elif isinstance(purchases, list) and match.get("major_patch"):
-        for item, label in OWN_ITEMS:
-            times = [
-                row["time"]
-                for row in purchases
-                if isinstance(row, dict)
-                and row.get("item") == item
-                and type(row.get("time")) is int
-            ]
-            if not times:
-                continue
-            time = min(times)
-            window = _history_window(
-                match,
-                history,
-                metric="FIRST_PURCHASE",
-                role=role,
-                item=item,
-                patch=match["major_patch"],
-            )
-            margin = 60 if bucket == "STANDARD" else 30
-            if len(window) < 20 or time > min(window) - margin:
-                continue
-            extreme = min(window) - time >= (120 if bucket == "STANDARD" else 60)
-            band = _history_band(len(window), extreme)
-            cards.append(
-                _card(
-                    "OWN_ITEM_VS_HISTORY",
-                    "A",
-                    "Power Spikes & Item Timings",
-                    {
-                        "item": item,
-                        "item_name": label,
-                        "time": time,
-                        "previous_fastest": min(window),
-                        "window_median": statistics.median(window),
-                        "N": len(window),
-                        "hero": player.get("heroId"),
-                    },
-                    band,
-                    copy=f"Your {label} at {_clock(time)} was fastest across your last {len(window)} {bucket.title()} {role.title()} {label} purchases (previous {_clock(int(min(window)))}).",
-                )
-            )
-            break
     return cards
-
-
-def _own_item_v2(
-    match: dict[str, Any], player: dict[str, Any], role: str,
-    history: dict[str, Any] | None,
-) -> list[dict[str, Any]]:
-    purchases = player.get("itemPurchases")
-    hero = player.get("heroId")
-    if not isinstance(purchases, list) or type(hero) is not int or role not in {"CARRY", "MID", "OFFLANE"}:
-        return []
-    mode = match["bucket"]
-    margin = 60 if mode == "STANDARD" else 30
-    best: tuple[int, dict[str, Any]] | None = None
-    for item, label in item_references.ITEM_BY_KEY.items():
-        ref = item_references.reference(match.get("subpatch"), mode, hero, role, item)
-        if ref is None:
-            continue
-        times = [row["time"] for row in purchases if isinstance(row, dict)
-                 and row.get("item") == item and type(row.get("time")) is int]
-        if not times:
-            continue
-        time = min(times)
-        window = _history_window(match, history, metric="FIRST_PURCHASE", role=role,
-                                 item=item, patch=match.get("major_patch"), hero=hero)
-        if len(window) < 20 or min(window) - time < margin:
-            continue
-        previous = min(window)
-        slots = {
-            "hero": hero, "role": role, "item": item, "item_name": label,
-            "time": time, "previous_fastest": previous,
-            "window_median": statistics.median(window), "N": len(window),
-            "reference_digest": item_references.artifact()[1],
-        }
-        if best is None or previous - time > best[0]:
-            best = (int(previous - time), slots)
-    if best is None:
-        return []
-    difference, slots = best
-    extreme = difference >= (120 if mode == "STANDARD" else 60)
-    return [_card(
-        "OWN_HERO_ITEM_RECORD_V2", "A", "Power Spikes & Item Timings", slots,
-        _history_band(slots["N"], extreme),
-        copy=(f"Your {slots['item_name']} at {_clock(slots['time'])} was faster than "
-              f"your previous {_clock(int(slots['previous_fastest']))} best across "
-              f"{slots['N']} prior {mode.title()} {role.title()} purchases on this hero."),
-    )]
 
 
 def _attach_optional_history(
@@ -1651,7 +1434,6 @@ def _attach_optional_history(
         "ENEMY_STACKING": "STACKS",
         "ENEMY_EARLY_RICH": "GOAL_MINUTE",
         "ENEMY_SMOKE_VOLUME": "SMOKE_RATE",
-        "ENEMY_EARLY_ITEM": "ENEMY_ITEM_TIME",
     }
     for card in cards:
         metric = metrics.get(card["candidate_id"])
@@ -1668,7 +1450,6 @@ def _attach_optional_history(
                 "STACKS": "enemy",
                 "GOAL_MINUTE": "minute",
                 "SMOKE_RATE": "rate",
-                "ENEMY_ITEM_TIME": "time",
             }[metric]
         )
         window = _history_window(match, history, metric=metric, role=None, item=item, patch=patch)
@@ -1688,31 +1469,16 @@ def _attach_optional_history(
             if record:
                 card["history_line"] = f"The enemy teams you faced used Smoke at a higher rate than in any of your last {n} {bucket.title()} matches."
                 continue
-        if n >= 20 and metric == "ENEMY_ITEM_TIME":
-            margin = 60 if bucket == "STANDARD" else 30
-            record = min(window) - value >= margin
-            if record:
-                label = card["slots"].get("item_name", item)
-                amount = "1 minute" if margin == 60 else "30 seconds"
-                card["history_line"] = f"Their earliest {label} was at least {amount} earlier than in your last {n} {bucket.title()} matches."
-                continue
-        if n >= 30 and metric in {"SMOKE_RATE", "ENEMY_ITEM_TIME"}:
-            # Nearest-rank: p90 for high rates; p10 for lower item times.
+        if n >= 30 and metric == "SMOKE_RATE":
+            # Nearest-rank p90 for high rates.
             ordered = sorted(window)
-            p = 0.9 if metric == "SMOKE_RATE" else 0.1
-            nearest = ordered[max(0, math.ceil(p * n) - 1)]
-            better = sum(prior > value for prior in window) if metric == "SMOKE_RATE" else sum(prior < value for prior in window)
-            extreme = value > nearest if metric == "SMOKE_RATE" else value < nearest
-            if extreme and better < 3:
-                if metric == "SMOKE_RATE":
-                    card["history_line"] = f"One of the 3 highest enemy Smoke rates across your last {n} {bucket.title()} matches."
-                else:
-                    card["history_line"] = f"One of the 3 earliest enemy {card['slots'].get('item_name', item)} purchases across your last {n} {bucket.title()} matches."
+            nearest = ordered[max(0, math.ceil(0.9 * n) - 1)]
+            better = sum(prior > value for prior in window)
+            if value > nearest and better < 3:
+                card["history_line"] = f"One of the 3 highest enemy Smoke rates across your last {n} {bucket.title()} matches."
                 continue
         if metric == "GOAL_MINUTE":
             median_copy = _clock(round(statistics.median(window) * 60))
-        elif metric == "ENEMY_ITEM_TIME":
-            median_copy = _clock(round(statistics.median(window)))
         elif metric == "SMOKE_RATE":
             median_copy = f"{statistics.median(window):.2f} per 10 minutes"
         else:
@@ -1744,10 +1510,10 @@ def evaluate(
     history: dict[str, Any] | None = None,
     *,
     cards: list[dict[str, Any]] | None = None,
+    additional_cards: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    v2 = match.get("subpatch") == item_references.CURRENT_PATCH
-    version = ITEM_CONTRACT_VERSION if v2 else CONTRACT_VERSION
-    metadata = {"item_reference_digest": item_references.artifact()[1]} if v2 else {}
+    version = CONTRACT_VERSION
+    metadata = {"item_reference_digest": item_references.artifact()[1]}
     reason = global_ineligibility(match)
     if reason is None and any(
         not isinstance(p.get("deathEvents"), list) for p in (_players(match) or [])
@@ -1764,6 +1530,9 @@ def evaluate(
         }
     if cards is None and viewer is not None:
         cards = _candidates(match, viewer, history)
+    if additional_cards:
+        # Item cards come from item_timings, which owns the population references.
+        cards = [*(cards or []), *additional_cards]
     return {
         "status": "EVALUATED",
         "contract_version": version,
@@ -1823,8 +1592,8 @@ def from_provider_snapshot(
             item_used = raw_stats.get("itemUsed")
             wards = raw_stats.get("wards")
             ward_destruction = raw_stats.get("wardDestruction")
-            item_purchases = item_references.normalize_purchases(
-                raw_stats.get("itemPurchases"), "stratz", summary["mode"]
+            key_item_purchases = item_references.normalize_key_item_purchases(
+                raw_stats.get("itemPurchases"), "stratz", summary["duration_seconds"]
             )
             playback = native.get("playbackData")
             position_raw = native.get("position")
@@ -1843,8 +1612,8 @@ def from_provider_snapshot(
             wards = None
             ward_destruction = None
             playback = None
-            item_purchases = item_references.normalize_purchases(
-                raw_stats.get("purchase_log"), "opendota", summary["mode"]
+            key_item_purchases = item_references.normalize_key_item_purchases(
+                raw_stats.get("purchase_log"), "opendota", summary["duration_seconds"]
             )
             position_raw = None
             lane = None
@@ -1894,8 +1663,8 @@ def from_provider_snapshot(
             "stats": stats,
             "deathEvents": deaths if isinstance(deaths, list) else None,
         }
-        if isinstance(item_purchases, list):
-            player["itemPurchases"] = item_purchases
+        if isinstance(key_item_purchases, list):
+            player["keyItemPurchases"] = key_item_purchases
         if isinstance(playback, dict):
             player["playbackData"] = playback
         if stacks is not None and all(type(value) is int for value in stacks):
@@ -1997,18 +1766,15 @@ def derive_history_observations(
             ):
                 add("COUNTERPART_CS", sum(hits[:late]))
 
-    purchases = own.get("itemPurchases")
-    if isinstance(purchases, list):
-        eligible_items = (
-            tuple(item_references.ITEM_BY_KEY.items()) if major_patch == "7.41" else OWN_ITEMS
-        )
-        for item, _label in eligible_items:
-            times = [
-                row["time"] for row in purchases
-                if isinstance(row, dict) and row.get("item") == item and type(row.get("time")) is int
-            ]
-            if times:
-                add("FIRST_PURCHASE", min(times), item=item)
+    key_purchases = own.get("keyItemPurchases")
+    if isinstance(key_purchases, list):
+        for purchase in key_purchases:
+            if (
+                isinstance(purchase, dict)
+                and isinstance(purchase.get("item_key"), str)
+                and type(purchase.get("purchase_time_seconds")) is int
+            ):
+                add("FIRST_KEY_ITEM_PURCHASE", purchase["purchase_time_seconds"], item=purchase["item_key"])
 
     if bucket == "STANDARD" and match["duration_seconds"] >= 1200:
         if all(
@@ -2047,18 +1813,6 @@ def derive_history_observations(
     if goal_minutes:
         add("GOAL_MINUTE", min(goal_minutes))
 
-    enemy_cores = [
-        player for player in players if player["team"] == enemy
-        and player.get("position") in {"POSITION_1", "POSITION_2", "POSITION_3", 1, 2, 3}
-    ]
-    if len(enemy_cores) == 3 and all(isinstance(player.get("itemPurchases"), list) for player in enemy_cores):
-        for item, _label, _standard, _turbo in ENEMY_ITEMS:
-            times = [
-                row["time"] for player in enemy_cores for row in player["itemPurchases"]
-                if isinstance(row, dict) and row.get("item") == item and type(row.get("time")) is int
-            ]
-            if times:
-                add("ENEMY_ITEM_TIME", min(times), item=item)
     return observations
 
 
