@@ -28,6 +28,8 @@ These are observable UI labels and official walkthroughs, not copied strings for
 
 The app must never turn timing into a win-cause claim. An item card reports a recorded purchase and a scoped reference. It does not say the purchase completed a build, won a fight, or was the right choice. Do not call a low sample “usual.” Preserve placeholders, formatting markers, Standard/Turbo distinctions, role, hero, patch and evidence status.
 
+In the player-facing bank, avoid terms that describe the calculation rather than the match: *median*, *baseline*, *metric*, *scope*, *measured* and *eligible*. For item timing, say when a hero who **buys that item** usually gets it, with the role and mode in the sentence. Keep the underlying median and purchase-only scope in the internal definition. Empty states should name the missing match detail or next action instead of exposing a pipeline state.
+
 ## Editorial decision
 
 Apply [Option 2 — Friendly teammate](TONE-OPTION-2-FRIENDLY-TEAMMATE.md) to the Figma content bank. Options [1](TONE-OPTION-1-CALM-SCOUT.md) and [3](TONE-OPTION-3-PLAYFUL-CASTER.md) remain alternatives for review. The Figma bank is the **target copy**; backend source strings and iOS rendering are separate implementation states until synchronized.

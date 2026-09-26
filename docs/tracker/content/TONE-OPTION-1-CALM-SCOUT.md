@@ -14,7 +14,7 @@ Examples for the same facts:
 | Use | EN | ID |
 |---|---|---|
 | Comeback | Your team was down {deficit:,} gold at {minute}:00 and won. | Tim kamu tertinggal {deficit:,} gold pada {minute}:00, lalu menang. |
-| Item timing | {hero} bought {item_name} at {time}. Median for this hero as Carry in Standard: {reference_median}. | {hero} membeli {item_name} pada {time}. Median hero ini sebagai Carry di Standard: {reference_median}. |
+| Item timing | {hero} bought {item_name} at {time}. When {hero} buys this item as Carry in Standard, it's usually around {reference_median}. | {hero} membeli {item_name} pada {time}. Kalau {hero} membeli item ini saat main Carry di Standard, biasanya baru dibeli sekitar {reference_median}. |
 | Missing detail | We don't have enough match detail to calculate this. | Detail pertandingan belum cukup untuk menghitung ini. |
 
 **Rules:** use plain game vocabulary, no metaphors, no exclamation marks on analysis, and no claim that timing caused a win. Keep all numbers, qualifiers and placeholders intact. This is the safest voice but can feel distant on Home and notifications.

@@ -16,14 +16,15 @@ Examples applied to the bank:
 | Use | EN target | ID target |
 |---|---|---|
 | Comeback | Your team was down {deficit:,} gold at {minute}:00, then won. | Tim kamu tertinggal {deficit:,} gold pada {minute}:00, lalu menang. |
-| V2 enemy item | {hero} bought {item_name} at {time}. Median for this hero as Carry in Standard: {reference_median}. | {hero} membeli {item_name} pada {time}. Median hero ini sebagai Carry di Standard: {reference_median}. |
-| Baseline building | We need 5 earlier measured {mode} matches as {role} to compare this metric. | Perlu 5 match {mode} sebelumnya sebagai {role} dengan nilai terukur untuk membandingkan metrik ini. |
+| V2 enemy item | {hero} bought {item_name} at {time}. When {hero} buys this item as Carry in Standard, it's usually around {reference_median}. | {hero} membeli {item_name} pada {time}. Kalau {hero} membeli item ini saat main Carry di Standard, biasanya baru dibeli sekitar {reference_median}. |
+| Usual value still forming | We need this number from 5 earlier {mode} matches as {role} before we can show what's usual for you. | Butuh angka ini dari 5 match {mode} sebelumnya saat kamu main {role} untuk tahu biasanya. |
 | Retry | Couldn't finish this match review. Try again. | Ulasan pertandingan ini belum selesai. Coba lagi. |
 
 ## Guardrails
 
 - Never imply an item purchase caused a result, was necessarily optimal, or completed a build.
-- Preserve exact evidence limits: *at least*, median, previous fastest, sample size, patch, role and mode. Do not turn “no data” into a poor performance judgment.
+- Preserve exact evidence limits: *at least*, previous fastest, sample size, patch, role and mode. Do not turn “no data” into a poor performance judgment.
+- Keep statistical terms such as *median*, *baseline*, *metric* and *scope* in internal documentation. In player copy, explain the result in ordinary words. “Usually around” can express the median only when the sentence makes clear that it describes the same hero, role and mode **among matches where that item was bought**.
 - Use *kamu*, not *Anda* or *gue/lu*. Avoid meme slang and forced hype. Indonesian game terms stay consistent rather than being translated literally.
 - Keep placeholders exactly as specified by the code or copy contract. V1 and V2 card wording are different templates; existing V1 history stays identifiable.
 - Status is part of the SSOT: a Figma target is not a shipped iOS string until implemented.
