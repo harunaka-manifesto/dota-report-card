@@ -29,6 +29,9 @@ def test_real_ten_player_pair_summary_and_exact_checkpoints():
                 assert a["series"][name][timestamp] is not None
     assert left["players"][0]["series"]["camps_stacked"]["1200"] == 4
     assert right["players"][0]["series"]["camps_stacked"]["1200"] == 4
+    for left_player, right_player in zip(left["players"], right["players"], strict=True):
+        assert left_player["series"]["xp_earned"]["0"] == right_player["series"]["xp_earned"]["0"] == 0
+        assert left_player["series"]["xp_earned"]["600"] == right_player["series"]["xp_earned"]["600"]
 
 
 def test_real_discrepancies_quarantine_only_conflicting_points_without_mutation():
@@ -51,10 +54,12 @@ def test_missing_malformed_short_or_unparsed_series_never_become_zero():
     sz["players"][0]["stats"]["lastHitsPerMinute"] = [0, None, 1]
     sz["players"][0]["stats"]["campStack"] = [0]
     sz["players"][0]["stats"]["networthPerMinute"] = [True, 100]
+    sz["players"][0]["stats"]["experiencePerMinute"] = [50, None, 80]
     values = replay_checkpoints(sz, "stratz")["players"][0]["series"]
     assert values["last_hits"] == {"60": 0, "120": None, "180": None}
     assert values["camps_stacked"] == {"60": 0}
     assert values["net_worth"] == {"0": None, "60": 100}
+    assert values["xp_earned"] == {"0": 0, "60": 50, "120": None, "180": None}
     sz["isStats"] = False
     sz["statsDateTime"] = None
     assert all(v is None for v in replay_checkpoints(sz, "stratz")["players"][0]["series"].values())
@@ -66,6 +71,8 @@ def test_exact_time_alignment_duration_and_roster_guards():
     od, sz = pair()
     od["players"][0]["times"][1] = 0
     assert all(v is None for v in replay_checkpoints(od, "opendota")["players"][0]["series"].values())
+    od["players"][0]["times"] = [time * 60 + 60 for time in range(len(od["players"][0]["times"]))]
+    assert all(v is None for v in replay_checkpoints(od, "opendota")["players"][0]["series"]["xp_earned"].values())
     sz["durationSeconds"] = 599
     projected = replay_checkpoints(sz, "stratz")
     assert "600" not in projected["players"][0]["series"]["net_worth"]
@@ -77,6 +84,16 @@ def test_exact_time_alignment_duration_and_roster_guards():
     other["match_id"] += 1
     with pytest.raises(InvalidEvidence):
         quarantine_checkpoint_conflicts(projected, other)
+
+
+def test_historical_selection_without_minute_xp_keeps_net_worth():
+    _, sz = pair()
+    sz["players"][0]["stats"].pop("experiencePerMinute")
+    series = replay_checkpoints(sz, "stratz")["players"][0]["series"]
+    assert series["xp_earned"] is None
+    assert series["net_worth"]["600"] is not None
+    sz["players"][0]["stats"]["experiencePerMinute"] = []
+    assert replay_checkpoints(sz, "stratz")["players"][0]["series"]["xp_earned"] is None
 
 
 def test_sanitized_pair_has_no_private_identity_keys():

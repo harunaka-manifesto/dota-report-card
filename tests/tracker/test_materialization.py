@@ -120,22 +120,27 @@ def test_bad_or_mismatched_snapshot_cannot_create_partial_roster(database):
         assert c.scalar(select(func.count()).select_from(derived_features)) == 0
 
 
-def test_prior_registered_operation_still_materializes_without_new_fields(database):
+@pytest.mark.parametrize("version", ["1.0.0", "1.3.0"])
+def test_prior_registered_operation_still_materializes_without_new_fields(database, version):
     historical = raw("stratz")
     for player in historical["players"]:
         player["stats"].pop("towerDamageReport", None)
+        player["stats"].pop("experiencePerMinute", None)
         for death in player["stats"]["deathEvents"]:
             death.pop("timeDead", None)
     with database.begin() as c:
         snapshot_id = save_snapshot(c, provider="stratz", operation=GET_TRACKER_MATCH_BATCH.name,
-            operation_version="1.0.0", schema_version="raw-1", subject=f"match:{MATCH_ID}",
+            operation_version=version, schema_version="raw-1", subject=f"match:{MATCH_ID}",
             fetched_at=datetime.now(UTC), payload={"data": {"player": {"matches": [historical]}}})
         materialize_snapshot(c, snapshot_id=snapshot_id, match_id=MATCH_ID)
         feature = c.execute(select(derived_features).where(derived_features.c.player_slot == 0)).mappings().one()
         assert feature["features"]["events"]["dead_intervals"] is None
         assert feature["features"]["events"]["tower_damage"] is None
-        assert feature["provenance"]["operation_version"] == "1.0.0"
-    assert GET_TRACKER_MATCH_BATCH.version == "1.3.0"
+        assert feature["features"]["checkpoints"]["xp_earned"] is None
+        assert feature["provenance"]["operation_version"] == version
+    assert GET_TRACKER_MATCH_BATCH.version == "1.4.0"
+    assert GET_TRACKER_MATCH_BATCH.document_sha256 == "1f8bbd27cedcb802d74d36431788a319f64df4b08cef623e898f06eecf4476cc"
     assert "gameVersionId" in GET_TRACKER_MATCH_BATCH.document
+    assert "networthPerMinute experiencePerMinute lastHitsPerMinute" in GET_TRACKER_MATCH_BATCH.document
     assert "deathEvents { time timeDead }" in GET_TRACKER_MATCH_BATCH.document
     assert "towerDamageReport { npcId damage }" in GET_TRACKER_MATCH_BATCH.document

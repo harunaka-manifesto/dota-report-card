@@ -64,6 +64,13 @@ Metric definitions are owned by [`../app_foundation/SSOT.md`](../app_foundation/
 | `support.vision_denial.v1` | **Replay** | Needs the ward destruction stream. |
 | `support.camps_stacked.v1` | **Replay** | Needs the cumulative series at exactly 20:00 — a final total is **not** a substitute ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §7.2). |
 
+The factual Offlane Match Detail laning panels are separate from role metrics. Both require a
+unique enemy Carry and real minute checkpoints. Net worth reads the existing replay trajectory;
+XP reads cumulative experience earned since 0:00. The panels have independent readiness and
+do not enter progression, baselines, or Personal Bests. Historical batch version 1.4
+requests minute XP in its existing call; older retained history without that field
+has no XP panel and is not refetched.
+
 **Consequences, normative:**
 
 1. A `REPLAY_UNAVAILABLE` match produces **N/A with a reason** for its replay-class metrics. Never zero, never omitted silently, never substituted ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §8).

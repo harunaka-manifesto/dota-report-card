@@ -14,6 +14,8 @@ and its CI diff check are untouched. Resource design and state projections are s
   roles, Free/Pro, switch cooldown, deletion, data access, sync error). They are compared, never
   overwritten; a contract change adds a new versioned directory. Item-timing responses belong in
   `tests/fixtures/tracker/mobile-v1-item-timings-v1/`; preserve the existing goldens.
+  The additive offlane context response belongs in
+  `tests/fixtures/tracker/mobile-v1-offlane-context-v1/`.
 - Local data: `make seed-demo` creates the same personas without provider calls.
 
 ## Conventions
@@ -65,6 +67,40 @@ ItemTimingComparisonView
 - `delta_seconds` is the positive number of seconds earlier than the stated baseline. `sample_size` is the population reference's `purchase_count` (the hero/role/mode/item cohort's first-purchase count) for population evidence, or the strictly prior comparable personal-match count for personal evidence. `cohort_patch` is the reference artifact's major patch for population evidence (references pool unaffected earlier lettered updates) and the major-patch cohort for personal history.
 - Item names come from backend catalog data. Localized headings, comparison sentences and evidence lines live in the content bank, not this response.
 
+## Match Detail: offlane laning context
+
+`GET /mobile/v1/matches/{match_ref}` adds `offlane_context` for the effective Offlane role;
+other roles receive `null`. The block is frozen in the finalized analysis and reads make no
+provider requests. Role correction rebuilds it from retained evidence.
+
+```text
+OfflaneContextView
+  contract_version: "offlane-context-v1"
+  enemy_carry_hero_id: integer | null
+  net_worth: OfflanePanelView
+  xp: OfflanePanelView
+
+OfflanePanelView
+  state: AVAILABLE | PENDING | UNAVAILABLE
+  reason: string | null
+  points: OfflaneMinuteView[]
+
+OfflaneMinuteView
+  time_seconds: integer        // 0, 60, …, 600
+  you: integer
+  enemy_carry: integer
+  difference: integer          // you - enemy_carry
+```
+
+The two panels have independent readiness. Net worth is the value at the stated minute; XP is
+earned since 0:00. A positive difference means the offlaner is ahead. Points are exact and
+may be partial for a short match or missing evidence; no interpolation is permitted. An
+ambiguous enemy Carry makes both panels unavailable. The client uses a fixed 0–10 minute X
+axis with one-minute snapping and fits each Y axis symmetrically about zero. Detected fights
+are outside this version's contract pending the recorded coverage gate. Historical batches
+from version 1.4 request minute XP in the existing call; older retained evidence may leave
+only the XP panel unavailable.
+
 ### Item insight cards
 
 `ENEMY_HERO_ITEM` and `OWN_HERO_ITEM` are the two item insight-card template IDs, both under the
@@ -74,7 +110,7 @@ is the viewer's own best-qualifying purchase (population or previous-best), and 
 is the best-qualifying population purchase among enemy positions 1–3. See
 [`ITEM-TIMINGS-V1.md`](../match_detail/ITEM-TIMINGS-V1.md) for full card-eligibility rules.
 
-The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because this is an additive Match Detail field with its own `item-timings-v1` contract version.
+The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1` and `offlane-context-v1` contract versions.
 
 Server-to-server routes (`/store/app-store/notifications`) and the operations readout
 (`/internal/tracker`) are separate applications without a mobile OpenAPI entry.

@@ -1,0 +1,183 @@
+{
+  "/account": {
+    "body": {
+      "identity_methods": [
+        "google"
+      ],
+      "revision": 0,
+      "scope": "FREE",
+      "state": "ACTIVE",
+      "steam_linked": false
+    },
+    "status": 200
+  },
+  "/account/steam-switch/preflight": {
+    "body": {
+      "available": false,
+      "cause": "NO_ACTIVE_STEAM_PROFILE",
+      "days_remaining": 0
+    },
+    "status": 200
+  },
+  "/bootstrap": {
+    "body": {
+      "modes": [
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "STANDARD",
+          "outcome": "NO_STEAM_LINKED",
+          "settled_count": 0,
+          "status": "NOT_STARTED"
+        },
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "TURBO",
+          "outcome": "NO_STEAM_LINKED",
+          "settled_count": 0,
+          "status": "NOT_STARTED"
+        }
+      ]
+    },
+    "status": 200
+  },
+  "/coverage?mode=STANDARD": {
+    "body": {
+      "intervals": [],
+      "mode": "STANDARD"
+    },
+    "status": 200
+  },
+  "/history-operation": {
+    "body": {
+      "access_recovery": "NONE",
+      "bootstrap": [
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "STANDARD",
+          "outcome": "NO_STEAM_LINKED",
+          "settled_count": 0,
+          "status": "NOT_STARTED"
+        },
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "TURBO",
+          "outcome": "NO_STEAM_LINKED",
+          "settled_count": 0,
+          "status": "NOT_STARTED"
+        }
+      ],
+      "data_access": "UNKNOWN",
+      "history_import": "NONE",
+      "scope_change": "NONE",
+      "target_scope": null
+    },
+    "status": 200
+  },
+  "/history?mode=STANDARD": {
+    "body": {
+      "matches": [],
+      "next_cursor": null
+    },
+    "status": 200
+  },
+  "/history?mode=TURBO": {
+    "body": {
+      "matches": [],
+      "next_cursor": null
+    },
+    "status": 200
+  },
+  "/home?mode=STANDARD&time_zone=UTC": {
+    "body": {
+      "challenge": {
+        "reason": "NOT_CONTRACTED",
+        "state": "UNAVAILABLE"
+      },
+      "focus": {
+        "reason": "NOT_CONTRACTED",
+        "state": "UNAVAILABLE"
+      },
+      "last_matches": [],
+      "local_date": "<date>",
+      "mode": "STANDARD",
+      "role_summaries": [],
+      "today_matches": []
+    },
+    "status": 200
+  },
+  "/profile?mode=STANDARD": {
+    "body": {
+      "code": "STEAM_LINK_REQUIRED",
+      "detail": "steam link required",
+      "request_id": "<request_id>",
+      "status": 409,
+      "title": "Steam Link Required",
+      "type": "about:blank"
+    },
+    "status": 409
+  },
+  "/profile?mode=TURBO": {
+    "body": {
+      "code": "STEAM_LINK_REQUIRED",
+      "detail": "steam link required",
+      "request_id": "<request_id>",
+      "status": 409,
+      "title": "Steam Link Required",
+      "type": "about:blank"
+    },
+    "status": 409
+  },
+  "/progress?mode=STANDARD&role=SUPPORT&metric_id=support.camps_stacked.v1": {
+    "body": {
+      "metric_id": "support.camps_stacked.v1",
+      "mode": "STANDARD",
+      "personal_best": null,
+      "points": [],
+      "role": "SUPPORT",
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      }
+    },
+    "status": 200
+  },
+  "/readiness": {
+    "body": {
+      "data_access": "UNKNOWN",
+      "last_checked_at": null,
+      "state": "IDLE"
+    },
+    "status": 200
+  },
+  "/recovery": {
+    "body": {
+      "data_access": "UNKNOWN",
+      "identity_recovery": "UNAVAILABLE",
+      "identity_recovery_reason": "NOT_CONTRACTED"
+    },
+    "status": 200
+  },
+  "/settings": {
+    "body": {
+      "notifications_enabled": false
+    },
+    "status": 200
+  },
+  "/subscription": {
+    "body": {
+      "auto_renew": null,
+      "billing_state": "NONE",
+      "expires_at": null,
+      "scope": "FREE",
+      "scope_change": "NONE",
+      "scope_revision": 0,
+      "target_scope": null
+    },
+    "status": 200
+  }
+}

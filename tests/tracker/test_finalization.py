@@ -8,7 +8,8 @@ from app.tracker.finalization import (
 from app.tracker.jobs import claim, enqueue
 from app.tracker.materialization import materialize_snapshot
 from app.tracker.metrics import metric_ids
-from app.tracker.mobile_api import _match_view
+from app.tracker.mobile_api import _match_view, _offlane_context_view
+from app.tracker.role_correction import correct_role
 from app.tracker.schema import (
     account_matches,
     analyses,
@@ -98,6 +99,27 @@ def test_terminal_analysis_publishes_once_from_retained_source(database):
         assert c.scalar(select(func.count()).select_from(insight_results)) == 1
         assert c.scalar(select(func.count()).select_from(metric_observations)) == metric_count
         assert c.scalar(select(func.count()).select_from(events)) == 1
+
+
+def test_offlane_match_detail_is_pending_then_reads_frozen_context(database):
+    profile_id = _ready_link(database)
+    with database.begin() as connection:
+        connection.execute(account_matches.update().values(effective_role="OFFLANE"))
+        link = connection.execute(select(account_matches)).mappings().one()
+        pending = _offlane_context_view(connection, link)
+        assert pending is not None
+        assert pending.net_worth.state == pending.xp.state == "PENDING"
+    assert _run(database, profile_id) == "READY"
+    with database.begin() as connection:
+        correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
+                     role="OFFLANE", expected_role_revision=0)
+    with database.connect() as connection:
+        link = connection.execute(select(account_matches)).mappings().one()
+        view = _offlane_context_view(connection, link)
+        persisted = connection.scalar(select(analyses.c.result).where(
+            analyses.c.id == link["active_analysis_id"],
+        ))["offlane_context"]
+        assert view is not None and view.model_dump() == persisted
 
 
 def test_replay_unavailable_still_finalizes_with_reasoned_na_metrics(database):

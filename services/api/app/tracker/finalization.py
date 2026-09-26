@@ -23,6 +23,7 @@ from .item_timings import insight_cards as item_timing_insight_cards
 from .jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from .materialization import FEATURE_VERSION, _match_payload
 from .metrics import LOWER_IS_BETTER, measure, metric_ids
+from .offlane_context import evaluate as evaluate_offlane_context
 from .population_parameters import current_context_parameters
 from .roles import ROLES
 from .schema import (
@@ -46,7 +47,7 @@ from .schema import (
 )
 from .scope import entitled as entitled_history
 
-ANALYSIS_VERSION = "tracker-analysis-2"
+ANALYSIS_VERSION = "tracker-analysis-3"
 
 
 def enqueue_finalization(connection: Connection, *, profile_id: str, match_id: int) -> str:
@@ -291,6 +292,10 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
     position_map = _positions(connection, link)
     integrity = player.get("integrity", {}).get("verdict")
     quarantined = match["quarantined_fields"] or []
+    offlane_context = evaluate_offlane_context(
+        features, viewer=link["player_slot"], positions=position_map,
+        duration=match["duration_seconds"], quarantined=quarantined,
+    ) if link["effective_role"] == "OFFLANE" else None
     if any(path in {"duration_seconds", "mode", "game_mode", "lobby_type"} or
            (isinstance(path, str) and path.endswith(".leaver_status")) for path in quarantined):
         integrity = "UNKNOWN"
@@ -380,13 +385,15 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         "progression": eligibility.progression, "metric_rows": metric_rows,
         "insight_result": insight,
         "item_timings": item_timings,
+        "offlane_context": offlane_context,
         "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
         "lane_context": lane_context,
     })).hexdigest()
     return {"eligibility": eligibility, "insight": insight, "metric_rows": metric_rows,
             "pb_rows": pb_rows, "inputs_digest": inputs_digest,
             "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
-            "lane_context": lane_context, "item_timings": item_timings}
+            "lane_context": lane_context, "item_timings": item_timings,
+            "offlane_context": offlane_context}
 
 
 def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
@@ -395,6 +402,7 @@ def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
             "insight_contract_version": built["insight"]["contract_version"],
             "item_reference_digest": built["insight"].get("item_reference_digest"),
             "item_timings": built["item_timings"],
+            "offlane_context": built["offlane_context"],
             "parameter_set_version": built["parameter_set_version"],
             "lane_context": built["lane_context"]}
 

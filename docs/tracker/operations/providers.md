@@ -48,7 +48,8 @@ stable static egress IP (see [deployment notes](deployment-notes.md)).
 
 STRATZ prices a query by its selection shape, not by `take`; the cap is 310,000. Any change to
 `GetTrackerMatchBatch` must be re-measured live (a 50-ID batch of 1.2.0 was accepted on
-2026-09-25; 1.1.0 was rejected at 316,102). A disabled STRATZ gate hands historical batches to the
+2026-09-25; 1.1.0 was rejected at 316,102; the 1.4.0 selection adding minute XP returned
+HTTP 200 without GraphQL errors on 2026-09-27, with no numeric complexity exposed). A disabled STRATZ gate hands historical batches to the
 per-match OpenDota summary route.
 
 ## Budgets and the live call ledger

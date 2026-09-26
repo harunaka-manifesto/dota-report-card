@@ -254,6 +254,26 @@ class ItemTimingsView(BaseModel):
     items: list[ItemTimingView]
 
 
+class OfflaneMinuteView(BaseModel):
+    time_seconds: int
+    you: int
+    enemy_carry: int
+    difference: int
+
+
+class OfflanePanelView(BaseModel):
+    state: Readiness
+    reason: str | None
+    points: list[OfflaneMinuteView]
+
+
+class OfflaneContextView(BaseModel):
+    contract_version: Literal["offlane-context-v1"]
+    enemy_carry_hero_id: int | None
+    net_worth: OfflanePanelView
+    xp: OfflanePanelView
+
+
 class MatchView(BaseModel):
     ref: str
     mode: Mode | None
@@ -276,6 +296,7 @@ class MatchView(BaseModel):
 
 class MatchDetailView(MatchView):
     item_timings: ItemTimingsView
+    offlane_context: OfflaneContextView | None
     role_revision: int
     correction_available: bool
     # Current ownership (can change silently) versus the one-time celebration.
@@ -749,6 +770,27 @@ def _item_timings_view(connection: Connection, row) -> ItemTimingsView:
         reference_digest=timing.get("reference_digest"),
         items=timing.get("items", []),
     )
+
+
+def _offlane_context_view(connection: Connection, row) -> OfflaneContextView | None:
+    if row["effective_role"] != "OFFLANE":
+        return None
+    if row["active_analysis_id"] is None:
+        terminal = row["lifecycle"] in {"UNAVAILABLE", "ACTION_REQUIRED"}
+        state = Readiness.UNAVAILABLE if terminal else Readiness.PENDING
+        reason = "MATCH_" + row["lifecycle"] if terminal else None
+        panel = OfflanePanelView(state=state, reason=reason, points=[])
+        return OfflaneContextView(contract_version="offlane-context-v1", enemy_carry_hero_id=None,
+                                  net_worth=panel, xp=panel.model_copy(deep=True))
+    result = connection.scalar(select(analyses.c.result).where(
+        analyses.c.id == row["active_analysis_id"],
+    ))
+    context = result.get("offlane_context") if isinstance(result, dict) else None
+    if isinstance(context, dict):
+        return OfflaneContextView.model_validate(context)
+    panel = OfflanePanelView(state=Readiness.UNAVAILABLE, reason="ANALYSIS_VERSION", points=[])
+    return OfflaneContextView(contract_version="offlane-context-v1", enemy_carry_hero_id=None,
+                              net_worth=panel, xp=panel.model_copy(deep=True))
 
 
 def _summary_view(connection, row) -> MatchSummary:
@@ -1299,6 +1341,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             )))
             return MatchDetailView(**_match_view(connection, row).model_dump(),
                 item_timings=_item_timings_view(connection, row),
+                offlane_context=_offlane_context_view(connection, row),
                 role_revision=row["role_revision"],
                 correction_available=correction_available(
                     connection, profile_id=profile["id"], match_id=row["match_id"],

@@ -17,7 +17,7 @@ from .normalization import (
     stratz_summary,
 )
 
-REPLAY_VERSION = "replay-checkpoints-1"
+REPLAY_VERSION = "replay-checkpoints-2"
 
 
 def _points(times: Any, values: Any, duration: int) -> dict[str, int | None] | None:
@@ -47,6 +47,7 @@ def replay_checkpoints(raw: Mapping[str, Any], provider: Provider) -> dict[str, 
         paths = {}
         for field, od, sz in (
             ("net_worth", "networth_t", "networthPerMinute"),
+            ("xp_earned", "xp_t", "experiencePerMinute"),
             ("last_hits", "lh_t", "lastHitsPerMinute"),
             ("camps_stacked", "camps_stacked_t", "campStack"),
         ):
@@ -55,23 +56,31 @@ def replay_checkpoints(raw: Mapping[str, Any], provider: Provider) -> dict[str, 
             if not available:
                 continue
             if provider == "opendota":
-                series[field] = _points(row.get("times"), row.get(od), duration)
+                values = row.get(od)
+                if field == "xp_earned" and isinstance(values, list):
+                    times = row.get("times")
+                    base = _optional_int(values[0]) if values and isinstance(times, list) and times[:1] == [0] else None
+                    values = [None if base is None or (valid := _optional_int(value)) is None or valid < base
+                              else valid - base for value in values]
+                series[field] = _points(row.get("times"), values, duration)
                 continue
             stats = row.get("stats")
             values = stats.get(sz) if isinstance(stats, Mapping) else None
             if not isinstance(values, list):
                 continue
-            if field == "last_hits":
+            if field == "xp_earned" and (not values or _optional_int(values[0]) is None):
+                continue
+            if field in {"last_hits", "xp_earned"}:
                 total: int | None = 0
-                cumulative = []
+                cumulative: list[int | None] = [0] if field == "xp_earned" else []
                 for delta in values:
                     valid = _optional_int(delta)
                     total = total + valid if total is not None and valid is not None else None
                     cumulative.append(total)
                 values = cumulative
-            # Net worth index t is t:00. Stacks are cumulative at minute t+1;
-            # last hits are deltas over [t:00, (t+1):00), per the normative annex.
-            offset = 0 if field == "net_worth" else 1
+            # Net worth index t is t:00. Experience and last hits are interval
+            # deltas; stacks are cumulative at minute t+1.
+            offset = 0 if field in {"net_worth", "xp_earned"} else 1
             series[field] = _points([(i + offset) * 60 for i in range(len(values))], values, duration)
         players.append({"player_slot": slot, "series": series, "source_paths": paths})
     return {

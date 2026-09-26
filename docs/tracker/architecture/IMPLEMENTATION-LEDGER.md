@@ -2,6 +2,12 @@
 
 Operational evidence, not a product or architecture contract.
 
+## Offlane Match Detail graphs — 2026-09-27
+
+- Branch `codex/offlane-match-graphs` starts at `3cfc6986a7dcefe6ee808b604fa303512bbc44d1` (`origin/main` when fetched). The `offlane-context-v1` laning block is derived from retained minute evidence, stored in the versioned analysis, and rebuilt on role correction. No new Match Detail provider call is introduced.
+- The capped OpenDota feasibility sample used 250 counted attempts and yielded 99 supported replay-ready matches, 93 with conservatively valid fight segments (93.9%). The predeclared Graph B gate required at least 100 qualifying matches, so detected fights remain unshipped. See [`evidence/offlane-fights-study-2026-09-27.md`](evidence/offlane-fights-study-2026-09-27.md). This does not authorize production historical OpenDota fetching.
+- `GetTrackerMatchBatch` 1.4 adds `stats.experiencePerMinute` to the existing historical call. One live candidate selection (document SHA-256 `1f8bbd27cedcb802d74d36431788a319f64df4b08cef623e898f06eecf4476cc`) returned HTTP 200 with no GraphQL errors on 2026-09-27; STRATZ did not expose a numeric complexity score. The 310,000 cap was therefore verified by acceptance, not measured as a number. Prior 1.3 snapshots remain accepted. Historical XP without retained minute evidence remains unavailable and is not refetched. No deployment was made.
+
 ## Baseline and scope
 
 - Base: `bd3289e4602303a7cdb9fccb3ea5bc482413f68f` (local main matched the attached audit).
@@ -84,6 +90,12 @@ Before 2026-09-25: OpenDota reads 3; replay requests 1; STRATZ calls 0 (13 rate 
 Owner-authorized live smoke, 2026-09-25 (see *Owner decisions and live smoke*): OpenDota **51 reads + 4 replay
 requests** (91 rate units, 55 known billing units); STRATZ **6 calls** (2 rejected for complexity, 4 succeeded).
 Cumulative: OpenDota 54 reads + 5 replay requests; STRATZ 6. No deployment.
+
+Owner-authorized offlane feasibility work, 2026-09-27: OpenDota **250 counted attempts**
+(234 HTTP 200 responses, 15 HTTP 429 responses, one sandbox-blocked network attempt),
+zero processing requests; STRATZ **one accepted GraphQL selection probe** for
+historical minute XP. These are study/validation calls, not a production
+historical-fetch policy. No deployment.
 
 ## Baseline test results
 

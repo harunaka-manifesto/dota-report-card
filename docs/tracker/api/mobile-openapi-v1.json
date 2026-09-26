@@ -915,6 +915,16 @@
               }
             ]
           },
+          "offlane_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OfflaneContextView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "owns_personal_best": {
             "items": {
               "type": "string"
@@ -1033,6 +1043,7 @@
           "players",
           "metrics",
           "item_timings",
+          "offlane_context",
           "role_revision",
           "correction_available"
         ],
@@ -1306,6 +1317,100 @@
         ],
         "title": "Mode",
         "type": "string"
+      },
+      "OfflaneContextView": {
+        "properties": {
+          "contract_version": {
+            "const": "offlane-context-v1",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "enemy_carry_hero_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enemy Carry Hero Id"
+          },
+          "net_worth": {
+            "$ref": "#/components/schemas/OfflanePanelView"
+          },
+          "xp": {
+            "$ref": "#/components/schemas/OfflanePanelView"
+          }
+        },
+        "required": [
+          "contract_version",
+          "enemy_carry_hero_id",
+          "net_worth",
+          "xp"
+        ],
+        "title": "OfflaneContextView",
+        "type": "object"
+      },
+      "OfflaneMinuteView": {
+        "properties": {
+          "difference": {
+            "title": "Difference",
+            "type": "integer"
+          },
+          "enemy_carry": {
+            "title": "Enemy Carry",
+            "type": "integer"
+          },
+          "time_seconds": {
+            "title": "Time Seconds",
+            "type": "integer"
+          },
+          "you": {
+            "title": "You",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "time_seconds",
+          "you",
+          "enemy_carry",
+          "difference"
+        ],
+        "title": "OfflaneMinuteView",
+        "type": "object"
+      },
+      "OfflanePanelView": {
+        "properties": {
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/OfflaneMinuteView"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "state": {
+            "$ref": "#/components/schemas/Readiness"
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "points"
+        ],
+        "title": "OfflanePanelView",
+        "type": "object"
       },
       "PersonalBestView": {
         "properties": {

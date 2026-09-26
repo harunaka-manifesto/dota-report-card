@@ -113,6 +113,31 @@ def test_correction_remeasures_retained_source_and_is_idempotent(database):
         assert connection.scalar(select(func.count()).select_from(events)) == event_count
 
 
+def test_offlane_context_is_persisted_and_rebuilt_on_role_correction(database):
+    profile_id = _ready_link(database)
+    assert _run(database, profile_id) == "READY"
+    with database.connect() as connection:
+        original = connection.scalar(select(analyses.c.result))["offlane_context"]
+        assert original is None
+    with database.begin() as connection:
+        assert correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
+                            role="OFFLANE", expected_role_revision=0)["rebuilt"]
+    with database.connect() as connection:
+        context = connection.scalar(select(analyses.c.result).join(
+            account_matches, account_matches.c.active_analysis_id == analyses.c.id,
+        ))["offlane_context"]
+        assert context["contract_version"] == "offlane-context-v1"
+        assert context["net_worth"]["state"] in {"AVAILABLE", "UNAVAILABLE"}
+        assert context["xp"]["state"] in {"AVAILABLE", "UNAVAILABLE"}
+    with database.begin() as connection:
+        assert correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
+                            role="MID", expected_role_revision=1)["rebuilt"]
+    with database.connect() as connection:
+        assert connection.scalar(select(analyses.c.result).join(
+            account_matches, account_matches.c.active_analysis_id == analyses.c.id,
+        ))["offlane_context"] is None
+
+
 def test_correction_stale_revision_and_missing_source_fail_closed(database):
     profile_id = _ready_link(database)
     assert _run(database, profile_id) == "READY"

@@ -1,20 +1,21 @@
 # Provider evidence
 
 **Status:** ACTIVE — evidence, **not** product or architecture truth
-**Last updated:** 2026-09-20
-**Evidence date:** 2026-09-20 for everything referenced here
+**Last updated:** 2026-09-27
+**Evidence date:** 2026-09-20 for the two architecture investigations; 2026-09-27 for the offlane fight sample
 **Scope:** The investigations behind the architecture decisions, how they were reconciled, and the rules for using and refreshing them.
 
 ---
 
 ## What this is
 
-Two **independent** provider investigations were run on 2026-09-20 against live matches and live APIs. They are **evidence reports**, not competing sources of truth.
+Two **independent** architecture investigations were run on 2026-09-20 against live matches and live APIs. A later capped offlane fight sample adds field-coverage evidence. They are **evidence reports**, not competing sources of truth.
 
 | Report | Location | Emphasis |
 |---|---|---|
 | **Post-match ingestion probe** | [`post-match-ingestion-probe-2026-09-20.md`](post-match-ingestion-probe-2026-09-20.md) | Latency-forward. Larger measured latency cohorts; batching and complexity mechanics; scale and cost simulation. |
 | **Provider architecture investigation** | [`provider-post-match-architecture-investigation-2026-09-20.md`](provider-post-match-architecture-investigation-2026-09-20.md) | Structure-forward. Provider-independence discipline; entity model; immutable snapshots; explicit refusal to convert probes into promises. |
+| **Offlane detected-fight sample** | [`offlane-fights-study-2026-09-27.md`](offlane-fights-study-2026-09-27.md) | Capped OpenDota field coverage and Graph B launch gate. |
 
 The second report is colocated in this directory.
 

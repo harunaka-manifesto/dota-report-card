@@ -162,7 +162,15 @@ When replay-class evidence will never arrive (`REPLAY_UNAVAILABLE`):
 - Item comparisons are keyed by hero × core role × mode × item — never by purchase order — and fail closed when evidence, compatible analysis, patch safety or sample thresholds are missing. Sparse cohorts produce no population claim. Full thresholds and snapshot rules are in [`ITEM-TIMINGS-V1.md`](ITEM-TIMINGS-V1.md).
 - The timeline and comparisons are replay-derived and persisted with the immutable finalized analysis. No provider fetch or runtime LLM is used to render or rebuild them.
 
-### 3A.10 Language
+### 3A.10 Offlane laning context
+
+- Match Detail exposes a factual `offlane_context` only for the effective Offlane role. It is pending before finalization and is rebuilt from retained evidence after role correction. Other roles receive `null`.
+- The two independent panels compare the offlaner with the uniquely identified enemy Carry at real one-minute checkpoints from 0:00 through 10:00. Net worth is the value at each checkpoint; XP is earned since 0:00. `difference = you − enemy_carry`, so a positive value means the offlaner is ahead. These facts are not performance verdicts.
+- Each panel is independently available or unavailable. Valid earlier points remain visible when a match ends before 10:00 or later samples are missing. No missing point is interpolated or treated as zero. If the enemy Carry is not unique, both panels are unavailable.
+- The future iOS graph uses a fixed 0–10 minute X axis, synchronized one-minute drag snapping, and a separate symmetric Y scale around zero for each panel. The tooltip shows You, the enemy Carry, and Difference at the selected real checkpoint. An all-zero series uses a nonzero visual Y span.
+- Historical batch version 1.4 requests minute XP in its existing call after a live complexity acceptance check. Older retained snapshots without that series keep the XP panel unavailable; they are not refetched for this graph.
+
+### 3A.11 Language
 
 Match Detail speaks in capabilities, never in pipeline vocabulary. It MUST NOT name a data provider or use "parse", "parser", "replay parse", "queue", "job", "quota" or "rate limit".
 

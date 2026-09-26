@@ -34,11 +34,13 @@ class GraphQLOperation:
 
 GET_TRACKER_MATCH_BATCH = GraphQLOperation(
     name="GetTrackerMatchBatch",
-    version="1.3.0",
+    version="1.4.0",
     # 1.1.0 priced 316,102 against the 310,000 cap (live, 2026-09-25) and never
     # executed. Complexity follows the selection shape, not `take`, so this
     # selection keeps only fields the tracker reads (normalization, events,
-    # replay series, role evidence, insights). Re-measure after any change.
+    # replay series, role evidence, insights). The 1.4.0 selection adding
+    # minute XP returned HTTP 200 on 2026-09-27; no numeric score was exposed.
+    # Re-measure after any change.
     purpose="Historical tracker evidence for all ten players with explicit bounded take.",
     response_model="TrackerRawMatchBatch",
     document="""
@@ -58,7 +60,7 @@ query GetTrackerMatchBatch($steamAccountId: Long!, $matchIds: [Long!]!, $take: I
         item0Id item1Id item2Id item3Id item4Id item5Id
         backpack0Id backpack1Id backpack2Id neutral0Id
         stats {
-          networthPerMinute lastHitsPerMinute campStack level
+          networthPerMinute experiencePerMinute lastHitsPerMinute campStack level
           itemUsed { itemId count }
           wardDestruction { time isWard gold experience }
           killEvents { time } deathEvents { time timeDead } assistEvents { time }
