@@ -1,6 +1,6 @@
 # Role Mastery context parameter feasibility — 2026-09-27
 
-**Decision: keep public Role Mastery gated.** Eight-week population acquisition and opponent coverage succeeded. The available independent replay does not yet support a complete, owner-approved 16-metric context parameter artifact. This study publishes no parameter set or awards.
+**Decision: keep public Role Mastery gated.** Eight-week population acquisition and opponent coverage succeeded. A later audited ten-player sample measures all 16 metrics, but its population bias and missing hero-level coverage do not support an owner-approved context parameter artifact. This study publishes no parameter set or awards.
 
 ## Acquisition and provenance
 
@@ -37,7 +37,7 @@ Intervals use an independent-observation standard error and do not account for r
 
 ## Metric parameter gap
 
-The builder requires finite `sigma_pop`, `tau`, `floor` and `floor_tolerance` for **all 16 active** tracker metrics (four per role). Running the tracker's normalization, replay and metric functions on 7,435 recent Standard viewer rows yielded usable *provisional* distributions for 12 active metrics. Four lack a usable scale:
+The builder requires finite `sigma_pop`, `tau`, `floor` and `floor_tolerance` for **all 16 active** tracker metrics (four per role). Running the tracker's normalization, replay and metric functions on 7,435 recent Standard viewer rows yielded usable *provisional* distributions for 12 active metrics. Four lacked a usable scale in that one-viewer corpus:
 
 | Metric | Valid measurements | Main reason |
 |---|---:|---|
@@ -48,8 +48,39 @@ The builder requires finite `sigma_pop`, `tau`, `floor` and `floor_tolerance` fo
 
 The private parsed OpenDota corpus has 960 Standard matches with ten players. Under the tracker's existing evidence translation, tested lane net-worth comparisons still yielded zero valid measurements. The 12 provisional distributions come from a tracked-player cohort, not an approved population sample. STRATZ `stats` supplies useful checkpoint means for active metrics. The acquired aggregate fields cannot establish damage-share and event hero levels. The four retired metrics are excluded from this release assessment.
 
-`tau = 0.35` is the V1 engineering default, not an approved binding for every metric. Per-metric floor tolerances and representative population scales are also unapproved. Arbitrary positive placeholders for scored metrics would pass shape checks while changing `ABOVE`/`BELOW` states and mastery bonuses. Offlane Objective Involvement is diagnostic-only, but the current artifact contract still requires its parameter entry. The release gate remains closed.
+`tau = 0.35` is the V1 engineering default, not an approved binding for every metric. Per-metric floor tolerances and representative population scales are also unapproved. Arbitrary positive placeholders for scored metrics would pass shape checks while changing `ABOVE`/`BELOW` states and mastery bonuses. Offlane Objective Involvement is diagnostic-only, but the current artifact contract still requires its parameter entry.
+
+## Ten-player follow-up — 2026-09-28
+
+With renewed owner authorization, one bounded probe and 60 fixed batches used the existing `GetTrackerMatchBatch` operation through `ControlledTransport` and `ProviderGate`. All **61 STRATZ calls returned HTTP 200** and were recorded in the local provider audit; **0 OpenDota calls** were made. The query returned all ten players' replay fields, including minute net worth, kill and assist events, and tower damage reports. The tracker's own translators and `measure` function produced valid values for all 16 active metrics in the seven-match probe, then in the wider sample below. No production acquisition or public flag changed.
+
+The sampling frame was retained V7 deep matches from **2026-07-30 through 2026-09-03**, the five weeks present in that corpus. A fixed hash selected eight Standard matches from each of 60 accounts with at least eight eligible matches. Eight of the 480 requested match IDs appeared under more than one selected account, leaving **472 distinct matches** and **4,720 player-match observations**. The participant observations broaden coverage beyond the tracked viewers, but the match selection still inherits the tracked-account cohort. The local index, collection and assessment scripts, raw responses, assessment and SHA-256 manifest are private at `.local/tracker-context-calibration-2026-09-27/`; canonical manifest digest: `756a26a2f44b4d649a5a464bcf9fa9d46cd6da336abd5ebc3981fde7bfb4f09d`. No player or match identifiers are committed.
+
+| Active metric | Valid / eligible | Pilot standard deviation | Holdout standard deviation |
+|---|---:|---:|---:|
+| Carry last hits at 10 | 944 / 944 | 12.770 | 14.610 |
+| Carry net worth at 20 | 926 / 944 | 1,904.840 | 2,204.060 |
+| Carry hero damage share | 944 / 944 | 0.0865 | 0.0877 |
+| Carry tower damage share | 930 / 944 | 0.2513 | 0.2659 |
+| Mid lane net-worth advantage at 10 | 944 / 944 | 1,242.873 | 1,506.226 |
+| Mid early fight presence | 940 / 944 | 0.2141 | 0.2204 |
+| Mid net worth at 20 | 926 / 944 | 1,930.223 | 2,119.380 |
+| Mid tower damage share | 930 / 944 | 0.2393 | 0.2271 |
+| Offlane lane net-worth advantage at 10 | 944 / 944 | 1,132.760 | 1,132.445 |
+| Offlane net worth at 10 | 944 / 944 | 693.523 | 707.688 |
+| Offlane fight presence | 944 / 944 | 0.1428 | 0.1513 |
+| Offlane objective involvement | 911 / 944 | 0.2518 | 0.2692 |
+| Support fight presence | 1,884 / 1,888 | 0.1501 | 0.1674 |
+| Support observer wards placed | 1,888 / 1,888 | 1.0178 | 1.0563 |
+| Support vision denial | 1,888 / 1,888 | 0.9813 | 1.0081 |
+| Support camps stacked | 1,852 / 1,888 | 1.5480 | 1.2079 |
+
+The holdout labels 12 of the 60 tracked accounts by an independent hash. Eight matches selected through more than one account were deduplicated before measurement, so this is a cohort check rather than a fully independent population holdout. Failed measurements stayed unavailable: short matches, zero team tower damage or tower deaths, and seven event-credit inconsistencies were not imputed as zero. The standard deviations above are **pilot estimates**, not approved `sigma_pop` values.
+
+Four matching checkpoint fields in the sample exceed the same five-week `heroStats.stats` position-weighted population means: Carry CS@10 **44.36 vs 39.37** (+12.7%), Carry NW@20 **8,797.54 vs 8,307.10** (+5.9%), Mid NW@20 **8,394.43 vs 8,000.60** (+4.9%), and Offlane NW@10 **3,540.26 vs 3,171.02** (+11.6%). STRATZ's aggregate `cs` semantics are not fully documented; the three net-worth comparisons are the stronger bias check. Some holdout dispersions also diverge substantially (Mid lane advantage 1,506 vs overall 1,243; Support stacks 1.208 vs overall 1.548). These are direct signs that a tracked-match sample is not a calibrated population distribution. The sample supplies **zero hero-position-metric cells with 300 observations**, so it cannot establish the required hero levels for share or event metrics. More calls drawn from this same frame would not remove that selection bias.
+
+The 61 calls close the *missing replay-field* question, but do not close the *representative parameters* question. No arbitrary `tau`, floor tolerance, slope drift bound or hero level was published. The owner-approved artifact gate remains closed.
 
 ## Owner decision and next data work
 
-Approve a documented 16-metric calibration protocol and resulting versioned artifact: representative source/cohort for each active metric scale and hero level, per-metric `tau` and floor tolerance, independent opponent partial-effect regression, and its maximum permitted slope drift. Missing replay fields may require a separately scoped ten-player sample after that protocol is chosen. Once approved, register the artifact and backfill mastery from retained data without provider calls. Public enablement and deployment still require an explicit owner request.
+Approve a documented 16-metric calibration protocol and resulting versioned artifact: a representative source/cohort for each active metric scale and hero level, per-metric `tau` and floor tolerance, independent opponent partial-effect regression, and its maximum permitted slope drift. A ten-player query can supply the missing fields; the next sample must address cohort bias and the 300-match hero-level gate. Once approved, register the artifact and backfill mastery from retained data without provider calls. Public enablement and deployment still require an explicit owner request.
