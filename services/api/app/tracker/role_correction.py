@@ -232,6 +232,11 @@ def correct_role(connection: Connection, *, profile_id: str, match_id: int, role
                           match=sources[mutable_link["match_id"]]["match"],
                           inputs=sources[mutable_link["match_id"]])
 
+    from .mastery import move_corrected_match
+
+    move_corrected_match(connection, profile_id=profile_id, match_id=match_id,
+                         previous_role=previous_role, revision=new_revision)
+
     if link["progression"] == link["mode"] and link["mode"] in {"STANDARD", "TURBO"}:
         recompute_indexes(connection, profile_id=profile_id, revision=profile["active_revision"],
                           mode=link["mode"], roles={previous_role, role})

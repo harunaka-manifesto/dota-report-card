@@ -153,6 +153,8 @@ Each summary MAY express:
 
 There is **no composite role trend, role score, role grade, or overall role verdict** (foundation §11.2). A role summary MUST NOT invent one.
 
+Role Mastery may be shown beside each role summary as an earned level. It comes from the shared mastery API, spans Standard and Turbo XP, and must not be described as the selected mode's analytical trend or score.
+
 Permitted reductions are **evidence-bound and metric-named**, for example:
 
 - listing the role's metric states;

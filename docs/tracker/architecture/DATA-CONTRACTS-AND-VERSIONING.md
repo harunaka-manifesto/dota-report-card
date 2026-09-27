@@ -84,6 +84,8 @@ flowchart LR
 | L-5 | Layer 6 is written per version. **Do not mutate an old result to match new logic** — write a new one. |
 | L-6 | Absence at any layer stays absence. A missing field **MUST NOT** become `0`, a default, an interpolation, or a synthetic comparison. ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §2, §8.) |
 
+Role Mastery adds a separate, profile-scoped, append-only award ledger. Signed changes retain their source analysis ID, rule version, mode, role and qualifying metric IDs. Analytical rebuilds may update current truth but never rewrite award-time rows; role correction appends a reversal and replacement for the corrected match only. The four role totals are derived by summing the ledger, without a summary table. See [`../role_mastery/SSOT.md`](../role_mastery/SSOT.md).
+
 ---
 
 ## 4. Canonical entities

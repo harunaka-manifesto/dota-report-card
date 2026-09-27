@@ -33,6 +33,12 @@ and its CI diff check are untouched. Resource design and state projections are s
 | Missing values | Nullable with a reason; a measured zero stays zero. Every block carries its own readiness. |
 | Text | Insight cards and claims are template IDs plus typed slots. Insight history lines are versioned annex wording and always state N. |
 
+## Role Mastery
+
+`GET /mobile/v1/mastery` is reusable by Home, Profile and Progress. It returns `STEAM_LINK_REQUIRED`, `CALIBRATION_PENDING`, `BACKFILLING`, or `AVAILABLE`; when available it has four role summaries and live in-app level milestones. A role is `UNSTARTED` before its first award. Free caps the visible level at 5, omits total XP, and hides within-level XP at the cap. Pro receives earned level and total XP.
+
+`GET /mobile/v1/mastery/{role}/awards` returns signed XP ledger entries with mode, kind, structured reason, qualifying Above and PB metric IDs, source versions, and an entitled opaque match reference. It uses profile/role/revision-bound signed cursors. Entries for Pro-only history are omitted from Free responses. Neither endpoint starts provider work. See [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
+
 ## Match Detail: item timings
 
 `GET /mobile/v1/matches/{match_ref}` adds `item_timings`; no other route includes this block. It is a structured, localized-copy-free snapshot. The complete algorithm and item taxonomy live in the [item-timings annex](../match_detail/ITEM-TIMINGS-V1.md).

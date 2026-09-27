@@ -275,6 +275,7 @@ Profile is computed from **persisted canonical features**. Opening Profile, swit
 - Positions 4 and 5 are one Support role. The Profile does not split them in V1.
 - Standard and Turbo are separate; one bucket is shown at a time.
 - **No combined all-role score, anywhere.** The identity line is a sentence, not a score.
+- Role Mastery may show each role's earned level from the shared mastery API. It is not a Profile claim, form measurement, role score or analytical verdict; its Standard and Turbo XP are combined only within that role.
 - Specialist and Flexible are presented as **equal identities**. Neither is praise.
 - The Profile never compares a metric across roles.
 - Role-scoped current form and PBs come from Progression; the Profile never re-derives them.

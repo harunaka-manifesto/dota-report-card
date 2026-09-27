@@ -635,6 +635,12 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
         ).values(lifecycle="READY", retrying=False, progression=eligibility.progression,
                  progression_reason=eligibility.reason, active_analysis_id=analysis_id,
                  finalized_at=func.clock_timestamp(), failure_stage=None, failure_reason=None))
+        if link["origin"] in {"LIVE", "RECOVERY"}:
+            from .mastery import award_match
+
+            award_match(connection, profile_id=job["profile_id"], match_id=job["match_id"],
+                        reason="LIVE_FINALIZATION" if link["origin"] == "LIVE" else "RECOVERY",
+                        built=built, live=link["origin"] == "LIVE")
         revision = connection.scalar(select(profiles.c.active_revision).where(profiles.c.id == job["profile_id"]))
         if revision is None:
             raise ValueError("Profile revision unavailable")

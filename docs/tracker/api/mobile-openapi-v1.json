@@ -1132,6 +1132,273 @@
         "title": "Lifecycle",
         "type": "string"
       },
+      "MasteryAwardView": {
+        "properties": {
+          "above_metric_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Above Metric Ids",
+            "type": "array"
+          },
+          "analysis_version": {
+            "title": "Analysis Version",
+            "type": "string"
+          },
+          "baseline_version": {
+            "title": "Baseline Version",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "from_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "AWARD",
+              "LATE_BONUS",
+              "REVERSAL",
+              "CORRECTION"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "match_ref": {
+            "title": "Match Ref",
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "parameter_set_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parameter Set Version"
+          },
+          "pb_metric_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Pb Metric Ids",
+            "type": "array"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "rule_version": {
+            "title": "Rule Version",
+            "type": "string"
+          },
+          "xp": {
+            "title": "Xp",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "xp",
+          "mode",
+          "role",
+          "match_ref",
+          "reason",
+          "from_role",
+          "above_metric_ids",
+          "pb_metric_ids",
+          "rule_version",
+          "analysis_version",
+          "baseline_version",
+          "parameter_set_version",
+          "created_at"
+        ],
+        "title": "MasteryAwardView",
+        "type": "object"
+      },
+      "MasteryAwardsView": {
+        "properties": {
+          "awards": {
+            "items": {
+              "$ref": "#/components/schemas/MasteryAwardView"
+            },
+            "title": "Awards",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "awards",
+          "next_cursor"
+        ],
+        "title": "MasteryAwardsView",
+        "type": "object"
+      },
+      "MasteryMilestoneView": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "level": {
+            "title": "Level",
+            "type": "integer"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "role",
+          "level",
+          "created_at"
+        ],
+        "title": "MasteryMilestoneView",
+        "type": "object"
+      },
+      "MasteryRoleView": {
+        "properties": {
+          "level": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Level"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "saved_progress": {
+            "title": "Saved Progress",
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "UNSTARTED",
+              "STARTED"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "total_xp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Xp"
+          },
+          "xp_into_level": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xp Into Level"
+          },
+          "xp_to_next_level": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xp To Next Level"
+          }
+        },
+        "required": [
+          "role",
+          "state",
+          "level",
+          "xp_into_level",
+          "xp_to_next_level",
+          "total_xp",
+          "saved_progress"
+        ],
+        "title": "MasteryRoleView",
+        "type": "object"
+      },
+      "MasteryView": {
+        "properties": {
+          "curve_version": {
+            "title": "Curve Version",
+            "type": "string"
+          },
+          "milestones": {
+            "items": {
+              "$ref": "#/components/schemas/MasteryMilestoneView"
+            },
+            "title": "Milestones",
+            "type": "array"
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/MasteryRoleView"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "state": {
+            "enum": [
+              "AVAILABLE",
+              "BACKFILLING",
+              "CALIBRATION_PENDING",
+              "STEAM_LINK_REQUIRED"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "curve_version",
+          "roles",
+          "milestones"
+        ],
+        "title": "MasteryView",
+        "type": "object"
+      },
       "MatchDetailView": {
         "properties": {
           "carry_context": {
@@ -4019,6 +4286,100 @@
           }
         ],
         "summary": "Home"
+      }
+    },
+    "/mastery": {
+      "get": {
+        "operationId": "mastery_mastery_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasteryView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Mastery"
+      }
+    },
+    "/mastery/{role}/awards": {
+      "get": {
+        "operationId": "mastery_awards_mastery__role__awards_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "role",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MasteryAwardsView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Mastery Awards"
       }
     },
     "/matches/{match_ref}": {

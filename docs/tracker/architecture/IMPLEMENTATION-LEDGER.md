@@ -65,7 +65,7 @@ Owner-reviewed fixes on branch `fix/core-graph-safeguards`, after review of the 
 
 ## V1 capability work outside the gap list
 
-Implemented and locally verified: entitlement scope rebuilds, resumable Pro backfill and access recovery, methodology/parameter rebuilds, late replay re-admission, role correction, Profile checkpoints (fixed values only), shares, settings, recovery routing, deletion fencing, notification delivery through a transport interface, seed and golden fixtures, the PostgreSQL/Redis/Celery E2E matrix and SSOT acceptance traceability. Not production-integrated: APNs transport, Apple/Google/Steam production credentials, App Store revocation checks, an approved context parameter artifact, calibrated Profile claims and trend labels.
+Implemented and locally verified: entitlement scope rebuilds, resumable Pro backfill and access recovery, methodology/parameter rebuilds, late replay re-admission, role correction, Profile checkpoints (fixed values only), shares, settings, recovery routing, deletion fencing, notification delivery through a transport interface, seed and golden fixtures, the PostgreSQL/Redis/Celery E2E matrix and SSOT acceptance traceability. Role Mastery backend contract and ledger are implemented but public use is held behind the approved context parameter artifact. Not production-integrated: APNs transport, Apple/Google/Steam production credentials, App Store revocation checks, an approved context parameter artifact, calibrated Profile claims and trend labels.
 
 ## Engineering decisions
 
@@ -85,7 +85,7 @@ All remain open; no product choices are inferred from missing UI content.
 | Trend thresholds | Approve calibration artifact / defer labels | Nullable uncalibrated state with reason, no invented fifth trend |
 | Role weights and confidence | Approve existing provisional values / calibrate | Version provisional configuration |
 | Today’s Focus | Define content / omit | Honest absent slot |
-| Challenges, achievements and XP | Contract mechanics / defer | Unavailable slot; no invented mechanics |
+| Challenges and achievements | Contract mechanics / defer | Unavailable slot; no invented mechanics. Role Mastery XP is separately specified. |
 | Periodic reports | Define content and cadence / defer | Coverage plumbing only |
 | Pro depth ceiling | Lifetime / approved cap | Unset configuration; no product limit invented |
 | Recovery verification | Approve recovery method / defer | Collision and blocked routing boundary only |

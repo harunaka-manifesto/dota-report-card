@@ -44,7 +44,7 @@ These apply to every feature without exception.
 1. **No opaque judgment.** V1 MUST NOT present an overall match score, letter grade, composite performance score, player rating, percentile, arbitrary good/bad-player judgment, or opaque AI verdict.
 2. **No fabricated certainty.** Missing, malformed, unavailable, or insufficient evidence MUST be represented as N/A, an explicit unavailable state, or an explicit ineligible reason. It MUST NOT be silently converted to zero or to a synthetic comparison.
 3. **N/A is not zero.** A legitimate measured zero remains zero. These are different states and MUST be distinguishable everywhere they appear.
-4. **Standard and Turbo are separate progression worlds.** They MAY use identical methodology, but MUST NOT share baselines, trends, Personal Bests, observations, queues, blockers, or progression histories.
+4. **Standard and Turbo are separate analytical progression worlds.** They MAY use identical methodology, but MUST NOT share baselines, trends, Personal Bests, observations, queues, blockers, or metric histories. Role Mastery alone combines their earned XP into one level per role; see [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
 5. **Progression is role-specific.** Every successfully classified retained match resolves to exactly one of Carry, Mid, Offlane, Support. Position 4 and Position 5 both map to Support. There is no Unknown progression role.
 6. **Historical comparisons are time-relative.** A historical match compares against the same-role, same-mode baseline that existed *before* that match. A later match MUST NOT make an old comparison silently drift.
 7. **Canonical methodology is singular.** One methodology at a time. Approved migrations rebuild compatible retained history deterministically; old and new math never coexist in one canonical timeline.
@@ -349,6 +349,8 @@ No key may read another key's data. **Heroes never split a role track** — Luna
 
 There are **eight independent progression tracks**: Standard × {Carry, Mid, Offlane, Support} and Turbo × {Carry, Mid, Offlane, Support}.
 
+These are metric-history tracks. Role Mastery separately records one earned XP level per role across the two modes; it is not an analytical score or trend.
+
 ### 7.2 Canonical registry (20 active metrics)
 
 Carry 6, Mid 5, Offlane 4, Support 5. Support **Control** is UNSUPPORTED in V1 and MUST NOT be represented through any proxy (cast counts, action counts, damage, K/A).
@@ -569,6 +571,8 @@ Exact meaningful-movement thresholds are a versioned calibration dependency. Imp
 ### 11.2 Trend is metric-level only
 
 Each metric has its own state. The set of metric states does **not** imply a role-level state. V1 has no combined all-role curve, composite role trend, role score, player score, grade, rating, percentage, or cross-metric weighting.
+
+The earned Role Mastery level is an award ledger, not a reduction of metric states into a role-level performance verdict.
 
 The following are **not** canonical V1 behaviour:
 

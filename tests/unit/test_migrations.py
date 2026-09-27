@@ -12,7 +12,7 @@ from alembic.script import ScriptDirectory
 from app.storage.database import EXPECTED_SCHEMA_REVISION, check_database_revision
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-EXPECTED_HEAD = "0015_tracker_link_updated_at"
+EXPECTED_HEAD = "0016_tracker_role_mastery"
 MAX_VERSION_NUM_LENGTH = 64
 
 
@@ -40,6 +40,7 @@ def test_all_migration_ids_fit_the_widened_version_table() -> None:
         "0012_tracker_profile_claim_checkpoints",
         "0013_tracker_profile_relink",
         "0014_tracker_profile_states",
+        "0015_tracker_link_updated_at",
         EXPECTED_HEAD,
     }
 

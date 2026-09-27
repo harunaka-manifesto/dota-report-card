@@ -535,6 +535,37 @@ events = Table(
     Column("payload", JSONB, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
 )
+mastery_ledger = Table(
+    "tracker_mastery_ledger",
+    metadata,
+    Column("id", String(36), primary_key=True),
+    Column("profile_id", String(36), nullable=False),
+    Column("match_id", BigInteger, nullable=False),
+    Column("mode", String(16), nullable=False),
+    Column("role", String(16), nullable=False),
+    Column("kind", String(16), nullable=False),
+    Column("xp", Integer, nullable=False),
+    Column("source_analysis_id", String(36), nullable=False),
+    Column("rule_version", String(32), nullable=False),
+    Column("source", JSONB, nullable=False),
+    Column("dedup_key", String(240), nullable=False, unique=True),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    ForeignKeyConstraint(
+        ["profile_id", "match_id"],
+        [account_matches.c.profile_id, account_matches.c.match_id],
+        ondelete="CASCADE",
+    ),
+    ForeignKeyConstraint(
+        ["source_analysis_id", "profile_id", "match_id"],
+        [analyses.c.id, analyses.c.profile_id, analyses.c.match_id],
+    ),
+    CheckConstraint("mode IN ('STANDARD', 'TURBO')", name="ck_tracker_mastery_mode"),
+    CheckConstraint("role IN ('CARRY', 'MID', 'OFFLANE', 'SUPPORT')", name="ck_tracker_mastery_role"),
+    CheckConstraint("kind IN ('AWARD', 'LATE_BONUS', 'REVERSAL', 'CORRECTION')", name="ck_tracker_mastery_kind"),
+    CheckConstraint("xp != 0 AND abs(xp) <= 160", name="ck_tracker_mastery_xp"),
+    Index("ix_tracker_mastery_profile_role", "profile_id", "role", "created_at"),
+    Index("ix_tracker_mastery_profile_match", "profile_id", "match_id"),
+)
 notification_outbox = Table(
     "tracker_notification_outbox",
     metadata,

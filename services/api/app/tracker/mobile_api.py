@@ -43,6 +43,7 @@ from app.tracker.context import METRIC_CLASS
 from app.tracker.data_access import data_access_state, restore_access
 from app.tracker.entitlement import AppStoreVerifier, EntitlementError, submit_transaction
 from app.tracker.evidence import canonical_json
+from app.tracker.mastery import CURVE_VERSION, ROLES, level_for_xp, mastery_state, role_total
 from app.tracker.metrics import METRICS
 from app.tracker.profile import more_arriving
 from app.tracker.retry import retry_match
@@ -65,6 +66,7 @@ from app.tracker.schema import (
     identities,
     ingest_jobs,
     insight_results,
+    mastery_ledger,
     match_players,
     matches,
     metric_observations,
@@ -104,6 +106,51 @@ class Role(StrEnum):
     MID = "MID"
     OFFLANE = "OFFLANE"
     SUPPORT = "SUPPORT"
+
+
+class MasteryRoleView(BaseModel):
+    role: Role
+    state: Literal["UNSTARTED", "STARTED"]
+    level: int | None
+    xp_into_level: int | None
+    xp_to_next_level: int | None
+    total_xp: int | None
+    saved_progress: bool
+
+
+class MasteryMilestoneView(BaseModel):
+    role: Role
+    level: int
+    created_at: datetime
+
+
+class MasteryView(BaseModel):
+    state: Literal["AVAILABLE", "BACKFILLING", "CALIBRATION_PENDING", "STEAM_LINK_REQUIRED"]
+    curve_version: str
+    roles: list[MasteryRoleView]
+    milestones: list[MasteryMilestoneView]
+
+
+class MasteryAwardView(BaseModel):
+    kind: Literal["AWARD", "LATE_BONUS", "REVERSAL", "CORRECTION"]
+    xp: int
+    mode: Mode
+    role: Role
+    match_ref: str
+    reason: str
+    from_role: Role | None
+    above_metric_ids: list[str]
+    pb_metric_ids: list[str]
+    rule_version: str
+    analysis_version: str
+    baseline_version: str
+    parameter_set_version: str | None
+    created_at: datetime
+
+
+class MasteryAwardsView(BaseModel):
+    awards: list[MasteryAwardView]
+    next_cursor: str | None
 
 
 class Readiness(StrEnum):
@@ -1055,6 +1102,10 @@ def _cursor(key: bytes, profile_id: str, ref: str, mode: str, role: str | None, 
     return f"{ref}.{_mac(key, profile_id, message)}"
 
 
+def _mastery_cursor(key: bytes, profile_id: str, ref: str, role: str, revision: int) -> str:
+    return f"{ref}.{_mac(key, profile_id, f'mastery:{role}:{revision}:{ref}')}"
+
+
 def _methods(connection, owner: str) -> list[Literal["apple", "google", "email"]]:
     methods: list[Literal["apple", "google", "email"]] = []
     for issuer in connection.scalars(select(identities.c.issuer).where(identities.c.user_id == owner)):
@@ -1605,6 +1656,89 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                            if len(rows) > limit else None)
             return HistoryView(matches=[_history_row(connection, row) for row in visible],
                                next_cursor=next_cursor)
+
+    @app.get("/mastery", response_model=MasteryView)
+    async def mastery(request: Request, owner: Annotated[str, Depends(_user)]) -> MasteryView:
+        with _engine(request).connect() as connection:
+            profile = _active_profile(connection, owner)
+            if profile is None:
+                return MasteryView(state="STEAM_LINK_REQUIRED", curve_version=CURVE_VERSION,
+                                   roles=[], milestones=[])
+            state = mastery_state(connection, profile)
+            if state != "AVAILABLE":
+                return MasteryView(state=state, curve_version=CURVE_VERSION,
+                                   roles=[], milestones=[])
+            pro = profile["active_scope"] == "PRO"
+            roles = []
+            for role in ROLES:
+                total = role_total(connection, profile["id"], role)
+                earned, within, needed = level_for_xp(total)
+                capped = not pro and earned is not None and earned >= 5
+                roles.append(MasteryRoleView(
+                    role=Role(role), state="STARTED" if earned is not None else "UNSTARTED",
+                    level=earned if pro or earned is None else min(earned, 5),
+                    xp_into_level=within if earned is not None and not capped else None,
+                    xp_to_next_level=needed if earned is not None and not capped else None,
+                    total_xp=total if pro else None, saved_progress=capped,
+                ))
+            milestones = connection.execute(select(events.c.payload, events.c.created_at).where(
+                events.c.profile_id == profile["id"], events.c.kind == "MASTERY_LEVEL",
+            ).order_by(events.c.created_at.desc()).limit(50)).all()
+            return MasteryView(state="AVAILABLE", curve_version=CURVE_VERSION, roles=roles,
+                               milestones=[MasteryMilestoneView(role=Role(row.payload["role"]),
+                                             level=row.payload["level"], created_at=row.created_at)
+                                           for row in milestones if pro or row.payload["level"] <= 5])
+
+    @app.get("/mastery/{role}/awards", response_model=MasteryAwardsView)
+    async def mastery_awards(request: Request, owner: Annotated[str, Depends(_user)], role: Role,
+                            cursor: str | None = None,
+                            limit: Annotated[int, Query(ge=1, le=50)] = 20) -> MasteryAwardsView:
+        key = _cursor_key(request)
+        with _engine(request).connect() as connection:
+            profile = _active_profile(connection, owner)
+            if profile is None:
+                return MasteryAwardsView(awards=[], next_cursor=None)
+            state = mastery_state(connection, profile)
+            if state != "AVAILABLE":
+                raise HTTPException(503, f"MASTERY_{state}")
+            query = select(mastery_ledger, account_matches.c.public_ref).join(
+                account_matches,
+                (account_matches.c.profile_id == mastery_ledger.c.profile_id)
+                & (account_matches.c.match_id == mastery_ledger.c.match_id),
+            ).where(mastery_ledger.c.profile_id == profile["id"],
+                    mastery_ledger.c.role == role.value, _visible(profile))
+            if cursor is not None:
+                pieces = cursor.split(".")
+                if (len(pieces) != 2 or not hmac.compare_digest(cursor,
+                    _mastery_cursor(key, profile["id"], pieces[0], role.value, profile["active_revision"]))):
+                    raise HTTPException(400, "CURSOR_INVALID")
+                anchor = connection.execute(select(mastery_ledger).where(
+                    mastery_ledger.c.id == pieces[0], mastery_ledger.c.profile_id == profile["id"],
+                    mastery_ledger.c.role == role.value,
+                )).mappings().one_or_none()
+                if anchor is None:
+                    raise HTTPException(400, "CURSOR_INVALID")
+                query = query.where(or_(mastery_ledger.c.created_at < anchor["created_at"],
+                    and_(mastery_ledger.c.created_at == anchor["created_at"],
+                         mastery_ledger.c.id < anchor["id"])))
+            rows = connection.execute(query.order_by(mastery_ledger.c.created_at.desc(),
+                mastery_ledger.c.id.desc()).limit(limit + 1)).mappings().all()
+            visible = rows[:limit]
+            next_cursor = None
+            if len(rows) > limit:
+                ref = visible[-1]["id"]
+                next_cursor = _mastery_cursor(key, profile["id"], ref, role.value, profile["active_revision"])
+            return MasteryAwardsView(awards=[MasteryAwardView(
+                kind=row["kind"], xp=row["xp"], mode=Mode(row["mode"]), role=role,
+                match_ref=row["public_ref"], reason=row["source"]["reason"],
+                from_role=Role(row["source"]["from_role"]) if row["source"].get("from_role") else None,
+                above_metric_ids=row["source"]["above_metric_ids"],
+                pb_metric_ids=row["source"]["pb_metric_ids"], rule_version=row["rule_version"],
+                analysis_version=row["source"]["analysis_version"],
+                baseline_version=row["source"]["baseline_version"],
+                parameter_set_version=row["source"]["parameter_set_version"],
+                created_at=row["created_at"],
+            ) for row in visible], next_cursor=next_cursor)
 
     @app.get("/home", response_model=HomeView)
     async def home(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode,

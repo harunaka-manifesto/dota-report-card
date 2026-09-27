@@ -218,6 +218,9 @@ def settle_bootstrap(connection: Connection, profile_id: str) -> bool:
     ).order_by(bootstrap.c.mode)).mappings().all()
     if len(terminal) != 2 or any(row["completed_at"] is None for row in terminal):
         return False
+    from .mastery import award_retained
+
+    award_retained(connection, profile_id=profile_id, origins={"BOOTSTRAP"})
     payload = {row["mode"].lower(): row["outcome"] for row in terminal}
     connection.execute(insert(events).values(
         id=str(uuid4()), profile_id=profile_id, kind="BOOTSTRAP_COMPLETED",

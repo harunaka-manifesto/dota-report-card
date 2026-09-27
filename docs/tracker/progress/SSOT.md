@@ -36,6 +36,8 @@ progression_bucket × effective_role × metric_id × metric_version
 
 There are **eight independent tracks**: Standard and Turbo × Carry, Mid, Offlane, Support. Within each, every metric has its own series.
 
+Role Mastery is a separate earned XP track shared across Standard and Turbo for each role. It may be displayed beside Progress, but never used to merge metric series or infer a role-level trend. See [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
+
 The following are **forbidden**:
 
 - a role-agnostic baseline;

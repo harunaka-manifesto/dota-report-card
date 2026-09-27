@@ -179,6 +179,10 @@ def run_scope_rebuild(connection: Connection, *, profile_id: str, operation_id: 
     ))
     staged = {**dict(profile), "active_scope": operation["target_scope"], "active_revision": target_revision}
     count = replay_closure(connection, profile=staged, modes=MODES)
+    if operation["target_scope"] == "PRO":
+        from .mastery import award_retained
+
+        award_retained(connection, profile_id=profile_id)
     cutoff = connection.execute(select(account_matches.c.provider_started_at, account_matches.c.match_id).where(
         account_matches.c.profile_id == profile_id, account_matches.c.lifecycle == "READY",
     ).order_by(account_matches.c.provider_started_at.desc(), account_matches.c.match_id.desc()).limit(1)).first()
@@ -262,6 +266,9 @@ def run_methodology_rebuild(connection: Connection, *, profile_id: str) -> int:
     if not any(boundaries.values()):
         return 0
     count = replay_closure(connection, profile=dict(profile), modes=MODES, start=boundaries)
+    from .mastery import award_retained
+
+    award_retained(connection, profile_id=profile_id)
     connection.execute(insert(history_operations).values(
         id=str(uuid4()), profile_id=profile_id, kind="METHODOLOGY_REBUILD", state="COMPLETE",
         target_scope=profile["active_scope"], target_revision=profile["active_revision"],
@@ -417,6 +424,9 @@ def readmit(connection: Connection, *, profile_id: str, match_id: int) -> str:
                            features=features, snapshot_ids=snapshot_ids, feature_digest=feature_digest)
     publish_analysis(connection, profile_id=profile_id, link=dict(link), match=dict(match), built=built,
                      snapshot_ids=snapshot_ids, feature_digest=feature_digest)
+    from .mastery import add_late_bonus
+
+    add_late_bonus(connection, profile_id=profile_id, match_id=match_id, built=built)
     progression = built["eligibility"].progression
     if progression != "NONE":
         revision = connection.scalar(select(profiles.c.active_revision).where(profiles.c.id == profile_id))
