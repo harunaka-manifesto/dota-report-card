@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import cast
 
-from .metrics import LOWER_IS_BETTER, METRICS
+from .metrics import METRICS
 
 TREND_VERSION = "rolling-baseline-trend-1"
 
@@ -53,9 +53,8 @@ def evaluate(metric_id: str, points: list[TrendPoint], *, calibration: dict[str,
             or threshold < HERO_MIX_FLOORS.get(metric_id, 0)):
         return {"version": TREND_VERSION, "state": None, "reason": "UNCALIBRATED",
                 "point_count": 10, "source_match_ids": [point.match_id for point in window]}
+    # Every canonical metric is higher-is-better.
     drift = cast(float, window[-1].baseline_value) - cast(float, window[0].baseline_value)
-    if metric_id in LOWER_IS_BETTER:
-        drift = -drift
     state = "IMPROVING" if drift > threshold else "DECLINING" if drift < -threshold else "STABLE"
     return {"version": TREND_VERSION, "state": state, "reason": None,
             "point_count": 10, "source_match_ids": [point.match_id for point in window]}

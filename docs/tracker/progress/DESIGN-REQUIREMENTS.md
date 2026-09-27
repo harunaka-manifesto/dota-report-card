@@ -80,12 +80,12 @@ No vertical order is semantically required.
 
 | Content / datum | Meaning | Availability | Notes |
 |---|---|---|---|
-| Role metric set | 6 Carry / 5 Mid / 4 Offlane / 5 Support | Always | Fixed per role. Support Control does not exist. |
+| Role metric set | 4 Carry / 4 Mid / 4 Offlane / 4 Support (16 total) | Always | Fixed per role; every role shows exactly four. Support Control does not exist. |
 | Observation series | Chronological measured values for one metric | Once any history exists | May contain N/A gaps |
-| Raw vs comparison value | e.g. ward count vs wards-per-10; healing vs healing-per-10 | Per metric | Baseline and PB use the **comparison** value. Display may use either — but not interchangeably. |
+| Raw vs comparison value | e.g. ward count vs wards-per-10; deward count vs dewards-per-10 | Per metric | Baseline and PB use the **comparison** value. Display may use either — but not interchangeably. |
 | Current baseline | Median of the last ≤20 eligible observations | After 5 priors | "Your usual" for this metric+role+mode |
 | Trend state | Improving / Stable / Declining / Insufficient History | Needs 10 eligible trend points | **Per metric only.** No role-level roll-up exists. |
-| Metric polarity | Higher-better or lower-better | Always | Dead time and level-6 time are lower-better |
+| Metric polarity | Higher-better | Always | Every active metric is higher-better |
 | Baseline-building count | e.g. "3 of 5" | Always | Countable, honest, temporary |
 | N/A point + reason | Not calculable for that match | Per observation | **Never zero**; excluded from baseline and trend |
 | Current PB | Value, hero, date, role, mode, source match | After the gate | Ties are not PBs. Current ownership only. |
@@ -95,7 +95,7 @@ No vertical order is semantically required.
 
 **Not available here:** matchup context, adjusted expectations, hero/lane adjustments (all Match Detail), any composite role score, win rate, MMR, percentile, cross-role comparison, insight cards.
 
-A concrete consequence worth designing around: a player may legitimately see `CS @10 — Improving`, `Farming — Stable`, `Survival — Declining`, `Healing — Insufficient History` **at the same time**. That is the product's truth, not a rendering problem to smooth over.
+A concrete consequence worth designing around: a player may legitimately see `CS @10 — Improving`, `Hero Damage Share — Stable`, `Net Worth at 20:00 — Declining`, `Tower Damage Share — Insufficient History` **at the same time**. That is the product's truth, not a rendering problem to smooth over.
 
 ---
 
@@ -177,7 +177,7 @@ Open: whether metrics are cards, rows, or a single scrolling detail; whether to 
 | Metric | Why it matters | Observable |
 |---|---|---|
 | Trend comprehension | The page's single job is conveying direction honestly | Research: shown a mixed set of metric states, can the user say what's moving and resist inventing an overall verdict? |
-| Polarity comprehension | A lower-better metric improving downward is the classic misread | Research: shown `Survival — Improving` with a falling line, does the user read it correctly? |
+| Polarity comprehension | No active metric is lower-better since the four-metric registry | Revisit only if a future metric version introduces a lower-better metric. |
 | Depth of exploration | Whether the page rewards going past the summary | Analytics: metric detail opens per Progress session; observation → Match Detail rate |
 | Return after a gate is met | Whether readiness counts motivate | Analytics: return rate among users who saw "needs N more" and later crossed it |
 

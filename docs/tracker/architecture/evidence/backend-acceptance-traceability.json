@@ -474,7 +474,7 @@
     "tests/tracker/test_history.py::test_five_prior_gate_exact_chronology_and_identity_isolation",
     "tests/tracker/test_history.py::test_last_twenty_median_but_pb_uses_entire_entitled_history",
     "tests/tracker/test_trend.py::test_trend_requires_ten_measured_baseline_points_and_approved_calibration",
-    "tests/tracker/test_trend.py::test_trend_uses_latest_ten_and_metric_polarity"
+    "tests/tracker/test_trend.py::test_trend_uses_latest_ten_and_higher_is_better"
    ],
    "note": "Median of last 20 after 5-prior gate; trend INSUFFICIENT_HISTORY below 10 measured points. Thresholds uncalibrated (owner)."
   },
@@ -496,7 +496,7 @@
    "rule": "A current PB always points to its qualifying source match under the current entitlement and methodology; ties are not PBs.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_history.py::test_lower_direction_strict_tie_earliest_owner_and_silent_rebuild",
+    "tests/tracker/test_history.py::test_strict_tie_earliest_owner_and_silent_rebuild",
     "tests/tracker/test_history.py::test_database_prior_selection_respects_entitlement_and_active_finalization",
     "tests/tracker/test_role_correction.py::test_rebuild_replays_five_prior_history_and_keeps_other_series",
     "tests/tracker/test_mobile_inventory.py::test_profile_pb_share_favourite_and_conditional_reads"
@@ -548,7 +548,7 @@
    "rule": "Lane context never appears in the same claim as the match result, and never softens a BELOW state.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_d_never_and_lane_label_is_standard_core_only",
+    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_a_never_and_lane_label_is_standard_core_only",
     "tests/tracker/test_contract_rules_more.py::test_insight_copy_never_claims_causes_or_judges_teammates"
    ],
    "note": "Lane context never alters the performance label (difficult lane still BELOW); insight copy excludes lane context."
@@ -1427,7 +1427,7 @@
    "rule": "One matchup badge per match, on the lane-metric group; `UNAVAILABLE` renders nothing.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_d_never_and_lane_label_is_standard_core_only",
+    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_a_never_and_lane_label_is_standard_core_only",
     "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
    ],
    "note": "B hero-only, C/C* hero+lane, D/A unadjusted; one lane label only for Standard cores; UNAVAILABLE otherwise."
@@ -1659,7 +1659,7 @@
    "rule": "Class A/D and Turbo metrics compare against \"your usual\"; class B/C/C\\* Standard metrics compare against the adjusted expectation.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_d_never_and_lane_label_is_standard_core_only",
+    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_a_never_and_lane_label_is_standard_core_only",
     "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
    ],
    "note": "B hero-only, C/C* hero+lane, D/A unadjusted; one lane label only for Standard cores; UNAVAILABLE otherwise."
@@ -1682,7 +1682,7 @@
    "rule": "Exactly one matchup badge appears, on the lane-metric group, for Standard cores only; `UNAVAILABLE` shows nothing.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_d_never_and_lane_label_is_standard_core_only",
+    "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_a_never_and_lane_label_is_standard_core_only",
     "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
    ],
    "note": "B hero-only, C/C* hero+lane, D/A unadjusted; one lane label only for Standard cores; UNAVAILABLE otherwise."
@@ -2420,7 +2420,7 @@
    "tests": [
     "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses",
     "tests/tracker/test_rebuild.py::test_late_older_match_cannot_take_newer_pb_or_rolling_window",
-    "tests/tracker/test_history.py::test_lower_direction_strict_tie_earliest_owner_and_silent_rebuild",
+    "tests/tracker/test_history.py::test_strict_tie_earliest_owner_and_silent_rebuild",
     "tests/tracker/test_owner_followups.py::test_out_of_order_import_rebuilds_later_comparisons_through_the_worker"
    ],
    "note": "Import/scope rebuild adds no NEW_PB/MATCH_READY/other events; late BOOTSTRAP match emits no NEW_PB; celebrate=False suppresses."
@@ -3013,12 +3013,12 @@
    "id": "progress#12.8",
    "source": "progress/SSOT.md",
    "section": "12. Acceptance rules",
-   "rule": "A lower-is-better metric moving down is `Improving`.",
+   "rule": "A rising baseline beyond the approved threshold is `Improving`; every active metric is higher-is-better.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_trend.py::test_trend_uses_latest_ten_and_metric_polarity"
+    "tests/tracker/test_trend.py::test_trend_uses_latest_ten_and_higher_is_better"
    ],
-   "note": "carry.dead_time falling → IMPROVING (test-only calibration)."
+   "note": "carry.hero_damage_share rising → IMPROVING (test-only calibration); retired lower-is-better IDs are rejected."
   },
   {
    "id": "progress#12.9",
@@ -3072,7 +3072,7 @@
    "tests": [
     "tests/tracker/test_contract_rules.py::test_raw_higher_but_lower_comparison_value_is_not_a_personal_best"
    ],
-   "note": "Higher raw healing with a lower per-10 comparison value does not take the PB or celebrate."
+   "note": "Higher raw observer-ward count with a lower per-10 comparison value does not take the PB or celebrate."
   },
   {
    "id": "progress#12.14",

@@ -55,7 +55,7 @@ A general chronological match list may span roles and modes (see `history/`), bu
 
 For a selected `bucket + role`:
 
-1. **The metric set for that role** (Carry 6, Mid 5, Offlane 4, Support 5 — see foundation §7.2).
+1. **The metric set for that role** (exactly four each: Carry 4, Mid 4, Offlane 4, Support 4 — see foundation §7.2).
 2. **Per metric**, some or all of:
    - the chronological series of eligible measured observations (raw/display value and/or the canonical comparison value);
    - the rolling baseline context;
@@ -84,7 +84,7 @@ A match contributes observations **only at the single finalization point** ([`..
 
 ### 3A.2 Metric evidence classes
 
-Six of the twenty metrics are summary-class; the other fourteen are replay-class. The per-metric classification is defined once, in [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3, and is **not** restated here.
+Five of the sixteen metrics are summary-class; the other eleven are replay-class. The per-metric classification is defined once, in [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3, and is **not** restated here.
 
 The consequence for this surface:
 
@@ -109,7 +109,7 @@ Restated from foundation §11 because it is this surface's central object.
 - A **trend point** is a baseline-ready observation paired with the baseline that existed before it.
 - The window is the most recent **10 eligible trend points** for that exact identity.
 - A state exists **only** with a complete 10-point window; otherwise `Insufficient History`.
-- Direction follows the movement of the rolling baseline and respects metric polarity (lower dead-time rate is `Improving`).
+- Direction follows the movement of the rolling baseline. Every active metric is higher-is-better, so a rising baseline is `Improving`.
 - N/A points are skipped, not zeroed. Skipping may leave the window incomplete.
 - A single outlier cannot create a state. A calendar gap cannot remove a valid point.
 - Exact meaningful-movement thresholds are a **versioned calibration dependency**. Implementations MUST NOT invent a number, use a generic cutoff, or publish a fifth state. The calibration is bound by one measured constraint: the threshold MUST sit above the hero-mix noise floor, so a change of hero pool is not reported as a change in skill.
@@ -123,11 +123,11 @@ Restated from foundation §11 because it is this surface's central object.
 **Forbidden here:** any role-level trend, any composite of several metrics, any overall progress curve, score, grade, rating or percentage.
 
 ```text
-Valid:   "CS @10 — Improving"  ·  "Survival — Declining"  ·  "Healing — Insufficient History"
+Valid:   "CS @10 — Improving"  ·  "Net Worth at 20:00 — Declining"  ·  "Wards Placed — Insufficient History"
 Invalid: "Your Carry is improving"  ·  "Carry Score: 78"  ·  "3 of 4 metrics up, so Carry is trending up"
 ```
 
-An evidence-bound prose summary that names its metrics is permitted ("Laning and scaling are moving up while survival has slipped"). It MUST preserve polarity and N/A/Insufficient-History status, MUST NOT make causal claims, and MUST NOT turn a missing metric into a favourable or unfavourable judgment.
+An evidence-bound prose summary that names its metrics is permitted ("Laning is moving up while net worth at 20:00 has slipped"). It MUST preserve polarity and N/A/Insufficient-History status, MUST NOT make causal claims, and MUST NOT turn a missing metric into a favourable or unfavourable judgment.
 
 ---
 
@@ -243,7 +243,7 @@ Rebuilds are deterministic and idempotent, and make no provider calls.
 - [ ] Selecting a role and bucket shows only that track's metrics and series.
 - [ ] No surface element aggregates metrics into a role-level verdict.
 - [ ] A metric with fewer than 10 eligible trend points shows `Insufficient History`, styled neutrally.
-- [ ] A lower-is-better metric moving down is `Improving`.
+- [ ] A rising baseline beyond the approved threshold is `Improving`; every active metric is higher-is-better.
 - [ ] N/A points are visibly not zero, and are excluded from baseline and trend counts.
 - [ ] A calendar filter changes the view without changing any trend state or baseline.
 - [ ] A role never played in the selected bucket shows an unstarted state, not zeros.

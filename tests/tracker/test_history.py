@@ -34,13 +34,12 @@ def test_last_twenty_median_but_pb_uses_entire_entitled_history():
     assert personal_best(current, rows, celebrate=True) == {'state': 'READY', 'source_match_id': 1, 'value': 100, 'new_pb': False}
 
 
-def test_lower_direction_strict_tie_earliest_owner_and_silent_rebuild():
-    metric = 'carry.dead_time.v1'
-    rows = [row(i, 1 / i, metric=metric) for i in range(1, 6)]
-    tied = row(6, .2, metric=metric)
+def test_strict_tie_earliest_owner_and_silent_rebuild():
+    rows = [row(i, i / 10) for i in range(1, 6)]
+    tied = row(6, .5)
     assert personal_best(tied, rows, celebrate=True)['source_match_id'] == 5
     assert personal_best(tied, rows, celebrate=True)['new_pb'] is False
-    improved = row(7, .1, metric=metric)
+    improved = row(7, .6)
     assert personal_best(improved, [*rows, tied], celebrate=True)['new_pb'] is True
     assert personal_best(improved, [*rows, tied], celebrate=False)['new_pb'] is False
     assert baseline(improved, [*rows, tied])['prior_count'] == 6

@@ -37,7 +37,7 @@
 
 ## 3. Role metrics by evidence class
 
-**This is the most consequential table in this document.** Fourteen of the twenty V1 role metrics need replay-class evidence. That single fact drives most of the product's readiness behaviour.
+**This is the most consequential table in this document.** Eleven of the sixteen V1 role metrics need replay-class evidence. That single fact drives most of the product's readiness behaviour.
 
 Metric definitions are owned by [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §7.2. This table adds only the evidence classification.
 
@@ -48,13 +48,9 @@ Metric definitions are owned by [`../app_foundation/SSOT.md`](../app_foundation/
 | `mid.tower_damage_share.v1` | **Summary** | Same. |
 | `offlane.fight_presence.v1` | **Summary** | Whole-match credited ratio from the final scoreboard. |
 | `support.fight_presence.v1` | **Summary** | Same. |
-| `support.healing.v1` | **Summary** | Final healing ÷ duration. |
 | `carry.last_hits_at_10.v1` | **Replay** | Needs the per-minute last-hit series. |
-| `carry.cs_10_to_20.v1` | **Replay** | Same series, two checkpoints. |
 | `carry.net_worth_at_20.v1` | **Replay** | Needs the net-worth checkpoint. |
-| `carry.dead_time.v1` | **Replay** | Needs complete death-interval telemetry. |
 | `mid.lane_net_worth_advantage_at_10.v1` | **Replay** | Needs the checkpoint **and** unique identification of the opposing Mid. |
-| `mid.level_6_time.v1` | **Replay** | Needs level timestamps. |
 | `mid.early_fight_presence.v1` | **Replay** | Needs kill-event timing to bound it at 15:00. |
 | `mid.net_worth_at_20.v1` | **Replay** | Checkpoint. |
 | `offlane.lane_net_worth_advantage_at_10.v1` | **Replay** | Checkpoint + opposing-Carry identification. |
@@ -128,7 +124,7 @@ summary-class `fight_presence` metric.
 | Progress trend state | [`progress`](../progress/SSOT.md) §4 | **History** — complete 10-point window | no | no | `Insufficient History` | `Insufficient History` — **never a decline** |
 | Progress Personal Bests | [`progress`](../progress/SSOT.md) §7 | **History** | no | yes | absent | "unavailable", never zero |
 | Role Mastery base award and level | [`role_mastery`](../role_mastery/SSOT.md) | **Final** + approved performance calibration; imported awards wait for a coherent bootstrap/import checkpoint | no | no | `CALIBRATION_PENDING` or `BACKFILLING` | Eligible finalized matches earn base XP even without replay or baseline readiness; no provisional award without approval |
-| Role Mastery Above/PB bonus | [`role_mastery`](../role_mastery/SSOT.md) | **Final** + qualifying metric evidence and **History** for PBs | no | yes | Base award remains; missing bonus evidence stays absent | Late replay may append a quiet missing bonus; no inferred bonus for unavailable evidence |
+| Role Mastery Above/PB bonus | [`role_mastery`](../role_mastery/SSOT.md) | **Final** + qualifying evidence from the role's four canonical metrics and **History** for PBs | no | yes | Base award remains; missing bonus evidence stays absent | Late replay may append a quiet missing bonus; no inferred bonus for unavailable evidence |
 | Profile identity line + role map | [`profile`](../profile/SSOT.md) §4.2 | **Final** × N matches + **Coverage (summary)** | no | yes | honest "so far" or nothing | withheld, never a default archetype |
 | Profile hero tags | [`profile`](../profile/SSOT.md) §4.3 | **Final** × N role matches + **Coverage (summary)** | no | yes | counts only | counts only |
 | Profile confirmed claims | [`profile`](../profile/SSOT.md) §4.4 | **Final** × window + **Coverage (summary)** | no | no | section hidden | hidden — **never teased into existence** |

@@ -234,8 +234,10 @@ def test_replay_unavailable_still_finalizes_with_reasoned_na_metrics(database):
     assert _run(database, profile_id) == "READY"
     with database.connect() as c:
         rows = c.execute(select(metric_observations)).mappings().all()
-        assert len(rows) == 6
-        assert any(row["unavailable_reason"] == "REPLAY_UNAVAILABLE" for row in rows)
+        # Carry's four canonical metrics: two summary-class measured, two replay-class N/A.
+        assert sorted(row["metric_id"] for row in rows) == list(metric_ids("CARRY"))
+        assert sorted(row["metric_id"] for row in rows if row["unavailable_reason"] == "REPLAY_UNAVAILABLE") == [
+            "carry.last_hits_at_10.v1", "carry.net_worth_at_20.v1"]
         assert all((row["raw_value"] is None) == (row["unavailable_reason"] is not None) for row in rows)
         assert dict(c.execute(select(coverage.c.evidence_class, coverage.c.state)).all()) == {
             "SUMMARY": "KNOWN", "REPLAY": "GAP",

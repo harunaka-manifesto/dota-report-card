@@ -285,6 +285,9 @@ def parameter_set_from_artifact(artifact: object) -> ParameterSet:
         position, hero_id = map(int, key.split(":"))
         opponent_effects[(position, hero_id)] = cast(float, value)
     metrics = {key: MetricParameters(**value) for key, value in artifact["metrics"].items()}
+    if set(metrics) != set(METRICS):
+        # An artifact calibrated for another registry (e.g. before metric retirement) fails closed.
+        raise ValueError("population parameter artifact does not match the tracker metric registry")
     coverage = min(artifact["opponent_coverage"].values())
     return ParameterSet(
         version=artifact["version"], validated=True, opponent_coverage=coverage,

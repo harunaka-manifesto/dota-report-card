@@ -37,7 +37,7 @@ and its CI diff check are untouched. Resource design and state projections are s
 
 `GET /mobile/v1/mastery` is reusable by Home, Profile and Progress. It returns `STEAM_LINK_REQUIRED`, `CALIBRATION_PENDING`, `BACKFILLING`, or `AVAILABLE`; when available it has four role summaries and live in-app level milestones. A role is `UNSTARTED` before its first award. Free caps the visible level at 5, omits total XP, and hides within-level XP at the cap. Pro receives earned level and total XP.
 
-`GET /mobile/v1/mastery/{role}/awards` returns signed XP ledger entries with mode, kind, structured reason, qualifying Above and PB metric IDs, source versions, and an entitled opaque match reference. It uses profile/role/revision-bound signed cursors. Entries for Pro-only history are omitted from Free responses. Neither endpoint starts provider work. See [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
+`GET /mobile/v1/mastery/{role}/awards` returns signed XP ledger entries under the current rule (`role-mastery-v2`) with mode, kind, structured reason (`LIVE_FINALIZATION`, `RECOVERY`, `HISTORICAL_IMPORT`, `METHODOLOGY_REBUILD`, `LATE_REPLAY`, `ROLE_CORRECTION`), qualifying Above and PB metric IDs (only the role's four canonical metrics), source versions, and an entitled opaque match reference. Superseded-rule audit rows are never returned. It uses profile/role/revision-bound signed cursors. Entries for Pro-only history are omitted from Free responses. Neither endpoint starts provider work. See [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
 
 ## Match Detail: item timings
 

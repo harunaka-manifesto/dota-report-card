@@ -1,0 +1,167 @@
+{
+  "/account": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/account/steam-switch/preflight": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/bootstrap": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/coverage?mode=STANDARD": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/history-operation": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/history?mode=STANDARD": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/history?mode=TURBO": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/home?mode=STANDARD&time_zone=UTC": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/profile?mode=STANDARD": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/profile?mode=TURBO": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/progress?mode=STANDARD&role=SUPPORT&metric_id=support.camps_stacked.v1": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/readiness": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/recovery": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/settings": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  },
+  "/subscription": {
+    "body": {
+      "code": "SESSION_INVALID",
+      "detail": "session invalid",
+      "request_id": "<request_id>",
+      "status": 401,
+      "title": "Session Invalid",
+      "type": "about:blank"
+    },
+    "status": 401
+  }
+}

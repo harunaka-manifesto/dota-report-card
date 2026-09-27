@@ -21,6 +21,7 @@ from app.tracker.schema import (
     dota_accounts,
     events,
     ingest_jobs,
+    metric_observations,
     personal_bests,
     profile_states,
     profiles,
@@ -157,19 +158,26 @@ def test_raw_higher_but_lower_comparison_value_is_not_a_personal_best(database):
     _, _, profile_id, _ = _client(database)
     history(database, profile_id, [0, 0, 0, 0, 0, 0])
 
-    def longer_but_more_healing(payload):
-        payload["players"][0]["hero_healing"] = 600   # raw above every prior 490
-        payload["duration"] = 5000                    # per-10-minute rate below them
-    later = add_match(database, profile_id, index=20, edit=longer_but_more_healing)
+    metric = "support.observer_wards_placed.v1"
+
+    def longer_with_more_wards(payload):
+        extra = [{**payload["players"][0]["obs_log"][0], "time": 3000 + offset} for offset in (0, 1)]
+        payload["players"][0]["obs_log"] += extra      # raw 12 observers, above every prior 10
+        payload["duration"] = 5000                     # per-10-minute rate 1.44, below the prior 1.67
+    later = add_match(database, profile_id, index=20, edit=longer_with_more_wards)
     assert finalize(database, profile_id, later) == "READY"
     with database.connect() as connection:
         owner = connection.execute(select(personal_bests.c.comparison_value, personal_bests.c.analysis_id).where(
-            personal_bests.c.metric_id == "support.healing.v1")).one()
+            personal_bests.c.metric_id == metric)).one()
         later_analysis = connection.scalar(select(account_matches.c.active_analysis_id).where(
             account_matches.c.match_id == later))
+        latest = connection.execute(select(metric_observations.c.raw_value, metric_observations.c.comparison_value)
+                                    .where(metric_observations.c.analysis_id == later_analysis,
+                                           metric_observations.c.metric_id == metric)).one()
+        assert latest.raw_value == 12 and latest.comparison_value < owner.comparison_value
         assert owner.analysis_id != later_analysis
         assert connection.scalar(select(func.count()).select_from(events).where(
-            events.c.kind == "NEW_PB", events.c.payload["metric_id"].astext == "support.healing.v1")) == 0
+            events.c.kind == "NEW_PB", events.c.payload["metric_id"].astext == metric)) == 0
 
 
 def test_import_that_beats_the_record_updates_pb_silently_without_celebration(database):

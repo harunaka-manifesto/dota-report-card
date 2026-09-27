@@ -2,11 +2,23 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from uuid import uuid4
 
+import pytest
 from app.core.config import Settings
 from app.tracker.authentication import VerifiedIdentity, create_user_session
-from app.tracker.mastery import add_late_bonus, award_retained, award_xp, level_for_xp, role_total
+from app.tracker.mastery import (
+    RULE_VERSION,
+    _facts_from_built,
+    add_late_bonus,
+    award_retained,
+    award_xp,
+    level_for_xp,
+    mastery_state,
+    role_total,
+)
+from app.tracker.metrics import METRICS, metric_ids
 from app.tracker.mobile_api import create_mobile_app
 from app.tracker.population_parameters import build_artifact, register_parameter_artifact
 from app.tracker.rebuild import run_methodology_rebuild
@@ -28,6 +40,8 @@ from sqlalchemy import delete, func, select, update
 from .builders import add_match, finalize, history
 from .test_population_parameters import build_input
 from .test_schema import identity
+
+RETIRED = ("carry.cs_10_to_20.v1", "carry.dead_time.v1", "mid.level_6_time.v1", "support.healing.v1")
 
 
 def approved_fixture(database) -> None:
@@ -142,8 +156,13 @@ def test_late_evidence_adds_only_missing_bonus_without_celebration(database) -> 
     assert finalize(database, profile_id, match_id) == "READY"
     with database.begin() as connection:
         before = role_total(connection, profile_id, "SUPPORT")
+        stale = {"parameter_set_version": "2026-09-v1", "pb_rows": [],
+                 "metric_rows": [{"metric_id": metric, "performance_state": "ABOVE"}
+                                 for metric in [*RETIRED, "carry.last_hits_at_10.v1"]]}
+        # Retired and other-role metrics can never add evidence to a Support award.
+        assert not add_late_bonus(connection, profile_id=profile_id, match_id=match_id, built=stale)
         built = {"parameter_set_version": "2026-09-v1",
-                 "metric_rows": [{"metric_id": "support.healing.v1", "performance_state": "ABOVE"}],
+                 "metric_rows": [{"metric_id": "support.vision_denial.v1", "performance_state": "ABOVE"}],
                  "pb_rows": []}
         assert add_late_bonus(connection, profile_id=profile_id, match_id=match_id, built=built)
         assert not add_late_bonus(connection, profile_id=profile_id, match_id=match_id, built=built)
@@ -199,7 +218,8 @@ def test_calibration_gate_and_hidden_history_api(database, monkeypatch) -> None:
     assert pro["roles"][-1]["level"] == 6
     awards = client.get("/mastery/SUPPORT/awards?limit=1", headers=headers).json()
     assert len(awards["awards"]) == 1
-    assert awards["awards"][0]["reason"] == "HISTORICAL_IMPORT"
+    assert awards["awards"][0]["reason"] == "METHODOLOGY_REBUILD"
+    assert awards["awards"][0]["rule_version"] == "role-mastery-v2"
     assert awards["awards"][0]["match_ref"] != str(hidden)
     assert pro["milestones"] == []
     live = add_match(database, profile_id, index=11, role="SUPPORT", offset_days=1, keep_role=True)
@@ -210,10 +230,135 @@ def test_calibration_gate_and_hidden_history_api(database, monkeypatch) -> None:
                         params={"limit": 1, "cursor": first["next_cursor"]}).json()
     assert len(second["awards"]) == 1 and second["next_cursor"] is None
     assert {first["awards"][0]["reason"], second["awards"][0]["reason"]} == {
-        "LIVE_FINALIZATION", "HISTORICAL_IMPORT",
+        "LIVE_FINALIZATION", "METHODOLOGY_REBUILD",
     }
     with database.begin() as connection:
         connection.execute(update(profiles).where(profiles.c.id == profile_id).values(
             active_scope="FREE", active_revision=2))
     free_awards = client.get("/mastery/SUPPORT/awards", headers=headers).json()["awards"]
     assert len(free_awards) == 1 and free_awards[0]["reason"] == "LIVE_FINALIZATION"
+
+
+def _built(states, pbs=()):
+    return {"metric_rows": [{"metric_id": metric, "performance_state": state} for metric, state in states],
+            "pb_rows": [{"metric_id": metric, "current": SimpleNamespace(match_id=7),
+                         "pb": {"state": "READY", "source_match_id": 7}} for metric in pbs]}
+
+
+@pytest.mark.parametrize("role", ("CARRY", "MID", "OFFLANE", "SUPPORT"))
+def test_each_role_earns_from_exactly_its_four_canonical_metrics(role) -> None:
+    canonical = metric_ids(role)
+    assert len(canonical) == 4 and set(canonical).isdisjoint(RETIRED)
+
+    def xp(states, pbs=(), mode="STANDARD"):
+        return award_xp(mode, *_facts_from_built(_built(states, pbs), role))
+
+    # Every metric above and a new PB: the fixed caps bind, so each role's maximum is identical.
+    assert xp([(metric, "ABOVE") for metric in canonical], canonical) == 160
+    assert xp([(metric, "ABOVE") for metric in canonical], canonical, "TURBO") == 80
+    # Positive and negative deltas mixed: only ABOVE is credited; BELOW never subtracts.
+    assert xp([(canonical[0], "ABOVE"), (canonical[1], "BELOW"),
+               (canonical[2], "IN_LINE"), (canonical[3], "BELOW")]) == 110
+    # No positive delta still earns the full base.
+    assert xp([(metric, "BELOW") for metric in canonical]) == 100
+    # Baseline building everywhere: no bonus, no penalty.
+    assert xp([(metric, "NOT_READY") for metric in canonical]) == 100
+    # Two metrics N/A (no state, no PB row); the other two can still reach the ABOVE cap.
+    assert xp([(canonical[0], "NOT_READY"), (canonical[1], "NOT_READY"),
+               (canonical[2], "ABOVE"), (canonical[3], "ABOVE")], canonical[2:]) == 160
+    # Retired and other-role IDs are never credited, even from a pre-migration analysis.
+    foreign = [*RETIRED, *(metric for metric in METRICS if metric not in canonical)]
+    assert _facts_from_built(_built([(metric, "ABOVE") for metric in foreign], foreign), role) == ([], [])
+
+
+def test_level_pacing_is_base_driven_and_equal_across_roles() -> None:
+    # The curve is calibrated on the 100 XP base: twenty base-only Standard matches per early level.
+    assert level_for_xp(20 * award_xp("STANDARD", [], [])) == (2, 0, 2000)
+    assert level_for_xp(4 * 20 * 100)[0] == 5
+    # Bonus caps (two ABOVE, two PB) are independent of registry size, so the fastest
+    # possible pace (160/match) is the same for every role now that each has four metrics.
+    assert {len(metric_ids(role)) for role in ("CARRY", "MID", "OFFLANE", "SUPPORT")} == {4}
+    assert award_xp("STANDARD", ["a", "b", "c", "d"], ["a", "b", "c", "d"]) == 160
+
+
+def test_retired_metric_mastery_is_rebuilt_under_one_rule_without_celebrations(database, monkeypatch) -> None:
+    from app.tracker import finalization
+
+    approved_fixture(database)
+    user_id, profile_id = identity(database)
+    first = add_match(database, profile_id, index=0, role="SUPPORT", keep_role=True)
+    # Simulate an analysis and ledger written before the four-metric registry:
+    # a tracker-analysis-6 analysis and a v1 award crediting retired metrics.
+    monkeypatch.setattr(finalization, "ANALYSIS_VERSION", "tracker-analysis-6")
+    assert finalize(database, profile_id, first) == "READY"
+    monkeypatch.undo()
+    with database.begin() as connection:
+        link = connection.execute(select(account_matches).where(
+            account_matches.c.match_id == first)).mappings().one()
+        assert connection.scalar(select(func.count()).select_from(mastery_ledger)) == 0
+        connection.execute(mastery_ledger.insert().values(
+            id=str(uuid4()), profile_id=profile_id, match_id=first, mode="STANDARD", role="SUPPORT",
+            kind="AWARD", xp=160, source_analysis_id=link["active_analysis_id"],
+            rule_version="role-mastery-v1", dedup_key=f"mastery:award:{profile_id}:{first}",
+            source={"reason": "LIVE_FINALIZATION", "base_standard_xp": 100,
+                    "above_metric_ids": ["support.healing.v1", "support.vision_denial.v1"],
+                    "pb_metric_ids": ["support.healing.v1", "support.camps_stacked.v1"],
+                    "analysis_version": "tracker-analysis-6", "baseline_version": "rolling-median-20-v1",
+                    "parameter_set_version": "2026-09-v1"},
+            created_at=func.now()))
+        profile = connection.execute(select(profiles).where(profiles.c.id == profile_id)).mappings().one()
+        assert role_total(connection, profile_id, "SUPPORT") == 0
+        assert mastery_state(connection, profile) == "BACKFILLING"
+    # A later Standard match waits for the migration instead of snapshotting transitional priors;
+    # Turbo is a separate chronology and is not blocked by stale Standard history.
+    second = add_match(database, profile_id, index=1, role="SUPPORT", keep_role=True)
+    turbo = add_match(database, profile_id, index=2, role="SUPPORT", turbo=True, keep_role=True)
+    assert finalize(database, profile_id, second) == "READY"
+    assert finalize(database, profile_id, turbo) == "READY"
+    with database.connect() as connection:
+        assert role_total(connection, profile_id, "SUPPORT") == 50
+        levels = connection.scalar(select(func.count()).select_from(events).where(
+            events.c.kind == "MASTERY_LEVEL"))
+    with database.begin() as connection:
+        assert run_methodology_rebuild(connection, profile_id=profile_id) == 2
+        assert run_methodology_rebuild(connection, profile_id=profile_id) == 0
+        assert award_retained(connection, profile_id=profile_id) == 0
+    with database.connect() as connection:
+        profile = connection.execute(select(profiles).where(profiles.c.id == profile_id)).mappings().one()
+        assert mastery_state(connection, profile) == "AVAILABLE"
+        assert role_total(connection, profile_id, "SUPPORT") == 250
+        current = connection.execute(select(mastery_ledger).where(
+            mastery_ledger.c.rule_version == RULE_VERSION).order_by(mastery_ledger.c.match_id)).mappings().all()
+        assert [(row["match_id"], row["xp"], row["source"]["reason"]) for row in current] == [
+            (first, 100, "METHODOLOGY_REBUILD"), (second, 100, "METHODOLOGY_REBUILD"),
+            (turbo, 50, "LIVE_FINALIZATION")]
+        assert all(row["source"]["analysis_version"] == "tracker-analysis-7" for row in current)
+        credited = {metric for row in current
+                    for metric in row["source"]["above_metric_ids"] + row["source"]["pb_metric_ids"]}
+        assert credited <= set(metric_ids("SUPPORT"))
+        # The v1 row stays as audit history; no level is re-celebrated by the rebuild.
+        assert connection.scalar(select(func.count()).select_from(mastery_ledger).where(
+            mastery_ledger.c.rule_version == "role-mastery-v1")) == 1
+        assert connection.scalar(select(func.count()).select_from(events).where(
+            events.c.kind == "MASTERY_LEVEL")) == levels
+    with database.begin() as connection:
+        connection.execute(update(profiles).where(profiles.c.id == profile_id).values(active_scope="PRO"))
+    issuer, subject = "https://accounts.google.com", str(uuid4())
+    with database.begin() as connection:
+        connection.execute(identities.insert().values(
+            id=str(uuid4()), user_id=user_id, issuer=issuer, subject=subject, verified_at=datetime.now(UTC)))
+    _, tokens = create_user_session(database, VerifiedIdentity("google", issuer, subject, None))
+    client = TestClient(create_mobile_app(Settings(), database=database))
+    headers = {"Authorization": f"Bearer {tokens.access_token}"}
+    assert client.get("/mastery", headers=headers).json()["roles"][-1]["total_xp"] == 250
+    awards = client.get("/mastery/SUPPORT/awards", headers=headers).json()["awards"]
+    assert len(awards) == 3 and {award["rule_version"] for award in awards} == {RULE_VERSION}
+    assert not {metric for award in awards for metric in award["above_metric_ids"] + award["pb_metric_ids"]
+                } & set(RETIRED)
+    # A correction moves only current-rule XP; the v1 audit row stays in Support.
+    with database.begin() as connection:
+        correct_role(connection, profile_id=profile_id, match_id=first, role="CARRY",
+                     expected_role_revision=0)
+    with database.connect() as connection:
+        assert role_total(connection, profile_id, "CARRY") == 100
+        assert role_total(connection, profile_id, "SUPPORT") == 150

@@ -12,7 +12,7 @@ A Dota match's data does not arrive in one piece.
 
 **Replay-class evidence** — everything derived from the match timeline — depends on Valve publishing a replay and someone processing it. Measured floor: about six minutes after match end, and that floor is Valve's, not a provider's. Sometimes the replay never exists at all (abandons, custom lobbies, missing replays), and sometimes processing permanently fails.
 
-Fourteen of the twenty V1 role metrics, and every one of the seventeen insight card types, are replay-class ([`../FEATURE-DATA-DEPENDENCY-MATRIX.md`](../FEATURE-DATA-DEPENDENCY-MATRIX.md) §3). So the heavy analysis genuinely does have to wait.
+Eleven of the sixteen V1 role metrics (fourteen of twenty when this ADR was accepted), and every one of the seventeen insight card types, are replay-class ([`../FEATURE-DATA-DEPENDENCY-MATRIX.md`](../FEATURE-DATA-DEPENDENCY-MATRIX.md) §3). So the heavy analysis genuinely does have to wait.
 
 Treating a match as a binary "loaded / not loaded" leaves only bad options: block the match for several minutes and lose the emotional moment entirely; or show it and lie about what is missing; or spin forever on matches whose replay will never arrive.
 

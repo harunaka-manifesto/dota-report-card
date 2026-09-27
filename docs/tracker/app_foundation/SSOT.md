@@ -192,7 +192,7 @@ This section defines the product's vocabulary for that. The mechanics are owned 
 | **Summary-class** | Result, duration, mode, heroes, K/D/A, LH/DN, GPM/XPM, net worth, final damage / tower damage / healing, final items, ability build, draft, tower and barracks end state — for all ten players. |
 | **Replay-class** | Everything derived from the match timeline: per-minute resource series, team advantage curves, lane assignment and lane metrics, item timings, item usage, wards and dewards, camp stacking, objectives with timestamps, teamfights, kill and death context, runes, damage breakdowns, positional data. |
 
-Which of the 20 role metrics fall in which class is defined once, in [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3. **Fourteen of the twenty are replay-class**, as are all insight card types.
+Which of the 16 role metrics fall in which class is defined once, in [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3. **Eleven of the sixteen are replay-class**, as are all insight card types.
 
 ### 4A.2 States
 
@@ -351,20 +351,17 @@ There are **eight independent progression tracks**: Standard × {Carry, Mid, Off
 
 These are metric-history tracks. Role Mastery separately records one earned XP level per role across the two modes; it is not an analytical score or trend.
 
-### 7.2 Canonical registry (20 active metrics)
+### 7.2 Canonical registry (16 active metrics)
 
-Carry 6, Mid 5, Offlane 4, Support 5. Support **Control** is UNSUPPORTED in V1 and MUST NOT be represented through any proxy (cast counts, action counts, damage, K/A).
+Carry 4, Mid 4, Offlane 4, Support 4 — exactly four per role. Support **Control** is UNSUPPORTED in V1 and MUST NOT be represented through any proxy (cast counts, action counts, damage, K/A).
 
 | Metric ID | Display meaning | Direction | Comparison value | N/A when |
 |---|---|---|---|---|
 | `carry.last_hits_at_10.v1` | CS at 10:00 | higher better | same count | match ends before 10:00; trajectory missing/malformed |
-| `carry.cs_10_to_20.v1` | CS gained 10:00–20:00 | higher better | same count | match ends before 20:00; coverage missing |
 | `carry.net_worth_at_20.v1` | Net Worth at 20:00 | higher better | same gold | match ends before 20:00; checkpoint absent/malformed |
-| `carry.dead_time.v1` | Time Spent Dead | **lower** better | `total_dead_seconds / match_duration_seconds` | duration or complete dead-interval telemetry missing |
 | `carry.hero_damage_share.v1` | Hero Damage Share | higher better | player / team hero damage | team hero damage is 0; inputs unavailable |
 | `carry.tower_damage_share.v1` | Tower Damage Share | higher better | player / team tower damage | team tower damage is 0; inputs unavailable |
 | `mid.lane_net_worth_advantage_at_10.v1` | Mid Lane NW Advantage | higher better | own NW@10 − opposing Mid NW@10 | checkpoint missing; opposing Position 2 not uniquely identified |
-| `mid.level_6_time.v1` | Time Reaching Level 6 | **lower** better | seconds | fewer than six valid level timestamps |
 | `mid.early_fight_presence.v1` | Early Fight Presence (to 15:00) | higher better | credited ratio | team credited kills = 0; event data missing/invalid |
 | `mid.net_worth_at_20.v1` | Mid Net Worth at 20:00 | higher better | same gold | as Carry NW@20 |
 | `mid.tower_damage_share.v1` | Tower Damage Share | higher better | player / team tower damage | team tower damage is 0 |
@@ -376,15 +373,15 @@ Carry 6, Mid 5, Offlane 4, Support 5. Support **Control** is UNSUPPORTED in V1 a
 | `support.observer_wards_placed.v1` | Wards Placed | higher better | observer wards per 10 min | ward stream missing/malformed; non-positive duration |
 | `support.vision_denial.v1` | Vision Denial | higher better | dewards per 10 min | destruction stream missing/malformed |
 | `support.camps_stacked.v1` | Camps Stacked | higher better | cumulative count at **exactly 20:00** | match ends before 20:00; series missing/malformed/non-monotonic; 20:00 checkpoint unavailable |
-| `support.healing.v1` | Healing | higher better | healing per 10 min | healing missing/malformed; non-positive duration |
 
 Notes that carry product meaning:
 
 - **Camps Stacked is the count at 20:00**, never the final-match total. If it is 3 at 20:00 and 6 at match end, the value is **3**.
-- **Raw ≠ comparison.** The product may display a raw amount (ward count, healing amount, dead seconds, player damage) while the baseline, delta and PB use the declared comparison value (per-10 rate, share, rate). A UI MUST NOT invent its own conversion.
+- **Raw ≠ comparison.** The product may display a raw amount (ward count, deward count, player damage) while the baseline, delta and PB use the declared comparison value (per-10 rate, share, rate). A UI MUST NOT invent its own conversion.
 - Every metric definition is **versioned**. Any change to formula, inputs, boundary, denominator, direction, zero/N/A rule, normalization, or PB basis requires a new metric version or an explicit migration.
 - A Dota patch alone does not reset a role history.
-- **Each metric has an evidence class** (§4A.1). Six of the twenty are summary-class; the other fourteen are replay-class. The per-metric classification is defined once, in [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3, and MUST NOT be restated here. A replay-class metric on a `REPLAY_UNAVAILABLE` match is **N/A with a reason** (§4A.4), which means it never enters a baseline, trend or PB history (§8).
+- **Retired metrics.** `carry.cs_10_to_20.v1`, `carry.dead_time.v1`, `mid.level_6_time.v1` and `support.healing.v1` were removed from the active registry by owner decision (2026-09-27). They are never measured, compared, trended, credited or reused, and no replacement was introduced. Retained raw evidence is not rewritten; derived state is rebuilt under `tracker-analysis-7` (§14.2). Every active metric is higher-is-better.
+- **Each metric has an evidence class** (§4A.1). Five of the sixteen are summary-class; the other eleven are replay-class. The per-metric classification is defined once, in [`../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md`](../architecture/FEATURE-DATA-DEPENDENCY-MATRIX.md) §3, and MUST NOT be restated here. A replay-class metric on a `REPLAY_UNAVAILABLE` match is **N/A with a reason** (§4A.4), which means it never enters a baseline, trend or PB history (§8).
 
 ### 7.3 Metric limitations (product-level honesty)
 
@@ -396,8 +393,6 @@ These are contract, not copy suggestions. Each metric measures an **observable a
 - Fight presence is observable credit, not fight quality or timing.
 - Wards/dewards count placement and destruction, never useful vision, coverage or information denial.
 - Camps stacked is an act; ally consumption, safety and opportunity cost are unobserved.
-- Time dead is not a judgment about cause, sacrifice or positioning.
-- Level 6 earlier is not automatically better if it came from taking ally resources.
 
 Measurements MUST NOT become judgments, causal claims, or a global score.
 
@@ -407,7 +402,7 @@ Measurements MUST NOT become judgments, causal claims, or a global score.
 
 | State | Use when | Examples |
 |---|---|---|
-| `0` | Inputs are valid, the required opportunity/denominator exists, and the measured numerator is genuinely zero. | 0 healing; 0 wards with a valid ward stream; 0% tower damage share while team tower damage is positive. |
+| `0` | Inputs are valid, the required opportunity/denominator exists, and the measured numerator is genuinely zero. | 0 fight credit with positive team kills; 0 wards with a valid ward stream; 0% tower damage share while team tower damage is positive. |
 | `N/A` | The metric cannot be meaningfully calculated. | Match ended before the checkpoint; zero team kills for Fight Presence; zero team tower damage for a share; required telemetry missing. |
 
 N/A observations **never** enter a baseline, a rolling-window count, a trend count, or PB history. Legitimate zeros do. A missing field, malformed event, absent checkpoint, or zero denominator MUST NOT be coerced to zero.
@@ -427,7 +422,7 @@ For a measured observation, the canonical baseline is:
 - Fewer than 20 priors is fine once the 5-prior gate is met; the available history is used, up to 20.
 - The statistic is the **median**, not the mean.
 - Fewer than 5 priors → `BASELINE_BUILDING`. At 5 or more → `BASELINE_READY`. The first generally comparable observation is the **sixth** eligible measured observation in that identity.
-- Baseline readiness is per `mode × role × metric × version`. There is **no** global "player has 5 matches" rule. Standard Carry CS can be ready while Standard Support healing is building and Turbo Support has no history at all.
+- Baseline readiness is per `mode × role × metric × version`. There is **no** global "player has 5 matches" rule. Standard Carry CS can be ready while Standard Support wards are building and Turbo Support has no history at all.
 
 A baseline is contextual reference. It MUST NOT replace, hide or normalise away the raw match value, and MUST NOT be presented as an independent skill score.
 
@@ -479,13 +474,10 @@ Adjustment is applied **selectively per metric**, never globally.
 | Metric | Class | Scored? |
 |---|---|---|
 | `carry.last_hits_at_10.v1` | C | yes |
-| `carry.cs_10_to_20.v1` | B | yes |
 | `carry.net_worth_at_20.v1` | B | yes |
-| `carry.dead_time.v1` | **D** | yes, unadjusted |
 | `carry.hero_damage_share.v1` | B | yes |
 | `carry.tower_damage_share.v1` | B | yes |
 | `mid.lane_net_worth_advantage_at_10.v1` | C\* | yes |
-| `mid.level_6_time.v1` | C | yes |
 | `mid.early_fight_presence.v1` | B | yes |
 | `mid.net_worth_at_20.v1` | B | yes |
 | `mid.tower_damage_share.v1` | B | yes |
@@ -497,13 +489,12 @@ Adjustment is applied **selectively per metric**, never globally.
 | `support.observer_wards_placed.v1` | A | yes |
 | `support.vision_denial.v1` | A | yes |
 | `support.camps_stacked.v1` | A | yes |
-| `support.healing.v1` | B | yes |
 
 **Floor rule (normative):** a metric whose baseline-window median sits at or near the metric's floor MUST NOT receive a population adjustment. Adjusting near-zero counts measurably degrades output.
 
-**Deaths, dead time and objective involvement are never lane-adjusted.**
+**Objective involvement is never lane-adjusted.** Class D has no active metric since the four-metric registry; the class is kept only as a defined meaning.
 
-Scope: lane context and lane adjustment apply to `STANDARD` × {Carry, Mid, Offlane} only. Own-hero adjustment additionally applies to Support and to the whole-match class-B metrics above. **Turbo receives neither** and renders on the raw personal baseline.
+Scope: lane context and lane adjustment apply to `STANDARD` × {Carry, Mid, Offlane} only. Own-hero adjustment additionally applies to the whole-match class-B metrics above; no Support metric is class B, so Support renders on the raw personal baseline. **Turbo receives neither** and renders on the raw personal baseline.
 
 ### 10.4 Performance state
 
@@ -560,7 +551,7 @@ TrendState : Improving | Stable | Declining | Insufficient History
 - A **trend point** is a baseline-ready observation paired with the rolling baseline that existed before it.
 - The canonical **trend window** is the most recent **10** eligible trend points for one `bucket + role + metric + version`.
 - A trend state exists **only** with a complete 10-point window. Otherwise the state is `Insufficient History`.
-- Direction is derived from the movement of the rolling baseline across the window, respecting the metric's declared polarity. A numerically lower value can be `Improving` for a lower-is-better metric.
+- Direction is derived from the movement of the rolling baseline across the window, respecting the metric's declared polarity. Every active metric is higher-is-better; a future lower-is-better metric would need a new metric version.
 - Trend is **match-based**, never calendar-based, and never derived from win/loss, a streak, or a single hot match.
 - N/A points are skipped, not zeroed. If skipping leaves fewer than 10 points, the state is `Insufficient History`.
 
@@ -603,7 +594,7 @@ A **PB** is the current best qualifying observation for an eligible role metric 
 - PB uses the **comparison value**, not the raw/display value. A raw value can be higher while its normalized comparison value is below the existing PB; that is not a PB.
 - Requires the same 5-prior gate as comparison.
 - **Strict inequality only.** An exact tie is not a new PB; the earliest record/source match is retained.
-- Direction honours metric polarity (lower dead-time rate is better).
+- Direction honours metric polarity (every active metric is higher-is-better).
 - A PB always points to its qualifying **source match**, openable when accessible under the current entitlement.
 - The PB preserves enough context to trace it: achieved value, hero, match date/time, effective role, mode, source match.
 - If no qualifying source remains, the PB is **unavailable**.

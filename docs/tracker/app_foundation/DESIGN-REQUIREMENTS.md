@@ -81,7 +81,7 @@ Designer-relevant primitives the whole app can produce. Every feature brief draw
 | Mode bucket | Standard / Turbo | Always | Two separate worlds; never merge their histories |
 | Lifecycle state | waiting / analyzing / waiting-for-prior / action-required / ready / unavailable | Always | Six states; needs six meanings, not one spinner |
 | Sync state | idle / checking / up-to-date / sync-error | Always | Account-level; never overrides per-match state |
-| Metric value | 20 role metrics; raw and comparison forms | Conditional | May be a legitimate 0 or an N/A — different states |
+| Metric value | 16 role metrics (four per role); raw and comparison forms | Conditional | May be a legitimate 0 or an N/A — different states |
 | Personal baseline ("your usual") | Median of last ≤20 same role+mode+metric | After 5 prior measured observations | Per metric, per role, per mode. Not global. |
 | Adjusted expectation | Baseline + hero + matchup adjustment | Standard only; selected metrics only | Turbo and some metrics compare to raw "your usual" instead |
 | Performance state | Above / In line / Below / Not ready | Whenever the baseline is ready | The per-metric verdict |

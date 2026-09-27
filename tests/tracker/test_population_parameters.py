@@ -118,3 +118,27 @@ def test_publish_is_atomic_versioned_and_never_overwrites(tmp_path) -> None:
     with pytest.raises(ValueError, match="integrity"):
         load_parameter_set(path)
     assert sorted(item.name for item in tmp_path.iterdir()) == ["2026-09-v1.json"]
+
+
+def _resigned(artifact: dict) -> dict:
+    unsigned = {key: value for key, value in artifact.items() if key != "sha256"}
+    encoded = json.dumps(unsigned, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    return {**unsigned, "sha256": hashlib.sha256(encoded).hexdigest()}
+
+
+def test_artifact_for_another_metric_registry_fails_closed() -> None:
+    from app.tracker.population_parameters import parameter_set_from_artifact
+
+    artifact = build_artifact(build_input())
+    assert set(parameter_set_from_artifact(artifact).metrics) == METRICS and len(METRICS) == 16
+    # A pre-retirement (20-metric) artifact is intact and validated, yet no longer applicable.
+    stale = dict(artifact)
+    stale["metrics"] = {**artifact["metrics"],
+                        "support.healing.v1": artifact["metrics"]["support.fight_presence.v1"]}
+    with pytest.raises(ValueError, match="metric registry"):
+        parameter_set_from_artifact(_resigned(stale))
+    missing = dict(artifact)
+    missing["metrics"] = {key: value for key, value in artifact["metrics"].items()
+                          if key != "support.vision_denial.v1"}
+    with pytest.raises(ValueError, match="metric registry"):
+        parameter_set_from_artifact(_resigned(missing))

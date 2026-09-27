@@ -117,7 +117,7 @@ Bootstrap acquires matches in two evidence classes, and they do **not** have the
 | # | Rule |
 |---|---|
 | BE-1 | Bootstrap MUST acquire **summary-class** evidence for every match in scope. This is what makes the account non-empty, gives every match a hero, result, role and scoreboard, and lets History and Home work immediately. |
-| BE-2 | Bootstrap MUST attempt **replay-class** evidence for matches in scope. It is **not optional**: fourteen of the twenty role metrics are replay-class, so a summary-only bootstrap produces a history in which most metrics are N/A, no baseline reaches its 5-prior gate, and no trend reaches its 10-point window. |
+| BE-2 | Bootstrap MUST attempt **replay-class** evidence for matches in scope. It is **not optional**: eleven of the sixteen role metrics are replay-class, so a summary-only bootstrap produces a history in which most metrics are N/A, no baseline reaches its 5-prior gate, and no trend reaches its 10-point window. |
 | BE-3 | **The fresh-match enrichment route cannot serve the whole bootstrap window.** Bootstrap looks back up to 90 days; replay availability for on-demand processing expires earlier, and its exact edge is **UNKNOWN** ([`../architecture/PROVIDER-CAPABILITIES-AND-ROUTING.md`](../architecture/PROVIDER-CAPABILITIES-AND-ROUTING.md) §7.3, open test T-2). Replay-class evidence for older bootstrap matches must come from a historical source that already holds it. |
 | BE-4 | Bootstrap matches for which replay-class evidence cannot be obtained are `REPLAY_UNAVAILABLE`. They are **valid, complete, viewable matches** with their replay-class metrics as N/A. They are **not** failures and **not** coverage-blocking on their own. |
 | BE-5 | Replay-class coverage gaps in the bootstrap window MUST be recorded as **coverage gaps** (§5.3, §4A.6), which is what `READY_WITH_GAPS` exists to express. They MUST NOT be silently treated as "the player did not play then". |
@@ -125,7 +125,7 @@ Bootstrap acquires matches in two evidence classes, and they do **not** have the
 | BE-7 | Bootstrap is **background, low-priority work**. It MUST NOT delay any user's newly completed match, including the bootstrapping user's own ([`../architecture/SCALING-RELIABILITY-AND-OPERATIONS.md`](../architecture/SCALING-RELIABILITY-AND-OPERATIONS.md) §2). |
 | BE-8 | Bootstrap MUST NOT block onboarding. The product is navigable throughout (§6). |
 
-**Product consequence worth stating plainly:** a freshly bootstrapped account may reach baseline readiness at **different times for different metrics**, because the six summary-class metrics have complete coverage while the fourteen replay-class ones may not. This is an honest outcome shown through the existing baseline-building states — it is not a defect, and it MUST NOT be explained to the user in backend terms.
+**Product consequence worth stating plainly:** a freshly bootstrapped account may reach baseline readiness at **different times for different metrics**, because the five summary-class metrics have complete coverage while the eleven replay-class ones may not. This is an honest outcome shown through the existing baseline-building states — it is not a defect, and it MUST NOT be explained to the user in backend terms.
 
 ---
 

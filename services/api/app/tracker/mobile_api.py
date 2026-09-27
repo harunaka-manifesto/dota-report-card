@@ -43,7 +43,14 @@ from app.tracker.context import METRIC_CLASS
 from app.tracker.data_access import data_access_state, restore_access
 from app.tracker.entitlement import AppStoreVerifier, EntitlementError, submit_transaction
 from app.tracker.evidence import canonical_json
-from app.tracker.mastery import CURVE_VERSION, ROLES, level_for_xp, mastery_state, role_total
+from app.tracker.mastery import (
+    CURRENT_RULE,
+    CURVE_VERSION,
+    ROLES,
+    level_for_xp,
+    mastery_state,
+    role_total,
+)
 from app.tracker.metrics import METRICS
 from app.tracker.profile import more_arriving
 from app.tracker.retry import retry_match
@@ -806,8 +813,10 @@ def _match_view(connection, row) -> MatchView:
     metrics: list[MetricView] = []
     insight = InsightView(state=Readiness.PENDING, contract_version=None, reason=None, cards=[])
     if row["active_analysis_id"] is not None:
+        # Only canonical metrics: an analysis awaiting its methodology rebuild may still hold retired ones.
         observed = connection.execute(select(metric_observations).where(
             metric_observations.c.analysis_id == row["active_analysis_id"],
+            metric_observations.c.metric_id.in_(METRICS),
         ).order_by(metric_observations.c.metric_id)).mappings()
         eligible = row["progression"] in {"STANDARD", "TURBO"}
         for metric in observed:
@@ -1706,7 +1715,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 (account_matches.c.profile_id == mastery_ledger.c.profile_id)
                 & (account_matches.c.match_id == mastery_ledger.c.match_id),
             ).where(mastery_ledger.c.profile_id == profile["id"],
-                    mastery_ledger.c.role == role.value, _visible(profile))
+                    mastery_ledger.c.role == role.value, CURRENT_RULE, _visible(profile))
             if cursor is not None:
                 pieces = cursor.split(".")
                 if (len(pieces) != 2 or not hmac.compare_digest(cursor,
@@ -1714,7 +1723,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                     raise HTTPException(400, "CURSOR_INVALID")
                 anchor = connection.execute(select(mastery_ledger).where(
                     mastery_ledger.c.id == pieces[0], mastery_ledger.c.profile_id == profile["id"],
-                    mastery_ledger.c.role == role.value,
+                    mastery_ledger.c.role == role.value, CURRENT_RULE,
                 )).mappings().one_or_none()
                 if anchor is None:
                     raise HTTPException(400, "CURSOR_INVALID")

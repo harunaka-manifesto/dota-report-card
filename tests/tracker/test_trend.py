@@ -23,20 +23,22 @@ def test_trend_requires_ten_measured_baseline_points_and_approved_calibration():
     assert evaluate(metric, rows, calibration={**below_floor, "thresholds": {metric: 2.0}})["state"] == "IMPROVING"
 
 
-def test_trend_uses_latest_ten_and_metric_polarity():
-    metric = "carry.dead_time.v1"
+def test_trend_uses_latest_ten_and_higher_is_better():
+    metric = "carry.hero_damage_share.v1"
     calibration = {"version": "test", "status": "APPROVED", "thresholds": {metric: 0.1}}
-    rows = points([99.0, *[1 - i / 20 for i in range(10)]])
+    rows = points([-99.0, *[i / 20 for i in range(10)]])
     result = evaluate(metric, rows, calibration=calibration)
     assert result["state"] == "IMPROVING"
     assert result["source_match_ids"] == list(range(2, 12))
     assert evaluate(metric, points([1.0] * 10), calibration=calibration)["state"] == "STABLE"
-    assert evaluate(metric, points([i / 10 for i in range(10)]), calibration=calibration)["state"] == "DECLINING"
+    assert evaluate(metric, points([1 - i / 10 for i in range(10)]), calibration=calibration)["state"] == "DECLINING"
+    with pytest.raises(ValueError, match="Unknown metric"):
+        evaluate("carry.dead_time.v1", points([1.0] * 10), calibration=calibration)
 
 
 def test_trend_rejects_duplicate_or_nonfinite_source():
     rows = points([0.0] * 10)
     with pytest.raises(ValueError):
-        evaluate("carry.dead_time.v1", [*rows, rows[0]])
+        evaluate("carry.hero_damage_share.v1", [*rows, rows[0]])
     with pytest.raises(ValueError):
-        evaluate("carry.dead_time.v1", points([float("nan"), *([0.0] * 9)]))
+        evaluate("carry.hero_damage_share.v1", points([float("nan"), *([0.0] * 9)]))

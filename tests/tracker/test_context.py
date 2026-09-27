@@ -10,7 +10,7 @@ from app.tracker.context import (
     ParameterSet,
     evaluate,
 )
-from app.tracker.metrics import LOWER_IS_BETTER, METRICS
+from app.tracker.metrics import METRICS
 
 
 def _draft() -> tuple[DraftPlayer, ...]:
@@ -59,28 +59,28 @@ def test_window_relative_adjustments_are_capped_and_scored_from_expectation() ->
     assert result.lane_context == "FAVOURABLE"
 
 
-def test_metric_matrix_and_lower_is_better_polarity() -> None:
+def test_metric_matrix_and_higher_is_better_residual() -> None:
     assert set(METRIC_CLASS) == METRICS
-    assert sum(context_class == "C" for context_class in METRIC_CLASS.values()) == 3
+    assert sum(context_class == "C" for context_class in METRIC_CLASS.values()) == 2
     assert sum(context_class == "C*" for context_class in METRIC_CLASS.values()) == 2
-    # The named metric rows in the active SSOT sum to 20 (8 B and 5 A).
-    assert sum(context_class == "B" for context_class in METRIC_CLASS.values()) == 8
+    # The named metric rows in the active SSOT sum to 16 (6 B and 5 A); no class-D metric remains.
+    assert sum(context_class == "B" for context_class in METRIC_CLASS.values()) == 6
     assert sum(context_class == "A" for context_class in METRIC_CLASS.values()) == 5
-    assert sum(context_class == "D" for context_class in METRIC_CLASS.values()) == 1
+    assert sum(context_class == "D" for context_class in METRIC_CLASS.values()) == 0
     assert sum(context_class == "E" for context_class in METRIC_CLASS.values()) == 1
-    assert LOWER_IS_BETTER == {"carry.dead_time.v1", "mid.level_6_time.v1"}
-    metric = "carry.dead_time.v1"
+    metric = "support.fight_presence.v1"
     params = _parameters()
     params = ParameterSet(**{
         **params.__dict__,
         "metrics": {metric: MetricParameters(10.0, 0.35, 0.0, 0.0)},
     })
-    result = evaluate(_input(metric_id=metric, comparison_value=95.0), params)
+    result = evaluate(_input(metric_id=metric, role="SUPPORT", comparison_value=105.0), params)
     assert result.adjusted_expectation == 100.0
     assert result.residual == 5.0
     assert result.performance_state == "ABOVE"
-    with pytest.raises(ValueError, match="progression role"):
-        evaluate(_input(metric_id="mid.level_6_time.v1"), params)
+    for retired in ("carry.cs_10_to_20.v1", "carry.dead_time.v1", "mid.level_6_time.v1", "support.healing.v1"):
+        with pytest.raises(ValueError, match="Unsupported context metric"):
+            evaluate(_input(metric_id=retired), params)
 
 
 def test_missing_or_unvalidated_artifact_fails_closed() -> None:

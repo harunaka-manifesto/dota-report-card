@@ -9,7 +9,7 @@ from typing import cast
 
 from sqlalchemy import Connection
 
-from .metrics import LOWER_IS_BETTER, METRICS
+from .metrics import METRICS
 
 BASELINE_VERSION = "rolling-median-20-v1"
 
@@ -70,8 +70,9 @@ def personal_best(current: Observation, rows: list[Observation], *, celebrate: b
     if not candidates:
         return {"state": "UNAVAILABLE", "source_match_id": None, "value": None, "new_pb": False}
     ordered = sorted(candidates, key=lambda row: row.chronology)
-    best = min(ordered, key=lambda row: cast(float, row.comparison_value)) if current.metric_id in LOWER_IS_BETTER else max(ordered, key=lambda row: cast(float, row.comparison_value))
-    previous_best = min(prior, key=lambda row: cast(float, row.comparison_value)) if current.metric_id in LOWER_IS_BETTER else max(prior, key=lambda row: cast(float, row.comparison_value))
+    # Every canonical metric is higher-is-better; max keeps the earliest of equal values.
+    best = max(ordered, key=lambda row: cast(float, row.comparison_value))
+    previous_best = max(prior, key=lambda row: cast(float, row.comparison_value))
     return {
         "state": "READY", "source_match_id": best.match_id,
         "value": best.comparison_value,

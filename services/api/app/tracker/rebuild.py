@@ -229,21 +229,25 @@ def complete_scope_rebuild_job(database: Engine, *, job_id: str, lease_token: st
 
 # -- methodology and parameter-set replay --------------------------------------------
 
-def stale_boundaries(connection: Connection, profile_id: str) -> dict[str, tuple[Any, int] | None]:
+def stale_analysis(connection: Connection) -> Any:
+    """SQL condition: an analysis not produced by the current methodology and parameter set."""
     parameters = current_context_parameters(connection)
     version = parameters.version if parameters is not None else None
+    return or_(analyses.c.analysis_version != ANALYSIS_VERSION,
+               analyses.c.baseline_version != BASELINE_VERSION,
+               analyses.c.feature_version != FEATURE_VERSION,
+               analyses.c.result["parameter_set_version"].astext.is_distinct_from(version))
+
+
+def stale_boundaries(connection: Connection, profile_id: str) -> dict[str, tuple[Any, int] | None]:
+    stale = stale_analysis(connection)
     boundaries: dict[str, tuple[Any, int] | None] = {}
-    stamped = analyses.c.result["parameter_set_version"].astext
     for mode in MODES:
         row = connection.execute(select(
             account_matches.c.provider_started_at, account_matches.c.provider_source_match_id,
         ).join(analyses, analyses.c.id == account_matches.c.active_analysis_id).where(
             account_matches.c.profile_id == profile_id, account_matches.c.mode == mode,
-            account_matches.c.lifecycle == "READY",
-            or_(analyses.c.analysis_version != ANALYSIS_VERSION,
-                analyses.c.baseline_version != BASELINE_VERSION,
-                analyses.c.feature_version != FEATURE_VERSION,
-                stamped.is_distinct_from(version)),
+            account_matches.c.lifecycle == "READY", stale,
         ).order_by(account_matches.c.provider_started_at, account_matches.c.provider_source_match_id)
             .limit(1)).first()
         boundaries[mode] = (row.provider_started_at, row.provider_source_match_id) if row else None
@@ -268,7 +272,7 @@ def run_methodology_rebuild(connection: Connection, *, profile_id: str) -> int:
     count = replay_closure(connection, profile=dict(profile), modes=MODES, start=boundaries)
     from .mastery import award_retained
 
-    award_retained(connection, profile_id=profile_id)
+    award_retained(connection, profile_id=profile_id, reason="METHODOLOGY_REBUILD")
     connection.execute(insert(history_operations).values(
         id=str(uuid4()), profile_id=profile_id, kind="METHODOLOGY_REBUILD", state="COMPLETE",
         target_scope=profile["active_scope"], target_revision=profile["active_revision"],
@@ -288,15 +292,10 @@ def enqueue_methodology_rebuilds(connection: Connection) -> int:
     """Queue one P3 rebuild per active profile whose analyses are stale."""
     parameters = current_context_parameters(connection)
     version = parameters.version if parameters is not None else None
-    stamped = analyses.c.result["parameter_set_version"].astext
     profile_ids = connection.scalars(select(account_matches.c.profile_id).distinct().join(
         analyses, analyses.c.id == account_matches.c.active_analysis_id,
     ).join(profiles, profiles.c.id == account_matches.c.profile_id).where(
-        profiles.c.active.is_(True), account_matches.c.lifecycle == "READY",
-        or_(analyses.c.analysis_version != ANALYSIS_VERSION,
-            analyses.c.baseline_version != BASELINE_VERSION,
-            analyses.c.feature_version != FEATURE_VERSION,
-            stamped.is_distinct_from(version)),
+        profiles.c.active.is_(True), account_matches.c.lifecycle == "READY", stale_analysis(connection),
     )).all()
     key = f"{ANALYSIS_VERSION}:{BASELINE_VERSION}:{FEATURE_VERSION}:{version}"
     queued = 0

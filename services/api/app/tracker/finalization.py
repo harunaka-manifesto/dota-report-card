@@ -24,7 +24,7 @@ from .item_timings import evaluate as evaluate_item_timings
 from .item_timings import insight_cards as item_timing_insight_cards
 from .jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from .materialization import FEATURE_VERSION, _match_payload
-from .metrics import LOWER_IS_BETTER, measure, metric_ids
+from .metrics import measure, metric_ids
 from .mid_context import evaluate as evaluate_mid_context
 from .offlane_context import evaluate as evaluate_offlane_context
 from .offlane_context import evaluate_fights
@@ -51,7 +51,7 @@ from .schema import (
 )
 from .scope import entitled as entitled_history
 
-ANALYSIS_VERSION = "tracker-analysis-6"
+ANALYSIS_VERSION = "tracker-analysis-7"
 
 
 def enqueue_finalization(connection: Connection, *, profile_id: str, match_id: int) -> str:
@@ -141,13 +141,11 @@ def _metric_conflict(metric_id: str, slot: int, quarantined: list[str]) -> bool:
         fields = ("hero_damage",)
     elif metric_id.endswith("tower_damage_share.v1"):
         fields = ("tower_damage",)
-    elif metric_id.endswith("healing.v1"):
-        fields = ("hero_healing",)
     elif metric_id.endswith("fight_presence.v1"):
         fields = ("kills", "assists")
     elif "net_worth" in metric_id:
         fields = ("net_worth",)
-    elif "last_hits" in metric_id or "cs_10_to_20" in metric_id:
+    elif "last_hits" in metric_id:
         fields = ("last_hits",)
     elif "camps_stacked" in metric_id:
         fields = ("camps_stacked",)
@@ -158,7 +156,7 @@ def _metric_conflict(metric_id: str, slot: int, quarantined: list[str]) -> bool:
         "carry.last_hits_at_10.v1", "mid.lane_net_worth_advantage_at_10.v1",
         "offlane.lane_net_worth_advantage_at_10.v1", "offlane.net_worth_at_10.v1",
     }
-    needed_seconds = {600, 1200} if "cs_10_to_20" in metric_id else {600 if checkpoint else 1200}
+    needed_seconds = {600 if checkpoint else 1200}
     for path in quarantined:
         if not isinstance(path, str):
             return True
@@ -539,8 +537,8 @@ def recompute_indexes(connection: Connection, *, profile_id: str, revision: int,
                    metric_id=metric_id, metric_version=metric_version)
         connection.execute(insert(baselines).values(**key, baseline_version=BASELINE_VERSION, snapshot=snapshot))
         if len(rows) >= 6:
-            # min/max return the first extreme in chronology order: ties keep the earliest.
-            best = (min if metric_id in LOWER_IS_BETTER else max)(rows, key=lambda row: row["comparison_value"])
+            # max returns the first extreme in chronology order: ties keep the earliest.
+            best = max(rows, key=lambda row: row["comparison_value"])
             connection.execute(insert(personal_bests).values(
                 **key, analysis_id=best["analysis_id"], comparison_value=best["comparison_value"],
             ))

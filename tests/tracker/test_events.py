@@ -25,17 +25,10 @@ def test_retained_replay_events_are_measured_without_mutating_sources():
         for metric in ['support.observer_wards_placed.v1']:
             assert result(metric, a, slot) == result(metric, b, slot)
             assert result(metric, a, slot).reason is None
-        for rows, deaths, key in [(a, od['players'][slot]['deaths_log'], 'time_dead'), (b, sz['players'][slot]['stats']['deathEvents'], 'timeDead')]:
-            if all(type(e.get(key)) is int and e['time'] >= 0 for e in deaths):
-                assert result('carry.dead_time.v1', rows, slot).raw_value == sum(e[key] for e in deaths)
-            else:
-                assert result('carry.dead_time.v1', rows, slot).comparison_value is None
-        assert result('mid.level_6_time.v1', b, slot).raw_value == sz['players'][slot]['stats']['level'][5]
         assert result('support.vision_denial.v1', b, slot).raw_value == len(sz['players'][slot]['stats']['wardDestruction'])
         assert result('mid.early_fight_presence.v1', b, slot).reason is None
         assert result('offlane.objective_involvement.v1', b, slot).reason is None
     assert (od, sz) == before
-    assert result('mid.level_6_time.v1', a).comparison_value is None
     assert result('support.vision_denial.v1', a).comparison_value is None
     assert result('mid.early_fight_presence.v1', a).comparison_value is None
 
@@ -54,14 +47,8 @@ def test_unparsed_and_missing_streams_are_not_zero():
         assert result('support.observer_wards_placed.v1', projection(payload, 'stratz')).comparison_value is None
 
 
-def test_selected_operation_missing_death_duration_or_tower_report_stays_unavailable():
+def test_selected_operation_missing_tower_report_stays_unavailable():
     payload = raw('stratz')
-    for e in payload['players'][0]['stats']['deathEvents']:
-        e.pop('timeDead', None)
     del payload['players'][0]['stats']['towerDamageReport']
     rows = projection(payload, 'stratz')
-    assert result('carry.dead_time.v1', rows).reason == 'INCOMPLETE_DEAD_INTERVALS'
     assert result('offlane.objective_involvement.v1', rows).reason == 'MISSING_OR_MALFORMED_TOWER_DAMAGE'
-    assert result('mid.level_6_time.v1', rows).raw_value == 512
-    payload['players'][0]['stats']['level'][5] = -1
-    assert result('mid.level_6_time.v1', projection(payload, 'stratz')).comparison_value is None

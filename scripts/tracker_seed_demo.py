@@ -102,7 +102,7 @@ class Seeder:
     # -- matches ---------------------------------------------------------------
     def match(self, persona: dict[str, Any], *, days: float, origin: str = "LIVE", finalize: bool = True,
               parsed: bool = True, turbo: bool = False, stack_bonus: int = 0, duration: int | None = None,
-              role: str | None = "SUPPORT", healing: int | None = None) -> int:
+              role: str | None = "SUPPORT", no_fight_credit: bool = False) -> int:
         match_id = self.next_match
         self.next_match += 1
         payload = json.loads(SPECIMEN.read_text())
@@ -113,8 +113,8 @@ class Seeder:
             payload["game_mode"] = 23
         if duration is not None:
             payload["duration"] = duration
-        if healing is not None:
-            payload["players"][0]["hero_healing"] = healing
+        if no_fight_credit:
+            payload["players"][0]["kills"] = payload["players"][0]["assists"] = 0
         if not parsed:
             payload["version"] = None
         if stack_bonus:
@@ -207,7 +207,7 @@ def seed_demo(engine: Engine) -> dict[str, dict[str, Any]]:
     seed.bootstrap(states, ready)
     states["match_ids"] = {
         # Legitimate measured zero beside reasoned N/A replay metrics.
-        "ready_replay_unavailable": seed.match(states, days=1, parsed=False, healing=0),
+        "ready_replay_unavailable": seed.match(states, days=1, parsed=False, no_fight_credit=True),
         "ready_not_eligible_short": seed.match(states, days=2, duration=599),
         "unavailable_role": seed.match(states, days=3, parsed=False, role=None),
         "summary_ready_replay_pending": seed.match(states, days=4, finalize=False),

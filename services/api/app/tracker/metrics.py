@@ -16,23 +16,23 @@ class Measurement:
     reason: str | None = None
 
 
+# Canonical progression registry: exactly four metrics per role, sixteen in total.
+# Retired IDs (carry.cs_10_to_20.v1, carry.dead_time.v1, mid.level_6_time.v1,
+# support.healing.v1) are never reused and never measured.
 SUMMARY_METRICS = frozenset({
     "carry.hero_damage_share.v1", "carry.tower_damage_share.v1", "mid.tower_damage_share.v1",
-    "offlane.fight_presence.v1", "support.fight_presence.v1", "support.healing.v1",
+    "offlane.fight_presence.v1", "support.fight_presence.v1",
 })
 CHECKPOINT_METRICS = frozenset({
-    "carry.last_hits_at_10.v1", "carry.cs_10_to_20.v1", "carry.net_worth_at_20.v1",
+    "carry.last_hits_at_10.v1", "carry.net_worth_at_20.v1",
     "mid.lane_net_worth_advantage_at_10.v1", "mid.net_worth_at_20.v1",
     "offlane.lane_net_worth_advantage_at_10.v1", "offlane.net_worth_at_10.v1", "support.camps_stacked.v1",
 })
-
-
 EVENT_METRICS = frozenset({
-    "carry.dead_time.v1", "mid.level_6_time.v1", "mid.early_fight_presence.v1",
-    "offlane.objective_involvement.v1", "support.observer_wards_placed.v1", "support.vision_denial.v1",
+    "mid.early_fight_presence.v1", "offlane.objective_involvement.v1",
+    "support.observer_wards_placed.v1", "support.vision_denial.v1",
 })
 METRICS = SUMMARY_METRICS | CHECKPOINT_METRICS | EVENT_METRICS
-LOWER_IS_BETTER = frozenset({"carry.dead_time.v1", "mid.level_6_time.v1"})
 
 
 def metric_ids(role: str) -> tuple[str, ...]:
@@ -110,7 +110,7 @@ def measure(metric_id: str, *, players: list[dict[str, Any]], player_slot: int, 
                 field = "hero_damage" if "hero_damage" in metric_id else "tower_damage"
                 raw = numerator = _count(values.get(field))
                 denominator = sum(_count(p["summary"].get("values", {}).get(field)) for p in team)
-            elif "fight_presence" in metric_id:
+            else:
                 for p in roster.values():
                     _count(p["summary"]["values"].get("kills"))
                     _count(p["summary"]["values"].get("assists"))
@@ -119,12 +119,9 @@ def measure(metric_id: str, *, players: list[dict[str, Any]], player_slot: int, 
                 if numerator > denominator:
                     raise MissingMetricEvidence("CREDIT_EXCEEDS_TEAM_KILLS")
                 raw = numerator / denominator if denominator else 0
-            else:
-                raw = numerator = _count(values.get("hero_healing"))
-                denominator = duration
             if denominator == 0:
                 raise MissingMetricEvidence("ZERO_DENOMINATOR")
-            comparison = numerator / denominator * (600 if metric_id == "support.healing.v1" else 1)
+            comparison = numerator / denominator
         elif metric_id in EVENT_METRICS:
             if not replay_ready:
                 raise MissingMetricEvidence("REPLAY_UNAVAILABLE")
@@ -140,8 +137,6 @@ def measure(metric_id: str, *, players: list[dict[str, Any]], player_slot: int, 
                 if len(enemies) != 1:
                     raise MissingMetricEvidence("OPPOSING_POSITION_NOT_UNIQUE")
                 raw = _point(player, "net_worth", 600, duration) - _point(roster[enemies[0]], "net_worth", 600, duration)
-            elif "cs_10_to_20" in metric_id:
-                raw = _point(player, "last_hits", 1200, duration) - _point(player, "last_hits", 600, duration)
             else:
                 field = "camps_stacked" if "camps_stacked" in metric_id else "last_hits" if "last_hits" in metric_id else "net_worth"
                 second = 1200 if "at_20" in metric_id or field == "camps_stacked" else 600
@@ -170,29 +165,6 @@ def _events(metric: str, player: dict[str, Any], team: list[dict[str, Any]], dur
     events = player.get("events")
     if not isinstance(events, dict):
         raise MissingMetricEvidence("MISSING_OR_MALFORMED_EVENTS")
-    if metric == "mid.level_6_time.v1":
-        levels = events.get("level_up_times")
-        if not isinstance(levels, list) or len(levels) < 6 or any(type(t) is not int or t > duration for t in levels) or any(a > b for a, b in zip(levels, levels[1:], strict=False)):
-            raise MissingMetricEvidence("MISSING_OR_MALFORMED_LEVEL_TIMES")
-        if levels[5] < 0:
-            raise MissingMetricEvidence("MISSING_OR_MALFORMED_LEVEL_TIMES")
-        return levels[5], float(levels[5]), None, None
-    if metric == "carry.dead_time.v1":
-        intervals = events.get("dead_intervals")
-        if events.get("dead_intervals_complete") is not True or not isinstance(intervals, list) or len(intervals) != _count(player["summary"]["values"].get("deaths")):
-            raise MissingMetricEvidence("INCOMPLETE_DEAD_INTERVALS")
-        total, previous = 0, 0
-        for interval in intervals:
-            if not isinstance(interval, dict):
-                raise MissingMetricEvidence("MALFORMED_DEAD_INTERVALS")
-            start, end = _count(interval.get("start")), _count(interval.get("end"))
-            if start < previous or end < start or end > duration:
-                raise MissingMetricEvidence("MALFORMED_DEAD_INTERVALS")
-            total += end - start
-            previous = end
-        if duration == 0:
-            raise MissingMetricEvidence("ZERO_DENOMINATOR")
-        return total, total / duration, total, duration
     if metric.startswith("support."):
         key = "wards" if metric == "support.observer_wards_placed.v1" else "ward_destructions"
         stream = _event_list(events.get(key), duration)

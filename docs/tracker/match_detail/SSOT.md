@@ -94,7 +94,7 @@ It may express:
 
 Everything that needs the match timeline waits for replay-class evidence:
 
-- the fourteen replay-class role metrics;
+- the eleven replay-class role metrics;
 - laning and lane metrics;
 - resource trajectories and team advantage curves;
 - item timings, ward and deward events, camp stacking, objectives, teamfights, kill and death context, damage breakdowns;

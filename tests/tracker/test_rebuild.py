@@ -36,7 +36,8 @@ from .test_entitlement import NOW, ready_bootstrap, transaction
 from .test_schema import identity
 
 METRIC = "support.camps_stacked.v1"
-CONTEXT_METRIC = "support.healing.v1"
+# Support has no own-hero (class B) metric in the four-metric registry.
+CONTEXT_METRIC = "carry.hero_damage_share.v1"
 
 
 def _counts(connection):
@@ -161,8 +162,7 @@ def test_scope_rebuild_expands_contracts_and_reuses_identical_analyses(database)
 def _test_parameters(version: str) -> ParameterSet:
     return ParameterSet(
         version=version, validated=True, opponent_coverage=0.99, cs_slope_regression_passed=True,
-        hero_levels={(123, 4, CONTEXT_METRIC): HeroLevel(40.0, 500),
-                     (123, 5, CONTEXT_METRIC): HeroLevel(40.0, 500)}, opponent_effects={},
+        hero_levels={(123, 1, CONTEXT_METRIC): HeroLevel(40.0, 500)}, opponent_effects={},
         role_slopes={"CARRY": 1.0, "MID": 1.0, "OFFLANE": 1.0},
         lane_thresholds={"CARRY": (-2.0, 2.0)},
         metrics={CONTEXT_METRIC: MetricParameters(5.0, 0.35, 0.0, 0.0),
@@ -172,9 +172,12 @@ def _test_parameters(version: str) -> ParameterSet:
 
 def test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects(database, monkeypatch):
     _, profile_id = identity(database)
-    standard = history(database, profile_id, [0, 1, 2, 3, 4, 5, 6])
+    standard = []
+    for index in range(7):
+        standard.append(add_match(database, profile_id, index=index, role="CARRY", keep_role=True))
+        assert finalize(database, profile_id, standard[-1]) == "READY"
     with database.connect() as connection:
-        assert _observation(connection, profile_id, standard[-1])["parameter_set_version"] is None
+        assert _observation(connection, profile_id, standard[-1], CONTEXT_METRIC)["parameter_set_version"] is None
         cards_before = _cards(connection, standard[-1])
 
     parameters = _test_parameters("test-only-context-v1")

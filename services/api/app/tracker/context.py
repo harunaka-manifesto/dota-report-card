@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from statistics import median
 
-from .metrics import LOWER_IS_BETTER, METRICS
+from .metrics import METRICS
 
 ContextClass = str
 LaneContext = str
@@ -14,13 +14,10 @@ PerformanceState = str
 
 METRIC_CLASS: dict[str, ContextClass] = {
     "carry.last_hits_at_10.v1": "C",
-    "carry.cs_10_to_20.v1": "B",
     "carry.net_worth_at_20.v1": "B",
-    "carry.dead_time.v1": "D",
     "carry.hero_damage_share.v1": "B",
     "carry.tower_damage_share.v1": "B",
     "mid.lane_net_worth_advantage_at_10.v1": "C*",
-    "mid.level_6_time.v1": "C",
     "mid.early_fight_presence.v1": "B",
     "mid.net_worth_at_20.v1": "B",
     "mid.tower_damage_share.v1": "B",
@@ -32,7 +29,6 @@ METRIC_CLASS: dict[str, ContextClass] = {
     "support.observer_wards_placed.v1": "A",
     "support.vision_denial.v1": "A",
     "support.camps_stacked.v1": "A",
-    "support.healing.v1": "B",
 }
 
 
@@ -268,8 +264,7 @@ def evaluate(context: ContextInput, parameters: ParameterSet | None) -> ContextR
     if context.baseline is not None and context.prior_count >= 5:
         expectation = context.baseline + delta_h + delta_e
         if context.comparison_value is not None and cls != "E":
-            residual = (expectation - context.comparison_value if context.metric_id in LOWER_IS_BETTER
-                        else context.comparison_value - expectation)
+            residual = context.comparison_value - expectation
             threshold = metric.tau * metric.sigma_pop
             state = "ABOVE" if residual >= threshold else "BELOW" if residual <= -threshold else "IN_LINE"
     elif context.baseline is None:

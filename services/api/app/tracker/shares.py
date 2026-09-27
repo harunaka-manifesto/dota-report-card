@@ -27,13 +27,10 @@ from .schema import (
 SNAPSHOT_VERSION = "tracker-share-1"
 METRIC_LABELS = {
     "carry.last_hits_at_10.v1": "CS at 10:00",
-    "carry.cs_10_to_20.v1": "CS gained 10:00–20:00",
     "carry.net_worth_at_20.v1": "Net Worth at 20:00",
-    "carry.dead_time.v1": "Time Spent Dead",
     "carry.hero_damage_share.v1": "Hero Damage Share",
     "carry.tower_damage_share.v1": "Tower Damage Share",
     "mid.lane_net_worth_advantage_at_10.v1": "Mid Lane NW Advantage",
-    "mid.level_6_time.v1": "Time Reaching Level 6",
     "mid.early_fight_presence.v1": "Early Fight Presence (to 15:00)",
     "mid.net_worth_at_20.v1": "Mid Net Worth at 20:00",
     "mid.tower_damage_share.v1": "Tower Damage Share",
@@ -45,7 +42,6 @@ METRIC_LABELS = {
     "support.observer_wards_placed.v1": "Wards Placed",
     "support.vision_denial.v1": "Vision Denial",
     "support.camps_stacked.v1": "Camps Stacked",
-    "support.healing.v1": "Healing",
 }
 
 
