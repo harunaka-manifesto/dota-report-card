@@ -175,7 +175,7 @@ A role with no eligible history in the selected bucket is shown in an explicit e
 
 ### 6.4 Mode
 
-Role summaries are progression calculations, so they are **strictly per bucket**. Home MUST make the selected bucket unambiguous wherever role summaries appear, and MUST NOT merge Standard and Turbo into one summary.
+Analytical role summaries are progression calculations, so they are **strictly per bucket**. Home MUST make the selected bucket unambiguous wherever those summaries appear, and MUST NOT merge Standard and Turbo metric histories into one summary. Role Mastery is the separate earned level described in §6.2.
 
 Which bucket Home defaults to, and whether Home exposes a toggle, is open to design, subject to the disambiguation requirement.
 
@@ -218,7 +218,7 @@ Which bucket Home defaults to, and whether Home exposes a toggle, is open to des
 - Home's V1 content set is exactly the four elements in §2.
 - Today's Focus and Today's Matches never appear together.
 - Home never shows a composite role trend, role score, player score, grade, rating or percentage.
-- Home never merges Standard and Turbo inside a progression calculation.
+- Home never merges Standard and Turbo inside an analytical progression calculation. Role Mastery XP is the separate cross-mode exception described in §6.2.
 - Home never reproduces Match Detail's per-metric analysis, matchup context, or insight card content.
 - Home never presents win/loss as personal performance.
 - Home never explains why a match was won or lost.

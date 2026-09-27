@@ -26,7 +26,7 @@ Onboarding must:
 - keep app identity and Steam identity separate;
 - begin tracking as soon as Steam is linked;
 - bootstrap enough recent history to avoid a completely empty start;
-- keep Standard and Turbo isolated from the first match;
+- keep Standard and Turbo analytical metric histories isolated from the first match;
 - distinguish **data availability** from **analytical readiness**;
 - never block the product while history is being acquired;
 - never invent a comparison when history is insufficient.
@@ -147,6 +147,8 @@ The product MAY immediately expose: match identity, hero, result, effective role
 History-dependent progression for that match MUST wait until **that mode's** Free bootstrap reaches terminal state. History-dependent includes at minimum: baseline comparison, adjusted expectation and performance state, PB determination, achievement consequences, and history-dependent celebration.
 
 The other mode's bootstrap state is irrelevant to it.
+
+Role Mastery is a separate cross-mode award ledger. Waiting live matches earn XP at their own finalization; bootstrap matches earn XP in true match chronology after both mode bootstraps have settled. The mastery summary remains `BACKFILLING` until the entitled finalized matches have awards. This does not delay match facts or mode-specific analytical finalization; see [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
 
 Once the relevant bootstrap settles: replay the settled prior chronology, finalize the waiting live match **once**, create authoritative comparison/PB/achievement state, and only then allow a READY-only notification or celebration.
 
@@ -277,7 +279,7 @@ A freshly bootstrapped account (30 per bucket) will frequently **not** reach the
 - Standard and Turbo never satisfy one another's minimum-history requirements.
 - Free History = bootstrap + all eligible post-link matches, permanently.
 - A live match during unsettled bootstrap appears immediately but defers history-dependent finalization for its own mode only.
-- Imports never produce per-match notifications, PBs, achievements, baseline-ready events or celebrations.
+- Imports never produce per-match notifications, PBs, achievements, baseline-ready events or celebrations. They do earn Role Mastery XP quietly at the coherent completion checkpoint when mastery is available.
 - There is exactly one idempotent bootstrap-completion event per Steam-profile bootstrap.
 - Notification permission is requested only at Home, with contextual value.
 - No role or goals questionnaire exists.
@@ -300,7 +302,7 @@ A freshly bootstrapped account (30 per bucket) will frequently **not** reach the
 - Account-merge product.
 - Exact historical-acquisition economics and whether Pro backfill is literally lifetime or capped.
 - Paywall UI and subscription presentation.
-- Challenge onboarding; achievement definitions and XP curves.
+- Challenge onboarding; achievement definitions and their XP curves. Role Mastery's XP curve is defined in [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
 
 ---
 

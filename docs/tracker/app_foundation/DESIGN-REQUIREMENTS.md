@@ -198,7 +198,7 @@ Instrumented: retry success, correction completion, connect-Steam completion. Re
 - Do players read "Difficult matchup" as an excuse, despite the copy rules?
 - Can players distinguish "the app has no data" from "I scored zero"?
 - Does "Baseline building" read as *temporary* or as *broken*?
-- Do players understand that Standard and Turbo don't share progress — or do they read it as data loss?
+- Do players understand that Standard and Turbo have separate metric histories while Role Mastery XP shares a role track — or do they read either boundary as data loss?
 - Does "Insufficient history" get read as a negative result?
 - Is a mostly-empty insight area (the majority case) acceptable, or does it read as a failure?
 

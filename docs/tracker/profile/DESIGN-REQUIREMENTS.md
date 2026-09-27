@@ -188,7 +188,7 @@ Switch mode bucket · switch role (hero section) · open a claim's evidence · p
 - **MUST NOT** present Specialist as better than Flexible, or vice versa. They are equal identities.
 - **MUST NOT** fill empty claim slots with win rate, KDA, or any filler fact. **The moment the empty slots get filled with stats, this becomes the fourth stats site.**
 - **MUST NOT** rotate claims for novelty. A claim holds its slot; motion comes from Right now and Changes.
-- **MUST NOT** mix Standard and Turbo in any aggregate. Only the Mode-Split claim compares them, and it compares results, not pooled matches.
+- **MUST NOT** mix Standard and Turbo in any Profile analytical aggregate. Only the Mode-Split claim compares them, and it compares results, not pooled matches. The separate earned Role Mastery level combines XP from both modes within each role; see [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
 - **MUST** treat "matches without a role" as an invitation to correct, not as an error or a data problem.
 - **MUST NOT** infer a Favourite hero. It is pinned or absent.
 - **MUST NOT** let volume imply anything. 3,000 matches is not a trait.

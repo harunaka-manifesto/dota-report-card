@@ -160,9 +160,9 @@ Refresh · open a match · open History · open a role's progression · open the
 - **MUST** acknowledge a just-finished match as soon as its basics exist, and **MUST** let the player open it. Home is where they come straight after a game; making them wait for the deeper read is the one thing this page cannot do.
 - **MUST NOT** use backend vocabulary anywhere. The player never learns what a replay parse is, and Home is where that temptation is strongest.
 - **MUST NOT** treat a pending or permanently absent deeper read as a warning, an error or a failed match.
-- **MUST NOT** display a composite role trend, role score, grade, rating or percentage. Only metric-level states exist. If four Carry metrics disagree, that disagreement is the truth.
+- **MUST NOT** display a composite role trend, role score, grade, rating or percentage. Analytical states exist per metric. If four Carry metrics disagree, that disagreement is the truth. A separate earned Role Mastery level may be shown without implying a performance verdict; see [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
 - **MUST NOT** present win/loss as personal performance, or as the headline of a match entry's "how it went".
-- **MUST NOT** merge Standard and Turbo inside a role summary. Chronological lists (today, last 5) may mix modes if each entry shows its own.
+- **MUST NOT** merge Standard and Turbo metric histories inside a role summary. Only Role Mastery XP shares a role track across modes. Chronological lists (today, last 5) may mix modes if each entry shows its own.
 - **MUST** make the selected mode bucket unambiguous wherever role summaries appear.
 - **MUST NOT** turn a Last-5 row or a today's-match row into a miniature Match Detail.
 - **MUST NOT** render an unstarted role, an N/A, or an insufficient-history trend as a zero or a flat line.

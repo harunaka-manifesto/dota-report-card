@@ -172,13 +172,14 @@ Add or manage an auth method · switch Steam account · start data-access recove
 
 ## 10. Experience requirements / guardrails
 
-- **MUST** state the full consequence of a Steam switch before it is confirmed: **nothing analytical carries over** — records, baselines, achievements, role history, match history, corrections. The old profile is archived, not merged.
+- **MUST** state the full consequence of a Steam switch before it is confirmed: **nothing from the old Steam profile carries over** — records, baselines, achievements, Role Mastery XP, role history, match history, corrections. The old profile is archived, not merged.
 - **MUST** distinguish the four switch-blocking causes. "You can't switch" without a cause is a dead end.
 - **MUST** make clear that a **failed** switch attempt does not consume or reset the cooldown.
 - **MUST NOT** offer any unlink-without-replacement action.
 - **MUST NOT** present Pro as more accurate, or Free as broken, degraded or incomplete truth.
 - **MUST** distinguish "cancelled" from "expired" — entitlement continues to the paid-through date.
 - **MUST** present an entitlement-driven change in records or history as a change of **scope**, never as lost achievement or declining performance.
+- **MUST** explain that Pro expiry preserves earned Role Mastery XP while the visible level is capped at 5; restoration reveals the saved level again.
 - **MUST NOT** celebrate or mourn a downgrade. No negative PB events.
 - **MUST** make clear that losing Steam data access does **not** revoke Pro or delete history.
 - **MUST** make deletion findable and completable without obstruction, and state plainly: immediate access loss, renewal stops, **no prorated refund**, and that it does not require waiting for the billing period to end.

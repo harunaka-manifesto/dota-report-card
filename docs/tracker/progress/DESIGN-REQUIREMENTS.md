@@ -151,8 +151,8 @@ Select role · switch mode bucket · open a metric · open an observation's matc
 
 ## 10. Experience requirements / guardrails
 
-- **MUST NOT** create a role-level trend, progress score, grade, rating, percentage, or any composite of metrics — including implicitly, by arranging metrics as parts of a whole.
-- **MUST NOT** merge Standard and Turbo, or two roles, into one series.
+- **MUST NOT** create a role-level analytical trend, progress score, grade, rating, percentage, or any composite of metrics — including implicitly, by arranging metrics as parts of a whole. The separate earned Role Mastery level may appear beside Progress; see [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
+- **MUST NOT** merge Standard and Turbo metric series, or two roles, into one series. Only Role Mastery XP shares a role track across modes.
 - **MUST** make the selected role and mode unmistakable at all times.
 - **MUST** respect metric polarity — a downward line can be `Improving`.
 - **MUST NOT** style `Insufficient History` as a negative result, or `Stable` as stagnation.

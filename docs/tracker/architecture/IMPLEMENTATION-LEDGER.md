@@ -83,6 +83,7 @@ All remain open; no product choices are inferred from missing UI content.
 | Item | Options | Recommended implementation while open |
 |---|---|---|
 | Trend thresholds | Approve calibration artifact / defer labels | Nullable uncalibrated state with reason, no invented fifth trend |
+| Role Mastery performance parameters | Approve artifact / keep mastery unavailable | `CALIBRATION_PENDING`; no provisional awards, public enablement, or provider calls for backfill |
 | Role weights and confidence | Approve existing provisional values / calibrate | Version provisional configuration |
 | Today’s Focus | Define content / omit | Honest absent slot |
 | Challenges and achievements | Contract mechanics / defer | Unavailable slot; no invented mechanics. Role Mastery XP is separately specified. |

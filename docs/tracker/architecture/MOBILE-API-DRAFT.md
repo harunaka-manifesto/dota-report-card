@@ -51,6 +51,7 @@ implementation or acceptance tests are complete.
 | GET `/matches/{match_ref}` | Facts plus separately ready performance, context and insight blocks. | [Match Detail](../match_detail/SSOT.md) |
 | POST `/matches/{match_ref}/role`; POST `/matches/{match_ref}/retry` | Append authoritative role correction; one retry action resumes valid work. Correction uses expected revision. | [Match Detail §6](../match_detail/SSOT.md) |
 | GET `/progress?mode=…&role=…&metric_id=…` | Observations, baseline snapshots, trend, current PB and scope. | [Progress](../progress/SSOT.md) |
+| GET `/mastery`; GET `/mastery/{role}/awards?cursor=…` | Four entitlement-safe earned role levels and live in-app milestones; paginated signed XP changes with structured reasons and currently entitled match references. | [Role Mastery](../role_mastery/SSOT.md) |
 | GET `/profile?mode=…`; POST `/profile/favourite-hero` | Identity/roles/heroes/claims/Right now/PBs/change receipts; favourite is explicit user choice. | [Profile](../profile/SSOT.md) |
 | POST `/shares`; GET `/shares/{share_ref}` | Immutable privacy-safe Profile/PB projection; public sharing never reveals private account or match identifiers. | [Profile §10](../profile/SSOT.md) |
 | GET/PATCH `/settings` | Notification preferences and permitted display preferences. | [Settings](../settings_account/SSOT.md) |
@@ -59,7 +60,7 @@ implementation or acceptance tests are complete.
 | POST `/data-access/confirm`; GET `/history-operation` | Restore data access, expose import/rebuild status and coverage without moving the original entitlement anchor. | [Onboarding §8](../onboarding/SSOT.md) |
 | GET `/recovery`; DELETE `/account` | Blocked/collision recovery boundary; immediate deletion fence and Steam release. No invented recovery verification flow. | [Settings §4, §7](../settings_account/SSOT.md) |
 
-No follow API, achievement API, XP algorithm, challenge mechanics, or periodic report content is contracted.
+No follow API, achievement API, challenge mechanics, or periodic report content is contracted. Role Mastery's earned XP rules are specified separately from achievements in its SSOT.
 
 ## State projections
 
@@ -78,6 +79,7 @@ vocabulary in both the mobile OpenAPI and fixtures.
 | Progression | `STANDARD`, `TURBO`, or `NONE` with reason; null before finalization | Foundation §6; an acquisition failure is never successful `NONE` |
 | Metric value | `PENDING`, `MEASURED`, `NOT_AVAILABLE`; nullable value and reason | Foundation §8; `MEASURED` accepts zero |
 | Baseline | `BUILDING`, `READY`, `NOT_AVAILABLE`; prior count and nullable median | Foundation §9; independently per metric/version/role/mode |
+| Role Mastery | `STEAM_LINK_REQUIRED`, `CALIBRATION_PENDING`, `BACKFILLING`, `AVAILABLE`; each available role is `UNSTARTED` or `STARTED` | Role Mastery SSOT; Free caps display at Level 5 and hides deeper XP |
 | Performance | `ABOVE`, `IN_LINE`, `BELOW`, `NOT_READY`; absent for N/A and diagnostic-only metrics | Foundation §10 |
 | Trend | `IMPROVING`, `STABLE`, `DECLINING`, `INSUFFICIENT_HISTORY`; nullable with `CALIBRATION_UNAVAILABLE` reason | Foundation §11 and open calibration decision; no fifth trend state |
 | Lane context | `DIFFICULT`, `TYPICAL`, `FAVOURABLE`, `UNAVAILABLE` | Match Detail §4.3; unavailable renders nothing |
@@ -96,7 +98,7 @@ is deferred. Retry metadata never becomes a durable lifecycle enum.
 
 ## Open gates and verification
 
-Trend calibration, Profile calibration, email auth mechanism, recovery verification, Pro depth
+Performance parameter approval for Role Mastery, trend calibration, Profile calibration, email auth mechanism, recovery verification, Pro depth
 ceiling and uncontracted content remain explicit owner gates in the [ledger](IMPLEMENTATION-LEDGER.md).
 No production default fills those gaps. Test-only calibration is visibly marked and cannot load
 as an approved production artifact.

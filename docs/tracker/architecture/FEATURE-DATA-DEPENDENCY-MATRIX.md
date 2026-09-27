@@ -127,6 +127,8 @@ summary-class `fight_presence` metric.
 | Progress rolling baseline | [`progress`](../progress/SSOT.md) §5 | **History** ≥ 5 priors | no | no | baseline-building, countable | stays building |
 | Progress trend state | [`progress`](../progress/SSOT.md) §4 | **History** — complete 10-point window | no | no | `Insufficient History` | `Insufficient History` — **never a decline** |
 | Progress Personal Bests | [`progress`](../progress/SSOT.md) §7 | **History** | no | yes | absent | "unavailable", never zero |
+| Role Mastery base award and level | [`role_mastery`](../role_mastery/SSOT.md) | **Final** + approved performance calibration; imported awards wait for a coherent bootstrap/import checkpoint | no | no | `CALIBRATION_PENDING` or `BACKFILLING` | Eligible finalized matches earn base XP even without replay or baseline readiness; no provisional award without approval |
+| Role Mastery Above/PB bonus | [`role_mastery`](../role_mastery/SSOT.md) | **Final** + qualifying metric evidence and **History** for PBs | no | yes | Base award remains; missing bonus evidence stays absent | Late replay may append a quiet missing bonus; no inferred bonus for unavailable evidence |
 | Profile identity line + role map | [`profile`](../profile/SSOT.md) §4.2 | **Final** × N matches + **Coverage (summary)** | no | yes | honest "so far" or nothing | withheld, never a default archetype |
 | Profile hero tags | [`profile`](../profile/SSOT.md) §4.3 | **Final** × N role matches + **Coverage (summary)** | no | yes | counts only | counts only |
 | Profile confirmed claims | [`profile`](../profile/SSOT.md) §4.4 | **Final** × window + **Coverage (summary)** | no | no | section hidden | hidden — **never teased into existence** |
@@ -190,3 +192,4 @@ Any new UI block, achievement, challenge or report must be classified before it 
 | [`../profile/SSOT.md`](../profile/SSOT.md) | §6A coverage honesty. |
 | [`../onboarding/SSOT.md`](../onboarding/SSOT.md) | §5.5 bootstrap evidence classes. |
 | [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) | §7.2 note on metric evidence class; §12 PB readiness. |
+| [`../role_mastery/SSOT.md`](../role_mastery/SSOT.md) | Base and bonus award gates, coherent chronology, and calibration availability. |

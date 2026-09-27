@@ -69,7 +69,7 @@ A **successful** switch starts a **90-day cooldown**, regardless of Free/Pro sta
 
 1. the old Steam profile and its history become **archived**;
 2. the new Steam ID becomes active immediately;
-3. **no state from the old profile carries into the new one** — not PBs, baselines, achievements, role history, match history, discovery cursors, notification state, corrections, or coverage records;
+3. **no state from the old profile carries into the new one** — not PBs, baselines, achievements, Role Mastery XP, role history, match history, discovery cursors, notification state, corrections, or coverage records;
 4. a new Free bootstrap starts for the new profile;
 5. active Pro entitlement remains attached to the **app account**;
 6. new Pro historical backfill starts for the new Steam profile where applicable.
@@ -134,6 +134,7 @@ This is the architectural expression of the locked product rule that Free and Pr
 - A **linked Steam ID is required** before purchasing Pro. An app account with no Steam identity may explore but cannot subscribe.
 - On purchase: the current coherent Free state remains active; Pro historical acquisition begins; historical data processes separately; live tracking continues; **no partially rebuilt Pro state leaks into active product state**.
 - Activation is **atomic**: PBs, baselines, achievement display, historical metrics/views and other Pro-derived state switch together at one coherent checkpoint, after the rebuild has caught up through a deterministic cutoff including matches that arrived during acquisition.
+- Role Mastery keeps its earned XP. Historical matches add their awards in chronology at the coherent import checkpoint; Pro reveals the earned level and total XP only when the entitled mastery backfill is complete.
 - Partial historical coverage does **not** block activation. Activate with all recovered history, persist coverage metadata, and do not claim completeness that cannot be proven.
 - After activation the product MAY produce one Pro-history-ready notification (subject to notification rules) and one in-app summary explaining that historical state changed. It MUST NOT emit one event per historical PB, achievement or match.
 
@@ -142,6 +143,7 @@ This is the architectural expression of the locked product rule that Free and Pr
 - Cancelling renewal does **not** immediately change entitlement. Pro remains active until the paid billing entitlement actually expires.
 - At expiry, execute an **atomic Pro deactivation**: active PBs, baselines, history-scope-dependent state, records, achievement state and historical views all recalculate and switch together to Free History.
 - Pro-only historical/career surfaces become locked. **Backfilled historical data remains stored** — it is not deleted because Pro expired.
+- Role Mastery XP is never recalculated or removed at expiry. The display switches to the Free Level-5 cap and hides the true level and total XP above it; the deeper progress remains saved.
 - **No negative PB or downgrade celebration** is ever generated.
 - A PB whose source lies outside Free entitlement legitimately reverts to the best qualifying Free-scope value. This MUST be presented as a change of **scope**, never as a loss of achievement or a decline in performance.
 
@@ -157,6 +159,8 @@ stored Pro historical dataset
 ```
 
 Coherent Free state stays visible during the rebuild. A full provider historical fetch is required only if retained coverage is genuinely incomplete or a separate recovery operation demands it.
+
+Role Mastery returns to the uncapped earned level when Pro entitlement is restored; resubscription does not re-award retained matches.
 
 ### 5.4 Framing
 
@@ -178,7 +182,7 @@ Pro MUST be framed as **more history depth, synthesis, achievement exposure and 
 
 Account deletion is a **true deletion boundary**, distinct from logout, Pro cancellation, Steam switching and recovery detachment.
 
-Deletion initiates removal of: authentication identities, the active Steam linkage, archived Steam profiles, retained Free History, retained Pro History, derived PB/baseline/achievement state, notification state and recovery metadata — subject to separately defined legal/operational retention.
+Deletion initiates removal of: authentication identities, the active Steam linkage, archived Steam profiles, retained Free History, retained Pro History, the profile-scoped Role Mastery ledger, derived PB/baseline/achievement state, notification state and recovery metadata — subject to separately defined legal/operational retention.
 
 **Deletion outranks all background analytical work.** It is allowed immediately even while Free bootstrap, Pro backfill, a historical rebuild or Steam data recovery is running. Deletion MUST:
 
@@ -205,7 +209,7 @@ Because one Steam ID belongs to one app account, a user who loses access to the 
 
 A dedicated **verified** recovery flow MAY: prove ownership of the Steam and/or app identity; detach a Steam ID from an inaccessible old app account; make that Steam ID linkable to the correct app account. A verified recovery MAY bypass normal switching restrictions, because it restores ownership rather than changing the player's intended identity.
 
-Recovery MUST NOT automatically merge app accounts, Steam histories, subscriptions, purchases, PBs, baselines, achievements or progression. Any future merge or migration behaviour requires its own explicit contract.
+Recovery MUST NOT automatically merge app accounts, Steam histories, subscriptions, purchases, PBs, baselines, achievements, Role Mastery XP or progression. Any future merge or migration behaviour requires its own explicit contract.
 
 **Not defined in V1:** identity-verification methods, support escalation, fraud checks, recovery-specific cooldowns, recovery UI, manual-support tooling, evidence requirements, and exceptional ownership disputes. These require a separate Account Recovery contract.
 
