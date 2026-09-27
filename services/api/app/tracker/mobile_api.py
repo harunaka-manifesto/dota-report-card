@@ -267,11 +267,33 @@ class OfflanePanelView(BaseModel):
     points: list[OfflaneMinuteView]
 
 
+class OfflaneFightSegmentView(BaseModel):
+    segment_index: int
+    start_seconds: int
+    end_seconds: int
+    offlaner_damage: int
+    allied_damage_total: int
+    damage_share: float | None
+    damage_participated: bool
+    offlaner_kills: int
+    offlaner_deaths: int
+    allied_hero_deaths: int
+    enemy_hero_deaths: int
+    death_trade: Literal["FAVORABLE", "EVEN", "UNFAVORABLE"]
+
+
+class OfflaneFightsView(BaseModel):
+    state: Readiness
+    reason: str | None
+    segments: list[OfflaneFightSegmentView]
+
+
 class OfflaneContextView(BaseModel):
-    contract_version: Literal["offlane-context-v1"]
+    contract_version: Literal["offlane-context-v2"]
     enemy_carry_hero_id: int | None
     net_worth: OfflanePanelView
     xp: OfflanePanelView
+    fights: OfflaneFightsView
 
 
 class MatchView(BaseModel):
@@ -780,17 +802,19 @@ def _offlane_context_view(connection: Connection, row) -> OfflaneContextView | N
         state = Readiness.UNAVAILABLE if terminal else Readiness.PENDING
         reason = "MATCH_" + row["lifecycle"] if terminal else None
         panel = OfflanePanelView(state=state, reason=reason, points=[])
-        return OfflaneContextView(contract_version="offlane-context-v1", enemy_carry_hero_id=None,
-                                  net_worth=panel, xp=panel.model_copy(deep=True))
+        fights = OfflaneFightsView(state=state, reason=reason, segments=[])
+        return OfflaneContextView(contract_version="offlane-context-v2", enemy_carry_hero_id=None,
+                                  net_worth=panel, xp=panel.model_copy(deep=True), fights=fights)
     result = connection.scalar(select(analyses.c.result).where(
         analyses.c.id == row["active_analysis_id"],
     ))
     context = result.get("offlane_context") if isinstance(result, dict) else None
-    if isinstance(context, dict):
+    if isinstance(context, dict) and context.get("contract_version") == "offlane-context-v2":
         return OfflaneContextView.model_validate(context)
     panel = OfflanePanelView(state=Readiness.UNAVAILABLE, reason="ANALYSIS_VERSION", points=[])
-    return OfflaneContextView(contract_version="offlane-context-v1", enemy_carry_hero_id=None,
-                              net_worth=panel, xp=panel.model_copy(deep=True))
+    fights = OfflaneFightsView(state=Readiness.UNAVAILABLE, reason="ANALYSIS_VERSION", segments=[])
+    return OfflaneContextView(contract_version="offlane-context-v2", enemy_carry_hero_id=None,
+                              net_worth=panel, xp=panel.model_copy(deep=True), fights=fights)
 
 
 def _summary_view(connection, row) -> MatchSummary:

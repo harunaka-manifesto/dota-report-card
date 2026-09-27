@@ -4,7 +4,7 @@ from pathlib import Path
 
 from app.tracker.metrics import measure
 from app.tracker.normalization import opendota_summary
-from app.tracker.offlane_context import evaluate
+from app.tracker.offlane_context import evaluate, evaluate_fights
 from app.tracker.replay import replay_checkpoints
 
 FIXTURE = Path(__file__).parents[1] / "fixtures/tracker/paired-replay-v1/opendota.json"
@@ -23,7 +23,7 @@ def test_minute_points_have_exact_tooltips_and_existing_ten_minute_delta():
     raw, features = evidence()
     context = evaluate(features, viewer=0, positions={5: 1},
                        duration=raw["duration"], quarantined=[])
-    assert context["contract_version"] == "offlane-context-v1"
+    assert context["contract_version"] == "offlane-context-v2"
     assert context["enemy_carry_hero_id"] == features[5]["summary"]["hero_id"]
     for panel in (context["net_worth"], context["xp"]):
         assert panel["state"] == "AVAILABLE" and panel["reason"] is None
@@ -60,3 +60,68 @@ def test_ambiguous_or_missing_carry_withholds_both_panels():
         assert result["enemy_carry_hero_id"] is None
         assert result["net_worth"]["state"] == result["xp"]["state"] == "UNAVAILABLE"
         assert result["net_worth"]["reason"] == result["xp"]["reason"] == "CARRY_UNCLEAR"
+
+
+def test_detected_fights_use_player_deaths_and_preserve_overlaps():
+    raw, features = evidence()
+    first = deepcopy(raw["teamfights"][0])
+    second = deepcopy(first)
+    second["start"], second["end"] = first["end"] - 1, first["end"] + 5
+    first["deaths"] = second["deaths"] = 999  # Headers can disagree with player entries.
+    raw["teamfights"] = [first, second]
+    fights = evaluate_fights(raw, viewer=0, duration=raw["duration"], quarantined=[])
+    assert fights["state"] == "AVAILABLE"
+    assert [segment["segment_index"] for segment in fights["segments"]] == [1, 2]
+    assert fights["segments"][0]["end_seconds"] > fights["segments"][1]["start_seconds"]
+    segment = fights["segments"][0]
+    assert segment["offlaner_damage"] == first["players"][0]["damage"]
+    assert segment["allied_damage_total"] == sum(player["damage"] for player in first["players"][:5])
+    assert segment["damage_share"] == segment["offlaner_damage"] / segment["allied_damage_total"]
+    assert segment["allied_hero_deaths"] == sum(player["deaths"] for player in first["players"][:5])
+    assert segment["enemy_hero_deaths"] == sum(player["deaths"] for player in first["players"][5:])
+    assert segment["death_trade"] == "UNFAVORABLE"
+    dire = evaluate_fights(raw, viewer=6, duration=raw["duration"], quarantined=[])["segments"][0]
+    assert dire["allied_hero_deaths"] == segment["enemy_hero_deaths"]
+    assert dire["death_trade"] == "FAVORABLE"
+    context = evaluate(features, viewer=0, positions={}, duration=raw["duration"],
+                       quarantined=[], fights=fights)
+    assert context["net_worth"]["state"] == "UNAVAILABLE"
+    assert context["fights"] == fights
+
+
+def test_detected_fight_zero_damage_tied_trade_and_empty_array():
+    raw, _ = evidence()
+    raw["teamfights"] = [deepcopy(raw["teamfights"][0])]
+    fight = raw["teamfights"][0]
+    fight["players"][0]["damage"] = 0
+    fight["players"][0]["killed"] = {"npc_dota_hero_example": 1, "npc_dota_neutral": 5}
+    for player in fight["players"]:
+        player["deaths"] = 0
+    result = evaluate_fights(raw, viewer=0, duration=raw["duration"], quarantined=[])
+    segment = result["segments"][0]
+    assert segment["damage_share"] == 0 and not segment["damage_participated"]
+    assert segment["offlaner_kills"] == 1 and segment["death_trade"] == "EVEN"
+    for player in fight["players"][:5]:
+        player["damage"] = 0
+    segment = evaluate_fights(raw, viewer=0, duration=raw["duration"], quarantined=[])["segments"][0]
+    assert segment["allied_damage_total"] == 0 and segment["damage_share"] is None
+    raw["teamfights"] = []
+    assert evaluate_fights(raw, viewer=0, duration=raw["duration"], quarantined=[]) == {
+        "state": "AVAILABLE", "reason": None, "segments": [],
+    }
+
+
+def test_detected_fights_fail_closed_on_missing_or_malformed_evidence():
+    raw, _ = evidence()
+    assert evaluate_fights(None, viewer=0, duration=raw["duration"], quarantined=[])["state"] == "UNAVAILABLE"
+    assert evaluate_fights(raw, viewer=0, duration=raw["duration"],
+                           quarantined=["players.0.hero_id"])["reason"] == "SOURCE_DISAGREEMENT"
+    invalid = deepcopy(raw)
+    invalid["teamfights"][0]["start"] = -1
+    assert evaluate_fights(invalid, viewer=0, duration=raw["duration"], quarantined=[])["reason"] == "FIGHTS_INVALID"
+    invalid = deepcopy(raw)
+    invalid["teamfights"][0]["end"] = raw["duration"] + 1
+    assert evaluate_fights(invalid, viewer=0, duration=raw["duration"], quarantined=[])["reason"] == "FIGHTS_INVALID"
+    invalid = deepcopy(raw)
+    invalid["teamfights"][0]["players"][0]["damage"] = None
+    assert evaluate_fights(invalid, viewer=0, duration=raw["duration"], quarantined=[])["reason"] == "FIGHTS_INVALID"

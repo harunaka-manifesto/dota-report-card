@@ -1,13 +1,40 @@
 # Offlane detected-fight feasibility sample — 2026-09-27
 
-**Decision: hold Graph B.** The predeclared gate required at least 100 supported,
-replay-ready matches and at least 90% with valid fight arrays and per-player
-fields. The capped sample yielded **99** qualifying matches. **93/99 (93.9%)**
-passed the conservative segment validator, so coverage cleared 90% but the
-minimum sample size missed by one. Do not publish the detected-fights API or
-start historical OpenDota fetching on this evidence.
+**Decision: ship Graph B from retained OpenDota replay evidence.** The
+predeclared gate required at least 100 supported, replay-ready matches and at
+least 90% with valid fight arrays and per-player fields. The initial capped
+sample had 99 qualifying matches and 93 valid arrays. An owner-authorized
+continuation added two distinct qualifying Standard matches with valid arrays:
+**95/101 (94.1%)** passed the gate. This does not authorize historical OpenDota
+fetching; matches without stored fight evidence remain unavailable.
 
-## Method and budget
+## Owner-authorized continuation
+
+- Seven successful, unauthenticated HTTP reads: one current parsed-match listing,
+  two older parsed-match listings, two initial match reads and two verification
+  reads of those same matches. A sandbox-blocked local
+  attempt never reached OpenDota. No API key or parse request was used. Direct
+  provider billing was **Rp0**, below the Rp8,000 ceiling.
+- To avoid repeating the initial study's three most recent listing pages, the
+  continuation used listing cursors one million and ten million match IDs below
+  the current head. Matches `9016991624` and `9007991606` were both ranked All
+  Pick with positive replay versions. They contained respectively six and nine
+  fight segments, all with valid in-match windows and ten player records carrying
+  the required damage, deaths and killed fields. Both had ten human players,
+  passed the tracker summary and replay validators, and returned `AVAILABLE`
+  from the production fight validator. Their initial read latencies were 1.175
+  and 1.613 seconds; these are two samples, not an availability SLA.
+- Their full responses were saved only in the newly created ignored `.local/`
+  continuation directories. The existing private corpus was not inspected.
+
+Combined coverage is **101 qualifying matches: 74 Standard, 27 Turbo**, with
+fight counts ranging from 0 to 20, median 10, and 990 detected segments. The
+six invalid arrays remain the five pregame-window and one post-duration-window
+cases in the initial sample. The detailed overlap, header disagreement and
+zero-damage counts below apply to that initial 99-match audit; the two added
+matches were checked for the predeclared gate fields and valid windows.
+
+## Initial capped sample: method and budget
 
 - Paginated the public OpenDota `parsedMatches` listing, then read the listed
   matches. Qualified Standard ranked/unranked All Pick or Turbo with positive
@@ -24,7 +51,7 @@ start historical OpenDota fetching on this evidence.
 - Direct provider billing for these unauthenticated requests was not observed;
   the 250-attempt limit was the binding study cap.
 
-## Coverage and edge cases
+## Initial capped sample: coverage and edge cases
 
 | Measure | Observed |
 |---|---:|
@@ -55,7 +82,7 @@ disagree. Tied death trades need an explicit even outcome. Overlap is a valid pa
 not be assumed disjoint. Zero damage must mean only no recorded damage in
 that segment, not that the offlaner was absent.
 
-No per-request latency distribution was captured. For fresh matches, using an
-already stored OpenDota response would add no Match Detail read call; end-to-end
-availability still follows the existing replay finalization path. This study
-does not authorize a historical OpenDota production path.
+No end-to-end availability distribution was captured. For fresh matches, using
+an already stored OpenDota response adds no Match Detail read call; availability
+still follows replay finalization. This study does not authorize a historical
+OpenDota production path.

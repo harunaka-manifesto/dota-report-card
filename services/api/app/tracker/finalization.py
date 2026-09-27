@@ -24,6 +24,7 @@ from .jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from .materialization import FEATURE_VERSION, _match_payload
 from .metrics import LOWER_IS_BETTER, measure, metric_ids
 from .offlane_context import evaluate as evaluate_offlane_context
+from .offlane_context import evaluate_fights
 from .population_parameters import current_context_parameters
 from .roles import ROLES
 from .schema import (
@@ -47,7 +48,7 @@ from .schema import (
 )
 from .scope import entitled as entitled_history
 
-ANALYSIS_VERSION = "tracker-analysis-3"
+ANALYSIS_VERSION = "tracker-analysis-4"
 
 
 def enqueue_finalization(connection: Connection, *, profile_id: str, match_id: int) -> str:
@@ -292,9 +293,21 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
     position_map = _positions(connection, link)
     integrity = player.get("integrity", {}).get("verdict")
     quarantined = match["quarantined_fields"] or []
+    fight_raw = None
+    if link["effective_role"] == "OFFLANE" and match["evidence_state"] == "REPLAY_READY":
+        fight_snapshot = connection.execute(select(snapshots).where(
+            snapshots.c.id == snapshot_ids[0],
+        )).mappings().one()
+        if fight_snapshot["provider"] == "opendota":
+            try:
+                fight_raw = _match_payload(dict(fight_snapshot), match["match_id"])
+            except (KeyError, TypeError, ValueError):
+                pass
     offlane_context = evaluate_offlane_context(
         features, viewer=link["player_slot"], positions=position_map,
         duration=match["duration_seconds"], quarantined=quarantined,
+        fights=evaluate_fights(fight_raw, viewer=link["player_slot"],
+                               duration=match["duration_seconds"], quarantined=quarantined),
     ) if link["effective_role"] == "OFFLANE" else None
     if any(path in {"duration_seconds", "mode", "game_mode", "lobby_type"} or
            (isinstance(path, str) and path.endswith(".leaver_status")) for path in quarantined):

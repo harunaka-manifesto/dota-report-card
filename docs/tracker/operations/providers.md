@@ -13,6 +13,10 @@ ADRs. This page covers operating the adapters that implement them.
 | Replay processing and parsed payload | OpenDota `POST /request/{id}`, `GET /matches/{id}` | `tracker/replay_acquisition.py` |
 | Bootstrap, Pro backfill and access-recovery scans | OpenDota history (enumeration only) | `tracker/bootstrap.py`, `tracker/backfill.py` |
 | Historical replay-class evidence | STRATZ deep batches (≤ 50 IDs) with OpenDota summary fallback | `tracker/historical.py`, `tracker/historical_summary.py` |
+
+Offlane detected fights read the OpenDota replay payload already retained for a
+fresh match during finalization. They add no Match Detail provider call and do
+not start OpenDota fetching for STRATZ-only historical matches.
 | Population parameters | STRATZ `heroStats` (offline P3 job, validated artifact) | `tracker/population_parameters.py` |
 
 STRATZ is never on the fresh path. A mobile read never reaches any provider; this is

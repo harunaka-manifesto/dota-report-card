@@ -1321,7 +1321,7 @@
       "OfflaneContextView": {
         "properties": {
           "contract_version": {
-            "const": "offlane-context-v1",
+            "const": "offlane-context-v2",
             "title": "Contract Version",
             "type": "string"
           },
@@ -1336,6 +1336,9 @@
             ],
             "title": "Enemy Carry Hero Id"
           },
+          "fights": {
+            "$ref": "#/components/schemas/OfflaneFightsView"
+          },
           "net_worth": {
             "$ref": "#/components/schemas/OfflanePanelView"
           },
@@ -1347,9 +1350,122 @@
           "contract_version",
           "enemy_carry_hero_id",
           "net_worth",
-          "xp"
+          "xp",
+          "fights"
         ],
         "title": "OfflaneContextView",
+        "type": "object"
+      },
+      "OfflaneFightSegmentView": {
+        "properties": {
+          "allied_damage_total": {
+            "title": "Allied Damage Total",
+            "type": "integer"
+          },
+          "allied_hero_deaths": {
+            "title": "Allied Hero Deaths",
+            "type": "integer"
+          },
+          "damage_participated": {
+            "title": "Damage Participated",
+            "type": "boolean"
+          },
+          "damage_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Damage Share"
+          },
+          "death_trade": {
+            "enum": [
+              "FAVORABLE",
+              "EVEN",
+              "UNFAVORABLE"
+            ],
+            "title": "Death Trade",
+            "type": "string"
+          },
+          "end_seconds": {
+            "title": "End Seconds",
+            "type": "integer"
+          },
+          "enemy_hero_deaths": {
+            "title": "Enemy Hero Deaths",
+            "type": "integer"
+          },
+          "offlaner_damage": {
+            "title": "Offlaner Damage",
+            "type": "integer"
+          },
+          "offlaner_deaths": {
+            "title": "Offlaner Deaths",
+            "type": "integer"
+          },
+          "offlaner_kills": {
+            "title": "Offlaner Kills",
+            "type": "integer"
+          },
+          "segment_index": {
+            "title": "Segment Index",
+            "type": "integer"
+          },
+          "start_seconds": {
+            "title": "Start Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "segment_index",
+          "start_seconds",
+          "end_seconds",
+          "offlaner_damage",
+          "allied_damage_total",
+          "damage_share",
+          "damage_participated",
+          "offlaner_kills",
+          "offlaner_deaths",
+          "allied_hero_deaths",
+          "enemy_hero_deaths",
+          "death_trade"
+        ],
+        "title": "OfflaneFightSegmentView",
+        "type": "object"
+      },
+      "OfflaneFightsView": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/OfflaneFightSegmentView"
+            },
+            "title": "Segments",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/Readiness"
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "segments"
+        ],
+        "title": "OfflaneFightsView",
         "type": "object"
       },
       "OfflaneMinuteView": {

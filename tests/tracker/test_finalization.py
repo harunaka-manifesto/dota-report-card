@@ -108,7 +108,7 @@ def test_offlane_match_detail_is_pending_then_reads_frozen_context(database):
         link = connection.execute(select(account_matches)).mappings().one()
         pending = _offlane_context_view(connection, link)
         assert pending is not None
-        assert pending.net_worth.state == pending.xp.state == "PENDING"
+        assert pending.net_worth.state == pending.xp.state == pending.fights.state == "PENDING"
     assert _run(database, profile_id) == "READY"
     with database.begin() as connection:
         correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
@@ -120,6 +120,20 @@ def test_offlane_match_detail_is_pending_then_reads_frozen_context(database):
             analyses.c.id == link["active_analysis_id"],
         ))["offlane_context"]
         assert view is not None and view.model_dump() == persisted
+        assert view.fights.state == "AVAILABLE" and len(view.fights.segments) == 19
+        assert view.fights.segments[0].death_trade == "UNFAVORABLE"
+
+
+def test_old_offlane_context_remains_a_safe_unavailable_view():
+    class OldAnalysis:
+        def scalar(self, _query):
+            return {"offlane_context": {"contract_version": "offlane-context-v1"}}
+
+    view = _offlane_context_view(OldAnalysis(), {
+        "effective_role": "OFFLANE", "active_analysis_id": "old",
+    })
+    assert view is not None
+    assert view.fights.state == "UNAVAILABLE" and view.fights.reason == "ANALYSIS_VERSION"
 
 
 def test_replay_unavailable_still_finalizes_with_reasoned_na_metrics(database):

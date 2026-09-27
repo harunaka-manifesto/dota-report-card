@@ -5,7 +5,7 @@ Operational evidence, not a product or architecture contract.
 ## Offlane Match Detail graphs — 2026-09-27
 
 - Branch `codex/offlane-match-graphs` starts at `3cfc6986a7dcefe6ee808b604fa303512bbc44d1` (`origin/main` when fetched). The `offlane-context-v1` laning block is derived from retained minute evidence, stored in the versioned analysis, and rebuilt on role correction. No new Match Detail provider call is introduced.
-- The capped OpenDota feasibility sample used 250 counted attempts and yielded 99 supported replay-ready matches, 93 with conservatively valid fight segments (93.9%). The predeclared Graph B gate required at least 100 qualifying matches, so detected fights remain unshipped. See [`evidence/offlane-fights-study-2026-09-27.md`](evidence/offlane-fights-study-2026-09-27.md). This does not authorize production historical OpenDota fetching.
+- The capped OpenDota sample used 250 counted attempts. An owner-authorized Rp8,000-capped continuation used seven successful unauthenticated HTTP reads at Rp0, adding two distinct qualifying matches verified by the production fight validator. The combined sample has 101 supported replay-ready matches, 95 with conservatively valid fight segments (94.1%), so Graph B cleared the predeclared gate. `offlane-context-v2` persists detected fights from already retained OpenDota replay evidence; it adds no Match Detail read call or historical OpenDota fetch policy. See [`evidence/offlane-fights-study-2026-09-27.md`](evidence/offlane-fights-study-2026-09-27.md).
 - `GetTrackerMatchBatch` 1.4 adds `stats.experiencePerMinute` to the existing historical call. One live candidate selection (document SHA-256 `1f8bbd27cedcb802d74d36431788a319f64df4b08cef623e898f06eecf4476cc`) returned HTTP 200 with no GraphQL errors on 2026-09-27; STRATZ did not expose a numeric complexity score. The 310,000 cap was therefore verified by acceptance, not measured as a number. Prior 1.3 snapshots remain accepted. Historical XP without retained minute evidence remains unavailable and is not refetched. No deployment was made.
 
 ## Baseline and scope
@@ -96,6 +96,10 @@ Owner-authorized offlane feasibility work, 2026-09-27: OpenDota **250 counted at
 zero processing requests; STRATZ **one accepted GraphQL selection probe** for
 historical minute XP. These are study/validation calls, not a production
 historical-fetch policy. No deployment.
+
+Owner-authorized Graph B continuation, 2026-09-27: OpenDota **7 successful
+unauthenticated HTTP reads** plus one locally blocked attempt; **Rp0 billable
+spend**, zero processing requests, zero STRATZ calls. No deployment.
 
 ## Baseline test results
 

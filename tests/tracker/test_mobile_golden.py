@@ -1,8 +1,8 @@
 """Golden mobile fixtures from the fixture-backed seed, plus contract scans.
 
-Fixtures under tests/fixtures/tracker/mobile-v1-offlane-context-v1 are versioned and
+Fixtures under tests/fixtures/tracker/mobile-v1-offlane-context-v2 are versioned and
 never overwritten: a contract change adds a new directory. This directory was
-added when Match Detail gained `offlane_context`; prior mobile-v1 fixture
+added when Match Detail gained detected fights; prior mobile-v1 fixture
 directories remain historical records. To create a missing file
 deliberately, run with TRACKER_WRITE_MISSING_GOLDEN=1 and review it.
 """
@@ -22,7 +22,7 @@ from sqlalchemy import select
 
 from scripts.tracker_seed_demo import seed_demo
 
-GOLDEN = Path(__file__).parents[1] / "fixtures/tracker/mobile-v1-offlane-context-v1"
+GOLDEN = Path(__file__).parents[1] / "fixtures/tracker/mobile-v1-offlane-context-v2"
 OPENAPI = Path(__file__).parents[2] / "docs/tracker/api/mobile-openapi-v1.json"
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")

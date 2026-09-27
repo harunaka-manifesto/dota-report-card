@@ -126,9 +126,11 @@ def test_offlane_context_is_persisted_and_rebuilt_on_role_correction(database):
         context = connection.scalar(select(analyses.c.result).join(
             account_matches, account_matches.c.active_analysis_id == analyses.c.id,
         ))["offlane_context"]
-        assert context["contract_version"] == "offlane-context-v1"
+        assert context["contract_version"] == "offlane-context-v2"
         assert context["net_worth"]["state"] in {"AVAILABLE", "UNAVAILABLE"}
         assert context["xp"]["state"] in {"AVAILABLE", "UNAVAILABLE"}
+        assert context["fights"]["state"] == "AVAILABLE"
+        assert len(context["fights"]["segments"]) == 19
     with database.begin() as connection:
         assert correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
                             role="MID", expected_role_revision=1)["rebuilt"]

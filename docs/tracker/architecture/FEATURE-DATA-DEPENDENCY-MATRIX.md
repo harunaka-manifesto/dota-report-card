@@ -1,7 +1,7 @@
 # Feature ↔ Data Dependency Matrix
 
 **Status:** ACTIVE — authoritative for readiness classification
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-27
 **Scope:** For every product block, the minimum evidence that must exist before it can be considered ready, what it does while waiting, and what it does when that evidence will never arrive.
 **Depends on:** [`MATCH-INGESTION-AND-LIFECYCLE.md`](MATCH-INGESTION-AND-LIFECYCLE.md) §3 · [`PROVIDER-CAPABILITIES-AND-ROUTING.md`](PROVIDER-CAPABILITIES-AND-ROUTING.md) §4
 
@@ -71,6 +71,11 @@ do not enter progression, baselines, or Personal Bests. Historical batch version
 requests minute XP in its existing call; older retained history without that field
 has no XP panel and is not refetched.
 
+The separate Offlane detected-fights panel requires retained OpenDota replay fight
+segments and finalization. It does not affect the summary-class `fight_presence`
+metric, progression, baselines or Personal Bests. STRATZ-only historical matches
+remain unavailable for this panel; no historical OpenDota call is made to fill it.
+
 **Consequences, normative:**
 
 1. A `REPLAY_UNAVAILABLE` match produces **N/A with a reason** for its replay-class metrics. Never zero, never omitted silently, never substituted ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §8).
@@ -99,6 +104,7 @@ has no XP panel and is not refetched.
 | Insight cards (all 17 types) | [`match_detail`](../match_detail/SSOT.md) §5 | **Replay** → **Final** | no | no | pending affordance | **the normal no-card state** |
 | Item timing facts (key-item timeline) | [`match_detail`](../match_detail/SSOT.md) §3A.9 · [`ITEM-TIMINGS-V1`](../match_detail/ITEM-TIMINGS-V1.md) | **Replay** → **Final** | no | no | `item_timings.state = PENDING` while analysis runs | `UNAVAILABLE` without purchase evidence or compatible analysis; `AVAILABLE` with an empty list when no key item was bought |
 | Item timing comparisons | [`ITEM-TIMINGS-V1`](../match_detail/ITEM-TIMINGS-V1.md) | **Final**; **History** for personal comparisons | no | no | pending with the timeline | factual timing only (`comparison: null`) when population or personal gates do not qualify; Support is always factual-only |
+| Offlane detected fights | [`match_detail`](../match_detail/SSOT.md) §3A.10 | **Replay** → **Final** | **yes**, retained OpenDota replay | independent of laning panels | `fights.state = PENDING` | `UNAVAILABLE` without valid stored segments; valid empty array is `AVAILABLE` with zero segments |
 | Edit Role action | [`match_detail`](../match_detail/SSOT.md) §6 | **Summary** | no | n/a | available | "correction unavailable" if retained data no longer supports a rebuild |
 
 **Note on insight cards.** Every V1 card family — lead story, lane story, hidden enemy activity, power spikes and item timings, structure contradiction — is derived from replay-class evidence. A `REPLAY_UNAVAILABLE` match therefore renders the **normal, no-special-insight state**, which the product already defines as the majority experience ([`../match_detail/SSOT.md`](../match_detail/SSOT.md) §5.2). It is not an error and needs no special copy.

@@ -162,13 +162,17 @@ When replay-class evidence will never arrive (`REPLAY_UNAVAILABLE`):
 - Item comparisons are keyed by hero × core role × mode × item — never by purchase order — and fail closed when evidence, compatible analysis, patch safety or sample thresholds are missing. Sparse cohorts produce no population claim. Full thresholds and snapshot rules are in [`ITEM-TIMINGS-V1.md`](ITEM-TIMINGS-V1.md).
 - The timeline and comparisons are replay-derived and persisted with the immutable finalized analysis. No provider fetch or runtime LLM is used to render or rebuild them.
 
-### 3A.10 Offlane laning context
+### 3A.10 Offlane laning and detected-fight context
 
 - Match Detail exposes a factual `offlane_context` only for the effective Offlane role. It is pending before finalization and is rebuilt from retained evidence after role correction. Other roles receive `null`.
 - The two independent panels compare the offlaner with the uniquely identified enemy Carry at real one-minute checkpoints from 0:00 through 10:00. Net worth is the value at each checkpoint; XP is earned since 0:00. `difference = you − enemy_carry`, so a positive value means the offlaner is ahead. These facts are not performance verdicts.
 - Each panel is independently available or unavailable. Valid earlier points remain visible when a match ends before 10:00 or later samples are missing. No missing point is interpolated or treated as zero. If the enemy Carry is not unique, both panels are unavailable.
 - The future iOS graph uses a fixed 0–10 minute X axis, synchronized one-minute drag snapping, and a separate symmetric Y scale around zero for each panel. The tooltip shows You, the enemy Carry, and Difference at the selected real checkpoint. An all-zero series uses a nonzero visual Y span.
 - Historical batch version 1.4 requests minute XP in its existing call after a live complexity acceptance check. Older retained snapshots without that series keep the XP panel unavailable; they are not refetched for this graph.
+- The independently ready detected-fights panel uses the stored OpenDota replay's fight segments only. A valid empty array is available with zero detected fights. Missing or malformed evidence is unavailable; historical matches are not fetched from OpenDota to fill it.
+- Each segment gives its start/end time, offlaner and allied recorded damage, offlaner damage share of allied damage, a `damage_participated` flag, offlaner hero kills and deaths, each side's hero deaths, and the allied death-trade label `FAVORABLE`, `EVEN`, or `UNFAVORABLE`. A tied death trade is `EVEN`. Per-player death counts govern the trade even when a fight header disagrees. Overlapping segments remain separate.
+- A zero-damage offlaner has `damage_participated = false`; this does not claim absence from the fight. If the allied damage total is zero, share is unavailable, never a fabricated zero. Detected segments are not a claim that every engagement was captured, and a favorable death trade is not a claim that the fight was won.
+- The future iOS fight graph places segment starts across the full match on X and damage share from 0 to 100% on Y; segment end time supplies the interval. Segments with undefined share remain available as factual rows without a Y marker.
 
 ### 3A.11 Language
 

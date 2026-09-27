@@ -14,8 +14,8 @@ and its CI diff check are untouched. Resource design and state projections are s
   roles, Free/Pro, switch cooldown, deletion, data access, sync error). They are compared, never
   overwritten; a contract change adds a new versioned directory. Item-timing responses belong in
   `tests/fixtures/tracker/mobile-v1-item-timings-v1/`; preserve the existing goldens.
-  The additive offlane context response belongs in
-  `tests/fixtures/tracker/mobile-v1-offlane-context-v1/`.
+  The current offlane context response belongs in
+  `tests/fixtures/tracker/mobile-v1-offlane-context-v2/`; preserve v1.
 - Local data: `make seed-demo` creates the same personas without provider calls.
 
 ## Conventions
@@ -67,7 +67,7 @@ ItemTimingComparisonView
 - `delta_seconds` is the positive number of seconds earlier than the stated baseline. `sample_size` is the population reference's `purchase_count` (the hero/role/mode/item cohort's first-purchase count) for population evidence, or the strictly prior comparable personal-match count for personal evidence. `cohort_patch` is the reference artifact's major patch for population evidence (references pool unaffected earlier lettered updates) and the major-patch cohort for personal history.
 - Item names come from backend catalog data. Localized headings, comparison sentences and evidence lines live in the content bank, not this response.
 
-## Match Detail: offlane laning context
+## Match Detail: offlane laning and detected fights
 
 `GET /mobile/v1/matches/{match_ref}` adds `offlane_context` for the effective Offlane role;
 other roles receive `null`. The block is frozen in the finalized analysis and reads make no
@@ -75,10 +75,11 @@ provider requests. Role correction rebuilds it from retained evidence.
 
 ```text
 OfflaneContextView
-  contract_version: "offlane-context-v1"
+  contract_version: "offlane-context-v2"
   enemy_carry_hero_id: integer | null
   net_worth: OfflanePanelView
   xp: OfflanePanelView
+  fights: OfflaneFightsView
 
 OfflanePanelView
   state: AVAILABLE | PENDING | UNAVAILABLE
@@ -90,16 +91,43 @@ OfflaneMinuteView
   you: integer
   enemy_carry: integer
   difference: integer          // you - enemy_carry
+
+OfflaneFightsView
+  state: AVAILABLE | PENDING | UNAVAILABLE
+  reason: string | null
+  segments: OfflaneFightSegmentView[]
+
+OfflaneFightSegmentView
+  segment_index: integer       // one-based source order
+  start_seconds: integer
+  end_seconds: integer
+  offlaner_damage: integer
+  allied_damage_total: integer
+  damage_share: number | null  // 0..1; null if allied total is zero
+  damage_participated: boolean // offlaner_damage > 0
+  offlaner_kills: integer
+  offlaner_deaths: integer
+  allied_hero_deaths: integer
+  enemy_hero_deaths: integer
+  death_trade: FAVORABLE | EVEN | UNFAVORABLE
 ```
 
 The two panels have independent readiness. Net worth is the value at the stated minute; XP is
 earned since 0:00. A positive difference means the offlaner is ahead. Points are exact and
 may be partial for a short match or missing evidence; no interpolation is permitted. An
 ambiguous enemy Carry makes both panels unavailable. The client uses a fixed 0–10 minute X
-axis with one-minute snapping and fits each Y axis symmetrically about zero. Detected fights
-are outside this version's contract pending the recorded coverage gate. Historical batches
+axis with one-minute snapping and fits each Y axis symmetrically about zero. Historical batches
 from version 1.4 request minute XP in the existing call; older retained evidence may leave
 only the XP panel unavailable.
+
+Detected fights use valid segments in an already stored OpenDota replay. A valid empty array is
+`AVAILABLE` with zero segments; missing or malformed data is `UNAVAILABLE` independently of the
+two laning panels. Overlapping windows are retained. Per-player deaths determine the death trade;
+the provider's fight-header death count is ignored. `FAVORABLE` means fewer allied hero deaths,
+not that the fight was won. Zero damage does not establish absence, and detected segments are not
+every engagement. The future client plots segment start over the full-match X axis and damage
+share on a 0–100% Y axis; a null share has no Y marker. Match Detail reads make no provider call.
+Historical STRATZ-only matches do not trigger an OpenDota fetch for this panel.
 
 ### Item insight cards
 
@@ -110,7 +138,7 @@ is the viewer's own best-qualifying purchase (population or previous-best), and 
 is the best-qualifying population purchase among enemy positions 1–3. See
 [`ITEM-TIMINGS-V1.md`](../match_detail/ITEM-TIMINGS-V1.md) for full card-eligibility rules.
 
-The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1` and `offlane-context-v1` contract versions.
+The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1` and `offlane-context-v2` contract versions.
 
 Server-to-server routes (`/store/app-store/notifications`) and the operations readout
 (`/internal/tracker`) are separate applications without a mobile OpenAPI entry.
