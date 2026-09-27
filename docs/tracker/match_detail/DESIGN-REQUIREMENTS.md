@@ -65,6 +65,7 @@ P0 — match identity and result (hero, role, mode, when, duration, win/loss)
 P0 — personal performance: per-metric value + its expectation + state
 P1 — matchup context (one badge on the lane-metric group)
 P1 — match diagnosis: 0–3 insight cards
+P1 — factual key-item timeline and core-role match charts, when available
 P1 — PB state where it applies
 P2 — progression eligibility and reason, when it doesn't count
 P2 — role correction affordance
@@ -100,6 +101,9 @@ Result placement is genuinely delicate: it belongs to identity, not to performan
 | Insight cards | 0–3 deterministic cards | **~40% of matches have ≥1** | See below |
 | Card content | Facts, times, counts, scoped history ("across your last 34 Standard Mid matches") | Per card | Sequence only, never cause |
 | Card enrichment | One optional secondary line | Rare | Never creates a card |
+| Key-item timeline | Purchase time and order | Every role, after finalization | Support gets factual rows; core roles may get qualifying comparisons |
+| Core-role chart 1 | Offlane/Mid lane net worth (0–10 minutes) or Carry whole-match net worth | Carry, Mid, Offlane after finalization | Against a unique enemy Carry or Mid as appropriate; no interpolation |
+| Core-role chart 2 | Detected fights across the whole match | Carry, Mid, Offlane with retained fight segments | Player share of allied recorded damage, time and duration, kills, deaths and death trade; an empty valid stream is available |
 | Eligibility + reason | "Doesn't count toward progression" | When applicable | Reason mandatory |
 | Lifecycle state | Six states | When not READY | |
 
@@ -210,6 +214,8 @@ This is the single biggest thing to design correctly on this page, and it is a d
 - **MUST** pair "doesn't count" with its reason.
 - **MUST NOT** pad the insight area, add a filler card, or apologise for zero cards.
 - **MUST** preserve the engine's card order.
+- **MUST** show exactly one role-specific net-worth chart and one shared Detected fights chart for each core role; keep Offlane XP and Carry hero damage out of the visible chart set.
+- **MUST** retain one selected time across those charts. Fight selection uses its start; a selection after 10:00 clears the lane-chart point. Missing samples and unavailable fights never appear as zero.
 - **MUST NOT** show the numeric hero or matchup adjustment. The user sees value, expectation and state — not the arithmetic.
 - Card copy claims sequence, never cause: "after", "within", "followed by" — never "because", "led to", "cost you", "threw", "outplayed".
 - Vision counts are lower bounds and must carry "at least".

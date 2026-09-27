@@ -64,17 +64,18 @@ Metric definitions are owned by [`../app_foundation/SSOT.md`](../app_foundation/
 | `support.vision_denial.v1` | **Replay** | Needs the ward destruction stream. |
 | `support.camps_stacked.v1` | **Replay** | Needs the cumulative series at exactly 20:00 — a final total is **not** a substitute ([`../app_foundation/SSOT.md`](../app_foundation/SSOT.md) §7.2). |
 
-The factual Offlane Match Detail laning panels are separate from role metrics. Both require a
-unique enemy Carry and real minute checkpoints. Net worth reads the existing replay trajectory;
-XP reads cumulative experience earned since 0:00. The panels have independent readiness and
-do not enter progression, baselines, or Personal Bests. Historical batch version 1.4
-requests minute XP in its existing call; older retained history without that field
-has no XP panel and is not refetched.
+The factual core-role Match Detail charts are separate from role metrics. Offlane and Mid
+show 0–10 minute net worth against a unique enemy Carry and Mid respectively; Carry shows
+whole-match net worth against a unique enemy Carry. The shared Detected fights chart uses
+retained OpenDota replay segments for all three roles. Each chart has independent readiness
+and does not enter progression, baselines or Personal Bests. STRATZ-only historical fights
+remain unavailable; no historical OpenDota call fills them.
 
-The separate Offlane detected-fights panel requires retained OpenDota replay fight
-segments and finalization. It does not affect the summary-class `fight_presence`
-metric, progression, baselines or Personal Bests. STRATZ-only historical matches
-remain unavailable for this panel; no historical OpenDota call is made to fill it.
+Offlane's XP and Carry's cumulative hero-damage panels remain in the API for compatible
+clients, but neither is a visible chart under the two-chart decision. Historical batch
+versions 1.4 and 1.5 request their minute evidence in existing STRATZ calls; older retained
+snapshots remain readable and are not refetched. Detected fights do not change the
+summary-class `fight_presence` metric.
 
 **Consequences, normative:**
 
@@ -104,7 +105,8 @@ remain unavailable for this panel; no historical OpenDota call is made to fill i
 | Insight cards (all 17 types) | [`match_detail`](../match_detail/SSOT.md) §5 | **Replay** → **Final** | no | no | pending affordance | **the normal no-card state** |
 | Item timing facts (key-item timeline) | [`match_detail`](../match_detail/SSOT.md) §3A.9 · [`ITEM-TIMINGS-V1`](../match_detail/ITEM-TIMINGS-V1.md) | **Replay** → **Final** | no | no | `item_timings.state = PENDING` while analysis runs | `UNAVAILABLE` without purchase evidence or compatible analysis; `AVAILABLE` with an empty list when no key item was bought |
 | Item timing comparisons | [`ITEM-TIMINGS-V1`](../match_detail/ITEM-TIMINGS-V1.md) | **Final**; **History** for personal comparisons | no | no | pending with the timeline | factual timing only (`comparison: null`) when population or personal gates do not qualify; Support is always factual-only |
-| Offlane detected fights | [`match_detail`](../match_detail/SSOT.md) §3A.10 | **Replay** → **Final** | **yes**, retained OpenDota replay | independent of laning panels | `fights.state = PENDING` | `UNAVAILABLE` without valid stored segments; valid empty array is `AVAILABLE` with zero segments |
+| Core-role net-worth chart | [`match_detail`](../match_detail/SSOT.md) §3A.12 | **Replay** → **Final** | no | exact points can be partial | role context is `PENDING` | `UNAVAILABLE` without a unique opponent or valid samples; no invented points |
+| Shared Detected fights chart | [`match_detail`](../match_detail/SSOT.md) §3A.12 | **Replay** → **Final** | **yes**, retained OpenDota replay | independent of net worth | `core_fights.state = PENDING` | `UNAVAILABLE` without valid stored segments; valid empty array is `AVAILABLE` with zero segments |
 | Edit Role action | [`match_detail`](../match_detail/SSOT.md) §6 | **Summary** | no | n/a | available | "correction unavailable" if retained data no longer supports a rebuild |
 
 **Note on insight cards.** Every V1 card family — lead story, lane story, hidden enemy activity, power spikes and item timings, structure contradiction — is derived from replay-class evidence. A `REPLAY_UNAVAILABLE` match therefore renders the **normal, no-special-insight state**, which the product already defines as the majority experience ([`../match_detail/SSOT.md`](../match_detail/SSOT.md) §5.2). It is not an error and needs no special copy.

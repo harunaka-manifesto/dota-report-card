@@ -15,14 +15,13 @@ ADRs. This page covers operating the adapters that implement them.
 | Historical replay-class evidence | STRATZ deep batches (≤ 50 IDs) with OpenDota summary fallback | `tracker/historical.py`, `tracker/historical_summary.py` |
 | Population parameters | STRATZ `heroStats` (offline P3 job, validated artifact) | `tracker/population_parameters.py` |
 
-Offlane detected fights read the OpenDota replay payload already retained for a
-fresh match during finalization. They add no Match Detail provider call and do
-not start OpenDota fetching for STRATZ-only historical matches.
-
-Carry graphs read the retained replay payload and derived checkpoints. They add
-no provider call during finalization or Match Detail reads. Historical batch
-version 1.5.0 selects minute hero damage for future imports; older snapshots
-remain readable and are not automatically refetched.
+The core-role net-worth charts read retained minute checkpoints. The shared
+Detected fights chart reads OpenDota fight segments already retained for a fresh
+match; STRATZ-only historical matches keep it unavailable. Finalization and Match
+Detail reads make no additional provider call for these charts. Offlane XP and
+Carry cumulative hero damage remain in the API but are not visible charts.
+Historical batch version 1.5.0 selects minute hero damage for future imports;
+older snapshots remain readable and are not automatically refetched.
 
 STRATZ is never on the fresh path. A mobile read never reaches any provider; this is
 enforced by `tests/tracker/test_architecture_boundaries.py`.

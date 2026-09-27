@@ -2,6 +2,12 @@
 
 Operational evidence, not a product or architecture contract.
 
+## Match Detail integration — 2026-09-27
+
+- `main` at `3cfc698` already contains the final hero item insights and item timings. The Offlane and Carry branches have tree-identical equivalents in `codex/core-match-graphs`; integrating that branch includes each feature once.
+- The final core-role contract is one role-specific net-worth chart plus one shared Detected fights chart per Carry, Mid and Offlane match. Offlane XP and Carry hero damage remain API-only. Native iOS rendering and shared-cursor verification are pending; this repository contains the backend.
+- This integration changes no legacy report renderer, persisted report contract, frozen V6.1 artifact, provider routing policy, or production configuration. Pushing `main` can trigger live deployment and is a separate release action.
+
 ## Core Match Detail charts — 2026-09-27
 
 - Branch `codex/core-match-graphs` starts from `main` at `3cfc698` and cherry-picks the two Offlane and two Carry graph commits before this change. Remote `main` was verified at the same SHA on 2026-09-27.

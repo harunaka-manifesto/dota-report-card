@@ -128,7 +128,7 @@ not that the fight was won. Zero damage does not establish absence, and detected
 every engagement. The future client plots segment start over the full-match X axis and damage
 share on a 0–100% Y axis; a null share has no Y marker. Match Detail reads make no provider call.
 Historical STRATZ-only matches do not trigger an OpenDota fetch for this panel.
-The iOS client uses only the net-worth panel as Offlane's first visible chart; `xp` and `fights`
+The iOS client contract uses only the net-worth panel as Offlane's first visible chart; `xp` and `fights`
 remain here for compatible clients. The shared fight chart reads `core_fights` below.
 
 ### Item insight cards
@@ -145,7 +145,7 @@ The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openap
 Server-to-server routes (`/store/app-store/notifications`) and the operations readout
 (`/internal/tracker`) are separate applications without a mobile OpenAPI entry.
 
-## Match Detail: Carry graphs
+## Match Detail: Carry context
 
 `GET /mobile/v1/matches/{match_ref}` includes `carry_context` for the effective Carry role and
 `null` for other roles. It is frozen in the analysis and provider-free on read. The viewer's
@@ -241,10 +241,11 @@ over the full match, with role-neutral player field names. An OpenDota replay wi
 fight array returns `AVAILABLE` and `[]`; STRATZ-only history returns `UNAVAILABLE` without a
 new OpenDota request. A null damage share has no plotted Y marker but remains a factual row.
 
-The client shows exactly two charts for each core role: the role's net-worth chart and the
+The native client contract has exactly two charts for each core role: the role's net-worth chart and the
 shared **Detected fights** chart. It retains selected time across them. Selecting a fight uses
 the exact fight start; the 0–10 minute lane charts show no selected point beyond that window.
-The backend exposes timestamps and stores no cursor state.
+The backend exposes timestamps and stores no cursor state. Native iOS rendering and interaction
+verification are pending.
 
 ## Swift code generation
 
