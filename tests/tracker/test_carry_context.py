@@ -111,3 +111,17 @@ def test_kills_keep_exact_seconds_and_exclude_pregame_events():
     assert result["you_kills"]["events"] == [
         {"time_seconds": 125}, {"time_seconds": 125},
     ]
+
+
+def test_paired_damage_disagreement_does_not_withhold_cards_or_comparisons():
+    from app.tracker.finalization import _decision_conflicts
+    from app.tracker.replay import quarantine_checkpoint_conflicts
+
+    od, _ = source("opendota")
+    sz, _ = source("stratz")
+    conflicts = quarantine_checkpoint_conflicts(
+        replay_checkpoints(od, "opendota"), replay_checkpoints(sz, "stratz"),
+    )["conflicts"]
+    assert any(".series.hero_damage_earned." in path for path in conflicts)
+    assert not any(".series.hero_damage_earned." in path for path in _decision_conflicts(conflicts))
+    assert _decision_conflicts(["players.0.series.net_worth.600"]) == ["players.0.series.net_worth.600"]

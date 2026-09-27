@@ -123,6 +123,12 @@ def _positions(connection: Connection, link: dict[str, Any]) -> dict[int, int | 
     return {slot: position for slot, position in rows}
 
 
+def _decision_conflicts(quarantined: list[str]) -> list[str]:
+    """Drop graph-only series conflicts; no metric, card or comparison reads minute hero damage."""
+    return [path for path in quarantined
+            if not (isinstance(path, str) and ".series.hero_damage_earned." in path)]
+
+
 def _metric_conflict(metric_id: str, slot: int, quarantined: list[str]) -> bool:
     """Suppress only source fields consumed by this metric; unknown conflict paths fail closed."""
     if not quarantined:
@@ -324,7 +330,8 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         effective_role=link["effective_role"],
         leaver_status=player["summary"].get("leaver_status"), integrity=integrity,
     )
-    comparisons_allowed = eligibility.progression != "NONE" and not quarantined
+    gating = _decision_conflicts(quarantined)
+    comparisons_allowed = eligibility.progression != "NONE" and not gating
     post_insight, item_timings = _post_match_results(
         connection,
         link=link,
@@ -333,7 +340,7 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         position_map=cast(dict[int, int | str | None], position_map),
         comparisons_allowed=comparisons_allowed,
     )
-    if eligibility.progression == "NONE" or quarantined:
+    if eligibility.progression == "NONE" or gating:
         # ponytail: withhold all cards on source disagreement until each card has a verified field dependency map.
         insight: dict[str, Any] = {"status": "NOT_ELIGIBLE(PROGRESSION)" if eligibility.progression == "NONE"
                    else "NOT_ELIGIBLE(SOURCE_DISAGREEMENT)",
