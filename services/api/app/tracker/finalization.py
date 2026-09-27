@@ -11,6 +11,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from .carry_context import evaluate as evaluate_carry_context
 from .context import METRIC_CLASS, ContextInput, DraftPlayer, evaluate
+from .core_fights import from_offlane_fights
 from .eligibility import classify
 from .evidence import canonical_json
 from .history import BASELINE_VERSION, Observation, baseline, load_prior_observations, personal_best
@@ -24,6 +25,7 @@ from .item_timings import insight_cards as item_timing_insight_cards
 from .jobs import StaleJob, authorized_job, enqueue, finish, reschedule
 from .materialization import FEATURE_VERSION, _match_payload
 from .metrics import LOWER_IS_BETTER, measure, metric_ids
+from .mid_context import evaluate as evaluate_mid_context
 from .offlane_context import evaluate as evaluate_offlane_context
 from .offlane_context import evaluate_fights
 from .population_parameters import current_context_parameters
@@ -49,7 +51,7 @@ from .schema import (
 )
 from .scope import entitled as entitled_history
 
-ANALYSIS_VERSION = "tracker-analysis-5"
+ANALYSIS_VERSION = "tracker-analysis-6"
 
 
 def enqueue_finalization(connection: Connection, *, profile_id: str, match_id: int) -> str:
@@ -302,7 +304,7 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
     quarantined = match["quarantined_fields"] or []
     context_raw = None
     context_provider = None
-    if link["effective_role"] in {"OFFLANE", "CARRY"} and match["evidence_state"] == "REPLAY_READY":
+    if link["effective_role"] in {"OFFLANE", "CARRY", "MID"} and match["evidence_state"] == "REPLAY_READY":
         context_snapshot = connection.execute(select(snapshots).where(
             snapshots.c.id == snapshot_ids[0],
         )).mappings().one()
@@ -311,17 +313,27 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
             context_provider = context_snapshot["provider"]
         except (KeyError, TypeError, ValueError):
             pass
+    core_role = link["effective_role"] in {"OFFLANE", "CARRY", "MID"}
+    fight_evidence = evaluate_fights(
+        context_raw if context_provider == "opendota" else None,
+        viewer=link["player_slot"], duration=match["duration_seconds"],
+        quarantined=quarantined,
+    ) if core_role else None
+    core_fights = from_offlane_fights(fight_evidence) if fight_evidence is not None else None
     offlane_context = evaluate_offlane_context(
         features, viewer=link["player_slot"], positions=position_map,
         duration=match["duration_seconds"], quarantined=quarantined,
-        fights=evaluate_fights(context_raw if context_provider == "opendota" else None, viewer=link["player_slot"],
-                               duration=match["duration_seconds"], quarantined=quarantined),
+        fights=fight_evidence,
     ) if link["effective_role"] == "OFFLANE" else None
     carry_context = evaluate_carry_context(
         features, viewer=link["player_slot"], positions=position_map,
         duration=match["duration_seconds"], quarantined=quarantined,
         raw=context_raw, provider=context_provider,
     ) if link["effective_role"] == "CARRY" else None
+    mid_context = evaluate_mid_context(
+        features, viewer=link["player_slot"], positions=position_map,
+        duration=match["duration_seconds"], quarantined=quarantined,
+    ) if link["effective_role"] == "MID" else None
     if any(path in {"duration_seconds", "mode", "game_mode", "lobby_type"} or
            (isinstance(path, str) and path.endswith(".leaver_status")) for path in quarantined):
         integrity = "UNKNOWN"
@@ -414,6 +426,8 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         "item_timings": item_timings,
         "offlane_context": offlane_context,
         "carry_context": carry_context,
+        "mid_context": mid_context,
+        "core_fights": core_fights,
         "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
         "lane_context": lane_context,
     })).hexdigest()
@@ -421,7 +435,8 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
             "pb_rows": pb_rows, "inputs_digest": inputs_digest,
             "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
             "lane_context": lane_context, "item_timings": item_timings,
-            "offlane_context": offlane_context, "carry_context": carry_context}
+            "offlane_context": offlane_context, "carry_context": carry_context,
+            "mid_context": mid_context, "core_fights": core_fights}
 
 
 def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
@@ -432,6 +447,8 @@ def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
             "item_timings": built["item_timings"],
             "offlane_context": built["offlane_context"],
             "carry_context": built["carry_context"],
+            "mid_context": built["mid_context"],
+            "core_fights": built["core_fights"],
             "parameter_set_version": built["parameter_set_version"],
             "lane_context": built["lane_context"]}
 

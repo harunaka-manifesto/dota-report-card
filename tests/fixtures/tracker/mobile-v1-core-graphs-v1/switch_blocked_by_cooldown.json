@@ -1,0 +1,366 @@
+{
+  "/account": {
+    "body": {
+      "identity_methods": [
+        "google"
+      ],
+      "revision": 0,
+      "scope": "FREE",
+      "state": "ACTIVE",
+      "steam_linked": true
+    },
+    "status": 200
+  },
+  "/account/steam-switch/preflight": {
+    "body": {
+      "available": false,
+      "cause": "SWITCH_COOLDOWN",
+      "days_remaining": 90
+    },
+    "status": 200
+  },
+  "/bootstrap": {
+    "body": {
+      "modes": [
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "STANDARD",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        },
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "TURBO",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        }
+      ]
+    },
+    "status": 200
+  },
+  "/coverage?mode=STANDARD": {
+    "body": {
+      "intervals": [],
+      "mode": "STANDARD"
+    },
+    "status": 200
+  },
+  "/history-operation": {
+    "body": {
+      "access_recovery": "NONE",
+      "bootstrap": [
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "STANDARD",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        },
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "TURBO",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        }
+      ],
+      "data_access": "UNKNOWN",
+      "history_import": "NONE",
+      "scope_change": "NONE",
+      "target_scope": null
+    },
+    "status": 200
+  },
+  "/history?mode=STANDARD": {
+    "body": {
+      "matches": [],
+      "next_cursor": null
+    },
+    "status": 200
+  },
+  "/history?mode=TURBO": {
+    "body": {
+      "matches": [],
+      "next_cursor": null
+    },
+    "status": 200
+  },
+  "/home?mode=STANDARD&time_zone=UTC": {
+    "body": {
+      "challenge": {
+        "reason": "NOT_CONTRACTED",
+        "state": "UNAVAILABLE"
+      },
+      "focus": {
+        "reason": "NOT_CONTRACTED",
+        "state": "UNAVAILABLE"
+      },
+      "last_matches": [],
+      "local_date": "<date>",
+      "mode": "STANDARD",
+      "role_summaries": [
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "carry.cs_10_to_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.dead_time.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.hero_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.last_hits_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.net_worth_at_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.tower_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "CARRY",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "mid.early_fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.lane_net_worth_advantage_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.level_6_time.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.net_worth_at_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.tower_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "MID",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "offlane.fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.lane_net_worth_advantage_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.net_worth_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.objective_involvement.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "OFFLANE",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "support.camps_stacked.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.healing.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.observer_wards_placed.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.vision_denial.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "SUPPORT",
+          "state": "UNSTARTED"
+        }
+      ],
+      "today_matches": []
+    },
+    "status": 200
+  },
+  "/profile?mode=STANDARD": {
+    "body": {
+      "bucket_selector_visible": false,
+      "changes": [],
+      "claims": [],
+      "claims_state": "CALIBRATION_PENDING",
+      "coverage": {
+        "earliest_known_at": null,
+        "more_arriving": true
+      },
+      "default_mode": "STANDARD",
+      "favourite_hero_id": null,
+      "header": null,
+      "heroes": [],
+      "identity": null,
+      "mode": "STANDARD",
+      "personal_bests": [],
+      "personal_bests_state": "INSUFFICIENT",
+      "recent_celebrations": [],
+      "revision": 0,
+      "right_now_state": "CALIBRATION_PENDING",
+      "role_map": [],
+      "role_shape_withheld": null,
+      "state": "NOT_READY",
+      "unassigned_count": 0
+    },
+    "status": 200
+  },
+  "/profile?mode=TURBO": {
+    "body": {
+      "bucket_selector_visible": false,
+      "changes": [],
+      "claims": [],
+      "claims_state": "CALIBRATION_PENDING",
+      "coverage": {
+        "earliest_known_at": null,
+        "more_arriving": true
+      },
+      "default_mode": "STANDARD",
+      "favourite_hero_id": null,
+      "header": null,
+      "heroes": [],
+      "identity": null,
+      "mode": "TURBO",
+      "personal_bests": [],
+      "personal_bests_state": "INSUFFICIENT",
+      "recent_celebrations": [],
+      "revision": 0,
+      "right_now_state": "CALIBRATION_PENDING",
+      "role_map": [],
+      "role_shape_withheld": null,
+      "state": "NOT_READY",
+      "unassigned_count": 0
+    },
+    "status": 200
+  },
+  "/progress?mode=STANDARD&role=SUPPORT&metric_id=support.camps_stacked.v1": {
+    "body": {
+      "metric_id": "support.camps_stacked.v1",
+      "mode": "STANDARD",
+      "personal_best": null,
+      "points": [],
+      "role": "SUPPORT",
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      }
+    },
+    "status": 200
+  },
+  "/readiness": {
+    "body": {
+      "data_access": "UNKNOWN",
+      "last_checked_at": null,
+      "state": "IDLE"
+    },
+    "status": 200
+  },
+  "/recovery": {
+    "body": {
+      "data_access": "UNKNOWN",
+      "identity_recovery": "UNAVAILABLE",
+      "identity_recovery_reason": "NOT_CONTRACTED"
+    },
+    "status": 200
+  },
+  "/settings": {
+    "body": {
+      "notifications_enabled": false
+    },
+    "status": 200
+  },
+  "/subscription": {
+    "body": {
+      "auto_renew": null,
+      "billing_state": "NONE",
+      "expires_at": null,
+      "scope": "FREE",
+      "scope_change": "NONE",
+      "scope_revision": 0,
+      "target_scope": null
+    },
+    "status": 200
+  }
+}

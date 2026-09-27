@@ -79,6 +79,8 @@ def test_late_damage_enrichment_rebuilds_graph_without_changing_metrics_or_cards
         link = connection.execute(select(account_matches)).mappings().one()
         before = connection.scalar(select(analyses.c.result).where(analyses.c.id == link['active_analysis_id']))
         assert before['carry_context']['hero_damage']['state'] == 'UNAVAILABLE'
+        assert before['core_fights']['state'] == 'UNAVAILABLE'
+        assert before['core_fights']['reason'] == 'FIGHTS_UNAVAILABLE'
         metric_before = connection.execute(select(metric_observations.c.metric_id,
             metric_observations.c.raw_value, metric_observations.c.unavailable_reason).where(
             metric_observations.c.analysis_id == link['active_analysis_id']).order_by(metric_observations.c.metric_id)).all()
@@ -99,6 +101,7 @@ def test_late_damage_enrichment_rebuilds_graph_without_changing_metrics_or_cards
         link = connection.execute(select(account_matches)).mappings().one()
         after = connection.scalar(select(analyses.c.result).where(analyses.c.id == link['active_analysis_id']))
         assert after['carry_context']['hero_damage']['state'] == 'AVAILABLE'
+        assert after['core_fights'] == before['core_fights']
         metric_after = connection.execute(select(metric_observations.c.metric_id,
             metric_observations.c.raw_value, metric_observations.c.unavailable_reason).where(
             metric_observations.c.analysis_id == link['active_analysis_id']).order_by(metric_observations.c.metric_id)).all()

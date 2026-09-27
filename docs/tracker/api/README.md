@@ -14,8 +14,8 @@ and its CI diff check are untouched. Resource design and state projections are s
   roles, Free/Pro, switch cooldown, deletion, data access, sync error). They are compared, never
   overwritten; a contract change adds a new versioned directory. Item-timing responses belong in
   `tests/fixtures/tracker/mobile-v1-item-timings-v1/`; preserve the existing goldens.
-  The current offlane context response belongs in
-  `tests/fixtures/tracker/mobile-v1-offlane-context-v2/`; preserve v1.
+  The current core-chart response belongs in
+  `tests/fixtures/tracker/mobile-v1-core-graphs-v1/`; preserve earlier versions.
 - Local data: `make seed-demo` creates the same personas without provider calls.
 
 ## Conventions
@@ -112,7 +112,7 @@ OfflaneFightSegmentView
   death_trade: FAVORABLE | EVEN | UNFAVORABLE
 ```
 
-The two panels have independent readiness. Net worth is the value at the stated minute; XP is
+The two API panels have independent readiness. Net worth is the value at the stated minute; XP is
 earned since 0:00. A positive difference means the offlaner is ahead. Points are exact and
 may be partial for a short match or missing evidence; no interpolation is permitted. An
 ambiguous enemy Carry makes both panels unavailable. The client uses a fixed 0–10 minute X
@@ -128,6 +128,8 @@ not that the fight was won. Zero damage does not establish absence, and detected
 every engagement. The future client plots segment start over the full-match X axis and damage
 share on a 0–100% Y axis; a null share has no Y marker. Match Detail reads make no provider call.
 Historical STRATZ-only matches do not trigger an OpenDota fetch for this panel.
+The iOS client uses only the net-worth panel as Offlane's first visible chart; `xp` and `fights`
+remain here for compatible clients. The shared fight chart reads `core_fights` below.
 
 ### Item insight cards
 
@@ -138,7 +140,7 @@ is the viewer's own best-qualifying purchase (population or previous-best), and 
 is the best-qualifying population purchase among enemy positions 1–3. See
 [`ITEM-TIMINGS-V1.md`](../match_detail/ITEM-TIMINGS-V1.md) for full card-eligibility rules.
 
-The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1`, `offlane-context-v2`, and `carry-context-v1` contract versions.
+The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1`, `offlane-context-v2`, `carry-context-v1`, `mid-context-v1`, and `core-fights-v1` contract versions.
 
 Server-to-server routes (`/store/app-store/notifications`) and the operations readout
 (`/internal/tracker`) are separate applications without a mobile OpenAPI entry.
@@ -190,6 +192,59 @@ Raw snapshot IDs, provider, query version, translation version, and digest stay 
 the stored feature and analysis provenance. The public block exposes only its
 contract version. Existing historical snapshots remain valid, but missing minute
 damage stays unavailable until a newly retained source is deliberately processed.
+The iOS client displays `net_worth` as Carry's whole-match first chart with its existing
+item and kill markers. `hero_damage` stays available in the API but is not a visible chart.
+
+## Match Detail: Mid net worth and shared detected fights
+
+`GET /mobile/v1/matches/{match_ref}` includes `mid_context` only for the effective Mid role,
+and `core_fights` for effective Carry, Mid and Offlane; other roles receive `null`. Both blocks
+are frozen in the analysis and independently ready. Older analyses missing either block return
+its `UNAVAILABLE` view with reason `ANALYSIS_VERSION` until a retained-data rebuild.
+
+```text
+MidContextView
+  contract_version: "mid-context-v1"
+  enemy_mid_hero_id: integer | null
+  net_worth: MidPanelView
+
+MidPanelView
+  state: AVAILABLE | PENDING | UNAVAILABLE
+  reason: string | null
+  points: {time_seconds, you, enemy_mid, difference}[]
+
+CoreFightsView
+  contract_version: "core-fights-v1"
+  state: AVAILABLE | PENDING | UNAVAILABLE
+  reason: string | null
+  segments: CoreFightSegmentView[]
+
+CoreFightSegmentView
+  segment_index: integer
+  start_seconds: integer
+  end_seconds: integer
+  player_damage: integer
+  allied_damage_total: integer
+  damage_share: number | null
+  damage_participated: boolean
+  player_kills: integer
+  player_deaths: integer
+  allied_hero_deaths: integer
+  enemy_hero_deaths: integer
+  death_trade: FAVORABLE | EVEN | UNFAVORABLE
+```
+
+Mid net worth compares exact complete-minute points from 0:00 to 10:00 against one uniquely
+identified enemy Mid. Missing or disputed points are omitted without interpolation; an unclear
+opponent withholds only this comparison. `core_fights` reuses Offlane's validated fight measure
+over the full match, with role-neutral player field names. An OpenDota replay with a valid empty
+fight array returns `AVAILABLE` and `[]`; STRATZ-only history returns `UNAVAILABLE` without a
+new OpenDota request. A null damage share has no plotted Y marker but remains a factual row.
+
+The client shows exactly two charts for each core role: the role's net-worth chart and the
+shared **Detected fights** chart. It retains selected time across them. Selecting a fight uses
+the exact fight start; the 0–10 minute lane charts show no selected point beyond that window.
+The backend exposes timestamps and stores no cursor state.
 
 ## Swift code generation
 

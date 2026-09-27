@@ -2,6 +2,12 @@
 
 Operational evidence, not a product or architecture contract.
 
+## Core Match Detail charts — 2026-09-27
+
+- Branch `codex/core-match-graphs` starts from `main` at `3cfc698` and cherry-picks the two Offlane and two Carry graph commits before this change. Remote `main` was verified at the same SHA on 2026-09-27.
+- `mid-context-v1` adds exact 0–10 minute Mid net-worth comparison. `core-fights-v1` projects the validated Offlane fight calculation with role-neutral player fields for Carry, Mid and Offlane. Offlane's previous fight response, Offlane XP and Carry hero-damage data remain in the API; the client contract specifies two charts per core role. STRATZ-only fights remain unavailable without another provider request.
+- The versioned analysis advances to `tracker-analysis-6`. The mobile OpenAPI and versioned response fixtures advance together; old analyses remain safe unavailable for new blocks until the provider-free methodology rebuild. The tracker suite passed (336 passed, 86 Redis-dependent skips); legacy and contract tests passed (1,385). Repository-wide Python lint and typecheck passed. iOS implementation and visual verification are deferred by owner instruction. No deployment or live provider QA call was made for this change.
+
 ## Carry Match Detail graphs — 2026-09-27
 
 - Branch `codex/carry-match-graphs` starts at `83c48ac86b1176948868db0e6ab50d783259f857`. `carry-context-v1` stores full-match net-worth and cumulative hero-damage checkpoints, plus item and kill markers, in the versioned analysis. Match Detail reads retained data only.

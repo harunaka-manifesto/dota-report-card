@@ -330,6 +330,47 @@ class CarryContextView(BaseModel):
     enemy_carry_kills: CarryKillsView
 
 
+class MidMinuteView(BaseModel):
+    time_seconds: int
+    you: int
+    enemy_mid: int
+    difference: int
+
+
+class MidPanelView(BaseModel):
+    state: Readiness
+    reason: str | None
+    points: list[MidMinuteView]
+
+
+class MidContextView(BaseModel):
+    contract_version: Literal["mid-context-v1"]
+    enemy_mid_hero_id: int | None
+    net_worth: MidPanelView
+
+
+class CoreFightSegmentView(BaseModel):
+    segment_index: int
+    start_seconds: int
+    end_seconds: int
+    player_damage: int
+    allied_damage_total: int
+    damage_share: float | None
+    damage_participated: bool
+    player_kills: int
+    player_deaths: int
+    allied_hero_deaths: int
+    enemy_hero_deaths: int
+    death_trade: Literal["FAVORABLE", "EVEN", "UNFAVORABLE"]
+
+
+class CoreFightsView(BaseModel):
+    contract_version: Literal["core-fights-v1"]
+    state: Readiness
+    reason: str | None
+    segments: list[CoreFightSegmentView]
+
+
 class MatchView(BaseModel):
     ref: str
     mode: Mode | None
@@ -354,6 +395,8 @@ class MatchDetailView(MatchView):
     item_timings: ItemTimingsView
     offlane_context: OfflaneContextView | None
     carry_context: CarryContextView | None
+    mid_context: MidContextView | None
+    core_fights: CoreFightsView | None
     role_revision: int
     correction_available: bool
     # Current ownership (can change silently) versus the one-time celebration.
@@ -873,6 +916,41 @@ def _carry_context_view(connection: Connection, row) -> CarryContextView | None:
                             net_worth=panel, hero_damage=panel.model_copy(deep=True),
                             enemy_key_items=items, you_kills=kills,
                             enemy_carry_kills=kills.model_copy(deep=True))
+
+
+def _mid_context_view(connection: Connection, row) -> MidContextView | None:
+    if row["effective_role"] != "MID":
+        return None
+    context = None
+    if row["active_analysis_id"] is not None:
+        result = connection.scalar(select(analyses.c.result).where(
+            analyses.c.id == row["active_analysis_id"],
+        ))
+        context = result.get("mid_context") if isinstance(result, dict) else None
+    if isinstance(context, dict) and context.get("contract_version") == "mid-context-v1":
+        return MidContextView.model_validate(context)
+    terminal = row["lifecycle"] in {"UNAVAILABLE", "ACTION_REQUIRED"}
+    state = Readiness.UNAVAILABLE if terminal or row["active_analysis_id"] is not None else Readiness.PENDING
+    reason = "MATCH_" + row["lifecycle"] if terminal else "ANALYSIS_VERSION" if row["active_analysis_id"] is not None else None
+    return MidContextView(contract_version="mid-context-v1", enemy_mid_hero_id=None,
+                          net_worth=MidPanelView(state=state, reason=reason, points=[]))
+
+
+def _core_fights_view(connection: Connection, row) -> CoreFightsView | None:
+    if row["effective_role"] not in {"CARRY", "MID", "OFFLANE"}:
+        return None
+    context = None
+    if row["active_analysis_id"] is not None:
+        result = connection.scalar(select(analyses.c.result).where(
+            analyses.c.id == row["active_analysis_id"],
+        ))
+        context = result.get("core_fights") if isinstance(result, dict) else None
+    if isinstance(context, dict) and context.get("contract_version") == "core-fights-v1":
+        return CoreFightsView.model_validate(context)
+    terminal = row["lifecycle"] in {"UNAVAILABLE", "ACTION_REQUIRED"}
+    state = Readiness.UNAVAILABLE if terminal or row["active_analysis_id"] is not None else Readiness.PENDING
+    reason = "MATCH_" + row["lifecycle"] if terminal else "ANALYSIS_VERSION" if row["active_analysis_id"] is not None else None
+    return CoreFightsView(contract_version="core-fights-v1", state=state, reason=reason, segments=[])
 
 
 def _summary_view(connection, row) -> MatchSummary:
@@ -1425,6 +1503,8 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 item_timings=_item_timings_view(connection, row),
                 offlane_context=_offlane_context_view(connection, row),
                 carry_context=_carry_context_view(connection, row),
+                mid_context=_mid_context_view(connection, row),
+                core_fights=_core_fights_view(connection, row),
                 role_revision=row["role_revision"],
                 correction_available=correction_available(
                     connection, profile_id=profile["id"], match_id=row["match_id"],

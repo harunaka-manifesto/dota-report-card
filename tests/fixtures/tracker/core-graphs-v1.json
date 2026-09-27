@@ -1,0 +1,437 @@
+{
+  "opendota": {
+    "core_fights": {
+      "contract_version": "core-fights-v1",
+      "reason": null,
+      "segments": [
+        {
+          "allied_damage_total": 2729,
+          "allied_hero_deaths": 2,
+          "damage_participated": true,
+          "damage_share": 0.33638695492854526,
+          "death_trade": "UNFAVORABLE",
+          "end_seconds": 535,
+          "enemy_hero_deaths": 1,
+          "player_damage": 918,
+          "player_deaths": 0,
+          "player_kills": 1,
+          "segment_index": 1,
+          "start_seconds": 490
+        },
+        {
+          "allied_damage_total": 4584,
+          "allied_hero_deaths": 3,
+          "damage_participated": true,
+          "damage_share": 0.20986038394415357,
+          "death_trade": "UNFAVORABLE",
+          "end_seconds": 701,
+          "enemy_hero_deaths": 2,
+          "player_damage": 962,
+          "player_deaths": 0,
+          "player_kills": 0,
+          "segment_index": 2,
+          "start_seconds": 642
+        },
+        {
+          "allied_damage_total": 3769,
+          "allied_hero_deaths": 1,
+          "damage_participated": true,
+          "damage_share": 0.21119660387370656,
+          "death_trade": "FAVORABLE",
+          "end_seconds": 802,
+          "enemy_hero_deaths": 4,
+          "player_damage": 796,
+          "player_deaths": 0,
+          "player_kills": 0,
+          "segment_index": 3,
+          "start_seconds": 758
+        },
+        {
+          "allied_damage_total": 3286,
+          "allied_hero_deaths": 0,
+          "damage_participated": true,
+          "damage_share": 0.30888618381010347,
+          "death_trade": "FAVORABLE",
+          "end_seconds": 917,
+          "enemy_hero_deaths": 3,
+          "player_damage": 1015,
+          "player_deaths": 0,
+          "player_kills": 0,
+          "segment_index": 4,
+          "start_seconds": 880
+        },
+        {
+          "allied_damage_total": 5694,
+          "allied_hero_deaths": 2,
+          "damage_participated": true,
+          "damage_share": 0.15718299964875307,
+          "death_trade": "FAVORABLE",
+          "end_seconds": 1042,
+          "enemy_hero_deaths": 4,
+          "player_damage": 895,
+          "player_deaths": 1,
+          "player_kills": 0,
+          "segment_index": 5,
+          "start_seconds": 989
+        },
+        {
+          "allied_damage_total": 3855,
+          "allied_hero_deaths": 3,
+          "damage_participated": true,
+          "damage_share": 0.20959792477302205,
+          "death_trade": "UNFAVORABLE",
+          "end_seconds": 1132,
+          "enemy_hero_deaths": 1,
+          "player_damage": 808,
+          "player_deaths": 0,
+          "player_kills": 0,
+          "segment_index": 6,
+          "start_seconds": 1088
+        },
+        {
+          "allied_damage_total": 1709,
+          "allied_hero_deaths": 2,
+          "damage_participated": false,
+          "damage_share": 0.0,
+          "death_trade": "UNFAVORABLE",
+          "end_seconds": 1252,
+          "enemy_hero_deaths": 1,
+          "player_damage": 0,
+          "player_deaths": 1,
+          "player_kills": 0,
+          "segment_index": 7,
+          "start_seconds": 1202
+        },
+        {
+          "allied_damage_total": 3806,
+          "allied_hero_deaths": 2,
+          "damage_participated": false,
+          "damage_share": 0.0,
+          "death_trade": "EVEN",
+          "end_seconds": 1499,
+          "enemy_hero_deaths": 2,
+          "player_damage": 0,
+          "player_deaths": 0,
+          "player_kills": 0,
+          "segment_index": 8,
+          "start_seconds": 1452
+        },
+        {
+          "allied_damage_total": 7724,
+          "allied_hero_deaths": 2,
+          "damage_participated": true,
+          "damage_share": 0.07832729155877784,
+          "death_trade": "FAVORABLE",
+          "end_seconds": 1681,
+          "enemy_hero_deaths": 4,
+          "player_damage": 605,
+          "player_deaths": 0,
+          "player_kills": 2,
+          "segment_index": 9,
+          "start_seconds": 1635
+        },
+        {
+          "allied_damage_total": 3998,
+          "allied_hero_deaths": 2,
+          "damage_participated": true,
+          "damage_share": 0.14082041020510255,
+          "death_trade": "UNFAVORABLE",
+          "end_seconds": 1867,
+          "enemy_hero_deaths": 1,
+          "player_damage": 563,
+          "player_deaths": 1,
+          "player_kills": 0,
+          "segment_index": 10,
+          "start_seconds": 1825
+        },
+        {
+          "allied_damage_total": 7622,
+          "allied_hero_deaths": 4,
+          "damage_participated": true,
+          "damage_share": 0.22999212805038047,
+          "death_trade": "UNFAVORABLE",
+          "end_seconds": 2040,
+          "enemy_hero_deaths": 1,
+          "player_damage": 1753,
+          "player_deaths": 1,
+          "player_kills": 0,
+          "segment_index": 11,
+          "start_seconds": 1990
+        },
+        {
+          "allied_damage_total": 9158,
+          "allied_hero_deaths": 0,
+          "damage_participated": true,
+          "damage_share": 0.12830312295260973,
+          "death_trade": "FAVORABLE",
+          "end_seconds": 2317,
+          "enemy_hero_deaths": 3,
+          "player_damage": 1175,
+          "player_deaths": 0,
+          "player_kills": 0,
+          "segment_index": 12,
+          "start_seconds": 2273
+        },
+        {
+          "allied_damage_total": 6852,
+          "allied_hero_deaths": 4,
+          "damage_participated": true,
+          "damage_share": 0.02875072971395213,
+          "death_trade": "UNFAVORABLE",
+          "end_seconds": 2472,
+          "enemy_hero_deaths": 0,
+          "player_damage": 197,
+          "player_deaths": 1,
+          "player_kills": 0,
+          "segment_index": 13,
+          "start_seconds": 2416
+        },
+        {
+          "allied_damage_total": 16664,
+          "allied_hero_deaths": 4,
+          "damage_participated": true,
+          "damage_share": 0.10819731156985117,
+          "death_trade": "EVEN",
+          "end_seconds": 2667,
+          "enemy_hero_deaths": 4,
+          "player_damage": 1803,
+          "player_deaths": 1,
+          "player_kills": 1,
+          "segment_index": 14,
+          "start_seconds": 2590
+        },
+        {
+          "allied_damage_total": 10334,
+          "allied_hero_deaths": 2,
+          "damage_participated": true,
+          "damage_share": 0.055931875362879815,
+          "death_trade": "EVEN",
+          "end_seconds": 2955,
+          "enemy_hero_deaths": 2,
+          "player_damage": 578,
+          "player_deaths": 0,
+          "player_kills": 1,
+          "segment_index": 15,
+          "start_seconds": 2911
+        },
+        {
+          "allied_damage_total": 13230,
+          "allied_hero_deaths": 1,
+          "damage_participated": true,
+          "damage_share": 0.10007558578987151,
+          "death_trade": "FAVORABLE",
+          "end_seconds": 2995,
+          "enemy_hero_deaths": 3,
+          "player_damage": 1324,
+          "player_deaths": 0,
+          "player_kills": 1,
+          "segment_index": 16,
+          "start_seconds": 2951
+        },
+        {
+          "allied_damage_total": 9699,
+          "allied_hero_deaths": 3,
+          "damage_participated": true,
+          "damage_share": 0.23198267862666255,
+          "death_trade": "UNFAVORABLE",
+          "end_seconds": 3261,
+          "enemy_hero_deaths": 1,
+          "player_damage": 2250,
+          "player_deaths": 0,
+          "player_kills": 0,
+          "segment_index": 17,
+          "start_seconds": 3216
+        },
+        {
+          "allied_damage_total": 17353,
+          "allied_hero_deaths": 1,
+          "damage_participated": true,
+          "damage_share": 0.17155535065982827,
+          "death_trade": "FAVORABLE",
+          "end_seconds": 3520,
+          "enemy_hero_deaths": 2,
+          "player_damage": 2977,
+          "player_deaths": 1,
+          "player_kills": 0,
+          "segment_index": 18,
+          "start_seconds": 3475
+        },
+        {
+          "allied_damage_total": 10869,
+          "allied_hero_deaths": 1,
+          "damage_participated": true,
+          "damage_share": 0.21345109945717178,
+          "death_trade": "FAVORABLE",
+          "end_seconds": 3552,
+          "enemy_hero_deaths": 2,
+          "player_damage": 2320,
+          "player_deaths": 0,
+          "player_kills": 1,
+          "segment_index": 19,
+          "start_seconds": 3520
+        }
+      ],
+      "state": "AVAILABLE"
+    },
+    "mid_context": {
+      "contract_version": "mid-context-v1",
+      "enemy_mid_hero_id": 74,
+      "net_worth": {
+        "points": [
+          {
+            "difference": 27,
+            "enemy_mid": 600,
+            "time_seconds": 0,
+            "you": 627
+          },
+          {
+            "difference": -41,
+            "enemy_mid": 768,
+            "time_seconds": 60,
+            "you": 727
+          },
+          {
+            "difference": -243,
+            "enemy_mid": 980,
+            "time_seconds": 120,
+            "you": 737
+          },
+          {
+            "difference": -327,
+            "enemy_mid": 1124,
+            "time_seconds": 180,
+            "you": 797
+          },
+          {
+            "difference": -742,
+            "enemy_mid": 1650,
+            "time_seconds": 240,
+            "you": 908
+          },
+          {
+            "difference": -913,
+            "enemy_mid": 1911,
+            "time_seconds": 300,
+            "you": 998
+          },
+          {
+            "difference": -785,
+            "enemy_mid": 1944,
+            "time_seconds": 360,
+            "you": 1159
+          },
+          {
+            "difference": -702,
+            "enemy_mid": 2211,
+            "time_seconds": 420,
+            "you": 1509
+          },
+          {
+            "difference": -945,
+            "enemy_mid": 2562,
+            "time_seconds": 480,
+            "you": 1617
+          },
+          {
+            "difference": -1116,
+            "enemy_mid": 3206,
+            "time_seconds": 540,
+            "you": 2090
+          },
+          {
+            "difference": -1393,
+            "enemy_mid": 3703,
+            "time_seconds": 600,
+            "you": 2310
+          }
+        ],
+        "reason": null,
+        "state": "AVAILABLE"
+      }
+    }
+  },
+  "stratz": {
+    "core_fights": {
+      "contract_version": "core-fights-v1",
+      "reason": "FIGHTS_UNAVAILABLE",
+      "segments": [],
+      "state": "UNAVAILABLE"
+    },
+    "mid_context": {
+      "contract_version": "mid-context-v1",
+      "enemy_mid_hero_id": 74,
+      "net_worth": {
+        "points": [
+          {
+            "difference": 27,
+            "enemy_mid": 600,
+            "time_seconds": 0,
+            "you": 627
+          },
+          {
+            "difference": -41,
+            "enemy_mid": 769,
+            "time_seconds": 60,
+            "you": 728
+          },
+          {
+            "difference": -243,
+            "enemy_mid": 981,
+            "time_seconds": 120,
+            "you": 738
+          },
+          {
+            "difference": -327,
+            "enemy_mid": 1125,
+            "time_seconds": 180,
+            "you": 798
+          },
+          {
+            "difference": -742,
+            "enemy_mid": 1651,
+            "time_seconds": 240,
+            "you": 909
+          },
+          {
+            "difference": -913,
+            "enemy_mid": 1912,
+            "time_seconds": 300,
+            "you": 999
+          },
+          {
+            "difference": -785,
+            "enemy_mid": 1945,
+            "time_seconds": 360,
+            "you": 1160
+          },
+          {
+            "difference": -702,
+            "enemy_mid": 2212,
+            "time_seconds": 420,
+            "you": 1510
+          },
+          {
+            "difference": -945,
+            "enemy_mid": 2563,
+            "time_seconds": 480,
+            "you": 1618
+          },
+          {
+            "difference": -1116,
+            "enemy_mid": 3206,
+            "time_seconds": 540,
+            "you": 2090
+          },
+          {
+            "difference": -1393,
+            "enemy_mid": 3703,
+            "time_seconds": 600,
+            "you": 2310
+          }
+        ],
+        "reason": null,
+        "state": "AVAILABLE"
+      }
+    }
+  }
+}

@@ -67,10 +67,10 @@ def evaluate_fights(raw: Mapping[str, Any] | None, *, viewer: int, duration: int
     return {"state": "AVAILABLE", "reason": None, "segments": segments}
 
 
-def _panel(features: list[dict[str, Any]], viewer: int, carry: int, field: str,
-           duration: int, quarantined: set[str]) -> dict[str, Any]:
+def lane_panel(features: list[dict[str, Any]], viewer: int, opponent_slot: int, field: str,
+               duration: int, quarantined: set[str], opponent_key: str) -> dict[str, Any]:
     own_checkpoints = features[viewer].get("checkpoints")
-    enemy_checkpoints = features[carry].get("checkpoints")
+    enemy_checkpoints = features[opponent_slot].get("checkpoints")
     own = own_checkpoints.get(field) if isinstance(own_checkpoints, dict) else None
     opponent = enemy_checkpoints.get(field) if isinstance(enemy_checkpoints, dict) else None
     if not isinstance(own, dict) or not isinstance(opponent, dict):
@@ -78,14 +78,14 @@ def _panel(features: list[dict[str, Any]], viewer: int, carry: int, field: str,
     points = []
     for second in range(0, min(duration, 600) + 1, 60):
         key = str(second)
-        if any(f"players.{slot}.series.{field}.{key}" in quarantined for slot in (viewer, carry)):
+        if any(f"players.{slot}.series.{field}.{key}" in quarantined for slot in (viewer, opponent_slot)):
             continue
         you, enemy = own.get(key), opponent.get(key)
         if type(you) is not int or type(enemy) is not int or you < 0 or enemy < 0:
             continue
         if field == "xp_earned" and second == 0 and (you != 0 or enemy != 0):
             return {"state": "UNAVAILABLE", "reason": "TRAJECTORY_UNAVAILABLE", "points": []}
-        points.append({"time_seconds": second, "you": you, "enemy_carry": enemy,
+        points.append({"time_seconds": second, "you": you, opponent_key: enemy,
                        "difference": you - enemy})
     return {"state": "AVAILABLE" if points else "UNAVAILABLE",
             "reason": None if points else "TRAJECTORY_UNAVAILABLE", "points": points}
@@ -109,6 +109,6 @@ def evaluate(features: list[dict[str, Any]], *, viewer: int,
                 "fights": fights if fights is not None else _unavailable_fights("FIGHTS_UNAVAILABLE")}
     conflicts = set(quarantined)
     return {"contract_version": CONTRACT_VERSION, "enemy_carry_hero_id": hero,
-            "net_worth": _panel(features, viewer, carry, "net_worth", duration, conflicts),
-            "xp": _panel(features, viewer, carry, "xp_earned", duration, conflicts),
+            "net_worth": lane_panel(features, viewer, carry, "net_worth", duration, conflicts, "enemy_carry"),
+            "xp": lane_panel(features, viewer, carry, "xp_earned", duration, conflicts, "enemy_carry"),
             "fights": fights if fights is not None else _unavailable_fights("FIGHTS_UNAVAILABLE")}

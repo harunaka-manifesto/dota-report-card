@@ -10,8 +10,10 @@ from app.tracker.materialization import materialize_snapshot
 from app.tracker.metrics import metric_ids
 from app.tracker.mobile_api import (
     _carry_context_view,
+    _core_fights_view,
     _item_timings_view,
     _match_view,
+    _mid_context_view,
     _offlane_context_view,
 )
 from app.tracker.role_correction import correct_role
@@ -170,6 +172,41 @@ def test_carry_match_detail_reads_frozen_graphs_and_rebuilds_after_role_correcti
         assert connection.scalar(select(func.count()).select_from(provider_calls)) == 0
 
 
+def test_core_fights_and_mid_context_survive_role_correction_without_provider_calls(database):
+    profile_id = _ready_link(database)
+    with database.connect() as connection:
+        link = connection.execute(select(account_matches)).mappings().one()
+        assert _core_fights_view(connection, link).state == "PENDING"
+    assert _run(database, profile_id) == "READY"
+    for role in ("CARRY", "MID", "OFFLANE", "SUPPORT"):
+        with database.begin() as connection:
+            link = connection.execute(select(account_matches)).mappings().one()
+            if link["effective_role"] != role:
+                correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
+                             role=role, expected_role_revision=link["role_revision"])
+        with database.connect() as connection:
+            link = connection.execute(select(account_matches)).mappings().one()
+            result = connection.scalar(select(analyses.c.result).where(
+                analyses.c.id == link["active_analysis_id"],
+            ))
+            fights = _core_fights_view(connection, link)
+            mid = _mid_context_view(connection, link)
+            if role == "SUPPORT":
+                assert fights is None and mid is None
+                assert result["core_fights"] is None and result["mid_context"] is None
+            else:
+                assert fights.model_dump() == result["core_fights"]
+                assert fights.state == "AVAILABLE" and len(fights.segments) == 19
+                assert fights.segments[-1].start_seconds > 900
+                if role == "MID":
+                    assert mid.model_dump() == result["mid_context"]
+                    assert mid.net_worth.state == "AVAILABLE"
+                    assert mid.net_worth.points
+                else:
+                    assert mid is None and result["mid_context"] is None
+            assert connection.scalar(select(func.count()).select_from(provider_calls)) == 0
+
+
 def test_old_offlane_context_remains_a_safe_unavailable_view():
     class OldAnalysis:
         def scalar(self, _query):
@@ -180,6 +217,16 @@ def test_old_offlane_context_remains_a_safe_unavailable_view():
     })
     assert view is not None
     assert view.fights.state == "UNAVAILABLE" and view.fights.reason == "ANALYSIS_VERSION"
+
+
+def test_old_core_graphs_remain_safe_unavailable_views():
+    class OldAnalysis:
+        def scalar(self, _query):
+            return {}
+
+    row = {"effective_role": "MID", "active_analysis_id": "old", "lifecycle": "READY"}
+    assert _mid_context_view(OldAnalysis(), row).net_worth.reason == "ANALYSIS_VERSION"
+    assert _core_fights_view(OldAnalysis(), row).reason == "ANALYSIS_VERSION"
 
 
 def test_replay_unavailable_still_finalizes_with_reasoned_na_metrics(database):
