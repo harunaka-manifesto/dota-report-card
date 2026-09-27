@@ -117,11 +117,52 @@ def test_detected_fights_fail_closed_on_missing_or_malformed_evidence():
     assert evaluate_fights(raw, viewer=0, duration=raw["duration"],
                            quarantined=["players.0.hero_id"])["reason"] == "SOURCE_DISAGREEMENT"
     invalid = deepcopy(raw)
-    invalid["teamfights"][0]["start"] = -1
+    invalid["teamfights"][0]["start"] = invalid["teamfights"][0]["end"]
     assert evaluate_fights(invalid, viewer=0, duration=raw["duration"], quarantined=[])["reason"] == "FIGHTS_INVALID"
     invalid = deepcopy(raw)
-    invalid["teamfights"][0]["end"] = raw["duration"] + 1
+    invalid["teamfights"][-1]["start"] = raw["duration"]
+    invalid["teamfights"][-1]["end"] = raw["duration"] + 15
     assert evaluate_fights(invalid, viewer=0, duration=raw["duration"], quarantined=[])["reason"] == "FIGHTS_INVALID"
     invalid = deepcopy(raw)
     invalid["teamfights"][0]["players"][0]["damage"] = None
     assert evaluate_fights(invalid, viewer=0, duration=raw["duration"], quarantined=[])["reason"] == "FIGHTS_INVALID"
+
+
+def test_pregame_fights_are_dropped_and_final_fight_is_cut_at_match_end():
+    raw, _ = evidence()
+    full = evaluate_fights(raw, viewer=0, duration=raw["duration"], quarantined=[])["segments"]
+    edited = deepcopy(raw)
+    edited["teamfights"][0]["start"] = -30
+    edited["teamfights"][-1]["end"] = raw["duration"] + 12
+    result = evaluate_fights(edited, viewer=0, duration=raw["duration"], quarantined=[])
+    assert result["state"] == "AVAILABLE"
+    segments = result["segments"]
+    assert len(segments) == len(full) - 1
+    assert [segment["segment_index"] for segment in segments] == list(range(1, len(full)))
+    assert segments[0]["start_seconds"] == full[1]["start_seconds"]
+    assert segments[-1]["end_seconds"] == raw["duration"]
+    assert segments[-1]["offlaner_damage"] == full[-1]["offlaner_damage"]
+    only_pregame = deepcopy(raw)
+    only_pregame["teamfights"] = [deepcopy(raw["teamfights"][0])]
+    only_pregame["teamfights"][0]["start"] = -60
+    only_pregame["teamfights"][0]["end"] = -5
+    assert evaluate_fights(only_pregame, viewer=0, duration=raw["duration"], quarantined=[]) == {
+        "state": "AVAILABLE", "reason": None, "segments": [],
+    }
+
+
+def test_lane_chart_needs_three_real_minutes_and_eighty_percent_coverage():
+    raw, features = evidence()
+    all_minutes = [f"players.0.series.net_worth.{second}" for second in range(60, 601, 60)]
+    only_start = evaluate(features, viewer=0, positions={5: 1}, duration=raw["duration"],
+                          quarantined=all_minutes)
+    assert only_start["net_worth"] == {"state": "UNAVAILABLE", "reason": "TRAJECTORY_INCOMPLETE", "points": []}
+    # 11 marks in 0-10 min: 9 present passes (81.8%), 8 present fails (72.7%).
+    passes = evaluate(features, viewer=0, positions={5: 1}, duration=raw["duration"],
+                      quarantined=all_minutes[:2])
+    assert passes["net_worth"]["state"] == "AVAILABLE" and len(passes["net_worth"]["points"]) == 9
+    fails = evaluate(features, viewer=0, positions={5: 1}, duration=raw["duration"],
+                     quarantined=all_minutes[:3])
+    assert fails["net_worth"]["reason"] == "TRAJECTORY_INCOMPLETE"
+    too_short = evaluate(features, viewer=0, positions={5: 1}, duration=150, quarantined=[])
+    assert too_short["net_worth"]["reason"] == "TRAJECTORY_INCOMPLETE"

@@ -124,4 +124,22 @@ def test_paired_damage_disagreement_does_not_withhold_cards_or_comparisons():
     )["conflicts"]
     assert any(".series.hero_damage_earned." in path for path in conflicts)
     assert not any(".series.hero_damage_earned." in path for path in _decision_conflicts(conflicts))
+    assert any(".series.xp_earned." in path for path in conflicts)
+    assert not any(".series.xp_earned." in path for path in _decision_conflicts(conflicts))
     assert _decision_conflicts(["players.0.series.net_worth.600"]) == ["players.0.series.net_worth.600"]
+
+
+def test_chart_left_with_only_the_start_minute_is_incomplete():
+    """Paired sources disagree on slot 3's damage at every minute after 0:00."""
+    from app.tracker.replay import quarantine_checkpoint_conflicts
+
+    od, features = source("opendota")
+    sz, _ = source("stratz")
+    conflicts = quarantine_checkpoint_conflicts(
+        replay_checkpoints(od, "opendota"), replay_checkpoints(sz, "stratz"),
+    )["conflicts"]
+    viewer = 5  # Dire viewer; slot 3 is the Radiant carry.
+    result = evaluate(features, viewer=viewer, positions={3: 1}, duration=od["duration"],
+                      quarantined=conflicts, raw=od, provider="opendota")
+    assert result["hero_damage"] == {"state": "UNAVAILABLE", "reason": "TRAJECTORY_INCOMPLETE", "points": []}
+    assert result["net_worth"]["state"] == "AVAILABLE"

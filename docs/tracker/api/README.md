@@ -118,11 +118,14 @@ may be partial for a short match or missing evidence; no interpolation is permit
 ambiguous enemy Carry makes both panels unavailable. The client uses a fixed 0–10 minute X
 axis with one-minute snapping and fits each Y axis symmetrically about zero. Historical batches
 from version 1.4 request minute XP in the existing call; older retained evidence may leave
-only the XP panel unavailable.
+only the XP panel unavailable. A minute chart with fewer than 3 real minutes after 0:00, or under
+80% of its expected minute marks, is `UNAVAILABLE` with reason `TRAJECTORY_INCOMPLETE`; this
+applies to every Offlane, Mid and Carry minute chart.
 
 Detected fights use valid segments in an already stored OpenDota replay. A valid empty array is
 `AVAILABLE` with zero segments; missing or malformed data is `UNAVAILABLE` independently of the
-two laning panels. Overlapping windows are retained. Per-player deaths determine the death trade;
+two laning panels. Fights starting before 0:00 are dropped (segments renumber from 1), and a
+fight window running past match end is cut at the match end. Overlapping windows are retained. Per-player deaths determine the death trade;
 the provider's fight-header death count is ignored. `FAVORABLE` means fewer allied hero deaths,
 not that the fight was won. Zero damage does not establish absence, and detected segments are not
 every engagement. The future client plots segment start over the full-match X axis and damage
@@ -186,12 +189,12 @@ across tabs and shows the latest measured value with its actual sample timestamp
 Before finalization, all five streams are `PENDING`. A terminal unavailable match reports
 `MATCH_UNAVAILABLE` or `MATCH_ACTION_REQUIRED`; an older analysis reports
 `ANALYSIS_VERSION`. With a current analysis, reasons are `CARRY_UNCLEAR`,
-`SOURCE_DISAGREEMENT`, `TRAJECTORY_UNAVAILABLE`, `ITEMS_UNAVAILABLE`, and
+`SOURCE_DISAGREEMENT`, `TRAJECTORY_UNAVAILABLE`, `TRAJECTORY_INCOMPLETE`, `ITEMS_UNAVAILABLE`, and
 `KILLS_UNAVAILABLE`. A valid empty item or kill stream is `AVAILABLE` with `[]`.
 Raw snapshot IDs, provider, query version, translation version, and digest stay in
 the stored feature and analysis provenance. The public block exposes only its
 contract version. Existing historical snapshots remain valid, but missing minute
-damage stays unavailable until a newly retained source is deliberately processed.
+damage stays unavailable; a later import of an already-finalized match does not refresh it.
 The iOS client displays `net_worth` as Carry's whole-match first chart with its existing
 item and kill markers. `hero_damage` stays available in the API but is not a visible chart.
 

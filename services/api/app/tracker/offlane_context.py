@@ -30,15 +30,23 @@ def evaluate_fights(raw: Mapping[str, Any] | None, *, viewer: int, duration: int
                                                      for p in roster] != slots
             or not isinstance(fights, list)):
         return _unavailable_fights("FIGHTS_INVALID")
-    segments = []
+    segments: list[dict[str, Any]] = []
     ally = range(0, 5) if viewer < 5 else range(5, 10)
     enemy = range(5, 10) if viewer < 5 else range(0, 5)
-    for index, fight in enumerate(fights, 1):
+    for fight in fights:
         if not isinstance(fight, Mapping):
             return _unavailable_fights("FIGHTS_INVALID")
         start, end, players = fight.get("start"), fight.get("end"), fight.get("players")
-        if (type(start) is not int or type(end) is not int or not 0 <= start < end <= duration
+        if (type(start) is not int or type(end) is not int or start >= end
                 or not isinstance(players, list) or len(players) != 10):
+            return _unavailable_fights("FIGHTS_INVALID")
+        # Owner decision 2026-09-27: pre-horn fights are not shown. The parser
+        # closes a window 15 s after its last death, so the final fight can
+        # overrun the ancient falling; that tail is cut at match end.
+        if start < 0:
+            continue
+        end = min(end, duration)
+        if start >= end:
             return _unavailable_fights("FIGHTS_INVALID")
         if any(not isinstance(player, Mapping)
                or type(player.get("damage")) is not int or player["damage"] < 0
@@ -53,7 +61,7 @@ def evaluate_fights(raw: Mapping[str, Any] | None, *, viewer: int, duration: int
         ally_deaths = sum(players[slot]["deaths"] for slot in ally)
         enemy_deaths = sum(players[slot]["deaths"] for slot in enemy)
         segments.append({
-            "segment_index": index, "start_seconds": start, "end_seconds": end,
+            "segment_index": len(segments) + 1, "start_seconds": start, "end_seconds": end,
             "offlaner_damage": own_damage, "allied_damage_total": allied_damage,
             "damage_share": own_damage / allied_damage if allied_damage else None,
             "damage_participated": own_damage > 0,
@@ -67,6 +75,23 @@ def evaluate_fights(raw: Mapping[str, Any] | None, *, viewer: int, duration: int
     return {"state": "AVAILABLE", "reason": None, "segments": segments}
 
 
+# Owner decision 2026-09-27: a chart is drawn only from enough real minutes.
+MIN_MINUTES_AFTER_START = 3
+MIN_COVERAGE = (4, 5)  # at least 80% of the minute marks the window should hold
+
+
+def trajectory(points: list[dict[str, Any]], last_second: int) -> dict[str, Any]:
+    """Withhold a chart that only holds 0:00 or would be drawn across large gaps."""
+    if not points:
+        return {"state": "UNAVAILABLE", "reason": "TRAJECTORY_UNAVAILABLE", "points": []}
+    expected = last_second // 60 + 1
+    numerator, denominator = MIN_COVERAGE
+    if (sum(point["time_seconds"] > 0 for point in points) < MIN_MINUTES_AFTER_START
+            or len(points) * denominator < expected * numerator):
+        return {"state": "UNAVAILABLE", "reason": "TRAJECTORY_INCOMPLETE", "points": []}
+    return {"state": "AVAILABLE", "reason": None, "points": points}
+
+
 def lane_panel(features: list[dict[str, Any]], viewer: int, opponent_slot: int, field: str,
                duration: int, quarantined: set[str], opponent_key: str) -> dict[str, Any]:
     own_checkpoints = features[viewer].get("checkpoints")
@@ -76,7 +101,8 @@ def lane_panel(features: list[dict[str, Any]], viewer: int, opponent_slot: int, 
     if not isinstance(own, dict) or not isinstance(opponent, dict):
         return {"state": "UNAVAILABLE", "reason": "TRAJECTORY_UNAVAILABLE", "points": []}
     points = []
-    for second in range(0, min(duration, 600) + 1, 60):
+    last_second = min(duration, 600)
+    for second in range(0, last_second + 1, 60):
         key = str(second)
         if any(f"players.{slot}.series.{field}.{key}" in quarantined for slot in (viewer, opponent_slot)):
             continue
@@ -87,8 +113,7 @@ def lane_panel(features: list[dict[str, Any]], viewer: int, opponent_slot: int, 
             return {"state": "UNAVAILABLE", "reason": "TRAJECTORY_UNAVAILABLE", "points": []}
         points.append({"time_seconds": second, "you": you, opponent_key: enemy,
                        "difference": you - enemy})
-    return {"state": "AVAILABLE" if points else "UNAVAILABLE",
-            "reason": None if points else "TRAJECTORY_UNAVAILABLE", "points": points}
+    return trajectory(points, last_second)
 
 
 def evaluate(features: list[dict[str, Any]], *, viewer: int,

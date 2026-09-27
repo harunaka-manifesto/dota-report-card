@@ -41,7 +41,7 @@ def test_missing_empty_invalid_and_zero_damage_fights_keep_readiness():
     result = from_offlane_fights(evaluate_fights(empty, viewer=0, duration=raw["duration"], quarantined=[]))
     assert result["state"] == "AVAILABLE" and result["segments"] == []
     invalid = deepcopy(raw)
-    invalid["teamfights"][0]["end"] = raw["duration"] + 1
+    invalid["teamfights"][0]["players"][0]["deaths"] = -1
     result = from_offlane_fights(evaluate_fights(invalid, viewer=0, duration=raw["duration"], quarantined=[]))
     assert result["state"] == "UNAVAILABLE" and result["reason"] == "FIGHTS_INVALID"
     zero = deepcopy(raw)

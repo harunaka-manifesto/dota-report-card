@@ -5,6 +5,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from .item_references import normalize_key_item_purchases
+from .offlane_context import trajectory
 
 CONTRACT_VERSION = "carry-context-v1"
 
@@ -33,8 +34,7 @@ def _series(features: list[dict[str, Any]], viewer: int, enemy: int, field: str,
     if field == "hero_damage_earned" and points and points[0]["time_seconds"] == 0:
         if points[0]["you"] != 0 or points[0]["enemy_carry"] != 0:
             return _empty("TRAJECTORY_UNAVAILABLE")
-    return {"state": "AVAILABLE" if points else "UNAVAILABLE",
-            "reason": None if points else "TRAJECTORY_UNAVAILABLE", "points": points}
+    return trajectory(points, duration)
 
 
 def _kills(features: list[dict[str, Any]], slot: int, duration: int,

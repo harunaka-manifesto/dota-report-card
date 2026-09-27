@@ -126,9 +126,10 @@ def _positions(connection: Connection, link: dict[str, Any]) -> dict[int, int | 
 
 
 def _decision_conflicts(quarantined: list[str]) -> list[str]:
-    """Drop graph-only series conflicts; no metric, card or comparison reads minute hero damage."""
+    """Drop graph-only series conflicts; no metric, card or comparison reads minute XP or hero damage."""
     return [path for path in quarantined
-            if not (isinstance(path, str) and ".series.hero_damage_earned." in path)]
+            if not (isinstance(path, str) and (".series.hero_damage_earned." in path
+                                               or ".series.xp_earned." in path))]
 
 
 def _metric_conflict(metric_id: str, slot: int, quarantined: list[str]) -> bool:

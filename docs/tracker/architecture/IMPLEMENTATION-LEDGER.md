@@ -2,6 +2,16 @@
 
 Operational evidence, not a product or architecture contract.
 
+## Core graph safeguards — 2026-09-27
+
+Owner-reviewed fixes on branch `fix/core-graph-safeguards`, after review of the core graph commits:
+
+- **Late enrichment removed.** The Carry-graph change let a later STRATZ import that only added minute hero damage re-point a READY match's source and re-admit every holder. That contradicted foundation §4.7 (passive enrichment after READY is ignored), so it was removed: a finalized match keeps its source and analysis. This supersedes the "can refresh an existing READY analysis" note in the Carry entry below.
+- **Fight windows.** Owner decision: fights that start before 0:00 are dropped instead of making the whole Detected fights chart unavailable; a final fight whose window overruns match end (the parser closes windows 15 s after the last death) is cut at match end. Five of the six invalid arrays in the fight study were pregame starts and one was a post-duration end.
+- **Chart completeness.** Owner decision: a minute chart needs at least 3 real minutes after 0:00 and at least 80% of its expected minute marks, else `TRAJECTORY_INCOMPLETE`. In the paired fixture, slot 3's hero damage differs by a constant 108 across providers, which previously left an `AVAILABLE` chart with only the 0:00 point.
+- **XP conflicts no longer gate cards.** Disputed minute XP, like disputed minute hero damage, is graph-only and no longer withholds insight cards or comparisons.
+- No provider calls, deployment or golden-fixture changes; `tracker-analysis-6` is unchanged because the core graph commits were never pushed.
+
 ## Match Detail integration — 2026-09-27
 
 - `main` at `3cfc698` already contains the final hero item insights and item timings. The Offlane and Carry branches have tree-identical equivalents in `codex/core-match-graphs`; integrating that branch includes each feature once.

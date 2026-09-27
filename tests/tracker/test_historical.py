@@ -6,10 +6,9 @@ import pytest
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
 from app.tracker.evidence import save_snapshot
 from app.tracker.finalization import complete_finalization_job, enqueue_finalization
-from app.tracker.historical import _only_minute_damage_added, materialize_historical_batch
+from app.tracker.historical import materialize_historical_batch
 from app.tracker.jobs import claim
 from app.tracker.normalization import InvalidEvidence
-from app.tracker.rebuild import readmit
 from app.tracker.role_correction import correct_role
 from app.tracker.schema import (
     account_matches,
@@ -18,10 +17,8 @@ from app.tracker.schema import (
     derived_features,
     events,
     ingest_jobs,
-    insight_results,
     match_players,
     matches,
-    metric_observations,
     notification_outbox,
 )
 from sqlalchemy import func, select
@@ -37,17 +34,8 @@ def batch_snapshot(connection, rows):
         payload={'data': {'player': {'matches': rows}}})
 
 
-def test_late_damage_guard_accepts_only_new_minute_damage():
-    current = raw('stratz')
-    previous = deepcopy(current)
-    for player in previous['players']:
-        player['stats'].pop('heroDamagePerMinute', None)
-    assert _only_minute_damage_added(previous, current)
-    current['players'][0]['kills'] += 1
-    assert not _only_minute_damage_added(previous, current)
-
-
-def test_late_damage_enrichment_rebuilds_graph_without_changing_metrics_or_cards(database):
+def test_late_damage_enrichment_after_ready_is_ignored(database):
+    """Foundation §4.7: passive provider enrichment never mutates a finalized match."""
     _, profile_id = identity(database)
     current = raw('stratz')
     current['players'][0]['steamAccountId'] = 1001
@@ -81,11 +69,6 @@ def test_late_damage_enrichment_rebuilds_graph_without_changing_metrics_or_cards
         assert before['carry_context']['hero_damage']['state'] == 'UNAVAILABLE'
         assert before['core_fights']['state'] == 'UNAVAILABLE'
         assert before['core_fights']['reason'] == 'FIGHTS_UNAVAILABLE'
-        metric_before = connection.execute(select(metric_observations.c.metric_id,
-            metric_observations.c.raw_value, metric_observations.c.unavailable_reason).where(
-            metric_observations.c.analysis_id == link['active_analysis_id']).order_by(metric_observations.c.metric_id)).all()
-        cards_before = connection.scalar(select(insight_results.c.cards).where(
-            insight_results.c.analysis_id == link['active_analysis_id']))
         event_count = connection.scalar(select(func.count()).select_from(events))
         notification_count = connection.scalar(select(func.count()).select_from(notification_outbox))
     with database.begin() as connection:
@@ -93,21 +76,14 @@ def test_late_damage_enrichment_rebuilds_graph_without_changing_metrics_or_cards
         materialize_historical_batch(connection, snapshot_id=new_id, profile_id=profile_id,
             requested_ids=[MATCH_ID], origin='HISTORICAL')
         assert connection.scalar(select(acquisitions.c.snapshot_id).where(
-            acquisitions.c.match_id == MATCH_ID)) == new_id
+            acquisitions.c.match_id == MATCH_ID)) == old_id
         assert connection.scalar(select(func.count()).select_from(ingest_jobs).where(
-            ingest_jobs.c.job_type == 'READMIT')) == 1
-        assert readmit(connection, profile_id=profile_id, match_id=MATCH_ID) == 'READMITTED'
+            ingest_jobs.c.job_type == 'READMIT')) == 0
     with database.connect() as connection:
-        link = connection.execute(select(account_matches)).mappings().one()
-        after = connection.scalar(select(analyses.c.result).where(analyses.c.id == link['active_analysis_id']))
-        assert after['carry_context']['hero_damage']['state'] == 'AVAILABLE'
-        assert after['core_fights'] == before['core_fights']
-        metric_after = connection.execute(select(metric_observations.c.metric_id,
-            metric_observations.c.raw_value, metric_observations.c.unavailable_reason).where(
-            metric_observations.c.analysis_id == link['active_analysis_id']).order_by(metric_observations.c.metric_id)).all()
-        assert metric_after == metric_before
-        assert connection.scalar(select(insight_results.c.cards).where(
-            insight_results.c.analysis_id == link['active_analysis_id'])) == cards_before
+        after_link = connection.execute(select(account_matches)).mappings().one()
+        assert after_link['active_analysis_id'] == link['active_analysis_id']
+        after = connection.scalar(select(analyses.c.result).where(analyses.c.id == after_link['active_analysis_id']))
+        assert after == before
         assert connection.scalar(select(func.count()).select_from(events)) == event_count
         assert connection.scalar(select(func.count()).select_from(notification_outbox)) == notification_count
 
