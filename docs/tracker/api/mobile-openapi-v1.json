@@ -124,6 +124,162 @@
         "title": "BootstrapView",
         "type": "object"
       },
+      "CarryContextView": {
+        "properties": {
+          "contract_version": {
+            "const": "carry-context-v1",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "enemy_carry_hero_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enemy Carry Hero Id"
+          },
+          "enemy_carry_kills": {
+            "$ref": "#/components/schemas/CarryKillsView"
+          },
+          "enemy_key_items": {
+            "$ref": "#/components/schemas/CarryItemMarkersView"
+          },
+          "hero_damage": {
+            "$ref": "#/components/schemas/OfflanePanelView"
+          },
+          "net_worth": {
+            "$ref": "#/components/schemas/OfflanePanelView"
+          },
+          "you_kills": {
+            "$ref": "#/components/schemas/CarryKillsView"
+          }
+        },
+        "required": [
+          "contract_version",
+          "enemy_carry_hero_id",
+          "net_worth",
+          "hero_damage",
+          "enemy_key_items",
+          "you_kills",
+          "enemy_carry_kills"
+        ],
+        "title": "CarryContextView",
+        "type": "object"
+      },
+      "CarryItemMarkerView": {
+        "properties": {
+          "item_id": {
+            "title": "Item Id",
+            "type": "integer"
+          },
+          "item_key": {
+            "title": "Item Key",
+            "type": "string"
+          },
+          "item_name": {
+            "title": "Item Name",
+            "type": "string"
+          },
+          "key_item_order": {
+            "title": "Key Item Order",
+            "type": "integer"
+          },
+          "purchase_time_seconds": {
+            "title": "Purchase Time Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "item_id",
+          "item_key",
+          "item_name",
+          "purchase_time_seconds",
+          "key_item_order"
+        ],
+        "title": "CarryItemMarkerView",
+        "type": "object"
+      },
+      "CarryItemMarkersView": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CarryItemMarkerView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "state": {
+            "$ref": "#/components/schemas/Readiness"
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "items"
+        ],
+        "title": "CarryItemMarkersView",
+        "type": "object"
+      },
+      "CarryKillEventView": {
+        "properties": {
+          "time_seconds": {
+            "title": "Time Seconds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "time_seconds"
+        ],
+        "title": "CarryKillEventView",
+        "type": "object"
+      },
+      "CarryKillsView": {
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/CarryKillEventView"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "state": {
+            "$ref": "#/components/schemas/Readiness"
+          }
+        },
+        "required": [
+          "state",
+          "reason",
+          "events"
+        ],
+        "title": "CarryKillsView",
+        "type": "object"
+      },
       "CelebrationView": {
         "properties": {
           "celebrated_at": {
@@ -860,6 +1016,16 @@
       },
       "MatchDetailView": {
         "properties": {
+          "carry_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CarryContextView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "celebrated_personal_best": {
             "items": {
               "type": "string"
@@ -1044,6 +1210,7 @@
           "metrics",
           "item_timings",
           "offlane_context",
+          "carry_context",
           "role_revision",
           "correction_available"
         ],

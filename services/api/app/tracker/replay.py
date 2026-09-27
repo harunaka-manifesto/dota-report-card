@@ -17,7 +17,7 @@ from .normalization import (
     stratz_summary,
 )
 
-REPLAY_VERSION = "replay-checkpoints-2"
+REPLAY_VERSION = "replay-checkpoints-3"
 
 
 def _points(times: Any, values: Any, duration: int) -> dict[str, int | None] | None:
@@ -48,6 +48,7 @@ def replay_checkpoints(raw: Mapping[str, Any], provider: Provider) -> dict[str, 
         for field, od, sz in (
             ("net_worth", "networth_t", "networthPerMinute"),
             ("xp_earned", "xp_t", "experiencePerMinute"),
+            ("hero_damage_earned", "hero_damage_t", "heroDamagePerMinute"),
             ("last_hits", "lh_t", "lastHitsPerMinute"),
             ("camps_stacked", "camps_stacked_t", "campStack"),
         ):
@@ -57,7 +58,11 @@ def replay_checkpoints(raw: Mapping[str, Any], provider: Provider) -> dict[str, 
                 continue
             if provider == "opendota":
                 values = row.get(od)
-                if field == "xp_earned" and isinstance(values, list):
+                if field == "hero_damage_earned" and isinstance(values, list):
+                    known = [valid for value in values if (valid := _optional_int(value)) is not None]
+                    if any(a > b for a, b in zip(known, known[1:], strict=False)):
+                        continue
+                if field in {"xp_earned", "hero_damage_earned"} and isinstance(values, list):
                     times = row.get("times")
                     base = _optional_int(values[0]) if values and isinstance(times, list) and times[:1] == [0] else None
                     values = [None if base is None or (valid := _optional_int(value)) is None or valid < base
@@ -68,19 +73,19 @@ def replay_checkpoints(raw: Mapping[str, Any], provider: Provider) -> dict[str, 
             values = stats.get(sz) if isinstance(stats, Mapping) else None
             if not isinstance(values, list):
                 continue
-            if field == "xp_earned" and (not values or _optional_int(values[0]) is None):
+            if field in {"xp_earned", "hero_damage_earned"} and (not values or _optional_int(values[0]) is None):
                 continue
-            if field in {"last_hits", "xp_earned"}:
+            if field in {"last_hits", "xp_earned", "hero_damage_earned"}:
                 total: int | None = 0
-                cumulative: list[int | None] = [0] if field == "xp_earned" else []
+                cumulative: list[int | None] = [0] if field in {"xp_earned", "hero_damage_earned"} else []
                 for delta in values:
                     valid = _optional_int(delta)
                     total = total + valid if total is not None and valid is not None else None
                     cumulative.append(total)
                 values = cumulative
-            # Net worth index t is t:00. Experience and last hits are interval
-            # deltas; stacks are cumulative at minute t+1.
-            offset = 0 if field in {"net_worth", "xp_earned"} else 1
+            # Net worth index t is t:00. XP and damage deltas cover the
+            # preceding minute; stacks and last hits are at minute t+1.
+            offset = 0 if field in {"net_worth", "xp_earned", "hero_damage_earned"} else 1
             series[field] = _points([(i + offset) * 60 for i in range(len(values))], values, duration)
         players.append({"player_slot": slot, "series": series, "source_paths": paths})
     return {

@@ -8,7 +8,12 @@ from app.tracker.finalization import (
 from app.tracker.jobs import claim, enqueue
 from app.tracker.materialization import materialize_snapshot
 from app.tracker.metrics import metric_ids
-from app.tracker.mobile_api import _match_view, _offlane_context_view
+from app.tracker.mobile_api import (
+    _carry_context_view,
+    _item_timings_view,
+    _match_view,
+    _offlane_context_view,
+)
 from app.tracker.role_correction import correct_role
 from app.tracker.schema import (
     account_matches,
@@ -18,6 +23,7 @@ from app.tracker.schema import (
     insight_results,
     matches,
     metric_observations,
+    provider_calls,
 )
 from sqlalchemy import func, select
 
@@ -122,6 +128,46 @@ def test_offlane_match_detail_is_pending_then_reads_frozen_context(database):
         assert view is not None and view.model_dump() == persisted
         assert view.fights.state == "AVAILABLE" and len(view.fights.segments) == 19
         assert view.fights.segments[0].death_trade == "UNFAVORABLE"
+
+
+def test_carry_match_detail_reads_frozen_graphs_and_rebuilds_after_role_correction(database):
+    profile_id = _ready_link(database)
+    with database.connect() as connection:
+        link = connection.execute(select(account_matches)).mappings().one()
+        pending = _carry_context_view(connection, link)
+        assert pending is not None
+        assert pending.net_worth.state == pending.hero_damage.state == "PENDING"
+    assert _run(database, profile_id) == "READY"
+    with database.begin() as connection:
+        link = connection.execute(select(account_matches)).mappings().one()
+        if link["effective_role"] != "CARRY":
+            correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
+                         role="CARRY", expected_role_revision=link["role_revision"])
+    with database.connect() as connection:
+        link = connection.execute(select(account_matches)).mappings().one()
+        view = _carry_context_view(connection, link)
+        assert view is not None
+        stored = connection.scalar(select(analyses.c.result).where(
+            analyses.c.id == link["active_analysis_id"],
+        ))["carry_context"]
+        assert view.model_dump() == stored
+        assert view.net_worth.state == view.hero_damage.state == "AVAILABLE"
+        assert view.enemy_key_items.state == view.you_kills.state == view.enemy_carry_kills.state == "AVAILABLE"
+        assert _item_timings_view(connection, link).items
+        assert connection.scalar(select(func.count()).select_from(provider_calls)) == 0
+    with database.begin() as connection:
+        revision = connection.scalar(select(account_matches.c.role_revision))
+        correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
+                     role="MID", expected_role_revision=revision)
+        link = connection.execute(select(account_matches)).mappings().one()
+        assert _carry_context_view(connection, link) is None
+    with database.begin() as connection:
+        correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
+                     role="CARRY", expected_role_revision=revision + 1)
+        link = connection.execute(select(account_matches)).mappings().one()
+        restored = _carry_context_view(connection, link)
+        assert restored is not None and restored.model_dump() == view.model_dump()
+        assert connection.scalar(select(func.count()).select_from(provider_calls)) == 0
 
 
 def test_old_offlane_context_remains_a_safe_unavailable_view():

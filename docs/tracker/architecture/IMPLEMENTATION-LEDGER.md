@@ -2,6 +2,11 @@
 
 Operational evidence, not a product or architecture contract.
 
+## Carry Match Detail graphs — 2026-09-27
+
+- Branch `codex/carry-match-graphs` starts at `83c48ac86b1176948868db0e6ab50d783259f857`. `carry-context-v1` stores full-match net-worth and cumulative hero-damage checkpoints, plus item and kill markers, in the versioned analysis. Match Detail reads retained data only.
+- `GetTrackerMatchBatch` 1.5.0 adds `stats.heroDamagePerMinute` to the historical selection (document SHA-256 `99e3c28520246d7a0b298929447de6deeef344ec86de212db962fba58a8748f7`). With the owner's confirmation that the local key is unused by any deployment, one bounded live query on 2026-09-27 returned HTTP 200, GraphQL `errors: []`, and a data object. As with 1.4, STRATZ exposed no numeric complexity score; acceptance of the selection shape verifies it fits the cap. One STRATZ QA call and zero OpenDota QA calls were made. Older snapshots are not automatically refetched. A later retained historical response that differs only by added minute damage can refresh an existing READY analysis without changing established facts.
+
 ## Offlane Match Detail graphs — 2026-09-27
 
 - Branch `codex/offlane-match-graphs` starts at `3cfc6986a7dcefe6ee808b604fa303512bbc44d1` (`origin/main` when fetched). The `offlane-context-v1` laning block is derived from retained minute evidence, stored in the versioned analysis, and rebuilt on role correction. No new Match Detail provider call is introduced.

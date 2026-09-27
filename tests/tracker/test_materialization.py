@@ -92,7 +92,8 @@ def test_cross_provider_conflict_is_persisted_without_overwriting_either_source(
         quarantined = c.scalar(select(matches.c.quarantined_fields))
         assert "players.0.values.kills" in quarantined
         assert "players.7.series.net_worth.420" in quarantined
-        assert all(not path.endswith((".600", ".1200")) for path in quarantined if ".series." in path)
+        assert all(not path.endswith((".600", ".1200")) for path in quarantined
+                   if ".series." in path and ".hero_damage_earned." not in path)
         canonical = c.scalar(select(match_players.c.summary).where(match_players.c.player_slot == 0))
         assert canonical["values"]["kills"] == raw()["players"][0]["kills"]
         features = c.scalar(select(derived_features.c.features).where(
@@ -138,9 +139,9 @@ def test_prior_registered_operation_still_materializes_without_new_fields(databa
         assert feature["features"]["events"]["tower_damage"] is None
         assert feature["features"]["checkpoints"]["xp_earned"] is None
         assert feature["provenance"]["operation_version"] == version
-    assert GET_TRACKER_MATCH_BATCH.version == "1.4.0"
-    assert GET_TRACKER_MATCH_BATCH.document_sha256 == "1f8bbd27cedcb802d74d36431788a319f64df4b08cef623e898f06eecf4476cc"
+    assert GET_TRACKER_MATCH_BATCH.version == "1.5.0"
+    assert GET_TRACKER_MATCH_BATCH.document_sha256 == "99e3c28520246d7a0b298929447de6deeef344ec86de212db962fba58a8748f7"
     assert "gameVersionId" in GET_TRACKER_MATCH_BATCH.document
-    assert "networthPerMinute experiencePerMinute lastHitsPerMinute" in GET_TRACKER_MATCH_BATCH.document
+    assert "networthPerMinute experiencePerMinute heroDamagePerMinute lastHitsPerMinute" in GET_TRACKER_MATCH_BATCH.document
     assert "deathEvents { time timeDead }" in GET_TRACKER_MATCH_BATCH.document
     assert "towerDamageReport { npcId damage }" in GET_TRACKER_MATCH_BATCH.document

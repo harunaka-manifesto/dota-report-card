@@ -174,7 +174,15 @@ When replay-class evidence will never arrive (`REPLAY_UNAVAILABLE`):
 - A zero-damage offlaner has `damage_participated = false`; this does not claim absence from the fight. If the allied damage total is zero, share is unavailable, never a fabricated zero. Detected segments are not a claim that every engagement was captured, and a favorable death trade is not a claim that the fight was won.
 - The future iOS fight graph places segment starts across the full match on X and damage share from 0 to 100% on Y; segment end time supplies the interval. Segments with undefined share remain available as factual rows without a Y marker.
 
-### 3A.11 Language
+### 3A.11 Carry economy and hero-damage context
+
+- Match Detail exposes factual `carry_context` only for the effective Carry role. It uses the uniquely identified enemy Position 1; ambiguity makes the comparison and its annotations unavailable. Role correction rebuilds it from retained evidence.
+- Net worth compares both carries at real one-minute checkpoints through the last complete minute. Hero damage is **cumulative damage to heroes since 0:00**, including laning damage. OpenDota's 0:00 sample is subtracted from subsequent samples; STRATZ minute increments accumulate from zero. Neither source supplies an invented partial final-minute point. `difference = you − enemy_carry` in both panels.
+- Independent annotation streams give the enemy carry's reviewed key-item first purchases and each carry's exact-second hero-kill events. The viewer's item markers come from the existing `item_timings` block. Hero-specific item references govern comparisons and cards, not which factual purchases are listed.
+- Missing or conflicting samples are omitted without interpolation; missing damage never removes available net worth or events. A valid empty kill or item stream is available with zero events. Older historical snapshots without minute damage keep only that panel unavailable and are not automatically refetched.
+- The backend persists this context with the versioned analysis and makes no provider call on Match Detail reads. The future iOS client owns a match-scoped cursor shared across graph tabs; the backend exposes timestamps and stores no cursor state. The graph is titled **Hero damage over time** because damage alone does not measure fight quality or outcome.
+
+### 3A.12 Language
 
 Match Detail speaks in capabilities, never in pipeline vocabulary. It MUST NOT name a data provider or use "parse", "parser", "replay parse", "queue", "job", "quota" or "rate limit".
 

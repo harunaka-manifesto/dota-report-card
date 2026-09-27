@@ -44,7 +44,9 @@ def test_real_discrepancies_quarantine_only_conflicting_points_without_mutation(
     assert result["players"][7]["series"]["net_worth"]["420"] is None
     assert result["players"][7]["series"]["net_worth"]["600"] == 2125
     assert left == saved
-    assert all(not p.endswith((".600", ".1200")) for p in result["conflicts"])
+    assert all(not p.endswith((".600", ".1200")) for p in result["conflicts"]
+               if ".hero_damage_earned." not in p)
+    assert "players.3.series.hero_damage_earned.600" in result["conflicts"]
 
 
 def test_missing_malformed_short_or_unparsed_series_never_become_zero():
@@ -94,6 +96,21 @@ def test_historical_selection_without_minute_xp_keeps_net_worth():
     assert series["net_worth"]["600"] is not None
     sz["players"][0]["stats"]["experiencePerMinute"] = []
     assert replay_checkpoints(sz, "stratz")["players"][0]["series"]["xp_earned"] is None
+
+
+def test_damage_missing_and_malformed_samples_keep_only_real_checkpoints():
+    od, sz = pair()
+    od["players"][0]["hero_damage_t"][2] = None
+    od_damage = replay_checkpoints(od, "opendota")["players"][0]["series"]["hero_damage_earned"]
+    assert od_damage["0"] == 0 and od_damage["120"] is None
+    assert od_damage["180"] is not None
+    od["players"][0]["hero_damage_t"][3] = -1
+    assert replay_checkpoints(od, "opendota")["players"][0]["series"]["hero_damage_earned"]["180"] is None
+    sz["players"][0]["stats"]["heroDamagePerMinute"] = [20, None, 30]
+    sz_damage = replay_checkpoints(sz, "stratz")["players"][0]["series"]["hero_damage_earned"]
+    assert sz_damage == {"0": 0, "60": 20, "120": None, "180": None}
+    sz["players"][0]["stats"].pop("heroDamagePerMinute")
+    assert replay_checkpoints(sz, "stratz")["players"][0]["series"]["hero_damage_earned"] is None
 
 
 def test_sanitized_pair_has_no_private_identity_keys():

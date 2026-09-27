@@ -13,11 +13,16 @@ ADRs. This page covers operating the adapters that implement them.
 | Replay processing and parsed payload | OpenDota `POST /request/{id}`, `GET /matches/{id}` | `tracker/replay_acquisition.py` |
 | Bootstrap, Pro backfill and access-recovery scans | OpenDota history (enumeration only) | `tracker/bootstrap.py`, `tracker/backfill.py` |
 | Historical replay-class evidence | STRATZ deep batches (≤ 50 IDs) with OpenDota summary fallback | `tracker/historical.py`, `tracker/historical_summary.py` |
+| Population parameters | STRATZ `heroStats` (offline P3 job, validated artifact) | `tracker/population_parameters.py` |
 
 Offlane detected fights read the OpenDota replay payload already retained for a
 fresh match during finalization. They add no Match Detail provider call and do
 not start OpenDota fetching for STRATZ-only historical matches.
-| Population parameters | STRATZ `heroStats` (offline P3 job, validated artifact) | `tracker/population_parameters.py` |
+
+Carry graphs read the retained replay payload and derived checkpoints. They add
+no provider call during finalization or Match Detail reads. Historical batch
+version 1.5.0 selects minute hero damage for future imports; older snapshots
+remain readable and are not automatically refetched.
 
 STRATZ is never on the fresh path. A mobile read never reaches any provider; this is
 enforced by `tests/tracker/test_architecture_boundaries.py`.
@@ -53,7 +58,12 @@ stable static egress IP (see [deployment notes](deployment-notes.md)).
 STRATZ prices a query by its selection shape, not by `take`; the cap is 310,000. Any change to
 `GetTrackerMatchBatch` must be re-measured live (a 50-ID batch of 1.2.0 was accepted on
 2026-09-25; 1.1.0 was rejected at 316,102; the 1.4.0 selection adding minute XP returned
-HTTP 200 without GraphQL errors on 2026-09-27, with no numeric complexity exposed). A disabled STRATZ gate hands historical batches to the
+HTTP 200 without GraphQL errors on 2026-09-27, with no numeric complexity exposed).
+Version 1.5.0 adds `heroDamagePerMinute` (document SHA-256
+`99e3c28520246d7a0b298929447de6deeef344ec86de212db962fba58a8748f7`);
+one bounded live query returned HTTP 200, GraphQL `errors: []`, and a data object
+on 2026-09-27. STRATZ did not expose a numeric complexity score, so acceptance
+of the selection shape is the cap evidence. A disabled STRATZ gate hands historical batches to the
 per-match OpenDota summary route.
 
 ## Budgets and the live call ledger

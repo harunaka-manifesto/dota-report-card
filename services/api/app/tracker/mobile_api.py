@@ -296,6 +296,40 @@ class OfflaneContextView(BaseModel):
     fights: OfflaneFightsView
 
 
+class CarryItemMarkerView(BaseModel):
+    item_id: int
+    item_key: str
+    item_name: str
+    purchase_time_seconds: int
+    key_item_order: int
+
+
+class CarryItemMarkersView(BaseModel):
+    state: Readiness
+    reason: str | None
+    items: list[CarryItemMarkerView]
+
+
+class CarryKillEventView(BaseModel):
+    time_seconds: int
+
+
+class CarryKillsView(BaseModel):
+    state: Readiness
+    reason: str | None
+    events: list[CarryKillEventView]
+
+
+class CarryContextView(BaseModel):
+    contract_version: Literal["carry-context-v1"]
+    enemy_carry_hero_id: int | None
+    net_worth: OfflanePanelView
+    hero_damage: OfflanePanelView
+    enemy_key_items: CarryItemMarkersView
+    you_kills: CarryKillsView
+    enemy_carry_kills: CarryKillsView
+
+
 class MatchView(BaseModel):
     ref: str
     mode: Mode | None
@@ -319,6 +353,7 @@ class MatchView(BaseModel):
 class MatchDetailView(MatchView):
     item_timings: ItemTimingsView
     offlane_context: OfflaneContextView | None
+    carry_context: CarryContextView | None
     role_revision: int
     correction_available: bool
     # Current ownership (can change silently) versus the one-time celebration.
@@ -815,6 +850,29 @@ def _offlane_context_view(connection: Connection, row) -> OfflaneContextView | N
     fights = OfflaneFightsView(state=Readiness.UNAVAILABLE, reason="ANALYSIS_VERSION", segments=[])
     return OfflaneContextView(contract_version="offlane-context-v2", enemy_carry_hero_id=None,
                               net_worth=panel, xp=panel.model_copy(deep=True), fights=fights)
+
+
+def _carry_context_view(connection: Connection, row) -> CarryContextView | None:
+    if row["effective_role"] != "CARRY":
+        return None
+    context = None
+    if row["active_analysis_id"] is not None:
+        result = connection.scalar(select(analyses.c.result).where(
+            analyses.c.id == row["active_analysis_id"],
+        ))
+        context = result.get("carry_context") if isinstance(result, dict) else None
+    if isinstance(context, dict) and context.get("contract_version") == "carry-context-v1":
+        return CarryContextView.model_validate(context)
+    terminal = row["lifecycle"] in {"UNAVAILABLE", "ACTION_REQUIRED"}
+    state = Readiness.UNAVAILABLE if terminal or row["active_analysis_id"] is not None else Readiness.PENDING
+    reason = "MATCH_" + row["lifecycle"] if terminal else "ANALYSIS_VERSION" if row["active_analysis_id"] is not None else None
+    panel = OfflanePanelView(state=state, reason=reason, points=[])
+    items = CarryItemMarkersView(state=state, reason=reason, items=[])
+    kills = CarryKillsView(state=state, reason=reason, events=[])
+    return CarryContextView(contract_version="carry-context-v1", enemy_carry_hero_id=None,
+                            net_worth=panel, hero_damage=panel.model_copy(deep=True),
+                            enemy_key_items=items, you_kills=kills,
+                            enemy_carry_kills=kills.model_copy(deep=True))
 
 
 def _summary_view(connection, row) -> MatchSummary:
@@ -1366,6 +1424,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             return MatchDetailView(**_match_view(connection, row).model_dump(),
                 item_timings=_item_timings_view(connection, row),
                 offlane_context=_offlane_context_view(connection, row),
+                carry_context=_carry_context_view(connection, row),
                 role_revision=row["role_revision"],
                 correction_available=correction_available(
                     connection, profile_id=profile["id"], match_id=row["match_id"],

@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import hashlib
+from copy import deepcopy
 from typing import Any
 
 import httpx
-from sqlalchemy import Connection, Engine, func, select
+from sqlalchemy import Connection, Engine, func, select, true
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.config import Settings
@@ -21,7 +22,7 @@ from app.tracker.evidence import canonical_json
 from app.tracker.historical_summary import enqueue_historical_summary
 from app.tracker.jobs import authorized_job, enqueue, finish, reschedule
 from app.tracker.linking import enqueue_role_refinements
-from app.tracker.materialization import materialize_snapshot
+from app.tracker.materialization import _match_payload, materialize_snapshot
 from app.tracker.normalization import InvalidEvidence, replay_available, stratz_summary
 from app.tracker.provider_control import ProviderDeferred, ProviderGate
 from app.tracker.provider_transport import ControlledTransport
@@ -34,6 +35,27 @@ from app.tracker.schema import (
     snapshots,
     users,
 )
+
+
+def _only_minute_damage_added(previous: dict[str, Any], current: dict[str, Any]) -> bool:
+    """Guard graph-only late enrichment from changing established match facts."""
+    before, after = deepcopy(previous), deepcopy(current)
+    old_players, new_players = before.get("players"), after.get("players")
+    if not isinstance(old_players, list) or not isinstance(new_players, list) or len(old_players) != len(new_players):
+        return False
+    added = False
+    for old, new in zip(old_players, new_players, strict=True):
+        if not isinstance(old, dict) or not isinstance(new, dict):
+            return False
+        old_stats, new_stats = old.get("stats"), new.get("stats")
+        if not isinstance(old_stats, dict) or not isinstance(new_stats, dict):
+            return False
+        earlier = old_stats.pop("heroDamagePerMinute", None)
+        latest = new_stats.pop("heroDamagePerMinute", None)
+        if earlier is not None or (latest is not None and not isinstance(latest, list)):
+            return False
+        added |= isinstance(latest, list) and bool(latest)
+    return added and canonical_json(before) == canonical_json(after)
 
 
 def enqueue_historical_batch(connection: Connection, *, profile_id: str, match_ids: list[int], origin: str) -> str:
@@ -70,7 +92,7 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
     ).where(profiles.c.id == profile_id, profiles.c.active.is_(True), users.c.state == "ACTIVE")).mappings().one()
     source = connection.execute(select(snapshots).where(snapshots.c.id == snapshot_id)).mappings().one()
     if (source["provider"] != "stratz" or source["operation"] != GET_TRACKER_MATCH_BATCH.name
-        or source["operation_version"] not in {"1.0.0", "1.1.0", "1.2.0", "1.3.0", GET_TRACKER_MATCH_BATCH.version}
+        or source["operation_version"] not in {"1.0.0", "1.1.0", "1.2.0", "1.3.0", "1.4.0", GET_TRACKER_MATCH_BATCH.version}
             or source["schema_version"] != "raw-1"):
         raise InvalidEvidence("Unsupported historical snapshot")
     payload = source["payload"]
@@ -102,6 +124,18 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
                 roster = [p for p in summary["players"] if p["account_id"] == owner["account_id"]]
                 if len(roster) != 1:
                     raise InvalidEvidence("Historical match does not establish tracked roster membership")
+                earlier = connection.execute(select(acquisitions.c.snapshot_id, acquisitions.c.state).where(
+                    acquisitions.c.match_id == match_id, acquisitions.c.provider == "stratz",
+                    acquisitions.c.operation == GET_TRACKER_MATCH_BATCH.name,
+                )).one_or_none()
+                graph_enrichment = False
+                if (earlier is not None and earlier.state == "REPLAY_READY"
+                        and earlier.snapshot_id is not None and earlier.snapshot_id != snapshot_id):
+                    prior = connection.execute(select(snapshots).where(
+                        snapshots.c.id == earlier.snapshot_id,
+                    )).mappings().one()
+                    previous = _match_payload(dict(prior), match_id)
+                    graph_enrichment = _only_minute_damage_added(dict(previous), row)
                 projected = materialize_snapshot(connection, snapshot_id=snapshot_id, match_id=match_id)
                 match = connection.execute(select(matches).where(matches.c.match_id == match_id).with_for_update()).mappings().one()
                 slot = roster[0]["player_slot"]
@@ -136,8 +170,12 @@ def materialize_historical_batch(connection: Connection, *, snapshot_id: str, pr
                     match_id=match_id, provider="stratz", operation=GET_TRACKER_MATCH_BATCH.name, **acquired,
                 ).on_conflict_do_update(
                     index_elements=[acquisitions.c.match_id, acquisitions.c.provider, acquisitions.c.operation],
-                    set_=acquired, where=acquisitions.c.state != "REPLAY_READY",
+                    set_=acquired, where=true() if graph_enrichment else acquisitions.c.state != "REPLAY_READY",
                 ))
+                if graph_enrichment:
+                    from app.tracker.rebuild import enqueue_readmissions
+
+                    enqueue_readmissions(connection, match_id)
                 enqueue(connection, dedup_key=f"link:{profile_id}:{owner['generation']}:{owner['user_generation']}:{match_id}:{origin}",
                         job_type="LINK_MATCH", priority=3, payload={"origin": origin}, match_id=match_id, profile_id=profile_id)
                 results[match_id] = "REPLAY_READY" if parsed else "SUMMARY_ONLY"

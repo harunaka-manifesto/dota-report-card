@@ -138,10 +138,58 @@ is the viewer's own best-qualifying purchase (population or previous-best), and 
 is the best-qualifying population purchase among enemy positions 1–3. See
 [`ITEM-TIMINGS-V1.md`](../match_detail/ITEM-TIMINGS-V1.md) for full card-eligibility rules.
 
-The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1` and `offlane-context-v2` contract versions.
+The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1`, `offlane-context-v2`, and `carry-context-v1` contract versions.
 
 Server-to-server routes (`/store/app-store/notifications`) and the operations readout
 (`/internal/tracker`) are separate applications without a mobile OpenAPI entry.
+
+## Match Detail: Carry graphs
+
+`GET /mobile/v1/matches/{match_ref}` includes `carry_context` for the effective Carry role and
+`null` for other roles. It is frozen in the analysis and provider-free on read. The viewer's
+item markers are the existing `item_timings.items`; the block adds enemy key-item markers.
+
+```text
+CarryContextView
+  contract_version: "carry-context-v1"
+  enemy_carry_hero_id: integer | null
+  net_worth: OfflanePanelView
+  hero_damage: OfflanePanelView
+  enemy_key_items: CarryItemMarkersView
+  you_kills: CarryKillsView
+  enemy_carry_kills: CarryKillsView
+
+OfflanePanelView.points[]
+  time_seconds: integer       // exact complete minute, 0, 60, ...
+  you: integer
+  enemy_carry: integer
+  difference: integer         // you - enemy_carry
+
+CarryItemMarkersView
+  state: AVAILABLE | PENDING | UNAVAILABLE
+  reason: string | null
+  items: {item_id, item_key, item_name, purchase_time_seconds, key_item_order}[]
+
+CarryKillsView
+  state: AVAILABLE | PENDING | UNAVAILABLE
+  reason: string | null
+  events: {time_seconds: integer}[]
+```
+
+Net worth is an exact checkpoint; hero damage is cumulative since 0:00, including lane harass.
+Only complete-minute samples appear. Each panel and annotation stream has its own state; an
+empty available stream means zero observed events. An unambiguous enemy Carry is required.
+Missing samples are omitted, never interpolated. The client retains its own selected time
+across tabs and shows the latest measured value with its actual sample timestamp.
+Before finalization, all five streams are `PENDING`. A terminal unavailable match reports
+`MATCH_UNAVAILABLE` or `MATCH_ACTION_REQUIRED`; an older analysis reports
+`ANALYSIS_VERSION`. With a current analysis, reasons are `CARRY_UNCLEAR`,
+`SOURCE_DISAGREEMENT`, `TRAJECTORY_UNAVAILABLE`, `ITEMS_UNAVAILABLE`, and
+`KILLS_UNAVAILABLE`. A valid empty item or kill stream is `AVAILABLE` with `[]`.
+Raw snapshot IDs, provider, query version, translation version, and digest stay in
+the stored feature and analysis provenance. The public block exposes only its
+contract version. Existing historical snapshots remain valid, but missing minute
+damage stays unavailable until a newly retained source is deliberately processed.
 
 ## Swift code generation
 

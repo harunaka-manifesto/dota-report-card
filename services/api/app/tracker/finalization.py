@@ -9,6 +9,7 @@ from uuid import uuid4
 from sqlalchemy import Connection, Engine, and_, delete, func, or_, select, true, update
 from sqlalchemy.dialects.postgresql import insert
 
+from .carry_context import evaluate as evaluate_carry_context
 from .context import METRIC_CLASS, ContextInput, DraftPlayer, evaluate
 from .eligibility import classify
 from .evidence import canonical_json
@@ -48,7 +49,7 @@ from .schema import (
 )
 from .scope import entitled as entitled_history
 
-ANALYSIS_VERSION = "tracker-analysis-4"
+ANALYSIS_VERSION = "tracker-analysis-5"
 
 
 def enqueue_finalization(connection: Connection, *, profile_id: str, match_id: int) -> str:
@@ -293,22 +294,28 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
     position_map = _positions(connection, link)
     integrity = player.get("integrity", {}).get("verdict")
     quarantined = match["quarantined_fields"] or []
-    fight_raw = None
-    if link["effective_role"] == "OFFLANE" and match["evidence_state"] == "REPLAY_READY":
-        fight_snapshot = connection.execute(select(snapshots).where(
+    context_raw = None
+    context_provider = None
+    if link["effective_role"] in {"OFFLANE", "CARRY"} and match["evidence_state"] == "REPLAY_READY":
+        context_snapshot = connection.execute(select(snapshots).where(
             snapshots.c.id == snapshot_ids[0],
         )).mappings().one()
-        if fight_snapshot["provider"] == "opendota":
-            try:
-                fight_raw = _match_payload(dict(fight_snapshot), match["match_id"])
-            except (KeyError, TypeError, ValueError):
-                pass
+        try:
+            context_raw = _match_payload(dict(context_snapshot), match["match_id"])
+            context_provider = context_snapshot["provider"]
+        except (KeyError, TypeError, ValueError):
+            pass
     offlane_context = evaluate_offlane_context(
         features, viewer=link["player_slot"], positions=position_map,
         duration=match["duration_seconds"], quarantined=quarantined,
-        fights=evaluate_fights(fight_raw, viewer=link["player_slot"],
+        fights=evaluate_fights(context_raw if context_provider == "opendota" else None, viewer=link["player_slot"],
                                duration=match["duration_seconds"], quarantined=quarantined),
     ) if link["effective_role"] == "OFFLANE" else None
+    carry_context = evaluate_carry_context(
+        features, viewer=link["player_slot"], positions=position_map,
+        duration=match["duration_seconds"], quarantined=quarantined,
+        raw=context_raw, provider=context_provider,
+    ) if link["effective_role"] == "CARRY" else None
     if any(path in {"duration_seconds", "mode", "game_mode", "lobby_type"} or
            (isinstance(path, str) and path.endswith(".leaver_status")) for path in quarantined):
         integrity = "UNKNOWN"
@@ -399,6 +406,7 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         "insight_result": insight,
         "item_timings": item_timings,
         "offlane_context": offlane_context,
+        "carry_context": carry_context,
         "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
         "lane_context": lane_context,
     })).hexdigest()
@@ -406,7 +414,7 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
             "pb_rows": pb_rows, "inputs_digest": inputs_digest,
             "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
             "lane_context": lane_context, "item_timings": item_timings,
-            "offlane_context": offlane_context}
+            "offlane_context": offlane_context, "carry_context": carry_context}
 
 
 def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
@@ -416,6 +424,7 @@ def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
             "item_reference_digest": built["insight"].get("item_reference_digest"),
             "item_timings": built["item_timings"],
             "offlane_context": built["offlane_context"],
+            "carry_context": built["carry_context"],
             "parameter_set_version": built["parameter_set_version"],
             "lane_context": built["lane_context"]}
 

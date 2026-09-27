@@ -1,12 +1,29 @@
+from copy import deepcopy
 from datetime import UTC, datetime
 
 import httpx
 import pytest
 from app.stratz.queries import GET_TRACKER_MATCH_BATCH
 from app.tracker.evidence import save_snapshot
-from app.tracker.historical import materialize_historical_batch
+from app.tracker.finalization import complete_finalization_job, enqueue_finalization
+from app.tracker.historical import _only_minute_damage_added, materialize_historical_batch
+from app.tracker.jobs import claim
 from app.tracker.normalization import InvalidEvidence
-from app.tracker.schema import acquisitions, derived_features, ingest_jobs, match_players, matches
+from app.tracker.rebuild import readmit
+from app.tracker.role_correction import correct_role
+from app.tracker.schema import (
+    account_matches,
+    acquisitions,
+    analyses,
+    derived_features,
+    events,
+    ingest_jobs,
+    insight_results,
+    match_players,
+    matches,
+    metric_observations,
+    notification_outbox,
+)
 from sqlalchemy import func, select
 
 from .test_materialization import MATCH_ID, raw
@@ -18,6 +35,78 @@ def batch_snapshot(connection, rows):
         operation_version=GET_TRACKER_MATCH_BATCH.version, schema_version='raw-1',
         subject='batch:test', fetched_at=datetime.now(UTC),
         payload={'data': {'player': {'matches': rows}}})
+
+
+def test_late_damage_guard_accepts_only_new_minute_damage():
+    current = raw('stratz')
+    previous = deepcopy(current)
+    for player in previous['players']:
+        player['stats'].pop('heroDamagePerMinute', None)
+    assert _only_minute_damage_added(previous, current)
+    current['players'][0]['kills'] += 1
+    assert not _only_minute_damage_added(previous, current)
+
+
+def test_late_damage_enrichment_rebuilds_graph_without_changing_metrics_or_cards(database):
+    _, profile_id = identity(database)
+    current = raw('stratz')
+    current['players'][0]['steamAccountId'] = 1001
+    previous = deepcopy(current)
+    for player in previous['players']:
+        player['stats'].pop('heroDamagePerMinute', None)
+    with database.begin() as connection:
+        old_id = save_snapshot(connection, provider='stratz', operation=GET_TRACKER_MATCH_BATCH.name,
+            operation_version='1.4.0', schema_version='raw-1', subject='batch:old',
+            fetched_at=datetime.now(UTC), payload={'data': {'player': {'matches': [previous]}}})
+        assert materialize_historical_batch(connection, snapshot_id=old_id, profile_id=profile_id,
+            requested_ids=[MATCH_ID], origin='BOOTSTRAP') == {MATCH_ID: 'REPLAY_READY'}
+        match = connection.execute(select(matches).where(matches.c.match_id == MATCH_ID)).mappings().one()
+        connection.execute(account_matches.insert().values(
+            profile_id=profile_id, match_id=MATCH_ID, account_id=1001, player_slot=0,
+            lifecycle='ANALYZING', mode=match['mode'], effective_role='CARRY',
+            provider_started_at=match['started_at'], provider_source_match_id=MATCH_ID,
+            origin='LIVE', role_assignment=match['replay_role_assignment']))
+        enqueue_finalization(connection, profile_id=profile_id, match_id=MATCH_ID)
+        job = claim(connection, priority=0)
+    assert job is not None
+    assert complete_finalization_job(database, job_id=job['id'], lease_token=job['lease_token']) == 'READY'
+    with database.begin() as connection:
+        link = connection.execute(select(account_matches)).mappings().one()
+        if link['effective_role'] != 'CARRY':
+            correct_role(connection, profile_id=profile_id, match_id=MATCH_ID,
+                         role='CARRY', expected_role_revision=link['role_revision'])
+    with database.connect() as connection:
+        link = connection.execute(select(account_matches)).mappings().one()
+        before = connection.scalar(select(analyses.c.result).where(analyses.c.id == link['active_analysis_id']))
+        assert before['carry_context']['hero_damage']['state'] == 'UNAVAILABLE'
+        metric_before = connection.execute(select(metric_observations.c.metric_id,
+            metric_observations.c.raw_value, metric_observations.c.unavailable_reason).where(
+            metric_observations.c.analysis_id == link['active_analysis_id']).order_by(metric_observations.c.metric_id)).all()
+        cards_before = connection.scalar(select(insight_results.c.cards).where(
+            insight_results.c.analysis_id == link['active_analysis_id']))
+        event_count = connection.scalar(select(func.count()).select_from(events))
+        notification_count = connection.scalar(select(func.count()).select_from(notification_outbox))
+    with database.begin() as connection:
+        new_id = batch_snapshot(connection, [current])
+        materialize_historical_batch(connection, snapshot_id=new_id, profile_id=profile_id,
+            requested_ids=[MATCH_ID], origin='HISTORICAL')
+        assert connection.scalar(select(acquisitions.c.snapshot_id).where(
+            acquisitions.c.match_id == MATCH_ID)) == new_id
+        assert connection.scalar(select(func.count()).select_from(ingest_jobs).where(
+            ingest_jobs.c.job_type == 'READMIT')) == 1
+        assert readmit(connection, profile_id=profile_id, match_id=MATCH_ID) == 'READMITTED'
+    with database.connect() as connection:
+        link = connection.execute(select(account_matches)).mappings().one()
+        after = connection.scalar(select(analyses.c.result).where(analyses.c.id == link['active_analysis_id']))
+        assert after['carry_context']['hero_damage']['state'] == 'AVAILABLE'
+        metric_after = connection.execute(select(metric_observations.c.metric_id,
+            metric_observations.c.raw_value, metric_observations.c.unavailable_reason).where(
+            metric_observations.c.analysis_id == link['active_analysis_id']).order_by(metric_observations.c.metric_id)).all()
+        assert metric_after == metric_before
+        assert connection.scalar(select(insight_results.c.cards).where(
+            insight_results.c.analysis_id == link['active_analysis_id'])) == cards_before
+        assert connection.scalar(select(func.count()).select_from(events)) == event_count
+        assert connection.scalar(select(func.count()).select_from(notification_outbox)) == notification_count
 
 
 def test_retained_batch_materializes_replay_links_and_source_absence_once(database):
