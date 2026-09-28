@@ -2,6 +2,12 @@
 
 **Decision: keep public Role Mastery gated pending parameter approval.** Eight-week population acquisition and opponent coverage succeeded. Retained ten-player data measures all 16 metrics, but its tracked-account sampling frame and the unresolved calibration choices do not yet support an owner-approved context parameter artifact. Missing hero-specific levels use a zero adjustment; they do not block the artifact. This study publishes no parameter set or awards.
 
+## Owner review guide
+
+This is the document to review for the **evidence and calibration direction**. The key question is whether the retained, tracked-account ten-player sample is an acceptable source for provisional population scales, or whether an independently sampled validation cohort is required before approving them. The [reuse audit below](#retained-corpus-reuse-audit--2026-09-28) gives all 16 measured scales and their sample counts. The [slope check](#slope-check) explains the separate role-slope decision.
+
+**This is not a final parameter artifact to approve.** The per-metric threshold (`tau`), near-floor tolerance, accepted population scales and maximum slope drift have not been bound to reviewed values. No approval of public mastery is requested from this study alone. Once those choices are documented in a versioned candidate artifact with validation results, that artifact is the final sign-off item.
+
 ## Acquisition and provenance
 
 - The pre-existing private STRATZ corpus had tracked-player histories and deep responses, but no retained `heroStats.stats` or `heroStats.laneOutcome` population aggregate for the required window.
@@ -86,6 +92,27 @@ The 61 calls close the *missing replay-field* question, but do not close the *pa
 The private `.local` corpus is substantial but has different evidence depths. The V7 deep corpus holds about **104,823 distinct matches** over a year; its tracked viewer has replay detail, while other participants generally have summary fields. The derived OpenDota history has **422,161 player rows**, but no ten-player replay. Private STRATZ probe caches include ten-player responses. Replaying recent Standard responses through the production tracker translators and `measure` function, and deduplicating against the 61-call sample, yields **757 distinct ten-player matches**: **1,514 observations per core role** and **3,028 support-position observations**. Every active metric has valid measurements, generally at least 1,450 core or 2,980 support values after evidence checks. These are provisional distributions from a tracked-account selection frame, not approved population scales. Private source files and identifiers remain uncommitted.
 
 **Additional provider calls needed to construct an offline 16-metric candidate: 0.** Existing aggregate responses and retained ten-player matches cover the required fields. A separate, independently sampled population check could improve confidence; its call count depends on the sampling frame and is not a prerequisite imposed by the 300-match hero-level threshold. Additional calls against the same tracked-account frame would add volume without removing that selection concern.
+
+The following are sample standard deviations of **valid comparison values**, deduplicated by match and participant. They are candidates for `sigma_pop`, not approved values. The count is smaller than the eligible count when the production metric correctly returns unavailable. Signed lane-advantage values retain their native gold units; shares and presence are fractions from 0 to 1.
+
+| Metric | Valid observations | Provisional standard deviation |
+|---|---:|---:|
+| `carry.hero_damage_share.v1` | 1,514 | 0.0851 |
+| `carry.last_hits_at_10.v1` | 1,514 | 12.4208 |
+| `carry.net_worth_at_20.v1` | 1,492 | 1,854.5177 |
+| `carry.tower_damage_share.v1` | 1,492 | 0.2528 |
+| `mid.early_fight_presence.v1` | 1,508 | 0.2112 |
+| `mid.lane_net_worth_advantage_at_10.v1` | 1,514 | 1,211.0468 |
+| `mid.net_worth_at_20.v1` | 1,492 | 1,887.9295 |
+| `mid.tower_damage_share.v1` | 1,492 | 0.2370 |
+| `offlane.fight_presence.v1` | 1,512 | 0.1424 |
+| `offlane.lane_net_worth_advantage_at_10.v1` | 1,514 | 1,119.9972 |
+| `offlane.net_worth_at_10.v1` | 1,514 | 681.7232 |
+| `offlane.objective_involvement.v1` | 1,452 | 0.2517 |
+| `support.camps_stacked.v1` | 2,984 | 1.4943 |
+| `support.fight_presence.v1` | 3,020 | 0.1468 |
+| `support.observer_wards_placed.v1` | 3,028 | 1.0024 |
+| `support.vision_denial.v1` | 3,028 | 0.9749 |
 
 ## Owner decision and next data work
 
