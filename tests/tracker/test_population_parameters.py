@@ -59,11 +59,12 @@ def build_input(*, opponent_coverage: bool = True, slope_shift: float = 0) -> Bu
 
 
 def test_build_uses_documented_effect_formula_and_locks_population_parameters() -> None:
-    artifact = build_artifact(build_input())
+    artifact = build_artifact(build_input(slope_shift=0.01))
 
     assert artifact["opponent_effects"]["1:10"] == -5
     assert artifact["opponent_effects"]["1:11"] == 5
     assert artifact["role_slopes"] == pytest.approx(SLOPES)
+    assert artifact["measured_role_slopes"] == pytest.approx({role: slope + 0.01 for role, slope in SLOPES.items()})
     assert artifact["opponent_coverage"] == {"CARRY": 1, "MID": 1, "OFFLANE": 1}
     assert artifact["lane_thresholds"]["Carry"] == [-2.05, 1.52]
     assert artifact["schema_version"] == "tracker-context-parameters-v2"

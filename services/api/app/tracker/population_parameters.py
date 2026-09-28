@@ -217,8 +217,8 @@ def build_artifact(data: BuildInput) -> dict[str, object]:
     coverage = _coverage(data, opponent_effects)
     if min(coverage.values()) < MIN_COVERAGE:
         raise ValueError(f"opponent coverage below {MIN_COVERAGE:.0%}: {coverage}")
-    role_slopes = _fit_role_slopes(data, opponent_effects)
-    drift = {role: abs(role_slopes[role] - data.reference_role_slopes[role]) for role in ROLE_NAMES}
+    measured_slopes = _fit_role_slopes(data, opponent_effects)
+    drift = {role: abs(measured_slopes[role] - data.reference_role_slopes[role]) for role in ROLE_NAMES}
     if max(drift.values()) > data.maximum_slope_drift:
         raise ValueError(f"csCount role-slope drift exceeds approved bound: {drift}")
 
@@ -251,7 +251,8 @@ def build_artifact(data: BuildInput) -> dict[str, object]:
         "opponent_match_counts": {f"{position}:{hero_id}": count
                                   for (position, hero_id), count in sorted(opponent_counts.items())},
         "opponent_coverage": coverage,
-        "role_slopes": role_slopes,
+        "role_slopes": dict(data.reference_role_slopes),
+        "measured_role_slopes": measured_slopes,
         "reference_role_slopes": dict(data.reference_role_slopes),
         "maximum_slope_drift": data.maximum_slope_drift,
         "slope_drift": drift,
