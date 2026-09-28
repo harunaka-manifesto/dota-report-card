@@ -1,5 +1,7 @@
 # Role Mastery backend and calibration handoff — 2026-09-28
 
+**Closed 2026-09-28:** the owner approved `context-2026-09-v1` and Role Mastery is on (migration `0017`, forward-only refresh per major patch). The current truth is the [Role Mastery SSOT](../role_mastery/SSOT.md), foundation §10.8 and the [ledger](IMPLEMENTATION-LEDGER.md). This note is history.
+
 **Update 2026-09-28 (later):** The owner removed the lane-opponent adjustment for every role (see "Resolved: no lane-opponent adjustment" below). Code and docs now follow `context-adjustment-v3`. Sections below are updated accordingly; where anything conflicts, foundation §10 wins.
 
 **Status:** The backend MVP is implemented on `codex/role-mastery`; public Role Mastery is still held at `CALIBRATION_PENDING`. The owner is pausing this work and will resume later. This is a continuation note, not product truth or parameter approval. Read the [Role Mastery SSOT](../role_mastery/SSOT.md), [foundation SSOT](../app_foundation/SSOT.md), [implementation ledger](IMPLEMENTATION-LEDGER.md), and [calibration evidence](evidence/role-mastery-parameter-feasibility-2026-09-27.md) for their respective authority.

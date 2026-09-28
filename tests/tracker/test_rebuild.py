@@ -170,7 +170,7 @@ def _test_parameters(version: str) -> ParameterSet:
     )
 
 
-def test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects(database, monkeypatch):
+def test_first_parameter_set_grades_ungraded_history_once_and_later_sets_are_forward_only(database, monkeypatch):
     _, profile_id = identity(database)
     standard = []
     for index in range(7):
@@ -212,6 +212,37 @@ def test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effe
         assert _counts(connection) == rebuilt
         # Insight cards never read context terms or lane labels (match detail §10.9).
         assert _cards(connection, standard[-1]) == cards_before
+
+    # Parameter sets are forward-only: a newer set never re-grades graded matches.
+    newer = _test_parameters("test-only-context-v2")
+    with database.begin() as connection:
+        connection.execute(parameter_sets.insert().values(
+            version=newer.version, kind="CONTEXT_POPULATION", digest="2" * 64, status="TEST_ONLY",
+            parameters={"test_only": True}, provenance={"fixture": "test-only"}, created_at=func.now()))
+    monkeypatch.setattr(finalization, "current_context_parameters", lambda connection: newer)
+    monkeypatch.setattr(rebuild, "current_context_parameters", lambda connection: newer)
+    with database.begin() as connection:
+        assert run_methodology_rebuild(connection, profile_id=profile_id) == 0
+    with database.connect() as connection:
+        assert _observation(connection, profile_id, standard[-1], CONTEXT_METRIC)["parameter_set_version"] == parameters.version
+    later = add_match(database, profile_id, index=40, role="CARRY", keep_role=True)
+    assert finalize(database, profile_id, later) == "READY"
+    with database.connect() as connection:
+        fresh = _observation(connection, profile_id, later, CONTEXT_METRIC)
+        assert fresh["parameter_set_version"] == newer.version
+        # Priors graded under the older set still feed the window-relative hero term.
+        assert fresh["context_h"] == 40.0
+
+    # A later methodology replay re-grades each match with the set it was first graded with.
+    sets = {parameters.version: parameters, newer.version: newer}
+    monkeypatch.setattr(finalization, "context_parameters_for_version", lambda connection, version: sets.get(version))
+    monkeypatch.setattr(finalization, "ANALYSIS_VERSION", "tracker-analysis-test-bump")
+    monkeypatch.setattr(rebuild, "ANALYSIS_VERSION", "tracker-analysis-test-bump")
+    with database.begin() as connection:
+        assert run_methodology_rebuild(connection, profile_id=profile_id) > 0
+    with database.connect() as connection:
+        assert _observation(connection, profile_id, standard[-1], CONTEXT_METRIC)["parameter_set_version"] == parameters.version
+        assert _observation(connection, profile_id, later, CONTEXT_METRIC)["parameter_set_version"] == newer.version
 
 
 def test_profile_checkpoint_serves_fallback_identity_and_withholds_uncalibrated_claims(database):

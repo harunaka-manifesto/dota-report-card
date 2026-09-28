@@ -83,7 +83,7 @@ All remain open; no product choices are inferred from missing UI content.
 | Item | Options | Recommended implementation while open |
 |---|---|---|
 | Trend thresholds | Approve calibration artifact / defer labels | Nullable uncalibrated state with reason, no invented fifth trend |
-| Role Mastery performance parameters | Approve artifact / keep mastery unavailable | `CALIBRATION_PENDING`; no provisional awards, public enablement, or provider calls for backfill |
+| Role Mastery performance parameters | **Resolved 2026-09-28:** `context-2026-09-v1` approved and registered by migration `0017`; forward-only refresh after each major patch | Databases below `0017` stay `CALIBRATION_PENDING` |
 | Role weights and confidence | Approve existing provisional values / calibrate | Version provisional configuration |
 | Today’s Focus | Define content / omit | Honest absent slot |
 | Challenges and achievements | Contract mechanics / defer | Unavailable slot; no invented mechanics. Role Mastery XP is separately specified. |
@@ -1239,3 +1239,11 @@ No player identifiers appear in the review, the artifact, or this ledger entry.
 - `ANALYSIS_VERSION` stays `tracker-analysis-7`: no approved parameter set has ever been registered, so every persisted analysis already had zero adjustment, null `context_e` and `NOT_READY` performance. Outputs are unchanged.
 - The private candidate `candidate-context-parameters-v2.json` is obsolete (it carries `lane_scale`) and must be rebuilt under schema v3 before review. Remaining open owner items: near-floor tolerance, the badge's opponent check method and drift limit, then sign-off on one immutable v3 artifact.
 - Docs aligned: foundation §10/§20, Role Mastery, Match Detail, design requirements, Progress, the context annex's "Current overrides" banner, the calibration evidence, the handoff, and the superseded backend goal prompt (flagged for its 20-metric wording).
+
+### Role Mastery on: approved parameter set and forward-only refresh (2026-09-28)
+
+- Owner sign-off on `context-2026-09-v1` (embedded digest `c3333c8223778ba3cefd06bcd10d146bb6d649c0a379951865f85e2715bb5707`): STRATZ aggregates 2026-07-30 → 2026-09-24, 16 metric spreads from 757 retained ten-player matches, `tau = 0.35`, 5%-of-spread floor tolerance for class B, hero levels for the six last-hit/net-worth metrics, badge-only lane data (multipliers 0.748 / 0.778 / 0.722, full-year drift 0.090 / 0.073 / 0.045 within 0.10, 100% opponent coverage). The file is `migrations/data/context-2026-09-v1.json`; it holds aggregates only, no player or match identifiers.
+- Migration `0017_tracker_context_2026_09` verifies the digest and inserts the set as `APPROVED`; `EXPECTED_SCHEMA_REVISION` follows. A database at head serves Role Mastery. Tests default to uncalibrated (`database` fixture removes the row); `migrated_database` is the exact upgrade result.
+- Owner decision: earned XP and past verdicts never change by themselves. Parameter sets are forward-only: `rebuild.stale_analysis` no longer treats a different set as stale (only never-graded analyses), and `finalization._grading_parameters` re-grades any rebuilt match with the set it was first graded with. Window priors read hero terms from any approved set. Refresh cadence: each major patch ([runbook](../operations/README.md#context-parameter-refresh-each-major-patch)).
+- Robustness evidence for the hero averages: every hero ≥ 572 matches (median ≈ 17k) per stat; first-4-weeks vs last-4-weeks correlation 0.998; median shift 53 gold (NW@20) against a 1,143-gold spread between heroes. Not yet measured: whether "Above" rates come out even across heroes on stored histories.
+- Tests: `tests/tracker/test_approved_parameters.py`; `test_rebuild.py::test_first_parameter_set_grades_ungraded_history_once_and_later_sets_are_forward_only`.

@@ -86,7 +86,7 @@
    "rule": "**Canonical methodology is singular.** One methodology at a time. Approved migrations rebuild compatible retained history deterministically; old and new math never coexist in one canonical timeline.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects",
+    "tests/tracker/test_rebuild.py::test_first_parameter_set_grades_ungraded_history_once_and_later_sets_are_forward_only",
     "tests/tracker/test_history.py::test_database_prior_selection_respects_entitlement_and_active_finalization",
     "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses"
    ],
@@ -1382,7 +1382,7 @@
    "rule": "Insight cards never read lane context, adjustments or the adjusted expectation.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects"
+    "tests/tracker/test_rebuild.py::test_first_parameter_set_grades_ungraded_history_once_and_later_sets_are_forward_only"
    ],
    "note": "Insight cards are byte-identical before and after a context parameter-set rebuild."
   },
@@ -2760,7 +2760,7 @@
    "rule": "Rebuilds read stored data only and make no provider calls.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects",
+    "tests/tracker/test_rebuild.py::test_first_parameter_set_grades_ungraded_history_once_and_later_sets_are_forward_only",
     "tests/tracker/test_rebuild.py::test_scope_rebuild_expands_contracts_and_reuses_identical_analyses",
     "tests/tracker/test_mobile_api.py::test_mobile_role_edit_is_scoped_idempotent_and_source_backed"
    ],
@@ -2899,7 +2899,7 @@
    "status": "covered",
    "tests": [
     "tests/tracker/test_contract_rules_more.py::test_baseline_version_bump_rebuilds_once_and_a_failed_migration_keeps_prior_state",
-    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects"
+    "tests/tracker/test_rebuild.py::test_first_parameter_set_grades_ungraded_history_once_and_later_sets_are_forward_only"
    ],
    "note": "Baseline-version bump rebuilds once then no-ops; a failed replay rolls back to the previous coherent pointers."
   },
@@ -2971,7 +2971,7 @@
    "status": "covered",
    "tests": [
     "tests/tracker/test_contract_rules_more.py::test_baseline_version_bump_rebuilds_once_and_a_failed_migration_keeps_prior_state",
-    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects"
+    "tests/tracker/test_rebuild.py::test_first_parameter_set_grades_ungraded_history_once_and_later_sets_are_forward_only"
    ],
    "note": "Baseline-version bump rebuilds once then no-ops; a failed replay rolls back to the previous coherent pointers."
   },
@@ -3092,7 +3092,7 @@
    "rule": "After a migration, no series shows mixed methodology.",
    "status": "covered",
    "tests": [
-    "tests/tracker/test_rebuild.py::test_parameter_set_change_replays_smallest_bucket_closure_twice_without_effects",
+    "tests/tracker/test_rebuild.py::test_first_parameter_set_grades_ungraded_history_once_and_later_sets_are_forward_only",
     "tests/tracker/test_history.py::test_database_prior_selection_respects_entitlement_and_active_finalization"
    ],
    "note": "All stale Standard analyses rebuilt, rerun finds none stale; priors never mix analysis versions."

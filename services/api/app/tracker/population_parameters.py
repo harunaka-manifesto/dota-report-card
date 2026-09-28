@@ -374,6 +374,20 @@ def register_parameter_artifact(connection: Connection, artifact: Mapping[str, o
     return version
 
 
+def context_parameters_for_version(connection: Connection, version: str) -> ParameterSet | None:
+    """One active artifact by version, or None when it is absent, inactive or unreadable."""
+    row = connection.execute(select(parameter_sets.c.parameters).where(
+        parameter_sets.c.kind == CONTEXT_PARAMETER_KIND, parameter_sets.c.version == version,
+        parameter_sets.c.status.in_(ACTIVE_PARAMETER_STATUSES),
+    )).scalar_one_or_none()
+    if row is None:
+        return None
+    try:
+        return parameter_set_from_artifact(row)
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def current_context_parameters(connection: Connection) -> ParameterSet | None:
     """The newest active artifact, or None: adjustment then degrades to zero."""
     row = connection.execute(select(parameter_sets.c.parameters).where(

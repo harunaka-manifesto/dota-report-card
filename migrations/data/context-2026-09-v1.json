@@ -1,0 +1,4481 @@
+{
+  "hero_levels": {
+    "100:1:carry.last_hits_at_10.v1": {
+      "match_count": 6880,
+      "value": 27.986947674418605
+    },
+    "100:1:carry.net_worth_at_20.v1": {
+      "match_count": 6864,
+      "value": 6740.420403554778
+    },
+    "100:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6880,
+      "value": 2992.6360610465117
+    },
+    "100:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 61115,
+      "value": 3291.801909678475
+    },
+    "100:2:mid.net_worth_at_20.v1": {
+      "match_count": 61039,
+      "value": 7359.869613525778
+    },
+    "100:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 102686,
+      "value": 3001.8712869329806
+    },
+    "100:3:offlane.net_worth_at_10.v1": {
+      "match_count": 102686,
+      "value": 3001.8712869329806
+    },
+    "101:1:carry.last_hits_at_10.v1": {
+      "match_count": 3715,
+      "value": 17.781542395693137
+    },
+    "101:1:carry.net_worth_at_20.v1": {
+      "match_count": 3674,
+      "value": 5564.228859553619
+    },
+    "101:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 3715,
+      "value": 2499.7923095558544
+    },
+    "101:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 301892,
+      "value": 3145.2603067322093
+    },
+    "101:2:mid.net_worth_at_20.v1": {
+      "match_count": 301692,
+      "value": 7040.6813190936455
+    },
+    "101:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13092,
+      "value": 2646.0699595172623
+    },
+    "101:3:offlane.net_worth_at_10.v1": {
+      "match_count": 13092,
+      "value": 2646.0699595172623
+    },
+    "102:1:carry.last_hits_at_10.v1": {
+      "match_count": 38539,
+      "value": 36.4852222424038
+    },
+    "102:1:carry.net_worth_at_20.v1": {
+      "match_count": 38429,
+      "value": 7946.89902105181
+    },
+    "102:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 38539,
+      "value": 3318.3600882223204
+    },
+    "102:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6828,
+      "value": 3034.527259812537
+    },
+    "102:2:mid.net_worth_at_20.v1": {
+      "match_count": 6780,
+      "value": 7011.052610619469
+    },
+    "102:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 156244,
+      "value": 3038.5629409769335
+    },
+    "102:3:offlane.net_worth_at_10.v1": {
+      "match_count": 156244,
+      "value": 3038.5629409769335
+    },
+    "103:1:carry.last_hits_at_10.v1": {
+      "match_count": 3370,
+      "value": 31.396127596439165
+    },
+    "103:1:carry.net_worth_at_20.v1": {
+      "match_count": 3320,
+      "value": 6936.8154307228915
+    },
+    "103:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 3370,
+      "value": 3090.0094688427293
+    },
+    "103:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 4744,
+      "value": 2982.461273187184
+    },
+    "103:2:mid.net_worth_at_20.v1": {
+      "match_count": 4711,
+      "value": 6598.36879855657
+    },
+    "103:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 62422,
+      "value": 3039.092184326039
+    },
+    "103:3:offlane.net_worth_at_10.v1": {
+      "match_count": 62422,
+      "value": 3039.092184326039
+    },
+    "104:1:carry.last_hits_at_10.v1": {
+      "match_count": 78316,
+      "value": 37.183185555952804
+    },
+    "104:1:carry.net_worth_at_20.v1": {
+      "match_count": 78242,
+      "value": 7241.574910022749
+    },
+    "104:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 78316,
+      "value": 3198.0192499616937
+    },
+    "104:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 126507,
+      "value": 3226.405259708949
+    },
+    "104:2:mid.net_worth_at_20.v1": {
+      "match_count": 126366,
+      "value": 7290.671851130843
+    },
+    "104:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2177285,
+      "value": 3229.3012386067967
+    },
+    "104:3:offlane.net_worth_at_10.v1": {
+      "match_count": 2177285,
+      "value": 3229.3012386067967
+    },
+    "105:1:carry.last_hits_at_10.v1": {
+      "match_count": 6674,
+      "value": 19.416610728198986
+    },
+    "105:1:carry.net_worth_at_20.v1": {
+      "match_count": 6647,
+      "value": 5984.553279675042
+    },
+    "105:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6674,
+      "value": 2503.728596044351
+    },
+    "105:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 136902,
+      "value": 3207.211561774116
+    },
+    "105:2:mid.net_worth_at_20.v1": {
+      "match_count": 136831,
+      "value": 7733.350256009237
+    },
+    "105:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 28218,
+      "value": 2625.31701502587
+    },
+    "105:3:offlane.net_worth_at_10.v1": {
+      "match_count": 28218,
+      "value": 2625.31701502587
+    },
+    "106:1:carry.last_hits_at_10.v1": {
+      "match_count": 32400,
+      "value": 38.10462006172839
+    },
+    "106:1:carry.net_worth_at_20.v1": {
+      "match_count": 32339,
+      "value": 7841.202244967376
+    },
+    "106:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 32400,
+      "value": 3328.6173388888888
+    },
+    "106:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1349322,
+      "value": 3386.3620065040072
+    },
+    "106:2:mid.net_worth_at_20.v1": {
+      "match_count": 1347346,
+      "value": 7847.122282977052
+    },
+    "106:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 26982,
+      "value": 3123.6649214291006
+    },
+    "106:3:offlane.net_worth_at_10.v1": {
+      "match_count": 26982,
+      "value": 3123.6649214291006
+    },
+    "107:1:carry.last_hits_at_10.v1": {
+      "match_count": 3127,
+      "value": 29.669478733610486
+    },
+    "107:1:carry.net_worth_at_20.v1": {
+      "match_count": 3109,
+      "value": 6946.964654229654
+    },
+    "107:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 3127,
+      "value": 3007.5280940198268
+    },
+    "107:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 620792,
+      "value": 3336.096031456591
+    },
+    "107:2:mid.net_worth_at_20.v1": {
+      "match_count": 619948,
+      "value": 7602.853597011363
+    },
+    "107:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 190468,
+      "value": 3085.2765999537983
+    },
+    "107:3:offlane.net_worth_at_10.v1": {
+      "match_count": 190468,
+      "value": 3085.2765999537983
+    },
+    "108:1:carry.last_hits_at_10.v1": {
+      "match_count": 6630,
+      "value": 33.595600301659125
+    },
+    "108:1:carry.net_worth_at_20.v1": {
+      "match_count": 6542,
+      "value": 6933.461230510548
+    },
+    "108:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6630,
+      "value": 2954.6942383107084
+    },
+    "108:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 31276,
+      "value": 3459.971247601995
+    },
+    "108:2:mid.net_worth_at_20.v1": {
+      "match_count": 31165,
+      "value": 7813.7455392266975
+    },
+    "108:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1691531,
+      "value": 3277.405110465017
+    },
+    "108:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1691531,
+      "value": 3277.405110465017
+    },
+    "109:1:carry.last_hits_at_10.v1": {
+      "match_count": 666292,
+      "value": 43.47403665359932
+    },
+    "109:1:carry.net_worth_at_20.v1": {
+      "match_count": 665121,
+      "value": 8486.253308240153
+    },
+    "109:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 666292,
+      "value": 3318.6959116423427
+    },
+    "109:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5915,
+      "value": 3013.9797142857146
+    },
+    "109:2:mid.net_worth_at_20.v1": {
+      "match_count": 5895,
+      "value": 7341.555789652248
+    },
+    "109:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 11893,
+      "value": 2991.9870133692084
+    },
+    "109:3:offlane.net_worth_at_10.v1": {
+      "match_count": 11893,
+      "value": 2991.9870133692084
+    },
+    "10:1:carry.last_hits_at_10.v1": {
+      "match_count": 537081,
+      "value": 37.86941600987561
+    },
+    "10:1:carry.net_worth_at_20.v1": {
+      "match_count": 536314,
+      "value": 8171.8910556315905
+    },
+    "10:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 537081,
+      "value": 3299.6227956490734
+    },
+    "10:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 43171,
+      "value": 3153.5882905190983
+    },
+    "10:2:mid.net_worth_at_20.v1": {
+      "match_count": 43081,
+      "value": 7485.809035537708
+    },
+    "10:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6171,
+      "value": 2871.96361043591
+    },
+    "10:3:offlane.net_worth_at_10.v1": {
+      "match_count": 6171,
+      "value": 2871.96361043591
+    },
+    "110:1:carry.last_hits_at_10.v1": {
+      "match_count": 2136,
+      "value": 24.37301966292135
+    },
+    "110:1:carry.net_worth_at_20.v1": {
+      "match_count": 2106,
+      "value": 6461.355622032288
+    },
+    "110:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2136,
+      "value": 2716.4026685393255
+    },
+    "110:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 162002,
+      "value": 3576.4593291440847
+    },
+    "110:2:mid.net_worth_at_20.v1": {
+      "match_count": 161763,
+      "value": 8280.897081038307
+    },
+    "110:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 187136,
+      "value": 3148.5859117433306
+    },
+    "110:3:offlane.net_worth_at_10.v1": {
+      "match_count": 187136,
+      "value": 3148.5859117433306
+    },
+    "111:1:carry.last_hits_at_10.v1": {
+      "match_count": 1658,
+      "value": 18.078365500603134
+    },
+    "111:1:carry.net_worth_at_20.v1": {
+      "match_count": 1646,
+      "value": 5205.726798298907
+    },
+    "111:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1658,
+      "value": 2407.0268395657417
+    },
+    "111:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 19678,
+      "value": 3333.591954975099
+    },
+    "111:2:mid.net_worth_at_20.v1": {
+      "match_count": 19613,
+      "value": 7492.719955641666
+    },
+    "111:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2604,
+      "value": 2580.360522273426
+    },
+    "111:3:offlane.net_worth_at_10.v1": {
+      "match_count": 2604,
+      "value": 2580.360522273426
+    },
+    "112:1:carry.last_hits_at_10.v1": {
+      "match_count": 3907,
+      "value": 25.748093166112106
+    },
+    "112:1:carry.net_worth_at_20.v1": {
+      "match_count": 3894,
+      "value": 6488.449131997945
+    },
+    "112:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 3907,
+      "value": 2758.6758254415154
+    },
+    "112:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 30268,
+      "value": 3011.7018920972646
+    },
+    "112:2:mid.net_worth_at_20.v1": {
+      "match_count": 30239,
+      "value": 7094.8422064221695
+    },
+    "112:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 25890,
+      "value": 2929.195083429896
+    },
+    "112:3:offlane.net_worth_at_10.v1": {
+      "match_count": 25890,
+      "value": 2929.195083429896
+    },
+    "113:1:carry.last_hits_at_10.v1": {
+      "match_count": 32460,
+      "value": 34.706331484904496
+    },
+    "113:1:carry.net_worth_at_20.v1": {
+      "match_count": 32397,
+      "value": 9296.055900855017
+    },
+    "113:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 32460,
+      "value": 3413.1690064695003
+    },
+    "113:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 604792,
+      "value": 3485.3548601171974
+    },
+    "113:2:mid.net_worth_at_20.v1": {
+      "match_count": 603764,
+      "value": 9463.413213325073
+    },
+    "113:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5321,
+      "value": 3067.390445404999
+    },
+    "113:3:offlane.net_worth_at_10.v1": {
+      "match_count": 5321,
+      "value": 3067.390445404999
+    },
+    "114:1:carry.last_hits_at_10.v1": {
+      "match_count": 369979,
+      "value": 38.693747861365104
+    },
+    "114:1:carry.net_worth_at_20.v1": {
+      "match_count": 369580,
+      "value": 7849.042294361166
+    },
+    "114:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 369979,
+      "value": 3409.729880885131
+    },
+    "114:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 216635,
+      "value": 3380.8366427862534
+    },
+    "114:2:mid.net_worth_at_20.v1": {
+      "match_count": 216297,
+      "value": 7613.4778338580745
+    },
+    "114:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 55639,
+      "value": 3128.1618648789517
+    },
+    "114:3:offlane.net_worth_at_10.v1": {
+      "match_count": 55639,
+      "value": 3128.1618648789517
+    },
+    "119:1:carry.last_hits_at_10.v1": {
+      "match_count": 6479,
+      "value": 26.748831609816328
+    },
+    "119:1:carry.net_worth_at_20.v1": {
+      "match_count": 6452,
+      "value": 6633.989987600745
+    },
+    "119:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6479,
+      "value": 2948.4281725574933
+    },
+    "119:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 47853,
+      "value": 3212.2782979123567
+    },
+    "119:2:mid.net_worth_at_20.v1": {
+      "match_count": 47822,
+      "value": 7091.504667307934
+    },
+    "119:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 10050,
+      "value": 2725.5687303482587
+    },
+    "119:3:offlane.net_worth_at_10.v1": {
+      "match_count": 10050,
+      "value": 2725.5687303482587
+    },
+    "11:1:carry.last_hits_at_10.v1": {
+      "match_count": 1893059,
+      "value": 48.35016701539678
+    },
+    "11:1:carry.net_worth_at_20.v1": {
+      "match_count": 1889637,
+      "value": 9483.205932975487
+    },
+    "11:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1893059,
+      "value": 3741.567826940417
+    },
+    "11:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1524791,
+      "value": 3624.5693865060853
+    },
+    "11:2:mid.net_worth_at_20.v1": {
+      "match_count": 1523555,
+      "value": 8667.449670848771
+    },
+    "11:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 42760,
+      "value": 3274.9573075304024
+    },
+    "11:3:offlane.net_worth_at_10.v1": {
+      "match_count": 42760,
+      "value": 3274.9573075304024
+    },
+    "120:1:carry.last_hits_at_10.v1": {
+      "match_count": 4814,
+      "value": 33.615305359368506
+    },
+    "120:1:carry.net_worth_at_20.v1": {
+      "match_count": 4804,
+      "value": 7329.548455453789
+    },
+    "120:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 4814,
+      "value": 3040.0340361445787
+    },
+    "120:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 376553,
+      "value": 3379.493145772308
+    },
+    "120:2:mid.net_worth_at_20.v1": {
+      "match_count": 376115,
+      "value": 8099.4131175039565
+    },
+    "120:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 205931,
+      "value": 3049.795282546095
+    },
+    "120:3:offlane.net_worth_at_10.v1": {
+      "match_count": 205931,
+      "value": 3049.795282546095
+    },
+    "121:1:carry.last_hits_at_10.v1": {
+      "match_count": 2446,
+      "value": 15.813871627146362
+    },
+    "121:1:carry.net_worth_at_20.v1": {
+      "match_count": 2401,
+      "value": 4959.209366930446
+    },
+    "121:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2446,
+      "value": 2279.2306295993453
+    },
+    "121:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 21778,
+      "value": 3252.9182955275974
+    },
+    "121:2:mid.net_worth_at_20.v1": {
+      "match_count": 21729,
+      "value": 7456.9472930185475
+    },
+    "121:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6135,
+      "value": 2462.0076153219234
+    },
+    "121:3:offlane.net_worth_at_10.v1": {
+      "match_count": 6135,
+      "value": 2462.0076153219234
+    },
+    "123:1:carry.last_hits_at_10.v1": {
+      "match_count": 13072,
+      "value": 30.242745563035495
+    },
+    "123:1:carry.net_worth_at_20.v1": {
+      "match_count": 13050,
+      "value": 7212.607735632184
+    },
+    "123:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13072,
+      "value": 3031.4249303855568
+    },
+    "123:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 45846,
+      "value": 3173.5368847882037
+    },
+    "123:2:mid.net_worth_at_20.v1": {
+      "match_count": 45807,
+      "value": 7364.306511231908
+    },
+    "123:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 17597,
+      "value": 2671.911686082855
+    },
+    "123:3:offlane.net_worth_at_10.v1": {
+      "match_count": 17597,
+      "value": 2671.911686082855
+    },
+    "126:1:carry.last_hits_at_10.v1": {
+      "match_count": 16790,
+      "value": 37.63068731387731
+    },
+    "126:1:carry.net_worth_at_20.v1": {
+      "match_count": 16757,
+      "value": 7923.372853136003
+    },
+    "126:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 16790,
+      "value": 3313.7696015485412
+    },
+    "126:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 607614,
+      "value": 3290.3889780847703
+    },
+    "126:2:mid.net_worth_at_20.v1": {
+      "match_count": 606892,
+      "value": 7646.133428105825
+    },
+    "126:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 55309,
+      "value": 3140.5759686488636
+    },
+    "126:3:offlane.net_worth_at_10.v1": {
+      "match_count": 55309,
+      "value": 3140.5759686488636
+    },
+    "128:1:carry.last_hits_at_10.v1": {
+      "match_count": 18233,
+      "value": 33.679969834914715
+    },
+    "128:1:carry.net_worth_at_20.v1": {
+      "match_count": 18192,
+      "value": 7326.65882091029
+    },
+    "128:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 18233,
+      "value": 3133.0063226018756
+    },
+    "128:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 585240,
+      "value": 3610.125240243319
+    },
+    "128:2:mid.net_worth_at_20.v1": {
+      "match_count": 584706,
+      "value": 8308.980855147716
+    },
+    "128:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 182515,
+      "value": 3197.2163042489656
+    },
+    "128:3:offlane.net_worth_at_10.v1": {
+      "match_count": 182515,
+      "value": 3197.2163042489656
+    },
+    "129:1:carry.last_hits_at_10.v1": {
+      "match_count": 3718,
+      "value": 34.46072619688004
+    },
+    "129:1:carry.net_worth_at_20.v1": {
+      "match_count": 3689,
+      "value": 7295.068031986988
+    },
+    "129:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 3718,
+      "value": 3110.3714012910164
+    },
+    "129:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 31894,
+      "value": 3337.743669342196
+    },
+    "129:2:mid.net_worth_at_20.v1": {
+      "match_count": 31835,
+      "value": 7689.287857703785
+    },
+    "129:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 712092,
+      "value": 3081.8880160569133
+    },
+    "129:3:offlane.net_worth_at_10.v1": {
+      "match_count": 712092,
+      "value": 3081.8880160569133
+    },
+    "12:1:carry.last_hits_at_10.v1": {
+      "match_count": 1912330,
+      "value": 39.1102377623109
+    },
+    "12:1:carry.net_worth_at_20.v1": {
+      "match_count": 1910473,
+      "value": 8325.983342324125
+    },
+    "12:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1912330,
+      "value": 3331.0291989091843
+    },
+    "12:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 21366,
+      "value": 3094.0351235607977
+    },
+    "12:2:mid.net_worth_at_20.v1": {
+      "match_count": 21321,
+      "value": 7477.657661929553
+    },
+    "12:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 32793,
+      "value": 2902.3929027536365
+    },
+    "12:3:offlane.net_worth_at_10.v1": {
+      "match_count": 32793,
+      "value": 2902.3929027536365
+    },
+    "131:1:carry.last_hits_at_10.v1": {
+      "match_count": 1380,
+      "value": 15.896144927536229
+    },
+    "131:1:carry.net_worth_at_20.v1": {
+      "match_count": 1368,
+      "value": 4746.463881578948
+    },
+    "131:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1380,
+      "value": 2171.8937173913046
+    },
+    "131:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 4008,
+      "value": 3009.009590818363
+    },
+    "131:2:mid.net_worth_at_20.v1": {
+      "match_count": 3993,
+      "value": 6551.989984973704
+    },
+    "131:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2961,
+      "value": 2297.1908274231673
+    },
+    "131:3:offlane.net_worth_at_10.v1": {
+      "match_count": 2961,
+      "value": 2297.1908274231673
+    },
+    "135:1:carry.last_hits_at_10.v1": {
+      "match_count": 10928,
+      "value": 37.54759882869692
+    },
+    "135:1:carry.net_worth_at_20.v1": {
+      "match_count": 10834,
+      "value": 8061.212396160236
+    },
+    "135:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 10928,
+      "value": 3310.5659754758417
+    },
+    "135:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 68499,
+      "value": 3496.769603789836
+    },
+    "135:2:mid.net_worth_at_20.v1": {
+      "match_count": 68400,
+      "value": 8304.696187865497
+    },
+    "135:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1472619,
+      "value": 3247.09117427522
+    },
+    "135:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1472619,
+      "value": 3247.09117427522
+    },
+    "136:1:carry.last_hits_at_10.v1": {
+      "match_count": 40093,
+      "value": 33.491766393135954
+    },
+    "136:1:carry.net_worth_at_20.v1": {
+      "match_count": 39962,
+      "value": 7882.283240828786
+    },
+    "136:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 40093,
+      "value": 3251.5391529693466
+    },
+    "136:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 221898,
+      "value": 3457.3065300273097
+    },
+    "136:2:mid.net_worth_at_20.v1": {
+      "match_count": 221468,
+      "value": 8144.5524633807145
+    },
+    "136:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 100230,
+      "value": 3019.1422848448574
+    },
+    "136:3:offlane.net_worth_at_10.v1": {
+      "match_count": 100230,
+      "value": 3019.1422848448574
+    },
+    "137:1:carry.last_hits_at_10.v1": {
+      "match_count": 1566,
+      "value": 30.002171136653892
+    },
+    "137:1:carry.net_worth_at_20.v1": {
+      "match_count": 1529,
+      "value": 6959.187658600394
+    },
+    "137:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1566,
+      "value": 2965.0141954022993
+    },
+    "137:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 80486,
+      "value": 3276.4767458936963
+    },
+    "137:2:mid.net_worth_at_20.v1": {
+      "match_count": 80339,
+      "value": 7685.39546434484
+    },
+    "137:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 323272,
+      "value": 2970.8881265621517
+    },
+    "137:3:offlane.net_worth_at_10.v1": {
+      "match_count": 323272,
+      "value": 2970.8881265621517
+    },
+    "138:1:carry.last_hits_at_10.v1": {
+      "match_count": 333924,
+      "value": 40.1370547489848
+    },
+    "138:1:carry.net_worth_at_20.v1": {
+      "match_count": 333553,
+      "value": 8127.609793076363
+    },
+    "138:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 333924,
+      "value": 3325.7059180831566
+    },
+    "138:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 74665,
+      "value": 3198.950609522534
+    },
+    "138:2:mid.net_worth_at_20.v1": {
+      "match_count": 74608,
+      "value": 7418.125688398027
+    },
+    "138:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13731,
+      "value": 2872.1030711528656
+    },
+    "138:3:offlane.net_worth_at_10.v1": {
+      "match_count": 13731,
+      "value": 2872.1030711528656
+    },
+    "13:1:carry.last_hits_at_10.v1": {
+      "match_count": 2420,
+      "value": 32.39265702479339
+    },
+    "13:1:carry.net_worth_at_20.v1": {
+      "match_count": 2406,
+      "value": 7480.371583541148
+    },
+    "13:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2420,
+      "value": 3103.4670289256196
+    },
+    "13:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 558274,
+      "value": 3239.813697234691
+    },
+    "13:2:mid.net_worth_at_20.v1": {
+      "match_count": 557559,
+      "value": 7695.740214345028
+    },
+    "13:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5456,
+      "value": 2879.813392595308
+    },
+    "13:3:offlane.net_worth_at_10.v1": {
+      "match_count": 5456,
+      "value": 2879.813392595308
+    },
+    "145:1:carry.last_hits_at_10.v1": {
+      "match_count": 460264,
+      "value": 38.65359411120575
+    },
+    "145:1:carry.net_worth_at_20.v1": {
+      "match_count": 459629,
+      "value": 8297.651482521771
+    },
+    "145:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 460264,
+      "value": 3351.7760400769994
+    },
+    "145:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 273383,
+      "value": 3377.3825217369035
+    },
+    "145:2:mid.net_worth_at_20.v1": {
+      "match_count": 273024,
+      "value": 8128.892547065459
+    },
+    "145:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 27195,
+      "value": 3122.9391958080532
+    },
+    "145:3:offlane.net_worth_at_10.v1": {
+      "match_count": 27195,
+      "value": 3122.9391958080532
+    },
+    "14:1:carry.last_hits_at_10.v1": {
+      "match_count": 88865,
+      "value": 35.01837495076801
+    },
+    "14:1:carry.net_worth_at_20.v1": {
+      "match_count": 88707,
+      "value": 7624.884973226465
+    },
+    "14:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 88865,
+      "value": 3413.1817257638
+    },
+    "14:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 609672,
+      "value": 3408.7647956442156
+    },
+    "14:2:mid.net_worth_at_20.v1": {
+      "match_count": 609168,
+      "value": 7279.258346498831
+    },
+    "14:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1056892,
+      "value": 3228.6282137531557
+    },
+    "14:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1056892,
+      "value": 3228.6282137531557
+    },
+    "155:1:carry.last_hits_at_10.v1": {
+      "match_count": 1813,
+      "value": 30.08746276889134
+    },
+    "155:1:carry.net_worth_at_20.v1": {
+      "match_count": 1787,
+      "value": 6703.325209848909
+    },
+    "155:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1813,
+      "value": 2991.1064920022063
+    },
+    "155:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 14288,
+      "value": 3428.8422592385214
+    },
+    "155:2:mid.net_worth_at_20.v1": {
+      "match_count": 14244,
+      "value": 7724.382176354957
+    },
+    "155:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 117790,
+      "value": 3211.2479515238983
+    },
+    "155:3:offlane.net_worth_at_10.v1": {
+      "match_count": 117790,
+      "value": 3211.2479515238983
+    },
+    "15:1:carry.last_hits_at_10.v1": {
+      "match_count": 165303,
+      "value": 37.38532137952729
+    },
+    "15:1:carry.net_worth_at_20.v1": {
+      "match_count": 165139,
+      "value": 8463.605850465365
+    },
+    "15:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 165303,
+      "value": 3537.0071884962763
+    },
+    "15:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 235655,
+      "value": 3314.6119504784533
+    },
+    "15:2:mid.net_worth_at_20.v1": {
+      "match_count": 235502,
+      "value": 7759.319343954616
+    },
+    "15:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 539921,
+      "value": 3275.6389683675948
+    },
+    "15:3:offlane.net_worth_at_10.v1": {
+      "match_count": 539921,
+      "value": 3275.6389683675948
+    },
+    "16:1:carry.last_hits_at_10.v1": {
+      "match_count": 5471,
+      "value": 29.590027417291168
+    },
+    "16:1:carry.net_worth_at_20.v1": {
+      "match_count": 5452,
+      "value": 6305.966087674249
+    },
+    "16:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5471,
+      "value": 2686.2236044598794
+    },
+    "16:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 165465,
+      "value": 3260.1001896473576
+    },
+    "16:2:mid.net_worth_at_20.v1": {
+      "match_count": 165363,
+      "value": 7634.232024636708
+    },
+    "16:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 415914,
+      "value": 2972.6192655212376
+    },
+    "16:3:offlane.net_worth_at_10.v1": {
+      "match_count": 415914,
+      "value": 2972.6192655212376
+    },
+    "17:1:carry.last_hits_at_10.v1": {
+      "match_count": 18117,
+      "value": 42.68156593254954
+    },
+    "17:1:carry.net_worth_at_20.v1": {
+      "match_count": 18074,
+      "value": 8192.890928405444
+    },
+    "17:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 18117,
+      "value": 3378.4919688690184
+    },
+    "17:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1032127,
+      "value": 3277.4981573391647
+    },
+    "17:2:mid.net_worth_at_20.v1": {
+      "match_count": 1031060,
+      "value": 7643.1240367097935
+    },
+    "17:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 8785,
+      "value": 2962.862516789983
+    },
+    "17:3:offlane.net_worth_at_10.v1": {
+      "match_count": 8785,
+      "value": 2962.862516789983
+    },
+    "18:1:carry.last_hits_at_10.v1": {
+      "match_count": 1211484,
+      "value": 45.5157133317485
+    },
+    "18:1:carry.net_worth_at_20.v1": {
+      "match_count": 1210270,
+      "value": 9006.882543085427
+    },
+    "18:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1211484,
+      "value": 3337.3008512204865
+    },
+    "18:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 19183,
+      "value": 3263.038364176615
+    },
+    "18:2:mid.net_worth_at_20.v1": {
+      "match_count": 19102,
+      "value": 8388.132359962308
+    },
+    "18:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 133946,
+      "value": 2946.033777567079
+    },
+    "18:3:offlane.net_worth_at_10.v1": {
+      "match_count": 133946,
+      "value": 2946.033777567079
+    },
+    "19:1:carry.last_hits_at_10.v1": {
+      "match_count": 275845,
+      "value": 40.49643636825028
+    },
+    "19:1:carry.net_worth_at_20.v1": {
+      "match_count": 275414,
+      "value": 8353.778861822566
+    },
+    "19:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 275845,
+      "value": 3347.6516722072183
+    },
+    "19:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 120257,
+      "value": 3133.993374772363
+    },
+    "19:2:mid.net_worth_at_20.v1": {
+      "match_count": 120101,
+      "value": 7331.037872124296
+    },
+    "19:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 233450,
+      "value": 2875.066419918612
+    },
+    "19:3:offlane.net_worth_at_10.v1": {
+      "match_count": 233450,
+      "value": 2875.066419918612
+    },
+    "1:1:carry.last_hits_at_10.v1": {
+      "match_count": 1656299,
+      "value": 37.63591853886285
+    },
+    "1:1:carry.net_worth_at_20.v1": {
+      "match_count": 1655060,
+      "value": 8367.343597235145
+    },
+    "1:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1656299,
+      "value": 3359.0965507616675
+    },
+    "1:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 84907,
+      "value": 3363.2779279682472
+    },
+    "1:2:mid.net_worth_at_20.v1": {
+      "match_count": 84802,
+      "value": 7925.6667428834235
+    },
+    "1:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 39706,
+      "value": 3112.721375107037
+    },
+    "1:3:offlane.net_worth_at_10.v1": {
+      "match_count": 39706,
+      "value": 3112.721375107037
+    },
+    "20:1:carry.last_hits_at_10.v1": {
+      "match_count": 476131,
+      "value": 39.38508998573922
+    },
+    "20:1:carry.net_worth_at_20.v1": {
+      "match_count": 475585,
+      "value": 8196.631963855041
+    },
+    "20:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 476131,
+      "value": 3381.8111262656703
+    },
+    "20:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 159671,
+      "value": 3228.618436221982
+    },
+    "20:2:mid.net_worth_at_20.v1": {
+      "match_count": 159514,
+      "value": 7357.141409594144
+    },
+    "20:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 190827,
+      "value": 3133.4226675994487
+    },
+    "20:3:offlane.net_worth_at_10.v1": {
+      "match_count": 190827,
+      "value": 3133.4226675994487
+    },
+    "21:1:carry.last_hits_at_10.v1": {
+      "match_count": 465256,
+      "value": 39.638393379128914
+    },
+    "21:1:carry.net_worth_at_20.v1": {
+      "match_count": 464607,
+      "value": 8427.96428796811
+    },
+    "21:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 465256,
+      "value": 3518.4935102610175
+    },
+    "21:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 763235,
+      "value": 3395.4763166652474
+    },
+    "21:2:mid.net_worth_at_20.v1": {
+      "match_count": 762706,
+      "value": 7716.419781776987
+    },
+    "21:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 288689,
+      "value": 3258.403662210892
+    },
+    "21:3:offlane.net_worth_at_10.v1": {
+      "match_count": 288689,
+      "value": 3258.403662210892
+    },
+    "22:1:carry.last_hits_at_10.v1": {
+      "match_count": 16920,
+      "value": 30.500133569739955
+    },
+    "22:1:carry.net_worth_at_20.v1": {
+      "match_count": 16882,
+      "value": 7079.342121786519
+    },
+    "22:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 16920,
+      "value": 3013.146842789598
+    },
+    "22:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 792710,
+      "value": 3364.0156527355525
+    },
+    "22:2:mid.net_worth_at_20.v1": {
+      "match_count": 792224,
+      "value": 7604.83852423052
+    },
+    "22:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 36673,
+      "value": 2763.8053142639
+    },
+    "22:3:offlane.net_worth_at_10.v1": {
+      "match_count": 36673,
+      "value": 2763.8053142639
+    },
+    "23:1:carry.last_hits_at_10.v1": {
+      "match_count": 13941,
+      "value": 39.99488128541711
+    },
+    "23:1:carry.net_worth_at_20.v1": {
+      "match_count": 13897,
+      "value": 8252.332062315609
+    },
+    "23:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13941,
+      "value": 3356.904129545944
+    },
+    "23:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 240125,
+      "value": 3628.876668651744
+    },
+    "23:2:mid.net_worth_at_20.v1": {
+      "match_count": 239921,
+      "value": 8460.267869382005
+    },
+    "23:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 434901,
+      "value": 3306.5689431157894
+    },
+    "23:3:offlane.net_worth_at_10.v1": {
+      "match_count": 434901,
+      "value": 3306.5689431157894
+    },
+    "25:1:carry.last_hits_at_10.v1": {
+      "match_count": 259342,
+      "value": 41.883162465007594
+    },
+    "25:1:carry.net_worth_at_20.v1": {
+      "match_count": 259045,
+      "value": 8852.871303788916
+    },
+    "25:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 259342,
+      "value": 3429.7676916581186
+    },
+    "25:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2812105,
+      "value": 3576.473395026146
+    },
+    "25:2:mid.net_worth_at_20.v1": {
+      "match_count": 2809725,
+      "value": 8664.754194182704
+    },
+    "25:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 43088,
+      "value": 2972.941261372076
+    },
+    "25:3:offlane.net_worth_at_10.v1": {
+      "match_count": 43088,
+      "value": 2972.941261372076
+    },
+    "26:1:carry.last_hits_at_10.v1": {
+      "match_count": 22085,
+      "value": 25.795750962191534
+    },
+    "26:1:carry.net_worth_at_20.v1": {
+      "match_count": 22038,
+      "value": 6244.678870133406
+    },
+    "26:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 22085,
+      "value": 2761.7750418836317
+    },
+    "26:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 514903,
+      "value": 3161.3730171896455
+    },
+    "26:2:mid.net_worth_at_20.v1": {
+      "match_count": 514508,
+      "value": 6947.570346078195
+    },
+    "26:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 35958,
+      "value": 2641.238500472774
+    },
+    "26:3:offlane.net_worth_at_10.v1": {
+      "match_count": 35958,
+      "value": 2641.238500472774
+    },
+    "27:1:carry.last_hits_at_10.v1": {
+      "match_count": 10684,
+      "value": 16.530762822912767
+    },
+    "27:1:carry.net_worth_at_20.v1": {
+      "match_count": 10657,
+      "value": 5137.11967908417
+    },
+    "27:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 10684,
+      "value": 2216.4391913141144
+    },
+    "27:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 19991,
+      "value": 3351.7912625681556
+    },
+    "27:2:mid.net_worth_at_20.v1": {
+      "match_count": 19962,
+      "value": 7310.865100691312
+    },
+    "27:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13441,
+      "value": 2376.8837102894126
+    },
+    "27:3:offlane.net_worth_at_10.v1": {
+      "match_count": 13441,
+      "value": 2376.8837102894126
+    },
+    "28:1:carry.last_hits_at_10.v1": {
+      "match_count": 21362,
+      "value": 31.880303810504635
+    },
+    "28:1:carry.net_worth_at_20.v1": {
+      "match_count": 21298,
+      "value": 6967.17959338905
+    },
+    "28:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 21362,
+      "value": 3017.460380114221
+    },
+    "28:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 131949,
+      "value": 3278.0858360427133
+    },
+    "28:2:mid.net_worth_at_20.v1": {
+      "match_count": 131732,
+      "value": 7391.1698937236215
+    },
+    "28:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1213637,
+      "value": 2989.1731700253044
+    },
+    "28:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1213637,
+      "value": 2989.1731700253044
+    },
+    "29:1:carry.last_hits_at_10.v1": {
+      "match_count": 8861,
+      "value": 35.443058345559194
+    },
+    "29:1:carry.net_worth_at_20.v1": {
+      "match_count": 8747,
+      "value": 7589.438689836516
+    },
+    "29:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 8861,
+      "value": 3121.484236542151
+    },
+    "29:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 18774,
+      "value": 3268.6551821668263
+    },
+    "29:2:mid.net_worth_at_20.v1": {
+      "match_count": 18312,
+      "value": 7716.659156290957
+    },
+    "29:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1217461,
+      "value": 3018.783259324118
+    },
+    "29:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1217461,
+      "value": 3018.783259324118
+    },
+    "2:1:carry.last_hits_at_10.v1": {
+      "match_count": 16299,
+      "value": 36.70384992944353
+    },
+    "2:1:carry.net_worth_at_20.v1": {
+      "match_count": 16191,
+      "value": 7276.274250509542
+    },
+    "2:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 16299,
+      "value": 3115.639722068839
+    },
+    "2:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 61206,
+      "value": 3338.8112691566184
+    },
+    "2:2:mid.net_worth_at_20.v1": {
+      "match_count": 61110,
+      "value": 7631.662370152185
+    },
+    "2:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2889840,
+      "value": 3248.8930303130974
+    },
+    "2:3:offlane.net_worth_at_10.v1": {
+      "match_count": 2889840,
+      "value": 3248.8930303130974
+    },
+    "30:1:carry.last_hits_at_10.v1": {
+      "match_count": 5281,
+      "value": 15.200104146941866
+    },
+    "30:1:carry.net_worth_at_20.v1": {
+      "match_count": 5255,
+      "value": 5138.988513796385
+    },
+    "30:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5281,
+      "value": 2363.1114220791515
+    },
+    "30:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 23130,
+      "value": 3071.3284215304807
+    },
+    "30:2:mid.net_worth_at_20.v1": {
+      "match_count": 23096,
+      "value": 6534.961505455491
+    },
+    "30:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 10357,
+      "value": 2567.9527469344403
+    },
+    "30:3:offlane.net_worth_at_10.v1": {
+      "match_count": 10357,
+      "value": 2567.9527469344403
+    },
+    "31:1:carry.last_hits_at_10.v1": {
+      "match_count": 3428,
+      "value": 14.825668028004669
+    },
+    "31:1:carry.net_worth_at_20.v1": {
+      "match_count": 3408,
+      "value": 5037.230457746478
+    },
+    "31:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 3428,
+      "value": 2236.048448074679
+    },
+    "31:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 8828,
+      "value": 3123.0652152242865
+    },
+    "31:2:mid.net_worth_at_20.v1": {
+      "match_count": 8802,
+      "value": 6995.474279709156
+    },
+    "31:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5669,
+      "value": 2394.5807338154877
+    },
+    "31:3:offlane.net_worth_at_10.v1": {
+      "match_count": 5669,
+      "value": 2394.5807338154877
+    },
+    "32:1:carry.last_hits_at_10.v1": {
+      "match_count": 341804,
+      "value": 33.74527501141005
+    },
+    "32:1:carry.net_worth_at_20.v1": {
+      "match_count": 341563,
+      "value": 7410.807817181603
+    },
+    "32:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 341804,
+      "value": 3205.518931434389
+    },
+    "32:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 272239,
+      "value": 3128.5988881460776
+    },
+    "32:2:mid.net_worth_at_20.v1": {
+      "match_count": 271971,
+      "value": 7230.583195855441
+    },
+    "32:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 72986,
+      "value": 2991.8201482476097
+    },
+    "32:3:offlane.net_worth_at_10.v1": {
+      "match_count": 72986,
+      "value": 2991.8201482476097
+    },
+    "33:1:carry.last_hits_at_10.v1": {
+      "match_count": 4228,
+      "value": 34.11016083254494
+    },
+    "33:1:carry.net_worth_at_20.v1": {
+      "match_count": 4211,
+      "value": 6174.478810258846
+    },
+    "33:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 4228,
+      "value": 2624.941958372753
+    },
+    "33:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 20096,
+      "value": 3445.3578443471333
+    },
+    "33:2:mid.net_worth_at_20.v1": {
+      "match_count": 20039,
+      "value": 7829.238633165326
+    },
+    "33:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 246722,
+      "value": 3347.9604091244396
+    },
+    "33:3:offlane.net_worth_at_10.v1": {
+      "match_count": 246722,
+      "value": 3347.9604091244396
+    },
+    "34:1:carry.last_hits_at_10.v1": {
+      "match_count": 6387,
+      "value": 38.50232973226867
+    },
+    "34:1:carry.net_worth_at_20.v1": {
+      "match_count": 6360,
+      "value": 8613.441944968552
+    },
+    "34:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6387,
+      "value": 3110.7829967120715
+    },
+    "34:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 539136,
+      "value": 3409.705491378799
+    },
+    "34:2:mid.net_worth_at_20.v1": {
+      "match_count": 538620,
+      "value": 9004.61224417957
+    },
+    "34:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5937,
+      "value": 2857.0227353882433
+    },
+    "34:3:offlane.net_worth_at_10.v1": {
+      "match_count": 5937,
+      "value": 2857.0227353882433
+    },
+    "35:1:carry.last_hits_at_10.v1": {
+      "match_count": 520841,
+      "value": 41.1238037904082
+    },
+    "35:1:carry.net_worth_at_20.v1": {
+      "match_count": 520503,
+      "value": 8268.11683504226
+    },
+    "35:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 520841,
+      "value": 3440.170913791349
+    },
+    "35:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2052556,
+      "value": 3469.984400498696
+    },
+    "35:2:mid.net_worth_at_20.v1": {
+      "match_count": 2051279,
+      "value": 8168.344980916784
+    },
+    "35:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 110894,
+      "value": 3022.900394701247
+    },
+    "35:3:offlane.net_worth_at_10.v1": {
+      "match_count": 110894,
+      "value": 3022.900394701247
+    },
+    "36:1:carry.last_hits_at_10.v1": {
+      "match_count": 270984,
+      "value": 48.16591451893839
+    },
+    "36:1:carry.net_worth_at_20.v1": {
+      "match_count": 270441,
+      "value": 9539.657795378658
+    },
+    "36:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 270984,
+      "value": 3758.953350271603
+    },
+    "36:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1346721,
+      "value": 3616.732582071565
+    },
+    "36:2:mid.net_worth_at_20.v1": {
+      "match_count": 1345561,
+      "value": 8602.143802555216
+    },
+    "36:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1032597,
+      "value": 3392.6154815189275
+    },
+    "36:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1032597,
+      "value": 3392.6154815189275
+    },
+    "37:1:carry.last_hits_at_10.v1": {
+      "match_count": 4845,
+      "value": 19.677052631578945
+    },
+    "37:1:carry.net_worth_at_20.v1": {
+      "match_count": 4811,
+      "value": 5530.389889835793
+    },
+    "37:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 4845,
+      "value": 2353.9193787409704
+    },
+    "37:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 8695,
+      "value": 3144.2174629097185
+    },
+    "37:2:mid.net_worth_at_20.v1": {
+      "match_count": 8664,
+      "value": 7051.830395891044
+    },
+    "37:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 8221,
+      "value": 2451.51747962535
+    },
+    "37:3:offlane.net_worth_at_10.v1": {
+      "match_count": 8221,
+      "value": 2451.51747962535
+    },
+    "38:1:carry.last_hits_at_10.v1": {
+      "match_count": 13382,
+      "value": 38.787060977432375
+    },
+    "38:1:carry.net_worth_at_20.v1": {
+      "match_count": 13317,
+      "value": 8655.258136967786
+    },
+    "38:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13382,
+      "value": 3366.3673105664325
+    },
+    "38:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 76341,
+      "value": 3536.761531942207
+    },
+    "38:2:mid.net_worth_at_20.v1": {
+      "match_count": 76141,
+      "value": 8815.62556914146
+    },
+    "38:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 260687,
+      "value": 3257.1644152949702
+    },
+    "38:3:offlane.net_worth_at_10.v1": {
+      "match_count": 260687,
+      "value": 3257.1644152949702
+    },
+    "39:1:carry.last_hits_at_10.v1": {
+      "match_count": 13145,
+      "value": 33.13933358691518
+    },
+    "39:1:carry.net_worth_at_20.v1": {
+      "match_count": 13113,
+      "value": 7563.152641653321
+    },
+    "39:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13145,
+      "value": 3134.8173853176113
+    },
+    "39:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1319091,
+      "value": 3216.1983976162373
+    },
+    "39:2:mid.net_worth_at_20.v1": {
+      "match_count": 1318041,
+      "value": 7644.951526386508
+    },
+    "39:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 51801,
+      "value": 2976.2684932723305
+    },
+    "39:3:offlane.net_worth_at_10.v1": {
+      "match_count": 51801,
+      "value": 2976.2684932723305
+    },
+    "3:1:carry.last_hits_at_10.v1": {
+      "match_count": 1341,
+      "value": 19.367964205816552
+    },
+    "3:1:carry.net_worth_at_20.v1": {
+      "match_count": 1331,
+      "value": 5346.589909842224
+    },
+    "3:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1341,
+      "value": 2507.4966144668156
+    },
+    "3:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 29251,
+      "value": 3279.3094444634376
+    },
+    "3:2:mid.net_worth_at_20.v1": {
+      "match_count": 29193,
+      "value": 6879.923249409106
+    },
+    "3:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 4009,
+      "value": 2775.746991768521
+    },
+    "3:3:offlane.net_worth_at_10.v1": {
+      "match_count": 4009,
+      "value": 2775.746991768521
+    },
+    "40:1:carry.last_hits_at_10.v1": {
+      "match_count": 14699,
+      "value": 31.14047282128036
+    },
+    "40:1:carry.net_worth_at_20.v1": {
+      "match_count": 14626,
+      "value": 6203.108071242992
+    },
+    "40:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 14699,
+      "value": 2693.420287774679
+    },
+    "40:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 27784,
+      "value": 3193.9976688021884
+    },
+    "40:2:mid.net_worth_at_20.v1": {
+      "match_count": 27746,
+      "value": 7133.18561125928
+    },
+    "40:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 47978,
+      "value": 2900.379562090958
+    },
+    "40:3:offlane.net_worth_at_10.v1": {
+      "match_count": 47978,
+      "value": 2900.379562090958
+    },
+    "41:1:carry.last_hits_at_10.v1": {
+      "match_count": 1339335,
+      "value": 35.564807833738385
+    },
+    "41:1:carry.net_worth_at_20.v1": {
+      "match_count": 1338274,
+      "value": 7519.970464015591
+    },
+    "41:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1339335,
+      "value": 3114.1307439438233
+    },
+    "41:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 24499,
+      "value": 2955.9923772398874
+    },
+    "41:2:mid.net_worth_at_20.v1": {
+      "match_count": 24458,
+      "value": 7088.246741352522
+    },
+    "41:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 58578,
+      "value": 2850.8310454436823
+    },
+    "41:3:offlane.net_worth_at_10.v1": {
+      "match_count": 58578,
+      "value": 2850.8310454436823
+    },
+    "42:1:carry.last_hits_at_10.v1": {
+      "match_count": 556833,
+      "value": 39.7322923030783
+    },
+    "42:1:carry.net_worth_at_20.v1": {
+      "match_count": 556292,
+      "value": 8393.32463012231
+    },
+    "42:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 556833,
+      "value": 3400.7992472249307
+    },
+    "42:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 41870,
+      "value": 3328.8756140434675
+    },
+    "42:2:mid.net_worth_at_20.v1": {
+      "match_count": 41782,
+      "value": 7999.5349827677
+    },
+    "42:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1371625,
+      "value": 3190.6406905094323
+    },
+    "42:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1371625,
+      "value": 3190.6406905094323
+    },
+    "43:1:carry.last_hits_at_10.v1": {
+      "match_count": 5712,
+      "value": 31.553354341736693
+    },
+    "43:1:carry.net_worth_at_20.v1": {
+      "match_count": 5693,
+      "value": 7610.504890216054
+    },
+    "43:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5712,
+      "value": 3129.7990721288515
+    },
+    "43:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 309188,
+      "value": 3605.1367892026856
+    },
+    "43:2:mid.net_worth_at_20.v1": {
+      "match_count": 308815,
+      "value": 8401.899216618363
+    },
+    "43:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 198783,
+      "value": 3297.49779483155
+    },
+    "43:3:offlane.net_worth_at_10.v1": {
+      "match_count": 198783,
+      "value": 3297.49779483155
+    },
+    "44:1:carry.last_hits_at_10.v1": {
+      "match_count": 1955157,
+      "value": 34.7697888609457
+    },
+    "44:1:carry.net_worth_at_20.v1": {
+      "match_count": 1953725,
+      "value": 7818.04540439417
+    },
+    "44:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1955157,
+      "value": 3212.0689240403703
+    },
+    "44:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 97134,
+      "value": 3108.5962984125026
+    },
+    "44:2:mid.net_worth_at_20.v1": {
+      "match_count": 97053,
+      "value": 7294.660496944969
+    },
+    "44:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 46364,
+      "value": 2834.101139245967
+    },
+    "44:3:offlane.net_worth_at_10.v1": {
+      "match_count": 46364,
+      "value": 2834.101139245967
+    },
+    "45:1:carry.last_hits_at_10.v1": {
+      "match_count": 2888,
+      "value": 21.698597645429363
+    },
+    "45:1:carry.net_worth_at_20.v1": {
+      "match_count": 2844,
+      "value": 5844.923284106892
+    },
+    "45:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2888,
+      "value": 2496.1720325484766
+    },
+    "45:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 102451,
+      "value": 3295.9314603078546
+    },
+    "45:2:mid.net_worth_at_20.v1": {
+      "match_count": 101696,
+      "value": 7456.093331891127
+    },
+    "45:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 15100,
+      "value": 2794.0151139072846
+    },
+    "45:3:offlane.net_worth_at_10.v1": {
+      "match_count": 15100,
+      "value": 2794.0151139072846
+    },
+    "46:1:carry.last_hits_at_10.v1": {
+      "match_count": 572116,
+      "value": 43.841960598899526
+    },
+    "46:1:carry.net_worth_at_20.v1": {
+      "match_count": 571371,
+      "value": 8890.605439635543
+    },
+    "46:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 572116,
+      "value": 3342.396907340469
+    },
+    "46:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 230382,
+      "value": 3268.7095768766653
+    },
+    "46:2:mid.net_worth_at_20.v1": {
+      "match_count": 230106,
+      "value": 8120.881897473338
+    },
+    "46:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 7148,
+      "value": 2886.0707750419697
+    },
+    "46:3:offlane.net_worth_at_10.v1": {
+      "match_count": 7148,
+      "value": 2886.0707750419697
+    },
+    "47:1:carry.last_hits_at_10.v1": {
+      "match_count": 84218,
+      "value": 33.62737823268185
+    },
+    "47:1:carry.net_worth_at_20.v1": {
+      "match_count": 84125,
+      "value": 7742.033738246657
+    },
+    "47:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 84218,
+      "value": 3362.266230497044
+    },
+    "47:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 589734,
+      "value": 3339.003408180637
+    },
+    "47:2:mid.net_worth_at_20.v1": {
+      "match_count": 589303,
+      "value": 7622.48692928765
+    },
+    "47:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 372172,
+      "value": 3227.4187697086295
+    },
+    "47:3:offlane.net_worth_at_10.v1": {
+      "match_count": 372172,
+      "value": 3227.4187697086295
+    },
+    "48:1:carry.last_hits_at_10.v1": {
+      "match_count": 1572697,
+      "value": 43.64754456834343
+    },
+    "48:1:carry.net_worth_at_20.v1": {
+      "match_count": 1570198,
+      "value": 9129.027982611111
+    },
+    "48:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1572697,
+      "value": 3318.1071185167893
+    },
+    "48:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 95239,
+      "value": 3124.087017818331
+    },
+    "48:2:mid.net_worth_at_20.v1": {
+      "match_count": 95153,
+      "value": 7951.238263953841
+    },
+    "48:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 26565,
+      "value": 2852.2511462450593
+    },
+    "48:3:offlane.net_worth_at_10.v1": {
+      "match_count": 26565,
+      "value": 2852.2511462450593
+    },
+    "49:1:carry.last_hits_at_10.v1": {
+      "match_count": 87276,
+      "value": 40.63060062330996
+    },
+    "49:1:carry.net_worth_at_20.v1": {
+      "match_count": 87161,
+      "value": 8344.437002902674
+    },
+    "49:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 87276,
+      "value": 3436.617754365461
+    },
+    "49:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 309929,
+      "value": 3578.698102145975
+    },
+    "49:2:mid.net_worth_at_20.v1": {
+      "match_count": 309447,
+      "value": 8288.638539426784
+    },
+    "49:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 567391,
+      "value": 3209.466879982235
+    },
+    "49:3:offlane.net_worth_at_10.v1": {
+      "match_count": 567391,
+      "value": 3209.466879982235
+    },
+    "4:1:carry.last_hits_at_10.v1": {
+      "match_count": 329000,
+      "value": 37.324995136778114
+    },
+    "4:1:carry.net_worth_at_20.v1": {
+      "match_count": 328798,
+      "value": 7980.289081563757
+    },
+    "4:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 329000,
+      "value": 3267.498087963527
+    },
+    "4:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 89537,
+      "value": 3202.279149960352
+    },
+    "4:2:mid.net_worth_at_20.v1": {
+      "match_count": 89461,
+      "value": 7526.522041895351
+    },
+    "4:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 77123,
+      "value": 2982.428152820819
+    },
+    "4:3:offlane.net_worth_at_10.v1": {
+      "match_count": 77123,
+      "value": 2982.428152820819
+    },
+    "50:1:carry.last_hits_at_10.v1": {
+      "match_count": 2889,
+      "value": 23.204382139148496
+    },
+    "50:1:carry.net_worth_at_20.v1": {
+      "match_count": 2860,
+      "value": 5928.829041958042
+    },
+    "50:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2889,
+      "value": 2723.3282035306333
+    },
+    "50:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 11907,
+      "value": 3398.8912454858487
+    },
+    "50:2:mid.net_worth_at_20.v1": {
+      "match_count": 11889,
+      "value": 7367.006411809234
+    },
+    "50:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5850,
+      "value": 2847.622066666667
+    },
+    "50:3:offlane.net_worth_at_10.v1": {
+      "match_count": 5850,
+      "value": 2847.622066666667
+    },
+    "51:1:carry.last_hits_at_10.v1": {
+      "match_count": 1819,
+      "value": 21.594200109950524
+    },
+    "51:1:carry.net_worth_at_20.v1": {
+      "match_count": 1776,
+      "value": 5761.580619369369
+    },
+    "51:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1819,
+      "value": 2590.550912589335
+    },
+    "51:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 9144,
+      "value": 3004.3248632983377
+    },
+    "51:2:mid.net_worth_at_20.v1": {
+      "match_count": 9103,
+      "value": 6668.215212567286
+    },
+    "51:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 87435,
+      "value": 2791.8495063761648
+    },
+    "51:3:offlane.net_worth_at_10.v1": {
+      "match_count": 87435,
+      "value": 2791.8495063761648
+    },
+    "52:1:carry.last_hits_at_10.v1": {
+      "match_count": 32298,
+      "value": 42.73249272400768
+    },
+    "52:1:carry.net_worth_at_20.v1": {
+      "match_count": 32125,
+      "value": 9693.09221914397
+    },
+    "52:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 32298,
+      "value": 3608.4563973001423
+    },
+    "52:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 211605,
+      "value": 3375.3013352236476
+    },
+    "52:2:mid.net_worth_at_20.v1": {
+      "match_count": 211314,
+      "value": 7989.848199314764
+    },
+    "52:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 24478,
+      "value": 3067.7753296837977
+    },
+    "52:3:offlane.net_worth_at_10.v1": {
+      "match_count": 24478,
+      "value": 3067.7753296837977
+    },
+    "53:1:carry.last_hits_at_10.v1": {
+      "match_count": 509097,
+      "value": 39.51061389086952
+    },
+    "53:1:carry.net_worth_at_20.v1": {
+      "match_count": 508156,
+      "value": 9359.392873153127
+    },
+    "53:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 509097,
+      "value": 3437.9686095773495
+    },
+    "53:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 380660,
+      "value": 3450.118929412074
+    },
+    "53:2:mid.net_worth_at_20.v1": {
+      "match_count": 380168,
+      "value": 8836.22881981124
+    },
+    "53:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 107874,
+      "value": 3061.0744796707268
+    },
+    "53:3:offlane.net_worth_at_10.v1": {
+      "match_count": 107874,
+      "value": 3061.0744796707268
+    },
+    "54:1:carry.last_hits_at_10.v1": {
+      "match_count": 2487700,
+      "value": 39.71670056276882
+    },
+    "54:1:carry.net_worth_at_20.v1": {
+      "match_count": 2485453,
+      "value": 8068.401440759491
+    },
+    "54:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2487700,
+      "value": 3342.7427031595453
+    },
+    "54:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 16733,
+      "value": 3077.63664614833
+    },
+    "54:2:mid.net_worth_at_20.v1": {
+      "match_count": 16688,
+      "value": 7283.402633628955
+    },
+    "54:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 190737,
+      "value": 2941.9778639697597
+    },
+    "54:3:offlane.net_worth_at_10.v1": {
+      "match_count": 190737,
+      "value": 2941.9778639697597
+    },
+    "55:1:carry.last_hits_at_10.v1": {
+      "match_count": 5385,
+      "value": 36.485870009285044
+    },
+    "55:1:carry.net_worth_at_20.v1": {
+      "match_count": 5331,
+      "value": 6997.310624648285
+    },
+    "55:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5385,
+      "value": 2889.658980501393
+    },
+    "55:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 24198,
+      "value": 3527.631390197537
+    },
+    "55:2:mid.net_worth_at_20.v1": {
+      "match_count": 24153,
+      "value": 8115.515536786323
+    },
+    "55:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 655361,
+      "value": 3344.8577169529462
+    },
+    "55:3:offlane.net_worth_at_10.v1": {
+      "match_count": 655361,
+      "value": 3344.8577169529462
+    },
+    "56:1:carry.last_hits_at_10.v1": {
+      "match_count": 400633,
+      "value": 42.35690035518792
+    },
+    "56:1:carry.net_worth_at_20.v1": {
+      "match_count": 400115,
+      "value": 8339.867859290454
+    },
+    "56:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 400633,
+      "value": 3546.8563015777527
+    },
+    "56:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 294095,
+      "value": 3446.0982090480966
+    },
+    "56:2:mid.net_worth_at_20.v1": {
+      "match_count": 293933,
+      "value": 7875.2096921407265
+    },
+    "56:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 27933,
+      "value": 3019.673130347617
+    },
+    "56:3:offlane.net_worth_at_10.v1": {
+      "match_count": 27933,
+      "value": 3019.673130347617
+    },
+    "57:1:carry.last_hits_at_10.v1": {
+      "match_count": 5551,
+      "value": 33.53847955323365
+    },
+    "57:1:carry.net_worth_at_20.v1": {
+      "match_count": 5484,
+      "value": 7507.792955871627
+    },
+    "57:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5551,
+      "value": 3224.2667681498824
+    },
+    "57:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 12939,
+      "value": 3361.610886467269
+    },
+    "57:2:mid.net_worth_at_20.v1": {
+      "match_count": 12880,
+      "value": 7715.805812111801
+    },
+    "57:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 142979,
+      "value": 3179.9694734191735
+    },
+    "57:3:offlane.net_worth_at_10.v1": {
+      "match_count": 142979,
+      "value": 3179.9694734191735
+    },
+    "58:1:carry.last_hits_at_10.v1": {
+      "match_count": 4550,
+      "value": 27.22415164835165
+    },
+    "58:1:carry.net_worth_at_20.v1": {
+      "match_count": 4513,
+      "value": 6652.12829603368
+    },
+    "58:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 4550,
+      "value": 2880.979043956044
+    },
+    "58:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 46704,
+      "value": 3123.6120240236382
+    },
+    "58:2:mid.net_worth_at_20.v1": {
+      "match_count": 46562,
+      "value": 7103.348877195997
+    },
+    "58:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 30666,
+      "value": 2974.6635410552403
+    },
+    "58:3:offlane.net_worth_at_10.v1": {
+      "match_count": 30666,
+      "value": 2974.6635410552403
+    },
+    "59:1:carry.last_hits_at_10.v1": {
+      "match_count": 17434,
+      "value": 37.92002982677527
+    },
+    "59:1:carry.net_worth_at_20.v1": {
+      "match_count": 17356,
+      "value": 7915.2671946301
+    },
+    "59:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 17434,
+      "value": 3422.7025415854073
+    },
+    "59:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 319630,
+      "value": 3570.3619414009954
+    },
+    "59:2:mid.net_worth_at_20.v1": {
+      "match_count": 318804,
+      "value": 8159.260619095119
+    },
+    "59:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 134740,
+      "value": 3216.8117936024937
+    },
+    "59:3:offlane.net_worth_at_10.v1": {
+      "match_count": 134740,
+      "value": 3216.8117936024937
+    },
+    "5:1:carry.last_hits_at_10.v1": {
+      "match_count": 6040,
+      "value": 16.83598344370861
+    },
+    "5:1:carry.net_worth_at_20.v1": {
+      "match_count": 6005,
+      "value": 5163.934706078268
+    },
+    "5:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6040,
+      "value": 2288.3791705298013
+    },
+    "5:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 31274,
+      "value": 3155.551243524973
+    },
+    "5:2:mid.net_worth_at_20.v1": {
+      "match_count": 31220,
+      "value": 7135.477176809738
+    },
+    "5:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 9149,
+      "value": 2521.3619903814624
+    },
+    "5:3:offlane.net_worth_at_10.v1": {
+      "match_count": 9149,
+      "value": 2521.3619903814624
+    },
+    "60:1:carry.last_hits_at_10.v1": {
+      "match_count": 12080,
+      "value": 37.19081705298013
+    },
+    "60:1:carry.net_worth_at_20.v1": {
+      "match_count": 12043,
+      "value": 7999.289695258657
+    },
+    "60:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 12080,
+      "value": 3413.8498360927156
+    },
+    "60:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 51589,
+      "value": 3472.883853922348
+    },
+    "60:2:mid.net_worth_at_20.v1": {
+      "match_count": 51509,
+      "value": 7961.123713137511
+    },
+    "60:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1254146,
+      "value": 3414.2708998234657
+    },
+    "60:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1254146,
+      "value": 3414.2708998234657
+    },
+    "61:1:carry.last_hits_at_10.v1": {
+      "match_count": 27823,
+      "value": 38.255162275814975
+    },
+    "61:1:carry.net_worth_at_20.v1": {
+      "match_count": 27679,
+      "value": 8728.770124281948
+    },
+    "61:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 27823,
+      "value": 3213.6942213276784
+    },
+    "61:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 194865,
+      "value": 3438.3811535678547
+    },
+    "61:2:mid.net_worth_at_20.v1": {
+      "match_count": 193217,
+      "value": 8968.84447595191
+    },
+    "61:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 33116,
+      "value": 3070.1378937673635
+    },
+    "61:3:offlane.net_worth_at_10.v1": {
+      "match_count": 33116,
+      "value": 3070.1378937673635
+    },
+    "62:1:carry.last_hits_at_10.v1": {
+      "match_count": 13145,
+      "value": 27.724996576645115
+    },
+    "62:1:carry.net_worth_at_20.v1": {
+      "match_count": 13106,
+      "value": 7274.084680299102
+    },
+    "62:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13145,
+      "value": 3064.590569798403
+    },
+    "62:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 34013,
+      "value": 3257.5784623526297
+    },
+    "62:2:mid.net_worth_at_20.v1": {
+      "match_count": 33957,
+      "value": 7577.766366286774
+    },
+    "62:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 34618,
+      "value": 2922.4783254376334
+    },
+    "62:3:offlane.net_worth_at_10.v1": {
+      "match_count": 34618,
+      "value": 2922.4783254376334
+    },
+    "63:1:carry.last_hits_at_10.v1": {
+      "match_count": 343168,
+      "value": 33.96969207501865
+    },
+    "63:1:carry.net_worth_at_20.v1": {
+      "match_count": 342893,
+      "value": 7861.945071290461
+    },
+    "63:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 343168,
+      "value": 3308.7738024524438
+    },
+    "63:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 114084,
+      "value": 3023.8120748746537
+    },
+    "63:2:mid.net_worth_at_20.v1": {
+      "match_count": 114012,
+      "value": 7118.644566975406
+    },
+    "63:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 72516,
+      "value": 3054.8036524353242
+    },
+    "63:3:offlane.net_worth_at_10.v1": {
+      "match_count": 72516,
+      "value": 3054.8036524353242
+    },
+    "64:1:carry.last_hits_at_10.v1": {
+      "match_count": 8862,
+      "value": 25.63827352742045
+    },
+    "64:1:carry.net_worth_at_20.v1": {
+      "match_count": 8822,
+      "value": 6589.245227839492
+    },
+    "64:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 8862,
+      "value": 2780.150336267209
+    },
+    "64:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 71695,
+      "value": 3119.839466489992
+    },
+    "64:2:mid.net_worth_at_20.v1": {
+      "match_count": 71574,
+      "value": 7199.533957163216
+    },
+    "64:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 18897,
+      "value": 2704.5133301582264
+    },
+    "64:3:offlane.net_worth_at_10.v1": {
+      "match_count": 18897,
+      "value": 2704.5133301582264
+    },
+    "65:1:carry.last_hits_at_10.v1": {
+      "match_count": 1396,
+      "value": 27.26689828080229
+    },
+    "65:1:carry.net_worth_at_20.v1": {
+      "match_count": 1377,
+      "value": 7095.407494553378
+    },
+    "65:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1396,
+      "value": 3063.8074212034385
+    },
+    "65:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 33429,
+      "value": 3238.455702234587
+    },
+    "65:2:mid.net_worth_at_20.v1": {
+      "match_count": 33335,
+      "value": 7522.976136793161
+    },
+    "65:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 35419,
+      "value": 2918.3570069736584
+    },
+    "65:3:offlane.net_worth_at_10.v1": {
+      "match_count": 35419,
+      "value": 2918.3570069736584
+    },
+    "66:1:carry.last_hits_at_10.v1": {
+      "match_count": 586,
+      "value": 24.79597269624573
+    },
+    "66:1:carry.net_worth_at_20.v1": {
+      "match_count": 572,
+      "value": 6089.572937062937
+    },
+    "66:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 586,
+      "value": 2767.378515358362
+    },
+    "66:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1076,
+      "value": 2904.9337732342005
+    },
+    "66:2:mid.net_worth_at_20.v1": {
+      "match_count": 1047,
+      "value": 6371.324011461318
+    },
+    "66:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 807,
+      "value": 2728.1376951672864
+    },
+    "66:3:offlane.net_worth_at_10.v1": {
+      "match_count": 807,
+      "value": 2728.1376951672864
+    },
+    "67:1:carry.last_hits_at_10.v1": {
+      "match_count": 1989262,
+      "value": 36.06803049573158
+    },
+    "67:1:carry.net_worth_at_20.v1": {
+      "match_count": 1987955,
+      "value": 7616.540389203981
+    },
+    "67:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1989262,
+      "value": 3328.604315153057
+    },
+    "67:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 37996,
+      "value": 3072.0541117486046
+    },
+    "67:2:mid.net_worth_at_20.v1": {
+      "match_count": 37952,
+      "value": 7040.4868278351605
+    },
+    "67:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 63170,
+      "value": 2997.699791040051
+    },
+    "67:3:offlane.net_worth_at_10.v1": {
+      "match_count": 63170,
+      "value": 2997.699791040051
+    },
+    "68:1:carry.last_hits_at_10.v1": {
+      "match_count": 3927,
+      "value": 21.707713267125033
+    },
+    "68:1:carry.net_worth_at_20.v1": {
+      "match_count": 3906,
+      "value": 5787.923981054788
+    },
+    "68:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 3927,
+      "value": 2560.021316526611
+    },
+    "68:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 60358,
+      "value": 2923.861500546738
+    },
+    "68:2:mid.net_worth_at_20.v1": {
+      "match_count": 60303,
+      "value": 6562.387489013813
+    },
+    "68:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 7129,
+      "value": 2464.429790994529
+    },
+    "68:3:offlane.net_worth_at_10.v1": {
+      "match_count": 7129,
+      "value": 2464.429790994529
+    },
+    "69:1:carry.last_hits_at_10.v1": {
+      "match_count": 21735,
+      "value": 37.5243128594433
+    },
+    "69:1:carry.net_worth_at_20.v1": {
+      "match_count": 21670,
+      "value": 8472.535366405167
+    },
+    "69:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 21735,
+      "value": 3458.329675638371
+    },
+    "69:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 30802,
+      "value": 3439.972863775079
+    },
+    "69:2:mid.net_worth_at_20.v1": {
+      "match_count": 30728,
+      "value": 8121.731936670139
+    },
+    "69:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 883034,
+      "value": 3252.9713969564027
+    },
+    "69:3:offlane.net_worth_at_10.v1": {
+      "match_count": 883034,
+      "value": 3252.9713969564027
+    },
+    "6:1:carry.last_hits_at_10.v1": {
+      "match_count": 1895395,
+      "value": 38.20879155532224
+    },
+    "6:1:carry.net_worth_at_20.v1": {
+      "match_count": 1893671,
+      "value": 8030.198596271476
+    },
+    "6:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1895395,
+      "value": 3413.6450289253694
+    },
+    "6:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 137199,
+      "value": 3049.3154154913664
+    },
+    "6:2:mid.net_worth_at_20.v1": {
+      "match_count": 137087,
+      "value": 6978.9640269318015
+    },
+    "6:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 25306,
+      "value": 2876.9374559393027
+    },
+    "6:3:offlane.net_worth_at_10.v1": {
+      "match_count": 25306,
+      "value": 2876.9374559393027
+    },
+    "70:1:carry.last_hits_at_10.v1": {
+      "match_count": 805372,
+      "value": 38.79736603706114
+    },
+    "70:1:carry.net_worth_at_20.v1": {
+      "match_count": 804591,
+      "value": 8591.869108205288
+    },
+    "70:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 805372,
+      "value": 3396.1499045410073
+    },
+    "70:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 44544,
+      "value": 3344.3660838721257
+    },
+    "70:2:mid.net_worth_at_20.v1": {
+      "match_count": 44478,
+      "value": 8145.89326835739
+    },
+    "70:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 77682,
+      "value": 3093.5048299477357
+    },
+    "70:3:offlane.net_worth_at_10.v1": {
+      "match_count": 77682,
+      "value": 3093.5048299477357
+    },
+    "71:1:carry.last_hits_at_10.v1": {
+      "match_count": 10712,
+      "value": 22.545789768483946
+    },
+    "71:1:carry.net_worth_at_20.v1": {
+      "match_count": 10676,
+      "value": 6357.518530348445
+    },
+    "71:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 10712,
+      "value": 2790.383917102315
+    },
+    "71:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 84566,
+      "value": 3121.367816734858
+    },
+    "71:2:mid.net_worth_at_20.v1": {
+      "match_count": 84480,
+      "value": 7110.243073626894
+    },
+    "71:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 452472,
+      "value": 2976.038556860977
+    },
+    "71:3:offlane.net_worth_at_10.v1": {
+      "match_count": 452472,
+      "value": 2976.038556860977
+    },
+    "72:1:carry.last_hits_at_10.v1": {
+      "match_count": 156225,
+      "value": 41.42813243718995
+    },
+    "72:1:carry.net_worth_at_20.v1": {
+      "match_count": 156051,
+      "value": 8241.672503091937
+    },
+    "72:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 156225,
+      "value": 3374.674778620579
+    },
+    "72:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 47902,
+      "value": 3037.476832073817
+    },
+    "72:2:mid.net_worth_at_20.v1": {
+      "match_count": 47845,
+      "value": 7104.028256662138
+    },
+    "72:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 19546,
+      "value": 2890.391748183772
+    },
+    "72:3:offlane.net_worth_at_10.v1": {
+      "match_count": 19546,
+      "value": 2890.391748183772
+    },
+    "73:1:carry.last_hits_at_10.v1": {
+      "match_count": 161968,
+      "value": 42.0736626988047
+    },
+    "73:1:carry.net_worth_at_20.v1": {
+      "match_count": 161667,
+      "value": 9432.831518739138
+    },
+    "73:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 161968,
+      "value": 3656.01578392028
+    },
+    "73:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 98848,
+      "value": 3918.1489498017163
+    },
+    "73:2:mid.net_worth_at_20.v1": {
+      "match_count": 98678,
+      "value": 9726.0295085024
+    },
+    "73:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 115377,
+      "value": 3288.478255891556
+    },
+    "73:3:offlane.net_worth_at_10.v1": {
+      "match_count": 115377,
+      "value": 3288.478255891556
+    },
+    "74:1:carry.last_hits_at_10.v1": {
+      "match_count": 13035,
+      "value": 28.848264672036823
+    },
+    "74:1:carry.net_worth_at_20.v1": {
+      "match_count": 13002,
+      "value": 7249.8950730656825
+    },
+    "74:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13035,
+      "value": 3052.1776854622167
+    },
+    "74:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2402731,
+      "value": 3237.4271086692606
+    },
+    "74:2:mid.net_worth_at_20.v1": {
+      "match_count": 2399879,
+      "value": 7748.648089412009
+    },
+    "74:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 34484,
+      "value": 2811.2496009743654
+    },
+    "74:3:offlane.net_worth_at_10.v1": {
+      "match_count": 34484,
+      "value": 2811.2496009743654
+    },
+    "75:1:carry.last_hits_at_10.v1": {
+      "match_count": 23115,
+      "value": 30.50353190568895
+    },
+    "75:1:carry.net_worth_at_20.v1": {
+      "match_count": 23085,
+      "value": 6969.395724063244
+    },
+    "75:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 23115,
+      "value": 3124.7771840796017
+    },
+    "75:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 229817,
+      "value": 2990.1512066992427
+    },
+    "75:2:mid.net_worth_at_20.v1": {
+      "match_count": 229647,
+      "value": 6614.910951286104
+    },
+    "75:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 26709,
+      "value": 2837.0070444419484
+    },
+    "75:3:offlane.net_worth_at_10.v1": {
+      "match_count": 26709,
+      "value": 2837.0070444419484
+    },
+    "76:1:carry.last_hits_at_10.v1": {
+      "match_count": 12683,
+      "value": 36.18075455333911
+    },
+    "76:1:carry.net_worth_at_20.v1": {
+      "match_count": 12617,
+      "value": 7853.743415233415
+    },
+    "76:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 12683,
+      "value": 3255.8251525664273
+    },
+    "76:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1185704,
+      "value": 3433.1827505009683
+    },
+    "76:2:mid.net_worth_at_20.v1": {
+      "match_count": 1184491,
+      "value": 8024.200911902243
+    },
+    "76:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 21679,
+      "value": 3032.507667327829
+    },
+    "76:3:offlane.net_worth_at_10.v1": {
+      "match_count": 21679,
+      "value": 3032.507667327829
+    },
+    "77:1:carry.last_hits_at_10.v1": {
+      "match_count": 6633,
+      "value": 38.286209859791946
+    },
+    "77:1:carry.net_worth_at_20.v1": {
+      "match_count": 6589,
+      "value": 8074.549837608134
+    },
+    "77:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6633,
+      "value": 3202.7785813357455
+    },
+    "77:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 22854,
+      "value": 3501.219171261049
+    },
+    "77:2:mid.net_worth_at_20.v1": {
+      "match_count": 22727,
+      "value": 8984.580346284156
+    },
+    "77:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 155112,
+      "value": 3237.553589922121
+    },
+    "77:3:offlane.net_worth_at_10.v1": {
+      "match_count": 155112,
+      "value": 3237.553589922121
+    },
+    "78:1:carry.last_hits_at_10.v1": {
+      "match_count": 2510,
+      "value": 31.935521912350595
+    },
+    "78:1:carry.net_worth_at_20.v1": {
+      "match_count": 2488,
+      "value": 7283.934911575564
+    },
+    "78:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2510,
+      "value": 3057.9418525896413
+    },
+    "78:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 17665,
+      "value": 3172.713411831305
+    },
+    "78:2:mid.net_worth_at_20.v1": {
+      "match_count": 17623,
+      "value": 7486.55483629348
+    },
+    "78:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 216682,
+      "value": 3042.266511385348
+    },
+    "78:3:offlane.net_worth_at_10.v1": {
+      "match_count": 216682,
+      "value": 3042.266511385348
+    },
+    "79:1:carry.last_hits_at_10.v1": {
+      "match_count": 1408,
+      "value": 22.357819602272727
+    },
+    "79:1:carry.net_worth_at_20.v1": {
+      "match_count": 1348,
+      "value": 5906.018041543026
+    },
+    "79:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1408,
+      "value": 2623.3024786931815
+    },
+    "79:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 10440,
+      "value": 3260.547959770115
+    },
+    "79:2:mid.net_worth_at_20.v1": {
+      "match_count": 10392,
+      "value": 7085.858601809085
+    },
+    "79:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2810,
+      "value": 2604.9421886120995
+    },
+    "79:3:offlane.net_worth_at_10.v1": {
+      "match_count": 2810,
+      "value": 2604.9421886120995
+    },
+    "7:1:carry.last_hits_at_10.v1": {
+      "match_count": 18676,
+      "value": 29.73926054829728
+    },
+    "7:1:carry.net_worth_at_20.v1": {
+      "match_count": 18633,
+      "value": 6674.322296463264
+    },
+    "7:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 18676,
+      "value": 2877.9270320197043
+    },
+    "7:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 607467,
+      "value": 3284.8169996888723
+    },
+    "7:2:mid.net_worth_at_20.v1": {
+      "match_count": 607008,
+      "value": 7698.076131072407
+    },
+    "7:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 840296,
+      "value": 3002.052781531746
+    },
+    "7:3:offlane.net_worth_at_10.v1": {
+      "match_count": 840296,
+      "value": 3002.052781531746
+    },
+    "80:1:carry.last_hits_at_10.v1": {
+      "match_count": 421898,
+      "value": 41.92379248064699
+    },
+    "80:1:carry.net_worth_at_20.v1": {
+      "match_count": 421216,
+      "value": 8636.386251899263
+    },
+    "80:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 421898,
+      "value": 3588.6631478224595
+    },
+    "80:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 137181,
+      "value": 3587.1227255961103
+    },
+    "80:2:mid.net_worth_at_20.v1": {
+      "match_count": 136769,
+      "value": 8289.439825252799
+    },
+    "80:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 50172,
+      "value": 3311.0376554652
+    },
+    "80:3:offlane.net_worth_at_10.v1": {
+      "match_count": 50172,
+      "value": 3311.0376554652
+    },
+    "81:1:carry.last_hits_at_10.v1": {
+      "match_count": 139986,
+      "value": 36.66831511722601
+    },
+    "81:1:carry.net_worth_at_20.v1": {
+      "match_count": 139792,
+      "value": 8089.066837944947
+    },
+    "81:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 139986,
+      "value": 3344.0505734859194
+    },
+    "81:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 22579,
+      "value": 3229.0462248106646
+    },
+    "81:2:mid.net_worth_at_20.v1": {
+      "match_count": 22512,
+      "value": 7635.7006298862825
+    },
+    "81:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 518048,
+      "value": 3110.0842430045095
+    },
+    "81:3:offlane.net_worth_at_10.v1": {
+      "match_count": 518048,
+      "value": 3110.0842430045095
+    },
+    "82:1:carry.last_hits_at_10.v1": {
+      "match_count": 33993,
+      "value": 47.21648309946165
+    },
+    "82:1:carry.net_worth_at_20.v1": {
+      "match_count": 33908,
+      "value": 9168.555102335733
+    },
+    "82:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 33993,
+      "value": 3573.9744276762863
+    },
+    "82:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 188398,
+      "value": 3697.1207543604496
+    },
+    "82:2:mid.net_worth_at_20.v1": {
+      "match_count": 188050,
+      "value": 9363.400704493486
+    },
+    "82:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 11035,
+      "value": 3304.0645410058905
+    },
+    "82:3:offlane.net_worth_at_10.v1": {
+      "match_count": 11035,
+      "value": 3304.0645410058905
+    },
+    "83:1:carry.last_hits_at_10.v1": {
+      "match_count": 4009,
+      "value": 28.687687702669
+    },
+    "83:1:carry.net_worth_at_20.v1": {
+      "match_count": 3943,
+      "value": 6536.214879533351
+    },
+    "83:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 4009,
+      "value": 2888.7993913694186
+    },
+    "83:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 3970,
+      "value": 3119.111501259446
+    },
+    "83:2:mid.net_worth_at_20.v1": {
+      "match_count": 3910,
+      "value": 6941.674603580564
+    },
+    "83:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 32522,
+      "value": 2987.6973095135604
+    },
+    "83:3:offlane.net_worth_at_10.v1": {
+      "match_count": 32522,
+      "value": 2987.6973095135604
+    },
+    "84:1:carry.last_hits_at_10.v1": {
+      "match_count": 22976,
+      "value": 29.2309375
+    },
+    "84:1:carry.net_worth_at_20.v1": {
+      "match_count": 22893,
+      "value": 7297.433301882671
+    },
+    "84:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 22976,
+      "value": 2908.1428133704735
+    },
+    "84:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 265304,
+      "value": 3307.718105531768
+    },
+    "84:2:mid.net_worth_at_20.v1": {
+      "match_count": 265119,
+      "value": 8289.55559269611
+    },
+    "84:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 479256,
+      "value": 3086.230751435558
+    },
+    "84:3:offlane.net_worth_at_10.v1": {
+      "match_count": 479256,
+      "value": 3086.230751435558
+    },
+    "85:1:carry.last_hits_at_10.v1": {
+      "match_count": 13813,
+      "value": 26.242781437776006
+    },
+    "85:1:carry.net_worth_at_20.v1": {
+      "match_count": 13735,
+      "value": 6676.467686931198
+    },
+    "85:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 13813,
+      "value": 3024.7760551654233
+    },
+    "85:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 34844,
+      "value": 3465.455420732407
+    },
+    "85:2:mid.net_worth_at_20.v1": {
+      "match_count": 34751,
+      "value": 7913.039821012345
+    },
+    "85:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 738089,
+      "value": 3434.2414211971727
+    },
+    "85:3:offlane.net_worth_at_10.v1": {
+      "match_count": 738089,
+      "value": 3434.2414211971727
+    },
+    "86:1:carry.last_hits_at_10.v1": {
+      "match_count": 10308,
+      "value": 22.504745828482733
+    },
+    "86:1:carry.net_worth_at_20.v1": {
+      "match_count": 10264,
+      "value": 5852.204621979735
+    },
+    "86:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 10308,
+      "value": 2531.664232634847
+    },
+    "86:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 606671,
+      "value": 3388.137855163672
+    },
+    "86:2:mid.net_worth_at_20.v1": {
+      "match_count": 606190,
+      "value": 7722.634537009848
+    },
+    "86:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 49484,
+      "value": 2774.0200660819655
+    },
+    "86:3:offlane.net_worth_at_10.v1": {
+      "match_count": 49484,
+      "value": 2774.0200660819655
+    },
+    "87:1:carry.last_hits_at_10.v1": {
+      "match_count": 1935,
+      "value": 13.115550387596898
+    },
+    "87:1:carry.net_worth_at_20.v1": {
+      "match_count": 1926,
+      "value": 4614.893094496364
+    },
+    "87:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1935,
+      "value": 2125.5945012919897
+    },
+    "87:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 9152,
+      "value": 2973.390071022727
+    },
+    "87:2:mid.net_worth_at_20.v1": {
+      "match_count": 9132,
+      "value": 6565.009049496277
+    },
+    "87:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 3073,
+      "value": 2266.0784868206965
+    },
+    "87:3:offlane.net_worth_at_10.v1": {
+      "match_count": 3073,
+      "value": 2266.0784868206965
+    },
+    "88:1:carry.last_hits_at_10.v1": {
+      "match_count": 5068,
+      "value": 25.635321625887922
+    },
+    "88:1:carry.net_worth_at_20.v1": {
+      "match_count": 5052,
+      "value": 6276.171850752177
+    },
+    "88:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5068,
+      "value": 2735.4002940015785
+    },
+    "88:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 191070,
+      "value": 3135.483004972
+    },
+    "88:2:mid.net_worth_at_20.v1": {
+      "match_count": 190950,
+      "value": 6913.316529510344
+    },
+    "88:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 74742,
+      "value": 2869.321339273769
+    },
+    "88:3:offlane.net_worth_at_10.v1": {
+      "match_count": 74742,
+      "value": 2869.321339273769
+    },
+    "89:1:carry.last_hits_at_10.v1": {
+      "match_count": 180559,
+      "value": 41.81441833417332
+    },
+    "89:1:carry.net_worth_at_20.v1": {
+      "match_count": 180373,
+      "value": 8442.813675660993
+    },
+    "89:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 180559,
+      "value": 3160.3772126562512
+    },
+    "89:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 7812,
+      "value": 3138.214632616487
+    },
+    "89:2:mid.net_worth_at_20.v1": {
+      "match_count": 7796,
+      "value": 8144.219996151873
+    },
+    "89:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 12269,
+      "value": 2880.476143124949
+    },
+    "89:3:offlane.net_worth_at_10.v1": {
+      "match_count": 12269,
+      "value": 2880.476143124949
+    },
+    "8:1:carry.last_hits_at_10.v1": {
+      "match_count": 2787404,
+      "value": 40.991347501115726
+    },
+    "8:1:carry.net_worth_at_20.v1": {
+      "match_count": 2784905,
+      "value": 8647.628512211368
+    },
+    "8:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 2787404,
+      "value": 3429.5765565486736
+    },
+    "8:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 45141,
+      "value": 3254.133828005583
+    },
+    "8:2:mid.net_worth_at_20.v1": {
+      "match_count": 45050,
+      "value": 7888.318225527192
+    },
+    "8:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 55547,
+      "value": 3032.4524726807927
+    },
+    "8:3:offlane.net_worth_at_10.v1": {
+      "match_count": 55547,
+      "value": 3032.4524726807927
+    },
+    "90:1:carry.last_hits_at_10.v1": {
+      "match_count": 6803,
+      "value": 30.155300602675293
+    },
+    "90:1:carry.net_worth_at_20.v1": {
+      "match_count": 6781,
+      "value": 6510.34413655803
+    },
+    "90:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 6803,
+      "value": 2684.2013097163017
+    },
+    "90:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 522231,
+      "value": 3685.0031503683235
+    },
+    "90:2:mid.net_worth_at_20.v1": {
+      "match_count": 521466,
+      "value": 9010.537379407288
+    },
+    "90:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 23606,
+      "value": 2867.0688075065664
+    },
+    "90:3:offlane.net_worth_at_10.v1": {
+      "match_count": 23606,
+      "value": 2867.0688075065664
+    },
+    "91:1:carry.last_hits_at_10.v1": {
+      "match_count": 78939,
+      "value": 39.08161745144986
+    },
+    "91:1:carry.net_worth_at_20.v1": {
+      "match_count": 78769,
+      "value": 8205.839368533307
+    },
+    "91:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 78939,
+      "value": 3301.9609735365284
+    },
+    "91:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 176475,
+      "value": 3311.6452979742166
+    },
+    "91:2:mid.net_worth_at_20.v1": {
+      "match_count": 176137,
+      "value": 7782.782237746754
+    },
+    "91:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 27626,
+      "value": 3089.5453978136543
+    },
+    "91:3:offlane.net_worth_at_10.v1": {
+      "match_count": 27626,
+      "value": 3089.5453978136543
+    },
+    "92:1:carry.last_hits_at_10.v1": {
+      "match_count": 1701,
+      "value": 31.02814814814815
+    },
+    "92:1:carry.net_worth_at_20.v1": {
+      "match_count": 1675,
+      "value": 7547.2813313432835
+    },
+    "92:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1701,
+      "value": 3239.171457965902
+    },
+    "92:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 86091,
+      "value": 3282.0602773809105
+    },
+    "92:2:mid.net_worth_at_20.v1": {
+      "match_count": 85847,
+      "value": 7775.479600102508
+    },
+    "92:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 88891,
+      "value": 3180.4831363130124
+    },
+    "92:3:offlane.net_worth_at_10.v1": {
+      "match_count": 88891,
+      "value": 3180.4831363130124
+    },
+    "93:1:carry.last_hits_at_10.v1": {
+      "match_count": 1296175,
+      "value": 34.10028206839355
+    },
+    "93:1:carry.net_worth_at_20.v1": {
+      "match_count": 1294710,
+      "value": 7710.963525608051
+    },
+    "93:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1296175,
+      "value": 3132.9517486527666
+    },
+    "93:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 226971,
+      "value": 3112.0421415511237
+    },
+    "93:2:mid.net_worth_at_20.v1": {
+      "match_count": 226575,
+      "value": 7413.670224384861
+    },
+    "93:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 92617,
+      "value": 2933.115290497425
+    },
+    "93:3:offlane.net_worth_at_10.v1": {
+      "match_count": 92617,
+      "value": 2933.115290497425
+    },
+    "94:1:carry.last_hits_at_10.v1": {
+      "match_count": 398396,
+      "value": 40.41277073564996
+    },
+    "94:1:carry.net_worth_at_20.v1": {
+      "match_count": 398100,
+      "value": 8468.80377538307
+    },
+    "94:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 398396,
+      "value": 3345.12750195785
+    },
+    "94:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 64186,
+      "value": 3200.420708565731
+    },
+    "94:2:mid.net_worth_at_20.v1": {
+      "match_count": 64145,
+      "value": 7688.58436885182
+    },
+    "94:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 19901,
+      "value": 2976.85042811919
+    },
+    "94:3:offlane.net_worth_at_10.v1": {
+      "match_count": 19901,
+      "value": 2976.85042811919
+    },
+    "95:1:carry.last_hits_at_10.v1": {
+      "match_count": 325726,
+      "value": 37.57123812652352
+    },
+    "95:1:carry.net_worth_at_20.v1": {
+      "match_count": 325361,
+      "value": 8176.270726208734
+    },
+    "95:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 325726,
+      "value": 3276.6056431786224
+    },
+    "95:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 26657,
+      "value": 3099.2333582173537
+    },
+    "95:2:mid.net_worth_at_20.v1": {
+      "match_count": 26618,
+      "value": 7465.897434442859
+    },
+    "95:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 34299,
+      "value": 2886.138092655763
+    },
+    "95:3:offlane.net_worth_at_10.v1": {
+      "match_count": 34299,
+      "value": 2886.138092655763
+    },
+    "96:1:carry.last_hits_at_10.v1": {
+      "match_count": 5214,
+      "value": 33.620751822017645
+    },
+    "96:1:carry.net_worth_at_20.v1": {
+      "match_count": 5085,
+      "value": 7056.637524090463
+    },
+    "96:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 5214,
+      "value": 3045.9404296125813
+    },
+    "96:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 32598,
+      "value": 3364.494454874532
+    },
+    "96:2:mid.net_worth_at_20.v1": {
+      "match_count": 32521,
+      "value": 7730.908017588635
+    },
+    "96:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1416931,
+      "value": 3211.1986420157373
+    },
+    "96:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1416931,
+      "value": 3211.1986420157373
+    },
+    "97:1:carry.last_hits_at_10.v1": {
+      "match_count": 31738,
+      "value": 40.96057596571933
+    },
+    "97:1:carry.net_worth_at_20.v1": {
+      "match_count": 31688,
+      "value": 8283.60621055289
+    },
+    "97:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 31738,
+      "value": 3400.689637658328
+    },
+    "97:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 369715,
+      "value": 3480.2375294213107
+    },
+    "97:2:mid.net_worth_at_20.v1": {
+      "match_count": 369392,
+      "value": 7690.419944936545
+    },
+    "97:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1000473,
+      "value": 3204.1316715693474
+    },
+    "97:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1000473,
+      "value": 3204.1316715693474
+    },
+    "98:1:carry.last_hits_at_10.v1": {
+      "match_count": 7037,
+      "value": 35.52731561745061
+    },
+    "98:1:carry.net_worth_at_20.v1": {
+      "match_count": 6957,
+      "value": 7809.8047233002735
+    },
+    "98:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 7037,
+      "value": 3239.3084652550806
+    },
+    "98:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 74982,
+      "value": 3356.6283450694837
+    },
+    "98:2:mid.net_worth_at_20.v1": {
+      "match_count": 74656,
+      "value": 7943.174184794257
+    },
+    "98:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 699916,
+      "value": 3027.0093755679254
+    },
+    "98:3:offlane.net_worth_at_10.v1": {
+      "match_count": 699916,
+      "value": 3027.0093755679254
+    },
+    "99:1:carry.last_hits_at_10.v1": {
+      "match_count": 24902,
+      "value": 36.89008071640832
+    },
+    "99:1:carry.net_worth_at_20.v1": {
+      "match_count": 24831,
+      "value": 7876.834392090532
+    },
+    "99:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 24902,
+      "value": 3312.965718416192
+    },
+    "99:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 30049,
+      "value": 3361.133584478685
+    },
+    "99:2:mid.net_worth_at_20.v1": {
+      "match_count": 30004,
+      "value": 7863.266060525264
+    },
+    "99:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 1050955,
+      "value": 3165.4739973738174
+    },
+    "99:3:offlane.net_worth_at_10.v1": {
+      "match_count": 1050955,
+      "value": 3165.4739973738174
+    },
+    "9:1:carry.last_hits_at_10.v1": {
+      "match_count": 47537,
+      "value": 34.25137177356585
+    },
+    "9:1:carry.net_worth_at_20.v1": {
+      "match_count": 47451,
+      "value": 7435.702208594129
+    },
+    "9:1:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 47537,
+      "value": 3211.240768664409
+    },
+    "9:2:mid.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 126933,
+      "value": 3312.512674166686
+    },
+    "9:2:mid.net_worth_at_20.v1": {
+      "match_count": 126801,
+      "value": 7375.88326140961
+    },
+    "9:3:offlane.lane_net_worth_advantage_at_10.v1": {
+      "match_count": 52069,
+      "value": 2839.87712554495
+    },
+    "9:3:offlane.net_worth_at_10.v1": {
+      "match_count": 52069,
+      "value": 2839.87712554495
+    }
+  },
+  "input_sha256": "ada9f36eb6409161b1ab77c65d81accdf41bca9182f4341df9958b0750b33ab3",
+  "lane_thresholds": {
+    "Carry": [
+      -2.05,
+      1.52
+    ],
+    "Mid": [
+      -2.01,
+      2.04
+    ],
+    "Offlane": [
+      -1.91,
+      1.32
+    ]
+  },
+  "maximum_slope_drift": 0.1,
+  "measured_role_slopes": {
+    "CARRY": 0.8382019610512808,
+    "MID": 0.8512157146707826,
+    "OFFLANE": 0.7668761916480521
+  },
+  "metrics": {
+    "carry.hero_damage_share.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.004253134290445955,
+      "sigma_pop": 0.0850626858089191,
+      "tau": 0.35
+    },
+    "carry.last_hits_at_10.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.6210397392428225,
+      "sigma_pop": 12.420794784856449,
+      "tau": 0.35
+    },
+    "carry.net_worth_at_20.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 92.72588682584455,
+      "sigma_pop": 1854.5177365168909,
+      "tau": 0.35
+    },
+    "carry.tower_damage_share.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.012637705835138447,
+      "sigma_pop": 0.2527541167027689,
+      "tau": 0.35
+    },
+    "mid.early_fight_presence.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.01056185971341557,
+      "sigma_pop": 0.2112371942683114,
+      "tau": 0.35
+    },
+    "mid.lane_net_worth_advantage_at_10.v1": {
+      "floor": -7168.046816302165,
+      "floor_tolerance": 0.0,
+      "sigma_pop": 1211.0468163021656,
+      "tau": 0.35
+    },
+    "mid.net_worth_at_20.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 94.39647320622896,
+      "sigma_pop": 1887.929464124579,
+      "tau": 0.35
+    },
+    "mid.tower_damage_share.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.01185134614147225,
+      "sigma_pop": 0.23702692282944496,
+      "tau": 0.35
+    },
+    "offlane.fight_presence.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.0,
+      "sigma_pop": 0.1423502361600243,
+      "tau": 0.35
+    },
+    "offlane.lane_net_worth_advantage_at_10.v1": {
+      "floor": -4981.99721324713,
+      "floor_tolerance": 0.0,
+      "sigma_pop": 1119.9972132471298,
+      "tau": 0.35
+    },
+    "offlane.net_worth_at_10.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 34.08615939513785,
+      "sigma_pop": 681.723187902757,
+      "tau": 0.35
+    },
+    "offlane.objective_involvement.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.0,
+      "sigma_pop": 0.2516539162292886,
+      "tau": 0.35
+    },
+    "support.camps_stacked.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.0,
+      "sigma_pop": 1.494317161882199,
+      "tau": 0.35
+    },
+    "support.fight_presence.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.0,
+      "sigma_pop": 0.14677344837748363,
+      "tau": 0.35
+    },
+    "support.observer_wards_placed.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.0,
+      "sigma_pop": 1.0024358429872968,
+      "tau": 0.35
+    },
+    "support.vision_denial.v1": {
+      "floor": 0.0,
+      "floor_tolerance": 0.0,
+      "sigma_pop": 0.9749324938314755,
+      "tau": 0.35
+    }
+  },
+  "model_version": "context-adjustment-v3",
+  "opponent_coverage": {
+    "CARRY": 1.0,
+    "MID": 1.0,
+    "OFFLANE": 1.0
+  },
+  "opponent_effects": {
+    "1:1": -2.0640974063568485,
+    "1:10": -0.03866706034605953,
+    "1:100": 1.3599821027976235,
+    "1:101": -2.9862232834456846,
+    "1:102": -0.9904439013934517,
+    "1:103": -0.33459688289888356,
+    "1:104": -1.0728100395440907,
+    "1:105": 0.4173377132500254,
+    "1:106": 1.219278213415621,
+    "1:107": 3.6412156521084427,
+    "1:108": 1.4487375903336253,
+    "1:109": -2.3681421593495364,
+    "1:11": -1.9560063404789403,
+    "1:110": 0.08345188067655011,
+    "1:111": 0.8255911555862405,
+    "1:112": -1.344843207725107,
+    "1:113": -1.8496377165919913,
+    "1:114": -1.2321212525587304,
+    "1:119": -1.001700870469971,
+    "1:12": -4.30353614845368,
+    "1:120": 2.911714317349284,
+    "1:121": 2.573187467623314,
+    "1:123": 0.1431604088825011,
+    "1:126": 1.3253478144776518,
+    "1:128": 0.08275776104226437,
+    "1:129": 1.3570973014939456,
+    "1:13": 0.16798411992223625,
+    "1:131": 1.3188559524668202,
+    "1:135": 1.599454952176001,
+    "1:136": 0.23603768241386996,
+    "1:137": 2.4903857772402027,
+    "1:138": -1.1482173188534737,
+    "1:14": 0.2694982617054212,
+    "1:145": -1.391277223825841,
+    "1:15": -3.174003832080225,
+    "1:155": 2.134146949918022,
+    "1:16": 2.7401998472710196,
+    "1:17": 0.04487565944893456,
+    "1:18": -1.0529137763433054,
+    "1:19": 1.0339346707793347,
+    "1:2": -1.2017781027538723,
+    "1:20": -1.1353400076926075,
+    "1:21": -0.33931107903323504,
+    "1:22": -0.29897363641212915,
+    "1:23": -0.41728746693928076,
+    "1:25": -3.065821076180121,
+    "1:26": -0.9463964862265274,
+    "1:27": -0.7685955864136824,
+    "1:28": 0.4482320348551505,
+    "1:29": 2.09443462898866,
+    "1:3": -2.7078408970472774,
+    "1:30": -3.4901090325636104,
+    "1:31": -2.4232726415081984,
+    "1:32": -0.14400801524720333,
+    "1:33": 4.2036238603161955,
+    "1:34": -0.16323773402594463,
+    "1:35": -2.086225892369473,
+    "1:36": -2.8734163766727017,
+    "1:37": -1.247265365698005,
+    "1:38": 2.208042414125896,
+    "1:39": -0.6218639431469073,
+    "1:4": -1.8994395272819962,
+    "1:40": 0.37391632943725833,
+    "1:41": 0.6056648466498075,
+    "1:42": 2.7886578024361053,
+    "1:43": -2.2651413139418484,
+    "1:44": -3.4019294759335468,
+    "1:45": -0.8342937565959538,
+    "1:46": -2.5899468845047733,
+    "1:47": -5.419464219386251,
+    "1:48": -1.250320245439998,
+    "1:49": -1.6552654597710466,
+    "1:5": -2.3660303496227346,
+    "1:50": -2.2399242761047833,
+    "1:51": 1.9545750368861374,
+    "1:52": -1.0570099627960725,
+    "1:53": 1.7840963286265539,
+    "1:54": -0.8306327329032387,
+    "1:55": 5.329160810599139,
+    "1:56": -3.1711514313205433,
+    "1:57": -2.4101829639619776,
+    "1:58": -2.849547572477696,
+    "1:59": -7.529317849976888,
+    "1:6": -6.2244473507544,
+    "1:60": 0.48397707514059213,
+    "1:61": 2.648456980566852,
+    "1:62": 2.0206256179366604,
+    "1:63": 2.311802982296001,
+    "1:64": -3.0163870179036314,
+    "1:65": 0.07446210689847584,
+    "1:66": -0.4752500879063071,
+    "1:67": -2.0998446476275054,
+    "1:68": -1.478691628226886,
+    "1:69": 0.20273776625475082,
+    "1:7": 0.8512603827740663,
+    "1:70": -1.137210082623099,
+    "1:71": 2.350344880024682,
+    "1:72": -0.4413304558680102,
+    "1:73": 3.587823326339735,
+    "1:74": 2.319302964590772,
+    "1:75": -3.1628719344819816,
+    "1:76": -4.797538633883982,
+    "1:77": 5.030167947129551,
+    "1:78": 0.9804586590854099,
+    "1:79": -0.7173549717441803,
+    "1:8": -1.5998003311169946,
+    "1:80": -1.6116979787671166,
+    "1:81": -2.394707147658274,
+    "1:82": 0.32862191896350623,
+    "1:83": -0.8957791515829955,
+    "1:84": -2.6115050544240175,
+    "1:85": -1.6239785938166487,
+    "1:86": 1.1536191330393066,
+    "1:87": -0.5996011866250314,
+    "1:88": 1.508963183712962,
+    "1:89": -1.1700522165844256,
+    "1:9": 1.8898014377969565,
+    "1:90": 2.059411732168968,
+    "1:91": -0.7768961232776963,
+    "1:92": -0.8522258153845232,
+    "1:93": -0.70345659587711,
+    "1:94": -0.996912636110647,
+    "1:95": -3.2154516789379968,
+    "1:96": 0.3278017346696707,
+    "1:97": 1.8173868095445156,
+    "1:98": 1.6095526440713712,
+    "1:99": -1.953621820218015,
+    "2:1": -2.584751118206635,
+    "2:10": -5.798195991420407e-05,
+    "2:100": 0.3690663349232331,
+    "2:101": -4.4106544482338155,
+    "2:102": -0.5958423658835061,
+    "2:103": 1.1009288205137508,
+    "2:104": 2.023770929011522,
+    "2:105": 3.7602864961088143,
+    "2:106": 3.0226880714465447,
+    "2:107": 3.5758938801458884,
+    "2:108": 4.015368007398505,
+    "2:109": -2.0379326773131754,
+    "2:11": -2.404012474118964,
+    "2:110": -4.05024273876479,
+    "2:111": 0.6120954263482172,
+    "2:112": 0.5034977369161799,
+    "2:113": -2.976328615571367,
+    "2:114": -2.3814099457846796,
+    "2:119": -5.772992825202093,
+    "2:12": -1.7073211782671711,
+    "2:120": 4.331517999160935,
+    "2:121": 5.055736370481547,
+    "2:123": -0.7355990528018657,
+    "2:126": 2.110441467984565,
+    "2:128": -0.4629772579451114,
+    "2:129": 2.841891125769873,
+    "2:13": 3.434378658377042,
+    "2:131": -0.5066833413463104,
+    "2:135": 3.4640909675670297,
+    "2:136": -1.9105409422945838,
+    "2:137": 4.264308141326261,
+    "2:138": -2.150059561775339,
+    "2:14": -1.02098159400735,
+    "2:145": -1.3929113557593462,
+    "2:15": -4.2784762215729994,
+    "2:155": 1.230916110729328,
+    "2:16": 7.687294677905488,
+    "2:17": 3.1571184309378353,
+    "2:18": 2.8416421389312223,
+    "2:19": 3.2614534225345806,
+    "2:2": -0.674567764055108,
+    "2:20": -2.7809480603363115,
+    "2:21": -0.26072215034135765,
+    "2:22": 1.6312244573100259,
+    "2:23": 0.7665805724988298,
+    "2:25": -1.6785935585134464,
+    "2:26": -1.10343117668358,
+    "2:27": 0.37239338211624345,
+    "2:28": 1.3466991008215135,
+    "2:29": 3.6780781711749597,
+    "2:3": -9.485375617738733,
+    "2:30": -5.839962907775964,
+    "2:31": -3.010100648449726,
+    "2:32": 2.8432421114745843,
+    "2:33": 5.861086315410048,
+    "2:34": 3.62551883820676,
+    "2:35": -2.2649800372328883,
+    "2:36": -2.524423315968826,
+    "2:37": -0.5947766601420899,
+    "2:38": 1.6454204604974636,
+    "2:39": 0.5391153276739167,
+    "2:4": 0.013282501876644074,
+    "2:40": 2.917118171544891,
+    "2:41": 2.1507182791026445,
+    "2:42": 7.038727132385799,
+    "2:43": -1.5355482233066509,
+    "2:44": -0.7283820550700605,
+    "2:45": 0.9088727369858085,
+    "2:46": -0.037560869593657245,
+    "2:47": -6.992104059544501,
+    "2:48": -0.07002495689842567,
+    "2:49": 1.4349878508455414,
+    "2:5": -1.0391873541295613,
+    "2:50": -4.545198323280452,
+    "2:51": 0.31565760085437294,
+    "2:52": 2.6271887011578383,
+    "2:53": 3.959075999975035,
+    "2:54": 1.273846262895939,
+    "2:55": 3.7729055009214174,
+    "2:56": 1.0872016919324727,
+    "2:57": -2.604701188817427,
+    "2:58": -3.6633691752613076,
+    "2:59": -11.144800404487867,
+    "2:6": -4.154270681801569,
+    "2:60": 2.0827678940114622,
+    "2:61": 8.754306065171765,
+    "2:62": 0.7734804579213204,
+    "2:63": 3.293833225821452,
+    "2:64": -4.785641888380238,
+    "2:65": -2.9225644745777988,
+    "2:66": -0.7276676611330583,
+    "2:67": 1.8018413882669024,
+    "2:68": -2.3579724931902457,
+    "2:69": 1.2364330495533726,
+    "2:7": 1.8791890984969155,
+    "2:70": 0.16997049491336658,
+    "2:71": 3.3211122905820822,
+    "2:72": -1.7148525910356212,
+    "2:73": 6.45989745066369,
+    "2:74": 3.243798264948737,
+    "2:75": -5.619205457195823,
+    "2:76": -6.289153735223095,
+    "2:77": 5.147614436916449,
+    "2:78": 0.647031842049335,
+    "2:79": -6.721214111927389,
+    "2:8": 2.387220952483825,
+    "2:80": -4.544609047425055,
+    "2:81": -1.4533875812286674,
+    "2:82": 2.9567172213231205,
+    "2:83": -0.44959953072566733,
+    "2:84": -3.1599308744231704,
+    "2:85": -1.7666532701271882,
+    "2:86": 0.26063615023802716,
+    "2:87": -4.505606214959664,
+    "2:88": 0.28715878355184704,
+    "2:89": 2.480438114841714,
+    "2:9": 2.044637384648718,
+    "2:90": 8.41203506019455,
+    "2:91": 3.944170940885084,
+    "2:92": -0.830648363001384,
+    "2:93": -0.817319361500451,
+    "2:94": 2.3690686055008787,
+    "2:95": -1.1086486625977119,
+    "2:96": 1.733576457240303,
+    "2:97": 1.754480782846247,
+    "2:98": 3.0670336429304252,
+    "2:99": 0.8070961378690089,
+    "3:1": -1.0597435413299023,
+    "3:10": 2.098883483542477,
+    "3:100": 1.2672919738546773,
+    "3:101": -2.567743833332522,
+    "3:102": 1.4613341041554395,
+    "3:103": 1.3437321578444958,
+    "3:104": -2.7770596496584905,
+    "3:105": 1.0752509902306118,
+    "3:106": 0.20305692198595326,
+    "3:107": 3.3807338318629108,
+    "3:108": -0.7241835497445612,
+    "3:109": 2.049904583306421,
+    "3:11": -2.3367350856304827,
+    "3:110": 0.8312110946170305,
+    "3:111": 2.7231161876876304,
+    "3:112": -0.5608056080500401,
+    "3:113": -1.6560325051862574,
+    "3:114": -2.687313891276776,
+    "3:119": -0.891033739264734,
+    "3:12": 1.0738558280831376,
+    "3:120": -0.044245206036632186,
+    "3:121": 2.770188884291934,
+    "3:123": 0.4952581568920073,
+    "3:126": 0.4915011073306456,
+    "3:128": 0.5913845894715848,
+    "3:129": -0.09869142873030232,
+    "3:13": -0.04815711947390057,
+    "3:131": 1.538457735908923,
+    "3:135": 1.0863134379835713,
+    "3:136": 0.13780521708798615,
+    "3:137": -0.3191511446425662,
+    "3:138": -1.2998063745077486,
+    "3:14": 0.5968452517936732,
+    "3:145": -0.0950541950186389,
+    "3:15": -4.786603881811789,
+    "3:155": 2.007409770784283,
+    "3:16": -0.0010859964731948137,
+    "3:17": 0.5039001424238362,
+    "3:18": 3.6015747412440144,
+    "3:19": 2.1309652781091613,
+    "3:2": -2.0723568118132896,
+    "3:20": -1.0411152718669547,
+    "3:21": -0.4920035462956695,
+    "3:22": 0.17626104871911344,
+    "3:23": -0.9198737362887119,
+    "3:25": -2.1907501385254524,
+    "3:26": -0.5279642912849052,
+    "3:27": -0.2538139319081831,
+    "3:28": -2.144707571593553,
+    "3:29": -0.9370182752725399,
+    "3:3": -0.3656138433353553,
+    "3:30": -2.5974455144028696,
+    "3:31": -1.5000088137315024,
+    "3:32": -0.44146961751795266,
+    "3:33": 4.448509095745914,
+    "3:34": 0.34151586350810353,
+    "3:35": -3.1183015147849047,
+    "3:36": -3.5999311179736853,
+    "3:37": 0.4693210177975423,
+    "3:38": 0.9148626295153881,
+    "3:39": -0.6954325672860749,
+    "3:4": -1.9658010504785077,
+    "3:40": 0.5017094726270795,
+    "3:41": 2.037338227745868,
+    "3:42": 5.3244327793658766,
+    "3:43": -3.983191805591509,
+    "3:44": 0.6954882107095107,
+    "3:45": -0.13790254808135766,
+    "3:46": 1.4324096993224145,
+    "3:47": -7.391608954340701,
+    "3:48": 3.039516959930242,
+    "3:49": -1.1770588977498808,
+    "3:5": -0.9258842879837562,
+    "3:50": -1.6244758955174092,
+    "3:51": 2.069964284102632,
+    "3:52": -0.7769208099649078,
+    "3:53": 3.0883403789995265,
+    "3:54": 1.1884974502520746,
+    "3:55": 1.1139983462803622,
+    "3:56": -1.869749599881636,
+    "3:57": 0.053970125439519616,
+    "3:58": -0.8421869331152411,
+    "3:59": -7.96437111243123,
+    "3:6": -4.846303976900282,
+    "3:60": -1.0223738013152663,
+    "3:61": 3.862736649996802,
+    "3:62": 2.115574157961547,
+    "3:63": 0.4764771155139154,
+    "3:64": -1.819699563427532,
+    "3:65": -1.610593730803353,
+    "3:66": 1.6804212265626917,
+    "3:67": 0.6056755340079396,
+    "3:68": -0.011115473245250711,
+    "3:69": -0.5280647739997355,
+    "3:7": 1.3911656817097706,
+    "3:70": -0.5585805441137136,
+    "3:71": 2.207172966912636,
+    "3:72": -0.855444384537858,
+    "3:73": 3.7413433179076674,
+    "3:74": 1.9955841388792726,
+    "3:75": -2.268249980468489,
+    "3:76": -4.905170089789065,
+    "3:77": 2.865219677241367,
+    "3:78": 0.47078621384512276,
+    "3:79": 0.35296546517373734,
+    "3:8": 0.6373539447645694,
+    "3:80": -1.4010011544665522,
+    "3:81": -1.577395493203382,
+    "3:82": 2.355114663745838,
+    "3:83": 1.379992743890665,
+    "3:84": -0.8871179891834103,
+    "3:85": -0.5409256253097863,
+    "3:86": 0.9313920811295423,
+    "3:87": 0.6660420923718333,
+    "3:88": 1.7367501319778678,
+    "3:89": 2.7391567132516292,
+    "3:9": 2.33478405259801,
+    "3:90": 1.888421645010801,
+    "3:91": -0.4109386959788095,
+    "3:92": -1.1483721628102415,
+    "3:93": -1.242744710401076,
+    "3:94": 1.0845047442416806,
+    "3:95": -1.538077943592371,
+    "3:96": -1.625518008829302,
+    "3:97": 1.589778576133616,
+    "3:98": -1.862315427999506,
+    "3:99": -3.6878206743134307
+  },
+  "opponent_match_counts": {
+    "1:1": 48625,
+    "1:10": 8214,
+    "1:100": 508003,
+    "1:101": 988726,
+    "1:102": 274116,
+    "1:103": 105102,
+    "1:104": 2206484,
+    "1:105": 922881,
+    "1:106": 39083,
+    "1:107": 513773,
+    "1:108": 1767844,
+    "1:109": 19075,
+    "1:11": 68708,
+    "1:110": 514397,
+    "1:111": 141941,
+    "1:112": 328265,
+    "1:113": 13836,
+    "1:114": 94544,
+    "1:119": 554862,
+    "1:12": 37464,
+    "1:120": 216252,
+    "1:121": 454761,
+    "1:123": 1149476,
+    "1:126": 76006,
+    "1:128": 997649,
+    "1:129": 731823,
+    "1:13": 16178,
+    "1:131": 351115,
+    "1:135": 1524670,
+    "1:136": 216318,
+    "1:137": 337686,
+    "1:138": 51345,
+    "1:14": 2677958,
+    "1:145": 31568,
+    "1:15": 573140,
+    "1:155": 200852,
+    "1:16": 486328,
+    "1:17": 17970,
+    "1:18": 146106,
+    "1:19": 369204,
+    "1:2": 2980546,
+    "1:20": 745802,
+    "1:21": 1176721,
+    "1:22": 979855,
+    "1:23": 471720,
+    "1:25": 358538,
+    "1:26": 1494313,
+    "1:27": 815955,
+    "1:28": 1244184,
+    "1:29": 1263682,
+    "1:3": 214397,
+    "1:30": 890768,
+    "1:31": 566707,
+    "1:32": 164832,
+    "1:33": 454859,
+    "1:34": 24218,
+    "1:35": 545887,
+    "1:36": 1099540,
+    "1:37": 332741,
+    "1:38": 269775,
+    "1:39": 224497,
+    "1:4": 90216,
+    "1:40": 599746,
+    "1:41": 67522,
+    "1:42": 1402601,
+    "1:43": 247762,
+    "1:44": 60905,
+    "1:45": 296560,
+    "1:46": 8492,
+    "1:47": 461148,
+    "1:48": 41313,
+    "1:49": 577784,
+    "1:5": 618590,
+    "1:50": 192590,
+    "1:51": 388960,
+    "1:52": 54480,
+    "1:53": 557524,
+    "1:54": 198993,
+    "1:55": 720041,
+    "1:56": 66700,
+    "1:57": 229340,
+    "1:58": 192675,
+    "1:59": 166509,
+    "1:6": 39906,
+    "1:60": 1270234,
+    "1:61": 35096,
+    "1:62": 950045,
+    "1:63": 288050,
+    "1:64": 534166,
+    "1:65": 79173,
+    "1:66": 13591,
+    "1:67": 69117,
+    "1:68": 426738,
+    "1:69": 911770,
+    "1:7": 1542888,
+    "1:70": 82007,
+    "1:71": 1968013,
+    "1:72": 159055,
+    "1:73": 164609,
+    "1:74": 636586,
+    "1:75": 765785,
+    "1:76": 40785,
+    "1:77": 157923,
+    "1:78": 226551,
+    "1:79": 147446,
+    "1:8": 63363,
+    "1:80": 54906,
+    "1:81": 538021,
+    "1:82": 13005,
+    "1:83": 226801,
+    "1:84": 1456830,
+    "1:85": 1553025,
+    "1:86": 1841924,
+    "1:87": 401063,
+    "1:88": 571611,
+    "1:89": 19301,
+    "1:9": 1263667,
+    "1:90": 285910,
+    "1:91": 163250,
+    "1:92": 119634,
+    "1:93": 134311,
+    "1:94": 23561,
+    "1:95": 39418,
+    "1:96": 1444446,
+    "1:97": 1339994,
+    "1:98": 714962,
+    "1:99": 1082644,
+    "2:1": 85128,
+    "2:10": 43144,
+    "2:100": 61337,
+    "2:101": 302495,
+    "2:102": 6399,
+    "2:103": 4404,
+    "2:104": 126799,
+    "2:105": 137605,
+    "2:106": 1349033,
+    "2:107": 621167,
+    "2:108": 31149,
+    "2:109": 5488,
+    "2:11": 1525052,
+    "2:110": 162272,
+    "2:111": 19594,
+    "2:112": 30273,
+    "2:113": 604716,
+    "2:114": 217061,
+    "2:119": 48173,
+    "2:12": 21386,
+    "2:120": 376753,
+    "2:121": 21757,
+    "2:123": 45983,
+    "2:126": 607739,
+    "2:128": 585558,
+    "2:129": 31796,
+    "2:13": 558546,
+    "2:131": 3692,
+    "2:135": 68498,
+    "2:136": 222022,
+    "2:137": 80383,
+    "2:138": 74679,
+    "2:14": 612077,
+    "2:145": 273597,
+    "2:15": 235862,
+    "2:155": 14068,
+    "2:16": 165654,
+    "2:17": 1031985,
+    "2:18": 19044,
+    "2:19": 120670,
+    "2:2": 60636,
+    "2:20": 159973,
+    "2:21": 763745,
+    "2:22": 793272,
+    "2:23": 240224,
+    "2:25": 2812225,
+    "2:26": 516545,
+    "2:27": 20554,
+    "2:28": 132048,
+    "2:29": 18748,
+    "2:3": 29198,
+    "2:30": 23537,
+    "2:31": 8745,
+    "2:32": 272603,
+    "2:33": 20096,
+    "2:34": 539342,
+    "2:35": 2053112,
+    "2:36": 1346910,
+    "2:37": 8513,
+    "2:38": 76363,
+    "2:39": 1319609,
+    "2:4": 89749,
+    "2:40": 27790,
+    "2:41": 24712,
+    "2:42": 41864,
+    "2:43": 309338,
+    "2:44": 97633,
+    "2:45": 102907,
+    "2:46": 230457,
+    "2:47": 589275,
+    "2:48": 95554,
+    "2:49": 309968,
+    "2:5": 31656,
+    "2:50": 11639,
+    "2:51": 9031,
+    "2:52": 211820,
+    "2:53": 381433,
+    "2:54": 16691,
+    "2:55": 23618,
+    "2:56": 294242,
+    "2:57": 12807,
+    "2:58": 46814,
+    "2:59": 318121,
+    "2:6": 137486,
+    "2:60": 51532,
+    "2:61": 194894,
+    "2:62": 35717,
+    "2:63": 114277,
+    "2:64": 72152,
+    "2:65": 33389,
+    "2:66": 620,
+    "2:67": 38096,
+    "2:68": 60741,
+    "2:69": 30838,
+    "2:7": 607958,
+    "2:70": 44511,
+    "2:71": 86120,
+    "2:72": 48041,
+    "2:73": 99010,
+    "2:74": 2403851,
+    "2:75": 230395,
+    "2:76": 1185732,
+    "2:77": 22633,
+    "2:78": 17334,
+    "2:79": 10211,
+    "2:8": 45222,
+    "2:80": 137187,
+    "2:81": 22606,
+    "2:82": 188173,
+    "2:83": 3429,
+    "2:84": 265929,
+    "2:85": 34988,
+    "2:86": 607572,
+    "2:87": 9086,
+    "2:88": 191380,
+    "2:89": 7337,
+    "2:9": 127347,
+    "2:90": 521404,
+    "2:91": 176248,
+    "2:92": 86000,
+    "2:93": 227335,
+    "2:94": 64258,
+    "2:95": 26537,
+    "2:96": 32475,
+    "2:97": 370101,
+    "2:98": 75208,
+    "2:99": 30157,
+    "3:1": 1672134,
+    "3:10": 542259,
+    "3:100": 422470,
+    "3:101": 707392,
+    "3:102": 237166,
+    "3:103": 49755,
+    "3:104": 89042,
+    "3:105": 650301,
+    "3:106": 38739,
+    "3:107": 131133,
+    "3:108": 51333,
+    "3:109": 673298,
+    "3:11": 1917273,
+    "3:110": 201544,
+    "3:111": 442381,
+    "3:112": 699565,
+    "3:113": 40293,
+    "3:114": 388596,
+    "3:119": 520826,
+    "3:12": 1923243,
+    "3:120": 8427,
+    "3:121": 582629,
+    "3:123": 908319,
+    "3:126": 25813,
+    "3:128": 610765,
+    "3:129": 12949,
+    "3:13": 8925,
+    "3:131": 550525,
+    "3:135": 36308,
+    "3:136": 144070,
+    "3:137": 6529,
+    "3:138": 355113,
+    "3:14": 1429495,
+    "3:145": 465195,
+    "3:15": 185103,
+    "3:155": 89227,
+    "3:16": 40925,
+    "3:17": 24861,
+    "3:18": 1224694,
+    "3:19": 331387,
+    "3:2": 68846,
+    "3:20": 1094654,
+    "3:21": 835902,
+    "3:22": 549255,
+    "3:23": 31164,
+    "3:25": 438452,
+    "3:26": 2407057,
+    "3:27": 1844604,
+    "3:28": 31703,
+    "3:29": 29116,
+    "3:3": 381647,
+    "3:30": 1787847,
+    "3:31": 1258559,
+    "3:32": 381135,
+    "3:33": 117881,
+    "3:34": 20685,
+    "3:35": 701954,
+    "3:36": 307797,
+    "3:37": 672763,
+    "3:38": 17887,
+    "3:39": 89172,
+    "3:4": 338877,
+    "3:40": 525282,
+    "3:41": 1353158,
+    "3:42": 570685,
+    "3:43": 36019,
+    "3:44": 1981285,
+    "3:45": 259299,
+    "3:46": 575478,
+    "3:47": 141224,
+    "3:48": 1588430,
+    "3:49": 91912,
+    "3:5": 1642960,
+    "3:50": 539989,
+    "3:51": 266906,
+    "3:52": 50646,
+    "3:53": 730900,
+    "3:54": 2500654,
+    "3:55": 35911,
+    "3:56": 417298,
+    "3:57": 121347,
+    "3:58": 173059,
+    "3:59": 49319,
+    "3:6": 1918631,
+    "3:60": 15839,
+    "3:61": 29421,
+    "3:62": 267828,
+    "3:63": 438549,
+    "3:64": 884652,
+    "3:65": 28512,
+    "3:66": 41139,
+    "3:67": 2001384,
+    "3:68": 646606,
+    "3:69": 35201,
+    "3:7": 324151,
+    "3:70": 812329,
+    "3:71": 416344,
+    "3:72": 231065,
+    "3:73": 203251,
+    "3:74": 336447,
+    "3:75": 796039,
+    "3:76": 24497,
+    "3:77": 7721,
+    "3:78": 7431,
+    "3:79": 207010,
+    "3:8": 2804012,
+    "3:80": 428372,
+    "3:81": 149550,
+    "3:82": 36102,
+    "3:83": 585439,
+    "3:84": 1122926,
+    "3:85": 949269,
+    "3:86": 1107560,
+    "3:87": 958360,
+    "3:88": 184998,
+    "3:89": 188913,
+    "3:9": 803011,
+    "3:90": 157300,
+    "3:91": 477120,
+    "3:92": 18085,
+    "3:93": 1340500,
+    "3:94": 403386,
+    "3:95": 331912,
+    "3:96": 20256,
+    "3:97": 257395,
+    "3:98": 10906,
+    "3:99": 37383
+  },
+  "pool": {
+    "end": "2026-09-24",
+    "start": "2026-07-30",
+    "weeks": 8.0
+  },
+  "reference_role_slopes": {
+    "CARRY": 0.748,
+    "MID": 0.778,
+    "OFFLANE": 0.722
+  },
+  "role_slopes": {
+    "CARRY": 0.748,
+    "MID": 0.778,
+    "OFFLANE": 0.722
+  },
+  "schema_version": "tracker-context-parameters-v3",
+  "sha256": "c3333c8223778ba3cefd06bcd10d146bb6d649c0a379951865f85e2715bb5707",
+  "slope_drift": {
+    "CARRY": 0.09020196105128075,
+    "MID": 0.07321571467078258,
+    "OFFLANE": 0.04487619164805212
+  },
+  "source": "stratz.heroStats.stats+laneOutcome+retained_match_samples",
+  "validation": {
+    "lane_model_passed": true,
+    "maximum_role_slope_drift": 0.09020196105128075,
+    "minimum_opponent_coverage": 0.97,
+    "passed": true
+  },
+  "version": "context-2026-09-v1"
+}

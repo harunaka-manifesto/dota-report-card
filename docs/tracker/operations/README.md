@@ -87,11 +87,37 @@ safety check in [provider operations](providers.md).
 
 ## Rebuilds and version bumps
 
-A change to `ANALYSIS_VERSION`, `BASELINE_VERSION`, `FEATURE_VERSION` or the approved context
-parameter set is replayed from stored data by `rebuild.enqueue_methodology_rebuilds` (one P3
-job per affected profile). Each bucket replays from its earliest stale chronology point in one
+A change to `ANALYSIS_VERSION`, `BASELINE_VERSION` or `FEATURE_VERSION` is replayed from stored
+data by `rebuild.enqueue_methodology_rebuilds` (one P3 job per affected profile). A replayed
+match is re-graded with the context parameter set it was first graded with. A **new** parameter
+set replays nothing except matches that were never graded (foundation §10.8). Each bucket replays from its earliest stale chronology point in one
 transaction; a failure keeps the previous coherent state. Entitlement changes run as
 `SCOPE_REBUILD` jobs. None of these paths can reach a provider.
+
+## Context parameter refresh (each major patch)
+
+The hero averages, metric spreads and badge lane data behind performance states and Role
+Mastery live in one immutable approved set (current: `context-2026-09-v1`, file
+`migrations/data/context-2026-09-v1.json`, registered by migration `0017`). Refresh after each
+major Dota patch; past matches and XP are never touched.
+
+1. Collect a fresh 4–8 week STRATZ `heroStats.stats` + `heroStats.laneOutcome` pool through the
+   audited provider gate (about 160 calls for 8 weeks; 0 OpenDota). Keep raw responses in
+   ignored `.local/`, never in Git.
+2. Build with `population_parameters.build_artifact` (reference builder:
+   `.local/tracker-context-calibration-2026-09-27/scripts/tracker_mastery_candidate_v3.py`),
+   using a new version name such as `context-2026-12-v1`. Keep `tau = 0.35`, the 5%-of-spread
+   floor tolerance, the matchup multipliers 0.748 / 0.778 / 0.722 and `maximum_slope_drift = 0.10`
+   unless the owner changes them. Metric spreads may be re-measured from retained ten-player
+   matches.
+3. Check: `validation.passed`, all 16 metrics present, hero-level coverage for the six
+   farm metrics, `lane_model_passed` (if false, only the badge hides), and no player or match
+   identifiers in the file.
+4. Get owner sign-off on that exact file and digest.
+5. Commit it under `migrations/data/` and add a new migration modelled on `0017` that verifies
+   the digest and inserts it with status `APPROVED`. Bump `EXPECTED_SCHEMA_REVISION`.
+6. Deploy the migration. New matches use the new set immediately; nothing is replayed, so
+   no award, verdict or PB changes. Never edit or delete a registered set.
 
 ## Item timing artifact refresh and rebuild
 

@@ -1,8 +1,17 @@
 # Role Mastery — SSOT
 
-**Status:** Backend contract implemented; public release blocked on an owner-approved performance parameter artifact. iOS placement and visual design are separate work.
+**Status:** Backend implemented and **on** (owner sign-off 2026-09-28). The approved parameter set `context-2026-09-v1` is registered by migration `0017`, so any database at head serves mastery. iOS placement and visual design are separate work; the iOS app consumes `/mobile/v1/mastery` ([API](../api/README.md)).
 
 Role Mastery is accumulated play and positive evidence for each of Carry, Mid, Offlane and Support. It is an **earned level**, never a skill rating, rank, role-level trend or performance verdict. Standard and Turbo contribute XP to the same role level; their metric observations, baselines, trends and PBs remain separate.
+
+## How it works (plain English)
+
+- **XP per match.** Every counted match gives 100 XP (Turbo: half of everything). On top: +10 XP for each of up to 2 stats where you clearly beat your usual ("Above"), and +20 XP for each of up to 2 new personal bests. Max 160 XP per Standard match.
+- **Your usual** is the middle value of your last 20 games in that role and mode, for each of the role's 4 stats.
+- **Hero fairness.** For 6 farm stats (Carry last hits @10 and net worth @20; Mid net worth @20 and lane lead vs enemy mid; Offlane net worth @10 and lane lead vs enemy carry) your usual is nudged by how tonight's hero normally farms compared with the heroes you usually play, using millions of public matches. The nudge is capped. Other stats use your usual as is.
+- **Example.** Your usual Carry net worth @20 is 9,000 on Juggernaut (population average 8,648). Tonight you play Faceless Void (average 7,520). Target = 9,000 − 1,128 = 7,872; "Above" needs about 8,520. Finishing at 8,300 is "In line" instead of an unfair "Below". The reverse applies to fast farmers: an Anti-Mage player (8,367) on Sven (9,007) gets a target about 640 higher.
+- **Lane matchups never change XP.** The Difficult/Typical/Favourable badge is information only.
+- **Earned XP never changes by itself.** Hero averages are refreshed after each major patch, but only future matches use the new numbers; every past match keeps the verdict and XP it earned (foundation §10.8). XP changes only when you correct a match's role (the XP moves to the new role) or a late replay adds a bonus that was missing; it is never reduced by a refresh.
 
 ## Earning
 
@@ -33,6 +42,7 @@ Role Mastery is accumulated play and positive evidence for each of Carry, Mid, O
 - Live visible level milestones are in-app events only. Push remains READY-only.
 - `/mobile/v1/mastery` supplies the four role levels, entitlement-safe progress and live milestones for Home, Profile and Progress. `/mobile/v1/mastery/{role}/awards` supplies paginated award reasons and links only to currently entitled matches. A Free response must not disclose hidden Pro-history match references.
 - The performance parameter artifact (schema `tracker-context-parameters-v3`, model `context-adjustment-v3`) holds per-metric spread, `tau`, floor and floor tolerance, and hero levels; it has no lane scale. Its lane-model data serves only the badge, and a lane-model failure never blocks mastery. Artifacts built under schema v2 fail closed.
-- If no owner-approved performance parameter artifact exists, mastery remains `CALIBRATION_PENDING`; no provisional awards are made. After approval, retained finalized data may be replayed and backfilled without provider calls. The API shows `BACKFILLING` until the currently entitled finalized matches have awards.
+- If no owner-approved performance parameter artifact exists (for example, a database below migration `0017`), mastery remains `CALIBRATION_PENDING`; no provisional awards are made. When the first approved set appears, matches finalized before it are graded once and backfilled quietly from retained data, with no provider calls and no celebrations. The API shows `BACKFILLING` until the currently entitled finalized matches have awards.
+- **Parameter refresh (each major patch).** A new approved set is a new immutable version. It applies only to matches graded after registration; it never re-grades or re-awards past matches. Past awards are append-only snapshots and are never recalculated by a refresh.
 
 There are no seasons, inactivity penalties, missions, widgets, social comparisons or named cosmetic tiers in this release.

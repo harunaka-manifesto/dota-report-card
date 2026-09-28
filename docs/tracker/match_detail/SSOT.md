@@ -220,7 +220,7 @@ For each metric in the effective role's set:
 
 Every comparison uses the same-role, same-mode baseline that existed **immediately before this match**. Wording MUST make the time-relative meaning clear ("baseline at the time", "your usual before this match"). "Current baseline" is reserved for present-day Progress and Home contexts and MUST NOT be used ambiguously here.
 
-Later matches MUST NOT change a finalized historical comparison. Only an authorized role correction, methodology migration or parameter-set rebuild may recompute it.
+Later matches MUST NOT change a finalized historical comparison. Only an authorized role correction or methodology migration may recompute it, always with the parameter set the match was first graded with. A new parameter set never re-grades past matches (foundation §10.8).
 
 ### 4.3 Matchup context
 

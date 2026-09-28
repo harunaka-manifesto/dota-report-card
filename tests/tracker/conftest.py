@@ -46,9 +46,19 @@ def postgres() -> Iterator[Engine]:
 
 
 @pytest.fixture
-def database(postgres: Engine) -> Engine:
+def migrated_database(postgres: Engine) -> Engine:
+    """Exactly what `alembic upgrade head` produces, including approved parameter sets."""
     migrate(postgres.url.render_as_string(hide_password=False), "head")
     return postgres
+
+
+@pytest.fixture
+def database(migrated_database: Engine) -> Engine:
+    # Most tests start uncalibrated and opt in with their own TEST_ONLY/APPROVED fixture,
+    # so the migration-registered set is removed here to keep outcomes independent of it.
+    with migrated_database.begin() as connection:
+        connection.execute(text("DELETE FROM tracker_parameter_sets WHERE version = 'context-2026-09-v1'"))
+    return migrated_database
 
 
 @pytest.fixture

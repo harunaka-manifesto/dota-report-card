@@ -428,7 +428,7 @@ A baseline is contextual reference. It MUST NOT replace, hide or normalise away 
 
 ### 9.2 Baseline at the time
 
-The **match comparison baseline** is the rolling baseline snapshot that existed immediately before that specific match. Match Detail uses it. Later matches MUST NOT change a finalized historical comparison. Only an authorized role correction, methodology migration or deterministic rebuild may recompute it.
+The **match comparison baseline** is the rolling baseline snapshot that existed immediately before that specific match. Match Detail uses it. Later matches MUST NOT change a finalized historical comparison. Only an authorized role correction, methodology migration or deterministic rebuild may recompute it, and it always recomputes with the parameter set that match was first graded with (§10.8).
 
 ---
 
@@ -539,7 +539,17 @@ The lane badge MAY still render when the baseline is not ready — it needs no h
 
 ### 10.7 Computation and rebuild
 
-Computed **once** at match processing, after `effective_role` resolves. Recomputed only on role correction, metric-version bump, or parameter-set-version bump. Never at read time. A rebuild reads only stored data and makes **no provider calls**. Same inputs and versions always produce identical output.
+Computed **once** at match processing, after `effective_role` resolves. Recomputed only on role correction or a methodology/metric-version bump. Never at read time. A rebuild reads only stored data and makes **no provider calls**. Same inputs and versions always produce identical output.
+
+### 10.8 Parameter sets are forward-only (owner decision, 2026-09-28)
+
+The population numbers behind the hero adjustment (hero averages, metric spreads, the `ABOVE` threshold, the badge's lane data) live in one immutable, versioned, owner-approved **parameter set**. The first approved set is `context-2026-09-v1` (STRATZ aggregates 2026-07-30 → 2026-09-24), registered by migration `0017`.
+
+- **A match is graded with one parameter set, forever:** the set that was current when it was first graded. Any later rebuild of that match — methodology bump, entitlement scope rebuild, role correction — reuses that same set.
+- **A new set applies only to matches graded after it is registered.** Registering it never re-grades older matches, so past Above/In line/Below verdicts, PBs and Role Mastery XP never change by themselves.
+- **One exception, once:** matches finalized while no approved set existed yet are graded by the first set that appears, and then frozen like any other.
+- Window-relative hero terms of prior matches keep the value they were graded with, even when it came from an older set. Hero averages move ~50 gold between refresh windows against ~1,100 between heroes, so mixing is negligible.
+- **Refresh cadence:** build and approve a new set after each major Dota patch (runbook: [`operations/README.md`](../operations/README.md#context-parameter-refresh-each-major-patch)). Never edit a registered set; publish a new version.
 
 ---
 
@@ -674,7 +684,7 @@ This list is **non-exhaustive and not a permanent feature matrix**. Exact catalo
 |---|---|---|
 | Role correction | Rebuild the corrected match and affected later old/new-role histories in the same bucket. | Preserve delivered events; do not re-send or retract. |
 | Metric-version or methodology migration | Recompute compatible retained history under **one** current methodology; use N/A where required telemetry is missing under the new definition. | Preserve prior events as audit history; no retroactive celebrations. |
-| Parameter-set version bump (context model) | Deterministic replay from stored data; no provider calls. | None. |
+| New context parameter set | **No replay.** Applies to matches graded from now on; already-graded matches keep their original set (§10.8). | None. |
 | Pro activation / backfill | Keep coherent Free state active during import; activate Pro-derived state atomically at a coherent cutoff. | At most one product-level Pro-history-ready communication. Never one event per imported match. |
 | Pro expiry | Atomically derive active state from Free-entitled history. Pro-only data stays retained but inactive. | No negative PB or downgrade celebration. |
 | Pro resubscription | Reuse retained data plus newer Free matches; rebuild and activate atomically. Refetch only if coverage is genuinely incomplete. | No retroactive celebration spam. |

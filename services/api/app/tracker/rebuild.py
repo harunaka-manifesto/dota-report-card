@@ -230,13 +230,19 @@ def complete_scope_rebuild_job(database: Engine, *, job_id: str, lease_token: st
 # -- methodology and parameter-set replay --------------------------------------------
 
 def stale_analysis(connection: Connection) -> Any:
-    """SQL condition: an analysis not produced by the current methodology and parameter set."""
+    """SQL condition: an analysis not produced by the current methodology, or never graded.
+
+    Parameter sets are forward-only (owner decision 2026-09-28): an analysis graded
+    under any approved set keeps its verdicts when a newer set is registered. Only
+    an analysis finalized while no set existed is graded, once, by the first set.
+    """
     parameters = current_context_parameters(connection)
-    version = parameters.version if parameters is not None else None
-    return or_(analyses.c.analysis_version != ANALYSIS_VERSION,
-               analyses.c.baseline_version != BASELINE_VERSION,
-               analyses.c.feature_version != FEATURE_VERSION,
-               analyses.c.result["parameter_set_version"].astext.is_distinct_from(version))
+    methodology = or_(analyses.c.analysis_version != ANALYSIS_VERSION,
+                      analyses.c.baseline_version != BASELINE_VERSION,
+                      analyses.c.feature_version != FEATURE_VERSION)
+    if parameters is None:
+        return methodology
+    return or_(methodology, analyses.c.result["parameter_set_version"].astext.is_(None))
 
 
 def stale_boundaries(connection: Connection, profile_id: str) -> dict[str, tuple[Any, int] | None]:

@@ -10,7 +10,7 @@ from sqlalchemy import Connection, Engine, and_, delete, func, or_, select, true
 from sqlalchemy.dialects.postgresql import insert
 
 from .carry_context import evaluate as evaluate_carry_context
-from .context import ContextInput, DraftPlayer, evaluate
+from .context import ContextInput, DraftPlayer, ParameterSet, evaluate
 from .core_fights import from_offlane_fights
 from .eligibility import classify
 from .evidence import canonical_json
@@ -28,7 +28,7 @@ from .metrics import measure, metric_ids
 from .mid_context import evaluate as evaluate_mid_context
 from .offlane_context import evaluate as evaluate_offlane_context
 from .offlane_context import evaluate_fights
-from .population_parameters import current_context_parameters
+from .population_parameters import context_parameters_for_version, current_context_parameters
 from .roles import ROLES
 from .schema import (
     account_matches,
@@ -283,9 +283,28 @@ def _prior_terms(connection: Connection, *, profile_id: str, match_ids: list[int
     ).join(metric_observations, metric_observations.c.analysis_id == account_matches.c.active_analysis_id).where(
         account_matches.c.profile_id == profile_id, account_matches.c.match_id.in_(match_ids),
         metric_observations.c.metric_id == metric_id,
-        metric_observations.c.parameter_set_version == parameter_version,
+        # Forward-only parameter sets: window priors keep the hero term they were
+        # graded with, whichever approved set that was.
+        metric_observations.c.parameter_set_version.is_not(None),
     ))}
     return tuple(rows.get(match_id) for match_id in match_ids)
+
+
+def _grading_parameters(connection: Connection, link: dict[str, Any]) -> ParameterSet | None:
+    """The parameter set this match is graded with, frozen at its first grading.
+
+    Owner decision 2026-09-28: a newer set applies only to matches graded after it.
+    Any rebuild of an already-graded match (methodology, scope, role correction)
+    reuses the set it was first graded with, so past verdicts and XP stay as they were.
+    """
+    active = link.get("active_analysis_id")
+    graded = connection.scalar(select(analyses.c.result["parameter_set_version"].astext).where(
+        analyses.c.id == active)) if active else None
+    if graded:
+        frozen = context_parameters_for_version(connection, graded)
+        if frozen is not None:
+            return frozen
+    return current_context_parameters(connection)
 
 
 def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, Any],
@@ -359,7 +378,7 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         insight = post_insight
     metric_rows: list[dict[str, Any]] = []
     pb_rows: list[dict[str, Any]] = []
-    parameters = current_context_parameters(connection)
+    parameters = _grading_parameters(connection, link)
     parameter_version = parameters.version if parameters is not None else None
     draft = _draft(features, cast(dict[int, int | None], position_map))
     viewer = draft[link["player_slot"]]

@@ -155,3 +155,5 @@ Rebuilt from retained data with no provider calls: `.local/tracker-context-calib
 ## Owner decision and next data work
 
 Finalize the remaining parameter choices and versioned artifact: rebuild the private draft under schema v3 (no lane scale), floor tolerance, and — for the display-only badge only — the opponent check method and its maximum permitted drift from the retained matchup multipliers. The local metric scales, `Above` threshold and matchup multipliers are already selected for V1. Use available hero-specific levels only where their 300-match threshold is met; otherwise the runtime applies zero hero adjustment. Once the artifact is approved, register it and backfill mastery from retained data without provider calls. Public enablement and deployment still require an explicit owner request.
+
+**Approved 2026-09-28.** The owner signed off the v3 values above, published as `context-2026-09-v1` (`migrations/data/context-2026-09-v1.json`, embedded digest `c3333c8223778ba3cefd06bcd10d146bb6d649c0a379951865f85e2715bb5707`) and registered by migration `0017`. Refreshes are forward-only, after each major patch (foundation §10.8).
