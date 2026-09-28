@@ -10,6 +10,7 @@ from app.tracker.metrics import METRICS
 from app.tracker.population_parameters import (
     BuildInput,
     CalibrationMatch,
+    CoverageDraft,
     HeroStatRow,
     LaneOutcomeRow,
     build_artifact,
@@ -42,7 +43,7 @@ def build_input(*, opponent_coverage: bool = True, slope_shift: float = 0) -> Bu
             samples.append(CalibrationMatch(role, (covered_hero,), (SLOPES[role] + slope_shift) * score))
         for metric_id in METRICS:
             hero_rows.append(HeroStatRow(1, position, metric_id, 42.0, 500))
-    parameters = {metric_id: MetricParameters(10, 0.35, 0, 0.1) for metric_id in METRICS}
+    parameters = {metric_id: MetricParameters(10, 0.35, 0, 0.1, 1.0) for metric_id in METRICS}
     return BuildInput(
         version="2026-09-v1",
         pool_start=date(2026, 8, 1),
@@ -50,6 +51,7 @@ def build_input(*, opponent_coverage: bool = True, slope_shift: float = 0) -> Bu
         hero_stats=tuple(hero_rows),
         lane_outcomes=tuple(lane_rows),
         calibration_matches=tuple(samples),
+        coverage_drafts=tuple(CoverageDraft(sample.role, sample.opponent_hero_ids) for sample in samples),
         reference_role_slopes=SLOPES,
         maximum_slope_drift=0.02,
         metric_parameters=parameters,
@@ -64,8 +66,31 @@ def test_build_uses_documented_effect_formula_and_locks_population_parameters() 
     assert artifact["role_slopes"] == pytest.approx(SLOPES)
     assert artifact["opponent_coverage"] == {"CARRY": 1, "MID": 1, "OFFLANE": 1}
     assert artifact["lane_thresholds"]["Carry"] == [-2.05, 1.52]
+    assert artifact["schema_version"] == "tracker-context-parameters-v2"
+    assert artifact["metrics"]["offlane.net_worth_at_10.v1"]["lane_scale"] == 1.0
     assert artifact["validation"]["passed"] is True
     assert len(artifact["sha256"]) == 64
+
+
+def test_slope_calibration_uses_change_from_prior_opponent_score() -> None:
+    original = build_input()
+    shifted = tuple(
+        CalibrationMatch(sample.role, sample.opponent_hero_ids,
+                         sample.observed_cs_advantage - SLOPES[sample.role],
+                         prior_opponent_score=1.0)
+        for sample in original.calibration_matches
+    )
+    data = BuildInput(**{**original.__dict__, "calibration_matches": shifted})
+    assert build_artifact(data)["role_slopes"] == pytest.approx(SLOPES)
+
+
+def test_coverage_sample_is_separate_from_slope_calibration() -> None:
+    original = build_input()
+    drafts = list(original.coverage_drafts)
+    drafts[:4] = [CoverageDraft("CARRY", (99,)) for _ in range(4)]
+    data = BuildInput(**{**original.__dict__, "coverage_drafts": tuple(drafts)})
+    with pytest.raises(ValueError, match="coverage below"):
+        build_artifact(data)
 
 
 def test_pool_coverage_slope_drift_and_bad_provider_rows_fail_closed() -> None:
@@ -131,6 +156,9 @@ def test_artifact_for_another_metric_registry_fails_closed() -> None:
 
     artifact = build_artifact(build_input())
     assert set(parameter_set_from_artifact(artifact).metrics) == METRICS and len(METRICS) == 16
+    old_schema = {**artifact, "schema_version": "tracker-context-parameters-v1"}
+    with pytest.raises(ValueError, match="integrity"):
+        parameter_set_from_artifact(_resigned(old_schema))
     # A pre-retirement (20-metric) artifact is intact and validated, yet no longer applicable.
     stale = dict(artifact)
     stale["metrics"] = {**artifact["metrics"],

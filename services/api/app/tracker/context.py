@@ -52,6 +52,7 @@ class MetricParameters:
     tau: float
     floor: float
     floor_tolerance: float
+    lane_scale: float
 
 
 @dataclass(frozen=True)
@@ -202,7 +203,8 @@ def evaluate(context: ContextInput, parameters: ParameterSet | None) -> ContextR
     assert parameters is not None
     metric = parameters.metrics[context.metric_id]
     if not (_finite(metric.sigma_pop) and metric.sigma_pop > 0 and _finite(metric.tau) and metric.tau > 0
-            and _finite(metric.floor) and _finite(metric.floor_tolerance) and metric.floor_tolerance >= 0):
+            and _finite(metric.floor) and _finite(metric.floor_tolerance) and metric.floor_tolerance >= 0
+            and _finite(metric.lane_scale) and metric.lane_scale > 0):
         return ContextResult(**{**empty.__dict__, "unavailable_reason": "METRIC_PARAMETERS_UNAVAILABLE"})
 
     hero_level: float | None = None
@@ -255,7 +257,8 @@ def evaluate(context: ContextInput, parameters: ParameterSet | None) -> ContextR
             delta_h = max(-0.75 * metric.sigma_pop, min(0.75 * metric.sigma_pop, hero_level - median(prior_h)))
         if cls in {"C", "C*"} and lane_score is not None and len([x for x in context.prior_lane_scores if x is not None and _finite(x)]) >= 3:
             prior_e = [float(x) for x in context.prior_lane_scores if x is not None and _finite(x)]
-            delta_e = max(-0.6 * metric.sigma_pop, min(0.6 * metric.sigma_pop, lane_score - median(prior_e)))
+            lane_change = (lane_score - median(prior_e)) * metric.lane_scale
+            delta_e = max(-0.6 * metric.sigma_pop, min(0.6 * metric.sigma_pop, lane_change))
 
     expectation = context.baseline
     residual = None

@@ -33,7 +33,7 @@ def _parameters(*, validated: bool = True, coverage: float = 0.97) -> ParameterS
         opponent_effects={(1, 13): 5.0, (1, 15): 5.0},
         role_slopes={"CARRY": 1.0, "MID": 1.0, "OFFLANE": 1.0},
         lane_thresholds={"CARRY": (-2.0, 2.0), "MID": (-2.0, 2.0), "OFFLANE": (-2.0, 2.0)},
-        metrics={metric: MetricParameters(10.0, 0.35, 0.0, 0.0)},
+        metrics={metric: MetricParameters(10.0, 0.35, 0.0, 0.0, 1.0)},
     )
 
 
@@ -72,7 +72,7 @@ def test_metric_matrix_and_higher_is_better_residual() -> None:
     params = _parameters()
     params = ParameterSet(**{
         **params.__dict__,
-        "metrics": {metric: MetricParameters(10.0, 0.35, 0.0, 0.0)},
+        "metrics": {metric: MetricParameters(10.0, 0.35, 0.0, 0.0, 1.0)},
     })
     result = evaluate(_input(metric_id=metric, role="SUPPORT", comparison_value=105.0), params)
     assert result.adjusted_expectation == 100.0
@@ -121,7 +121,7 @@ def test_paired_hero_term_uses_only_viewer_and_counterpart() -> None:
     params = _parameters()
     params = ParameterSet(**{
         **params.__dict__,
-        "metrics": {metric: MetricParameters(10.0, 0.35, -100.0, 0.0)},
+        "metrics": {metric: MetricParameters(10.0, 0.35, -100.0, 0.0, 1.0)},
         "hero_levels": {(2, 2, metric): HeroLevel(30.0, 500), (12, 2, metric): HeroLevel(10.0, 500)},
         "opponent_effects": {(2, 12): 2.0},
         "role_slopes": {"MID": 1.0},
@@ -139,6 +139,23 @@ def test_paired_hero_term_uses_only_viewer_and_counterpart() -> None:
     changed_counterpart = list(context.players)
     changed_counterpart[6] = DraftPlayer(12, 2, "OFF_LANE", False)
     assert evaluate(ContextInput(**{**context.__dict__, "players": tuple(changed_counterpart)}), params).delta_hero == 0
+
+
+def test_gold_metric_converts_lane_change_to_its_own_units() -> None:
+    metric = "offlane.net_worth_at_10.v1"
+    params = _parameters()
+    params = ParameterSet(**{
+        **params.__dict__,
+        "metrics": {metric: MetricParameters(1000.0, 0.35, 0.0, 0.0, 50.0)},
+        "opponent_effects": {(3, 11): 5.0, (3, 14): 5.0},
+    })
+    result = evaluate(_input(metric_id=metric, role="OFFLANE", hero_id=3, position=3,
+                             lane="OFF_LANE", baseline=3000.0, comparison_value=4000.0,
+                             prior_hero_levels=()), params)
+    assert result.lane_score == 10.0
+    assert result.delta_lane == 450.0
+    assert result.adjusted_expectation == 3450.0
+    assert result.performance_state == "ABOVE"
 
 
 @pytest.mark.parametrize("edit", [

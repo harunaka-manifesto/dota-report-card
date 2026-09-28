@@ -447,6 +447,8 @@ context_adjusted_expectation
 
 Both adjustments are **window-relative**: each is the current match's population term minus the median of that same term across the baseline window. A player who always plays the same hero into the same kind of lane is therefore adjusted by ≈ 0 — correctly.
 
+The lane-opponent score is measured in last-hit units for the matchup badge. Before it adjusts a gold-valued metric, a frozen per-metric scale converts the window-relative score change into that metric's units. The scale is part of the versioned, approved parameter set.
+
 Population terms are read from provider aggregate endpoints (hero level at position; lane-opponent effect). No corpus is built, no model is fitted, **no ML and no LLM** run at any time.
 
 ### 10.2 Hard boundaries

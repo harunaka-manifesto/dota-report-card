@@ -4,11 +4,13 @@
 
 ## Owner review guide
 
-This is the document to review for the **evidence and calibration direction**. The key question is whether the retained, tracked-account ten-player sample is an acceptable source for provisional population scales, or whether an independently sampled validation cohort is required before approving them. The [reuse audit below](#retained-corpus-reuse-audit--2026-09-28) gives all 16 measured scales and their sample counts. The [slope check](#slope-check) explains the separate role-slope decision.
+This is the document to review for the **evidence and calibration direction**. The owner has chosen local data first and the existing `Above` threshold. The [reuse audit below](#retained-corpus-reuse-audit--2026-09-28) gives all 16 measured scales and their sample counts. The [slope check](#slope-check) explains the remaining matchup-adjustment choice.
 
 **Owner direction, 2026-09-28:** use retained local matches for the first candidate and check it against held-aside local matches. Make new provider calls only if that check shows a gap. This chooses the next data source; it does not approve parameter values or public enablement.
 
-**This is not a final parameter artifact to approve.** The per-metric threshold (`tau`), near-floor tolerance, accepted population scales and maximum slope drift have not been bound to reviewed values. No approval of public mastery is requested from this study alone. Once those choices are documented in a versioned candidate artifact with validation results, that artifact is the final sign-off item.
+**Owner direction, 2026-09-28:** keep the existing V1 `Above` threshold (`tau = 0.35`) for the first candidate. The local history check below puts this near one in three eligible comparisons. This approves the threshold choice, not the other parameters or public enablement.
+
+**This is not a final parameter artifact to approve.** The selected threshold, near-floor tolerance, accepted population scales and maximum slope drift have not been bound together in a validated versioned artifact. No approval of public mastery is requested from this study alone. Once those choices are documented in a candidate artifact with validation results, that artifact is the final sign-off item.
 
 ## Acquisition and provenance
 
@@ -56,7 +58,7 @@ The builder requires finite `sigma_pop`, `tau`, `floor` and `floor_tolerance` fo
 
 The private parsed OpenDota corpus has 960 Standard matches with ten players. Under the tracker's existing evidence translation, tested lane net-worth comparisons still yielded zero valid measurements. The 12 provisional distributions come from a tracked-player cohort, not an approved population sample. STRATZ `stats` supplies useful checkpoint means for active metrics. The acquired aggregate fields cannot establish damage-share and event hero levels. The four retired metrics are excluded from this release assessment.
 
-`tau = 0.35` is the V1 engineering default, not an approved binding for every metric. Per-metric floor tolerances and representative population scales are also unapproved. Arbitrary positive placeholders for scored metrics would pass shape checks while changing `ABOVE`/`BELOW` states and mastery bonuses. Offlane Objective Involvement is diagnostic-only, but the current artifact contract still requires its parameter entry.
+The owner selected the existing V1 `tau = 0.35` default for the first candidate. Per-metric floor tolerances and representative population scales are still unapproved. Arbitrary positive placeholders for scored metrics would pass shape checks while changing `ABOVE`/`BELOW` states and mastery bonuses. Offlane Objective Involvement is diagnostic-only, but the current artifact contract still requires its parameter entry.
 
 ## Ten-player follow-up — 2026-09-28
 
@@ -121,6 +123,16 @@ The following are sample standard deviations of **valid comparison values**, ded
 The older probe cache supplies 318 of the 757 distinct matches; the recent fixed sample supplies 439 more after deduplication. Calculating each metric's spread separately in those two caches gives differences of **0.7%–11.7%** across the 16 metrics. This is useful internal consistency evidence, but both caches were reached through tracked accounts and do not prove population representativeness.
 
 A separate replay of 155 tracked accounts' recent histories tested the engineering default for `Above` against their prior same-role values. For the 12 scored metrics measurable from single-viewer history, about **33%–36%** of eligible comparisons were `Above` at the default `tau = 0.35`; a more permissive `0.25` yielded **38%–40%**, and a stricter `0.65` yielded **22%–26%**, by role. This check does not include hero or lane adjustments and cannot calculate three scored metrics needing other players' replay. It estimates the direction and magnitude of the choice; it is not a final bonus-award rate or parameter approval.
+
+The offline slope validator initially compared only the current opponent lineup while runtime uses the change from the player's prior lineup mix. Its candidate input now carries that prior score. A separate unit check found that the resulting lane score is in last-hit units even for three gold-valued metrics. The context parameter schema now requires a per-metric lane scale before such a score can adjust gold. Direct ten-player checkpoint comparisons suggest provisional conversions of **48.63 gold per last hit** for Mid lane net-worth advantage, **53.08** for Offlane lane net-worth advantage, and **45.31** for Offlane net worth at 10. Estimates from the older and newer caches differ by at most 5.3%; they remain candidate values, not approved parameters. The matchup badge retains its original last-hit score.
+
+### Private parameter candidate — 2026-09-28
+
+The reproducible private draft is `.local/tracker-context-calibration-2026-09-27/candidate-context-parameters-v2.json` (SHA-256 `dbaf7a4fedf7104829efbdf61c49bd616676b4cf6bc0406d5d81cb3d082d5229`). Its private builder and source data remain alongside it; no raw identifiers are committed. It contains all 16 metric scales from the 757 ten-player matches, the owner-selected `Above` threshold of `0.35`, 889 checkpoint hero rows, 47,894 pooled opponent pairs, and three metric-specific gold conversions. The slope check uses 20,713 longitudinal observations; a **separate 4,937-draft sample** checks opponent coverage. The artifact builder reports 100% coverage in that independent draft sample.
+
+The draft's updated Carry/Mid/Offlane matchup multipliers are **0.838 / 0.851 / 0.767**, compared with the earlier **0.748 / 0.778 / 0.722**. The draft uses an illustrative maximum drift of `0.10`, chosen after seeing the local data; this bound is **not owner-approved** and the builder's pass does not settle that decision. Near-floor tolerances are provisionally 5% of each adjusted metric's measured spread; signed lane-advantage metrics use a floor below the observed minimum. These are review proposals, not approved release values.
+
+Replaying 155 tracked accounts with the private candidate produced `Above` on **31.6%–35.4%** of eligible comparisons for the 12 scored metrics available in those histories. Replacing only the updated matchup multipliers with the earlier values changed the `Above` result in **14 of 17,565** checked comparisons. Three scored metrics need other players' replay and cannot enter this particular history check. The full candidate is unregistered; public mastery remains at `CALIBRATION_PENDING`.
 
 ## Owner decision and next data work
 

@@ -63,6 +63,14 @@ class CalibrationMatch:
     opponent_hero_ids: tuple[int, ...]
     observed_cs_advantage: float
     weight: int = 1
+    prior_opponent_score: float = 0.0
+
+
+@dataclass(frozen=True)
+class CoverageDraft:
+    role: str
+    opponent_hero_ids: tuple[int, ...]
+    weight: int = 1
 
 
 @dataclass(frozen=True)
@@ -73,12 +81,13 @@ class BuildInput:
     hero_stats: tuple[HeroStatRow, ...]
     lane_outcomes: tuple[LaneOutcomeRow, ...]
     calibration_matches: tuple[CalibrationMatch, ...]
+    coverage_drafts: tuple[CoverageDraft, ...]
     # Locked estimates from the independent research calibration. The job checks
     # drift against these rather than silently treating a new fit as validated.
     reference_role_slopes: Mapping[str, float]
     maximum_slope_drift: float
     metric_parameters: Mapping[str, MetricParameters]
-    model_version: str = "context-adjustment-v1"
+    model_version: str = "context-adjustment-v2"
 
 
 def _number(value: object) -> bool:
@@ -105,7 +114,7 @@ def _validate_input(data: BuildInput) -> None:
     for param in data.metric_parameters.values():
         if not all(_number(value) for value in asdict(param).values()):
             raise ValueError("metric parameters must be finite")
-        if param.sigma_pop <= 0 or param.tau <= 0 or param.floor_tolerance < 0:
+        if param.sigma_pop <= 0 or param.tau <= 0 or param.floor_tolerance < 0 or param.lane_scale <= 0:
             raise ValueError("metric parameters are outside valid bounds")
 
     seen_hero: set[tuple[int, int, str]] = set()
@@ -132,9 +141,14 @@ def _validate_input(data: BuildInput) -> None:
     for sample in data.calibration_matches:
         if (sample.role not in ROLE_POSITION or not sample.opponent_hero_ids
                 or any(type(hero_id) is not int or hero_id <= 0 for hero_id in sample.opponent_hero_ids)
-                or not _number(sample.observed_cs_advantage)
+                or not _number(sample.observed_cs_advantage) or not _number(sample.prior_opponent_score)
                 or type(sample.weight) is not int or sample.weight <= 0):
             raise ValueError("invalid independent CS slope calibration row")
+    for draft in data.coverage_drafts:
+        if (draft.role not in ROLE_POSITION or not draft.opponent_hero_ids
+                or any(type(hero_id) is not int or hero_id <= 0 for hero_id in draft.opponent_hero_ids)
+                or type(draft.weight) is not int or draft.weight <= 0):
+            raise ValueError("invalid independent opponent coverage row")
 
 
 def _derive_opponent_effects(rows: tuple[LaneOutcomeRow, ...]) -> tuple[dict[tuple[int, int], float], dict[tuple[int, int], int]]:
@@ -172,7 +186,7 @@ def _fit_role_slopes(data: BuildInput, effects: Mapping[tuple[int, int], float])
         keys = [(position, hero_id) for hero_id in sample.opponent_hero_ids]
         if any(key not in effects for key in keys):
             continue
-        score = sum(effects[key] for key in keys)
+        score = sum(effects[key] for key in keys) - sample.prior_opponent_score
         if score == 0:
             continue
         numerator, denominator = accum[sample.role]
@@ -185,12 +199,12 @@ def _fit_role_slopes(data: BuildInput, effects: Mapping[tuple[int, int], float])
 
 def _coverage(data: BuildInput, effects: Mapping[tuple[int, int], float]) -> dict[str, float]:
     totals = {role: (0, 0) for role in ROLE_NAMES}
-    for sample in data.calibration_matches:
-        total, covered = totals[sample.role]
-        totals[sample.role] = (total + sample.weight,
-                               covered + sample.weight * all(
-                                   (ROLE_POSITION[sample.role], hero_id) in effects
-                                   for hero_id in sample.opponent_hero_ids))
+    for draft in data.coverage_drafts:
+        total, covered = totals[draft.role]
+        totals[draft.role] = (total + draft.weight,
+                              covered + draft.weight * all(
+                                  (ROLE_POSITION[draft.role], hero_id) in effects
+                                  for hero_id in draft.opponent_hero_ids))
     if any(total == 0 for total, _ in totals.values()):
         raise ValueError("coverage sample must contain all three roles")
     return {role: covered / total for role, (total, covered) in totals.items()}
@@ -219,16 +233,17 @@ def build_artifact(data: BuildInput) -> dict[str, object]:
         "hero_stats": [asdict(row) for row in data.hero_stats],
         "lane_outcomes": [asdict(row) for row in data.lane_outcomes],
         "calibration_matches": [asdict(row) for row in data.calibration_matches],
+        "coverage_drafts": [asdict(row) for row in data.coverage_drafts],
         "pool_start": data.pool_start.isoformat(),
         "pool_end": data.pool_end.isoformat(),
     }, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     artifact = {
-        "schema_version": "tracker-context-parameters-v1",
+        "schema_version": "tracker-context-parameters-v2",
         "version": data.version,
         "model_version": data.model_version,
         "pool": {"start": data.pool_start.isoformat(), "end": data.pool_end.isoformat(),
                  "weeks": (data.pool_end - data.pool_start).days / 7},
-        "source": "stratz.heroStats.stats+laneOutcome",
+        "source": "stratz.heroStats.stats+laneOutcome+retained_match_samples",
         "input_sha256": hashlib.sha256(input_json).hexdigest(),
         "hero_levels": hero_levels,
         "opponent_effects": {f"{position}:{hero_id}": effect
@@ -267,7 +282,7 @@ def load_parameter_set(path: Path) -> ParameterSet:
 
 def parameter_set_from_artifact(artifact: object) -> ParameterSet:
     """Verify an artifact's integrity and validation record, then map it."""
-    if (not isinstance(artifact, Mapping) or artifact.get("schema_version") != "tracker-context-parameters-v1"
+    if (not isinstance(artifact, Mapping) or artifact.get("schema_version") != "tracker-context-parameters-v2"
             or not _verified_artifact(artifact)):
         raise ValueError("population parameter artifact failed integrity validation")
     validation = artifact.get("validation")

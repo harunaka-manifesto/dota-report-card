@@ -165,8 +165,8 @@ def _test_parameters(version: str) -> ParameterSet:
         hero_levels={(123, 1, CONTEXT_METRIC): HeroLevel(40.0, 500)}, opponent_effects={},
         role_slopes={"CARRY": 1.0, "MID": 1.0, "OFFLANE": 1.0},
         lane_thresholds={"CARRY": (-2.0, 2.0)},
-        metrics={CONTEXT_METRIC: MetricParameters(5.0, 0.35, 0.0, 0.0),
-                 METRIC: MetricParameters(1.0, 0.35, 0.0, 0.0)},
+        metrics={CONTEXT_METRIC: MetricParameters(5.0, 0.35, 0.0, 0.0, 1.0),
+                 METRIC: MetricParameters(1.0, 0.35, 0.0, 0.0, 1.0)},
     )
 
 

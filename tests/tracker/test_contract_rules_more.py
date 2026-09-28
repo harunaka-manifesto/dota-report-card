@@ -124,8 +124,8 @@ def _params(metric):
         hero_levels={(1, 1, metric): HeroLevel(100.0, 500), (4, 4, "support.fight_presence.v1"): HeroLevel(5.0, 500)},
         opponent_effects={(1, 13): 1.0, (1, 15): 1.0}, role_slopes={"CARRY": 1.0, "MID": 1.0, "OFFLANE": 1.0},
         lane_thresholds={"CARRY": (-2.0, 2.0)},
-        metrics={metric: MetricParameters(1000.0, 0.35, 0.0, 0.0),
-                 "support.fight_presence.v1": MetricParameters(0.1, 0.35, 0.0, 0.0)})
+        metrics={metric: MetricParameters(1000.0, 0.35, 0.0, 0.0, 1.0),
+                 "support.fight_presence.v1": MetricParameters(0.1, 0.35, 0.0, 0.0, 1.0)})
 
 
 def test_class_b_adjusts_hero_only_class_a_never_and_lane_label_is_standard_core_only():
@@ -516,7 +516,7 @@ def test_role_correction_recomputes_context_terms_for_the_new_role(database, mon
         version="test-only-context-v2", validated=True, opponent_coverage=0.99, cs_slope_regression_passed=True,
         hero_levels={(123, 3, "offlane.net_worth_at_10.v1"): HeroLevel(2000.0, 500)}, opponent_effects={},
         role_slopes={"CARRY": 1.0, "MID": 1.0, "OFFLANE": 1.0}, lane_thresholds={"OFFLANE": (-2.0, 2.0)},
-        metrics={"offlane.net_worth_at_10.v1": MetricParameters(500.0, 0.35, 0.0, 0.0)})
+        metrics={"offlane.net_worth_at_10.v1": MetricParameters(500.0, 0.35, 0.0, 0.0, 1.0)})
     with database.begin() as connection:
         connection.execute(parameter_sets.insert().values(
             version=parameters.version, kind="CONTEXT_POPULATION", digest="1" * 64, status="TEST_ONLY",
