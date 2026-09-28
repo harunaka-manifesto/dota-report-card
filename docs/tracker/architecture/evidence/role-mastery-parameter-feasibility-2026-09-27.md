@@ -6,6 +6,8 @@
 
 This is the document to review for the **evidence and calibration direction**. The key question is whether the retained, tracked-account ten-player sample is an acceptable source for provisional population scales, or whether an independently sampled validation cohort is required before approving them. The [reuse audit below](#retained-corpus-reuse-audit--2026-09-28) gives all 16 measured scales and their sample counts. The [slope check](#slope-check) explains the separate role-slope decision.
 
+**Owner direction, 2026-09-28:** use retained local matches for the first candidate and check it against held-aside local matches. Make new provider calls only if that check shows a gap. This chooses the next data source; it does not approve parameter values or public enablement.
+
 **This is not a final parameter artifact to approve.** The per-metric threshold (`tau`), near-floor tolerance, accepted population scales and maximum slope drift have not been bound to reviewed values. No approval of public mastery is requested from this study alone. Once those choices are documented in a versioned candidate artifact with validation results, that artifact is the final sign-off item.
 
 ## Acquisition and provenance
@@ -113,6 +115,12 @@ The following are sample standard deviations of **valid comparison values**, ded
 | `support.fight_presence.v1` | 3,020 | 0.1468 |
 | `support.observer_wards_placed.v1` | 3,028 | 1.0024 |
 | `support.vision_denial.v1` | 3,028 | 0.9749 |
+
+### Local checks before parameter selection
+
+The older probe cache supplies 318 of the 757 distinct matches; the recent fixed sample supplies 439 more after deduplication. Calculating each metric's spread separately in those two caches gives differences of **0.7%–11.7%** across the 16 metrics. This is useful internal consistency evidence, but both caches were reached through tracked accounts and do not prove population representativeness.
+
+A separate replay of 155 tracked accounts' recent histories tested the engineering default for `Above` against their prior same-role values. For the 12 scored metrics measurable from single-viewer history, about **33%–36%** of eligible comparisons were `Above` at the default `tau = 0.35`; a more permissive `0.25` yielded **38%–40%**, and a stricter `0.65` yielded **22%–26%**, by role. This check does not include hero or lane adjustments and cannot calculate three scored metrics needing other players' replay. It estimates the direction and magnitude of the choice; it is not a final bonus-award rate or parameter approval.
 
 ## Owner decision and next data work
 
