@@ -83,7 +83,7 @@ Designer-relevant primitives the whole app can produce. Every feature brief draw
 | Sync state | idle / checking / up-to-date / sync-error | Always | Account-level; never overrides per-match state |
 | Metric value | 16 role metrics (four per role); raw and comparison forms | Conditional | May be a legitimate 0 or an N/A — different states |
 | Personal baseline ("your usual") | Median of last ≤20 same role+mode+metric | After 5 prior measured observations | Per metric, per role, per mode. Not global. |
-| Adjusted expectation | Baseline + hero + matchup adjustment | Standard only; selected metrics only | Turbo and some metrics compare to raw "your usual" instead |
+| Adjusted expectation | Baseline + hero adjustment (the matchup badge never changes it) | Standard only; selected metrics only | Turbo and some metrics compare to raw "your usual" instead |
 | Performance state | Above / In line / Below / Not ready | Whenever the baseline is ready | The per-metric verdict |
 | Matchup context | Difficult / Typical / Favourable / unavailable | Standard × Carry/Mid/Offlane only; ~20/60/20 split | One badge per match, on the lane-metric group. Unavailable ⇒ show nothing. |
 | Trend state | Improving / Stable / Declining / Insufficient History | Needs 10 eligible trend points | Per metric. Never per role, never overall. |

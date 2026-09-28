@@ -1,5 +1,12 @@
 # Context-Adjusted Performance V1 — Final Decision Document
 
+> **Current overrides — read before using this annex (updated 2026-09-28).** Where this annex conflicts with the points below, the points below and [`app_foundation/SSOT.md`](../../app_foundation/SSOT.md) §10 win. Nothing here restores a retired element.
+>
+> 1. **Registry: 16 metrics, exactly four per role** (owner decision 2026-09-27). `carry.cs_10_to_20.v1`, `carry.dead_time.v1`, `mid.level_6_time.v1` and `support.healing.v1` are retired; every row, count and class tally below that names them or says "20 metrics" is historical.
+> 2. **No lane-opponent adjustment** (owner decision 2026-09-28). `Δ_e`, its `±0.6·σ_pop` cap and any per-metric last-hit-to-gold scale are removed. The expectation is baseline + window-relative hero term only (`±0.75·σ_pop` cap).
+> 3. **Classes C and C\* are retired.** `carry.last_hits_at_10.v1` and `offlane.net_worth_at_10.v1` are class **B**; `mid.lane_net_worth_advantage_at_10.v1` and `offlane.lane_net_worth_advantage_at_10.v1` are class **B\*** (paired viewer-minus-counterpart hero term, no lane term). Current tally: 8 B, 2 B\*, 5 A, 1 E, 0 D.
+> 4. **The lane model (§5) survives only for the display-only matchup badge.** Its opponent-coverage and CS-slope checks gate the badge alone; failing them never blocks the parameter set, hero adjustment or scoring.
+
 Status: SSOT-READY PROPOSAL (promote on owner sign-off)
 Date: 2026-09-20
 Supersedes as the leading hypothesis: [Lane Difficulty Research V1](../research/LANE-DIFFICULTY-RESEARCH-V1.md)

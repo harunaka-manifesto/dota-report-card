@@ -10,7 +10,7 @@ from sqlalchemy import Connection, Engine, and_, delete, func, or_, select, true
 from sqlalchemy.dialects.postgresql import insert
 
 from .carry_context import evaluate as evaluate_carry_context
-from .context import METRIC_CLASS, ContextInput, DraftPlayer, evaluate
+from .context import ContextInput, DraftPlayer, evaluate
 from .core_fights import from_offlane_fights
 from .eligibility import classify
 from .evidence import canonical_json
@@ -275,18 +275,17 @@ def _viewer_position(role: str, internal: int | None) -> int | None:
 
 
 def _prior_terms(connection: Connection, *, profile_id: str, match_ids: list[int], metric_id: str,
-                 parameter_version: str | None) -> tuple[tuple[float | None, ...], tuple[float | None, ...]]:
+                 parameter_version: str | None) -> tuple[float | None, ...]:
     if parameter_version is None or not match_ids:
-        return (), ()
-    rows = {row.match_id: (row.context_h, row.context_e) for row in connection.execute(select(
-        account_matches.c.match_id, metric_observations.c.context_h, metric_observations.c.context_e,
+        return ()
+    rows = {row.match_id: row.context_h for row in connection.execute(select(
+        account_matches.c.match_id, metric_observations.c.context_h,
     ).join(metric_observations, metric_observations.c.analysis_id == account_matches.c.active_analysis_id).where(
         account_matches.c.profile_id == profile_id, account_matches.c.match_id.in_(match_ids),
         metric_observations.c.metric_id == metric_id,
         metric_observations.c.parameter_set_version == parameter_version,
     ))}
-    return (tuple(rows.get(match_id, (None, None))[0] for match_id in match_ids),
-            tuple(rows.get(match_id, (None, None))[1] for match_id in match_ids))
+    return tuple(rows.get(match_id) for match_id in match_ids)
 
 
 def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, Any],
@@ -386,7 +385,7 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         ) if eligibility.progression != "NONE" else []
         reference = baseline(current, priors)
         pb = personal_best(current, priors, celebrate=link["origin"] == "LIVE")
-        prior_h, prior_e = _prior_terms(
+        prior_h = _prior_terms(
             connection, profile_id=profile_id,
             match_ids=cast(list[int], reference["source_match_ids"]), metric_id=metric_id,
             parameter_version=parameter_version,
@@ -398,18 +397,18 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
             comparison_value=measured.comparison_value,
             baseline=reference["value"] if isinstance(reference["value"], (int, float)) else None,
             prior_count=cast(int, reference["prior_count"]),
-            prior_hero_levels=prior_h, prior_lane_scores=prior_e,
+            prior_hero_levels=prior_h,
         ), parameters if eligibility.progression != "NONE" else None)
         if context.lane_context != "UNAVAILABLE":
             lane_context = context.lane_context
-        uses_lane = METRIC_CLASS[metric_id] in {"C", "C*"}
         metric_rows.append({
             "metric_id": metric_id, "metric_version": metric_id.rsplit(".", 1)[-1],
             "raw_value": measured.raw_value, "comparison_value": measured.comparison_value,
             "unavailable_reason": measured.reason, "baseline_snapshot": reference,
-            # Persisted window terms h and E (annex §8), not the derived deltas.
+            # Persisted window term h (annex §8), not the derived delta. context_e is
+            # retired: no lane term enters any expectation (context-adjustment-v3).
             "context_h": context.hero_level,
-            "context_e": context.lane_score if uses_lane else None,
+            "context_e": None,
             "parameter_set_version": parameter_version,
             "performance_state": context.performance_state,
         })

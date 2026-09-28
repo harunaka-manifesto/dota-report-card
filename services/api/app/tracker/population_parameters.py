@@ -87,7 +87,7 @@ class BuildInput:
     reference_role_slopes: Mapping[str, float]
     maximum_slope_drift: float
     metric_parameters: Mapping[str, MetricParameters]
-    model_version: str = "context-adjustment-v2"
+    model_version: str = "context-adjustment-v3"
 
 
 def _number(value: object) -> bool:
@@ -114,7 +114,7 @@ def _validate_input(data: BuildInput) -> None:
     for param in data.metric_parameters.values():
         if not all(_number(value) for value in asdict(param).values()):
             raise ValueError("metric parameters must be finite")
-        if param.sigma_pop <= 0 or param.tau <= 0 or param.floor_tolerance < 0 or param.lane_scale <= 0:
+        if param.sigma_pop <= 0 or param.tau <= 0 or param.floor_tolerance < 0:
             raise ValueError("metric parameters are outside valid bounds")
 
     seen_hero: set[tuple[int, int, str]] = set()
@@ -215,12 +215,12 @@ def build_artifact(data: BuildInput) -> dict[str, object]:
     _validate_input(data)
     opponent_effects, opponent_counts = _derive_opponent_effects(data.lane_outcomes)
     coverage = _coverage(data, opponent_effects)
-    if min(coverage.values()) < MIN_COVERAGE:
-        raise ValueError(f"opponent coverage below {MIN_COVERAGE:.0%}: {coverage}")
     measured_slopes = _fit_role_slopes(data, opponent_effects)
     drift = {role: abs(measured_slopes[role] - data.reference_role_slopes[role]) for role in ROLE_NAMES}
-    if max(drift.values()) > data.maximum_slope_drift:
-        raise ValueError(f"csCount role-slope drift exceeds approved bound: {drift}")
+    # The lane model drives only the display-only matchup badge. Failing its
+    # coverage or drift check withholds the badge, never the whole artifact.
+    lane_model_passed = (min(coverage.values()) >= MIN_COVERAGE
+                         and max(drift.values()) <= data.maximum_slope_drift)
 
     hero_levels = {
         f"{row.hero_id}:{row.position}:{row.metric_id}": {
@@ -238,7 +238,7 @@ def build_artifact(data: BuildInput) -> dict[str, object]:
         "pool_end": data.pool_end.isoformat(),
     }, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     artifact = {
-        "schema_version": "tracker-context-parameters-v2",
+        "schema_version": "tracker-context-parameters-v3",
         "version": data.version,
         "model_version": data.model_version,
         "pool": {"start": data.pool_start.isoformat(), "end": data.pool_end.isoformat(),
@@ -258,7 +258,8 @@ def build_artifact(data: BuildInput) -> dict[str, object]:
         "slope_drift": drift,
         "lane_thresholds": {role: list(values) for role, values in LANE_THRESHOLDS.items()},
         "metrics": {metric_id: asdict(param) for metric_id, param in sorted(data.metric_parameters.items())},
-        "validation": {"passed": True, "minimum_opponent_coverage": MIN_COVERAGE,
+        "validation": {"passed": True, "lane_model_passed": lane_model_passed,
+                       "minimum_opponent_coverage": MIN_COVERAGE,
                        "maximum_role_slope_drift": max(drift.values())},
     }
     encoded = json.dumps(artifact, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
@@ -283,7 +284,7 @@ def load_parameter_set(path: Path) -> ParameterSet:
 
 def parameter_set_from_artifact(artifact: object) -> ParameterSet:
     """Verify an artifact's integrity and validation record, then map it."""
-    if (not isinstance(artifact, Mapping) or artifact.get("schema_version") != "tracker-context-parameters-v2"
+    if (not isinstance(artifact, Mapping) or artifact.get("schema_version") != "tracker-context-parameters-v3"
             or not _verified_artifact(artifact)):
         raise ValueError("population parameter artifact failed integrity validation")
     validation = artifact.get("validation")
@@ -307,7 +308,7 @@ def parameter_set_from_artifact(artifact: object) -> ParameterSet:
     coverage = min(artifact["opponent_coverage"].values())
     return ParameterSet(
         version=artifact["version"], validated=True, opponent_coverage=coverage,
-        cs_slope_regression_passed=True, hero_levels=hero_levels,
+        cs_slope_regression_passed=validation.get("lane_model_passed") is True, hero_levels=hero_levels,
         opponent_effects=opponent_effects, role_slopes=artifact["role_slopes"],
         lane_thresholds={key: tuple(value) for key, value in artifact["lane_thresholds"].items()},
         metrics=metrics,

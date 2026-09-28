@@ -92,7 +92,7 @@ Result placement is genuinely delicate: it belongs to identity, not to performan
 | Metric value | The achieved number (raw/display form) | Per metric | May be a legitimate **0** |
 | N/A + reason | Metric not meaningfully calculable | Per metric | **Must not look like 0** |
 | Personal baseline ("your usual") | Median of the last ≤20 same role+mode+metric | After 5 priors | The comparison for class-A/D metrics and all Turbo |
-| Adjusted expectation | Baseline + hero + matchup adjustment | Standard, selected metrics | Explain-on-tap; the adjustment amounts are **hidden from the user** |
+| Adjusted expectation | Baseline + hero adjustment (the matchup never changes it) | Standard, selected metrics | Explain-on-tap; the adjustment amounts are **hidden from the user** |
 | Performance state | Above / In line / Below / Not ready | Whenever the baseline is ready | The per-metric verdict |
 | Matchup context | Difficult / Typical / Favourable / unavailable | Standard × Carry/Mid/Offlane only | ~20/60/20. Unavailable ⇒ **render nothing** |
 | Baseline-building | Not enough priors yet | Per metric | Countable ("needs 5") |
@@ -128,7 +128,7 @@ Open Match Detail
 ```text
 See a "Below" state that feels unfair
 → open the expectation explainer
-→ understand baseline + hero + matchup
+→ understand baseline + hero
 → accept or dispute
 ```
 
@@ -216,7 +216,7 @@ This is the single biggest thing to design correctly on this page, and it is a d
 - **MUST** preserve the engine's card order.
 - **MUST** show exactly one role-specific net-worth chart and one shared Detected fights chart for each core role; keep Offlane XP and Carry hero damage out of the visible chart set.
 - **MUST** retain one selected time across those charts. Fight selection uses its start; a selection after 10:00 clears the lane-chart point. Missing samples and unavailable fights never appear as zero.
-- **MUST NOT** show the numeric hero or matchup adjustment. The user sees value, expectation and state — not the arithmetic.
+- **MUST NOT** show the numeric hero adjustment. The user sees value, expectation and state — not the arithmetic.
 - Card copy claims sequence, never cause: "after", "within", "followed by" — never "because", "led to", "cost you", "threw", "outplayed".
 - Vision counts are lower bounds and must carry "at least".
 - History claims must show their sample ("across your last 34 Standard Mid matches"), never "ever" or "all-time".

@@ -93,7 +93,7 @@ No vertical order is semantically required.
 | Role recency | Last time this role was played | Always | A fact, not a verdict |
 | Metric limitation | What the metric does *not* measure | Always (static) | Contracted per metric — see foundation §7.3 |
 
-**Not available here:** matchup context, adjusted expectations, hero/lane adjustments (all Match Detail), any composite role score, win rate, MMR, percentile, cross-role comparison, insight cards.
+**Not available here:** matchup context, adjusted expectations, hero adjustment (all Match Detail), any composite role score, win rate, MMR, percentile, cross-role comparison, insight cards.
 
 A concrete consequence worth designing around: a player may legitimately see `CS @10 — Improving`, `Hero Damage Share — Stable`, `Net Worth at 20:00 — Declining`, `Tower Damage Share — Insufficient History` **at the same time**. That is the product's truth, not a rendering problem to smooth over.
 
@@ -157,7 +157,7 @@ Select role · switch mode bucket · open a metric · open an observation's matc
 - **MUST** respect metric polarity — a downward line can be `Improving`.
 - **MUST NOT** style `Insufficient History` as a negative result, or `Stable` as stagnation.
 - **MUST NOT** plot, interpolate across, or otherwise absorb N/A points as zero.
-- **MUST NOT** show a matchup badge, adjusted expectation, or hero/lane adjustment. Progress runs on the raw personal baseline.
+- **MUST NOT** show a matchup badge, adjusted expectation, or hero adjustment. Progress runs on the raw personal baseline.
 - **MUST NOT** let a calendar filter imply it changed the trend. The filter is a view.
 - **MUST NOT** present an entitlement-driven regression as decline.
 - **MUST** keep the raw observation series available — the baseline must not replace or hide it.

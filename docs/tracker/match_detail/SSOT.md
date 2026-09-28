@@ -44,7 +44,7 @@ Match Detail hosts **two systems that share only a match ID**. They MUST NOT be 
 | May mention the match result? | **No** | Yes, factually |
 | May mention another player? | **No** | Only as a neutral named fact |
 
-**Normative:** insight cards MUST NOT read lane context, the hero or lane adjustment, or the adjusted expectation. The personal-performance layer MUST NOT read insight card output.
+**Normative:** insight cards MUST NOT read lane context, the hero adjustment, or the adjusted expectation. The personal-performance layer MUST NOT read insight card output.
 
 ---
 
@@ -209,7 +209,7 @@ For each metric in the effective role's set:
 
 - the **achieved value** (raw/display form as defined in foundation §7.2);
 - its comparison reference:
-  - the **context-adjusted expectation** for class B / C / C\* metrics in Standard, or
+  - the **context-adjusted expectation** (baseline + hero adjustment) for class B / B\* metrics in Standard, or
   - the **raw personal baseline** ("your usual") for class A / D metrics and for all Turbo metrics;
 - a **performance state**: `ABOVE` · `IN_LINE` · `BELOW` · `NOT_READY`;
 - or an explicit **N/A** with its reason.
@@ -231,6 +231,7 @@ DIFFICULT | TYPICAL | FAVOURABLE | UNAVAILABLE
 - **One badge per match**, attached to the lane-metric group — never per metric, never repeated.
 - Applies to **Standard × {Carry, Mid, Offlane}** only. Turbo and Support receive no badge.
 - Computed from the draft alone. It never reads the residual, the result, or anything realised in the match.
+- **Display-only.** It never changes any expectation, performance state, PB or Role Mastery XP.
 - MAY render when the baseline is not ready — it needs no history.
 - `UNAVAILABLE` renders **nothing**. It MUST NEVER be drawn as "Typical".
 - User-facing terminology: **Difficult / Typical / Favourable matchup** (or lane). It describes **on-paper opponent context**, not what happened in the lane.
@@ -453,7 +454,7 @@ Match Detail MUST NOT introduce:
 - [ ] No string on this surface names a provider or uses pipeline vocabulary.
 - [ ] Every applicable metric shows a value, a legitimate zero, or an explicit N/A with a reason.
 - [ ] A metric without a ready baseline shows baseline-not-established, never a synthetic comparison.
-- [ ] Class A/D and Turbo metrics compare against "your usual"; class B/C/C\* Standard metrics compare against the adjusted expectation.
+- [ ] Class A/D and Turbo metrics compare against "your usual"; class B/B\* Standard metrics compare against the adjusted expectation.
 - [ ] `offlane.objective_involvement.v1` shows value + personal median only.
 - [ ] Exactly one matchup badge appears, on the lane-metric group, for Standard cores only; `UNAVAILABLE` shows nothing.
 - [ ] `DIFFICULT + BELOW` renders identically to `TYPICAL + BELOW`.

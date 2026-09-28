@@ -1,4 +1,9 @@
-"""Pure V1 context adjustment from a versioned, validated population parameter set."""
+"""Pure V1 context adjustment from a versioned, validated population parameter set.
+
+The expectation is the personal baseline plus, for hero-adjusted classes, a hero
+term measured in the metric's own units. No lane or opponent CS term enters any
+expectation; the lane score only drives the display-only matchup badge.
+"""
 from __future__ import annotations
 
 import math
@@ -13,16 +18,16 @@ LaneContext = str
 PerformanceState = str
 
 METRIC_CLASS: dict[str, ContextClass] = {
-    "carry.last_hits_at_10.v1": "C",
+    "carry.last_hits_at_10.v1": "B",
     "carry.net_worth_at_20.v1": "B",
     "carry.hero_damage_share.v1": "B",
     "carry.tower_damage_share.v1": "B",
-    "mid.lane_net_worth_advantage_at_10.v1": "C*",
+    "mid.lane_net_worth_advantage_at_10.v1": "B*",
     "mid.early_fight_presence.v1": "B",
     "mid.net_worth_at_20.v1": "B",
     "mid.tower_damage_share.v1": "B",
-    "offlane.lane_net_worth_advantage_at_10.v1": "C*",
-    "offlane.net_worth_at_10.v1": "C",
+    "offlane.lane_net_worth_advantage_at_10.v1": "B*",
+    "offlane.net_worth_at_10.v1": "B",
     "offlane.fight_presence.v1": "A",
     "offlane.objective_involvement.v1": "E",
     "support.fight_presence.v1": "A",
@@ -52,13 +57,13 @@ class MetricParameters:
     tau: float
     floor: float
     floor_tolerance: float
-    lane_scale: float
 
 
 @dataclass(frozen=True)
 class ParameterSet:
     version: str
     validated: bool
+    # Lane-model validity gates only the display-only matchup badge.
     opponent_coverage: float
     cs_slope_regression_passed: bool
     hero_levels: Mapping[tuple[int, int, str], HeroLevel]
@@ -82,7 +87,6 @@ class ContextInput:
     baseline: float | None
     prior_count: int
     prior_hero_levels: tuple[float | None, ...] = ()
-    prior_lane_scores: tuple[float | None, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -91,7 +95,6 @@ class ContextResult:
     hero_level: float | None
     lane_score: float | None
     delta_hero: float
-    delta_lane: float
     adjusted_expectation: float | None
     residual: float | None
     performance_state: PerformanceState
@@ -109,10 +112,15 @@ def _artifact_ready(parameters: ParameterSet | None, metric_id: str) -> bool:
         and isinstance(parameters.version, str)
         and parameters.version.strip()
         and parameters.validated
-        and _finite(parameters.opponent_coverage)
+        and metric_id in parameters.metrics
+    )
+
+
+def _lane_model_ready(parameters: ParameterSet) -> bool:
+    return bool(
+        _finite(parameters.opponent_coverage)
         and parameters.opponent_coverage >= 0.97
         and parameters.cs_slope_regression_passed
-        and metric_id in parameters.metrics
         and all(_finite(v) for v in parameters.role_slopes.values())
         and all(_finite(v) for v in parameters.opponent_effects.values())
     )
@@ -180,7 +188,7 @@ def _lane_score(context: ContextInput, parameters: ParameterSet) -> tuple[float 
 
 
 def evaluate(context: ContextInput, parameters: ParameterSet | None) -> ContextResult:
-    """Evaluate expectation and draft-only lane context; no provider or runtime model calls."""
+    """Evaluate expectation and the display-only lane badge; no provider or runtime model calls."""
     if context.metric_id not in METRICS or context.metric_id not in METRIC_CLASS:
         raise ValueError("Unsupported context metric")
     cls = METRIC_CLASS[context.metric_id]
@@ -190,29 +198,30 @@ def evaluate(context: ContextInput, parameters: ParameterSet | None) -> ContextR
         raise ValueError("Metric does not belong to progression role")
     if context.prior_count < 0 or context.prior_count > 20:
         raise ValueError("Baseline prior count must be between 0 and 20")
-    if len(context.prior_hero_levels) > 20 or len(context.prior_lane_scores) > 20:
+    if len(context.prior_hero_levels) > 20:
         raise ValueError("Context terms must come from the 20-match baseline window")
     if context.comparison_value is not None and not _finite(context.comparison_value):
         raise ValueError("Comparison value must be finite")
     if context.baseline is not None and not _finite(context.baseline):
         raise ValueError("Baseline must be finite")
 
-    empty = ContextResult(cls, None, None, 0.0, 0.0, None, None, "NOT_READY", "UNAVAILABLE", None)
+    empty = ContextResult(cls, None, None, 0.0, None, None, "NOT_READY", "UNAVAILABLE", None)
     if not _artifact_ready(parameters, context.metric_id):
         return ContextResult(**{**empty.__dict__, "unavailable_reason": "PARAMETER_SET_UNAVAILABLE"})
     assert parameters is not None
     metric = parameters.metrics[context.metric_id]
     if not (_finite(metric.sigma_pop) and metric.sigma_pop > 0 and _finite(metric.tau) and metric.tau > 0
-            and _finite(metric.floor) and _finite(metric.floor_tolerance) and metric.floor_tolerance >= 0
-            and _finite(metric.lane_scale) and metric.lane_scale > 0):
+            and _finite(metric.floor) and _finite(metric.floor_tolerance) and metric.floor_tolerance >= 0):
         return ContextResult(**{**empty.__dict__, "unavailable_reason": "METRIC_PARAMETERS_UNAVAILABLE"})
 
     hero_level: float | None = None
     lane_score: float | None = None
-    delta_h = delta_e = 0.0
+    delta_h = 0.0
     lane_context: LaneContext = "UNAVAILABLE"
     lane_reason: str | None = None
-    if context.mode == "STANDARD":
+    if context.mode == "STANDARD" and not _lane_model_ready(parameters):
+        lane_reason = "LANE_MODEL_UNAVAILABLE"
+    elif context.mode == "STANDARD":
         lane_score, lane_reason = _lane_score(context, parameters)
         if lane_score is not None:
             thresholds = parameters.lane_thresholds.get(context.role)
@@ -228,14 +237,17 @@ def evaluate(context: ContextInput, parameters: ParameterSet | None) -> ContextR
     # h is a persisted per-observation term (annex §8 step 6): computed whenever
     # the class uses it, independent of this match's baseline gates, so later
     # matches have window priors. Adjustment (step 8) applies the gates.
-    if cls in {"B", "C", "C*"} and context.mode == "STANDARD":
-        if cls == "C*":
-            own_lane = _physical_lane(context.lane, bool(context.is_radiant))
+    if cls in {"B", "B*"} and context.mode == "STANDARD":
+        if cls == "B*":
+            # Viewer hero vs the one enemy laner of the counterpart position, both
+            # population levels in gold; independent of the lane (badge) model.
+            own_lane = (_physical_lane(context.lane, context.is_radiant)
+                        if type(context.is_radiant) is bool else None)
             counterpart_position = 2 if context.role == "MID" else 1
             counterparts = [player for player in context.players
                             if player.is_radiant != context.is_radiant
                             and player.position == counterpart_position
-                            and own_lane is not None and lane_score is not None
+                            and own_lane is not None and type(player.is_radiant) is bool
                             and _physical_lane(player.lane, player.is_radiant) == own_lane]
             viewer = parameters.hero_levels.get((int(context.hero_id or 0), int(context.position or 0), context.metric_id))
             paired = (parameters.hero_levels.get((int(counterparts[0].hero_id or 0), counterpart_position, context.metric_id))
@@ -249,27 +261,23 @@ def evaluate(context: ContextInput, parameters: ParameterSet | None) -> ContextR
             if (own and _finite(own.value) and type(own.match_count) is int
                     and own.match_count >= 300):
                 hero_level = own.value
-    if (cls in {"B", "C", "C*"} and context.mode == "STANDARD"
+    if (cls in {"B", "B*"} and context.mode == "STANDARD"
             and context.baseline is not None and context.prior_count >= 5
             and context.baseline > metric.floor + metric.floor_tolerance):
         if hero_level is not None and len([x for x in context.prior_hero_levels if x is not None and _finite(x)]) >= 3:
             prior_h = [float(x) for x in context.prior_hero_levels if x is not None and _finite(x)]
             delta_h = max(-0.75 * metric.sigma_pop, min(0.75 * metric.sigma_pop, hero_level - median(prior_h)))
-        if cls in {"C", "C*"} and lane_score is not None and len([x for x in context.prior_lane_scores if x is not None and _finite(x)]) >= 3:
-            prior_e = [float(x) for x in context.prior_lane_scores if x is not None and _finite(x)]
-            lane_change = (lane_score - median(prior_e)) * metric.lane_scale
-            delta_e = max(-0.6 * metric.sigma_pop, min(0.6 * metric.sigma_pop, lane_change))
 
     expectation = context.baseline
     residual = None
     state: PerformanceState = "NOT_READY"
     reason = lane_reason
     if context.baseline is not None and context.prior_count >= 5:
-        expectation = context.baseline + delta_h + delta_e
+        expectation = context.baseline + delta_h
         if context.comparison_value is not None and cls != "E":
             residual = context.comparison_value - expectation
             threshold = metric.tau * metric.sigma_pop
             state = "ABOVE" if residual >= threshold else "BELOW" if residual <= -threshold else "IN_LINE"
     elif context.baseline is None:
         reason = reason or "BASELINE_UNAVAILABLE"
-    return ContextResult(cls, hero_level, lane_score, delta_h, delta_e, expectation, residual, state, lane_context, reason)
+    return ContextResult(cls, hero_level, lane_score, delta_h, expectation, residual, state, lane_context, reason)

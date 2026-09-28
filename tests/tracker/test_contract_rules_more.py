@@ -112,8 +112,7 @@ def _context(**changes):
                DraftPlayer(14, 4, "SAFE_LANE", False), DraftPlayer(15, 5, "OFF_LANE", False))
     values = dict(metric_id="carry.net_worth_at_20.v1", role="CARRY", mode="STANDARD", hero_id=1, position=1,
                   lane="SAFE_LANE", is_radiant=True, players=players, comparison_value=12000.0,
-                  baseline=10000.0, prior_count=5, prior_hero_levels=(0.0, 0.0, 0.0),
-                  prior_lane_scores=(0.0, 0.0, 0.0))
+                  baseline=10000.0, prior_count=5, prior_hero_levels=(0.0, 0.0, 0.0))
     values.update(changes)
     return ContextInput(**values)
 
@@ -124,21 +123,21 @@ def _params(metric):
         hero_levels={(1, 1, metric): HeroLevel(100.0, 500), (4, 4, "support.fight_presence.v1"): HeroLevel(5.0, 500)},
         opponent_effects={(1, 13): 1.0, (1, 15): 1.0}, role_slopes={"CARRY": 1.0, "MID": 1.0, "OFFLANE": 1.0},
         lane_thresholds={"CARRY": (-2.0, 2.0)},
-        metrics={metric: MetricParameters(1000.0, 0.35, 0.0, 0.0, 1.0),
-                 "support.fight_presence.v1": MetricParameters(0.1, 0.35, 0.0, 0.0, 1.0)})
+        metrics={metric: MetricParameters(1000.0, 0.35, 0.0, 0.0),
+                 "support.fight_presence.v1": MetricParameters(0.1, 0.35, 0.0, 0.0)})
 
 
 def test_class_b_adjusts_hero_only_class_a_never_and_lane_label_is_standard_core_only():
     b = evaluate(_context(), _params("carry.net_worth_at_20.v1"))
-    assert b.context_class == "B" and b.delta_hero == 100.0 and b.delta_lane == 0
+    assert b.context_class == "B" and b.delta_hero == 100.0
     turbo = evaluate(_context(mode="TURBO"), _params("carry.net_worth_at_20.v1"))
     assert turbo.lane_context == "UNAVAILABLE" and turbo.delta_hero == 0
     support = evaluate(_context(metric_id="support.fight_presence.v1", role="SUPPORT", hero_id=4, position=4,
                                 comparison_value=0.8, baseline=0.7), _params("support.fight_presence.v1"))
-    assert support.context_class == "A" and support.delta_hero == support.delta_lane == 0
+    assert support.context_class == "A" and support.delta_hero == 0
     assert support.hero_level is None and support.performance_state == "ABOVE"
     assert support.lane_context == "UNAVAILABLE"
-    # A difficult lane may lower the expectation but never flips the label into the state.
+    # The lane label is display-only: it never changes the expectation or the state.
     difficult = evaluate(_context(comparison_value=5000.0), _params("carry.net_worth_at_20.v1"))
     assert difficult.performance_state == "BELOW"
 
@@ -516,7 +515,7 @@ def test_role_correction_recomputes_context_terms_for_the_new_role(database, mon
         version="test-only-context-v2", validated=True, opponent_coverage=0.99, cs_slope_regression_passed=True,
         hero_levels={(123, 3, "offlane.net_worth_at_10.v1"): HeroLevel(2000.0, 500)}, opponent_effects={},
         role_slopes={"CARRY": 1.0, "MID": 1.0, "OFFLANE": 1.0}, lane_thresholds={"OFFLANE": (-2.0, 2.0)},
-        metrics={"offlane.net_worth_at_10.v1": MetricParameters(500.0, 0.35, 0.0, 0.0, 1.0)})
+        metrics={"offlane.net_worth_at_10.v1": MetricParameters(500.0, 0.35, 0.0, 0.0)})
     with database.begin() as connection:
         connection.execute(parameter_sets.insert().values(
             version=parameters.version, kind="CONTEXT_POPULATION", digest="1" * 64, status="TEST_ONLY",

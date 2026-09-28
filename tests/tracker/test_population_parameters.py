@@ -15,6 +15,7 @@ from app.tracker.population_parameters import (
     LaneOutcomeRow,
     build_artifact,
     load_parameter_set,
+    parameter_set_from_artifact,
     publish_artifact,
 )
 
@@ -43,7 +44,7 @@ def build_input(*, opponent_coverage: bool = True, slope_shift: float = 0) -> Bu
             samples.append(CalibrationMatch(role, (covered_hero,), (SLOPES[role] + slope_shift) * score))
         for metric_id in METRICS:
             hero_rows.append(HeroStatRow(1, position, metric_id, 42.0, 500))
-    parameters = {metric_id: MetricParameters(10, 0.35, 0, 0.1, 1.0) for metric_id in METRICS}
+    parameters = {metric_id: MetricParameters(10, 0.35, 0, 0.1) for metric_id in METRICS}
     return BuildInput(
         version="2026-09-v1",
         pool_start=date(2026, 8, 1),
@@ -67,9 +68,10 @@ def test_build_uses_documented_effect_formula_and_locks_population_parameters() 
     assert artifact["measured_role_slopes"] == pytest.approx({role: slope + 0.01 for role, slope in SLOPES.items()})
     assert artifact["opponent_coverage"] == {"CARRY": 1, "MID": 1, "OFFLANE": 1}
     assert artifact["lane_thresholds"]["Carry"] == [-2.05, 1.52]
-    assert artifact["schema_version"] == "tracker-context-parameters-v2"
-    assert artifact["metrics"]["offlane.net_worth_at_10.v1"]["lane_scale"] == 1.0
+    assert artifact["schema_version"] == "tracker-context-parameters-v3"
+    assert "lane_scale" not in artifact["metrics"]["offlane.net_worth_at_10.v1"]
     assert artifact["validation"]["passed"] is True
+    assert artifact["validation"]["lane_model_passed"] is True
     assert len(artifact["sha256"]) == 64
 
 
@@ -90,17 +92,16 @@ def test_coverage_sample_is_separate_from_slope_calibration() -> None:
     drafts = list(original.coverage_drafts)
     drafts[:4] = [CoverageDraft("CARRY", (99,)) for _ in range(4)]
     data = BuildInput(**{**original.__dict__, "coverage_drafts": tuple(drafts)})
-    with pytest.raises(ValueError, match="coverage below"):
-        build_artifact(data)
+    assert build_artifact(data)["validation"]["lane_model_passed"] is False
 
 
 def test_pool_coverage_slope_drift_and_bad_provider_rows_fail_closed() -> None:
-    coverage_limited = build_input(opponent_coverage=False)
-    with pytest.raises(ValueError, match="coverage below"):
-        build_artifact(coverage_limited)
-
-    with pytest.raises(ValueError, match="slope drift"):
-        build_artifact(build_input(slope_shift=0.03))
+    # A weak lane model withholds only the display-only badge, never the artifact.
+    for weak in (build_input(opponent_coverage=False), build_input(slope_shift=0.03)):
+        artifact = build_artifact(weak)
+        assert artifact["validation"]["passed"] is True
+        assert artifact["validation"]["lane_model_passed"] is False
+        assert parameter_set_from_artifact(artifact).cs_slope_regression_passed is False
 
     invalid_pool = build_input()
     with pytest.raises(ValueError, match="4–8 weeks"):
@@ -134,8 +135,7 @@ def test_publish_is_atomic_versioned_and_never_overwrites(tmp_path) -> None:
     assert parameters.validated and parameters.version == "2026-09-v1"
     assert parameters.opponent_effects[(1, 10)] == -5
     assert parameters.hero_levels[(1, 1, "carry.last_hits_at_10.v1")].match_count == 500
-    with pytest.raises(ValueError, match="slope drift"):
-        build_artifact(build_input(slope_shift=0.03))
+    assert build_artifact(build_input(slope_shift=0.03))["validation"]["lane_model_passed"] is False
     assert path.read_bytes() == before
 
     tampered = json.loads(before)

@@ -441,15 +441,14 @@ Owner-approved architecture. Context modifies **what the value is measured again
 ```text
 context_adjusted_expectation
   = personal rolling baseline
-  + own-hero adjustment        (selective, per metric)
-  + lane-opponent adjustment   (opponents only, where applicable)
+  + hero adjustment            (selective, per metric)
 ```
 
-Both adjustments are **window-relative**: each is the current match's population term minus the median of that same term across the baseline window. A player who always plays the same hero into the same kind of lane is therefore adjusted by ≈ 0 — correctly.
+The hero adjustment is **window-relative**: the current match's population hero term minus the median of that same term across the baseline window. A player who always plays the same hero is therefore adjusted by ≈ 0 — correctly. The term is always measured in the metric's own units (a population level of that same metric), so no unit conversion exists anywhere in the model.
 
-The lane-opponent score is measured in last-hit units for the matchup badge. Before it adjusts a gold-valued metric, a frozen per-metric scale converts the window-relative score change into that metric's units. The scale is part of the versioned, approved parameter set.
+**No lane-opponent adjustment (owner decision, 2026-09-28).** The drafted lane-opponent score never enters any expectation, for any role or metric. It drives only the display-only matchup badge (§10.5). The earlier lane-environment term and its per-metric last-hit-to-gold scale are retired; do not reintroduce them without a new owner decision.
 
-Population terms are read from provider aggregate endpoints (hero level at position; lane-opponent effect). No corpus is built, no model is fitted, **no ML and no LLM** run at any time.
+Population terms are read from provider aggregate endpoints (hero level at position for the adjustment; lane-opponent effect for the badge only). No corpus is built, no model is fitted, **no ML and no LLM** run at any time.
 
 ### 10.2 Hard boundaries
 
@@ -468,23 +467,24 @@ Adjustment is applied **selectively per metric**, never globally.
 |---|---|
 | **A** | Personal baseline only. |
 | **B** | + own-hero adjustment. |
-| **C** | + own-hero adjustment + lane-environment adjustment. |
-| **C\*** | + lane-environment adjustment + a *paired* hero term (for metrics that are already a difference between two players). |
+| **B\*** | + a *paired* hero term: viewer hero level minus the uniquely identified enemy counterpart's hero level, for metrics that are already a difference between two players. Both levels are population values of the same gold metric. No term exists when the counterpart is not unique in the viewer's lane or either hero cell has fewer than 300 matches. |
 | **D** | Never adjusted, by product decision. Still scored. |
 | **E** | Not reliably interpretable — displayed as a diagnostic, never scored. |
 
+Classes **C** and **C\*** (which added a lane-environment term) are retired as of 2026-09-28: `carry.last_hits_at_10.v1` and `offlane.net_worth_at_10.v1` moved C → B; the two lane net-worth advantage metrics moved C\* → B\*.
+
 | Metric | Class | Scored? |
 |---|---|---|
-| `carry.last_hits_at_10.v1` | C | yes |
+| `carry.last_hits_at_10.v1` | B | yes |
 | `carry.net_worth_at_20.v1` | B | yes |
 | `carry.hero_damage_share.v1` | B | yes |
 | `carry.tower_damage_share.v1` | B | yes |
-| `mid.lane_net_worth_advantage_at_10.v1` | C\* | yes |
+| `mid.lane_net_worth_advantage_at_10.v1` | B\* | yes |
 | `mid.early_fight_presence.v1` | B | yes |
 | `mid.net_worth_at_20.v1` | B | yes |
 | `mid.tower_damage_share.v1` | B | yes |
-| `offlane.lane_net_worth_advantage_at_10.v1` | C\* | yes |
-| `offlane.net_worth_at_10.v1` | C | yes |
+| `offlane.lane_net_worth_advantage_at_10.v1` | B\* | yes |
+| `offlane.net_worth_at_10.v1` | B | yes |
 | `offlane.fight_presence.v1` | A | yes |
 | `offlane.objective_involvement.v1` | **E** | **no — diagnostic only** |
 | `support.fight_presence.v1` | A | yes |
@@ -494,9 +494,9 @@ Adjustment is applied **selectively per metric**, never globally.
 
 **Floor rule (normative):** a metric whose baseline-window median sits at or near the metric's floor MUST NOT receive a population adjustment. Adjusting near-zero counts measurably degrades output.
 
-**Objective involvement is never lane-adjusted.** Class D has no active metric since the four-metric registry; the class is kept only as a defined meaning.
+Class D has no active metric since the four-metric registry; the class is kept only as a defined meaning.
 
-Scope: lane context and lane adjustment apply to `STANDARD` × {Carry, Mid, Offlane} only. Own-hero adjustment additionally applies to the whole-match class-B metrics above; no Support metric is class B, so Support renders on the raw personal baseline. **Turbo receives neither** and renders on the raw personal baseline.
+Scope: hero adjustment (B, B\*) applies to `STANDARD` only; no Support metric is class B, so Support renders on the raw personal baseline. **Turbo receives no adjustment** and renders on the raw personal baseline. The display-only lane badge applies to `STANDARD` × {Carry, Mid, Offlane}.
 
 ### 10.4 Performance state
 
@@ -509,7 +509,7 @@ PerformanceState : ABOVE | IN_LINE | BELOW | NOT_READY
 - `NOT_READY` when the baseline gate is unmet.
 - A class-A or class-D metric is compared against the raw personal baseline ("your usual") rather than an adjusted expectation; the four states still apply.
 
-**Context adjustment is not a discount.** The hero term frequently makes a verdict *harsher*. Performance state MUST NOT be suppressed, softened or upgraded because of lane context.
+**Context adjustment is not a discount.** The hero term frequently makes a verdict *harsher*. Performance state MUST NOT be suppressed, softened or upgraded because of lane context; lane context has no numeric effect on it at all.
 
 ### 10.5 Lane context
 
@@ -518,6 +518,7 @@ LaneContext : DIFFICULT | TYPICAL | FAVOURABLE | UNAVAILABLE
 ```
 
 - A property of the **draft**, computed from the drafted lane opponents alone. It never reads the residual, the outcome, or anything realised.
+- **Display-only.** It never changes an expectation, residual, performance state, PB or Role Mastery XP for any role. If its lane model (opponent coverage or slope check) fails, only the badge becomes `UNAVAILABLE`; adjustment and scoring are unaffected.
 - Bands are frozen absolute thresholds at roughly the population 20th/80th percentile — roughly 20% DIFFICULT / 60% TYPICAL / 20% FAVOURABLE.
 - One label per match, attached to the lane-metric group — **not** per metric.
 - User-facing terminology MUST be **"Difficult matchup" / "Typical matchup" / "Favourable matchup"** (or the equivalent lane phrasing already locked as `Difficult lane` / `Typical lane` / `Favourable lane`). The term describes **on-paper opponent context**, not what actually happened in the lane, and MUST NOT assert that the lane itself was objectively easy or hard.
@@ -529,7 +530,7 @@ The lane badge MAY still render when the baseline is not ready — it needs no h
 
 ### 10.6 Semantic guardrails (normative)
 
-1. Lane context is an input to *expectation*. It is never an input to, explanation of, or modifier of outcome.
+1. Lane context is display-only. It is never an input to expectation, and never an input to, explanation of, or modifier of outcome.
 2. No string, card or badge may place lane context and the match result in the same sentence, claim, or causal frame.
 3. **Forbidden copy:** "not your fault", "you lost because", "unwinnable", "your support was bad", any teammate-quality claim, any causal explanation of the match result, and any softening of `BELOW` because the matchup was `DIFFICULT`.
 4. `PerformanceState`, `LaneContext` and `TrendState` MUST NOT be composed into one sentence. Composition, if needed, belongs to layout — not copy.
@@ -702,7 +703,7 @@ These distinctions must survive any visual redesign.
 | **Baseline at the time** / **baseline before this match** | The comparison reference that existed before that match. Used in historical Match Detail. |
 | **Current baseline** | The present-day reference used on Progress and Home. MUST NOT be used ambiguously for an old match's comparison. |
 | **Your usual** | The personal rolling-baseline median. Used only for the player's own metrics, never for population data. |
-| **Adjusted expectation** | Baseline plus the selective hero and lane-opponent adjustments. An expectation — not a prediction, not a win probability, not a judgment. |
+| **Adjusted expectation** | Baseline plus the selective hero adjustment. An expectation — not a prediction, not a win probability, not a judgment. |
 | **N/A** | Unavailable or not meaningfully calculable. **Not zero.** |
 | **Does not count toward progression** | Must always be paired with the applicable reason for a READY but ineligible match. |
 | **Current PB** | Present canonical PB ownership under the current entitlement and methodology. |
@@ -819,10 +820,10 @@ Intentionally not locked. These MUST NOT be filled by inference merely to make a
 
 ## 20. Known production conditions
 
-The context-adjustment model carries three mechanical production-validation conditions, inherited from its approved research. They are engineering obligations, not open product questions:
+The context model carries three mechanical production-validation conditions, inherited from its approved research. They are engineering obligations, not open product questions:
 
-1. The provider's CS-count field semantics are undocumented; the empirical relationship MUST be frozen with a regression test that fails if it drifts.
-2. The lane-opponent parameter pool MUST cover ≥ 97% of lane opponents; one week of data is insufficient, so production MUST pool a rolling multi-week window and verify coverage before publishing a parameter set.
-3. Adjustment caps MUST ship with the model.
+1. The provider's CS-count field semantics are undocumented; the empirical relationship MUST be frozen with a regression test that fails if it drifts. It affects only the lane badge.
+2. The lane-opponent parameter pool MUST cover ≥ 97% of lane opponents; one week of data is insufficient, so production MUST pool a rolling multi-week window and verify coverage. Failing (1) or (2) withholds the lane badge (`UNAVAILABLE`); it does not block the parameter set, hero adjustment or scoring.
+3. Hero-adjustment caps MUST ship with the model.
 
 A failed parameter validation keeps the previous artefact and degrades to zero adjustment — never to a wrong number.

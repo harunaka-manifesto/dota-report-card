@@ -138,7 +138,7 @@ An evidence-bound prose summary that names its metrics is permitted ("Laning is 
 - The current match never enters its own baseline; the baseline window is previous-only, capped at 20, gated at 5 priors.
 - **Match-level historical comparisons are not recomputed here.** A match's comparison used the baseline that existed before it. Progress shows the *current* baseline context. These are different things and MUST NOT be conflated in wording.
 
-**Progress is not context-adjusted.** Context-adjusted expectations and matchup context are a Match Detail concern (foundation §10; `match_detail/SSOT.md`). The locked 10-match trend runs on the **raw rolling baseline**. Progress MUST NOT display a matchup badge, an adjusted expectation, or a hero/lane adjustment.
+**Progress is not context-adjusted.** Context-adjusted expectations and matchup context are a Match Detail concern (foundation §10; `match_detail/SSOT.md`). The locked 10-match trend runs on the **raw rolling baseline**. Progress MUST NOT display a matchup badge, an adjusted expectation, or a hero adjustment.
 
 ---
 
@@ -252,4 +252,4 @@ Rebuilds are deterministic and idempotent, and make no provider calls.
 - [ ] After a correction, only the affected old/new-role series in that bucket change.
 - [ ] After a migration, no series shows mixed methodology.
 - [ ] An entitlement reduction that regresses a trend is not presented as decline.
-- [ ] No matchup badge, adjusted expectation or hero/lane adjustment appears anywhere on this surface.
+- [ ] No matchup badge, adjusted expectation or hero adjustment appears anywhere on this surface.

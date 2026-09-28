@@ -1428,9 +1428,9 @@
    "status": "covered",
    "tests": [
     "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_a_never_and_lane_label_is_standard_core_only",
-    "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
+    "tests/tracker/test_context.py::test_window_relative_hero_adjustment_is_capped_and_lane_is_display_only"
    ],
-   "note": "B hero-only, C/C* hero+lane, D/A unadjusted; one lane label only for Standard cores; UNAVAILABLE otherwise."
+   "note": "B own-hero, B* paired hero, D/A unadjusted; no lane term in any expectation; one display-only lane label for Standard cores; UNAVAILABLE otherwise."
   },
   {
    "id": "match_detail#10.14",
@@ -1656,13 +1656,13 @@
    "id": "match_detail#11.10",
    "source": "match_detail/SSOT.md",
    "section": "11. Acceptance rules",
-   "rule": "Class A/D and Turbo metrics compare against \"your usual\"; class B/C/C\\* Standard metrics compare against the adjusted expectation.",
+   "rule": "Class A/D and Turbo metrics compare against \"your usual\"; class B/B\\* Standard metrics compare against the adjusted expectation.",
    "status": "covered",
    "tests": [
     "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_a_never_and_lane_label_is_standard_core_only",
-    "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
+    "tests/tracker/test_context.py::test_window_relative_hero_adjustment_is_capped_and_lane_is_display_only"
    ],
-   "note": "B hero-only, C/C* hero+lane, D/A unadjusted; one lane label only for Standard cores; UNAVAILABLE otherwise."
+   "note": "B own-hero, B* paired hero, D/A unadjusted; no lane term in any expectation; one display-only lane label for Standard cores; UNAVAILABLE otherwise."
   },
   {
    "id": "match_detail#11.11",
@@ -1683,9 +1683,9 @@
    "status": "covered",
    "tests": [
     "tests/tracker/test_contract_rules_more.py::test_class_b_adjusts_hero_only_class_a_never_and_lane_label_is_standard_core_only",
-    "tests/tracker/test_context.py::test_window_relative_adjustments_are_capped_and_scored_from_expectation"
+    "tests/tracker/test_context.py::test_window_relative_hero_adjustment_is_capped_and_lane_is_display_only"
    ],
-   "note": "B hero-only, C/C* hero+lane, D/A unadjusted; one lane label only for Standard cores; UNAVAILABLE otherwise."
+   "note": "B own-hero, B* paired hero, D/A unadjusted; no lane term in any expectation; one display-only lane label for Standard cores; UNAVAILABLE otherwise."
   },
   {
    "id": "match_detail#11.13",
@@ -3110,7 +3110,7 @@
    "id": "progress#12.17",
    "source": "progress/SSOT.md",
    "section": "12. Acceptance rules",
-   "rule": "No matchup badge, adjusted expectation or hero/lane adjustment appears anywhere on this surface.",
+   "rule": "No matchup badge, adjusted expectation or hero adjustment appears anywhere on this surface.",
    "status": "covered",
    "tests": [
     "tests/tracker/test_contract_rules.py::test_pb_ownership_is_distinct_from_celebration_and_progress_pb_has_context"

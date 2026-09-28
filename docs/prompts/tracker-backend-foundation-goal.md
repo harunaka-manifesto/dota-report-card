@@ -1,5 +1,7 @@
 # Dota Tracker — Backend Foundation: Autonomous Implementation Goal
 
+> **SUPERSEDED — historical prompt, do not execute (flagged 2026-09-28).** It predates two owner decisions and is wrong on both: the registry is now **16 metrics, exactly four per role** (not 20; `carry.cs_10_to_20.v1`, `carry.dead_time.v1`, `mid.level_6_time.v1`, `support.healing.v1` are retired), and there is **no lane-opponent adjustment** (classes C/C\* retired; the matchup badge is display-only). Current truth: [`docs/tracker/app_foundation/SSOT.md`](../tracker/app_foundation/SSOT.md) §7.2 and §10.
+
 > **Audience:** GPT-5.6 Sol, working autonomously in this repository.
 > **Audit basis:** every repository fact in this prompt was observed at commit `bd3289e` on branch `main` on 2026-09-21. Facts drift. Re-verify each one before acting on it. If the repository differs from this prompt, the repository wins — record the difference in the ledger (§7.2).
 

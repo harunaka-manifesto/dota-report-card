@@ -73,7 +73,7 @@ Design Requirements are derived from the SSOT. Every content item, state and flo
 Two archived documents remain **engineering-normative for algorithms only**:
 
 - [`_archive/engine_specs/POST-MATCH-INSIGHTS-SSOT.md`](_archive/engine_specs/POST-MATCH-INSIGHTS-SSOT.md) — the insight-card engine: card specifications, thresholds, severity ladders, the match-shape classifier, ranking, and the machine-readable contract.
-- [`_archive/engine_specs/CONTEXT-ADJUSTED-PERFORMANCE-V1.md`](_archive/engine_specs/CONTEXT-ADJUSTED-PERFORMANCE-V1.md) — the context-adjustment parameter derivation, coefficients, caps and validation evidence.
+- [`_archive/engine_specs/CONTEXT-ADJUSTED-PERFORMANCE-V1.md`](_archive/engine_specs/CONTEXT-ADJUSTED-PERFORMANCE-V1.md) — the context-adjustment parameter derivation, coefficients, caps and validation evidence. Its "Current overrides" banner applies first: 16-metric registry, no lane-opponent adjustment, classes C/C\* retired, lane model used only for the display-only badge.
 
 They live in `_archive/` because a designer never needs them and because their product meaning is fully captured in [`match_detail/SSOT.md`](match_detail/SSOT.md) and [`app_foundation/SSOT.md`](app_foundation/SSOT.md) §10. **Those two active documents win on product meaning; the annexes win on algorithmic detail.**
 
