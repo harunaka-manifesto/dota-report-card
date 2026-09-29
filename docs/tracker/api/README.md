@@ -60,6 +60,24 @@ ActivityView
 - The route reads persisted data only. It uses the entitled-history scope, has no mode filter, and gets the standard body ETag.
 - Cell drill-in: `GET /history?local_date=YYYY-MM-DD&time_zone=<IANA>&ready_only=true[&role=…]`. `local_date` requires `time_zone` (`400 TIME_ZONE_REQUIRED`); `time_zone` alone is ignored. The signed cursor is bound to the day filter.
 
+## Hero pool (`hero-pool-v1`)
+
+`GET /mobile/v1/hero-pool?time_zone=<IANA>` returns each role's most played heroes over trailing 7, 30 and 365 local days, in one response. Product rules are in [`hero_pool/SSOT.md`](../hero_pool/SSOT.md).
+
+```text
+HeroPoolView
+  contract_version: "hero-pool-v1"
+  time_zone: string
+  today: date                            // local
+  partial_ranges: {start_date, end_date, reason: BOOTSTRAP_SAMPLE}[]  // clipped to the 365-day window
+  roles: {role: CARRY|MID|OFFLANE|SUPPORT,
+          windows: {window: LAST_7_DAYS|LAST_30_DAYS|LAST_365_DAYS, start_date, end_date,
+                    total_matches, heroes: {hero_id, matches}[]}[]}[]
+```
+
+- Windows end today inclusive. `heroes` holds at most 10 entries ordered by matches, then most recent play, then `hero_id`; `total_matches` counts every hero. Roles and windows are always present, even when empty. An unknown zone returns `400 TIME_ZONE_INVALID`.
+- It counts the same READY Standard and Turbo matches as Activity, reads persisted data only, uses the entitled-history scope, and gets the standard body ETag.
+
 ## Match Detail: item timings
 
 `GET /mobile/v1/matches/{match_ref}` adds `item_timings`; no other route includes this block. It is a structured, localized-copy-free snapshot. The complete algorithm and item taxonomy live in the [item-timings annex](../match_detail/ITEM-TIMINGS-V1.md).

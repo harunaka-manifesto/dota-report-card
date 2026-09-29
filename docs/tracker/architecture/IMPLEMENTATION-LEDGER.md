@@ -2,6 +2,12 @@
 
 Operational evidence, not a product or architecture contract.
 
+## Hero pool — 2026-09-29
+
+- `GET /mobile/v1/hero-pool` (`hero-pool-v1`) returns each role's top 10 heroes over trailing 7, 30 and 365 local days, counting the same READY Standard+Turbo matches as the heatmap. Owner decisions are in [`hero_pool/SSOT.md`](../hero_pool/SSOT.md).
+- The heatmap's counted-match predicate and bootstrap-sample rule are now shared helpers in `mobile_api.py`; `/activity` output is unchanged.
+- Computed on read in one grouped query. There is no migration, no new table, no provider call and no legacy or shared-module change.
+
 ## Activity heatmap — 2026-09-29
 
 - `GET /mobile/v1/activity` (`activity-heatmap-v1`, levels `heatmap-levels-v1`) returns per-local-day READY Standard+Turbo match counts for `ALL` and each role. It serves either the trailing 365 days or one calendar year. Owner decisions are in [`activity/SSOT.md`](../activity/SSOT.md).

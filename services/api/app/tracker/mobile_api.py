@@ -24,7 +24,7 @@ from sqlalchemy.exc import DataError
 
 from app.core.config import Settings
 from app.storage.database import create_database_engine
-from app.tracker import activity
+from app.tracker import activity, hero_pool
 from app.tracker.account_lifecycle import (
     AccountLifecycleError,
     request_account_deletion,
@@ -631,6 +631,46 @@ class ActivityView(BaseModel):
     available_years: list[int]
     partial_ranges: list[ActivityPartialRangeView]
     series: list[ActivitySeriesView]
+
+
+class HeroPoolRole(StrEnum):
+    CARRY = "CARRY"
+    MID = "MID"
+    OFFLANE = "OFFLANE"
+    SUPPORT = "SUPPORT"
+
+
+class HeroPoolWindow(StrEnum):
+    LAST_7_DAYS = "LAST_7_DAYS"
+    LAST_30_DAYS = "LAST_30_DAYS"
+    LAST_365_DAYS = "LAST_365_DAYS"
+
+
+class HeroPoolHeroView(BaseModel):
+    hero_id: int = Field(ge=1)
+    matches: int = Field(ge=1)
+
+
+class HeroPoolWindowView(BaseModel):
+    window: HeroPoolWindow
+    start_date: date_type
+    end_date: date_type
+    total_matches: int
+    heroes: list[HeroPoolHeroView]
+
+
+class HeroPoolRoleView(BaseModel):
+    role: HeroPoolRole
+    windows: list[HeroPoolWindowView]
+
+
+class HeroPoolView(BaseModel):
+    """Most played heroes per role over trailing 7/30/365 days; presentation only (hero_pool/SSOT.md)."""
+    contract_version: Literal["hero-pool-v1"] = hero_pool.CONTRACT
+    time_zone: str
+    today: date_type
+    partial_ranges: list[ActivityPartialRangeView]
+    roles: list[HeroPoolRoleView]
 
 
 class HomeView(BaseModel):
@@ -1293,6 +1333,30 @@ def _zone(time_zone: str) -> ZoneInfo:
         return ZoneInfo(time_zone)
     except (ZoneInfoNotFoundError, ValueError) as exc:
         raise HTTPException(400, "TIME_ZONE_INVALID") from exc
+
+
+def _counted(profile: Any) -> Any:
+    """READY Standard+Turbo matches in the entitled scope (activity/SSOT.md §1, hero_pool/SSOT.md)."""
+    return and_(account_matches.c.profile_id == profile["id"], _visible(profile),
+                account_matches.c.lifecycle == "READY",
+                account_matches.c.mode.in_(("STANDARD", "TURBO")))
+
+
+def _bootstrap_partial(connection: Connection, profile: Any, zone: ZoneInfo, start: date_type,
+                       end: date_type) -> ActivityPartialRangeView | None:
+    """Bootstrap-only pre-link span inside start..end; Pro backfill covers it fully."""
+    first_at, historical = connection.execute(select(
+        func.min(account_matches.c.provider_started_at),
+        func.count().filter(account_matches.c.origin == "HISTORICAL"),
+    ).where(_counted(profile), or_(account_matches.c.origin == "BOOTSTRAP",
+                                   account_matches.c.origin == "HISTORICAL"))).one()
+    if first_at is None or historical:
+        return None
+    span_start = max(start, first_at.astimezone(zone).date())
+    span_end = min(end, profile["original_linked_at"].astimezone(zone).date())
+    if span_start > span_end:
+        return None
+    return ActivityPartialRangeView(start_date=span_start, end_date=span_end, reason="BOOTSTRAP_SAMPLE")
 
 
 def _mastery_cursor(key: bytes, profile_id: str, ref: str, role: str, revision: int) -> str:
@@ -2023,10 +2087,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             profile = _active_profile(connection, owner)
             if profile is None:
                 return empty
-            # Heatmap cells count READY Standard+Turbo matches only (activity/SSOT.md §1).
-            counted = and_(account_matches.c.profile_id == profile["id"], _visible(profile),
-                           account_matches.c.lifecycle == "READY",
-                           account_matches.c.mode.in_(("STANDARD", "TURBO")))
+            counted = _counted(profile)
             local_day = sql_cast(func.timezone(time_zone, account_matches.c.provider_started_at), Date)
             start_utc, end_utc = activity.utc_bounds(window_start, window_end, zone)
             try:
@@ -2041,12 +2102,6 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 ).where(counted, account_matches.c.provider_started_at >= start_utc,
                         account_matches.c.provider_started_at < end_utc,
                 ).group_by(day_label, account_matches.c.effective_role)).all()
-                # Pro backfill covers the pre-link span fully; without it bootstrap is a sample.
-                sample = connection.execute(select(
-                    func.min(account_matches.c.provider_started_at),
-                    func.count().filter(account_matches.c.origin == "HISTORICAL"),
-                ).where(counted, or_(account_matches.c.origin == "BOOTSTRAP",
-                                     account_matches.c.origin == "HISTORICAL"))).one()
             except DataError as exc:  # a zone ZoneInfo knows but PostgreSQL does not
                 raise HTTPException(400, "TIME_ZONE_INVALID") from exc
             if not spans:
@@ -2054,13 +2109,8 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             first_day = min(span.first_at for span in spans).astimezone(zone).date()
             start = max(window_start, first_day)
             window = ActivityWindowView(start_date=start, end_date=window_end) if start <= window_end else None
-            partial: list[ActivityPartialRangeView] = []
-            if window is not None and sample[0] is not None and not sample[1]:
-                span_start = max(start, sample[0].astimezone(zone).date())
-                span_end = min(window_end, profile["original_linked_at"].astimezone(zone).date())
-                if span_start <= span_end:
-                    partial.append(ActivityPartialRangeView(start_date=span_start, end_date=span_end,
-                                                            reason="BOOTSTRAP_SAMPLE"))
+            span = _bootstrap_partial(connection, profile, zone, start, window_end) if window is not None else None
+            partial = [span] if span is not None else []
             return ActivityView(
                 time_zone=time_zone, today=today, window=window,
                 available_years=sorted((int(span.local_year) for span in spans), reverse=True),
@@ -2068,6 +2118,36 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 series=[ActivitySeriesView.model_validate(series) for series in activity.build_series(
                     (row.local_day, row.effective_role, row.n) for row in rows)],
             )
+
+    @app.get("/hero-pool", response_model=HeroPoolView)
+    async def hero_pool_view(request: Request, owner: Annotated[str, Depends(_user)],
+                             time_zone: str) -> HeroPoolView:
+        zone = _zone(time_zone)
+        today = datetime.now(zone).date()
+        starts = hero_pool.window_starts(today)
+        with _engine(request).connect() as connection:
+            profile = _active_profile(connection, owner)
+            rows: list[Any] = []
+            partial: list[ActivityPartialRangeView] = []
+            if profile is not None:
+                b365, end_utc = activity.utc_bounds(starts[2], today, zone)
+                b7, _ = activity.utc_bounds(starts[0], today, zone)
+                b30, _ = activity.utc_bounds(starts[1], today, zone)
+                started = account_matches.c.provider_started_at
+                rows = list(connection.execute(select(
+                    account_matches.c.effective_role, match_players.c.hero_id,
+                    func.count().filter(started >= b7), func.count().filter(started >= b30),
+                    func.count(), func.max(started),
+                ).select_from(account_matches.join(
+                    match_players, (match_players.c.match_id == account_matches.c.match_id) &
+                    (match_players.c.player_slot == account_matches.c.player_slot),
+                )).where(_counted(profile), started >= b365, started < end_utc,
+                ).group_by(account_matches.c.effective_role, match_players.c.hero_id)).all())
+                span = _bootstrap_partial(connection, profile, zone, starts[2], today)
+                partial = [span] if span is not None else []
+            return HeroPoolView(time_zone=time_zone, today=today, partial_ranges=partial,
+                                roles=[HeroPoolRoleView.model_validate(role)
+                                       for role in hero_pool.build_roles(rows, today)])
 
     @app.get("/coverage", response_model=CoverageView)
     async def coverage_status(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode) -> CoverageView:

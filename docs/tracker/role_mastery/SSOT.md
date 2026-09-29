@@ -6,6 +6,8 @@ Role Mastery is accumulated play and positive evidence for each of Carry, Mid, O
 
 The role screen's activity heatmap sits beside the level. It is a separate, presentation-only match-count calendar and never affects XP ([activity SSOT](../activity/SSOT.md)).
 
+The role screen also shows the role's hero pool, which likewise never affects XP ([hero pool SSOT](../hero_pool/SSOT.md)).
+
 ## How it works (plain English)
 
 - **XP per match.** Every counted match gives 100 XP (Turbo: half of everything). On top: +10 XP for each of up to 2 stats where you clearly beat your usual ("Above"), and +20 XP for each of up to 2 new personal bests. Max 160 XP per Standard match.

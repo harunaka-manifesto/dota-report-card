@@ -36,6 +36,7 @@ Every feature has an `SSOT.md`; screen features also have `DESIGN-REQUIREMENTS.m
 | **Progress** | Per-role, per-mode, per-metric progression: observation series, rolling baselines, trend states and Personal Bests. | [SSOT](progress/SSOT.md) | [Design](progress/DESIGN-REQUIREMENTS.md) |
 | **Role Mastery** | Earned XP and a level for each role across Standard and Turbo. | [SSOT](role_mastery/SSOT.md) | iOS design pending |
 | **Activity Heatmap** | A per-role calendar of READY matches per local day, from week to year view; presentation only. | [SSOT](activity/SSOT.md) | iOS design pending |
+| **Hero Pool** | The most played heroes per role over the last 7, 30 and 365 days; match counts only, presentation only. | [SSOT](hero_pool/SSOT.md) | iOS design pending |
 | **Profile** | Who the player is over the long term: identity line, role map, hero identity, durable claims with receipts, and what's moving right now. | [SSOT](profile/SSOT.md) | [Design](profile/DESIGN-REQUIREMENTS.md) |
 | **Settings, Account & Subscription** | Ongoing account management: auth methods, Steam switching, data-access recovery, subscription lifecycle, notifications and deletion. | [SSOT](settings_account/SSOT.md) | [Design](settings_account/DESIGN-REQUIREMENTS.md) |
 
