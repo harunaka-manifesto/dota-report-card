@@ -338,6 +338,182 @@
         "title": "AchievementUnavailableView",
         "type": "object"
       },
+      "ActivityDayView": {
+        "properties": {
+          "count": {
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "level": {
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Level",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "count",
+          "level"
+        ],
+        "title": "ActivityDayView",
+        "type": "object"
+      },
+      "ActivityPartialRangeView": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "reason": {
+            "const": "BOOTSTRAP_SAMPLE",
+            "title": "Reason",
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date",
+          "reason"
+        ],
+        "title": "ActivityPartialRangeView",
+        "type": "object"
+      },
+      "ActivityRole": {
+        "enum": [
+          "ALL",
+          "CARRY",
+          "MID",
+          "OFFLANE",
+          "SUPPORT"
+        ],
+        "title": "ActivityRole",
+        "type": "string"
+      },
+      "ActivitySeriesView": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityDayView"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "role": {
+            "$ref": "#/components/schemas/ActivityRole"
+          },
+          "total_matches": {
+            "title": "Total Matches",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "role",
+          "total_matches",
+          "days"
+        ],
+        "title": "ActivitySeriesView",
+        "type": "object"
+      },
+      "ActivityView": {
+        "description": "READY Standard+Turbo matches per local day and role; presentation only (activity/SSOT.md).",
+        "properties": {
+          "available_years": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Available Years",
+            "type": "array"
+          },
+          "contract_version": {
+            "const": "activity-heatmap-v1",
+            "default": "activity-heatmap-v1",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "levels_version": {
+            "const": "heatmap-levels-v1",
+            "default": "heatmap-levels-v1",
+            "title": "Levels Version",
+            "type": "string"
+          },
+          "partial_ranges": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityPartialRangeView"
+            },
+            "title": "Partial Ranges",
+            "type": "array"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/ActivitySeriesView"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "time_zone": {
+            "title": "Time Zone",
+            "type": "string"
+          },
+          "today": {
+            "format": "date",
+            "title": "Today",
+            "type": "string"
+          },
+          "window": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActivityWindowView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "time_zone",
+          "today",
+          "window",
+          "available_years",
+          "partial_ranges",
+          "series"
+        ],
+        "title": "ActivityView",
+        "type": "object"
+      },
+      "ActivityWindowView": {
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date"
+        ],
+        "title": "ActivityWindowView",
+        "type": "object"
+      },
       "BootstrapModeView": {
         "properties": {
           "discovered_count": {
@@ -4183,6 +4359,66 @@
         "summary": "Achievement Detail"
       }
     },
+    "/activity": {
+      "get": {
+        "operationId": "activity_heatmap_activity_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "time_zone",
+            "required": true,
+            "schema": {
+              "title": "Time Zone",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Activity Heatmap"
+      }
+    },
     "/auth/apple": {
       "post": {
         "operationId": "apple_auth_apple_post",
@@ -4524,7 +4760,7 @@
     },
     "/history": {
       "get": {
-        "description": "Every retained match, ineligible and unsupported-mode ones included when unfiltered.",
+        "description": "Every retained match, ineligible and unsupported-mode ones included when unfiltered.\n\n`local_date` + `time_zone` narrow to one local day; with `ready_only` the list equals\nan activity heatmap cell (activity/SSOT.md \u00a75).",
         "operationId": "history_history_get",
         "parameters": [
           {
@@ -4585,6 +4821,49 @@
               "minimum": 1,
               "title": "Limit",
               "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "local_date",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Local Date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_zone",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Time Zone"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ready_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Ready Only",
+              "type": "boolean"
             }
           }
         ],

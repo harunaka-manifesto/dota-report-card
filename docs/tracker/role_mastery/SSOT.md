@@ -4,6 +4,8 @@
 
 Role Mastery is accumulated play and positive evidence for each of Carry, Mid, Offlane and Support. It is an **earned level**, never a skill rating, rank, role-level trend or performance verdict. Standard and Turbo contribute XP to the same role level; their metric observations, baselines, trends and PBs remain separate.
 
+The role screen's activity heatmap sits beside the level. It is a separate, presentation-only match-count calendar and never affects XP ([activity SSOT](../activity/SSOT.md)).
+
 ## How it works (plain English)
 
 - **XP per match.** Every counted match gives 100 XP (Turbo: half of everything). On top: +10 XP for each of up to 2 stats where you clearly beat your usual ("Above"), and +20 XP for each of up to 2 new personal bests. Max 160 XP per Standard match.

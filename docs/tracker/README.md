@@ -35,6 +35,7 @@ Every feature has an `SSOT.md`; screen features also have `DESIGN-REQUIREMENTS.m
 | **Match Detail** | One match reviewed properly: personal performance against a fair expectation, matchup context, factual key-item timings, and 0–3 deterministic insight cards — kept strictly apart. The [item-timings backend contract](match_detail/ITEM-TIMINGS-V1.md) is ready; iOS rendering is pending. | [SSOT](match_detail/SSOT.md) | [Design](match_detail/DESIGN-REQUIREMENTS.md) |
 | **Progress** | Per-role, per-mode, per-metric progression: observation series, rolling baselines, trend states and Personal Bests. | [SSOT](progress/SSOT.md) | [Design](progress/DESIGN-REQUIREMENTS.md) |
 | **Role Mastery** | Earned XP and a level for each role across Standard and Turbo. | [SSOT](role_mastery/SSOT.md) | iOS design pending |
+| **Activity Heatmap** | A per-role calendar of READY matches per local day, from week to year view; presentation only. | [SSOT](activity/SSOT.md) | iOS design pending |
 | **Profile** | Who the player is over the long term: identity line, role map, hero identity, durable claims with receipts, and what's moving right now. | [SSOT](profile/SSOT.md) | [Design](profile/DESIGN-REQUIREMENTS.md) |
 | **Settings, Account & Subscription** | Ongoing account management: auth methods, Steam switching, data-access recovery, subscription lifecycle, notifications and deletion. | [SSOT](settings_account/SSOT.md) | [Design](settings_account/DESIGN-REQUIREMENTS.md) |
 

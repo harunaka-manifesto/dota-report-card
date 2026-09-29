@@ -2,6 +2,12 @@
 
 Operational evidence, not a product or architecture contract.
 
+## Activity heatmap — 2026-09-29
+
+- `GET /mobile/v1/activity` (`activity-heatmap-v1`, levels `heatmap-levels-v1`) returns per-local-day READY Standard+Turbo match counts for `ALL` and each role. It serves either the trailing 365 days or one calendar year. Owner decisions are in [`activity/SSOT.md`](../activity/SSOT.md).
+- `/history` gains `local_date` + `time_zone` + `ready_only` for cell drill-in. Cursors bind the new filters, and unfiltered cursors keep their previous shape.
+- Counts are computed on read over `ix_tracker_chronology`. There is no migration, no new table, no provider call and no legacy or shared-module change.
+
 ## Core graph safeguards — 2026-09-27
 
 Owner-reviewed fixes on branch `fix/core-graph-safeguards`, after review of the core graph commits:

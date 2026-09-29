@@ -6,6 +6,7 @@ import hmac
 import os
 from collections.abc import Callable
 from datetime import UTC, datetime, time, timedelta
+from datetime import date as date_type
 from enum import StrEnum
 from typing import Annotated, Any, Literal, cast
 from uuid import UUID
@@ -16,11 +17,14 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field, JsonValue
 from redis import Redis
-from sqlalchemy import Connection, Engine, and_, func, or_, select, text, true
+from sqlalchemy import Connection, Date, Engine, and_, extract, func, or_, select, text, true
+from sqlalchemy import cast as sql_cast
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import DataError
 
 from app.core.config import Settings
 from app.storage.database import create_database_engine
+from app.tracker import activity
 from app.tracker.account_lifecycle import (
     AccountLifecycleError,
     request_account_deletion,
@@ -584,6 +588,49 @@ class SlotView(BaseModel):
     """An honest, non-fabricated slot: no content model is contracted (home §4–§5)."""
     state: Literal["UNAVAILABLE"] = "UNAVAILABLE"
     reason: Literal["NOT_CONTRACTED"] = "NOT_CONTRACTED"
+
+
+class ActivityRole(StrEnum):
+    ALL = "ALL"
+    CARRY = "CARRY"
+    MID = "MID"
+    OFFLANE = "OFFLANE"
+    SUPPORT = "SUPPORT"
+
+
+class ActivityDayView(BaseModel):
+    date: date_type
+    count: int = Field(ge=1)
+    level: int = Field(ge=1, le=4)
+
+
+class ActivitySeriesView(BaseModel):
+    role: ActivityRole
+    total_matches: int
+    days: list[ActivityDayView]
+
+
+class ActivityWindowView(BaseModel):
+    start_date: date_type
+    end_date: date_type
+
+
+class ActivityPartialRangeView(BaseModel):
+    start_date: date_type
+    end_date: date_type
+    reason: Literal["BOOTSTRAP_SAMPLE"]
+
+
+class ActivityView(BaseModel):
+    """READY Standard+Turbo matches per local day and role; presentation only (activity/SSOT.md)."""
+    contract_version: Literal["activity-heatmap-v1"] = activity.CONTRACT
+    levels_version: Literal["heatmap-levels-v1"] = activity.LEVELS_VERSION
+    time_zone: str
+    today: date_type
+    window: ActivityWindowView | None
+    available_years: list[int]
+    partial_ranges: list[ActivityPartialRangeView]
+    series: list[ActivitySeriesView]
 
 
 class HomeView(BaseModel):
@@ -1234,9 +1281,18 @@ def _mac(key: bytes, profile_id: str, message: str) -> str:
     return hmac.new(key, f"{profile_id}|{message}".encode("ascii"), hashlib.sha256).hexdigest()[:24]
 
 
-def _cursor(key: bytes, profile_id: str, ref: str, mode: str, role: str | None, revision: int) -> str:
-    message = f"{ref}:{mode}:{role or ''}:{revision}"
+def _cursor(key: bytes, profile_id: str, ref: str, mode: str, role: str | None, revision: int,
+            day: str = "") -> str:
+    # `day` binds the optional local-day drill-in filter; unfiltered cursors keep their shape.
+    message = f"{ref}:{mode}:{role or ''}:{revision}" + (f":{day}" if day else "")
     return f"{ref}.{_mac(key, profile_id, message)}"
+
+
+def _zone(time_zone: str) -> ZoneInfo:
+    try:
+        return ZoneInfo(time_zone)
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        raise HTTPException(400, "TIME_ZONE_INVALID") from exc
 
 
 def _mastery_cursor(key: bytes, profile_id: str, ref: str, role: str, revision: int) -> str:
@@ -1774,9 +1830,24 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
     @app.get("/history", response_model=HistoryView)
     async def history(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode | None = None,
                       role: Role | None = None, cursor: str | None = None,
-                      limit: Annotated[int, Query(ge=1, le=50)] = 20) -> HistoryView:
-        """Every retained match, ineligible and unsupported-mode ones included when unfiltered."""
+                      limit: Annotated[int, Query(ge=1, le=50)] = 20,
+                      local_date: date_type | None = None, time_zone: str | None = None,
+                      ready_only: bool = False) -> HistoryView:
+        """Every retained match, ineligible and unsupported-mode ones included when unfiltered.
+
+        `local_date` + `time_zone` narrow to one local day; with `ready_only` the list equals
+        an activity heatmap cell (activity/SSOT.md §5).
+        """
         scope = mode.value if mode else "ALL"
+        # `time_zone` alone is ignored, so clients may always send it; a day needs its zone.
+        if local_date is not None and time_zone is None:
+            raise HTTPException(400, "TIME_ZONE_REQUIRED")
+        day = ""
+        if local_date is not None and time_zone is not None:
+            start, end = activity.utc_bounds(local_date, local_date, _zone(time_zone))
+            day = f"{local_date.isoformat()}@{time_zone}"
+        if ready_only:
+            day += ":READY"
         key = _cursor_key(request)
         with _engine(request).connect() as connection:
             profile = _active_profile(connection, owner)
@@ -1787,11 +1858,17 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 query = query.where(account_matches.c.mode == mode.value)
             if role is not None:
                 query = query.where(account_matches.c.effective_role == role.value)
+            if local_date is not None:
+                query = query.where(account_matches.c.provider_started_at >= start,
+                                    account_matches.c.provider_started_at < end)
+            if ready_only:
+                query = query.where(account_matches.c.lifecycle == "READY",
+                                    account_matches.c.mode.in_(("STANDARD", "TURBO")))
             if cursor is not None:
                 pieces = cursor.split(".")
                 if len(pieces) != 2 or not hmac.compare_digest(
                     cursor, _cursor(key, profile["id"], pieces[0], scope,
-                                    role.value if role else None, profile["active_revision"]),
+                                    role.value if role else None, profile["active_revision"], day),
                 ):
                     raise HTTPException(400, "CURSOR_INVALID")
                 anchor = connection.execute(select(account_matches).where(
@@ -1812,7 +1889,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             ).limit(limit + 1)).mappings().all()
             visible = rows[:limit]
             next_cursor = (_cursor(key, profile["id"], visible[-1]["public_ref"], scope,
-                                   role.value if role else None, profile["active_revision"])
+                                   role.value if role else None, profile["active_revision"], day)
                            if len(rows) > limit else None)
             return HistoryView(matches=[_history_row(connection, row) for row in visible],
                                next_cursor=next_cursor)
@@ -1928,6 +2005,69 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                             today_matches=[_summary_view(connection, row) for row in today_rows],
                             last_matches=[_summary_view(connection, row) for row in last_rows],
                             role_summaries=_role_summaries(connection, profile, mode.value))
+
+    @app.get("/activity", response_model=ActivityView)
+    async def activity_heatmap(request: Request, owner: Annotated[str, Depends(_user)], time_zone: str,
+                               year: int | None = None) -> ActivityView:
+        zone = _zone(time_zone)
+        today = datetime.now(zone).date()
+        try:
+            window_start, window_end = activity.resolve_window(today, year)
+        except ValueError as exc:
+            raise HTTPException(400, "YEAR_INVALID") from exc
+        empty = ActivityView(time_zone=time_zone, today=today, window=None, available_years=[],
+                             partial_ranges=[], series=[ActivitySeriesView(role=ActivityRole(name),
+                                                                          total_matches=0, days=[])
+                                                       for name in activity.SERIES])
+        with _engine(request).connect() as connection:
+            profile = _active_profile(connection, owner)
+            if profile is None:
+                return empty
+            # Heatmap cells count READY Standard+Turbo matches only (activity/SSOT.md §1).
+            counted = and_(account_matches.c.profile_id == profile["id"], _visible(profile),
+                           account_matches.c.lifecycle == "READY",
+                           account_matches.c.mode.in_(("STANDARD", "TURBO")))
+            local_day = sql_cast(func.timezone(time_zone, account_matches.c.provider_started_at), Date)
+            start_utc, end_utc = activity.utc_bounds(window_start, window_end, zone)
+            try:
+                # Group by output labels so the bound zone is not compared across placeholders.
+                local_year = extract("year", local_day).label("local_year")
+                spans = connection.execute(select(
+                    local_year, func.min(account_matches.c.provider_started_at).label("first_at"),
+                ).where(counted).group_by(local_year)).all()
+                day_label = local_day.label("local_day")
+                rows = connection.execute(select(
+                    day_label, account_matches.c.effective_role, func.count().label("n"),
+                ).where(counted, account_matches.c.provider_started_at >= start_utc,
+                        account_matches.c.provider_started_at < end_utc,
+                ).group_by(day_label, account_matches.c.effective_role)).all()
+                # Pro backfill covers the pre-link span fully; without it bootstrap is a sample.
+                sample = connection.execute(select(
+                    func.min(account_matches.c.provider_started_at),
+                    func.count().filter(account_matches.c.origin == "HISTORICAL"),
+                ).where(counted, or_(account_matches.c.origin == "BOOTSTRAP",
+                                     account_matches.c.origin == "HISTORICAL"))).one()
+            except DataError as exc:  # a zone ZoneInfo knows but PostgreSQL does not
+                raise HTTPException(400, "TIME_ZONE_INVALID") from exc
+            if not spans:
+                return empty
+            first_day = min(span.first_at for span in spans).astimezone(zone).date()
+            start = max(window_start, first_day)
+            window = ActivityWindowView(start_date=start, end_date=window_end) if start <= window_end else None
+            partial: list[ActivityPartialRangeView] = []
+            if window is not None and sample[0] is not None and not sample[1]:
+                span_start = max(start, sample[0].astimezone(zone).date())
+                span_end = min(window_end, profile["original_linked_at"].astimezone(zone).date())
+                if span_start <= span_end:
+                    partial.append(ActivityPartialRangeView(start_date=span_start, end_date=span_end,
+                                                            reason="BOOTSTRAP_SAMPLE"))
+            return ActivityView(
+                time_zone=time_zone, today=today, window=window,
+                available_years=sorted((int(span.local_year) for span in spans), reverse=True),
+                partial_ranges=partial,
+                series=[ActivitySeriesView.model_validate(series) for series in activity.build_series(
+                    (row.local_day, row.effective_role, row.n) for row in rows)],
+            )
 
     @app.get("/coverage", response_model=CoverageView)
     async def coverage_status(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode) -> CoverageView:

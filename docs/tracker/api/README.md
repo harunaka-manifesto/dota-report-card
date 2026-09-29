@@ -26,7 +26,7 @@ and its CI diff check are untouched. Resource design and state projections are s
 | Isolation | Every resource is scoped to the caller's account and active Steam profile; match references are opaque UUIDs. Foreign references return 404. |
 | Mutations | Every mutating POST requires `Idempotency-Key`; a replay returns the first result, a different body with the same key returns `409 IDEMPOTENCY_CONFLICT`. |
 | Errors | `application/problem+json` with a stable `code` and a `request_id`. No upstream text or private identifiers. |
-| Time | UTC RFC 3339. Home takes an IANA `time_zone` for "today" and an explicit `mode`. |
+| Time | UTC RFC 3339. Home takes an IANA `time_zone` for "today" and an explicit `mode`; Activity and the History day filter take the same `time_zone`. |
 | Pagination | Opaque signed cursors bound to profile, filters and revision (`/history`). |
 | Incremental refresh | Body ETags with `If-None-Match` → 304 on every JSON GET; `GET /changes?after=` returns changed match refs or `full_refresh`. Push stays READY-only. |
 | Enums | Closed. Swift should keep unknown values and show a neutral unsupported state, never interpret them as success, zero or evidence. |
@@ -38,6 +38,27 @@ and its CI diff check are untouched. Resource design and state projections are s
 `GET /mobile/v1/mastery` is reusable by Home, Profile and Progress. With the approved parameter set registered (migration `0017`), a fresh database serves `AVAILABLE` once a profile's entitled finalized matches have awards, and `BACKFILLING` while the one-time quiet backfill runs; the client should render `BACKFILLING` as a neutral "calculating" state. A parameter refresh never changes existing awards; totals change only through new matches, late replay bonuses, role corrections and entitlement display caps. It returns `STEAM_LINK_REQUIRED`, `CALIBRATION_PENDING`, `BACKFILLING`, or `AVAILABLE`; when available it has four role summaries and live in-app level milestones. A role is `UNSTARTED` before its first award. Free caps the visible level at 5, omits total XP, and hides within-level XP at the cap. Pro receives earned level and total XP.
 
 `GET /mobile/v1/mastery/{role}/awards` returns signed XP ledger entries under the current rule (`role-mastery-v2`) with mode, kind, structured reason (`LIVE_FINALIZATION`, `RECOVERY`, `HISTORICAL_IMPORT`, `METHODOLOGY_REBUILD`, `LATE_REPLAY`, `ROLE_CORRECTION`), qualifying Above and PB metric IDs (only the role's four canonical metrics), source versions, and an entitled opaque match reference. Superseded-rule audit rows are never returned. It uses profile/role/revision-bound signed cursors. Entries for Pro-only history are omitted from Free responses. Neither endpoint starts provider work. See [`role_mastery/SSOT.md`](../role_mastery/SSOT.md).
+
+## Activity heatmap (`activity-heatmap-v1`)
+
+`GET /mobile/v1/activity?time_zone=<IANA>[&year=YYYY]` returns per-day counts of READY Standard and Turbo matches for `ALL` and each role, in one response. Product rules are in [`activity/SSOT.md`](../activity/SSOT.md).
+
+```text
+ActivityView
+  contract_version: "activity-heatmap-v1"
+  levels_version: "heatmap-levels-v1"   // 1 | 2–3 | 4–5 | 6+ matches → level 1–4
+  time_zone: string
+  today: date                            // local
+  window: {start_date, end_date} | null  // cropped to the first counted day; null if none
+  available_years: integer[]             // local years with ≥1 counted match, newest first
+  partial_ranges: {start_date, end_date, reason: BOOTSTRAP_SAMPLE}[]
+  series: {role: ALL|CARRY|MID|OFFLANE|SUPPORT, total_matches, days: {date, count, level}[]}[]
+```
+
+- Without `year`, the window is the trailing 365 local days ending today. `year` selects a calendar year, and the current year ends today. A year before 2011 or after the local current year returns `400 YEAR_INVALID`. An unknown zone returns `400 TIME_ZONE_INVALID`.
+- `days` is sparse and ascending: omitted dates mean zero, inside `window`. Series are always present, even when empty.
+- The route reads persisted data only. It uses the entitled-history scope, has no mode filter, and gets the standard body ETag.
+- Cell drill-in: `GET /history?local_date=YYYY-MM-DD&time_zone=<IANA>&ready_only=true[&role=…]`. `local_date` requires `time_zone` (`400 TIME_ZONE_REQUIRED`); `time_zone` alone is ignored. The signed cursor is bound to the day filter.
 
 ## Match Detail: item timings
 
