@@ -137,6 +137,10 @@
             "title": "Name",
             "type": "string"
           },
+          "order": {
+            "title": "Order",
+            "type": "integer"
+          },
           "progress": {
             "anyOf": [
               {
@@ -183,6 +187,7 @@
         },
         "required": [
           "id",
+          "order",
           "key",
           "asset_key",
           "rule_version",

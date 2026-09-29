@@ -9,9 +9,9 @@ Reviews every frozen `match-achievements-v1` threshold against real parsed Stand
 - This is a *selected* sample. Parsed matches are ones somebody requested a parse for, which is close to the tracker's own audience but not the whole population. Rows within a match are correlated, so the intervals below are slightly optimistic.
 - **Field coverage.** `networth_t` and `deaths_log` appear in OpenDota parses only for matches started after roughly 2026-09-10. Older corpus matches carry neither, and the live API does not return them either (checked with one call). They are therefore unevaluable for #6, #8, #10, #11 and #41, and partly for #18. The denominators for those badges come only from recent matches, which is also what production will see for new matches.
 
-## Result
+## Result at the starting thresholds
 
-Rates use the evaluable-only denominator. Intervals are 95% Wilson. "stable" means the whole interval sits in one rarity band.
+(#6, #11, #23, #42 and #45 were later changed; see the tier freeze below.) Rates use the evaluable-only denominator. Intervals are 95% Wilson. "stable" means the whole interval sits in one rarity band.
 
 | Badge | Hits / evaluable | Rate | 95% interval | Tier | Interval vs band edges |
 |---|---|---|---|---|---|
@@ -61,7 +61,41 @@ Robust: #8 (the 10-minute deficit condition binds, not the 20-minute one), #6's 
 ## Change made because of the review
 
 - **#18 Early Duelist evidence gap.** It required every death to have `time_dead`. Recent parses omit that on about 5% of late deaths (733 of 14,871 death entries in the sampled paid matches), so 35% of recent rows lost the badge. #18 needs only death *start* times. The retained source now carries `achievement_source.death_times`: all `time` values, withheld if the log length disagrees with the summary death count. Recent-row coverage rose from 65% to essentially all, and the rate is 10.6% (432 / 4,069). Unit tests cover complete, contradicting and missing logs.
-- No threshold value was changed. Which of the fragile thresholds to keep is a product choice (target tier per badge) for the owner; the corpus cannot settle it.
+- Threshold values were then adjusted for the tier freeze below (owner: tiers must never move after real users earn badges, no preferred tier per badge, and ideally every tier holds at least one badge).
+
+## Tier freeze (owner decision, 2026-09-29) — `badge-tiers-v1`
+
+Tiers are static data in `achievement_rules.py` (`BADGE_TIERS`, part of the pinned digest), never re-derived from live data. To put each badge firmly inside one band, five thresholds moved to round values, with the corpus rate (95% interval) each produces:
+
+| Threshold change | Was | Now | Rate at the new value |
+|---|---|---|---|
+| #6 net worth at 20:00 | 12,000 | 12,500 | 3.13% (2.15–4.55%) Epic |
+| #11 early lead at 10:00 | 1,000 | 1,500 | 3.72% (2.63–5.23%) Epic |
+| #23 player damage in the fight | 2,000 | 1,500 | 6.03% (5.50–6.62%) Rare |
+| #45 share of team tower damage | 40% | 50% | 0.72% (0.52–1.01%) Legendary |
+| #42 kill involvement | 60% | 50% | 23.4% (22.2–24.7%) **Common** |
+
+- **Common.** No badge could be Common at its starting thresholds (the closest were #20, #22 and #42 at 15–16%). Lowering #42 to 50% involvement (the same level #41 already uses) puts it well above 20%, so Support Everywhere is the one Common badge. Because #30 repeats only non-Common feats, #42 left `REPEATABLE_FEATS`. #20's floor is a stated count (3 kills), so it stays Rare.
+- **#14 Untouchable Contributor** keeps its 10-assist rule (its copy says double-digit): 0.84% (0.69–1.02%), Legendary, its interval touches the 1% edge by 0.02 points. Accepted.
+- **History badges (#1, #2, #4, #30)** cannot be measured from single matches, and the corpus has too few same-account histories (60 accounts with 6+ matches). They were simulated: for each role, real per-match metric values and earned badges drawn from the recent corpus (net worth, damage and tower share, last hits, camps stacked, fight presence and observer wards; three measurable metrics per role from OpenDota data alone), users with 24, 60 or 120 matches, a 60% main role, and 3, 6 or 12 heroes with Zipf weights. Strict personal best after five priors, exactly as `build_analysis` does.
+
+| Badge | Simulated rate per match | Frozen tier |
+|---|---|---|
+| #1 Double Record | 2.5–2.9% across all 9 settings | Epic |
+| #2 Clean Sweep | 0.34–0.52% | Legendary |
+| #4 Record on a New Hero | 2.2–4.9% | Epic |
+| #30 Hero Specialist | 1.1% (24 matches, 12 heroes) to 17.5% (120 matches, 3 heroes); 6.5% at 60 matches and 6 heroes | Rare |
+
+  #30 grows with history length and hero concentration, so no single figure fits every user. Rare was chosen for the middle case and because Pro users keep long histories. With full four-metric histories (STRATZ-sourced) #1 and #2 run somewhat higher; #2 is the badge nearest a band edge.
+
+### Final tiers (24)
+
+- **Common (1):** #42.
+- **Rare (9):** #18, #20, #22, #23, #30, #37, #44, #49, #50.
+- **Epic (10):** #1, #4, #6, #8, #10, #11, #13, #17, #25, #41.
+- **Legendary (4):** #2, #14, #15, #45.
+
+Every measured badge's frozen tier equals the band of its corpus rate (checked by test), and the corpus rates above were re-verified by running the real evaluator with the final thresholds.
 
 ## Provider calls (owner authorized up to Rp10,000)
 

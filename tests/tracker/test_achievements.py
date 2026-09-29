@@ -2,8 +2,16 @@
 from copy import deepcopy
 
 import pytest
-from app.tracker.achievement_catalog import COPY, RATE_COUNTS, REPEATABLE_IDS, catalog_entry, rarity
-from app.tracker.achievement_rules import REPEATABLE_FEATS, THRESHOLDS, rules_digest
+from app.tracker.achievement_catalog import (
+    COPY,
+    RATE_COUNTS,
+    REPEATABLE_IDS,
+    band,
+    catalog_entry,
+    rarity,
+    rarity_key,
+)
+from app.tracker.achievement_rules import BADGE_TIERS, REPEATABLE_FEATS, THRESHOLDS, rules_digest
 from app.tracker.achievements import IDS, evaluate_match, gold_advantage_valid
 from app.tracker.materialization import _achievement_source, _gold_advantage
 
@@ -46,7 +54,7 @@ def earned(rows, *, slot=0, role="CARRY", mode="STANDARD", fights=None, pb=None,
     (1, 0, "CARRY", {}, None, ["a", "b"], None),
     (2, 0, "CARRY", {}, None, ["a", "b", "c"], None),
     (4, 0, "CARRY", {}, None, ["a"], [{"hero_id": 8, "result": {"achievement_pb_metrics": ["a"]}}]),
-    (6, 0, "CARRY", {"checkpoints.last_hits.600": 60, "checkpoints.net_worth.1200": 12000}, None, None, None),
+    (6, 0, "CARRY", {"checkpoints.last_hits.600": 60, "checkpoints.net_worth.1200": 12500}, None, None, None),
     (8, 1, "MID", {"checkpoints.net_worth.600": 500, "checkpoints.net_worth.1200": 3500}, None, None, None),
     (10, 0, "CARRY", {"checkpoints.net_worth.1200": 8000}, None, None, None),
     (11, 1, "MID", {"checkpoints.net_worth.600": 3000, "summary.values.tower_damage": 5000}, None, None, None),
@@ -70,7 +78,7 @@ def earned(rows, *, slot=0, role="CARRY", mode="STANDARD", fights=None, pb=None,
     (42, 3, "SUPPORT", {"achievement_source.observer_kills": 3,
                          "summary.values.assists": 4}, None, None, None),
     (44, 2, "OFFLANE", {"summary.values.tower_damage": 2500}, None, None, None),
-    (45, 0, "CARRY", {"summary.values.tower_damage": 3000,
+    (45, 0, "CARRY", {"summary.values.tower_damage": 4000,
                        "summary.values.deaths": 0}, None, None, None),
     (49, 3, "SUPPORT", {"summary.values.hero_healing": 8000,
                          "summary.values.assists": 10}, None, None, None),
@@ -197,7 +205,7 @@ def test_frozen_rule_artifact_is_pinned():
     assert REPEATABLE_FEATS <= set(THRESHOLDS) - {30}
     # Any threshold or repeat-list change must bump RULE_VERSION and this digest together.
     assert rules_digest() == (
-        "a0094c3fe8f5c776ad5e0f3e946bdb11690bed3621f0677c871041e438605fe4")
+        "dbd957499b354f6c25b16db374a820b0ae24f6ba9061d9635be3a66be11db4fc")
 
 
 def test_early_duelist_needs_complete_death_times_not_respawn_durations():
@@ -209,3 +217,19 @@ def test_early_duelist_needs_complete_death_times_not_respawn_durations():
     rows[0]["achievement_source"]["death_times"] = None
     ids, result = earned(rows)
     assert 18 not in ids and 18 not in result["evaluable_ids"]
+
+
+def test_frozen_tiers_cover_all_badges_and_match_the_corpus_bands():
+    assert set(BADGE_TIERS) == set(IDS)
+    # Every tier is populated, and each measured badge sits in its frozen band.
+    assert set(BADGE_TIERS.values()) == {"COMMON", "RARE", "EPIC", "LEGENDARY"}
+    for ident, (hits, eligible, _) in RATE_COUNTS.items():
+        assert band(hits / eligible) == BADGE_TIERS[ident], ident
+    assert set(RATE_COUNTS) == set(IDS) - {1, 2, 4, 30}
+    # The tier is frozen data: a live-looking rate can never change it.
+    assert rarity(14)["tier"] == "LEGENDARY" and rarity(14)["provisional"] is False
+    assert rarity(1)["rate"] is None and rarity(1)["tier"] == "EPIC"
+    assert 42 not in REPEATABLE_FEATS  # the only Common badge is never a #30 base
+    assert min(IDS, key=rarity_key) in {14, 15, 45, 2}
+    assert catalog_entry(1, "en")["order"] == 1 and catalog_entry(50, "id")["order"] == 24
+    assert [catalog_entry(i, "en")["order"] for i in IDS] == list(range(1, 25))

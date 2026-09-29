@@ -465,6 +465,7 @@ class AchievementMatchView(BaseModel):
 
 class AchievementEntryView(BaseModel):
     id: int
+    order: int
     key: str
     asset_key: str
     rule_version: str

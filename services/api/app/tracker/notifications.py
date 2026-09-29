@@ -10,12 +10,12 @@ from uuid import uuid4
 from sqlalchemy import Connection, func, select
 from sqlalchemy.dialects.postgresql import insert
 
-from .achievement_catalog import catalog_entry, rarity
+from .achievement_catalog import catalog_entry, rarity_key
 from .schema import devices, events, notification_outbox, profiles, users
 
 
 def _ready_payload(match_count: int, achievement_ids: list[int]) -> dict[str, Any]:
-    rarest = min(achievement_ids, key=lambda ident: ((rarity(ident) or {}).get("rate", 1), ident)) if achievement_ids else None
+    rarest = min(achievement_ids, key=rarity_key) if achievement_ids else None
     return {"kind": "MATCH_READY", "count": match_count,
             "achievement_ids": achievement_ids, "achievement_count": len(achievement_ids),
             "achievement_name": catalog_entry(rarest, "en")["name"] if rarest is not None else None,
