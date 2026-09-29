@@ -109,4 +109,3 @@ Owner review of the fragile thresholds and of the five band-straddling tiers, an
 ## Re-measurement after the independent QA fixes
 
 Independent QA found that #25 rejected any gold-advantage curve not starting at 0, but 272 of 1,027 recently fetched parses start at a real nonzero 0:00 reading (the starting team gold difference). Re-running the real evaluator on the same 1,511 matches with the corrected rules (nonzero origin accepted, exact kill-log match, real zero team kills or tower damage counted as evidence) gives: #25 279 / 6,960 (4.01%, still Epic), #11 31 / 848, #13 202 / 11,600, #17 211 / 10,846, #18 422 / 3,914, #41 74 / 1,916, #42 1,049 / 4,640, #44 226 / 2,320, #45 33 / 4,640. No frozen tier changed. `RATE_COUNTS` holds these counts and a test keeps each in its frozen band.
-
