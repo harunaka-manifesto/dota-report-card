@@ -6,19 +6,11 @@ from typing import Any, cast
 
 from sqlalchemy import Connection, select, tuple_
 
-from .achievement_rules import RULE_VERSION, THRESHOLDS
+from .achievement_rules import ALL_ROLES, CONSTANTS, ROLES, RULE_VERSION, THRESHOLDS, rules_digest
 from .schema import account_matches, analyses, match_players, profiles
 from .scope import entitled
 
 IDS = (1, 2, 4, 6, 8, 10, 11, 13, 14, 15, 17, 18, 20, 22, 23, 25, 30, 37, 41, 42, 44, 45, 49, 50)
-CORE = {"CARRY", "MID", "OFFLANE"}
-ROLES: dict[int, set[str]] = {
-    6: {"CARRY"}, 8: {"MID", "OFFLANE"}, 10: CORE, 11: {"MID"},
-    20: CORE, 22: CORE, 23: CORE, 25: CORE,
-    37: {"SUPPORT"}, 41: {"SUPPORT"}, 42: {"SUPPORT"},
-    44: {"OFFLANE"}, 45: {"CARRY", "MID"}, 49: {"SUPPORT"}, 50: {"SUPPORT"},
-}
-
 
 def _point(player: Mapping[str, Any], field: str, second: int) -> int | None:
     checkpoints = player.get("checkpoints")
@@ -34,6 +26,10 @@ def _value(player: Mapping[str, Any], field: str) -> int | None:
     return value if type(value) is int and value >= 0 else None
 
 
+def _award_ids(row: Mapping[str, Any]) -> set[int]:
+    return {a["id"] for a in row["result"].get("achievements", {}).get("awards", [])}
+
+
 def _conflict(paths: list[str], slots: set[int], fields: set[str]) -> bool:
     return any(path in {"duration_seconds", "mode", "game_mode", "lobby_type"} or
                any(path.startswith(f"players.{slot}.") and
@@ -41,11 +37,20 @@ def _conflict(paths: list[str], slots: set[int], fields: set[str]) -> bool:
                for path in paths if isinstance(path, str))
 
 
-def prior_award_rows(connection: Connection, *, profile_id: str, link: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """Current, entitled, chronological history for cross-match feats."""
+def prior_award_rows(connection: Connection, *, profile_id: str,
+                     link: Mapping[str, Any]) -> tuple[list[dict[str, Any]], bool]:
+    """Current, entitled, chronological history for cross-match feats.
+
+    Only the award and PB-metric fields are read. Rows analysed under other rules are left
+    out and reported as an incomplete history, so #4/#30 stay unavailable rather than being
+    judged on mixed-version data (the methodology rebuild settles them quietly).
+    """
     profile = connection.execute(select(profiles).where(profiles.c.id == profile_id)).mappings().one()
-    return [dict(row) for row in connection.execute(select(
-        account_matches.c.match_id, match_players.c.hero_id, analyses.c.result,
+    digest = analyses.c.result["achievements"]["rules_digest"].astext
+    rows = connection.execute(select(
+        account_matches.c.match_id, match_players.c.hero_id, digest.label("digest"),
+        analyses.c.result["achievements"]["awards"].label("awards"),
+        analyses.c.result["achievement_pb_metrics"].label("pb"),
     ).join(analyses, analyses.c.id == account_matches.c.active_analysis_id).join(
         match_players, (match_players.c.match_id == account_matches.c.match_id) &
         (match_players.c.player_slot == account_matches.c.player_slot),
@@ -56,18 +61,27 @@ def prior_award_rows(connection: Connection, *, profile_id: str, link: Mapping[s
         tuple_(account_matches.c.provider_started_at, account_matches.c.provider_source_match_id)
         < (link["provider_started_at"], link["provider_source_match_id"]),
     ).order_by(account_matches.c.provider_started_at,
-               account_matches.c.provider_source_match_id)).mappings().all()]
+               account_matches.c.provider_source_match_id)).mappings().all()
+    current = rules_digest()
+    kept = [{"match_id": row["match_id"], "hero_id": row["hero_id"],
+             "result": {"achievement_pb_metrics": row["pb"] or [],
+                        "achievements": {"awards": row["awards"] or []}}}
+            for row in rows if row["digest"] == current]
+    return kept, len(kept) == len(rows)
 
 
 def gold_advantage_valid(advantage: Any, duration: int) -> bool:
-    """Minute map must start at 0:00 with 0, be contiguous, and cover the match."""
+    """Minute map must start at 0:00, be contiguous, and cover the last full minute.
+
+    Index 0 is a real reading at 0:00 (the starting team gold difference), not necessarily 0.
+    """
     if not isinstance(advantage, dict) or not advantage:
         return False
     try:
         seconds = sorted(int(key) for key in advantage)
     except ValueError:
         return False
-    return (seconds == list(range(0, 60 * len(seconds), 60)) and advantage.get("0") == 0
+    return (seconds == list(range(0, 60 * len(seconds), 60))
             and all(type(v) is int for v in advantage.values())
             and seconds[-1] >= (duration // 60) * 60)
 
@@ -77,11 +91,14 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
                    positions: Mapping[int, int | None],
                    core_fights: Mapping[str, Any] | None,
                    pb_metrics: list[str], pb_ready_count: int, prior: list[dict[str, Any]],
-                   repeatable: set[int], quarantined: list[str]) -> dict[str, Any]:
+                   repeatable: set[int], quarantined: list[str],
+                   history_complete: bool = True) -> dict[str, Any]:
     """Return earned facts and evaluability; never turn a missing value into zero."""
-    result: dict[str, Any] = {"rule_version": RULE_VERSION, "awards": [], "evaluable_ids": [],
-                              "unavailable": [], "pb_metrics": pb_metrics, "progress": {}}
-    if mode != "STANDARD" or progression != "STANDARD" or role not in {"CARRY", "MID", "OFFLANE", "SUPPORT"}:
+    result: dict[str, Any] = {"rule_version": RULE_VERSION, "rules_digest": rules_digest(),
+                              "eligible": True, "awards": [], "evaluable_ids": [],
+                              "unavailable": [], "pb_metrics": pb_metrics}
+    if mode != "STANDARD" or progression != "STANDARD" or role not in ALL_ROLES:
+        result["eligible"] = False  # leaver, abandon, short, invalid or unassigned: no badge can be judged
         return result
     player = features[slot]
     own = player.get("summary", {})
@@ -93,28 +110,34 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
     T = THRESHOLDS
 
     def check(ident: int, facts: dict[str, Any] | None, qualifies: bool) -> None:
-        if role not in ROLES.get(ident, {"CARRY", "MID", "OFFLANE", "SUPPORT"}) or facts is None:
+        if role not in ROLES.get(ident, ALL_ROLES) or facts is None:
             return
         evaluable.append(ident)
         if qualifies:
             awards.append({"id": ident, "proof": facts})
 
     # Strict at-time PBs have already passed the same five-prior gate as the PB engine.
-    check(1, {"strict_pb_metrics": pb_metrics} if pb_ready_count >= 2 else None, len(pb_metrics) >= 2)
-    check(2, {"strict_pb_metrics": pb_metrics} if pb_ready_count >= 3 else None, len(pb_metrics) >= 3)
+    check(1, {"strict_pb_metrics": pb_metrics} if pb_ready_count >= T[1]["pb_metrics_min"] else None,
+          len(pb_metrics) >= T[1]["pb_metrics_min"])
+    check(2, {"strict_pb_metrics": pb_metrics} if pb_ready_count >= T[2]["pb_metrics_min"] else None,
+          len(pb_metrics) >= T[2]["pb_metrics_min"])
     earlier_heroes: dict[str, set[int]] = {}
     for row in prior:
         for metric in row["result"].get("achievement_pb_metrics", []):
             earlier_heroes.setdefault(metric, set()).add(row["hero_id"])
-    repeated_metrics = [metric for metric in pb_metrics if earlier_heroes.get(metric, set()) - {hero_id}]
-    progress_4 = max((len(heroes) for heroes in earlier_heroes.values()), default=0)
-    result["progress"]["4"] = {"distinct_heroes": progress_4, "target": 2}
-    check(4, {"hero_id": hero_id, "metric_ids": repeated_metrics,
-              "previous_distinct_heroes": sorted({h for metric in repeated_metrics
-                                                     for h in earlier_heroes[metric]})} if pb_ready_count else None,
-          bool(repeated_metrics) and any(hero_id not in earlier_heroes[metric] for metric in repeated_metrics))
+    # Once per hero: a PB metric set on a hero that never held that metric's record, and a
+    # hero that has not earned #4 before. Several qualifying metrics still give one award.
+    earned_4 = {row["hero_id"] for row in prior if 4 in _award_ids(row)}
+    new_hero_metrics = [metric for metric in pb_metrics
+                        if earlier_heroes.get(metric) and hero_id not in earlier_heroes[metric]]
+    check(4, {"hero_id": hero_id, "metric_ids": new_hero_metrics,
+              "previous_distinct_heroes": sorted({h for metric in new_hero_metrics
+                                                     for h in earlier_heroes[metric]})}
+          if pb_ready_count and history_complete else None,
+          bool(new_hero_metrics) and hero_id not in earned_4)
 
-    nw10, nw20, cs10 = _point(player, "net_worth", 600), _point(player, "net_worth", 1200), _point(player, "last_hits", 600)
+    early, mid = CONSTANTS["checkpoint_early_seconds"], CONSTANTS["checkpoint_mid_seconds"]
+    nw10, nw20, cs10 = _point(player, "net_worth", early), _point(player, "net_worth", mid), _point(player, "last_hits", early)
     t = T[6]
     if duration >= t["min_duration"] and not _conflict(quarantined, {slot}, {"net_worth", "last_hits"}):
         check(6, {"last_hits_at_10": cs10, "net_worth_at_20": nw20} if cs10 is not None and nw20 is not None else None,
@@ -123,13 +146,13 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
     # The unique enemy player holding the same effective role. Both sides must sit at that
     # role's position in the role assignment, so a corrected own role or an ambiguous
     # assignment leaves #8/#11 unavailable instead of comparing the wrong player.
-    expected_peer = 2 if role == "MID" else 3 if role == "OFFLANE" else None
+    expected_peer = CONSTANTS["peer_positions"].get(role)
     peer = ([s for s in enemies if positions.get(s) == expected_peer]
             if expected_peer and positions.get(slot) == expected_peer else [])
     t = T[8]
     if role in {"MID", "OFFLANE"} and len(peer) == 1 and duration >= t["min_duration"] \
             and not _conflict(quarantined, {slot, peer[0]}, {"net_worth"}):
-        enemy10, enemy20 = _point(features[peer[0]], "net_worth", 600), _point(features[peer[0]], "net_worth", 1200)
+        enemy10, enemy20 = _point(features[peer[0]], "net_worth", early), _point(features[peer[0]], "net_worth", mid)
         if nw10 is not None and nw20 is not None and enemy10 is not None and enemy20 is not None:
             check(8, {"net_worth_gap_at_10": nw10 - enemy10, "net_worth_gap_at_20": nw20 - enemy20},
                   nw10 - enemy10 <= t["gap_at_600_max"] and nw20 - enemy20 >= t["gap_at_1200_min"])
@@ -141,11 +164,13 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
                   nw20 - nw10 >= t["gain_600_to_1200_min"] and deaths <= t["deaths_max"])
     tower = _value(player, "tower_damage")
     team_towers = [_value(features[s], "tower_damage") for s in allies]
-    tower_total = sum(v for v in team_towers if v is not None) if all(v is not None for v in team_towers) else 0
-    tower_share = tower / tower_total if tower is not None and tower_total > 0 else None
+    tower_total = sum(v for v in team_towers if v is not None) if all(v is not None for v in team_towers) else None
+    # A real zero team total is evidence (share 0), not a gap.
+    tower_share = (None if tower is None or tower_total is None
+                   else tower / tower_total if tower_total > 0 else 0.0)
     t = T[11]
     if role == "MID" and len(peer) == 1 and not _conflict(quarantined, allies | {peer[0]}, {"tower_damage", "net_worth"}):
-        enemy10 = _point(features[peer[0]], "net_worth", 600)
+        enemy10 = _point(features[peer[0]], "net_worth", early)
         if nw10 is not None and enemy10 is not None and tower is not None and tower_share is not None:
             check(11, {"net_worth_lead_at_10": nw10 - enemy10, "tower_damage": tower,
                        "team_tower_damage_share": tower_share},
@@ -154,15 +179,16 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
 
     kills, assists = _value(player, "kills"), _value(player, "assists")
     team_kills = [_value(features[s], "kills") for s in allies]
-    team_kill_total = sum(k for k in team_kills if k is not None) if all(k is not None for k in team_kills) else 0
-    involvement = ((kills + assists) / team_kill_total
-                   if kills is not None and assists is not None and team_kill_total >= T[13]["team_kills_min"] else None)
+    team_kill_total = sum(k for k in team_kills if k is not None) if all(k is not None for k in team_kills) else None
+    involvement = (None if kills is None or assists is None or team_kill_total is None
+                   else (kills + assists) / team_kill_total if team_kill_total > 0 else 0.0)
+    busy_13 = team_kill_total is not None and team_kill_total >= T[13]["team_kills_min"]
     if not _conflict(quarantined, allies, {"kills", "assists", "deaths"}):
         check(13, {"kills": kills, "assists": assists, "deaths": deaths,
                    "team_kills": team_kill_total, "kill_involvement": involvement}
               if involvement is not None and deaths is not None else None,
-              involvement is not None and deaths is not None and involvement >= T[13]["involvement_min"]
-              and deaths <= T[13]["deaths_max"])
+              involvement is not None and deaths is not None and busy_13
+              and involvement >= T[13]["involvement_min"] and deaths <= T[13]["deaths_max"])
         check(14, {"assists": assists, "deaths": deaths} if None not in {assists, deaths} else None,
               assists is not None and deaths is not None and deaths <= T[14]["deaths_max"]
               and assists >= T[14]["assists_min"])
@@ -181,7 +207,8 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
         check(17, {"first_kill_seconds": windows[0][0], "fifth_kill_seconds": windows[0][1]}
               if windows else {"timed_kill_count": len(times)}, bool(windows))
         death_times = source.get("death_times") if isinstance(source, dict) else None
-        if isinstance(death_times, list) and all(type(x) is int for x in death_times):
+        if (isinstance(death_times, list) and all(type(x) is int for x in death_times)
+                and not _conflict(quarantined, {slot}, {"deaths"})):
             t = T[18]
             early = [x for x in times if x < t["before_seconds"]]
             early_deaths = sum(1 for x in death_times if 0 <= x < t["before_seconds"])
@@ -219,7 +246,7 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
                 if (team_gap is not None and team_gap <= t["team_gold_gap_max"]
                         and fight["player_damage"] >= t["player_damage_min"]
                         and fight["damage_share"] is not None and fight["damage_share"] >= t["damage_share_min"]
-                        and fight["death_trade"] == "FAVORABLE"):
+                        and fight["death_trade"] == CONSTANTS["fight_death_trade_required"]):
                     behind.append({"gold_checkpoint_seconds": second, "team_gold_gap": team_gap, "fight": fight})
             check(25, behind[0] if behind else {"detected_fights": len(segments)}, bool(behind))
 
@@ -229,15 +256,17 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
         placed = sum(e.get("type") == "OBSERVER" for e in observers)
         check(37, {"observers_placed": placed, "credited_observer_kills": observer_kills},
               placed >= T[37]["observers_placed_min"] and observer_kills >= T[37]["observer_kills_min"])
-    stacks = _point(player, "camps_stacked", 1200)
+    stacks = _point(player, "camps_stacked", mid)
     if stacks is not None and involvement is not None and not _conflict(quarantined, allies, {"camps_stacked", "kills", "assists"}):
         check(41, {"stacks_at_20": stacks, "kill_involvement": involvement,
                    "team_kills": team_kill_total},
-              stacks >= T[41]["stacks_at_1200_min"] and involvement >= T[41]["involvement_min"])
+              stacks >= T[41]["stacks_at_1200_min"] and involvement >= T[41]["involvement_min"]
+              and cast(int, team_kill_total) >= T[41]["team_kills_min"])
     if involvement is not None and type(observer_kills) is int and not _conflict(quarantined, allies, {"kills", "assists", "observer_kills"}):
         check(42, {"kill_involvement": involvement, "team_kills": team_kill_total,
                    "credited_observer_kills": observer_kills},
-              involvement >= T[42]["involvement_min"] and observer_kills >= T[42]["observer_kills_min"])
+              involvement >= T[42]["involvement_min"] and observer_kills >= T[42]["observer_kills_min"]
+              and cast(int, team_kill_total) >= T[42]["team_kills_min"])
     if tower_share is not None and tower is not None and not _conflict(quarantined, allies, {"tower_damage", "deaths"}):
         check(44, {"tower_damage": tower, "team_tower_damage_share": tower_share},
               tower >= T[44]["tower_damage_min"] and tower_share >= T[44]["tower_share_min"])
@@ -253,23 +282,23 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
         check(50, {"disable_seconds": disable, "assists": assists},
               cast(float, disable) >= T[50]["disable_seconds_min"] and assists >= T[50]["assists_min"])
 
-    # Hero Specialist counts one matching non-Common feat per distinct prior match.
+    # Hero Specialist counts one matching non-Common feat per distinct prior match. The proof
+    # names the feat with the most matches (lowest id on a tie) and reports that feat's count.
     bases = {award["id"] for award in awards} & repeatable - {4, 30}
     repeats = {ident: 1 + sum(row["hero_id"] == hero_id and
-               ident in {a["id"] for a in row["result"].get("achievements", {}).get("awards", [])}
-               for row in prior) for ident in bases}
-    best = max(repeats.values(), default=0)
+               ident in _award_ids(row) for row in prior) for ident in bases}
     target = T[30]["distinct_matches"]
-    result["progress"]["30"] = {"same_hero_feat_matches": best, "target": target}
-    check(30, {"hero_id": hero_id, "feat_id": min((ident for ident, count in repeats.items() if count >= target), default=0),
-               "distinct_matches": best} if len(prior) >= target - 1 else None, best >= target)
+    top = min(repeats, key=lambda ident: (-repeats[ident], ident)) if repeats else None
+    best = repeats[top] if top is not None else 0
+    check(30, {"hero_id": hero_id, "feat_id": top, "distinct_matches": best}
+          if len(prior) >= target - 1 and history_complete else None, best >= target)
 
     # Say why a role-eligible badge could not be judged, instead of leaving a silent gap.
     for ident in IDS:
-        if ident in evaluable or role not in ROLES.get(ident, {"CARRY", "MID", "OFFLANE", "SUPPORT"}):
+        if ident in evaluable or role not in ROLES.get(ident, ALL_ROLES):
             continue
         reason = ("INSUFFICIENT_HISTORY" if ident in {1, 2, 4, 30} else
-                  "MATCH_TOO_SHORT" if ident in {6, 8, 10} and duration < T[ident]["min_duration"] else
+                  "MATCH_TOO_SHORT" if ident in {6, 8, 10, 41} and duration < mid else
                   "EVIDENCE_MISSING")
         result["unavailable"].append({"id": ident, "reason": reason})
     return result

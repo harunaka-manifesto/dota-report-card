@@ -240,8 +240,11 @@ def correct_role(connection: Connection, *, profile_id: str, match_id: int, role
                          previous_role=previous_role, revision=new_revision)
 
     if link["progression"] == link["mode"] and link["mode"] in {"STANDARD", "TURBO"}:
+        # Standard corrections replay every role (#30 spans roles), so every role's
+        # personal-best pointers must follow the rebuilt analyses.
         recompute_indexes(connection, profile_id=profile_id, revision=profile["active_revision"],
-                          mode=link["mode"], roles={previous_role, role})
+                          mode=link["mode"],
+                          roles=None if link["mode"] == "STANDARD" else {previous_role, role})
         from .profile import publish_profile_checkpoint
 
         publish_profile_checkpoint(connection, profile_id=profile_id, cause="ROLE_CORRECTION",

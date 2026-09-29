@@ -10,6 +10,7 @@ from sqlalchemy import Connection, Engine, and_, delete, func, or_, select, true
 from sqlalchemy.dialects.postgresql import insert
 
 from .achievement_catalog import REPEATABLE_IDS
+from .achievement_rules import CONSTANTS
 from .achievements import evaluate_match as evaluate_achievements
 from .achievements import prior_award_rows
 from .carry_context import evaluate as evaluate_carry_context
@@ -55,6 +56,7 @@ from .schema import (
 from .scope import entitled as entitled_history
 
 ANALYSIS_VERSION = "tracker-analysis-8"
+PB_MIN_PRIORS: int = CONSTANTS["pb_min_priors"]
 
 
 def enqueue_finalization(connection: Connection, *, profile_id: str, match_id: int) -> str:
@@ -96,10 +98,22 @@ def _selected_features(connection: Connection, match: dict[str, Any]) -> tuple[l
     )
     if source is not None:
         query = query.where(derived_features.c.provenance["snapshot_id"].astext == source)
-    digest = connection.scalar(query.order_by(
+    ordered = query.order_by(
         derived_features.c.created_at.desc() if match["evidence_state"] == "REPLAY_READY" else derived_features.c.created_at,
         derived_features.c.inputs_digest,
-    ).limit(1))
+    ).limit(1)
+    digest = connection.scalar(ordered)
+    if not isinstance(digest, str):
+        # A match materialized under an older FEATURE_VERSION (in flight at a deploy):
+        # re-project the retained snapshot, provider-free, exactly as the rebuild path does.
+        from .materialization import materialize_snapshot
+
+        older = source or connection.scalar(select(derived_features.c.provenance["snapshot_id"].astext).where(
+            derived_features.c.match_id == match["match_id"], derived_features.c.player_slot == 0,
+        ).order_by(derived_features.c.created_at.desc()).limit(1))
+        if isinstance(older, str):
+            materialize_snapshot(connection, snapshot_id=older, match_id=match["match_id"])
+            digest = connection.scalar(ordered)
     if not isinstance(digest, str):
         raise ValueError("Terminal match has no retained feature projection")
     rows = connection.execute(select(derived_features).where(
@@ -438,20 +452,22 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         })
         if eligibility.progression != "NONE" and measured.comparison_value is not None:
             pb_rows.append({"metric_id": metric_id, "current": current, "priors": priors, "pb": pb})
-            if len(priors) >= 5:
+            if len(priors) >= PB_MIN_PRIORS:
                 pb_ready_count += 1
-            if len(priors) >= 5 and measured.comparison_value > max(
+            if len(priors) >= PB_MIN_PRIORS and measured.comparison_value > max(
                 prior.comparison_value for prior in priors if prior.comparison_value is not None
             ):
                 pb_metrics.append(metric_id)
+    prior_awards, history_complete = (
+        prior_award_rows(connection, profile_id=profile_id, link=link)
+        if link["mode"] == "STANDARD" and eligibility.progression == "STANDARD" else ([], True))
     achievements = evaluate_achievements(
         features=features, slot=link["player_slot"], role=link["effective_role"],
         mode=link["mode"], progression=eligibility.progression,
         duration=match["duration_seconds"], positions=position_map,
         core_fights=core_fights, pb_metrics=pb_metrics, pb_ready_count=pb_ready_count,
-        prior=prior_award_rows(connection, profile_id=profile_id, link=link)
-        if link["mode"] == "STANDARD" and eligibility.progression == "STANDARD" else [],
-        repeatable=set(REPEATABLE_IDS), quarantined=quarantined,
+        prior=prior_awards, repeatable=set(REPEATABLE_IDS), quarantined=quarantined,
+        history_complete=history_complete,
     )
     inputs_digest = hashlib.sha256(canonical_json({
         "analysis_version": ANALYSIS_VERSION, "baseline_version": BASELINE_VERSION,

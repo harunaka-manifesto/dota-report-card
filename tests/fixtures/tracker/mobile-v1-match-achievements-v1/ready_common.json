@@ -75,7 +75,7 @@
           "name": "Record on a New Hero",
           "order": 3,
           "progress": {
-            "distinct_heroes": 1,
+            "current": 1,
             "target": 2
           },
           "proof_template": "Hero {hero_id}; record metrics: {metric_ids}.",
@@ -267,10 +267,10 @@
           "progress": null,
           "proof_template": "Before 10:00: {kills_before_10} kills, {deaths_before_10} deaths.",
           "rarity": {
-            "denominator": 4069,
-            "numerator": 432,
+            "denominator": 3914,
+            "numerator": 422,
             "provisional": false,
-            "rate": 0.106168592,
+            "rate": 0.107818089,
             "source": "CORPUS",
             "tier": "RARE",
             "version": "badge-tiers-v1"
@@ -439,10 +439,10 @@
           "progress": null,
           "proof_template": "Stacks at 20:00: {stacks_at_20}; kill involvement: {kill_involvement}.",
           "rarity": {
-            "denominator": 1876,
+            "denominator": 1916,
             "numerator": 74,
             "provisional": false,
-            "rate": 0.039445629,
+            "rate": 0.038622129,
             "source": "CORPUS",
             "tier": "EPIC",
             "version": "badge-tiers-v1"
@@ -604,7 +604,7 @@
           "name": "Rekor dengan Hero Baru",
           "order": 3,
           "progress": {
-            "distinct_heroes": 1,
+            "current": 1,
             "target": 2
           },
           "proof_template": "Hero {hero_id}; metrik rekor: {metric_ids}.",
@@ -796,10 +796,10 @@
           "progress": null,
           "proof_template": "Sebelum 10:00: {kills_before_10} kill, {deaths_before_10} kematian.",
           "rarity": {
-            "denominator": 4069,
-            "numerator": 432,
+            "denominator": 3914,
+            "numerator": 422,
             "provisional": false,
-            "rate": 0.106168592,
+            "rate": 0.107818089,
             "source": "CORPUS",
             "tier": "RARE",
             "version": "badge-tiers-v1"
@@ -968,10 +968,10 @@
           "progress": null,
           "proof_template": "Stack pada 20:00: {stacks_at_20}; keterlibatan kill: {kill_involvement}.",
           "rarity": {
-            "denominator": 1876,
+            "denominator": 1916,
             "numerator": 74,
             "provisional": false,
-            "rate": 0.039445629,
+            "rate": 0.038622129,
             "source": "CORPUS",
             "tier": "EPIC",
             "version": "badge-tiers-v1"
@@ -2847,10 +2847,6 @@
         },
         {
           "id": 8,
-          "reason": "EVIDENCE_MISSING"
-        },
-        {
-          "id": 25,
           "reason": "EVIDENCE_MISSING"
         }
       ],

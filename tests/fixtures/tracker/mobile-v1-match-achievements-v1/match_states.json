@@ -75,7 +75,7 @@
           "name": "Record on a New Hero",
           "order": 3,
           "progress": {
-            "distinct_heroes": 0,
+            "current": 0,
             "target": 2
           },
           "proof_template": "Hero {hero_id}; record metrics: {metric_ids}.",
@@ -359,7 +359,7 @@
           "name": "Hero Specialist",
           "order": 17,
           "progress": {
-            "same_hero_feat_matches": 0,
+            "current": 0,
             "target": 3
           },
           "proof_template": "Hero {hero_id}; feat: {feat_name}; qualifying matches: {distinct_matches}.",
@@ -560,7 +560,7 @@
           "name": "Rekor dengan Hero Baru",
           "order": 3,
           "progress": {
-            "distinct_heroes": 0,
+            "current": 0,
             "target": 2
           },
           "proof_template": "Hero {hero_id}; metrik rekor: {metric_ids}.",
@@ -844,7 +844,7 @@
           "name": "Spesialis Hero",
           "order": 17,
           "progress": {
-            "same_hero_feat_matches": 0,
+            "current": 0,
             "target": 3
           },
           "proof_template": "Hero {hero_id}; pencapaian: {feat_name}; pertandingan yang memenuhi syarat: {distinct_matches}.",
@@ -1848,7 +1848,7 @@
   },
   "/matches/<ref:5>": {
     "body": {
-      "achievement_state": "AVAILABLE",
+      "achievement_state": "UNAVAILABLE",
       "achievement_unavailable": [],
       "achievements": [],
       "carry_context": null,

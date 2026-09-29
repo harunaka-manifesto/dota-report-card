@@ -13,6 +13,9 @@ from typing import Any
 RULE_VERSION = "match-achievements-v1"
 
 THRESHOLDS: dict[int, dict[str, Any]] = {
+    1: {"pb_metrics_min": 2},
+    2: {"pb_metrics_min": 3},
+    4: {"progress_target_heroes": 2},
     6: {"min_duration": 1200, "last_hits_at_600": 60, "net_worth_at_1200": 12500},
     8: {"min_duration": 1200, "gap_at_600_max": -500, "gap_at_1200_min": 500},
     10: {"min_duration": 1200, "gain_600_to_1200_min": 7000, "deaths_max": 2},
@@ -23,17 +26,33 @@ THRESHOLDS: dict[int, dict[str, Any]] = {
     17: {"kills": 5, "window_seconds": 90},
     18: {"kills_min": 2, "before_seconds": 600, "deaths_max": 0},
     20: {"player_kills_min": 3, "player_deaths_max": 0},
-    22: {"player_damage_min": 2000, "damage_share_min": 0.5, "separate_fights": 2},
+    22: {"player_damage_min": 2000, "damage_share_min": 0.5},
     23: {"enemy_deaths_min": 5, "allied_deaths_max": 0, "player_damage_min": 1500},
     25: {"team_gold_gap_max": -5000, "player_damage_min": 2000, "damage_share_min": 0.5},
     30: {"distinct_matches": 3},
     37: {"observers_placed_min": 5, "observer_kills_min": 5},
-    41: {"stacks_at_1200_min": 5, "involvement_min": 0.5},
-    42: {"involvement_min": 0.5, "observer_kills_min": 3},
+    41: {"stacks_at_1200_min": 5, "involvement_min": 0.5, "team_kills_min": 10},
+    42: {"involvement_min": 0.5, "observer_kills_min": 3, "team_kills_min": 10},
     44: {"tower_damage_min": 2500, "tower_share_min": 0.3},
     45: {"tower_share_min": 0.5, "deaths_max": 0},
     49: {"hero_healing_min": 8000, "assists_min": 10},
     50: {"disable_seconds_min": 120, "assists_min": 10},
+}
+
+CORE = {"CARRY", "MID", "OFFLANE"}
+ALL_ROLES = {"CARRY", "MID", "OFFLANE", "SUPPORT"}
+# Role gates; a badge missing here is open to every role.
+ROLES: dict[int, set[str]] = {
+    6: {"CARRY"}, 8: {"MID", "OFFLANE"}, 10: CORE, 11: {"MID"},
+    20: CORE, 22: CORE, 23: CORE, 25: CORE,
+    37: {"SUPPORT"}, 41: {"SUPPORT"}, 42: {"SUPPORT"},
+    44: {"OFFLANE"}, 45: {"CARRY", "MID"}, 49: {"SUPPORT"}, 50: {"SUPPORT"},
+}
+# Non-threshold constants that also change what a badge means.
+CONSTANTS: dict[str, Any] = {
+    "checkpoint_early_seconds": 600, "checkpoint_mid_seconds": 1200,
+    "peer_positions": {"MID": 2, "OFFLANE": 3},   # unique enemy holding the same role position
+    "fight_death_trade_required": "FAVORABLE", "pb_min_priors": 5,
 }
 
 # #30 may repeat only a non-Common single-match feat with a measured incidence.
@@ -59,5 +78,6 @@ BADGE_TIERS: dict[int, str] = {
 def rules_digest() -> str:
     body = {"version": RULE_VERSION, "thresholds": {str(k): v for k, v in sorted(THRESHOLDS.items())},
             "repeatable": sorted(REPEATABLE_FEATS), "tier_version": TIER_VERSION,
+            "roles": {str(k): sorted(v) for k, v in sorted(ROLES.items())}, "constants": CONSTANTS,
             "tiers": {str(k): v for k, v in sorted(BADGE_TIERS.items())}}
     return hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()

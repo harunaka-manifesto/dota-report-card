@@ -311,3 +311,28 @@ def test_mobile_steam_switch_requires_verified_challenge_and_is_idempotent(datab
         assert c.scalar(select(profiles.c.active).where(profiles.c.id == "mobile-switch-old")) is False
         assert c.scalar(select(profiles.c.account_id).where(profiles.c.user_id == owner,
             profiles.c.active.is_(True))) == 100
+
+
+def test_ineligible_standard_match_reports_achievements_unavailable_not_an_empty_list(database):
+    _, profile_id = identity(database)
+    with database.begin() as c:
+        c.execute(profiles.update().where(profiles.c.id == profile_id).values(
+            original_linked_at=datetime(2020, 1, 1, tzinfo=UTC)))
+        owner = c.scalar(select(profiles.c.user_id).where(profiles.c.id == profile_id))
+        c.execute(identities.insert().values(id=str(uuid4()), user_id=owner,
+            issuer="https://accounts.google.com", subject="achievement-leaver",
+            verified_at=datetime.now(UTC)))
+
+    def leaver(payload):
+        payload["players"][0]["leaver_status"] = 3
+
+    match_id = add_match(database, profile_id, index=1, role="CARRY", offset_days=1, edit=leaver)
+    assert finalize(database, profile_id, match_id) == "READY"
+    with database.connect() as c:
+        link = c.execute(select(account_matches).where(account_matches.c.match_id == match_id)).mappings().one()
+    assert link["progression"] == "NONE"
+    client, headers, _ = _client(database, "achievement-leaver")
+    detail = client.get("/matches/" + link["public_ref"], headers=headers).json()
+    assert detail["achievement_state"] == "UNAVAILABLE"
+    assert detail["achievements"] == [] and detail["achievement_unavailable"] == []
+    assert client.get("/achievements?locale=xx", headers=headers).status_code == 200  # unknown locale falls back

@@ -3,8 +3,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from .achievement_rules import BADGE_TIERS, REPEATABLE_FEATS, RULE_VERSION, TIER_VERSION
-from .achievements import IDS, ROLES
+from .achievement_rules import (
+    ALL_ROLES,
+    BADGE_TIERS,
+    REPEATABLE_FEATS,
+    ROLES,
+    RULE_VERSION,
+    TIER_VERSION,
+)
+from .achievements import IDS
 
 # Copy tuple: English name, Indonesian name, English description, Indonesian
 # description, English general hint, Indonesian general hint, English proof
@@ -40,14 +47,15 @@ COPY: dict[int, tuple[str, ...]] = {
 # denominators, from 1,511 unique parsed Standard matches (2025-08 to 2026-09-29):
 # the authorized local research corpus plus 1,026 recently parsed matches fetched from
 # OpenDota for net-worth and death-log fields. A selected sample, not the population;
-# tiers stay provisional. Review: evidence/achievement-threshold-review-2026-09-29.md.
+# the counts are references for the frozen tiers, which never move. Review:
+# docs/tracker/architecture/evidence/achievement-threshold-review-2026-09-29.md.
 RATE_COUNTS: dict[int, tuple[int, int, str]] = {
     6: (26, 830, "CORPUS"), 8: (46, 1660, "CORPUS"), 10: (79, 2490, "CORPUS"),
-    11: (31, 834, "CORPUS"), 13: (202, 11200, "CORPUS"), 14: (97, 11600, "CORPUS"),
-    15: (67, 11600, "CORPUS"), 17: (225, 11398, "CORPUS"), 18: (432, 4069, "CORPUS"),
+    11: (31, 848, "CORPUS"), 13: (202, 11600, "CORPUS"), 14: (97, 11600, "CORPUS"),
+    15: (67, 11600, "CORPUS"), 17: (211, 10846, "CORPUS"), 18: (422, 3914, "CORPUS"),
     20: (1121, 6960, "CORPUS"), 22: (1045, 6960, "CORPUS"), 23: (420, 6960, "CORPUS"),
-    25: (215, 5034, "CORPUS"), 37: (301, 4639, "CORPUS"), 41: (74, 1876, "CORPUS"),
-    42: (1049, 4480, "CORPUS"), 44: (226, 2282, "CORPUS"), 45: (33, 4564, "CORPUS"),
+    25: (279, 6960, "CORPUS"), 37: (301, 4639, "CORPUS"), 41: (74, 1916, "CORPUS"),
+    42: (1049, 4640, "CORPUS"), 44: (226, 2320, "CORPUS"), 45: (33, 4640, "CORPUS"),
     49: (383, 4640, "CORPUS"), 50: (313, 4634, "CORPUS"),
 }
 # Bands for a corpus rate: Common >=20%, Rare 5%-<20%, Epic 1%-<5%, Legendary <1%.
@@ -89,7 +97,7 @@ def catalog_entry(ident: int, locale: str) -> dict[str, Any]:
     indonesian = locale == "id"
     return {"id": ident, "order": IDS.index(ident) + 1,
             "key": f"match-achievement-{ident}", "asset_key": f"match-achievement-{ident}",
-            "rule_version": RULE_VERSION, "roles": sorted(ROLES.get(ident, {"CARRY", "MID", "OFFLANE", "SUPPORT"})),
+            "rule_version": RULE_VERSION, "roles": sorted(ROLES.get(ident, ALL_ROLES)),
             "name": name_id if indonesian else name_en,
             "description": description_id if indonesian else description_en,
             "how_to": hint_id if indonesian else hint_en,

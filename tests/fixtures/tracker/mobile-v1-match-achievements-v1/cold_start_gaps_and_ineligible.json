@@ -74,7 +74,10 @@
           "latest_match": null,
           "name": "Record on a New Hero",
           "order": 3,
-          "progress": null,
+          "progress": {
+            "current": 0,
+            "target": 2
+          },
           "proof_template": "Hero {hero_id}; record metrics: {metric_ids}.",
           "rarity": null,
           "roles": [
@@ -355,7 +358,10 @@
           "latest_match": null,
           "name": "Hero Specialist",
           "order": 17,
-          "progress": null,
+          "progress": {
+            "current": 0,
+            "target": 3
+          },
           "proof_template": "Hero {hero_id}; feat: {feat_name}; qualifying matches: {distinct_matches}.",
           "rarity": null,
           "roles": [
@@ -553,7 +559,10 @@
           "latest_match": null,
           "name": "Rekor dengan Hero Baru",
           "order": 3,
-          "progress": null,
+          "progress": {
+            "current": 0,
+            "target": 2
+          },
           "proof_template": "Hero {hero_id}; metrik rekor: {metric_ids}.",
           "rarity": null,
           "roles": [
@@ -834,7 +843,10 @@
           "latest_match": null,
           "name": "Spesialis Hero",
           "order": 17,
-          "progress": null,
+          "progress": {
+            "current": 0,
+            "target": 3
+          },
           "proof_template": "Hero {hero_id}; pencapaian: {feat_name}; pertandingan yang memenuhi syarat: {distinct_matches}.",
           "rarity": null,
           "roles": [

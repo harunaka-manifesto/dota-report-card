@@ -46,9 +46,13 @@ Every feature has an `SSOT.md`; screen features also have `DESIGN-REQUIREMENTS.m
 
 Read it before changing ingestion, analysis, Match Lifecycle, Home, History, Match Detail, Profile, Progress, role resolution, social/following, or subscription behaviour. It carries a short **rules-for-agents** section that is worth reading in full.
 
+### Match achievements
+
+[`achievements/SSOT.md`](achievements/SSOT.md) is the contract for the 24-badge Standard-match collection. It is separate from Role Mastery medals.
+
 ### Not a feature folder
 
-**Challenges / Achievements** have no locked V1 contract. Home reserves a Challenge slot by owner direction, but no challenge mechanics, eligibility, progress model or reward model exists in any document here. A folder was deliberately **not** created, because doing so would manufacture a contract that does not exist. See [`home/SSOT.md` §5](home/SSOT.md).
+**Challenges** have no locked V1 contract. Home reserves a Challenge slot by owner direction, but no challenge mechanics, eligibility, progress model or reward model exists in any document here. A folder was deliberately **not** created, because doing so would manufacture a contract that does not exist. See [`home/SSOT.md` §5](home/SSOT.md).
 
 ---
 

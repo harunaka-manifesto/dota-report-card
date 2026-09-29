@@ -7,7 +7,7 @@ import os
 from collections.abc import Callable
 from datetime import UTC, datetime, time, timedelta
 from enum import StrEnum
-from typing import Annotated, Literal, cast
+from typing import Annotated, Any, Literal, cast
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -27,6 +27,8 @@ from app.tracker.account_lifecycle import (
     switch_preflight,
 )
 from app.tracker.achievement_catalog import catalog_entry, rarity
+from app.tracker.achievement_rules import REPEATABLE_FEATS, rules_digest
+from app.tracker.achievement_rules import THRESHOLDS as ACHIEVEMENT_THRESHOLDS
 from app.tracker.achievements import IDS as ACHIEVEMENT_IDS
 from app.tracker.authentication import (
     AuthenticationError,
@@ -40,6 +42,7 @@ from app.tracker.authentication import (
     rotate_refresh_token,
     verify_identity_token,
 )
+from app.tracker.backfill import historical_work_pending
 from app.tracker.bootstrap import resume_bootstrap_search
 from app.tracker.context import METRIC_CLASS
 from app.tracker.data_access import data_access_state, restore_access
@@ -463,6 +466,21 @@ class AchievementMatchView(BaseModel):
     proof: dict[str, JsonValue]
 
 
+class AchievementRarityView(BaseModel):
+    version: str
+    tier: Literal["COMMON", "RARE", "EPIC", "LEGENDARY"]
+    rate: float | None
+    numerator: int | None
+    denominator: int | None
+    source: Literal["CORPUS", "MODEL"]
+    provisional: bool
+
+
+class AchievementProgressView(BaseModel):
+    current: int
+    target: int
+
+
 class AchievementEntryView(BaseModel):
     id: int
     order: int
@@ -475,8 +493,8 @@ class AchievementEntryView(BaseModel):
     how_to: str
     proof_template: str
     earned_count: int
-    rarity: dict[str, JsonValue] | None
-    progress: dict[str, JsonValue] | None
+    rarity: AchievementRarityView | None
+    progress: AchievementProgressView | None
     latest_match: AchievementMatchView | None
 
 
@@ -823,35 +841,67 @@ def _visible(profile):
     return entitled(profile, account_matches)
 
 
+def _achievements_current(data: Any) -> bool:
+    return isinstance(data, dict) and data.get("rules_digest") == rules_digest()
+
+
+def _achievement_state(row, data: Any) -> Readiness:
+    if row["mode"] != "STANDARD" or row["lifecycle"] in {"UNAVAILABLE", "ACTION_REQUIRED"}:
+        return Readiness.UNAVAILABLE
+    if row["lifecycle"] != "READY" or not _achievements_current(data):
+        return Readiness.PENDING  # not judged yet, or judged under older rules and awaiting the quiet rebuild
+    return Readiness.UNAVAILABLE if data.get("eligible") is False else Readiness.AVAILABLE
+
+
 def _achievement_collection(connection: Connection, profile, locale: str) -> AchievementCollectionView:
+    locale = "id" if locale == "id" else "en"
     rows = [] if profile is None else connection.execute(select(
-        account_matches.c.public_ref, account_matches.c.provider_started_at, analyses.c.result,
-    ).join(analyses, analyses.c.id == account_matches.c.active_analysis_id).where(
+        account_matches.c.public_ref, account_matches.c.provider_started_at, match_players.c.hero_id,
+        analyses.c.result["achievements"].label("achievements"),
+        analyses.c.result["achievement_pb_metrics"].label("pb"),
+    ).join(analyses, analyses.c.id == account_matches.c.active_analysis_id).join(
+        match_players, (match_players.c.match_id == account_matches.c.match_id) &
+        (match_players.c.player_slot == account_matches.c.player_slot),
+    ).where(
         account_matches.c.profile_id == profile["id"], account_matches.c.mode == "STANDARD",
         account_matches.c.progression == "STANDARD", account_matches.c.lifecycle == "READY",
         _visible(profile),
     ).order_by(account_matches.c.provider_started_at, account_matches.c.provider_source_match_id)).mappings().all()
     counts: dict[int, int] = {ident: 0 for ident in ACHIEVEMENT_IDS}
     latest: dict[int, AchievementMatchView] = {}
-    progress: dict[int, dict[str, JsonValue]] = {}
-    backfilling = False
+    pb_heroes: dict[str, set[int]] = {}
+    feat_matches: dict[tuple[int, int], int] = {}
+    # Still importing history, or analyses awaiting the quiet rebuild: the counts are not final.
+    backfilling = profile is not None and (
+        connection.scalar(select(bootstrap.c.mode).where(
+            bootstrap.c.profile_id == profile["id"], bootstrap.c.completed_at.is_(None)).limit(1)) is not None
+        or historical_work_pending(connection, profile["id"]))
     for row in rows:
-        result = row["result"].get("achievements")
-        if not isinstance(result, dict):
+        data = row["achievements"]
+        if not _achievements_current(data):
             backfilling = True
             continue
-        for award in result.get("awards", []):
+        for metric in row["pb"] or []:
+            pb_heroes.setdefault(metric, set()).add(row["hero_id"])
+        for award in data.get("awards", []):
             ident = award.get("id")
             if ident in counts:
                 counts[ident] += 1
                 latest[ident] = AchievementMatchView(match_ref=row["public_ref"],
                     started_at=row["provider_started_at"], proof=award["proof"])
-        for key in ("4", "30"):
-            if key in result.get("progress", {}):
-                progress[int(key)] = result["progress"][key]
+                if ident in REPEATABLE_FEATS:
+                    key = (row["hero_id"], ident)
+                    feat_matches[key] = feat_matches.get(key, 0) + 1
+    # Cross-match progress is computed from all visible current analyses, never from the latest match.
+    progress = {
+        4: AchievementProgressView(current=max((len(h) for h in pb_heroes.values()), default=0),
+                                   target=ACHIEVEMENT_THRESHOLDS[4]["progress_target_heroes"]),
+        30: AchievementProgressView(current=max(feat_matches.values(), default=0),
+                                    target=ACHIEVEMENT_THRESHOLDS[30]["distinct_matches"]),
+    }
     entries = [AchievementEntryView(**catalog_entry(ident, locale), earned_count=counts[ident],
-        rarity=rarity(ident) if counts[ident] else None,
-        progress=progress.get(ident) if ident in {4, 30} and not counts[ident] else None,
+        rarity=AchievementRarityView(**cast(dict[str, Any], rarity(ident))) if counts[ident] else None,
+        progress=progress.get(ident) if not counts[ident] else None,
         latest_match=latest.get(ident)) for ident in ACHIEVEMENT_IDS]
     return AchievementCollectionView(state="STEAM_LINK_REQUIRED" if profile is None else
                                      "BACKFILLING" if backfilling else "AVAILABLE", entries=entries)
@@ -1650,23 +1700,21 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 correction_available=correction_available(
                     connection, profile_id=profile["id"], match_id=row["match_id"],
                 ), owns_personal_best=owns, celebrated_personal_best=celebrated,
-                achievement_state=(Readiness.AVAILABLE if row["mode"] == "STANDARD" and
-                                   row["lifecycle"] == "READY" and achievement_data else
-                                   Readiness.UNAVAILABLE if row["mode"] != "STANDARD" or
-                                   row["lifecycle"] in {"UNAVAILABLE", "ACTION_REQUIRED"} else Readiness.PENDING),
-                achievements=achievement_data.get("awards", []),
-                achievement_unavailable=achievement_data.get("unavailable", []))
+                achievement_state=_achievement_state(row, achievement_data),
+                achievements=achievement_data.get("awards", []) if _achievements_current(achievement_data) else [],
+                achievement_unavailable=achievement_data.get("unavailable", [])
+                if _achievements_current(achievement_data) else [])
 
     @app.get("/achievements", response_model=AchievementCollectionView)
     async def achievements_collection(request: Request, owner: Annotated[str, Depends(_user)],
-                                      locale: Literal["en", "id"] = Query("en")) -> AchievementCollectionView:
+                                      locale: str = Query("en")) -> AchievementCollectionView:
         with _engine(request).connect() as connection:
             return _achievement_collection(connection, _active_profile(connection, owner), locale)
 
     @app.get("/achievements/{achievement_id}", response_model=AchievementEntryView)
     async def achievement_detail(request: Request, achievement_id: int,
                                  owner: Annotated[str, Depends(_user)],
-                                 locale: Literal["en", "id"] = Query("en")) -> AchievementEntryView:
+                                 locale: str = Query("en")) -> AchievementEntryView:
         if achievement_id not in ACHIEVEMENT_IDS:
             raise HTTPException(404, "ACHIEVEMENT_NOT_FOUND")
         with _engine(request).connect() as connection:

@@ -133,7 +133,7 @@ def test_catalog_and_validated_opendota_source_shape():
     assert set(RATE_COUNTS) <= set(IDS)
     assert catalog_entry(50, "id")["asset_key"] == "match-achievement-50"
     assert rarity(50)["tier"] == "RARE"
-    raw = {"players": [{"player_slot": 0, "observer_kills": 2, "kills": 2,
+    raw = {"players": [{"player_slot": 0, "observer_kills": 2, "kills": 1,
                         "killed": {"npc_dota_observer_wards": 2}, "stuns": 120.5,
                         "kills_log": [{"time": 4, "key": "npc_dota_hero_axe"},
                                       {"time": 5, "key": "npc_dota_observer_wards"}]}]}
@@ -148,21 +148,22 @@ def test_catalog_and_validated_opendota_source_shape():
     assert _achievement_source(raw, "opendota", 0)["observer_kills"] is None
     assert _gold_advantage({"radiant_gold_adv": [0, -200, -300]}, "opendota", 120) == {"0": 0, "60": -200, "120": -300}
     # Clock contract: nonzero origin or a map short of the last full minute is unusable.
-    assert _gold_advantage({"radiant_gold_adv": [-100, -200, -300]}, "opendota", 120) is None
+    assert _gold_advantage({"radiant_gold_adv": [403, -200, -300]}, "opendota", 120) == {
+        "0": 403, "60": -200, "120": -300}  # index 0 is a real 0:00 reading, not necessarily 0
     assert _gold_advantage({"radiant_gold_adv": [0, -200]}, "opendota", 120) is None
 
 
 def test_gold_clock_contract_gates_fight_25():
     good = {str(m * 60): 0 if m == 0 else -6000 for m in range(31)}
     assert gold_advantage_valid(good, 1800)
-    assert not gold_advantage_valid({**good, "0": -100}, 1800)
+    assert gold_advantage_valid({**good, "0": 403}, 1800)  # nonzero origin is a real reading
     assert not gold_advantage_valid({k: v for k, v in good.items() if k != "600"}, 1800)
     assert not gold_advantage_valid({k: v for k, v in good.items() if int(k) <= 1200}, 1800)
     assert not gold_advantage_valid(None, 1800)
     rows = roster()
     rows[0]["match"]["radiant_gold_advantage"] = good
     assert 25 in earned(rows, fights=[fight()])[0]
-    rows[0]["match"]["radiant_gold_advantage"] = {**good, "0": -100}
+    rows[0]["match"]["radiant_gold_advantage"] = {k: v for k, v in good.items() if k != "600"}
     ids, result = earned(rows, fights=[fight()])
     assert 25 not in ids and 25 not in result["evaluable_ids"]
     assert {"id": 25, "reason": "EVIDENCE_MISSING"} in result["unavailable"]
@@ -201,11 +202,11 @@ def test_unavailable_reasons_are_explicit():
 
 
 def test_frozen_rule_artifact_is_pinned():
-    assert set(THRESHOLDS) == set(IDS) - {1, 2, 4}
+    assert set(THRESHOLDS) == set(IDS)
     assert REPEATABLE_FEATS <= set(THRESHOLDS) - {30}
     # Any threshold or repeat-list change must bump RULE_VERSION and this digest together.
     assert rules_digest() == (
-        "dbd957499b354f6c25b16db374a820b0ae24f6ba9061d9635be3a66be11db4fc")
+        "166964eb03267b96d14fbbe99d3471702d7929120e1fe1e75221d92b4ef9d382")
 
 
 def test_early_duelist_needs_complete_death_times_not_respawn_durations():
@@ -233,3 +234,77 @@ def test_frozen_tiers_cover_all_badges_and_match_the_corpus_bands():
     assert min(IDS, key=rarity_key) in {14, 15, 45, 2}
     assert catalog_entry(1, "en")["order"] == 1 and catalog_entry(50, "id")["order"] == 24
     assert [catalog_entry(i, "en")["order"] for i in IDS] == list(range(1, 25))
+
+
+def prior_4(hero, metrics, awards=()):
+    return {"hero_id": hero, "result": {"achievement_pb_metrics": metrics,
+            "achievements": {"awards": [{"id": i} for i in awards]}}}
+
+
+def test_record_on_new_hero_is_once_per_hero_and_needs_a_new_hero_for_that_metric():
+    rows = roster()
+    prior = [prior_4(8, ["a"]), prior_4(9, ["b"])]
+    ids, result = earned(rows, pb=["a"], prior=prior)
+    assert 4 in ids
+    assert next(a for a in result["awards"] if a["id"] == 4)["proof"]["metric_ids"] == ["a"]
+    # Hero 7 already earned #4 once: another metric on the same hero never repeats it.
+    assert 4 not in earned(rows, pb=["b"], prior=[*prior, prior_4(7, ["a"], awards=[4])])[0]
+    # The same hero already held this metric's record: not a new hero for that metric.
+    assert 4 not in earned(rows, pb=["a"], prior=[prior_4(7, ["a"]), prior_4(8, ["a"])])[0]
+    # Several qualifying metrics in one match are still one award.
+    ids, result = earned(rows, pb=["a", "b"], prior=prior)
+    assert [a["id"] for a in result["awards"]].count(4) == 1
+    # A history built under other rules is not judged.
+    _, result = earned(rows, pb=["a"], prior=prior, )
+    assert 4 in result["evaluable_ids"]
+    incomplete = evaluate_match(features=rows, slot=0, role="CARRY", mode="STANDARD", progression="STANDARD",
+        duration=1800, positions={}, core_fights=None, pb_metrics=["a"], pb_ready_count=4, prior=prior,
+        repeatable=set(), quarantined=[], history_complete=False)
+    assert 4 not in incomplete["evaluable_ids"] and 30 not in incomplete["evaluable_ids"]
+
+
+def test_hero_specialist_proof_reports_the_named_feats_own_count():
+    rows = roster()
+    rows[0]["summary"]["values"].update(assists=10, deaths=0, kills=10)  # earns #14 and #15
+    three = [prior_4(7, [], awards=[14]), prior_4(7, [], awards=[14]), prior_4(7, [], awards=[14, 15])]
+    ids, result = earned(rows, prior=three)
+    proof = next(a for a in result["awards"] if a["id"] == 30)["proof"]
+    # #14 has 4 matches, #15 has 2: the proof names #14 and reports 4, never a mix.
+    assert proof == {"hero_id": 7, "feat_id": 14, "distinct_matches": 4}
+    # A tie names the lowest id.
+    tie = [prior_4(7, [], awards=[14, 15]), prior_4(7, [], awards=[14, 15]), prior_4(7, [], awards=[14, 15])]
+    proof = next(a for a in earned(rows, prior=tie)[1]["awards"] if a["id"] == 30)["proof"]
+    assert proof["feat_id"] == 14 and proof["distinct_matches"] == 4
+
+
+def test_ineligible_standard_match_is_explicitly_ineligible_not_empty():
+    result = evaluate_match(features=roster(), slot=0, role="CARRY", mode="STANDARD", progression="NONE",
+        duration=1800, positions={}, core_fights=None, pb_metrics=[], pb_ready_count=0, prior=[],
+        repeatable=set(), quarantined=[])
+    assert result["eligible"] is False and not result["awards"] and not result["unavailable"]
+    assert earned(roster())[1]["eligible"] is True
+
+
+def test_real_zeros_are_evidence_not_gaps():
+    rows = roster()
+    for row in rows:
+        row["summary"]["values"].update(kills=0, assists=0, tower_damage=0)
+    _, result = earned(rows, slot=3, role="SUPPORT")
+    assert {13, 41, 42} <= set(result["evaluable_ids"])
+    _, mid = earned(rows, slot=1, role="MID")
+    assert 13 in mid["evaluable_ids"]
+    _, off = earned(rows, slot=2, role="OFFLANE")
+    assert 44 in off["evaluable_ids"] and 45 not in off["evaluable_ids"]  # #45 is Carry/Mid only
+    _, carry = earned(rows)
+    assert 45 in carry["evaluable_ids"] and 45 not in {a["id"] for a in carry["awards"]}
+
+
+def test_kill_log_must_match_the_summary_exactly_and_below_threshold_does_not_award():
+    raw = {"players": [{"player_slot": 0, "kills": 5, "deaths": 0, "deaths_log": [],
+                        "kills_log": [{"time": t, "key": "npc_dota_hero_axe"} for t in (1, 2, 3, 4)]}]}
+    assert _achievement_source(raw, "opendota", 0)["hero_kill_times"] is None  # log short of 5 kills
+    raw["players"][0]["kills_log"].append({"time": 5, "key": "npc_dota_hero_axe"})
+    assert _achievement_source(raw, "opendota", 0)["hero_kill_times"] == [1, 2, 3, 4, 5]
+    rows = roster()
+    rows[0]["summary"]["values"].update(assists=9, deaths=0, kills=9)
+    assert not {14, 15} & earned(rows)[0]  # one below each threshold

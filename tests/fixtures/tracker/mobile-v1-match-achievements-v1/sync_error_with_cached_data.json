@@ -75,7 +75,7 @@
           "name": "Record on a New Hero",
           "order": 3,
           "progress": {
-            "distinct_heroes": 0,
+            "current": 0,
             "target": 2
           },
           "proof_template": "Hero {hero_id}; record metrics: {metric_ids}.",
@@ -267,10 +267,10 @@
           "progress": null,
           "proof_template": "Before 10:00: {kills_before_10} kills, {deaths_before_10} deaths.",
           "rarity": {
-            "denominator": 4069,
-            "numerator": 432,
+            "denominator": 3914,
+            "numerator": 422,
             "provisional": false,
-            "rate": 0.106168592,
+            "rate": 0.107818089,
             "source": "CORPUS",
             "tier": "RARE",
             "version": "badge-tiers-v1"
@@ -374,7 +374,7 @@
           "name": "Hero Specialist",
           "order": 17,
           "progress": {
-            "same_hero_feat_matches": 1,
+            "current": 1,
             "target": 3
           },
           "proof_template": "Hero {hero_id}; feat: {feat_name}; qualifying matches: {distinct_matches}.",
@@ -575,7 +575,7 @@
           "name": "Rekor dengan Hero Baru",
           "order": 3,
           "progress": {
-            "distinct_heroes": 0,
+            "current": 0,
             "target": 2
           },
           "proof_template": "Hero {hero_id}; metrik rekor: {metric_ids}.",
@@ -767,10 +767,10 @@
           "progress": null,
           "proof_template": "Sebelum 10:00: {kills_before_10} kill, {deaths_before_10} kematian.",
           "rarity": {
-            "denominator": 4069,
-            "numerator": 432,
+            "denominator": 3914,
+            "numerator": 422,
             "provisional": false,
-            "rate": 0.106168592,
+            "rate": 0.107818089,
             "source": "CORPUS",
             "tier": "RARE",
             "version": "badge-tiers-v1"
@@ -874,7 +874,7 @@
           "name": "Spesialis Hero",
           "order": 17,
           "progress": {
-            "same_hero_feat_matches": 1,
+            "current": 1,
             "target": 3
           },
           "proof_template": "Hero {hero_id}; pencapaian: {feat_name}; pertandingan yang memenuhi syarat: {distinct_matches}.",

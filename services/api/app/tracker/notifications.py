@@ -10,16 +10,20 @@ from uuid import uuid4
 from sqlalchemy import Connection, func, select
 from sqlalchemy.dialects.postgresql import insert
 
-from .achievement_catalog import catalog_entry, rarity_key
+from .achievement_catalog import rarity_key
 from .schema import devices, events, notification_outbox, profiles, users
 
 
-def _ready_payload(match_count: int, achievement_ids: list[int]) -> dict[str, Any]:
-    rarest = min(achievement_ids, key=rarity_key) if achievement_ids else None
+def _ready_payload(match_count: int, awards: list[int]) -> dict[str, Any]:
+    """`awards` keeps one entry per earned badge per match, so a bundle spanning several
+    matches reports the total. `achievement_ids` lists each badge once (rarest first) and
+    `achievement_top_id` is the one to name; the client localizes the name from the id."""
+    unique = sorted(set(awards), key=rarity_key)
     return {"kind": "MATCH_READY", "count": match_count,
-            "achievement_ids": achievement_ids, "achievement_count": len(achievement_ids),
-            "achievement_name": catalog_entry(rarest, "en")["name"] if rarest is not None else None,
-            "achievement_more": max(0, len(achievement_ids) - 1)}
+            "achievement_awards": awards, "achievement_ids": unique,
+            "achievement_count": len(awards),
+            "achievement_top_id": unique[0] if unique else None,
+            "achievement_more": max(0, len(awards) - 1)}
 
 
 def record_ready(connection: Connection, *, profile_id: str, match_id: int, origin: str,
@@ -56,7 +60,7 @@ def record_ready(connection: Connection, *, profile_id: str, match_id: int, orig
     ).order_by(notification_outbox.c.created_at).with_for_update().limit(1)).mappings().first()
     if pending is not None:
         refs = [*pending["event_refs"], event_id]
-        ids = [*pending["payload"].get("achievement_ids", []), *(achievement_ids or [])]
+        ids = [*pending["payload"].get("achievement_awards", []), *(achievement_ids or [])]
         connection.execute(notification_outbox.update().where(
             notification_outbox.c.id == pending["id"],
         ).values(event_refs=refs, payload=_ready_payload(len(refs), ids)))

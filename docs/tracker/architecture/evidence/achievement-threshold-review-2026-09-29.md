@@ -1,6 +1,6 @@
 # Achievement threshold corpus review — 2026-09-29
 
-Reviews every frozen `match-achievements-v1` threshold against real parsed Standard matches. It supports the provisional rarity snapshot `local-standard-estimate-2`. It is evidence, not product truth or a merge authorization.
+Reviews every frozen `match-achievements-v1` threshold against real parsed Standard matches. It supports the frozen tiers `badge-tiers-v1` (originally the snapshot `local-standard-estimate-2`). It is evidence, not product truth or a merge authorization.
 
 ## Sample
 
@@ -37,7 +37,7 @@ Reviews every frozen `match-achievements-v1` threshold against real parsed Stand
 | #50 Control Specialist | 313 / 4,634 | 6.75% | 6.07%–7.51% | Rare | stable |
 
 - Every single-match badge has at least 50 hits, none is dead, and none is Common. Awarded proofs were spot-checked (for example #6 with 90 last hits at 10:00 and 12,098 net worth at 20:00; #45 with 11,430 tower damage, a 48% team share and 0 deaths).
-- **Tier boundaries.** #6, #11, #14, #23 and #45 straddle a band edge. Their displayed tier is only as good as this sample and stays provisional. #1, #2, #4 and #30 have no static rate because they depend on history.
+- **Tier boundaries.** #6, #11, #14, #23 and #45 straddle a band edge. Their frozen tier is only as good as this sample. #1, #2, #4 and #30 have no static rate because they depend on history.
 - **Near Common.** #20 (16.1%), #22 (15.0%) and #42 (16.1%) are stably Rare but close to the 20% edge. The #30 repeat list (`REPEATABLE_FEATS`) is unchanged and still valid: no listed badge is Common.
 
 ## Sensitivity (threshold x0.75 / x1 / x1.25)
@@ -105,3 +105,8 @@ Every measured badge's frozen tier equals the band of its corpus rate (checked b
 ## Still open
 
 Owner review of the fragile thresholds and of the five band-straddling tiers, and a production-based rarity snapshot once retained active analyses exist.
+
+## Re-measurement after the independent QA fixes
+
+Independent QA found that #25 rejected any gold-advantage curve not starting at 0, but 272 of 1,027 recently fetched parses start at a real nonzero 0:00 reading (the starting team gold difference). Re-running the real evaluator on the same 1,511 matches with the corrected rules (nonzero origin accepted, exact kill-log match, real zero team kills or tower damage counted as evidence) gives: #25 279 / 6,960 (4.01%, still Epic), #11 31 / 848, #13 202 / 11,600, #17 211 / 10,846, #18 422 / 3,914, #41 74 / 1,916, #42 1,049 / 4,640, #44 226 / 2,320, #45 33 / 4,640. No frozen tier changed. `RATE_COUNTS` holds these counts and a test keeps each in its frozen band.
+

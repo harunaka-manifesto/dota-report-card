@@ -19,6 +19,7 @@ from uuid import uuid4
 from sqlalchemy import Connection, Engine, func, or_, select, tuple_, update
 from sqlalchemy.dialects.postgresql import insert
 
+from .achievement_rules import rules_digest
 from .backfill import historical_work_pending
 from .finalization import (
     ANALYSIS_VERSION,
@@ -237,9 +238,11 @@ def stale_analysis(connection: Connection) -> Any:
     an analysis finalized while no set existed is graded, once, by the first set.
     """
     parameters = current_context_parameters(connection)
+    # An analysis judged under other achievement rules or tiers is stale too (NULL = never judged).
     methodology = or_(analyses.c.analysis_version != ANALYSIS_VERSION,
                       analyses.c.baseline_version != BASELINE_VERSION,
-                      analyses.c.feature_version != FEATURE_VERSION)
+                      analyses.c.feature_version != FEATURE_VERSION,
+                      analyses.c.result["achievements"]["rules_digest"].astext.is_distinct_from(rules_digest()))
     if parameters is None:
         return methodology
     return or_(methodology, analyses.c.result["parameter_set_version"].astext.is_(None))

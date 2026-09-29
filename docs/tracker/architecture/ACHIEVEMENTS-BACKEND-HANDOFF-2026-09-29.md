@@ -1,5 +1,7 @@
 # Match achievements backend handoff — 2026-09-29
 
+> **Historical.** This note records the start of the work (uncommitted checkout, provisional rarity, 0 provider calls, no Figma bank). It is superseded by [`achievements/SSOT.md`](../achievements/SSOT.md), the [implementation ledger](IMPLEMENTATION-LEDGER.md) and the [threshold review](evidence/achievement-threshold-review-2026-09-29.md). Where they disagree, they win: tiers are frozen (`badge-tiers-v1`), OpenDota calls for calibration were 1,352, and the Figma Content bank now has the Achievements section.
+
 This is a continuation note for the work Sol started on the 24-match achievement MVP. It records the current checkout, the owner's decisions, the implementation that exists, and the work that must happen before this branch is reviewable or safe to merge. It is a handoff, not an approved product SSOT or a release authorization.
 
 ## Status at a glance

@@ -52,8 +52,9 @@ def _achievement_source(raw: Mapping[str, Any], provider: Provider, slot: int) -
                        if isinstance(kill_log, list) and all(
                            isinstance(event, Mapping) and type(event.get("time")) is int
                            and isinstance(event.get("key"), str) for event in kill_log) else None)
+    # The log must account for exactly the summary's hero kills, like the death log below.
     if (hero_kill_times is not None and (type(row.get("kills")) is not int
-            or len(hero_kill_times) > row["kills"])):
+            or len(hero_kill_times) != row["kills"])):
         hero_kill_times = None
     # Death start times need only `time`; the later `time_dead` gaps in recent parses do not
     # affect them. Any count mismatch or malformed entry withholds the whole list.
@@ -79,8 +80,9 @@ def _gold_advantage(raw: Mapping[str, Any], provider: Provider, duration: int) -
     values = raw.get("radiant_gold_adv")
     if not isinstance(values, list) or not values or any(type(v) is not int for v in values):
         return None
-    # Clock contract: index 0 is 0:00 (advantage 0) and the map reaches the last full minute.
-    if values[0] != 0 or len(values) - 1 < duration // 60:
+    # Clock contract: index 0 is the real 0:00 reading (the starting team gold difference,
+    # not necessarily 0) and the map reaches the last full minute.
+    if len(values) - 1 < duration // 60:
         return None
     return {str(minute * 60): value for minute, value in enumerate(values)
             if minute * 60 <= duration}

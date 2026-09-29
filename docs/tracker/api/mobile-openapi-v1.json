@@ -144,16 +144,12 @@
           "progress": {
             "anyOf": [
               {
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/JsonValue"
-                },
-                "type": "object"
+                "$ref": "#/components/schemas/AchievementProgressView"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Progress"
+            ]
           },
           "proof_template": {
             "title": "Proof Template",
@@ -162,16 +158,12 @@
           "rarity": {
             "anyOf": [
               {
-                "additionalProperties": {
-                  "$ref": "#/components/schemas/JsonValue"
-                },
-                "type": "object"
+                "$ref": "#/components/schemas/AchievementRarityView"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Rarity"
+            ]
           },
           "roles": {
             "items": {
@@ -229,6 +221,98 @@
           "proof"
         ],
         "title": "AchievementMatchView",
+        "type": "object"
+      },
+      "AchievementProgressView": {
+        "properties": {
+          "current": {
+            "title": "Current",
+            "type": "integer"
+          },
+          "target": {
+            "title": "Target",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "current",
+          "target"
+        ],
+        "title": "AchievementProgressView",
+        "type": "object"
+      },
+      "AchievementRarityView": {
+        "properties": {
+          "denominator": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Denominator"
+          },
+          "numerator": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numerator"
+          },
+          "provisional": {
+            "title": "Provisional",
+            "type": "boolean"
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate"
+          },
+          "source": {
+            "enum": [
+              "CORPUS",
+              "MODEL"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "tier": {
+            "enum": [
+              "COMMON",
+              "RARE",
+              "EPIC",
+              "LEGENDARY"
+            ],
+            "title": "Tier",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "tier",
+          "rate",
+          "numerator",
+          "denominator",
+          "source",
+          "provisional"
+        ],
+        "title": "AchievementRarityView",
         "type": "object"
       },
       "AchievementUnavailableView": {
@@ -4010,10 +4094,6 @@
             "required": false,
             "schema": {
               "default": "en",
-              "enum": [
-                "en",
-                "id"
-              ],
               "title": "Locale",
               "type": "string"
             }
@@ -4068,10 +4148,6 @@
             "required": false,
             "schema": {
               "default": "en",
-              "enum": [
-                "en",
-                "id"
-              ],
               "title": "Locale",
               "type": "string"
             }
