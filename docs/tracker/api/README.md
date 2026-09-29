@@ -149,6 +149,16 @@ is the viewer's own best-qualifying purchase (population or previous-best), and 
 is the best-qualifying population purchase among enemy positions 1–3. See
 [`ITEM-TIMINGS-V1.md`](../match_detail/ITEM-TIMINGS-V1.md) for full card-eligibility rules.
 
+### Match achievements (`match-achievements-v1`)
+
+- `GET /achievements?locale=en|id` returns the 24-entry collection (default `en`); `GET /achievements/{id}` returns one entry or 404 `ACHIEVEMENT_NOT_FOUND`. Both are account-scoped and read the same entitled-history scope as every other list: Free→Pro→Free changes what is *visible* and counted, never what is retained.
+- An entry carries `key`/`asset_key`, role scope, localized name, description, general hint (no exact thresholds), proof template, `earned_count`, and the latest earning match. `rarity` (tier, rate, `provisional: true`, `version`) appears only after the first earn; #4 and #30 alone expose `progress` while unearned.
+- Match Detail adds `achievement_state`, `achievements` (id + factual proof) and `achievement_unavailable` (`id` + `reason` ∈ `EVIDENCE_MISSING`, `MATCH_TOO_SHORT`, `INSUFFICIENT_HISTORY`). An unavailable badge is not an empty earned list. `PENDING` means the analysis predates the rule version and is awaiting the quiet methodology rebuild.
+- Awards are computed inside the single READY finalization transaction from retained evidence only (no provider or parse call). Collection `state` is `BACKFILLING` while any visible Standard analysis lacks the `achievements` object.
+- Historical imports and methodology rebuilds award quietly: no per-match alert, and `MATCH_READY` never replays. A live READY notification (and its coalesced bundle) carries `achievement_ids`, `achievement_count`, `achievement_name` (rarest earned) and `achievement_more`.
+- These match medals are separate from Role Mastery/progression medals; the Free Level-5 display cap does not apply here.
+- Rules, thresholds and the #30 repeat list are frozen in `services/api/app/tracker/achievement_rules.py` (digest pinned in `tests/tracker/test_achievements.py`); copy, asset keys and the provisional rarity snapshot are in `achievement_catalog.py`. Golden: `tests/fixtures/tracker/mobile-v1-match-achievements-v1/`.
+
 The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1`, `offlane-context-v2`, `carry-context-v1`, `mid-context-v1`, and `core-fights-v1` contract versions.
 
 Server-to-server routes (`/store/app-store/notifications`) and the operations readout

@@ -9,6 +9,9 @@ from uuid import uuid4
 from sqlalchemy import Connection, Engine, and_, delete, func, or_, select, true, update
 from sqlalchemy.dialects.postgresql import insert
 
+from .achievement_catalog import REPEATABLE_IDS
+from .achievements import evaluate_match as evaluate_achievements
+from .achievements import prior_award_rows
 from .carry_context import evaluate as evaluate_carry_context
 from .context import ContextInput, DraftPlayer, ParameterSet, evaluate
 from .core_fights import from_offlane_fights
@@ -51,7 +54,7 @@ from .schema import (
 )
 from .scope import entitled as entitled_history
 
-ANALYSIS_VERSION = "tracker-analysis-7"
+ANALYSIS_VERSION = "tracker-analysis-8"
 
 
 def enqueue_finalization(connection: Connection, *, profile_id: str, match_id: int) -> str:
@@ -378,6 +381,8 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         insight = post_insight
     metric_rows: list[dict[str, Any]] = []
     pb_rows: list[dict[str, Any]] = []
+    pb_metrics: list[str] = []
+    pb_ready_count = 0
     parameters = _grading_parameters(connection, link)
     parameter_version = parameters.version if parameters is not None else None
     draft = _draft(features, cast(dict[int, int | None], position_map))
@@ -433,6 +438,21 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         })
         if eligibility.progression != "NONE" and measured.comparison_value is not None:
             pb_rows.append({"metric_id": metric_id, "current": current, "priors": priors, "pb": pb})
+            if len(priors) >= 5:
+                pb_ready_count += 1
+            if len(priors) >= 5 and measured.comparison_value > max(
+                prior.comparison_value for prior in priors if prior.comparison_value is not None
+            ):
+                pb_metrics.append(metric_id)
+    achievements = evaluate_achievements(
+        features=features, slot=link["player_slot"], role=link["effective_role"],
+        mode=link["mode"], progression=eligibility.progression,
+        duration=match["duration_seconds"], positions=position_map,
+        core_fights=core_fights, pb_metrics=pb_metrics, pb_ready_count=pb_ready_count,
+        prior=prior_award_rows(connection, profile_id=profile_id, link=link)
+        if link["mode"] == "STANDARD" and eligibility.progression == "STANDARD" else [],
+        repeatable=set(REPEATABLE_IDS), quarantined=quarantined,
+    )
     inputs_digest = hashlib.sha256(canonical_json({
         "analysis_version": ANALYSIS_VERSION, "baseline_version": BASELINE_VERSION,
         "feature_version": FEATURE_VERSION, "feature_digest": feature_digest,
@@ -445,6 +465,7 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
         "carry_context": carry_context,
         "mid_context": mid_context,
         "core_fights": core_fights,
+        "achievements": achievements,
         "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
         "lane_context": lane_context,
     })).hexdigest()
@@ -453,7 +474,8 @@ def build_analysis(connection: Connection, *, profile_id: str, link: dict[str, A
             "quarantined_fields": quarantined, "parameter_set_version": parameter_version,
             "lane_context": lane_context, "item_timings": item_timings,
             "offlane_context": offlane_context, "carry_context": carry_context,
-            "mid_context": mid_context, "core_fights": core_fights}
+            "mid_context": mid_context, "core_fights": core_fights,
+            "achievements": achievements}
 
 
 def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
@@ -466,6 +488,8 @@ def analysis_result(built: dict[str, Any]) -> dict[str, Any]:
             "carry_context": built["carry_context"],
             "mid_context": built["mid_context"],
             "core_fights": built["core_fights"],
+            "achievements": built["achievements"],
+            "achievement_pb_metrics": built["achievements"]["pb_metrics"],
             "parameter_set_version": built["parameter_set_version"],
             "lane_context": built["lane_context"]}
 
@@ -678,7 +702,7 @@ def complete_finalization_job(database: Engine, *, job_id: str, lease_token: str
         from .notifications import record_ready
 
         record_ready(connection, profile_id=job["profile_id"], match_id=job["match_id"],
-                     origin=link["origin"])
+                     origin=link["origin"], achievement_ids=[a["id"] for a in built["achievements"]["awards"]])
         if link["origin"] == "LIVE" and link["mode"] in {"STANDARD", "TURBO"}:
             from .profile import publish_profile_checkpoint
 

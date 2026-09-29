@@ -10,10 +10,20 @@ from uuid import uuid4
 from sqlalchemy import Connection, func, select
 from sqlalchemy.dialects.postgresql import insert
 
+from .achievement_catalog import catalog_entry, rarity
 from .schema import devices, events, notification_outbox, profiles, users
 
 
-def record_ready(connection: Connection, *, profile_id: str, match_id: int, origin: str) -> str | None:
+def _ready_payload(match_count: int, achievement_ids: list[int]) -> dict[str, Any]:
+    rarest = min(achievement_ids, key=lambda ident: ((rarity(ident) or {}).get("rate", 1), ident)) if achievement_ids else None
+    return {"kind": "MATCH_READY", "count": match_count,
+            "achievement_ids": achievement_ids, "achievement_count": len(achievement_ids),
+            "achievement_name": catalog_entry(rarest, "en")["name"] if rarest is not None else None,
+            "achievement_more": max(0, len(achievement_ids) - 1)}
+
+
+def record_ready(connection: Connection, *, profile_id: str, match_id: int, origin: str,
+                 achievement_ids: list[int] | None = None) -> str | None:
     """Publish one live READY event; permission is tested only for push eligibility."""
     if origin != "LIVE":
         return None
@@ -28,7 +38,8 @@ def record_ready(connection: Connection, *, profile_id: str, match_id: int, orig
     dedup_key = f"ready:{profile_id}:{match_id}"
     event_id = connection.execute(insert(events).values(
         id=str(uuid4()), profile_id=profile_id, kind="MATCH_READY", dedup_key=dedup_key,
-        payload={"match_id": match_id}, created_at=func.clock_timestamp(),
+        payload={"match_id": match_id, "achievement_ids": achievement_ids or []},
+        created_at=func.clock_timestamp(),
     ).on_conflict_do_nothing(index_elements=[events.c.dedup_key]).returning(events.c.id)).scalar_one_or_none()
     if event_id is None:
         return None
@@ -45,14 +56,15 @@ def record_ready(connection: Connection, *, profile_id: str, match_id: int, orig
     ).order_by(notification_outbox.c.created_at).with_for_update().limit(1)).mappings().first()
     if pending is not None:
         refs = [*pending["event_refs"], event_id]
+        ids = [*pending["payload"].get("achievement_ids", []), *(achievement_ids or [])]
         connection.execute(notification_outbox.update().where(
             notification_outbox.c.id == pending["id"],
-        ).values(event_refs=refs, payload={"kind": "MATCH_READY", "count": len(refs)}))
+        ).values(event_refs=refs, payload=_ready_payload(len(refs), ids)))
     else:
         connection.execute(notification_outbox.insert().values(
             id=str(uuid4()), user_id=user["id"], profile_id=profile_id,
             user_generation=user["generation"], dedup_key=dedup_key,
-            event_refs=[event_id], payload={"kind": "MATCH_READY", "count": 1},
+            event_refs=[event_id], payload=_ready_payload(1, achievement_ids or []),
             state="PENDING", created_at=func.clock_timestamp(),
         ))
     return event_id

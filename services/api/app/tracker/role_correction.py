@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import Connection, func, select, tuple_, update
+from sqlalchemy import Connection, func, select, true, tuple_, update
 
 from .finalization import (
     ANALYSIS_VERSION,
@@ -93,11 +93,11 @@ def _publish_analysis(connection: Connection, *, profile_id: str, link: dict[str
 
 
 def _affected_links(connection: Connection, *, profile_id: str, link: dict[str, Any],
-                    roles: set[str], lock: bool = False) -> list[dict[str, Any]]:
+                    roles: set[str] | None, lock: bool = False) -> list[dict[str, Any]]:
     query = select(account_matches).where(
         account_matches.c.profile_id == profile_id, account_matches.c.mode == link["mode"],
         account_matches.c.lifecycle == "READY", account_matches.c.progression == link["mode"],
-        account_matches.c.effective_role.in_(roles),
+        account_matches.c.effective_role.in_(roles) if roles is not None else true(),
         tuple_(account_matches.c.provider_started_at,
                account_matches.c.provider_source_match_id) >=
         (link["provider_started_at"], link["provider_source_match_id"]),
@@ -139,7 +139,8 @@ def correction_available(connection: Connection, *, profile_id: str, match_id: i
         try:
             if link["progression"] == link["mode"] and link["mode"] in {"STANDARD", "TURBO"}:
                 affected = _affected_links(connection, profile_id=profile_id, link=dict(link),
-                                           roles={link["effective_role"], candidate})
+                                           roles=None if link["mode"] == "STANDARD" else
+                                           {link["effective_role"], candidate})
             else:
                 affected = [dict(link)]
             if any(metric.rsplit(".", 1)[-1] != "v1" for metric in metric_ids(candidate)):
@@ -207,7 +208,8 @@ def correct_role(connection: Connection, *, profile_id: str, match_id: int, role
 
     if link["progression"] == link["mode"] and link["mode"] in {"STANDARD", "TURBO"}:
         affected = _affected_links(connection, profile_id=profile_id, link=link,
-                                    roles={previous_role, role}, lock=True)
+                                    roles=None if link["mode"] == "STANDARD" else
+                                    {previous_role, role}, lock=True)
     else:
         affected = [link]
     if any(metric.rsplit(".", 1)[-1] != "v1" for metric in metric_ids(role)):

@@ -332,7 +332,7 @@ def test_retired_metric_mastery_is_rebuilt_under_one_rule_without_celebrations(d
         assert [(row["match_id"], row["xp"], row["source"]["reason"]) for row in current] == [
             (first, 100, "METHODOLOGY_REBUILD"), (second, 100, "METHODOLOGY_REBUILD"),
             (turbo, 50, "LIVE_FINALIZATION")]
-        assert all(row["source"]["analysis_version"] == "tracker-analysis-7" for row in current)
+        assert all(row["source"]["analysis_version"] == finalization.ANALYSIS_VERSION for row in current)
         credited = {metric for row in current
                     for metric in row["source"]["above_metric_ids"] + row["source"]["pb_metric_ids"]}
         assert credited <= set(metric_ids("SUPPORT"))

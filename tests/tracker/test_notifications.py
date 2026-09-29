@@ -29,20 +29,25 @@ def test_ready_events_are_live_only_coalesced_and_never_queued_retroactively(dat
         c.execute(devices.insert().values(id=str(uuid4()), user_id=user_id,
             push_token="fake-push-token", permission="GRANTED",
             last_active_at=datetime.now(UTC) - timedelta(hours=2)))
-        first = record_ready(c, profile_id=profile_id, match_id=2, origin="LIVE")
-        second = record_ready(c, profile_id=profile_id, match_id=3, origin="LIVE")
+        first = record_ready(c, profile_id=profile_id, match_id=2, origin="LIVE", achievement_ids=[14, 17])
+        second = record_ready(c, profile_id=profile_id, match_id=3, origin="LIVE", achievement_ids=[15])
         assert first and second and first != second
     with database.connect() as c:
         row = c.execute(select(notification_outbox)).mappings().one()
         assert row["event_refs"] == [first, second]
-        assert row["payload"] == {"kind": "MATCH_READY", "count": 2}
+        assert row["payload"] == {"kind": "MATCH_READY", "count": 2,
+                                  "achievement_ids": [14, 17, 15], "achievement_count": 3,
+                                  "achievement_name": "Flawless Finisher", "achievement_more": 2}
 
     sent = []
     with database.begin() as c:
         assert deliver_pending(c, lambda token, payload, key: sent.append((token, payload, key))) == 1
     with database.begin() as c:
         assert deliver_pending(c, lambda *_: None) == 0
-    assert sent == [("fake-push-token", {"kind": "MATCH_READY", "count": 2}, f"ready:{profile_id}:2")]
+    assert sent == [("fake-push-token", {"kind": "MATCH_READY", "count": 2,
+                                        "achievement_ids": [14, 17, 15], "achievement_count": 3,
+                                        "achievement_name": "Flawless Finisher", "achievement_more": 2},
+                     f"ready:{profile_id}:2")]
     with database.connect() as c:
         assert c.scalar(select(notification_outbox.c.state)) == "SENT"
         assert c.scalar(select(func.count()).select_from(events)) == 3

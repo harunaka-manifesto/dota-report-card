@@ -50,6 +50,205 @@
         "title": "AccountView",
         "type": "object"
       },
+      "AchievementAwardView": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "proof": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Proof",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "proof"
+        ],
+        "title": "AchievementAwardView",
+        "type": "object"
+      },
+      "AchievementCollectionView": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/AchievementEntryView"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "state": {
+            "enum": [
+              "AVAILABLE",
+              "BACKFILLING",
+              "STEAM_LINK_REQUIRED"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "entries"
+        ],
+        "title": "AchievementCollectionView",
+        "type": "object"
+      },
+      "AchievementEntryView": {
+        "properties": {
+          "asset_key": {
+            "title": "Asset Key",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "earned_count": {
+            "title": "Earned Count",
+            "type": "integer"
+          },
+          "how_to": {
+            "title": "How To",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "latest_match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AchievementMatchView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress"
+          },
+          "proof_template": {
+            "title": "Proof Template",
+            "type": "string"
+          },
+          "rarity": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rarity"
+          },
+          "roles": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Roles",
+            "type": "array"
+          },
+          "rule_version": {
+            "title": "Rule Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "asset_key",
+          "rule_version",
+          "roles",
+          "name",
+          "description",
+          "how_to",
+          "proof_template",
+          "earned_count",
+          "rarity",
+          "progress",
+          "latest_match"
+        ],
+        "title": "AchievementEntryView",
+        "type": "object"
+      },
+      "AchievementMatchView": {
+        "properties": {
+          "match_ref": {
+            "title": "Match Ref",
+            "type": "string"
+          },
+          "proof": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Proof",
+            "type": "object"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "match_ref",
+          "started_at",
+          "proof"
+        ],
+        "title": "AchievementMatchView",
+        "type": "object"
+      },
+      "AchievementUnavailableView": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "reason": {
+            "enum": [
+              "EVIDENCE_MISSING",
+              "MATCH_TOO_SHORT",
+              "INSUFFICIENT_HISTORY"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "reason"
+        ],
+        "title": "AchievementUnavailableView",
+        "type": "object"
+      },
       "BootstrapModeView": {
         "properties": {
           "discovered_count": {
@@ -1401,6 +1600,24 @@
       },
       "MatchDetailView": {
         "properties": {
+          "achievement_state": {
+            "$ref": "#/components/schemas/Readiness",
+            "default": "PENDING"
+          },
+          "achievement_unavailable": {
+            "items": {
+              "$ref": "#/components/schemas/AchievementUnavailableView"
+            },
+            "title": "Achievement Unavailable",
+            "type": "array"
+          },
+          "achievements": {
+            "items": {
+              "$ref": "#/components/schemas/AchievementAwardView"
+            },
+            "title": "Achievements",
+            "type": "array"
+          },
           "carry_context": {
             "anyOf": [
               {
@@ -3776,6 +3993,113 @@
           }
         ],
         "summary": "Steam Switch Start"
+      }
+    },
+    "/achievements": {
+      "get": {
+        "operationId": "achievements_collection_achievements_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "locale",
+            "required": false,
+            "schema": {
+              "default": "en",
+              "enum": [
+                "en",
+                "id"
+              ],
+              "title": "Locale",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AchievementCollectionView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Achievements Collection"
+      }
+    },
+    "/achievements/{achievement_id}": {
+      "get": {
+        "operationId": "achievement_detail_achievements__achievement_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "achievement_id",
+            "required": true,
+            "schema": {
+              "title": "Achievement Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locale",
+            "required": false,
+            "schema": {
+              "default": "en",
+              "enum": [
+                "en",
+                "id"
+              ],
+              "title": "Locale",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AchievementEntryView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Achievement Detail"
       }
     },
     "/auth/apple": {

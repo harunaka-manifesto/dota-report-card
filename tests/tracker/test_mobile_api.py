@@ -9,6 +9,7 @@ from app.tracker.materialization import materialize_snapshot
 from app.tracker.mobile_api import DEVELOPMENT_CURSOR_SECRET, _cursor, create_mobile_app
 from app.tracker.schema import (
     account_matches,
+    analyses,
     dota_accounts,
     idempotency_keys,
     identities,
@@ -21,8 +22,10 @@ from app.tracker.steam_identity import STEAM_ID_BASE
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from .builders import add_match, finalize
 from .test_finalization import _ready_link, _run
 from .test_materialization import MATCH_ID, raw, save
+from .test_schema import identity
 from .test_steam_identity import FakeVerifier, assertion
 
 
@@ -122,6 +125,59 @@ def test_mobile_match_ref_is_opaque_and_cannot_cross_accounts(database):
     with database.begin() as c:
         c.execute(profiles.update().where(profiles.c.id == "profile-mobile-owner").values(active_scope="PRO"))
     assert owner_client.get(f"/matches/{public_ref}", headers=owner_headers).status_code == 200
+
+
+def _flawless(payload):
+    """Retained-source edit: slot 0 finishes with 10 kills, 29 assists and no death."""
+    player = payload["players"][0]
+    player["deaths"], player["deaths_log"] = 0, []
+
+
+def test_achievement_collection_is_private_and_scope_aware(database):
+    _, profile_id = identity(database)
+    with database.begin() as c:
+        c.execute(profiles.update().where(profiles.c.id == profile_id).values(
+            original_linked_at=datetime(2020, 1, 1, tzinfo=UTC)))
+        owner = c.scalar(select(profiles.c.user_id).where(profiles.c.id == profile_id))
+        c.execute(identities.insert().values(id=str(uuid4()), user_id=owner,
+            issuer="https://accounts.google.com", subject="achievement-owner",
+            verified_at=datetime.now(UTC)))
+    match_id = add_match(database, profile_id, index=1, role="CARRY", offset_days=1, edit=_flawless)
+    assert finalize(database, profile_id, match_id) == "READY"
+    with database.connect() as c:
+        link = c.execute(select(account_matches).where(account_matches.c.match_id == match_id)).mappings().one()
+        ref = link["public_ref"]
+        stored = c.scalar(select(analyses.c.result).where(analyses.c.id == link["active_analysis_id"]))
+    earned = {award["id"] for award in stored["achievements"]["awards"]}
+    assert {14, 15} <= earned  # overlapping badges are all awarded
+    client, headers, _ = _client(database, "achievement-owner")
+    other, other_headers, _ = _client(database, "achievement-other")
+    assert client.get("/achievements").status_code == 401
+    assert all(entry["earned_count"] == 0 for entry in
+               other.get("/achievements", headers=other_headers).json()["entries"])
+    collection = client.get("/achievements?locale=id", headers=headers)
+    assert collection.status_code == 200
+    assert len(collection.json()["entries"]) == 24
+    badge = client.get("/achievements/14?locale=id", headers=headers).json()
+    assert badge["name"] == "Kontributor Tak Tersentuh"
+    assert badge["earned_count"] == 1 and badge["latest_match"]["match_ref"] == ref
+    assert badge["rarity"]["tier"] == "LEGENDARY"
+    assert client.get("/achievements/13", headers=headers).json()["rarity"] is None
+    detail = client.get("/matches/" + ref, headers=headers).json()
+    assert detail["achievement_state"] == "AVAILABLE"
+    assert {a["id"] for a in detail["achievements"]} == earned
+    assert all(u["reason"] in {"EVIDENCE_MISSING", "MATCH_TOO_SHORT", "INSUFFICIENT_HISTORY"}
+               for u in detail["achievement_unavailable"])
+    assert not earned & {u["id"] for u in detail["achievement_unavailable"]}
+    assert client.get("/achievements/999", headers=headers).status_code == 404
+    with database.begin() as c:
+        c.execute(profiles.update().where(profiles.c.id == profile_id).values(
+            original_linked_at=datetime.now(UTC)))
+        c.execute(account_matches.update().where(account_matches.c.profile_id == profile_id).values(origin="HISTORICAL"))
+    assert client.get("/achievements/14", headers=headers).json()["earned_count"] == 0
+    with database.begin() as c:
+        c.execute(profiles.update().where(profiles.c.id == profile_id).values(active_scope="PRO"))
+    assert client.get("/achievements/14", headers=headers).json()["earned_count"] == 1
 
 
 def test_mobile_role_edit_is_scoped_idempotent_and_source_backed(database):

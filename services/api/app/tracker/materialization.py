@@ -32,7 +32,49 @@ from app.tracker.role_evidence import ROLE_EVIDENCE_VERSION, replay_role_inputs
 from app.tracker.roles import persist_positions, persist_summary_positions
 from app.tracker.schema import derived_features, match_players, matches, snapshots
 
-FEATURE_VERSION = "tracker-features-4"
+FEATURE_VERSION = "tracker-features-5"
+
+
+def _achievement_source(raw: Mapping[str, Any], provider: Provider, slot: int) -> dict[str, Any]:
+    """Retain only OpenDota counters whose attribution is needed for awards."""
+    if provider != "opendota":
+        return {"observer_kills": None, "disable_seconds": None, "hero_kill_times": None}
+    row = raw["players"][slot]
+    if row.get("player_slot") != (slot if slot < 5 else slot + 123):
+        return {"observer_kills": None, "disable_seconds": None, "hero_kill_times": None}
+    observer = row.get("observer_kills")
+    stuns = row.get("stuns")
+    killed = row.get("killed")
+    credited = killed.get("npc_dota_observer_wards", 0) if isinstance(killed, Mapping) else None
+    kill_log = row.get("kills_log")
+    hero_kill_times = ([event["time"] for event in kill_log
+                        if event["key"].startswith("npc_dota_hero_")]
+                       if isinstance(kill_log, list) and all(
+                           isinstance(event, Mapping) and type(event.get("time")) is int
+                           and isinstance(event.get("key"), str) for event in kill_log) else None)
+    if (hero_kill_times is not None and (type(row.get("kills")) is not int
+            or len(hero_kill_times) > row["kills"])):
+        hero_kill_times = None
+    # OpenDota counts credited observer kills and seconds of hero disable.
+    # A missing or malformed counter cannot be interpreted as zero.
+    return {
+        "observer_kills": observer if type(observer) is int and observer >= 0 and observer == credited else None,
+        "disable_seconds": stuns if type(stuns) in {int, float} and 0 <= stuns < 10**6 else None,
+        "hero_kill_times": hero_kill_times,
+    }
+
+
+def _gold_advantage(raw: Mapping[str, Any], provider: Provider, duration: int) -> dict[str, int] | None:
+    if provider != "opendota":
+        return None
+    values = raw.get("radiant_gold_adv")
+    if not isinstance(values, list) or not values or any(type(v) is not int for v in values):
+        return None
+    # Clock contract: index 0 is 0:00 (advantage 0) and the map reaches the last full minute.
+    if values[0] != 0 or len(values) - 1 < duration // 60:
+        return None
+    return {str(minute * 60): value for minute, value in enumerate(values)
+            if minute * 60 <= duration}
 
 
 def _match_payload(snapshot: Mapping[str, Any], match_id: int) -> Mapping[str, Any]:
@@ -123,15 +165,18 @@ def materialize_snapshot(connection: Connection, *, snapshot_id: str, match_id: 
         "feature_version": FEATURE_VERSION, "match_id": match_id,
     })).hexdigest()
     role_players = replay_role_inputs(raw, provider, summary)
+    gold_advantage = _gold_advantage(raw, provider, summary["duration_seconds"])
     for player, replay, role_player, event_player in zip(summary["players"], checkpoints["players"], role_players, event_projection["players"], strict=True):
         connection.execute(insert(derived_features).values(
             match_id=match_id, player_slot=player["player_slot"], feature_version=FEATURE_VERSION,
             inputs_digest=inputs_digest, created_at=func.now(),
             features={
-                "match": {k: v for k, v in summary.items() if k != "players"},
+                "match": {**{k: v for k, v in summary.items() if k != "players"},
+                          "radiant_gold_advantage": gold_advantage},
                 "integrity": {"verdict": integrity.verdict, "reason": integrity.reason},
                 "summary": player, "checkpoints": replay["series"],
                 "events": event_player["events"], "match_events": event_player["match_events"],
+                "achievement_source": _achievement_source(raw, provider, player["player_slot"]),
                 "role_evidence": {k: role_player[k] for k in ("lane", "wards_placed", "role_source_paths")},
             },
             provenance={**provenance, "source_paths": replay["source_paths"], "event_source_paths": event_player["source_paths"], "match_event_source_paths": event_projection["source_paths"]},

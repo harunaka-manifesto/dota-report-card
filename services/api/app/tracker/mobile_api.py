@@ -26,6 +26,8 @@ from app.tracker.account_lifecycle import (
     request_account_deletion,
     switch_preflight,
 )
+from app.tracker.achievement_catalog import catalog_entry, rarity
+from app.tracker.achievements import IDS as ACHIEVEMENT_IDS
 from app.tracker.authentication import (
     AuthenticationError,
     HttpJwksSource,
@@ -445,6 +447,43 @@ class MatchView(BaseModel):
     metrics: list[MetricView]
 
 
+class AchievementAwardView(BaseModel):
+    id: int
+    proof: dict[str, JsonValue]
+
+
+class AchievementUnavailableView(BaseModel):
+    id: int
+    reason: Literal["EVIDENCE_MISSING", "MATCH_TOO_SHORT", "INSUFFICIENT_HISTORY"]
+
+
+class AchievementMatchView(BaseModel):
+    match_ref: str
+    started_at: datetime
+    proof: dict[str, JsonValue]
+
+
+class AchievementEntryView(BaseModel):
+    id: int
+    key: str
+    asset_key: str
+    rule_version: str
+    roles: list[str]
+    name: str
+    description: str
+    how_to: str
+    proof_template: str
+    earned_count: int
+    rarity: dict[str, JsonValue] | None
+    progress: dict[str, JsonValue] | None
+    latest_match: AchievementMatchView | None
+
+
+class AchievementCollectionView(BaseModel):
+    state: Literal["AVAILABLE", "BACKFILLING", "STEAM_LINK_REQUIRED"]
+    entries: list[AchievementEntryView]
+
+
 class MatchDetailView(MatchView):
     item_timings: ItemTimingsView
     offlane_context: OfflaneContextView | None
@@ -456,6 +495,10 @@ class MatchDetailView(MatchView):
     # Current ownership (can change silently) versus the one-time celebration.
     owns_personal_best: list[str] = Field(default_factory=list)
     celebrated_personal_best: list[str] = Field(default_factory=list)
+    achievement_state: Readiness = Readiness.PENDING
+    achievements: list[AchievementAwardView] = Field(default_factory=list)
+    # Role-eligible badges this match could not judge; absent from `achievements` by design.
+    achievement_unavailable: list[AchievementUnavailableView] = Field(default_factory=list)
 
 
 class RoleEditRequest(BaseModel):
@@ -777,6 +820,40 @@ def _active_profile(connection, user_id: str):
 
 def _visible(profile):
     return entitled(profile, account_matches)
+
+
+def _achievement_collection(connection: Connection, profile, locale: str) -> AchievementCollectionView:
+    rows = [] if profile is None else connection.execute(select(
+        account_matches.c.public_ref, account_matches.c.provider_started_at, analyses.c.result,
+    ).join(analyses, analyses.c.id == account_matches.c.active_analysis_id).where(
+        account_matches.c.profile_id == profile["id"], account_matches.c.mode == "STANDARD",
+        account_matches.c.progression == "STANDARD", account_matches.c.lifecycle == "READY",
+        _visible(profile),
+    ).order_by(account_matches.c.provider_started_at, account_matches.c.provider_source_match_id)).mappings().all()
+    counts: dict[int, int] = {ident: 0 for ident in ACHIEVEMENT_IDS}
+    latest: dict[int, AchievementMatchView] = {}
+    progress: dict[int, dict[str, JsonValue]] = {}
+    backfilling = False
+    for row in rows:
+        result = row["result"].get("achievements")
+        if not isinstance(result, dict):
+            backfilling = True
+            continue
+        for award in result.get("awards", []):
+            ident = award.get("id")
+            if ident in counts:
+                counts[ident] += 1
+                latest[ident] = AchievementMatchView(match_ref=row["public_ref"],
+                    started_at=row["provider_started_at"], proof=award["proof"])
+        for key in ("4", "30"):
+            if key in result.get("progress", {}):
+                progress[int(key)] = result["progress"][key]
+    entries = [AchievementEntryView(**catalog_entry(ident, locale), earned_count=counts[ident],
+        rarity=rarity(ident) if counts[ident] else None,
+        progress=progress.get(ident) if ident in {4, 30} and not counts[ident] else None,
+        latest_match=latest.get(ident)) for ident in ACHIEVEMENT_IDS]
+    return AchievementCollectionView(state="STEAM_LINK_REQUIRED" if profile is None else
+                                     "BACKFILLING" if backfilling else "AVAILABLE", entries=entries)
 
 
 def _problem(status: int, code: str) -> JSONResponse:
@@ -1559,6 +1636,9 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 events.c.profile_id == profile["id"], events.c.kind == "NEW_PB",
                 events.c.payload["match_id"].astext == str(row["match_id"]),
             )))
+            achievement_result = connection.scalar(select(analyses.c.result).where(
+                analyses.c.id == row["active_analysis_id"])) if row["active_analysis_id"] else None
+            achievement_data = (achievement_result or {}).get("achievements") or {}
             return MatchDetailView(**_match_view(connection, row).model_dump(),
                 item_timings=_item_timings_view(connection, row),
                 offlane_context=_offlane_context_view(connection, row),
@@ -1568,7 +1648,29 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
                 role_revision=row["role_revision"],
                 correction_available=correction_available(
                     connection, profile_id=profile["id"], match_id=row["match_id"],
-                ), owns_personal_best=owns, celebrated_personal_best=celebrated)
+                ), owns_personal_best=owns, celebrated_personal_best=celebrated,
+                achievement_state=(Readiness.AVAILABLE if row["mode"] == "STANDARD" and
+                                   row["lifecycle"] == "READY" and achievement_data else
+                                   Readiness.UNAVAILABLE if row["mode"] != "STANDARD" or
+                                   row["lifecycle"] in {"UNAVAILABLE", "ACTION_REQUIRED"} else Readiness.PENDING),
+                achievements=achievement_data.get("awards", []),
+                achievement_unavailable=achievement_data.get("unavailable", []))
+
+    @app.get("/achievements", response_model=AchievementCollectionView)
+    async def achievements_collection(request: Request, owner: Annotated[str, Depends(_user)],
+                                      locale: Literal["en", "id"] = Query("en")) -> AchievementCollectionView:
+        with _engine(request).connect() as connection:
+            return _achievement_collection(connection, _active_profile(connection, owner), locale)
+
+    @app.get("/achievements/{achievement_id}", response_model=AchievementEntryView)
+    async def achievement_detail(request: Request, achievement_id: int,
+                                 owner: Annotated[str, Depends(_user)],
+                                 locale: Literal["en", "id"] = Query("en")) -> AchievementEntryView:
+        if achievement_id not in ACHIEVEMENT_IDS:
+            raise HTTPException(404, "ACHIEVEMENT_NOT_FOUND")
+        with _engine(request).connect() as connection:
+            collection = _achievement_collection(connection, _active_profile(connection, owner), locale)
+            return next(entry for entry in collection.entries if entry.id == achievement_id)
 
     @app.post("/matches/{match_ref}/role", response_model=RoleEditView)
     async def edit_role(request: Request, match_ref: str, body: RoleEditRequest,

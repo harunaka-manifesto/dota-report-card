@@ -1,8 +1,8 @@
 """Golden mobile fixtures from the fixture-backed seed, plus contract scans.
 
-Fixtures under tests/fixtures/tracker/mobile-v1-four-metric-roles-v1 are versioned and
+Fixtures under tests/fixtures/tracker/mobile-v1-match-achievements-v1 are versioned and
 never overwritten: a contract change adds a new directory. This directory was
-added when every role moved to exactly four metrics; prior mobile-v1 fixture
+added when match achievements joined Match Detail and the collection; prior mobile-v1 fixture
 directories remain historical records. To create a missing file
 deliberately, run with TRACKER_WRITE_MISSING_GOLDEN=1 and review it.
 """
@@ -22,7 +22,7 @@ from sqlalchemy import select
 
 from scripts.tracker_seed_demo import seed_demo
 
-GOLDEN = Path(__file__).parents[1] / "fixtures/tracker/mobile-v1-four-metric-roles-v1"
+GOLDEN = Path(__file__).parents[1] / "fixtures/tracker/mobile-v1-match-achievements-v1"
 OPENAPI = Path(__file__).parents[2] / "docs/tracker/api/mobile-openapi-v1.json"
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
@@ -62,6 +62,7 @@ ENDPOINTS = [
     "/home?mode=STANDARD&time_zone=UTC", "/history?mode=STANDARD", "/history?mode=TURBO",
     "/coverage?mode=STANDARD", "/profile?mode=STANDARD", "/profile?mode=TURBO",
     "/progress?mode=STANDARD&role=SUPPORT&metric_id=support.camps_stacked.v1",
+    "/achievements", "/achievements?locale=id",
 ]
 
 

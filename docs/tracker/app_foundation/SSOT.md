@@ -648,6 +648,8 @@ For Free-entitled history: ongoing tracking, role-specific metric histories, can
 
 Free achievement **qualification continues** underneath the visible cap. The cap is an entitlement/display boundary, not a claim that earning stops.
 
+**Match achievements are a separate collection (owner decision, 2026-09-29).** The 24-badge Standard-match collection (`match-achievements-v1`) is distinct from Role Mastery/progression medals. The Free Level-5 display cap does not apply to it; Free and Pro share identical rules and collection access, and visible history, counts and cross-match progress use the entitled-history scope, so expiry changes visibility without deleting retained evidence. Awards publish together at the single READY finalization point. Historical imports, role corrections, scope changes and methodology rebuilds recompute current truth from retained evidence **quietly**: an earned-at-the-time badge is never erased by a later personal best, and no celebration or notification is replayed. Runtime evaluation makes zero provider or parse calls. See [API](../api/README.md#match-achievements-match-achievements-v1).
+
 **Reports and recaps (normative).** Any periodic report — monthly, weekly, or profile-level — MUST be generated from persisted canonical data. It MUST NOT launch a provider backfill from a screen render; historical acquisition is background, low-priority work. A report MUST state the coverage it is based on (§4A.6) and MUST NOT imply complete evidence for a period that is only partly covered.
 
 ### 13.3 Directional Pro value
