@@ -159,4 +159,4 @@ The final agent must report the fields required by root `AGENTS.md`, including b
 
 Done: frozen rule artifact (`achievement_rules.py`, digest pinned); #25 gold-clock contract; #8/#11 own-position + unique-peer gate and reworded #8 copy (role counterpart, not lane); `achievement_unavailable` reasons on Match Detail; finalizer-backed fixtures (`test_achievements_flow.py`, rewritten collection test); quiet backfill verified through the existing methodology rebuild; API/SSOT/ledger docs; OpenAPI export and new golden `mobile-v1-match-achievements-v1`. Gates: full suite 1,898 passed / 6 skipped, ruff, mypy, docs-check, traceability `--strict`, `git diff --check`.
 
-Still open: Figma Content bank entries (item 8), reviewed production rarity snapshot, per-threshold corpus review before public awards are enabled, and the owner's merge/deploy decision.
+Figma Content bank section added (frame `659:666`). Still open: reviewed production rarity snapshot, per-threshold corpus review before public awards are enabled, and the owner's merge/deploy decision.
