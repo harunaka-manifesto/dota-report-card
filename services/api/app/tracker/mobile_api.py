@@ -10,17 +10,15 @@ from datetime import date as date_type
 from enum import StrEnum
 from typing import Annotated, Any, Literal, cast
 from uuid import UUID
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError, available_timezones
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field, JsonValue
 from redis import Redis
-from sqlalchemy import Connection, Date, Engine, and_, extract, func, or_, select, text, true
-from sqlalchemy import cast as sql_cast
+from sqlalchemy import Connection, Engine, and_, func, or_, select, text, true
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.exc import DataError
 
 from app.core.config import Settings
 from app.storage.database import create_database_engine
@@ -1328,7 +1326,13 @@ def _cursor(key: bytes, profile_id: str, ref: str, mode: str, role: str | None, 
     return f"{ref}.{_mac(key, profile_id, message)}"
 
 
+_TIME_ZONES = frozenset(available_timezones())
+
+
 def _zone(time_zone: str) -> ZoneInfo:
+    # Only real tz database names: ZoneInfo also opens files such as `posixrules`.
+    if time_zone not in _TIME_ZONES:
+        raise HTTPException(400, "TIME_ZONE_INVALID")
     try:
         return ZoneInfo(time_zone)
     except (ZoneInfoNotFoundError, ValueError) as exc:
@@ -2044,10 +2048,7 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
     @app.get("/home", response_model=HomeView)
     async def home(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode,
                    time_zone: str) -> HomeView:
-        try:
-            zone = ZoneInfo(time_zone)
-        except ZoneInfoNotFoundError as exc:
-            raise HTTPException(400, "TIME_ZONE_INVALID") from exc
+        zone = _zone(time_zone)
         today = datetime.now(zone).date()
         start = datetime.combine(today, time.min, zone).astimezone(UTC)
         end = datetime.combine(today + timedelta(days=1), time.min, zone).astimezone(UTC)
@@ -2087,36 +2088,28 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             profile = _active_profile(connection, owner)
             if profile is None:
                 return empty
-            counted = _counted(profile)
-            local_day = sql_cast(func.timezone(time_zone, account_matches.c.provider_started_at), Date)
-            start_utc, end_utc = activity.utc_bounds(window_start, window_end, zone)
-            try:
-                # Group by output labels so the bound zone is not compared across placeholders.
-                local_year = extract("year", local_day).label("local_year")
-                spans = connection.execute(select(
-                    local_year, func.min(account_matches.c.provider_started_at).label("first_at"),
-                ).where(counted).group_by(local_year)).all()
-                day_label = local_day.label("local_day")
-                rows = connection.execute(select(
-                    day_label, account_matches.c.effective_role, func.count().label("n"),
-                ).where(counted, account_matches.c.provider_started_at >= start_utc,
-                        account_matches.c.provider_started_at < end_utc,
-                ).group_by(day_label, account_matches.c.effective_role)).all()
-            except DataError as exc:  # a zone ZoneInfo knows but PostgreSQL does not
-                raise HTTPException(400, "TIME_ZONE_INVALID") from exc
-            if not spans:
+            # Local days are bucketed in Python with the same ZoneInfo as /history and /hero-pool:
+            # PostgreSQL reads names such as CET as fixed-offset abbreviations and ships its own
+            # tz database, so SQL bucketing could disagree with the drill-in.
+            started = connection.execute(select(
+                account_matches.c.provider_started_at, account_matches.c.effective_role,
+            ).where(_counted(profile))).all()
+            days = [(row.provider_started_at.astimezone(zone).date(), row.effective_role) for row in started]
+            # Out-of-range dates (clock skew, bad provider data) are never advertised as a year.
+            days = [(day, role) for day, role in days if activity.FIRST_YEAR <= day.year and day <= today]
+            if not days:
                 return empty
-            first_day = min(span.first_at for span in spans).astimezone(zone).date()
+            first_day = min(day for day, _ in days)
             start = max(window_start, first_day)
             window = ActivityWindowView(start_date=start, end_date=window_end) if start <= window_end else None
             span = _bootstrap_partial(connection, profile, zone, start, window_end) if window is not None else None
             partial = [span] if span is not None else []
             return ActivityView(
                 time_zone=time_zone, today=today, window=window,
-                available_years=sorted((int(span.local_year) for span in spans), reverse=True),
+                available_years=sorted({day.year for day, _ in days}, reverse=True),
                 partial_ranges=partial,
                 series=[ActivitySeriesView.model_validate(series) for series in activity.build_series(
-                    (row.local_day, row.effective_role, row.n) for row in rows)],
+                    (day, role, 1) for day, role in days if window_start <= day <= window_end)],
             )
 
     @app.get("/hero-pool", response_model=HeroPoolView)

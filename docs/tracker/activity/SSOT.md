@@ -41,8 +41,11 @@ document only projects them onto the heatmap.
 
 ## 3. Data
 
-Counts are computed on read from `tracker_account_matches`, using `provider_started_at` in the
-requested zone and `effective_role`, and served by `ix_tracker_chronology`. There is no
+Counts are computed on read from `tracker_account_matches`, using `provider_started_at` and
+`effective_role`. The application buckets local days with the same IANA zone rules as `/history`
+and `/hero-pool`, never PostgreSQL's `timezone()`, which reads names such as `CET` as fixed-offset
+abbreviations and ships its own tz database. Only tz database names are accepted. Dates before 2011
+or after local today are never counted or advertised in `available_years`. There is no
 materialized table. Materializing waits for measured read load
 ([DATA-CONTRACTS-AND-VERSIONING](../architecture/DATA-CONTRACTS-AND-VERSIONING.md)).
 

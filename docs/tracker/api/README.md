@@ -50,12 +50,12 @@ ActivityView
   time_zone: string
   today: date                            // local
   window: {start_date, end_date} | null  // cropped to the first counted day; null if none
-  available_years: integer[]             // local years with ≥1 counted match, newest first
+  available_years: integer[]             // requestable local years (2011..today) with ≥1 counted match, newest first
   partial_ranges: {start_date, end_date, reason: BOOTSTRAP_SAMPLE}[]
   series: {role: ALL|CARRY|MID|OFFLANE|SUPPORT, total_matches, days: {date, count, level}[]}[]
 ```
 
-- Without `year`, the window is the trailing 365 local days ending today. `year` selects a calendar year, and the current year ends today. A year before 2011 or after the local current year returns `400 YEAR_INVALID`. An unknown zone returns `400 TIME_ZONE_INVALID`.
+- Without `year`, the window is the trailing 365 local days ending today. `year` selects a calendar year, and the current year ends today. A year before 2011 or after the local current year returns `400 YEAR_INVALID`. A name outside the tz database (including `posixrules`) returns `400 TIME_ZONE_INVALID` on every route that takes `time_zone`.
 - `days` is sparse and ascending: omitted dates mean zero, inside `window`. Series are always present, even when empty.
 - The route reads persisted data only. It uses the entitled-history scope, has no mode filter, and gets the standard body ETag.
 - Cell drill-in: `GET /history?local_date=YYYY-MM-DD&time_zone=<IANA>&ready_only=true[&role=…]`. `local_date` requires `time_zone` (`400 TIME_ZONE_REQUIRED`); `time_zone` alone is ignored. The signed cursor is bound to the day filter.

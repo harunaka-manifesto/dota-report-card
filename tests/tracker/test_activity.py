@@ -186,3 +186,37 @@ def test_history_local_day_drill_in_matches_the_cell(database):
 
     assert client.get("/history", params={"local_date": "2026-03-10"}, headers=headers).status_code == 400
     assert client.get("/history", params={"time_zone": "UTC"}, headers=headers).status_code == 200
+
+
+def test_zone_names_postgres_reads_as_abbreviations_bucket_like_the_drill_in(database):
+    client, headers, profile_id = _client(database, "activity-cet")
+    # 22:30Z on 10 July is 00:30 on 11 July in CET summer time; PostgreSQL alone reads CET as +01.
+    _link(database, profile_id, 0, datetime(2026, 7, 10, 22, 30, tzinfo=UTC))
+    body = client.get("/activity", params={"time_zone": "CET", "year": 2026}, headers=headers).json()
+    assert _series(body, "ALL") == {"2026-07-11": 1}
+    drill = client.get("/history", params={"local_date": "2026-07-11", "time_zone": "CET",
+                                           "ready_only": "true"}, headers=headers).json()
+    assert len(drill["matches"]) == 1
+
+
+def test_available_years_never_advertise_unrequestable_years(database):
+    client, headers, profile_id = _client(database, "activity-years")
+    _link(database, profile_id, 0, datetime(2010, 6, 1, tzinfo=UTC))
+    _link(database, profile_id, 1, datetime(2026, 3, 5, 12, tzinfo=UTC))
+    _link(database, profile_id, 2, datetime.now(UTC) + timedelta(days=400))
+    body = client.get("/activity", params={"time_zone": "UTC"}, headers=headers).json()
+    assert body["available_years"] == [2026]
+    for year in body["available_years"]:
+        assert client.get("/activity", params={"time_zone": "UTC", "year": year},
+                          headers=headers).status_code == 200
+
+
+def test_time_zone_validation_is_shared_by_every_route(database):
+    client, headers, _ = _client(database, "activity-zones")
+    for zone in ("posixrules", "", "../etc", "Not/AZone"):
+        assert client.get("/activity", params={"time_zone": zone}, headers=headers).status_code == 400
+        assert client.get("/hero-pool", params={"time_zone": zone}, headers=headers).status_code == 400
+        assert client.get("/home", params={"time_zone": zone, "mode": "STANDARD"},
+                          headers=headers).status_code == 400
+        assert client.get("/history", params={"local_date": "2026-03-10", "time_zone": zone},
+                          headers=headers).status_code == 400
