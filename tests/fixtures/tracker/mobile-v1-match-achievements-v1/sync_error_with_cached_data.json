@@ -255,13 +255,13 @@
           "progress": null,
           "proof_template": "Before 10:00: {kills_before_10} kills, {deaths_before_10} deaths.",
           "rarity": {
-            "denominator": 358,
-            "numerator": 42,
+            "denominator": 4069,
+            "numerator": 432,
             "provisional": true,
-            "rate": 0.117318436,
-            "source": "DISCOVERY",
+            "rate": 0.106168592,
+            "source": "CORPUS",
             "tier": "RARE",
-            "version": "local-standard-estimate-1"
+            "version": "local-standard-estimate-2"
           },
           "roles": [
             "CARRY",
@@ -731,13 +731,13 @@
           "progress": null,
           "proof_template": "Sebelum 10:00: {kills_before_10} kill, {deaths_before_10} kematian.",
           "rarity": {
-            "denominator": 358,
-            "numerator": 42,
+            "denominator": 4069,
+            "numerator": 432,
             "provisional": true,
-            "rate": 0.117318436,
-            "source": "DISCOVERY",
+            "rate": 0.106168592,
+            "source": "CORPUS",
             "tier": "RARE",
-            "version": "local-standard-estimate-1"
+            "version": "local-standard-estimate-2"
           },
           "roles": [
             "CARRY",

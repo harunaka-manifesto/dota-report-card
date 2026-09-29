@@ -18,7 +18,7 @@ def roster():
                             "last_hits": {"600": 20}, "camps_stacked": {"1200": 0}},
             "events": {"dead_intervals": [], "dead_intervals_complete": True, "wards": []},
             "achievement_source": {"observer_kills": 0, "disable_seconds": 0,
-                                   "hero_kill_times": []},
+                                   "hero_kill_times": [], "death_times": []},
             "match": {"radiant_gold_advantage": {str(m * 60): 0 for m in range(31)}},
         })
     return rows
@@ -130,7 +130,12 @@ def test_catalog_and_validated_opendota_source_shape():
                         "kills_log": [{"time": 4, "key": "npc_dota_hero_axe"},
                                       {"time": 5, "key": "npc_dota_observer_wards"}]}]}
     source = _achievement_source(raw, "opendota", 0)
-    assert source == {"observer_kills": 2, "disable_seconds": 120.5, "hero_kill_times": [4]}
+    assert source == {"observer_kills": 2, "disable_seconds": 120.5, "hero_kill_times": [4],
+                      "death_times": None}  # no deaths_log: withheld, never zero
+    raw["players"][0].update(deaths=2, deaths_log=[{"time": 30}, {"time": 700, "time_dead": None}])
+    assert _achievement_source(raw, "opendota", 0)["death_times"] == [30, 700]
+    raw["players"][0]["deaths"] = 3  # summary disagrees with the log
+    assert _achievement_source(raw, "opendota", 0)["death_times"] is None
     raw["players"][0]["observer_kills"] = 3
     assert _achievement_source(raw, "opendota", 0)["observer_kills"] is None
     assert _gold_advantage({"radiant_gold_adv": [0, -200, -300]}, "opendota", 120) == {"0": 0, "60": -200, "120": -300}
@@ -193,3 +198,14 @@ def test_frozen_rule_artifact_is_pinned():
     # Any threshold or repeat-list change must bump RULE_VERSION and this digest together.
     assert rules_digest() == (
         "a0094c3fe8f5c776ad5e0f3e946bdb11690bed3621f0677c871041e438605fe4")
+
+
+def test_early_duelist_needs_complete_death_times_not_respawn_durations():
+    rows = roster()
+    rows[0]["achievement_source"].update(hero_kill_times=[100, 500], death_times=[700])
+    assert 18 in earned(rows)[0]
+    rows[0]["achievement_source"]["death_times"] = [550]
+    assert 18 not in earned(rows)[0]
+    rows[0]["achievement_source"]["death_times"] = None
+    ids, result = earned(rows)
+    assert 18 not in ids and 18 not in result["evaluable_ids"]

@@ -255,13 +255,13 @@
           "progress": null,
           "proof_template": "Before 10:00: {kills_before_10} kills, {deaths_before_10} deaths.",
           "rarity": {
-            "denominator": 358,
-            "numerator": 42,
+            "denominator": 4069,
+            "numerator": 432,
             "provisional": true,
-            "rate": 0.117318436,
-            "source": "DISCOVERY",
+            "rate": 0.106168592,
+            "source": "CORPUS",
             "tier": "RARE",
-            "version": "local-standard-estimate-1"
+            "version": "local-standard-estimate-2"
           },
           "roles": [
             "CARRY",
@@ -412,13 +412,13 @@
           "progress": null,
           "proof_template": "Stacks at 20:00: {stacks_at_20}; kill involvement: {kill_involvement}.",
           "rarity": {
-            "denominator": 254,
-            "numerator": 10,
+            "denominator": 1876,
+            "numerator": 74,
             "provisional": true,
-            "rate": 0.039370079,
-            "source": "HOLDOUT",
+            "rate": 0.039445629,
+            "source": "CORPUS",
             "tier": "EPIC",
-            "version": "local-standard-estimate-1"
+            "version": "local-standard-estimate-2"
           },
           "roles": [
             "SUPPORT"
@@ -752,13 +752,13 @@
           "progress": null,
           "proof_template": "Sebelum 10:00: {kills_before_10} kill, {deaths_before_10} kematian.",
           "rarity": {
-            "denominator": 358,
-            "numerator": 42,
+            "denominator": 4069,
+            "numerator": 432,
             "provisional": true,
-            "rate": 0.117318436,
-            "source": "DISCOVERY",
+            "rate": 0.106168592,
+            "source": "CORPUS",
             "tier": "RARE",
-            "version": "local-standard-estimate-1"
+            "version": "local-standard-estimate-2"
           },
           "roles": [
             "CARRY",
@@ -909,13 +909,13 @@
           "progress": null,
           "proof_template": "Stack pada 20:00: {stacks_at_20}; keterlibatan kill: {kill_involvement}.",
           "rarity": {
-            "denominator": 254,
-            "numerator": 10,
+            "denominator": 1876,
+            "numerator": 74,
             "provisional": true,
-            "rate": 0.039370079,
-            "source": "HOLDOUT",
+            "rate": 0.039445629,
+            "source": "CORPUS",
             "tier": "EPIC",
-            "version": "local-standard-estimate-1"
+            "version": "local-standard-estimate-2"
           },
           "roles": [
             "SUPPORT"

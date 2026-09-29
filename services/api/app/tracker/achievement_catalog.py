@@ -36,23 +36,21 @@ COPY: dict[int, tuple[str, ...]] = {
     50: ("Control Specialist", "Spesialis Kendali", "Substantial recorded hero-disable time and many assists.", "Durasi disable hero tercatat yang besar dan banyak assist.", "Control enemy heroes for long periods and contribute assists.", "Kendalikan hero lawan dalam waktu lama dan raih assist.", "Recorded disable seconds: {disable_seconds}; assists: {assists}.", "Detik disable tercatat: {disable_seconds}; assist: {assists}."),
 }
 
-# Frozen v1 rules evaluated on eligible Standard player-matches. The 960-match
-# holdout lacks networth_t and deaths_log, so those five rates use the smaller
-# parsed Standard discovery set. Both samples are selected; all labels remain
-# provisional and should be replaced by a reviewed production snapshot.
+# Frozen v1 rules evaluated on eligible Standard player-matches, with evaluable-only
+# denominators, from 1,511 unique parsed Standard matches (2025-08 to 2026-09-29):
+# the authorized local research corpus plus 1,026 recently parsed matches fetched from
+# OpenDota for net-worth and death-log fields. A selected sample, not the population;
+# tiers stay provisional. Review: evidence/achievement-threshold-review-2026-09-29.md.
 RATE_COUNTS: dict[int, tuple[int, int, str]] = {
-    6: (2, 118, "DISCOVERY"), 8: (7, 236, "DISCOVERY"),
-    10: (7, 354, "DISCOVERY"), 11: (13, 117, "DISCOVERY"),
-    13: (109, 7110, "HOLDOUT"), 14: (51, 7360, "HOLDOUT"),
-    15: (40, 7360, "HOLDOUT"), 17: (146, 7169, "HOLDOUT"),
-    18: (42, 358, "DISCOVERY"), 20: (736, 4416, "HOLDOUT"),
-    22: (726, 4416, "HOLDOUT"), 23: (219, 4416, "HOLDOUT"),
-    25: (195, 4416, "HOLDOUT"), 37: (226, 2943, "HOLDOUT"),
-    41: (10, 254, "HOLDOUT"), 42: (468, 2844, "HOLDOUT"),
-    44: (140, 1448, "HOLDOUT"), 45: (24, 2896, "HOLDOUT"),
-    49: (274, 2944, "HOLDOUT"), 50: (224, 2943, "HOLDOUT"),
+    6: (33, 830, "CORPUS"), 8: (46, 1660, "CORPUS"), 10: (79, 2490, "CORPUS"),
+    11: (51, 834, "CORPUS"), 13: (202, 11200, "CORPUS"), 14: (97, 11600, "CORPUS"),
+    15: (67, 11600, "CORPUS"), 17: (225, 11398, "CORPUS"), 18: (432, 4069, "CORPUS"),
+    20: (1121, 6960, "CORPUS"), 22: (1045, 6960, "CORPUS"), 23: (359, 6960, "CORPUS"),
+    25: (215, 5034, "CORPUS"), 37: (301, 4639, "CORPUS"), 41: (74, 1876, "CORPUS"),
+    42: (720, 4480, "CORPUS"), 44: (226, 2282, "CORPUS"), 45: (50, 4564, "CORPUS"),
+    49: (383, 4640, "CORPUS"), 50: (313, 4634, "CORPUS"),
 }
-RARITY_VERSION = "local-standard-estimate-1"
+RARITY_VERSION = "local-standard-estimate-2"
 
 
 def rarity(ident: int) -> dict[str, Any] | None:

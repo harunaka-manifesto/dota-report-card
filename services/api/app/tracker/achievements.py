@@ -173,7 +173,6 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
     events = player.get("events", {})
     source = player.get("achievement_source", {})
     kill_events = source.get("hero_kill_times") if isinstance(source, dict) else None
-    death_intervals = events.get("dead_intervals") if isinstance(events, dict) else None
     if isinstance(kill_events, list) and all(type(t_) is int for t_ in kill_events) and not _conflict(quarantined, {slot}, {"events", "kills"}):
         n, window = T[17]["kills"], T[17]["window_seconds"]
         times = sorted(x for x in kill_events if 0 <= x <= duration)
@@ -181,10 +180,11 @@ def evaluate_match(*, features: list[dict[str, Any]], slot: int, role: str,
                    if times[i + n - 1] - times[i] <= window]
         check(17, {"first_kill_seconds": windows[0][0], "fifth_kill_seconds": windows[0][1]}
               if windows else {"timed_kill_count": len(times)}, bool(windows))
-        if isinstance(death_intervals, list) and events.get("dead_intervals_complete") is True:
+        death_times = source.get("death_times") if isinstance(source, dict) else None
+        if isinstance(death_times, list) and all(type(x) is int for x in death_times):
             t = T[18]
             early = [x for x in times if x < t["before_seconds"]]
-            early_deaths = sum(1 for e in death_intervals if 0 <= e["start"] < t["before_seconds"])
+            early_deaths = sum(1 for x in death_times if 0 <= x < t["before_seconds"])
             check(18, {"kills_before_10": len(early), "deaths_before_10": early_deaths},
                   len(early) >= t["kills_min"] and early_deaths <= t["deaths_max"])
 

@@ -38,10 +38,10 @@ FEATURE_VERSION = "tracker-features-5"
 def _achievement_source(raw: Mapping[str, Any], provider: Provider, slot: int) -> dict[str, Any]:
     """Retain only OpenDota counters whose attribution is needed for awards."""
     if provider != "opendota":
-        return {"observer_kills": None, "disable_seconds": None, "hero_kill_times": None}
+        return {"observer_kills": None, "disable_seconds": None, "hero_kill_times": None, "death_times": None}
     row = raw["players"][slot]
     if row.get("player_slot") != (slot if slot < 5 else slot + 123):
-        return {"observer_kills": None, "disable_seconds": None, "hero_kill_times": None}
+        return {"observer_kills": None, "disable_seconds": None, "hero_kill_times": None, "death_times": None}
     observer = row.get("observer_kills")
     stuns = row.get("stuns")
     killed = row.get("killed")
@@ -55,12 +55,21 @@ def _achievement_source(raw: Mapping[str, Any], provider: Provider, slot: int) -
     if (hero_kill_times is not None and (type(row.get("kills")) is not int
             or len(hero_kill_times) > row["kills"])):
         hero_kill_times = None
+    # Death start times need only `time`; the later `time_dead` gaps in recent parses do not
+    # affect them. Any count mismatch or malformed entry withholds the whole list.
+    death_log = row.get("deaths_log")
+    death_times = ([event["time"] for event in death_log]
+                   if isinstance(death_log, list) and type(row.get("deaths")) is int
+                   and len(death_log) == row["deaths"] and all(
+                       isinstance(event, Mapping) and type(event.get("time")) is int
+                       and event["time"] >= 0 for event in death_log) else None)
     # OpenDota counts credited observer kills and seconds of hero disable.
     # A missing or malformed counter cannot be interpreted as zero.
     return {
         "observer_kills": observer if type(observer) is int and observer >= 0 and observer == credited else None,
         "disable_seconds": stuns if type(stuns) in {int, float} and 0 <= stuns < 10**6 else None,
         "hero_kill_times": hero_kill_times,
+        "death_times": death_times,
     }
 
 
