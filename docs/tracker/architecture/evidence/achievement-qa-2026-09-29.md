@@ -1,5 +1,7 @@
 # Achievements backend QA — merged report (2026-09-29)
 
+> **Status (2026-09-29):** this is the independent QA report as delivered against `52d2c83`. Its findings were addressed in `dc25fe5` (see the ledger entry "Independent QA fixes"); the performance item (#15) remains an open pre-launch condition and the LOW/NIT items not listed there were left as is. Kept as evidence, not as current truth: see [`../../achievements/SSOT.md`](../../achievements/SSOT.md).
+
 - Branch: `codex/achievements-backend`, base 3b7c30d, head 52d2c83. The head did not change during the review.
 - Eight independent tracks (A–H) reviewed the branch. Nothing was fixed, committed, merged or deployed.
 - Provider traffic: 0 OpenDota calls, 0 STRATZ calls, 0 parse requests.
