@@ -22,7 +22,7 @@ report product; legacy tables, routes and retention are untouched.
 | Rebuilds | `role_correction.py`, `rebuild.py` (scope, methodology/parameter set, late re-admission) |
 | Entitlement above data | `scope.py` (the only entitled-history filter), `entitlement.py`, `app_store.py`, `store_api.py` |
 | Identity and lifecycle | `authentication.py`, `steam_identity.py`, `account_lifecycle.py` |
-| Product projections | `profile.py`, `profile_claims.py`, `shares.py`, `coverage.py`, `notifications.py` |
+| Product projections | `profile.py`, `profile_claims.py`, `shares.py`, `coverage.py`, `notifications.py`, `activity.py`, `hero_pool.py`, `match_list.py` (play sessions, placeholder names, search), `hero_references.py` (hero names for search) |
 | Boundaries | `mobile_api.py` (`/mobile/v1`), `store_api.py` (`/store`), `operations.py` (`/internal/tracker`) |
 
 ## Invariants the code relies on

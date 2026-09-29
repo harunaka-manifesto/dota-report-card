@@ -15,14 +15,14 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError, available_timezones
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, Field, JsonValue
+from pydantic import BaseModel, Field, JsonValue, field_validator
 from redis import Redis
-from sqlalchemy import Connection, Engine, and_, func, or_, select, text, true
+from sqlalchemy import Connection, Engine, and_, func, or_, select, text, true, tuple_
 from sqlalchemy.dialects.postgresql import insert
 
 from app.core.config import Settings
 from app.storage.database import create_database_engine
-from app.tracker import activity, hero_pool
+from app.tracker import activity, hero_pool, match_list
 from app.tracker.account_lifecycle import (
     AccountLifecycleError,
     request_account_deletion,
@@ -85,6 +85,7 @@ from app.tracker.schema import (
     matches,
     metric_observations,
     personal_bests,
+    play_session_names,
     positions,
     profile_states,
     profiles,
@@ -669,6 +670,66 @@ class HeroPoolView(BaseModel):
     today: date_type
     partial_ranges: list[ActivityPartialRangeView]
     roles: list[HeroPoolRoleView]
+
+
+class MatchListRow(BaseModel):
+    """History §4 identity row plus plain K/D/A; never a per-metric state or composite (matches/SSOT.md §2)."""
+    ref: str
+    mode: Mode
+    started_at: datetime
+    duration_seconds: int | None
+    hero_id: int
+    role: Role | None
+    won: bool | None
+    kills: int | None
+    deaths: int | None
+    assists: int | None
+    lifecycle: Lifecycle
+    progression: Literal["STANDARD", "TURBO", "NONE"] | None
+    progression_reason: str | None
+    has_insight_cards: bool
+    owns_personal_best: bool
+
+
+class PlaySessionHeaderView(BaseModel):
+    """Whole-session facts, independent of the list's filters and search."""
+    session_ref: str
+    name: str
+    name_is_custom: bool
+    local_date: date_type
+    started_at: datetime
+    ended_at: datetime
+    wins: int
+    losses: int
+    match_count: int
+
+
+class PlaySessionView(PlaySessionHeaderView):
+    matches: list[MatchListRow]
+
+
+class MatchListView(BaseModel):
+    """Standard and Turbo matches grouped into play sessions; presentation only (matches/SSOT.md)."""
+    contract_version: Literal["matches-list-v1"] = match_list.CONTRACT
+    time_zone: str
+    has_matches: bool
+    sessions: list[PlaySessionView]
+    next_cursor: str | None
+
+
+class PlaySessionNameRequest(BaseModel):
+    """None restores the placeholder name."""
+    name: str | None = Field(default=None, max_length=200)
+
+    @field_validator("name")
+    @classmethod
+    def _clean(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = " ".join(value.split())
+        if not value or len(value) > match_list.NAME_MAX or not value.isprintable():
+            raise ValueError("SESSION_NAME_INVALID")
+        return value
 
 
 class HomeView(BaseModel):
@@ -1344,6 +1405,83 @@ def _counted(profile: Any) -> Any:
     return and_(account_matches.c.profile_id == profile["id"], _visible(profile),
                 account_matches.c.lifecycle == "READY",
                 account_matches.c.mode.in_(("STANDARD", "TURBO")))
+
+
+def _play_rows(connection: Connection, profile: Any) -> list[Any]:
+    """Every visible Standard and Turbo link; unsupported modes never show or bridge sessions."""
+    return list(connection.execute(select(
+        account_matches.c.match_id, account_matches.c.public_ref, account_matches.c.provider_started_at,
+        account_matches.c.provider_source_match_id, account_matches.c.player_slot, account_matches.c.mode,
+        account_matches.c.effective_role, account_matches.c.lifecycle, account_matches.c.progression,
+        account_matches.c.progression_reason, account_matches.c.active_analysis_id,
+        matches.c.duration_seconds, matches.c.radiant_win, match_players.c.hero_id,
+    ).select_from(account_matches.join(matches, matches.c.match_id == account_matches.c.match_id).join(
+        match_players, (match_players.c.match_id == account_matches.c.match_id) &
+        (match_players.c.player_slot == account_matches.c.player_slot),
+    )).where(account_matches.c.profile_id == profile["id"], _visible(profile),
+             account_matches.c.mode.in_(("STANDARD", "TURBO")))).mappings())
+
+
+def _fact(row: Any) -> match_list.Fact:
+    won = None if row["radiant_win"] is None else row["radiant_win"] == (row["player_slot"] < 5)
+    return match_list.Fact(ref=row["public_ref"], started_at=row["provider_started_at"],
+                           source_id=row["provider_source_match_id"], duration_seconds=row["duration_seconds"],
+                           hero_id=row["hero_id"], role=row["effective_role"], mode=row["mode"], won=won)
+
+
+def _play_sessions(connection: Connection, profile: Any, zone: ZoneInfo,
+                   rows: list[Any]) -> list[tuple[PlaySessionHeaderView, list[Any]]]:
+    """Newest first; each session's rows newest first, with its custom or placeholder name."""
+    by_ref = {row["public_ref"]: row for row in rows}
+    names = {row.match_id: (row.name, row.updated_at) for row in connection.execute(select(
+        play_session_names.c.match_id, play_session_names.c.name, play_session_names.c.updated_at,
+    ).where(play_session_names.c.profile_id == profile["id"]))}
+    result = []
+    for members in reversed(match_list.sessions(_fact(row) for row in rows)):
+        member_rows = [by_ref[fact.ref] for fact in members]
+        # A merge (a late match bridging two sessions) keeps the most recently chosen name.
+        custom = max((names[row["match_id"]] for row in member_rows if row["match_id"] in names),
+                     key=lambda item: item[1], default=None)
+        head = PlaySessionHeaderView.model_validate({
+            "session_ref": members[0].ref,
+            "name": custom[0] if custom else match_list.placeholder_name(members, zone),
+            "name_is_custom": custom is not None,
+            "local_date": members[0].started_at.astimezone(zone).date(),
+            **match_list.header(members)})
+        result.append((head, list(reversed(member_rows))))
+    return result
+
+
+def _list_rows(connection: Connection, rows: list[Any]) -> dict[int, MatchListRow]:
+    """Page rows with K/D/A, insight and PB markers in three batched reads."""
+    if not rows:
+        return {}
+    summaries = {row.match_id: row.summary for row in connection.execute(select(
+        match_players.c.match_id, match_players.c.summary,
+    ).where(tuple_(match_players.c.match_id, match_players.c.player_slot).in_(
+        [(row["match_id"], row["player_slot"]) for row in rows])))}
+    analysis_ids = [row["active_analysis_id"] for row in rows if row["active_analysis_id"]]
+    carded = set(connection.scalars(select(insight_results.c.analysis_id).where(
+        insight_results.c.analysis_id.in_(analysis_ids),
+        func.jsonb_array_length(insight_results.c.cards) > 0,
+    ))) if analysis_ids else set()
+    owning = set(connection.scalars(select(personal_bests.c.analysis_id).join(
+        profiles, (profiles.c.id == personal_bests.c.profile_id)
+        & (profiles.c.active_revision == personal_bests.c.revision)).where(
+        personal_bests.c.analysis_id.in_(analysis_ids)))) if analysis_ids else set()
+    views = {}
+    for row in rows:
+        fact = _fact(row)
+        values = (summaries.get(row["match_id"]) or {}).get("values", {})
+        views[row["match_id"]] = MatchListRow(
+            ref=row["public_ref"], mode=row["mode"], started_at=row["provider_started_at"],
+            duration_seconds=row["duration_seconds"], hero_id=row["hero_id"], role=row["effective_role"],
+            won=fact.won, kills=values.get("kills"), deaths=values.get("deaths"), assists=values.get("assists"),
+            lifecycle=_lifecycle(row["lifecycle"]), progression=row["progression"],
+            progression_reason=row["progression_reason"],
+            has_insight_cards=row["active_analysis_id"] in carded,
+            owns_personal_best=row["active_analysis_id"] in owning)
+    return views
 
 
 def _bootstrap_partial(connection: Connection, profile: Any, zone: ZoneInfo, start: date_type,
@@ -2141,6 +2279,112 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             return HeroPoolView(time_zone=time_zone, today=today, partial_ranges=partial,
                                 roles=[HeroPoolRoleView.model_validate(role)
                                        for role in hero_pool.build_roles(rows, today)])
+
+    @app.get("/matches", response_model=MatchListView)
+    async def match_list_view(
+        request: Request, owner: Annotated[str, Depends(_user)], time_zone: str,
+        q: Annotated[str | None, Query(max_length=match_list.QUERY_MAX)] = None,
+        hero: Annotated[list[int], Query(max_length=10)] = [],  # noqa: B006 (FastAPI query list)
+        role: Role | None = None, mode: Mode | None = None,
+        from_date: Annotated[date_type | None, Query(alias="from")] = None,
+        to_date: Annotated[date_type | None, Query(alias="to")] = None,
+        cursor: str | None = None, limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    ) -> MatchListView:
+        """Every visible Standard and Turbo match, newest first, grouped into play sessions.
+
+        Sessions are derived from the whole visible history, so filters and search narrow rows
+        but never change a session's identity, name or header (matches/SSOT.md §3).
+        """
+        zone = _zone(time_zone)
+        if any(not 0 < hero_id < 1000 for hero_id in hero):
+            raise HTTPException(400, "HERO_INVALID")
+        if from_date is not None and to_date is not None and from_date > to_date:
+            raise HTTPException(400, "DATE_RANGE_INVALID")
+        lower = activity.utc_bounds(from_date, from_date, zone)[0] if from_date is not None else None
+        upper = activity.utc_bounds(to_date, to_date, zone)[1] if to_date is not None else None
+        terms = match_list.parse_query(q)
+        heroes = frozenset(hero)
+        scope = canonical_json({
+            "q": [term.text for term in terms], "hero": sorted(heroes), "role": role, "mode": mode,
+            "from": from_date.isoformat() if from_date else None,
+            "to": to_date.isoformat() if to_date else None, "time_zone": time_zone,
+        })
+        digest = hashlib.sha256(scope).hexdigest()[:16]
+        key = _cursor_key(request)
+        with _engine(request).connect() as connection:
+            profile = _active_profile(connection, owner)
+            if profile is None:
+                return MatchListView(time_zone=time_zone, has_matches=False, sessions=[], next_cursor=None)
+
+            revision = profile["active_revision"]
+
+            def sign(ref: str) -> str:
+                return f"{ref}.{_mac(key, profile['id'], f'matches:{ref}:{revision}:{digest}')}"
+
+            rows = _play_rows(connection, profile)
+            listed = [(head, row) for head, members in _play_sessions(connection, profile, zone, rows)
+                      for row in members
+                      if (not heroes or row["hero_id"] in heroes)
+                      and (role is None or row["effective_role"] == role.value)
+                      and (mode is None or row["mode"] == mode.value)
+                      and (lower is None or row["provider_started_at"] >= lower)
+                      and (upper is None or row["provider_started_at"] < upper)
+                      and match_list.matches_query(terms, _fact(row), head.name)]
+            if cursor is not None:
+                ref = cursor.split(".")[0]
+                anchor = next((row for row in rows if row["public_ref"] == ref), None)
+                if anchor is None or not hmac.compare_digest(cursor, sign(ref)):
+                    raise HTTPException(400, "CURSOR_INVALID")
+                after = (anchor["provider_started_at"], anchor["provider_source_match_id"])
+                listed = [(head, row) for head, row in listed
+                          if (row["provider_started_at"], row["provider_source_match_id"]) < after]
+            page = listed[:limit]
+            views = _list_rows(connection, [row for _, row in page])
+            grouped: list[PlaySessionView] = []
+            for head, row in page:
+                if not grouped or grouped[-1].session_ref != head.session_ref:
+                    grouped.append(PlaySessionView(**head.model_dump(), matches=[]))
+                grouped[-1].matches.append(views[row["match_id"]])
+            return MatchListView(time_zone=time_zone, has_matches=bool(rows), sessions=grouped,
+                                 next_cursor=sign(page[-1][1]["public_ref"]) if len(listed) > limit else None)
+
+    @app.post("/matches/sessions/{session_ref}/name", response_model=PlaySessionHeaderView)
+    async def rename_play_session(
+        request: Request, session_ref: str, body: PlaySessionNameRequest,
+        owner: Annotated[str, Depends(_user)], time_zone: str,
+        idempotency_key: Annotated[str, Header(min_length=8, max_length=200)],
+    ) -> PlaySessionHeaderView:
+        """Name a play session by its first match; null restores the placeholder."""
+        zone = _zone(time_zone)
+
+        def session(connection: Connection, profile: Any) -> tuple[PlaySessionHeaderView, list[Any]]:
+            found = next(((head, members) for head, members in _play_sessions(
+                connection, profile, zone, _play_rows(connection, profile)) if head.session_ref == session_ref), None)
+            if found is None:
+                raise HTTPException(404, "SESSION_NOT_FOUND")
+            return found
+
+        with _engine(request).begin() as connection:
+            profile = _active_profile(connection, owner)
+            if profile is None:
+                raise HTTPException(409, "STEAM_LINK_REQUIRED")
+            _, members = session(connection, profile)
+
+            def publish() -> dict[str, object]:
+                # One label per session, on its first match; presentation only.
+                connection.execute(play_session_names.delete().where(
+                    play_session_names.c.profile_id == profile["id"],
+                    play_session_names.c.match_id.in_([row["match_id"] for row in members])))
+                if body.name is not None:
+                    connection.execute(play_session_names.insert().values(
+                        profile_id=profile["id"], match_id=members[-1]["match_id"], name=body.name,
+                        updated_at=func.clock_timestamp()))
+                return {"session_ref": session_ref, "name": body.name}
+
+            _idempotent(connection, owner=owner, operation="PLAY_SESSION_NAME", key=idempotency_key,
+                        body={"session_ref": session_ref, "name": body.name}, publish=publish)
+        with _engine(request).connect() as connection:
+            return session(connection, _active_profile(connection, owner))[0]
 
     @app.get("/coverage", response_model=CoverageView)
     async def coverage_status(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode) -> CoverageView:

@@ -1,6 +1,6 @@
 # History — SSOT
 
-**Status:** ACTIVE — feature contract
+**Status:** ACTIVE — feature contract. The iOS Matches page ([`../matches/SSOT.md`](../matches/SSOT.md), `matches-list-v1`) replaces this surface. It amends two rules on that page: unsupported-mode matches are hidden (§2), and a row may show plain K/D/A numbers (§4).
 **Scope:** The chronological record of retained matches: browsing, scanning, filtering, and navigating into individual matches.
 **Inherits:** [`../app_foundation/SSOT.md`](../app_foundation/SSOT.md).
 
@@ -86,7 +86,8 @@ A row MAY carry:
 - date/time and duration;
 - lifecycle state when not READY;
 - progression ineligibility with its reason;
-- a minimal signal that per-match detail exists (for example, that insight cards are present).
+- a minimal signal that per-match detail exists (for example, that insight cards are present);
+- on the Matches page only, plain kills / deaths / assists numbers, with no ratio, colouring or comparison (owner decision 2026-09-29).
 
 A row MUST NOT carry:
 

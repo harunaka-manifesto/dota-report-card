@@ -535,6 +535,21 @@ events = Table(
     Column("payload", JSONB, nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
 )
+play_session_names = Table(
+    "tracker_play_session_names",
+    metadata,
+    Column("profile_id", String(36), primary_key=True),
+    Column("match_id", BigInteger, primary_key=True),
+    Column("name", String(40), nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+    # A player-chosen label on the play session's first match; presentation only (matches/SSOT.md §3).
+    ForeignKeyConstraint(
+        ["profile_id", "match_id"],
+        [account_matches.c.profile_id, account_matches.c.match_id],
+        ondelete="CASCADE",
+    ),
+    CheckConstraint("char_length(name) BETWEEN 1 AND 40", name="ck_tracker_play_session_name"),
+)
 mastery_ledger = Table(
     "tracker_mastery_ledger",
     metadata,

@@ -2244,6 +2244,194 @@
         "title": "MatchDetailView",
         "type": "object"
       },
+      "MatchListRow": {
+        "description": "History \u00a74 identity row plus plain K/D/A; never a per-metric state or composite (matches/SSOT.md \u00a72).",
+        "properties": {
+          "assists": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assists"
+          },
+          "deaths": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deaths"
+          },
+          "duration_seconds": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Seconds"
+          },
+          "has_insight_cards": {
+            "title": "Has Insight Cards",
+            "type": "boolean"
+          },
+          "hero_id": {
+            "title": "Hero Id",
+            "type": "integer"
+          },
+          "kills": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kills"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/Lifecycle"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "owns_personal_best": {
+            "title": "Owns Personal Best",
+            "type": "boolean"
+          },
+          "progression": {
+            "anyOf": [
+              {
+                "enum": [
+                  "STANDARD",
+                  "TURBO",
+                  "NONE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progression"
+          },
+          "progression_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progression Reason"
+          },
+          "ref": {
+            "title": "Ref",
+            "type": "string"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "won": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Won"
+          }
+        },
+        "required": [
+          "ref",
+          "mode",
+          "started_at",
+          "duration_seconds",
+          "hero_id",
+          "role",
+          "won",
+          "kills",
+          "deaths",
+          "assists",
+          "lifecycle",
+          "progression",
+          "progression_reason",
+          "has_insight_cards",
+          "owns_personal_best"
+        ],
+        "title": "MatchListRow",
+        "type": "object"
+      },
+      "MatchListView": {
+        "description": "Standard and Turbo matches grouped into play sessions; presentation only (matches/SSOT.md).",
+        "properties": {
+          "contract_version": {
+            "const": "matches-list-v1",
+            "default": "matches-list-v1",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "has_matches": {
+            "title": "Has Matches",
+            "type": "boolean"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/PlaySessionView"
+            },
+            "title": "Sessions",
+            "type": "array"
+          },
+          "time_zone": {
+            "title": "Time Zone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "time_zone",
+          "has_matches",
+          "sessions",
+          "next_cursor"
+        ],
+        "title": "MatchListView",
+        "type": "object"
+      },
       "MatchSummary": {
         "properties": {
           "hero_id": {
@@ -2851,6 +3039,146 @@
           "value"
         ],
         "title": "PersonalBestView",
+        "type": "object"
+      },
+      "PlaySessionHeaderView": {
+        "description": "Whole-session facts, independent of the list's filters and search.",
+        "properties": {
+          "ended_at": {
+            "format": "date-time",
+            "title": "Ended At",
+            "type": "string"
+          },
+          "local_date": {
+            "format": "date",
+            "title": "Local Date",
+            "type": "string"
+          },
+          "losses": {
+            "title": "Losses",
+            "type": "integer"
+          },
+          "match_count": {
+            "title": "Match Count",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "name_is_custom": {
+            "title": "Name Is Custom",
+            "type": "boolean"
+          },
+          "session_ref": {
+            "title": "Session Ref",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "wins": {
+            "title": "Wins",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_ref",
+          "name",
+          "name_is_custom",
+          "local_date",
+          "started_at",
+          "ended_at",
+          "wins",
+          "losses",
+          "match_count"
+        ],
+        "title": "PlaySessionHeaderView",
+        "type": "object"
+      },
+      "PlaySessionNameRequest": {
+        "description": "None restores the placeholder name.",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "PlaySessionNameRequest",
+        "type": "object"
+      },
+      "PlaySessionView": {
+        "properties": {
+          "ended_at": {
+            "format": "date-time",
+            "title": "Ended At",
+            "type": "string"
+          },
+          "local_date": {
+            "format": "date",
+            "title": "Local Date",
+            "type": "string"
+          },
+          "losses": {
+            "title": "Losses",
+            "type": "integer"
+          },
+          "match_count": {
+            "title": "Match Count",
+            "type": "integer"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/MatchListRow"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "name_is_custom": {
+            "title": "Name Is Custom",
+            "type": "boolean"
+          },
+          "session_ref": {
+            "title": "Session Ref",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "wins": {
+            "title": "Wins",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "session_ref",
+          "name",
+          "name_is_custom",
+          "local_date",
+          "started_at",
+          "ended_at",
+          "wins",
+          "losses",
+          "match_count",
+          "matches"
+        ],
+        "title": "PlaySessionView",
         "type": "object"
       },
       "PlayerFacts": {
@@ -5246,6 +5574,251 @@
           }
         ],
         "summary": "Mastery Awards"
+      }
+    },
+    "/matches": {
+      "get": {
+        "description": "Every visible Standard and Turbo match, newest first, grouped into play sessions.\n\nSessions are derived from the whole visible history, so filters and search narrow rows\nbut never change a session's identity, name or header (matches/SSOT.md \u00a73).",
+        "operationId": "match_list_view_matches_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "time_zone",
+            "required": true,
+            "schema": {
+              "title": "Time Zone",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hero",
+            "required": false,
+            "schema": {
+              "default": [],
+              "items": {
+                "type": "integer"
+              },
+              "maxItems": 10,
+              "title": "Hero",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "role",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Role"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Mode"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchListView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Match List View"
+      }
+    },
+    "/matches/sessions/{session_ref}/name": {
+      "post": {
+        "description": "Name a play session by its first match; null restores the placeholder.",
+        "operationId": "rename_play_session_matches_sessions__session_ref__name_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_ref",
+            "required": true,
+            "schema": {
+              "title": "Session Ref",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_zone",
+            "required": true,
+            "schema": {
+              "title": "Time Zone",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 8,
+              "title": "Idempotency-Key",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaySessionNameRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlaySessionHeaderView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Rename Play Session"
       }
     },
     "/matches/{match_ref}": {

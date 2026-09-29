@@ -2,6 +2,12 @@
 
 Operational evidence, not a product or architecture contract.
 
+## Matches list — 2026-09-29
+
+- `GET /mobile/v1/matches` (`matches-list-v1`) lists entitled Standard+Turbo matches grouped into play sessions (under 3 h from one match's end to the next start). It has keyword search, hero/role/mode/date filters and plain K/D/A. `POST /mobile/v1/matches/sessions/{ref}/name` renames a session. Owner decisions are in [`matches/SSOT.md`](../matches/SSOT.md). The composite up/down marker was dropped.
+- Migration `0018_tracker_play_session_names` adds one tracker-only table. `hero_references.py` (`hero-catalog-v1`) is a checked-in hero-name snapshot for search.
+- Computed on read, with batched page reads. There is no provider call and no legacy change. `/history` is unchanged.
+
 ## Hero pool — 2026-09-29
 
 - `GET /mobile/v1/hero-pool` (`hero-pool-v1`) returns each role's top 10 heroes over trailing 7, 30 and 365 local days, counting the same READY Standard+Turbo matches as the heatmap. Owner decisions are in [`hero_pool/SSOT.md`](../hero_pool/SSOT.md).

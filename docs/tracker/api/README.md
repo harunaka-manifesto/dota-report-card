@@ -60,6 +60,36 @@ ActivityView
 - The route reads persisted data only. It uses the entitled-history scope, has no mode filter, and gets the standard body ETag.
 - Cell drill-in: `GET /history?local_date=YYYY-MM-DD&time_zone=<IANA>&ready_only=true[&role=…]`. `local_date` requires `time_zone` (`400 TIME_ZONE_REQUIRED`); `time_zone` alone is ignored. The signed cursor is bound to the day filter.
 
+## Matches (`matches-list-v1`)
+
+`GET /mobile/v1/matches?time_zone=<IANA>[&q=…][&hero=…&hero=…][&role=…][&mode=STANDARD|TURBO][&from=YYYY-MM-DD][&to=YYYY-MM-DD][&cursor=…][&limit=1..50]` returns entitled Standard and Turbo matches, newest first, grouped into play sessions. Product rules are in [`matches/SSOT.md`](../matches/SSOT.md). It replaces `/history` for the Matches page; `/history` is unchanged until iOS migrates.
+
+```text
+MatchListView
+  contract_version: "matches-list-v1"
+  time_zone: string
+  has_matches: boolean                   // any listed match before filters and search
+  sessions: PlaySessionView[]            // only sessions on this page, newest first
+  next_cursor: string | null
+PlaySessionView
+  session_ref: string                    // ref of the session's first match
+  name: string                           // custom, or the placeholder in time_zone
+  name_is_custom: boolean
+  local_date: date                       // local day of the first match
+  started_at, ended_at: datetime         // first start, latest end
+  wins, losses, match_count: integer     // whole session, ignoring filters
+  matches: {ref, mode, started_at, duration_seconds | null, hero_id, role | null, won | null,
+            kills | null, deaths | null, assists | null, lifecycle, progression, progression_reason,
+            has_insight_cards, owns_personal_best}[]
+```
+
+- A session can continue on the next page. The client merges pages by `session_ref`. Header fields describe the whole session, so they never change with filters.
+- `q` is at most 100 characters. Every term must match the row's hero, role, mode or result, or the session's displayed name. `hero` repeats up to 10 times (`400 HERO_INVALID` for an id outside 1–999). `from`/`to` are inclusive local days (`400 DATE_RANGE_INVALID` when `from` > `to`). An unknown zone returns `400 TIME_ZONE_INVALID`.
+- The signed cursor is bound to the profile, its revision and every filter, search and time-zone value. Any change returns `400 CURSOR_INVALID`.
+- Reads persisted data only, uses the entitled-history scope, and gets the standard body ETag. Tapping a row opens `GET /matches/{ref}`.
+
+`POST /mobile/v1/matches/sessions/{session_ref}/name?time_zone=<IANA>` with `{"name": string | null}` and `Idempotency-Key` names a session, or restores its placeholder with `null`. The name is trimmed, internal whitespace is collapsed, and it must be 1–40 printable characters (`422` otherwise). It returns the session header without `matches`. A ref that is not the first match of a visible session returns `404 SESSION_NOT_FOUND`. With no linked profile it returns `409 STEAM_LINK_REQUIRED`.
+
 ## Hero pool (`hero-pool-v1`)
 
 `GET /mobile/v1/hero-pool?time_zone=<IANA>` returns each role's most played heroes over trailing 7, 30 and 365 local days, in one response. Product rules are in [`hero_pool/SSOT.md`](../hero_pool/SSOT.md).
