@@ -33,6 +33,67 @@ and its CI diff check are untouched. Resource design and state projections are s
 | Missing values | Nullable with a reason; a measured zero stays zero. Every block carries its own readiness. |
 | Text | Insight cards and claims are template IDs plus typed slots. Insight history lines are versioned annex wording and always state N. |
 
+## Role metric charts (`role-metric-history-v1`)
+
+`GET /mobile/v1/progress/roles/{role}?mode=STANDARD|TURBO&window=LAST_7_DAYS|LAST_30_DAYS|LAST_365_DAYS|ALL_TIME&time_zone=<IANA>[&cursor=…][&limit=1..500]`
+bundles the selected role's four canonical metric charts. Product rules are in
+[`progress/SSOT.md` §6A](../progress/SSOT.md#6a-role-metric-charts-owner-decision-2026-10-03).
+`role` is `CARRY|MID|OFFLANE|SUPPORT`. `mode`, `window` and `time_zone` are required;
+`limit` defaults to 200 and counts matches, not metric observations.
+
+```text
+RoleProgressView
+  contract_version: "role-metric-history-v1"
+  role, mode, window, time_zone
+  start_date: date | null                // all-time: earliest eligible track day, or null
+  end_date: date                         // today in time_zone; inclusive local-day bounds
+  scope: FREE|PRO
+  scope_revision: integer
+  state: STEAM_LINK_REQUIRED|UNSTARTED|AVAILABLE|REBUILDING
+  selected_window_match_count: integer | null // null while rebuilding
+  metrics: RoleProgressMetricView[]      // always the role's four metric IDs, sorted
+  next_cursor: string | null
+RoleProgressMetricView
+  metric_id, metric_version
+  unit: GOLD|COUNT|FRACTION|COUNT_PER_10_MINUTES
+  measured_count, unavailable_count: integer // whole selected window
+  latest: RoleProgressPoint | null       // latest measured point in the whole selected window
+  baseline: {state: BUILDING|READY|NOT_AVAILABLE, value: number | null, prior_count}
+  trend: {state: IMPROVING|STABLE|DECLINING|INSUFFICIENT_HISTORY | null,
+          reason: CALIBRATION_UNAVAILABLE | null, point_count}
+  personal_best: {match_ref, value, hero_id, achieved_at} | null
+  points: RoleProgressPoint[]
+RoleProgressPoint
+  match_ref, started_at, hero_id
+  state: MEASURED|NOT_AVAILABLE
+  raw_value, comparison_value: number | null
+  unavailable_reason: string | null
+  baseline: {state: BUILDING|READY|NOT_AVAILABLE, value: number | null, prior_count}
+```
+
+- Swift Charts uses `started_at` for x and `comparison_value` for y. `FRACTION` is a fraction
+  (0.25 means 25%); `COUNT_PER_10_MINUTES` already contains the normalized rate. Never derive
+  a value from `raw_value`, use zero for N/A, or turn a negative gold advantage into zero.
+- `latest` supplies the card number and its source match even if its point is on an older page.
+  `baseline`, `trend` and `personal_best` at metric level describe **full entitled history**;
+  `points[].baseline` describes that individual match's previous-only comparison context.
+- Pages select newest matches first and return points ascending, tied by stable match order.
+  Prepend older pages and merge by `match_ref`. Keep a loading/partial state until `next_cursor`
+  is null; pagination never silently downsamples or aggregates the per-match line.
+- Cursors reject profile/filter/period/scope/history changes with `400 CURSOR_INVALID`.
+  Refetch the first page after that error. A local midnight that changes the resolved window
+  also invalidates pagination. Unknown timezone names return `400 TIME_ZONE_INVALID`;
+  invalid enum values or limits return the standard validation problem (422).
+- Every period is available on Free and Pro; `scope` is the currently coherent active history
+  scope, which may remain Free while Pro history imports. All-time is known entitled data.
+  Neither a calendar gap nor inaccessible history produces a fabricated zero observation.
+- Mixed/outdated methodology or incomplete metric rows return `REBUILDING`, empty points,
+  unavailable baseline/PB/latest, and a null window count. An empty selected window on an
+  established track is `AVAILABLE` with count 0 and null latest values.
+- Uses persisted data only, one consistent database snapshot, account/profile isolation and
+  standard ETag/304 behavior. The original `/progress` endpoint is unchanged. New response
+  fixtures are in `tests/fixtures/tracker/role-metric-history-v1/`.
+
 ## Role Mastery
 
 `GET /mobile/v1/mastery` is reusable by Home, Profile and Progress. With the approved parameter set registered (migration `0017`), a fresh database serves `AVAILABLE` once a profile's entitled finalized matches have awards, and `BACKFILLING` while the one-time quiet backfill runs; the client should render `BACKFILLING` as a neutral "calculating" state. A parameter refresh never changes existing awards; totals change only through new matches, late replay bonuses, role corrections and entitlement display caps. It returns `STEAM_LINK_REQUIRED`, `CALIBRATION_PENDING`, `BACKFILLING`, or `AVAILABLE`; when available it has four role summaries and live in-app level milestones. A role is `UNSTARTED` before its first award. Free caps the visible level at 5, omits total XP, and hides within-level XP at the cap. Pro receives earned level and total XP.

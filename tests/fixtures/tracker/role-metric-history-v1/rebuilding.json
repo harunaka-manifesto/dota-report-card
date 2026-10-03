@@ -1,0 +1,96 @@
+{
+  "contract_version": "role-metric-history-v1",
+  "end_date": "<date>",
+  "metrics": [
+    {
+      "baseline": {
+        "prior_count": 0,
+        "state": "NOT_AVAILABLE",
+        "value": null
+      },
+      "latest": null,
+      "measured_count": 0,
+      "metric_id": "offlane.fight_presence.v1",
+      "metric_version": "v1",
+      "personal_best": null,
+      "points": [],
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      },
+      "unavailable_count": 0,
+      "unit": "FRACTION"
+    },
+    {
+      "baseline": {
+        "prior_count": 0,
+        "state": "NOT_AVAILABLE",
+        "value": null
+      },
+      "latest": null,
+      "measured_count": 0,
+      "metric_id": "offlane.lane_net_worth_advantage_at_10.v1",
+      "metric_version": "v1",
+      "personal_best": null,
+      "points": [],
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      },
+      "unavailable_count": 0,
+      "unit": "GOLD"
+    },
+    {
+      "baseline": {
+        "prior_count": 0,
+        "state": "NOT_AVAILABLE",
+        "value": null
+      },
+      "latest": null,
+      "measured_count": 0,
+      "metric_id": "offlane.net_worth_at_10.v1",
+      "metric_version": "v1",
+      "personal_best": null,
+      "points": [],
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      },
+      "unavailable_count": 0,
+      "unit": "GOLD"
+    },
+    {
+      "baseline": {
+        "prior_count": 0,
+        "state": "NOT_AVAILABLE",
+        "value": null
+      },
+      "latest": null,
+      "measured_count": 0,
+      "metric_id": "offlane.objective_involvement.v1",
+      "metric_version": "v1",
+      "personal_best": null,
+      "points": [],
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      },
+      "unavailable_count": 0,
+      "unit": "FRACTION"
+    }
+  ],
+  "mode": "STANDARD",
+  "next_cursor": null,
+  "role": "OFFLANE",
+  "scope": "FREE",
+  "scope_revision": 0,
+  "selected_window_match_count": null,
+  "start_date": "<date>",
+  "state": "REBUILDING",
+  "time_zone": "UTC",
+  "window": "ALL_TIME"
+}

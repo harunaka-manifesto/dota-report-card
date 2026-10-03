@@ -1,0 +1,111 @@
+{
+  "contract_version": "role-metric-history-v1",
+  "end_date": "<date>",
+  "metrics": [
+    {
+      "baseline": {
+        "prior_count": 16,
+        "state": "READY",
+        "value": 46.5
+      },
+      "latest": null,
+      "measured_count": 0,
+      "metric_id": "support.camps_stacked.v1",
+      "metric_version": "v1",
+      "personal_best": {
+        "achieved_at": "<datetime>",
+        "hero_id": 123,
+        "match_ref": "<ref:1>",
+        "value": 54.0
+      },
+      "points": [],
+      "trend": {
+        "point_count": 10,
+        "reason": "CALIBRATION_UNAVAILABLE",
+        "state": null
+      },
+      "unavailable_count": 0,
+      "unit": "COUNT"
+    },
+    {
+      "baseline": {
+        "prior_count": 16,
+        "state": "READY",
+        "value": 0.573529412
+      },
+      "latest": null,
+      "measured_count": 0,
+      "metric_id": "support.fight_presence.v1",
+      "metric_version": "v1",
+      "personal_best": {
+        "achieved_at": "<datetime>",
+        "hero_id": 123,
+        "match_ref": "<ref:1>",
+        "value": 0.573529412
+      },
+      "points": [],
+      "trend": {
+        "point_count": 10,
+        "reason": "CALIBRATION_UNAVAILABLE",
+        "state": null
+      },
+      "unavailable_count": 0,
+      "unit": "FRACTION"
+    },
+    {
+      "baseline": {
+        "prior_count": 16,
+        "state": "READY",
+        "value": 1.671774868
+      },
+      "latest": null,
+      "measured_count": 0,
+      "metric_id": "support.observer_wards_placed.v1",
+      "metric_version": "v1",
+      "personal_best": {
+        "achieved_at": "<datetime>",
+        "hero_id": 123,
+        "match_ref": "<ref:1>",
+        "value": 1.671774868
+      },
+      "points": [],
+      "trend": {
+        "point_count": 10,
+        "reason": "CALIBRATION_UNAVAILABLE",
+        "state": null
+      },
+      "unavailable_count": 0,
+      "unit": "COUNT_PER_10_MINUTES"
+    },
+    {
+      "baseline": {
+        "prior_count": 0,
+        "state": "NOT_AVAILABLE",
+        "value": null
+      },
+      "latest": null,
+      "measured_count": 0,
+      "metric_id": "support.vision_denial.v1",
+      "metric_version": "v1",
+      "personal_best": null,
+      "points": [],
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      },
+      "unavailable_count": 0,
+      "unit": "COUNT_PER_10_MINUTES"
+    }
+  ],
+  "mode": "STANDARD",
+  "next_cursor": null,
+  "role": "SUPPORT",
+  "scope": "FREE",
+  "scope_revision": 0,
+  "selected_window_match_count": 0,
+  "start_date": "<date>",
+  "state": "AVAILABLE",
+  "time_zone": "UTC",
+  "window": "LAST_7_DAYS"
+}

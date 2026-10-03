@@ -17,8 +17,20 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field, JsonValue, field_validator
 from redis import Redis
-from sqlalchemy import Connection, Engine, and_, func, or_, select, text, true, tuple_
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy import (
+    Connection,
+    Engine,
+    String,
+    and_,
+    func,
+    literal,
+    or_,
+    select,
+    text,
+    true,
+    tuple_,
+)
+from sqlalchemy.dialects.postgresql import aggregate_order_by, insert
 
 from app.core.config import Settings
 from app.storage.database import create_database_engine
@@ -50,6 +62,8 @@ from app.tracker.context import METRIC_CLASS
 from app.tracker.data_access import data_access_state, restore_access
 from app.tracker.entitlement import AppStoreVerifier, EntitlementError, submit_transaction
 from app.tracker.evidence import canonical_json
+from app.tracker.finalization import ANALYSIS_VERSION, FEATURE_VERSION
+from app.tracker.history import BASELINE_VERSION
 from app.tracker.mastery import (
     CURRENT_RULE,
     CURVE_VERSION,
@@ -58,7 +72,7 @@ from app.tracker.mastery import (
     mastery_state,
     role_total,
 )
-from app.tracker.metrics import METRICS
+from app.tracker.metrics import METRICS, metric_ids
 from app.tracker.profile import more_arriving
 from app.tracker.retry import retry_match
 from app.tracker.role_correction import (
@@ -71,6 +85,7 @@ from app.tracker.roles import RolePolicy
 from app.tracker.schema import (
     account_matches,
     analyses,
+    baselines,
     bootstrap,
     coverage,
     devices,
@@ -784,6 +799,59 @@ class ProgressView(BaseModel):
     trend: TrendView
 
 
+class ProgressWindow(StrEnum):
+    LAST_7_DAYS = "LAST_7_DAYS"
+    LAST_30_DAYS = "LAST_30_DAYS"
+    LAST_365_DAYS = "LAST_365_DAYS"
+    ALL_TIME = "ALL_TIME"
+
+
+class ProgressBaselineView(BaseModel):
+    state: Literal["BUILDING", "READY", "NOT_AVAILABLE"]
+    value: float | None
+    prior_count: int
+
+
+class RoleProgressPoint(BaseModel):
+    match_ref: str
+    started_at: datetime
+    hero_id: int
+    state: Literal["MEASURED", "NOT_AVAILABLE"]
+    raw_value: float | None
+    comparison_value: float | None
+    unavailable_reason: str | None
+    baseline: ProgressBaselineView
+
+
+class RoleProgressMetricView(BaseModel):
+    metric_id: str
+    metric_version: str
+    unit: Literal["GOLD", "COUNT", "FRACTION", "COUNT_PER_10_MINUTES"]
+    measured_count: int
+    unavailable_count: int
+    latest: RoleProgressPoint | None
+    baseline: ProgressBaselineView
+    trend: TrendView
+    personal_best: PersonalBestView | None
+    points: list[RoleProgressPoint]
+
+
+class RoleProgressView(BaseModel):
+    contract_version: Literal["role-metric-history-v1"] = "role-metric-history-v1"
+    role: Role
+    mode: Mode
+    window: ProgressWindow
+    time_zone: str
+    start_date: date_type | None
+    end_date: date_type
+    scope: Literal["FREE", "PRO"]
+    scope_revision: int
+    state: Literal["STEAM_LINK_REQUIRED", "UNSTARTED", "AVAILABLE", "REBUILDING"]
+    selected_window_match_count: int | None
+    metrics: list[RoleProgressMetricView]
+    next_cursor: str | None
+
+
 class MethodsView(BaseModel):
     methods: list[Literal["apple", "google", "email"]]
 
@@ -1351,6 +1419,171 @@ def _role_summaries(connection, profile, mode: str) -> list[RoleSummaryView]:
 
 
 DEVELOPMENT_CURSOR_SECRET = b"tracker-development-cursor-secret"
+
+
+def _progress_start(today: date_type, window: ProgressWindow) -> date_type | None:
+    days = dict(hero_pool.WINDOWS).get(window.value)
+    return today - timedelta(days=days - 1) if days is not None else None
+
+
+def _progress_unit(metric_id: str) -> Literal["GOLD", "COUNT", "FRACTION", "COUNT_PER_10_MINUTES"]:
+    if "net_worth" in metric_id:
+        return "GOLD"
+    if metric_id in {"support.observer_wards_placed.v1", "support.vision_denial.v1"}:
+        return "COUNT_PER_10_MINUTES"
+    if "last_hits" in metric_id or "camps_stacked" in metric_id:
+        return "COUNT"
+    return "FRACTION"
+
+
+def _progress_baseline(snapshot: Any) -> ProgressBaselineView:
+    return ProgressBaselineView(
+        state="READY" if snapshot.get("value") is not None else "BUILDING",
+        value=snapshot.get("value"), prior_count=snapshot.get("prior_count", 0))
+
+
+def _role_progress(connection: Connection, profile: Any, *, role: Role, mode: Mode,
+                   window: ProgressWindow, time_zone: str, zone: ZoneInfo, today: date_type,
+                   cursor: str | None, limit: int, key: bytes) -> RoleProgressView:
+    ids = metric_ids(role.value)
+    unavailable = ProgressBaselineView(state="NOT_AVAILABLE", value=None, prior_count=0)
+    metrics = {ident: RoleProgressMetricView(
+        metric_id=ident, metric_version=ident.rsplit(".", 1)[-1], unit=_progress_unit(ident),
+        measured_count=0, unavailable_count=0, latest=None, baseline=unavailable,
+        trend=TrendView(state="INSUFFICIENT_HISTORY", reason=None, point_count=0),
+        personal_best=None, points=[]) for ident in ids}
+    result = RoleProgressView(role=role, mode=mode, window=window, time_zone=time_zone,
+        start_date=_progress_start(today, window), end_date=today,
+        scope=profile["active_scope"] if profile else "FREE",
+        scope_revision=profile["active_revision"] if profile else 0,
+        state="UNSTARTED" if profile else "STEAM_LINK_REQUIRED", selected_window_match_count=0,
+        metrics=list(metrics.values()), next_cursor=None)
+    if profile is None:
+        if cursor is not None:
+            raise HTTPException(400, "CURSOR_INVALID")
+        return result
+
+    # Full entitled track, independent of the presentation window. The fingerprint
+    # includes immutable analysis pointers: corrections/recovery invalidate old pages.
+    track = select(
+        account_matches.c.public_ref.label("match_ref"), account_matches.c.match_id,
+        account_matches.c.provider_started_at.label("started_at"), account_matches.c.active_analysis_id,
+        match_players.c.hero_id, analyses.c.analysis_version, analyses.c.baseline_version,
+        analyses.c.feature_version,
+    ).join(analyses, analyses.c.id == account_matches.c.active_analysis_id).join(
+        match_players, (match_players.c.match_id == account_matches.c.match_id) &
+        (match_players.c.player_slot == account_matches.c.player_slot),
+    ).where(account_matches.c.profile_id == profile["id"], _visible(profile),
+        account_matches.c.lifecycle == "READY", account_matches.c.progression == mode.value,
+        account_matches.c.effective_role == role.value).cte("progress_track")
+    count, first, stale, fingerprint = connection.execute(select(
+        func.count(), func.min(track.c.started_at),
+        func.count().filter(or_(track.c.analysis_version != ANALYSIS_VERSION,
+            track.c.baseline_version != BASELINE_VERSION, track.c.feature_version != FEATURE_VERSION)),
+        func.md5(func.string_agg(
+            track.c.match_ref + ":" + track.c.active_analysis_id + ":" + track.c.started_at.cast(String),
+            aggregate_order_by(literal("|"), track.c.match_id))),
+    )).one()
+    if result.start_date is None and first is not None:
+        result.start_date = first.astimezone(zone).date()
+    scope = hashlib.sha256(canonical_json({
+        "role": role.value, "mode": mode.value, "window": window.value, "time_zone": time_zone,
+        "start": result.start_date.isoformat() if result.start_date else None, "end": today.isoformat(),
+        "scope": profile["active_scope"], "revision": profile["active_revision"], "history": fingerprint,
+        "analysis": ANALYSIS_VERSION, "baseline": BASELINE_VERSION, "feature": FEATURE_VERSION,
+    })).hexdigest()
+
+    def sign(ref: str) -> str:
+        return f"{ref}.{_mac(key, profile['id'], f'role-progress:{ref}:{scope}')}"
+
+    observations = select(track, metric_observations.c.metric_id, metric_observations.c.metric_version,
+        metric_observations.c.raw_value, metric_observations.c.comparison_value,
+        metric_observations.c.unavailable_reason, metric_observations.c.baseline_snapshot,
+    ).join(metric_observations, metric_observations.c.analysis_id == track.c.active_analysis_id
+    ).where(metric_observations.c.metric_id.in_(ids)).cte("progress_observations")
+    measured_rows, bad_versions = connection.execute(select(
+        func.count(), func.count().filter(observations.c.metric_version != "v1"),
+    ).select_from(observations)).one()
+    lower = activity.utc_bounds(result.start_date, today, zone)[0] if result.start_date else None
+    upper = activity.utc_bounds(today, today, zone)[1]
+    in_window = and_(track.c.started_at < upper,
+                     track.c.started_at >= lower if lower is not None else true())
+    selected = select(track).where(in_window).cte("progress_selected")
+    anchor = None
+    if cursor is not None:
+        if not cursor.isascii():
+            raise HTTPException(400, "CURSOR_INVALID")
+        ref = cursor.split(".")[0]
+        if not hmac.compare_digest(cursor, sign(ref)):
+            raise HTTPException(400, "CURSOR_INVALID")
+        anchor = connection.execute(select(selected.c.started_at, selected.c.match_id).where(
+            selected.c.match_ref == ref)).first()
+        if anchor is None:
+            raise HTTPException(400, "CURSOR_INVALID")
+    if stale or bad_versions or measured_rows != count * len(ids):
+        result.state = "REBUILDING"
+        result.selected_window_match_count = None
+        return result
+    if not count:
+        return result
+    result.state = "AVAILABLE"
+    result.selected_window_match_count = connection.scalar(select(func.count()).select_from(selected))
+    page_query = select(selected.c.match_ref).order_by(
+        selected.c.started_at.desc(), selected.c.match_id.desc()).limit(limit + 1)
+    if anchor is not None:
+        page_query = page_query.where(tuple_(selected.c.started_at, selected.c.match_id) < tuple(anchor))
+    refs = list(connection.scalars(page_query))
+    if len(refs) > limit:
+        refs = refs[:limit]
+        result.next_cursor = sign(refs[-1])
+
+    def point(row: Any) -> RoleProgressPoint:
+        return RoleProgressPoint(match_ref=row["match_ref"], started_at=row["started_at"],
+            hero_id=row["hero_id"], state="MEASURED" if row["comparison_value"] is not None else "NOT_AVAILABLE",
+            raw_value=row["raw_value"], comparison_value=row["comparison_value"],
+            unavailable_reason=row["unavailable_reason"], baseline=_progress_baseline(row["baseline_snapshot"]))
+
+    for row in connection.execute(select(observations).where(observations.c.match_ref.in_(refs)
+    ).order_by(observations.c.started_at, observations.c.match_id)).mappings():
+        metrics[row["metric_id"]].points.append(point(row))
+    visible_observations = select(observations).where(
+        observations.c.match_ref.in_(select(selected.c.match_ref))).cte("progress_window")
+    for ident, measured, missing in connection.execute(select(visible_observations.c.metric_id,
+        func.count().filter(visible_observations.c.comparison_value.is_not(None)),
+        func.count().filter(visible_observations.c.comparison_value.is_(None)),
+    ).group_by(visible_observations.c.metric_id)):
+        metrics[ident].measured_count, metrics[ident].unavailable_count = measured, missing
+    for row in connection.execute(select(visible_observations).where(
+        visible_observations.c.comparison_value.is_not(None)).distinct(visible_observations.c.metric_id
+    ).order_by(visible_observations.c.metric_id, visible_observations.c.started_at.desc(),
+               visible_observations.c.match_id.desc())).mappings():
+        metrics[row["metric_id"]].latest = point(row)
+    for ident in ids:
+        rows = connection.execute(select(observations.c.match_id, observations.c.started_at,
+            observations.c.baseline_snapshot).where(observations.c.metric_id == ident,
+            observations.c.comparison_value.is_not(None),
+            observations.c.baseline_snapshot["value"].astext.is_not(None),
+        ).order_by(observations.c.started_at.desc(), observations.c.match_id.desc()).limit(10)).mappings()
+        trend = evaluate_trend(ident, [TrendPoint(row["match_id"], row["started_at"],
+                                                row["baseline_snapshot"].get("value")) for row in rows])
+        metrics[ident].trend = TrendView(
+            state=cast(Literal["IMPROVING", "STABLE", "DECLINING", "INSUFFICIENT_HISTORY"] | None, trend["state"]),
+            reason="CALIBRATION_UNAVAILABLE" if trend["reason"] == "UNCALIBRATED" else None,
+            point_count=cast(int, trend["point_count"]))
+    for row in connection.execute(select(baselines).where(
+        baselines.c.profile_id == profile["id"], baselines.c.revision == profile["active_revision"],
+        baselines.c.role == role.value, baselines.c.mode == mode.value, baselines.c.metric_id.in_(ids),
+        baselines.c.metric_version == "v1", baselines.c.baseline_version == BASELINE_VERSION)).mappings():
+        metrics[row["metric_id"]].baseline = _progress_baseline(row["snapshot"])
+    for row in connection.execute(select(personal_bests.c.metric_id, personal_bests.c.comparison_value,
+        track.c.match_ref, track.c.started_at, track.c.hero_id).join(
+        track, track.c.active_analysis_id == personal_bests.c.analysis_id).where(
+        personal_bests.c.profile_id == profile["id"], personal_bests.c.revision == profile["active_revision"],
+        personal_bests.c.mode == mode.value, personal_bests.c.role == role.value,
+        personal_bests.c.metric_id.in_(ids), personal_bests.c.metric_version == "v1")).mappings():
+        metrics[row["metric_id"]].personal_best = PersonalBestView(match_ref=row["match_ref"],
+            value=row["comparison_value"], hero_id=row["hero_id"], achieved_at=row["started_at"])
+    return result
 
 
 def cursor_secret(settings: Settings) -> bytes | None:
@@ -2398,6 +2631,20 @@ def create_mobile_app(settings: Settings, *, database: Engine | None = None, red
             capability="MATCH_FACTS" if row["evidence_class"] == "SUMMARY" else "DETAILED_METRICS",
             start_at=row["start_at"], end_at=row["end_at"], state=row["state"],
         ) for row in rows])
+
+    @app.get("/progress/roles/{role}", response_model=RoleProgressView)
+    def role_progress(request: Request, owner: Annotated[str, Depends(_user)], role: Role,
+                      mode: Mode, window: ProgressWindow, time_zone: str, cursor: str | None = None,
+                      limit: Annotated[int, Query(ge=1, le=500)] = 200) -> RoleProgressView:
+        zone = _zone(time_zone)
+        key = _cursor_key(request)
+        # Scope switches and rebuilds publish atomically; every query here must
+        # see the same checkpoint, even if another transaction commits mid-read.
+        with _engine(request).connect().execution_options(isolation_level="REPEATABLE READ") as connection:
+            with connection.begin():
+                return _role_progress(connection, _active_profile(connection, owner), role=role, mode=mode,
+                    window=window, time_zone=time_zone, zone=zone, today=datetime.now(zone).date(),
+                    cursor=cursor, limit=limit, key=key)
 
     @app.get("/progress", response_model=ProgressView)
     async def progress(request: Request, owner: Annotated[str, Depends(_user)], mode: Mode,

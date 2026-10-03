@@ -1278,3 +1278,31 @@ No player identifiers appear in the review, the artifact, or this ledger entry.
 - Threshold corpus review (2026-09-29): [achievement-threshold-review-2026-09-29.md](evidence/achievement-threshold-review-2026-09-29.md). 1,511 parsed Standard matches / 11,600 rows; rarity snapshot is now `local-standard-estimate-2`. #18 now reads `achievement_source.death_times` (no `time_dead` dependency). No threshold values changed; fragile thresholds and band-straddling tiers (#6, #11, #14, #23, #45) await owner review. 1,352 OpenDota calls (701 keyed, ≈Rp1,150); OpenDota QA calls for this branch: 1,352, zero at runtime.
 - Tier freeze, `badge-tiers-v1` (2026-09-29, owner decision): tiers are static in `achievement_rules.py` (`BADGE_TIERS`, in the pinned digest) and never move with live data. Common 1 (#42), Rare 9, Epic 10, Legendary 4. Thresholds moved to round values for #6 (12,500 net worth), #11 (1,500 lead), #23 (1,500 damage), #42 (50% involvement) and #45 (50% share); #42 left the #30 repeat list. #1/#2/#4/#30 tiers come from a history simulation. API entries gain `order` (1–24) and #30's proof template names the feat instead of an internal number. The READY notification names the rarest earned badge by tier, then corpus rate. Rarity snapshot `local-standard-estimate-2` is superseded by `badge-tiers-v1`. Figma Content bank section `659:666` is renumbered Badge 01–24 and shows each frozen tier. Evidence: the threshold review note.
 - Independent QA fixes (2026-09-29): #4 is once per hero (a hero that already earned it, or already held that metric's record, never re-earns); #30's proof names the feat with the most matches and reports that feat's own count; #25 accepts a nonzero 0:00 gold reading (26% of recent parses start nonzero, so the corpus #25 rate rose to 4.0%, still Epic); a match that is not progression-eligible is `UNAVAILABLE`; real zero team kills or tower damage are evidence (#41/#42 carry their own `team_kills_min`); a kill log must equal the summary kill count; #18 respects a quarantined death count; cross-match progress (#4/#30) is computed from all visible current analyses at read time and is typed in the API (`rarity`, `progress`); an unknown locale falls back to English; the collection is `BACKFILLING` while history is importing; analyses store their `rules_digest`, and a changed digest is stale like a methodology bump (quiet rebuild); history judged under other rules is excluded from #4/#30; a match in flight at a `FEATURE_VERSION` bump is re-projected from its snapshot at finalization; Standard role correction recomputes personal bests for every role; the READY notification sends unique `achievement_ids`, total `achievement_count` and `achievement_top_id` (no English name). New feature SSOT: [`../achievements/SSOT.md`](../achievements/SSOT.md). QA report: [achievement-qa-2026-09-29.md](evidence/achievement-qa-2026-09-29.md). Rates re-measured on the same 1,511 matches (kill-log rule, zero-evidence and #25 changes moved #11, #13, #17, #18, #25, #41, #42, #44, #45 denominators; no tier changed). **Deploy step:** run `rebuild.enqueue_methodology_rebuilds`. **Pre-launch condition:** role correction and the correction-availability check replay the whole later history in the request (73 s at 1,000 matches).
+
+### Role metric chart readiness (2026-10-03)
+
+- Owner approved trailing 7/30/365 local-day and all-time windows, existing four metrics per
+  role, per-match canonical metric values, latest measured value as the card number, and every
+  period on both tiers over their entitled history. Standard and Turbo remain independent.
+- Added `/mobile/v1/progress/roles/{role}` (`role-metric-history-v1`): four bundled series,
+  match-based cursor pagination, units, N/A points, whole-window counts/latest and full-track
+  baseline/PB/trend context. The original single-metric `/progress` response is preserved.
+- Reads use a repeatable PostgreSQL snapshot and immutable-analysis/chronology fingerprint.
+  Scope changes, corrections, methodology changes and late history invalidate old cursors.
+  Mixed/outdated methodology or incomplete metric rows withhold series as `REBUILDING`.
+- Tracker-only projection/API changes; no migration, metric definition/calibration change,
+  provider acquisition, new dependency or infrastructure. Directional trend labels remain
+  fail-closed without approved calibration. Not deployed.
+- Validation: **140 tracker checks passed** (138 surrounding API/history/schema regression
+  checks plus two missing-deep-evidence/local-midnight cases), **8 legacy API contract checks
+  passed**, no skips. Historical/current persisted report reads survive upgrade unchanged.
+  All existing mobile paths/models are unchanged in the additive OpenAPI export; 14 new chart
+  response goldens preserve earlier fixture directories. Backend Ruff, mypy (95 source files)
+  and documentation checks pass. OpenDota/STRATZ QA calls: **0 / 0**.
+- Main integration (owner authorized, 2026-10-03): isolated the chart commit onto
+  `23e0d86394d08aa8aedf43ab2ce1a137e7229945`; the source branch’s unmerged Challenges
+  commits and the concurrent content branch are excluded. **1,961 PostgreSQL-backed
+  tracker, unit, integration and legacy regression tests passed**, four live-provider
+  tests deselected, no skips. Repository Python lint, mypy (325 source files), docs and
+  additive OpenAPI checks pass. Existing main CI has unrelated Linux temporary-corpus
+  failures; this change does not modify that research tooling or its tests.

@@ -1,0 +1,195 @@
+{
+  "contract_version": "role-metric-history-v1",
+  "end_date": "<date>",
+  "metrics": [
+    {
+      "baseline": {
+        "prior_count": 1,
+        "state": "BUILDING",
+        "value": null
+      },
+      "latest": {
+        "baseline": {
+          "prior_count": 0,
+          "state": "BUILDING",
+          "value": null
+        },
+        "comparison_value": 4.0,
+        "hero_id": 123,
+        "match_ref": "<ref:1>",
+        "raw_value": 4.0,
+        "started_at": "<datetime>",
+        "state": "MEASURED",
+        "unavailable_reason": null
+      },
+      "measured_count": 1,
+      "metric_id": "support.camps_stacked.v1",
+      "metric_version": "v1",
+      "personal_best": null,
+      "points": [
+        {
+          "baseline": {
+            "prior_count": 0,
+            "state": "BUILDING",
+            "value": null
+          },
+          "comparison_value": 4.0,
+          "hero_id": 123,
+          "match_ref": "<ref:1>",
+          "raw_value": 4.0,
+          "started_at": "<datetime>",
+          "state": "MEASURED",
+          "unavailable_reason": null
+        }
+      ],
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      },
+      "unavailable_count": 0,
+      "unit": "COUNT"
+    },
+    {
+      "baseline": {
+        "prior_count": 1,
+        "state": "BUILDING",
+        "value": null
+      },
+      "latest": {
+        "baseline": {
+          "prior_count": 0,
+          "state": "BUILDING",
+          "value": null
+        },
+        "comparison_value": 0.573529412,
+        "hero_id": 123,
+        "match_ref": "<ref:1>",
+        "raw_value": 0.573529412,
+        "started_at": "<datetime>",
+        "state": "MEASURED",
+        "unavailable_reason": null
+      },
+      "measured_count": 1,
+      "metric_id": "support.fight_presence.v1",
+      "metric_version": "v1",
+      "personal_best": null,
+      "points": [
+        {
+          "baseline": {
+            "prior_count": 0,
+            "state": "BUILDING",
+            "value": null
+          },
+          "comparison_value": 0.573529412,
+          "hero_id": 123,
+          "match_ref": "<ref:1>",
+          "raw_value": 0.573529412,
+          "started_at": "<datetime>",
+          "state": "MEASURED",
+          "unavailable_reason": null
+        }
+      ],
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      },
+      "unavailable_count": 0,
+      "unit": "FRACTION"
+    },
+    {
+      "baseline": {
+        "prior_count": 1,
+        "state": "BUILDING",
+        "value": null
+      },
+      "latest": {
+        "baseline": {
+          "prior_count": 0,
+          "state": "BUILDING",
+          "value": null
+        },
+        "comparison_value": 1.671774868,
+        "hero_id": 123,
+        "match_ref": "<ref:1>",
+        "raw_value": 10.0,
+        "started_at": "<datetime>",
+        "state": "MEASURED",
+        "unavailable_reason": null
+      },
+      "measured_count": 1,
+      "metric_id": "support.observer_wards_placed.v1",
+      "metric_version": "v1",
+      "personal_best": null,
+      "points": [
+        {
+          "baseline": {
+            "prior_count": 0,
+            "state": "BUILDING",
+            "value": null
+          },
+          "comparison_value": 1.671774868,
+          "hero_id": 123,
+          "match_ref": "<ref:1>",
+          "raw_value": 10.0,
+          "started_at": "<datetime>",
+          "state": "MEASURED",
+          "unavailable_reason": null
+        }
+      ],
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      },
+      "unavailable_count": 0,
+      "unit": "COUNT_PER_10_MINUTES"
+    },
+    {
+      "baseline": {
+        "prior_count": 0,
+        "state": "NOT_AVAILABLE",
+        "value": null
+      },
+      "latest": null,
+      "measured_count": 0,
+      "metric_id": "support.vision_denial.v1",
+      "metric_version": "v1",
+      "personal_best": null,
+      "points": [
+        {
+          "baseline": {
+            "prior_count": 0,
+            "state": "BUILDING",
+            "value": null
+          },
+          "comparison_value": null,
+          "hero_id": 123,
+          "match_ref": "<ref:1>",
+          "raw_value": null,
+          "started_at": "<datetime>",
+          "state": "NOT_AVAILABLE",
+          "unavailable_reason": "MISSING_OR_MALFORMED_EVENTS"
+        }
+      ],
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      },
+      "unavailable_count": 1,
+      "unit": "COUNT_PER_10_MINUTES"
+    }
+  ],
+  "mode": "TURBO",
+  "next_cursor": null,
+  "role": "SUPPORT",
+  "scope": "FREE",
+  "scope_revision": 0,
+  "selected_window_match_count": 1,
+  "start_date": "<date>",
+  "state": "AVAILABLE",
+  "time_zone": "UTC",
+  "window": "ALL_TIME"
+}

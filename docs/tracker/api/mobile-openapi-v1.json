@@ -3577,6 +3577,41 @@
         "title": "ProfileView",
         "type": "object"
       },
+      "ProgressBaselineView": {
+        "properties": {
+          "prior_count": {
+            "title": "Prior Count",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "BUILDING",
+              "READY",
+              "NOT_AVAILABLE"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "state",
+          "value",
+          "prior_count"
+        ],
+        "title": "ProgressBaselineView",
+        "type": "object"
+      },
       "ProgressPoint": {
         "properties": {
           "baseline_value": {
@@ -3661,6 +3696,16 @@
         ],
         "title": "ProgressView",
         "type": "object"
+      },
+      "ProgressWindow": {
+        "enum": [
+          "LAST_7_DAYS",
+          "LAST_30_DAYS",
+          "LAST_365_DAYS",
+          "ALL_TIME"
+        ],
+        "title": "ProgressWindow",
+        "type": "string"
       },
       "Readiness": {
         "enum": [
@@ -3822,6 +3867,263 @@
           "tags_state"
         ],
         "title": "RoleHeroesView",
+        "type": "object"
+      },
+      "RoleProgressMetricView": {
+        "properties": {
+          "baseline": {
+            "$ref": "#/components/schemas/ProgressBaselineView"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleProgressPoint"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "measured_count": {
+            "title": "Measured Count",
+            "type": "integer"
+          },
+          "metric_id": {
+            "title": "Metric Id",
+            "type": "string"
+          },
+          "metric_version": {
+            "title": "Metric Version",
+            "type": "string"
+          },
+          "personal_best": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonalBestView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/RoleProgressPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "trend": {
+            "$ref": "#/components/schemas/TrendView"
+          },
+          "unavailable_count": {
+            "title": "Unavailable Count",
+            "type": "integer"
+          },
+          "unit": {
+            "enum": [
+              "GOLD",
+              "COUNT",
+              "FRACTION",
+              "COUNT_PER_10_MINUTES"
+            ],
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric_id",
+          "metric_version",
+          "unit",
+          "measured_count",
+          "unavailable_count",
+          "latest",
+          "baseline",
+          "trend",
+          "personal_best",
+          "points"
+        ],
+        "title": "RoleProgressMetricView",
+        "type": "object"
+      },
+      "RoleProgressPoint": {
+        "properties": {
+          "baseline": {
+            "$ref": "#/components/schemas/ProgressBaselineView"
+          },
+          "comparison_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comparison Value"
+          },
+          "hero_id": {
+            "title": "Hero Id",
+            "type": "integer"
+          },
+          "match_ref": {
+            "title": "Match Ref",
+            "type": "string"
+          },
+          "raw_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Value"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "MEASURED",
+              "NOT_AVAILABLE"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "unavailable_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unavailable Reason"
+          }
+        },
+        "required": [
+          "match_ref",
+          "started_at",
+          "hero_id",
+          "state",
+          "raw_value",
+          "comparison_value",
+          "unavailable_reason",
+          "baseline"
+        ],
+        "title": "RoleProgressPoint",
+        "type": "object"
+      },
+      "RoleProgressView": {
+        "properties": {
+          "contract_version": {
+            "const": "role-metric-history-v1",
+            "default": "role-metric-history-v1",
+            "title": "Contract Version",
+            "type": "string"
+          },
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/RoleProgressMetricView"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "scope": {
+            "enum": [
+              "FREE",
+              "PRO"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "scope_revision": {
+            "title": "Scope Revision",
+            "type": "integer"
+          },
+          "selected_window_match_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected Window Match Count"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "state": {
+            "enum": [
+              "STEAM_LINK_REQUIRED",
+              "UNSTARTED",
+              "AVAILABLE",
+              "REBUILDING"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "time_zone": {
+            "title": "Time Zone",
+            "type": "string"
+          },
+          "window": {
+            "$ref": "#/components/schemas/ProgressWindow"
+          }
+        },
+        "required": [
+          "role",
+          "mode",
+          "window",
+          "time_zone",
+          "start_date",
+          "end_date",
+          "scope",
+          "scope_revision",
+          "state",
+          "selected_window_match_count",
+          "metrics",
+          "next_cursor"
+        ],
+        "title": "RoleProgressView",
         "type": "object"
       },
       "RoleRowView": {
@@ -6150,6 +6452,102 @@
           }
         ],
         "summary": "Progress"
+      }
+    },
+    "/progress/roles/{role}": {
+      "get": {
+        "operationId": "role_progress_progress_roles__role__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "role",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Mode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "window",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ProgressWindow"
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_zone",
+            "required": true,
+            "schema": {
+              "title": "Time Zone",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleProgressView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Role Progress"
       }
     },
     "/readiness": {

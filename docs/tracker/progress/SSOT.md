@@ -151,6 +151,46 @@ An evidence-bound prose summary that names its metrics is permitted ("Laning is 
 
 ---
 
+## 6A. Role metric charts (owner decision, 2026-10-03)
+
+The role chart cards use the existing four canonical metrics, with Standard and Turbo
+selected separately. No new metric or role-level verdict is introduced.
+
+- Selectors are **Last 7 days**, **Last 30 days**, **Last 365 days**, and **All time**.
+  Trailing windows include today and begin at local midnight `today - (days - 1)` in the
+  requested IANA timezone. All time begins at the earliest entitled eligible match for the track;
+  without one its start date is null. A sparse history is never filled with invented points.
+- One point represents one READY, progression-eligible match. The chart and card's latest value
+  use the canonical comparison value: gold, count, fraction, or count per 10 minutes. Raw values
+  remain separately available. Fractions are stored as fractions and formatted as percentages
+  by the client; they are not scores. Signed net-worth advantages remain signed.
+- The large number is the latest **measured** value in the selected window, with its timestamp
+  and openable source match. A later N/A point does not replace it with zero. No measured value
+  in the window means unavailable, even when older measured history exists.
+- Free and Pro can select every window. Only history depth differs under foundation §13;
+  **All time means all entitled known history**, not a guarantee of complete career coverage.
+  Coverage remains available through `/coverage`.
+- Current baseline, trend and PB use the complete entitled track and stay unchanged by the
+  selected calendar window or page. Each observation's baseline is separately the baseline
+  that existed before that match. Calendar changes never change canonical analytical math.
+- Pagination selects the newest eligible matches first (200 by default, maximum 500), and
+  returns each metric's points ascending within the page. Every series has the same match
+  boundaries. Older pages are prepended; `next_cursor` being non-null means the chart is still
+  partial. Window-wide counts and latest values describe the complete window on every page.
+- Reads use one repeatable database snapshot. Mixed/outdated analysis, feature or metric
+  versions, or incomplete canonical metric rows, return `REBUILDING` without publishing points
+  or analytical context. `UNSTARTED` means no eligible entitled track; a played track with an
+  empty calendar window remains `AVAILABLE`. Unlinked accounts return `STEAM_LINK_REQUIRED`.
+- Cursors are scoped to profile, role, mode, timezone, resolved period, entitlement revision,
+  methodology and the track's immutable analysis pointers/chronology. Corrections, late recovery,
+  scope switches or a new match invalidate old pagination; clients refetch on `CURSOR_INVALID`.
+
+The additive mobile contract is [`role-metric-history-v1`](../api/README.md#role-metric-charts-role-metric-history-v1).
+The original single-metric `/progress` contract is preserved. Reads start no work and make no
+provider calls. Uncalibrated directional trend labels stay unavailable while factual points render.
+
+---
+
 ## 7. Personal Bests in Progress
 
 - Progress shows the **current** canonical PB per eligible role metric within the selected bucket and role.
