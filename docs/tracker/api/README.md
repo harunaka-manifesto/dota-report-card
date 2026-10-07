@@ -16,6 +16,10 @@ and its CI diff check are untouched. Resource design and state projections are s
   `tests/fixtures/tracker/mobile-v1-item-timings-v1/`; preserve the existing goldens.
   The current core-chart response belongs in
   `tests/fixtures/tracker/mobile-v1-core-graphs-v1/`; preserve earlier versions.
+  The directory the golden test compares today is
+  `tests/fixtures/tracker/mobile-v1-viewer-row-v1/`. Earlier directories are historical records
+  and may carry retired metric ids (for example `support.healing.v1`); clients should build
+  fixtures from the current directory.
 - Local data: `make seed-demo` creates the same personas without provider calls.
 
 ## Conventions
@@ -169,6 +173,16 @@ HeroPoolView
 - Windows end today inclusive. `heroes` holds at most 10 entries ordered by matches, then most recent play, then `hero_id`; `total_matches` counts every hero. Roles and windows are always present, even when empty. An unknown zone returns `400 TIME_ZONE_INVALID`.
 - It counts the same READY Standard and Turbo matches as Activity, reads persisted data only, uses the entitled-history scope, and gets the standard body ETag.
 
+## Match Detail: the viewer's own row
+
+`GET /matches/{match_ref}` carries `hero_id` and `player_slot` for the signed-in player.
+`player_slot` is the canonical slot (Radiant 0–4, Dire 5–9) of the account's own row and is
+also that row's index in `players[]`, which is always the ten-player roster ordered by slot;
+`hero_id` equals `players[player_slot].hero_id`. Both come from the stored account-match link,
+so they are present in every lifecycle, including before READY. They are null only when the
+stored roster has no row at the link's slot, which the storage constraints do not allow today;
+treat null as "viewer unknown", never as a guess.
+
 ## Match Detail: item timings
 
 `GET /mobile/v1/matches/{match_ref}` adds `item_timings`; no other route includes this block. It is a structured, localized-copy-free snapshot. The complete algorithm and item taxonomy live in the [item-timings annex](../match_detail/ITEM-TIMINGS-V1.md).
@@ -287,7 +301,7 @@ is the best-qualifying population purchase among enemy positions 1–3. See
 - Awards are computed inside the single READY finalization transaction from retained evidence only (no provider or parse call). Collection `state` is `BACKFILLING` while any visible Standard analysis lacks the `achievements` object.
 - Historical imports and methodology rebuilds award quietly: no per-match alert, and `MATCH_READY` never replays. A live READY notification (and its coalesced bundle) carries `achievement_ids` (each badge once, rarest first), `achievement_count` (total awards across the bundle), `achievement_top_id` (the badge to name; the client localizes it) and `achievement_more`.
 - These match medals are separate from Role Mastery/progression medals; the Free Level-5 display cap does not apply here.
-- Tiers (Common 1, Rare 9, Epic 10, Legendary 4) are frozen in `BADGE_TIERS`. Rules, thresholds and the #30 repeat list are frozen in `services/api/app/tracker/achievement_rules.py` (digest pinned in `tests/tracker/test_achievements.py`); copy, asset keys and the corpus rate references are in `achievement_catalog.py`. Golden: `tests/fixtures/tracker/mobile-v1-match-achievements-v1/`.
+- Tiers (Common 1, Rare 9, Epic 10, Legendary 4) are frozen in `BADGE_TIERS`. Rules, thresholds and the #30 repeat list are frozen in `services/api/app/tracker/achievement_rules.py` (digest pinned in `tests/tracker/test_achievements.py`); copy, asset keys and the corpus rate references are in `achievement_catalog.py`. Golden: `tests/fixtures/tracker/mobile-v1-match-achievements-v1/` (now superseded by `mobile-v1-viewer-row-v1/`).
 
 The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1`, `offlane-context-v2`, `carry-context-v1`, `mid-context-v1`, and `core-fights-v1` contract versions.
 

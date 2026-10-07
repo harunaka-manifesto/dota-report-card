@@ -1,9 +1,9 @@
 """Golden mobile fixtures from the fixture-backed seed, plus contract scans.
 
-Fixtures under tests/fixtures/tracker/mobile-v1-match-achievements-v1 are versioned and
+Fixtures under tests/fixtures/tracker/mobile-v1-viewer-row-v1 are versioned and
 never overwritten: a contract change adds a new directory. This directory was
-added when match achievements joined Match Detail and the collection; prior mobile-v1 fixture
-directories remain historical records. To create a missing file
+added when Match Detail gained the viewer's own `hero_id` and `player_slot`; prior mobile-v1
+fixture directories remain historical records. To create a missing file
 deliberately, run with TRACKER_WRITE_MISSING_GOLDEN=1 and review it.
 """
 from __future__ import annotations
@@ -22,7 +22,7 @@ from sqlalchemy import select
 
 from scripts.tracker_seed_demo import seed_demo
 
-GOLDEN = Path(__file__).parents[1] / "fixtures/tracker/mobile-v1-match-achievements-v1"
+GOLDEN = Path(__file__).parents[1] / "fixtures/tracker/mobile-v1-viewer-row-v1"
 OPENAPI = Path(__file__).parents[2] / "docs/tracker/api/mobile-openapi-v1.json"
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}")
@@ -111,6 +111,9 @@ def test_seed_covers_required_states_and_matches_versioned_golden_fixtures(seede
     ready = capture(client, personas["ready_common"]["access_token"])
     matches = [value["body"] for key, value in ready.items() if key.startswith("/matches/")]
     assert any(match["role_source"] == "USER_CONFIRMED" for match in matches)
+    # Match Detail names the viewer's own roster row (every seeded link is slot 0).
+    assert all(match["player_slot"] == 0 and match["hero_id"] == match["players"][0]["hero_id"]
+               for match in matches)
     assert any(match["insights"]["cards"] == [] for match in matches)
     assert ready["/profile?mode=STANDARD"]["body"]["identity"]["template_id"] == "MOSTLY_ROLE_SO_FAR"
     states = capture(client, personas["match_states"]["access_token"])

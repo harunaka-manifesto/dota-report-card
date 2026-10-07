@@ -464,6 +464,10 @@ class MatchView(BaseModel):
     progression: Literal["STANDARD", "TURBO", "NONE"] | None
     progression_reason: str | None
     won: bool
+    # The viewer's own roster row: canonical slot 0-9 (radiant 0-4, dire 5-9), the index of that
+    # row in `players[]`. Null only when the stored roster has no row for this profile's slot.
+    hero_id: int | None
+    player_slot: int | None
     players: list[PlayerFacts]
     metrics: list[MetricView]
 
@@ -1143,15 +1147,17 @@ def _session_view(tokens) -> SessionView:
 
 def _match_view(connection, row) -> MatchView:
     match = connection.execute(select(matches).where(matches.c.match_id == row["match_id"])).mappings().one()
-    roster = connection.execute(select(match_players.c.summary).where(
+    roster = connection.execute(select(match_players.c.player_slot, match_players.c.summary).where(
         match_players.c.match_id == row["match_id"],
-    ).order_by(match_players.c.player_slot)).scalars().all()
+    ).order_by(match_players.c.player_slot)).all()
     players = [PlayerFacts(
         hero_id=player["hero_id"], team=player["team"],
         kills=player.get("values", {}).get("kills"),
         deaths=player.get("values", {}).get("deaths"),
         assists=player.get("values", {}).get("assists"),
-    ) for player in roster]
+    ) for _, player in roster]
+    # The account link names the viewer's slot; the roster row at that slot is the viewer's own.
+    viewer = next((player for slot, player in roster if slot == row["player_slot"]), None)
     metrics: list[MetricView] = []
     insight = InsightView(state=Readiness.PENDING, contract_version=None, reason=None, cards=[])
     if row["active_analysis_id"] is not None:
@@ -1235,7 +1241,10 @@ def _match_view(connection, row) -> MatchView:
                      Readiness.UNAVAILABLE if terminal else Readiness.PENDING),
         insights=insight, role=row["effective_role"], progression=row["progression"],
         progression_reason=row["progression_reason"],
-        won=match["radiant_win"] == (row["player_slot"] < 5), players=players, metrics=metrics,
+        won=match["radiant_win"] == (row["player_slot"] < 5),
+        hero_id=None if viewer is None else viewer["hero_id"],
+        player_slot=None if viewer is None else row["player_slot"],
+        players=players, metrics=metrics,
     )
 
 

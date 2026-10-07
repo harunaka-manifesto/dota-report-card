@@ -1,0 +1,1312 @@
+{
+  "/account": {
+    "body": {
+      "identity_methods": [
+        "google"
+      ],
+      "revision": 0,
+      "scope": "FREE",
+      "state": "ACTIVE",
+      "steam_linked": true
+    },
+    "status": 200
+  },
+  "/account/steam-switch/preflight": {
+    "body": {
+      "available": false,
+      "cause": "HISTORICAL_WORK_RUNNING",
+      "days_remaining": 0
+    },
+    "status": 200
+  },
+  "/achievements": {
+    "body": {
+      "entries": [
+        {
+          "asset_key": "match-achievement-1",
+          "description": "Two role records in one match.",
+          "earned_count": 0,
+          "how_to": "Beat more than one of your established role records in a match.",
+          "id": 1,
+          "key": "match-achievement-1",
+          "latest_match": null,
+          "name": "Double Record",
+          "order": 1,
+          "progress": null,
+          "proof_template": "New records: {strict_pb_metrics}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-2",
+          "description": "At least three role records in one match.",
+          "earned_count": 0,
+          "how_to": "Set several established role records together.",
+          "id": 2,
+          "key": "match-achievement-2",
+          "latest_match": null,
+          "name": "Clean Sweep",
+          "order": 2,
+          "progress": null,
+          "proof_template": "New records: {strict_pb_metrics}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-4",
+          "description": "A familiar role record, now on a different hero.",
+          "earned_count": 0,
+          "how_to": "Set the same role record on more than one hero.",
+          "id": 4,
+          "key": "match-achievement-4",
+          "latest_match": null,
+          "name": "Record on a New Hero",
+          "order": 3,
+          "progress": {
+            "current": 0,
+            "target": 2
+          },
+          "proof_template": "Hero {hero_id}; record metrics: {metric_ids}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-6",
+          "description": "Strong Carry farm at both 10 and 20 minutes.",
+          "earned_count": 0,
+          "how_to": "Build a strong early last-hit count and keep your economy growing.",
+          "id": 6,
+          "key": "match-achievement-6",
+          "latest_match": null,
+          "name": "Two Clocks Ahead",
+          "order": 4,
+          "progress": null,
+          "proof_template": "{last_hits_at_10} last hits at 10:00; {net_worth_at_20} net worth at 20:00.",
+          "rarity": null,
+          "roles": [
+            "CARRY"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-8",
+          "description": "Turn an early net-worth deficit against your role counterpart into a lead.",
+          "earned_count": 0,
+          "how_to": "Trail the enemy player in your role early, then pass them by 20 minutes.",
+          "id": 8,
+          "key": "match-achievement-8",
+          "latest_match": null,
+          "name": "20-Minute Turnaround",
+          "order": 5,
+          "progress": null,
+          "proof_template": "Net worth gap: {net_worth_gap_at_10} at 10:00, {net_worth_gap_at_20} at 20:00.",
+          "rarity": null,
+          "roles": [
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-10",
+          "description": "A big midgame economy gain with few deaths.",
+          "earned_count": 0,
+          "how_to": "Grow your net worth quickly from 10 to 20 minutes and keep deaths low.",
+          "id": 10,
+          "key": "match-achievement-10",
+          "latest_match": null,
+          "name": "Gold Engine",
+          "order": 6,
+          "progress": null,
+          "proof_template": "Net worth gained: {net_worth_gain_10_to_20}; deaths: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-11",
+          "description": "An early Mid economy lead paired with tower damage.",
+          "earned_count": 0,
+          "how_to": "Lead the enemy Mid early and contribute meaningful tower damage.",
+          "id": 11,
+          "key": "match-achievement-11",
+          "latest_match": null,
+          "name": "Mid Advantage, Real Siege",
+          "order": 7,
+          "progress": null,
+          "proof_template": "Early lead: {net_worth_lead_at_10}; tower damage: {tower_damage}; team share: {team_tower_damage_share}.",
+          "rarity": null,
+          "roles": [
+            "MID"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-13",
+          "description": "High kill involvement with very few deaths.",
+          "earned_count": 0,
+          "how_to": "Join a large share of your team's kills while staying alive.",
+          "id": 13,
+          "key": "match-achievement-13",
+          "latest_match": null,
+          "name": "Relentless Presence",
+          "order": 8,
+          "progress": null,
+          "proof_template": "Kill involvement: {kill_involvement}; deaths: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-14",
+          "description": "Double-digit assists without a death.",
+          "earned_count": 0,
+          "how_to": "Help secure many kills and finish without dying.",
+          "id": 14,
+          "key": "match-achievement-14",
+          "latest_match": null,
+          "name": "Untouchable Contributor",
+          "order": 9,
+          "progress": null,
+          "proof_template": "Assists: {assists}; deaths: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-15",
+          "description": "Double-digit kills without a death.",
+          "earned_count": 0,
+          "how_to": "Score many hero kills and finish without dying.",
+          "id": 15,
+          "key": "match-achievement-15",
+          "latest_match": null,
+          "name": "Flawless Finisher",
+          "order": 10,
+          "progress": null,
+          "proof_template": "Kills: {kills}; deaths: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-17",
+          "description": "Five observed hero kills in a short window.",
+          "earned_count": 0,
+          "how_to": "Chain five hero kills in a brief span.",
+          "id": 17,
+          "key": "match-achievement-17",
+          "latest_match": null,
+          "name": "Five in a Flash",
+          "order": 11,
+          "progress": null,
+          "proof_template": "Five kills from {first_kill_seconds}s to {fifth_kill_seconds}s.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-18",
+          "description": "Multiple early hero kills without an early death.",
+          "earned_count": 0,
+          "how_to": "Find early hero kills and stay alive through the opening minutes.",
+          "id": 18,
+          "key": "match-achievement-18",
+          "latest_match": null,
+          "name": "Early Duelist",
+          "order": 12,
+          "progress": null,
+          "proof_template": "Before 10:00: {kills_before_10} kills, {deaths_before_10} deaths.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-20",
+          "description": "Three personal kills and no death in one detected fight.",
+          "earned_count": 0,
+          "how_to": "Finish a detected fight with several kills and no death.",
+          "id": 20,
+          "key": "match-achievement-20",
+          "latest_match": null,
+          "name": "Fight Closer",
+          "order": 13,
+          "progress": null,
+          "proof_template": "Detected fight: {fight}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-22",
+          "description": "Major allied hero-damage share in two separate fights.",
+          "earned_count": 0,
+          "how_to": "Deal a large share of allied hero damage more than once.",
+          "id": 22,
+          "key": "match-achievement-22",
+          "latest_match": null,
+          "name": "Damage Anchor",
+          "order": 14,
+          "progress": null,
+          "proof_template": "Qualifying fights: {fights}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-23",
+          "description": "Heavy damage in a fight with five enemy deaths and no allied deaths.",
+          "earned_count": 0,
+          "how_to": "Contribute major damage in a one-sided detected fight.",
+          "id": 23,
+          "key": "match-achievement-23",
+          "latest_match": null,
+          "name": "Clean Teamfight",
+          "order": 15,
+          "progress": null,
+          "proof_template": "Detected fight: {fight}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-25",
+          "description": "A strong fight contribution while your team is behind in gold.",
+          "earned_count": 0,
+          "how_to": "Deal a large share of fight damage while behind, with a favorable death trade.",
+          "id": 25,
+          "key": "match-achievement-25",
+          "latest_match": null,
+          "name": "Behind but Fighting",
+          "order": 16,
+          "progress": null,
+          "proof_template": "Gold gap at {gold_checkpoint_seconds}s: {team_gold_gap}; fight: {fight}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-30",
+          "description": "Repeat a difficult feat on the same hero across matches.",
+          "earned_count": 0,
+          "how_to": "Earn the same uncommon feat with one hero across separate matches.",
+          "id": 30,
+          "key": "match-achievement-30",
+          "latest_match": null,
+          "name": "Hero Specialist",
+          "order": 17,
+          "progress": {
+            "current": 0,
+            "target": 3
+          },
+          "proof_template": "Hero {hero_id}; feat: {feat_name}; qualifying matches: {distinct_matches}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-37",
+          "description": "Place observers and earn credited observer-ward kills.",
+          "earned_count": 0,
+          "how_to": "Handle both observer placement and observer-ward removal in one match.",
+          "id": 37,
+          "key": "match-achievement-37",
+          "latest_match": null,
+          "name": "Vision Double Duty",
+          "order": 18,
+          "progress": null,
+          "proof_template": "Observers placed: {observers_placed}; credited observer kills: {credited_observer_kills}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-41",
+          "description": "Early stacks paired with strong kill involvement.",
+          "earned_count": 0,
+          "how_to": "Stack camps by 20 minutes and stay active in team kills.",
+          "id": 41,
+          "key": "match-achievement-41",
+          "latest_match": null,
+          "name": "Camp Architect",
+          "order": 19,
+          "progress": null,
+          "proof_template": "Stacks at 20:00: {stacks_at_20}; kill involvement: {kill_involvement}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-42",
+          "description": "High kill involvement and credited observer-ward kills.",
+          "earned_count": 0,
+          "how_to": "Contribute to fights and remove observer wards in one match.",
+          "id": 42,
+          "key": "match-achievement-42",
+          "latest_match": null,
+          "name": "Support Everywhere",
+          "order": 20,
+          "progress": null,
+          "proof_template": "Kill involvement: {kill_involvement}; credited observer kills: {credited_observer_kills}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-44",
+          "description": "Major tower damage from the Offlane.",
+          "earned_count": 0,
+          "how_to": "Deal substantial tower damage as an Offlaner.",
+          "id": 44,
+          "key": "match-achievement-44",
+          "latest_match": null,
+          "name": "Offlane Siege",
+          "order": 21,
+          "progress": null,
+          "proof_template": "Tower damage: {tower_damage}; team share: {team_tower_damage_share}.",
+          "rarity": null,
+          "roles": [
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-45",
+          "description": "A large share of team tower damage with no deaths.",
+          "earned_count": 0,
+          "how_to": "Lead the team's tower damage and finish alive.",
+          "id": 45,
+          "key": "match-achievement-45",
+          "latest_match": null,
+          "name": "Siege without Dying",
+          "order": 22,
+          "progress": null,
+          "proof_template": "Team tower-damage share: {team_tower_damage_share}; deaths: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-49",
+          "description": "Substantial hero healing and many assists.",
+          "earned_count": 0,
+          "how_to": "Restore hero health and contribute assists as a Support.",
+          "id": 49,
+          "key": "match-achievement-49",
+          "latest_match": null,
+          "name": "Healing Hand",
+          "order": 23,
+          "progress": null,
+          "proof_template": "Hero healing: {hero_healing}; assists: {assists}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-50",
+          "description": "Substantial recorded hero-disable time and many assists.",
+          "earned_count": 0,
+          "how_to": "Control enemy heroes for long periods and contribute assists.",
+          "id": 50,
+          "key": "match-achievement-50",
+          "latest_match": null,
+          "name": "Control Specialist",
+          "order": 24,
+          "progress": null,
+          "proof_template": "Recorded disable seconds: {disable_seconds}; assists: {assists}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        }
+      ],
+      "state": "BACKFILLING"
+    },
+    "status": 200
+  },
+  "/achievements?locale=id": {
+    "body": {
+      "entries": [
+        {
+          "asset_key": "match-achievement-1",
+          "description": "Dua rekor peran dalam satu pertandingan.",
+          "earned_count": 0,
+          "how_to": "Lampaui lebih dari satu rekor peranmu dalam satu pertandingan.",
+          "id": 1,
+          "key": "match-achievement-1",
+          "latest_match": null,
+          "name": "Dua Rekor",
+          "order": 1,
+          "progress": null,
+          "proof_template": "Rekor baru: {strict_pb_metrics}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-2",
+          "description": "Setidaknya tiga rekor peran dalam satu pertandingan.",
+          "earned_count": 0,
+          "how_to": "Catat beberapa rekor peranmu sekaligus.",
+          "id": 2,
+          "key": "match-achievement-2",
+          "latest_match": null,
+          "name": "Sapu Rekor",
+          "order": 2,
+          "progress": null,
+          "proof_template": "Rekor baru: {strict_pb_metrics}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-4",
+          "description": "Rekor peran yang sama, kini dengan hero berbeda.",
+          "earned_count": 0,
+          "how_to": "Catat rekor peran yang sama dengan lebih dari satu hero.",
+          "id": 4,
+          "key": "match-achievement-4",
+          "latest_match": null,
+          "name": "Rekor dengan Hero Baru",
+          "order": 3,
+          "progress": {
+            "current": 0,
+            "target": 2
+          },
+          "proof_template": "Hero {hero_id}; metrik rekor: {metric_ids}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-6",
+          "description": "Farm Carry yang kuat pada menit 10 dan 20.",
+          "earned_count": 0,
+          "how_to": "Raih last hit tinggi sejak awal dan terus tingkatkan ekonomimu.",
+          "id": 6,
+          "key": "match-achievement-6",
+          "latest_match": null,
+          "name": "Unggul di Dua Waktu",
+          "order": 4,
+          "progress": null,
+          "proof_template": "{last_hits_at_10} last hit pada 10:00; net worth {net_worth_at_20} pada 20:00.",
+          "rarity": null,
+          "roles": [
+            "CARRY"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-8",
+          "description": "Balikkan ketertinggalan net worth awal dari lawan seperanmu menjadi keunggulan.",
+          "earned_count": 0,
+          "how_to": "Tertinggal dari lawan seperanmu di awal, lalu ungguli mereka pada menit 20.",
+          "id": 8,
+          "key": "match-achievement-8",
+          "latest_match": null,
+          "name": "Balik Unggul di Menit 20",
+          "order": 5,
+          "progress": null,
+          "proof_template": "Selisih net worth: {net_worth_gap_at_10} pada 10:00, {net_worth_gap_at_20} pada 20:00.",
+          "rarity": null,
+          "roles": [
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-10",
+          "description": "Kenaikan ekonomi besar di pertengahan game dengan sedikit kematian.",
+          "earned_count": 0,
+          "how_to": "Tingkatkan net worth dengan cepat dari menit 10 hingga 20 dan jaga kematian tetap rendah.",
+          "id": 10,
+          "key": "match-achievement-10",
+          "latest_match": null,
+          "name": "Mesin Emas",
+          "order": 6,
+          "progress": null,
+          "proof_template": "Kenaikan net worth: {net_worth_gain_10_to_20}; kematian: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-11",
+          "description": "Keunggulan ekonomi Mid sejak awal disertai damage ke tower.",
+          "earned_count": 0,
+          "how_to": "Ungguli Mid lawan sejak awal dan berikan damage berarti ke tower.",
+          "id": 11,
+          "key": "match-achievement-11",
+          "latest_match": null,
+          "name": "Unggul Mid, Tekan Tower",
+          "order": 7,
+          "progress": null,
+          "proof_template": "Keunggulan awal: {net_worth_lead_at_10}; damage tower: {tower_damage}; porsi tim: {team_tower_damage_share}.",
+          "rarity": null,
+          "roles": [
+            "MID"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-13",
+          "description": "Terlibat dalam banyak kill dengan sangat sedikit kematian.",
+          "earned_count": 0,
+          "how_to": "Terlibat dalam banyak kill tim sambil tetap bertahan hidup.",
+          "id": 13,
+          "key": "match-achievement-13",
+          "latest_match": null,
+          "name": "Hadir Terus",
+          "order": 8,
+          "progress": null,
+          "proof_template": "Keterlibatan kill: {kill_involvement}; kematian: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-14",
+          "description": "Dua digit assist tanpa kematian.",
+          "earned_count": 0,
+          "how_to": "Bantu banyak kill dan selesaikan pertandingan tanpa mati.",
+          "id": 14,
+          "key": "match-achievement-14",
+          "latest_match": null,
+          "name": "Kontributor Tak Tersentuh",
+          "order": 9,
+          "progress": null,
+          "proof_template": "Assist: {assists}; kematian: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-15",
+          "description": "Dua digit kill tanpa kematian.",
+          "earned_count": 0,
+          "how_to": "Raih banyak kill hero dan selesaikan pertandingan tanpa mati.",
+          "id": 15,
+          "key": "match-achievement-15",
+          "latest_match": null,
+          "name": "Finisher Sempurna",
+          "order": 10,
+          "progress": null,
+          "proof_template": "Kill: {kills}; kematian: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-17",
+          "description": "Lima kill hero tercatat dalam waktu singkat.",
+          "earned_count": 0,
+          "how_to": "Raih lima kill hero dalam rentang waktu singkat.",
+          "id": 17,
+          "key": "match-achievement-17",
+          "latest_match": null,
+          "name": "Lima Kill Sekejap",
+          "order": 11,
+          "progress": null,
+          "proof_template": "Lima kill dari detik {first_kill_seconds} hingga {fifth_kill_seconds}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-18",
+          "description": "Beberapa kill hero di awal tanpa kematian awal.",
+          "earned_count": 0,
+          "how_to": "Raih kill hero di awal dan bertahan hidup selama menit pembuka.",
+          "id": 18,
+          "key": "match-achievement-18",
+          "latest_match": null,
+          "name": "Duelis Awal",
+          "order": 12,
+          "progress": null,
+          "proof_template": "Sebelum 10:00: {kills_before_10} kill, {deaths_before_10} kematian.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-20",
+          "description": "Tiga kill pribadi tanpa mati dalam satu teamfight terdeteksi.",
+          "earned_count": 0,
+          "how_to": "Selesaikan satu teamfight terdeteksi dengan beberapa kill tanpa mati.",
+          "id": 20,
+          "key": "match-achievement-20",
+          "latest_match": null,
+          "name": "Penuntas Teamfight",
+          "order": 13,
+          "progress": null,
+          "proof_template": "Teamfight terdeteksi: {fight}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-22",
+          "description": "Porsi besar damage hero tim dalam dua teamfight terpisah.",
+          "earned_count": 0,
+          "how_to": "Berikan porsi besar damage hero tim lebih dari sekali.",
+          "id": 22,
+          "key": "match-achievement-22",
+          "latest_match": null,
+          "name": "Andalan Damage",
+          "order": 14,
+          "progress": null,
+          "proof_template": "Teamfight yang memenuhi syarat: {fights}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-23",
+          "description": "Damage besar saat lima hero lawan mati tanpa kematian tim.",
+          "earned_count": 0,
+          "how_to": "Berikan damage besar dalam teamfight terdeteksi yang berat sebelah.",
+          "id": 23,
+          "key": "match-achievement-23",
+          "latest_match": null,
+          "name": "Teamfight Bersih",
+          "order": 15,
+          "progress": null,
+          "proof_template": "Teamfight terdeteksi: {fight}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-25",
+          "description": "Kontribusi besar dalam teamfight saat tim tertinggal emas.",
+          "earned_count": 0,
+          "how_to": "Berikan porsi besar damage teamfight saat tertinggal, dengan pertukaran kematian yang menguntungkan.",
+          "id": 25,
+          "key": "match-achievement-25",
+          "latest_match": null,
+          "name": "Tertinggal, Tetap Melawan",
+          "order": 16,
+          "progress": null,
+          "proof_template": "Selisih emas pada detik {gold_checkpoint_seconds}: {team_gold_gap}; teamfight: {fight}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-30",
+          "description": "Ulangi pencapaian sulit dengan hero yang sama di beberapa pertandingan.",
+          "earned_count": 0,
+          "how_to": "Raih pencapaian langka yang sama dengan satu hero di pertandingan terpisah.",
+          "id": 30,
+          "key": "match-achievement-30",
+          "latest_match": null,
+          "name": "Spesialis Hero",
+          "order": 17,
+          "progress": {
+            "current": 0,
+            "target": 3
+          },
+          "proof_template": "Hero {hero_id}; pencapaian: {feat_name}; pertandingan yang memenuhi syarat: {distinct_matches}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID",
+            "OFFLANE",
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-37",
+          "description": "Pasang observer dan dapatkan kredit penghancuran observer ward.",
+          "earned_count": 0,
+          "how_to": "Tangani pemasangan dan penghancuran observer ward dalam satu pertandingan.",
+          "id": 37,
+          "key": "match-achievement-37",
+          "latest_match": null,
+          "name": "Dua Tugas Vision",
+          "order": 18,
+          "progress": null,
+          "proof_template": "Observer dipasang: {observers_placed}; kredit penghancuran observer: {credited_observer_kills}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-41",
+          "description": "Stack awal disertai keterlibatan kill yang tinggi.",
+          "earned_count": 0,
+          "how_to": "Stack camp hingga menit 20 dan tetap aktif dalam kill tim.",
+          "id": 41,
+          "key": "match-achievement-41",
+          "latest_match": null,
+          "name": "Arsitek Camp",
+          "order": 19,
+          "progress": null,
+          "proof_template": "Stack pada 20:00: {stacks_at_20}; keterlibatan kill: {kill_involvement}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-42",
+          "description": "Keterlibatan kill tinggi dan kredit penghancuran observer ward.",
+          "earned_count": 0,
+          "how_to": "Berkontribusi dalam pertarungan dan hancurkan observer ward dalam satu pertandingan.",
+          "id": 42,
+          "key": "match-achievement-42",
+          "latest_match": null,
+          "name": "Support di Mana-Mana",
+          "order": 20,
+          "progress": null,
+          "proof_template": "Keterlibatan kill: {kill_involvement}; kredit penghancuran observer: {credited_observer_kills}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-44",
+          "description": "Damage besar ke tower dari Offlane.",
+          "earned_count": 0,
+          "how_to": "Berikan damage besar ke tower sebagai Offlaner.",
+          "id": 44,
+          "key": "match-achievement-44",
+          "latest_match": null,
+          "name": "Gempuran Offlane",
+          "order": 21,
+          "progress": null,
+          "proof_template": "Damage tower: {tower_damage}; porsi tim: {team_tower_damage_share}.",
+          "rarity": null,
+          "roles": [
+            "OFFLANE"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-45",
+          "description": "Porsi besar damage tower tim tanpa kematian.",
+          "earned_count": 0,
+          "how_to": "Pimpin damage tower tim dan selesaikan pertandingan tanpa mati.",
+          "id": 45,
+          "key": "match-achievement-45",
+          "latest_match": null,
+          "name": "Gempur Tanpa Mati",
+          "order": 22,
+          "progress": null,
+          "proof_template": "Porsi damage tower tim: {team_tower_damage_share}; kematian: {deaths}.",
+          "rarity": null,
+          "roles": [
+            "CARRY",
+            "MID"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-49",
+          "description": "Pemulihan hero besar dan banyak assist.",
+          "earned_count": 0,
+          "how_to": "Pulihkan kesehatan hero dan raih assist sebagai Support.",
+          "id": 49,
+          "key": "match-achievement-49",
+          "latest_match": null,
+          "name": "Tangan Penyembuh",
+          "order": 23,
+          "progress": null,
+          "proof_template": "Pemulihan hero: {hero_healing}; assist: {assists}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        },
+        {
+          "asset_key": "match-achievement-50",
+          "description": "Durasi disable hero tercatat yang besar dan banyak assist.",
+          "earned_count": 0,
+          "how_to": "Kendalikan hero lawan dalam waktu lama dan raih assist.",
+          "id": 50,
+          "key": "match-achievement-50",
+          "latest_match": null,
+          "name": "Spesialis Kendali",
+          "order": 24,
+          "progress": null,
+          "proof_template": "Detik disable tercatat: {disable_seconds}; assist: {assists}.",
+          "rarity": null,
+          "roles": [
+            "SUPPORT"
+          ],
+          "rule_version": "match-achievements-v1"
+        }
+      ],
+      "state": "BACKFILLING"
+    },
+    "status": 200
+  },
+  "/bootstrap": {
+    "body": {
+      "modes": [
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "STANDARD",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        },
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "TURBO",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        }
+      ]
+    },
+    "status": 200
+  },
+  "/coverage?mode=STANDARD": {
+    "body": {
+      "intervals": [],
+      "mode": "STANDARD"
+    },
+    "status": 200
+  },
+  "/history-operation": {
+    "body": {
+      "access_recovery": "NONE",
+      "bootstrap": [
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "STANDARD",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        },
+        {
+          "discovered_count": 0,
+          "eligible_count": 0,
+          "mode": "TURBO",
+          "outcome": null,
+          "settled_count": 0,
+          "status": "SEARCHING"
+        }
+      ],
+      "data_access": "ACCESSIBLE",
+      "history_import": "NONE",
+      "scope_change": "NONE",
+      "target_scope": null
+    },
+    "status": 200
+  },
+  "/history?mode=STANDARD": {
+    "body": {
+      "matches": [],
+      "next_cursor": null
+    },
+    "status": 200
+  },
+  "/history?mode=TURBO": {
+    "body": {
+      "matches": [],
+      "next_cursor": null
+    },
+    "status": 200
+  },
+  "/home?mode=STANDARD&time_zone=UTC": {
+    "body": {
+      "challenge": {
+        "reason": "NOT_CONTRACTED",
+        "state": "UNAVAILABLE"
+      },
+      "focus": {
+        "reason": "NOT_CONTRACTED",
+        "state": "UNAVAILABLE"
+      },
+      "last_matches": [],
+      "local_date": "<date>",
+      "mode": "STANDARD",
+      "role_summaries": [
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "carry.hero_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.last_hits_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.net_worth_at_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "carry.tower_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "CARRY",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "mid.early_fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.lane_net_worth_advantage_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.net_worth_at_20.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "mid.tower_damage_share.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "MID",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "offlane.fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.lane_net_worth_advantage_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.net_worth_at_10.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "offlane.objective_involvement.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "OFFLANE",
+          "state": "UNSTARTED"
+        },
+        {
+          "last_played_at": null,
+          "metrics": [
+            {
+              "metric_id": "support.camps_stacked.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.fight_presence.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.observer_wards_placed.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            },
+            {
+              "metric_id": "support.vision_denial.v1",
+              "point_count": 0,
+              "reason": null,
+              "state": "INSUFFICIENT_HISTORY"
+            }
+          ],
+          "role": "SUPPORT",
+          "state": "UNSTARTED"
+        }
+      ],
+      "today_matches": []
+    },
+    "status": 200
+  },
+  "/profile?mode=STANDARD": {
+    "body": {
+      "bucket_selector_visible": false,
+      "changes": [],
+      "claims": [],
+      "claims_state": "CALIBRATION_PENDING",
+      "coverage": {
+        "earliest_known_at": null,
+        "more_arriving": true
+      },
+      "default_mode": "STANDARD",
+      "favourite_hero_id": null,
+      "header": null,
+      "heroes": [],
+      "identity": null,
+      "mode": "STANDARD",
+      "personal_bests": [],
+      "personal_bests_state": "INSUFFICIENT",
+      "recent_celebrations": [],
+      "revision": 0,
+      "right_now_state": "CALIBRATION_PENDING",
+      "role_map": [],
+      "role_shape_withheld": null,
+      "state": "NOT_READY",
+      "unassigned_count": 0
+    },
+    "status": 200
+  },
+  "/profile?mode=TURBO": {
+    "body": {
+      "bucket_selector_visible": false,
+      "changes": [],
+      "claims": [],
+      "claims_state": "CALIBRATION_PENDING",
+      "coverage": {
+        "earliest_known_at": null,
+        "more_arriving": true
+      },
+      "default_mode": "STANDARD",
+      "favourite_hero_id": null,
+      "header": null,
+      "heroes": [],
+      "identity": null,
+      "mode": "TURBO",
+      "personal_bests": [],
+      "personal_bests_state": "INSUFFICIENT",
+      "recent_celebrations": [],
+      "revision": 0,
+      "right_now_state": "CALIBRATION_PENDING",
+      "role_map": [],
+      "role_shape_withheld": null,
+      "state": "NOT_READY",
+      "unassigned_count": 0
+    },
+    "status": 200
+  },
+  "/progress?mode=STANDARD&role=SUPPORT&metric_id=support.camps_stacked.v1": {
+    "body": {
+      "metric_id": "support.camps_stacked.v1",
+      "mode": "STANDARD",
+      "personal_best": null,
+      "points": [],
+      "role": "SUPPORT",
+      "trend": {
+        "point_count": 0,
+        "reason": null,
+        "state": "INSUFFICIENT_HISTORY"
+      }
+    },
+    "status": 200
+  },
+  "/readiness": {
+    "body": {
+      "data_access": "ACCESSIBLE",
+      "last_checked_at": null,
+      "state": "IDLE"
+    },
+    "status": 200
+  },
+  "/recovery": {
+    "body": {
+      "data_access": "ACCESSIBLE",
+      "identity_recovery": "UNAVAILABLE",
+      "identity_recovery_reason": "NOT_CONTRACTED"
+    },
+    "status": 200
+  },
+  "/settings": {
+    "body": {
+      "notifications_enabled": false
+    },
+    "status": 200
+  },
+  "/subscription": {
+    "body": {
+      "auto_renew": null,
+      "billing_state": "NONE",
+      "expires_at": null,
+      "scope": "FREE",
+      "scope_change": "NONE",
+      "scope_revision": 0,
+      "target_scope": null
+    },
+    "status": 200
+  }
+}

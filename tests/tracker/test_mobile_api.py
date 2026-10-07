@@ -127,6 +127,38 @@ def test_mobile_match_ref_is_opaque_and_cannot_cross_accounts(database):
     assert owner_client.get(f"/matches/{public_ref}", headers=owner_headers).status_code == 200
 
 
+def test_match_detail_names_the_viewers_own_roster_row(database):
+    """B1: the account link's slot picks the viewer's row in `players[]` (canonical 0-9)."""
+    client, headers, owner_id = _client(database, "viewer-row-owner")
+    with database.begin() as c:
+        c.execute(dota_accounts.insert().values(account_id=1001))
+        c.execute(profiles.insert().values(id="profile-viewer-row", user_id=owner_id,
+            account_id=1001, active=True, original_linked_at=datetime(2020, 1, 1, tzinfo=UTC)))
+        payload = raw()
+        payload["players"][0]["account_id"] = 1001
+        snapshot_id = save(c, payload)
+        materialize_snapshot(c, snapshot_id=snapshot_id, match_id=MATCH_ID)
+        match = c.execute(select(matches).where(matches.c.match_id == MATCH_ID)).mappings().one()
+        c.execute(account_matches.insert().values(profile_id="profile-viewer-row", match_id=MATCH_ID,
+            account_id=1001, player_slot=0, lifecycle="WAITING_FOR_PROVIDER", mode=match["mode"],
+            effective_role="CARRY", provider_started_at=match["started_at"],
+            provider_source_match_id=MATCH_ID, origin="LIVE"))
+        ref = c.scalar(select(account_matches.c.public_ref))
+    radiant = client.get(f"/matches/{ref}", headers=headers).json()
+    assert radiant["player_slot"] == 0
+    assert radiant["hero_id"] == radiant["players"][0]["hero_id"]
+    assert radiant["players"][0]["team"] == "RADIANT"
+    # A Dire viewer: the slot is canonical (5-9), never the raw provider slot (128+).
+    with database.begin() as c:
+        c.execute(account_matches.update().values(player_slot=7))
+    dire = client.get(f"/matches/{ref}", headers=headers).json()
+    assert dire["player_slot"] == 7
+    assert dire["hero_id"] == dire["players"][7]["hero_id"]
+    assert dire["players"][7]["team"] == "DIRE"
+    assert dire["players"] == radiant["players"] and dire["hero_id"] != radiant["hero_id"]
+    assert "account_id" not in str(dire)
+
+
 def _flawless(payload):
     """Retained-source edit: slot 0 finishes with 10 kills, 29 assists and no death."""
     player = payload["players"][0]
