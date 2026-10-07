@@ -19,16 +19,18 @@ this repository deploys, and the tracker backend has not been deployed.
 
 ## Order
 
-1. Back up the production database. Migrations `0006`–`0015` are additive: they create
-   `tracker_*` tables, functions and triggers and do not alter legacy tables or retention.
+1. Back up the production database. Migrations `0006`–`0018` create `tracker_*` tables,
+   functions and triggers. Migration `0019` **drops** the sixteen tables of the removed
+   report-card product (never live, no users; owner decision 2026-10-07). Its downgrade
+   recreates them empty and cannot restore rows.
 2. Run `alembic upgrade head` before starting any new process: the API and workers refuse to
    start against an older revision.
-3. Start the existing legacy API and report worker unchanged, then the tracker beat and the
-   four tracker workers.
+3. Start the API, then the tracker beat and the four tracker workers. A Railway worker started
+   with the fixed entrypoint `celery -A app.workers.tasks.celery_app` runs the tracker Celery
+   app; give it `-Q tracker-p<n>` per priority lane (see the compose `tracker` profile).
 4. Configure the environment values above; each unconfigured capability stays fail-closed.
 5. Smoke-test with an existing account through `/mobile/v1` read routes only; do not generate
    reports or spend provider budget for presentation checks.
 
-The legacy report product, its persisted reports and the `/v1` API contract are unchanged by
-the tracker migrations; this is covered by `tests/tracker/test_schema.py` (populated upgrade
-from `0005`, current and historical persisted-report reads) and the contract suite.
+The drop is covered by `tests/tracker/test_schema.py` (tracker rows survive, the report-card
+tables are gone at head and come back empty on downgrade) and `tests/unit/test_migrations.py`.

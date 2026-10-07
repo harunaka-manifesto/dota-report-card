@@ -1,8 +1,8 @@
 # Mobile API (v1)
 
 The iOS client's only backend boundary. It is a separate FastAPI application mounted at
-`/mobile/v1` with its own OpenAPI document; the legacy `/v1` report API, its generated client
-and its CI diff check are untouched. Resource design and state projections are specified in
+`/mobile/v1` with its own OpenAPI document. The process root serves only `/health*` and the
+`/store` and `/internal/tracker` sub-applications beside it. Resource design and state projections are specified in
 [MOBILE-API-DRAFT](../architecture/MOBILE-API-DRAFT.md); product meaning in the
 [feature SSOTs](../README.md).
 

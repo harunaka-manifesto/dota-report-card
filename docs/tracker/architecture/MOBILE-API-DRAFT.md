@@ -7,7 +7,7 @@ owns block readiness. This draft selects transport names before schema implement
 ## Boundary and conventions
 
 Mount a FastAPI sub-application at `/mobile/v1`, with its own `/openapi.json` and typed DTOs.
-Legacy `/v1` routes and their OpenAPI remain unchanged. Reads use persisted state only.
+Reads use persisted state only.
 Provider adapters, work scheduling, raw source payloads and internal position assignments
 are never mobile resources. Internal operations and the App Store notification endpoint live
 outside the mobile application and require separate authentication.

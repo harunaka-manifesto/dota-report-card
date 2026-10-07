@@ -15,7 +15,7 @@ cp .env.example .env
 make install
 make infra-up            # docker compose: postgres + redis
 make db-migrate           # alembic upgrade head
-make dev                  # FastAPI: legacy /v1, /mobile/v1, /store, /internal/tracker
+make dev                  # FastAPI: /health*, /mobile/v1, /store, /internal/tracker
 TEST_POSTGRES_URL=… TEST_REDIS_URL=… make test-tracker
 make tracker-worker PRIORITY=0   # one terminal per priority: 0, 1, 2, 3
 make tracker-beat
@@ -37,10 +37,3 @@ Full setup, verification commands, and what each test suite proves are in the
 ## AI / coding agents
 
 Read [`AGENTS.md`](AGENTS.md) before making changes.
-
-## Legacy report card
-
-This repository also hosts the deprecated but **live-in-production** Dota Report Card / Free
-DNA product, entirely under [`legacy/`](legacy/README.md). It is not the tracker's product or
-architecture reference — see [`legacy/README.md`](legacy/README.md) and
-[`legacy/AGENTS.md`](legacy/AGENTS.md) before touching it.

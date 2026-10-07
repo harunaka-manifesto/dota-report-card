@@ -787,8 +787,8 @@ or always richest.
 - [Steam Web API documentation/key requirement](https://steamcommunity.com/dev)
 - [Existing STRATZ field inventory](../../../../research/stratz-enrichment/01-field-inventory.md)
 - [Existing OpenDota parsed field study](../../../../research/opendota-parsed-match-insight-research.md)
-- [Existing STRATZ live microprobe](../../../../legacy/docs/evidence/free-dna-v7-stratz-live-microprobe-2026-09-01.md)
-- [Current V7 acquisition policy](../../../../legacy/services/api/report_card/player_analysis_v7/acquisition_policy.py)
+- Existing STRATZ live microprobe: `legacy/docs/evidence/free-dna-v7-stratz-live-microprobe-2026-09-01.md` (removed with the report-card product on 2026-10-07; in Git history)
+- Then-current V7 acquisition policy: `legacy/services/api/report_card/player_analysis_v7/acquisition_policy.py` (removed 2026-10-07; in Git history)
 - [Current versioned STRATZ deep operation](../../../../services/api/app/stratz/queries.py)
 - [Current OpenDota client and cache behavior](../../../../services/api/app/opendota/client.py)
 - Ignored live archive: `.local/opendota-architecture-investigation/`

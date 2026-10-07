@@ -5,9 +5,8 @@ System behavior: [Tracker architecture](../../../../docs/tracker/architecture/RE
 How to run and verify: [runbook](../../../../docs/tracker/operations/README.md).
 Status, decisions and blockers: [ledger](../../../../docs/tracker/architecture/IMPLEMENTATION-LEDGER.md).
 
-This namespace is the Dota Tracker backend. It shares only transport clients
-(`app.opendota`, `app.stratz`), configuration and the database engine with the live legacy
-report product; legacy tables, routes and retention are untouched.
+This namespace is the Dota Tracker backend. Outside it, the backend has only shared runtime:
+transport clients (`app.opendota`, `app.stratz`), configuration, and the database engine.
 
 ## Module map
 
