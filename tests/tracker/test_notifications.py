@@ -8,9 +8,10 @@ from app.tracker.notifications import (
     deliver_pending,
     record_ready,
 )
-from app.tracker.schema import devices, events, notification_outbox, users
+from app.tracker.schema import account_matches, devices, events, notification_outbox, users
 from sqlalchemy import func, select
 
+from .builders import add_match
 from .test_schema import identity
 
 
@@ -54,6 +55,56 @@ def test_ready_events_are_live_only_coalesced_and_never_queued_retroactively(dat
     with database.connect() as c:
         assert c.scalar(select(notification_outbox.c.state)) == "SENT"
         assert c.scalar(select(func.count()).select_from(events)) == 3
+
+
+def test_single_match_bundle_names_its_match_ref_and_a_coalesced_bundle_does_not(database):
+    """B2: a one-match READY push carries the opaque `/matches/{ref}`; a bundle of several does not."""
+    user_id, profile_id = identity(database)
+    first_match = add_match(database, profile_id, index=1)
+    second_match = add_match(database, profile_id, index=2)
+    with database.connect() as c:
+        refs = dict(c.execute(select(account_matches.c.match_id, account_matches.c.public_ref)).all())
+    with database.begin() as c:
+        c.execute(users.update().where(users.c.id == user_id).values(notifications_enabled=True))
+        c.execute(devices.insert().values(id=str(uuid4()), user_id=user_id,
+            push_token="fake-push-token", permission="GRANTED",
+            last_active_at=datetime.now(UTC) - timedelta(hours=2)))
+        record_ready(c, profile_id=profile_id, match_id=first_match, origin="LIVE", achievement_ids=[14])
+    with database.connect() as c:
+        single = c.scalar(select(notification_outbox.c.payload))
+    assert single == {
+        "kind": "MATCH_READY", "count": 1, "achievement_awards": [14], "achievement_ids": [14],
+        "achievement_count": 1, "achievement_top_id": 14, "achievement_more": 0,
+        "match_ref": refs[first_match]}
+    assert str(first_match) not in str(single)
+
+    with database.begin() as c:
+        record_ready(c, profile_id=profile_id, match_id=second_match, origin="LIVE")
+    with database.connect() as c:
+        bundle = c.scalar(select(notification_outbox.c.payload))
+    assert bundle["count"] == 2 and "match_ref" not in bundle
+
+    transport = FakePushTransport()
+    with database.begin() as c:
+        assert deliver_pending(c, transport) == 1
+    assert [payload for _, payload, _ in transport.sent] == [bundle]
+
+
+def test_single_match_push_is_delivered_with_its_match_ref(database):
+    user_id, profile_id = identity(database)
+    match_id = add_match(database, profile_id, index=1)
+    with database.begin() as c:
+        c.execute(users.update().where(users.c.id == user_id).values(notifications_enabled=True))
+        c.execute(devices.insert().values(id=str(uuid4()), user_id=user_id,
+            push_token="fake-push-token", permission="GRANTED",
+            last_active_at=datetime.now(UTC) - timedelta(hours=2)))
+        record_ready(c, profile_id=profile_id, match_id=match_id, origin="LIVE")
+        ref = c.scalar(select(account_matches.c.public_ref).where(account_matches.c.match_id == match_id))
+    transport = FakePushTransport()
+    with database.begin() as c:
+        assert deliver_pending(c, transport) == 1
+    [(_, payload, _)] = transport.sent
+    assert payload["count"] == 1 and payload["match_ref"] == ref
 
 
 def test_permission_revocation_suppresses_pending_without_affecting_events(database):

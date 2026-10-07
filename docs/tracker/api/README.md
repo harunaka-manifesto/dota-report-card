@@ -305,6 +305,21 @@ is the best-qualifying population purchase among enemy positions 1–3. See
 
 The checked-in `mobile-openapi-v1.json` is regenerated with `make tracker-openapi`; the contract golden test guards the exported schema. The `/mobile/v1` version stays fixed because these Match Detail additions carry their own `item-timings-v1`, `offlane-context-v2`, `carry-context-v1`, `mid-context-v1`, and `core-fights-v1` contract versions.
 
+## Push notifications (`MATCH_READY`)
+
+Push is READY-only and coalesced per account: while a bundle waits to be sent, later live READY
+matches join it. The payload is:
+
+| Key | Meaning |
+|---|---|
+| `kind` | Always `MATCH_READY`. |
+| `count` | Matches in the bundle. |
+| `match_ref` | Present only when `count == 1`: the same opaque reference `GET /matches/{match_ref}` takes. Absent for a coalesced bundle; the client then refreshes (`GET /changes`) and lands on Home. |
+| `achievement_awards`, `achievement_ids`, `achievement_count`, `achievement_top_id`, `achievement_more` | See [Match achievements](#match-achievements-match-achievements-v1). |
+
+Historical imports, bootstrap and rebuilds never push. The reference follows the same isolation
+rule as every other read: another account gets 404 for it.
+
 Server-to-server routes (`/store/app-store/notifications`) and the operations readout
 (`/internal/tracker`) are separate applications without a mobile OpenAPI entry.
 
