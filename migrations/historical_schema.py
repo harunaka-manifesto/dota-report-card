@@ -1,3 +1,11 @@
+"""Frozen schema of the removed report-card product's tables.
+
+Migration ``0001_initial`` builds these tables from this metadata and
+``0019_drop_report_card_tables`` drops them again (its downgrade recreates
+them from here). Nothing at runtime imports this module; it exists only so the
+migration history replays from ``0001``. Do not edit it.
+"""
+
 from __future__ import annotations
 
 from datetime import datetime

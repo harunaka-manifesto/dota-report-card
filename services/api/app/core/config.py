@@ -1,51 +1,21 @@
 from __future__ import annotations
 
 import os
-import re
 from dataclasses import dataclass
 from functools import lru_cache
-from pathlib import Path
 
 from dotenv import load_dotenv
 
-# The Free population is a time window, not a match-count product cap.  The
-# optional limit remains an infrastructure safety valve for a future rollout,
-# but the default is deliberately unbounded so a busy account is not silently
-# reduced to the old 500-row population.
+# OpenDota match-history reads cover a time window, not a match-count product
+# cap. The optional limit is an infrastructure safety valve only.
 FREE_HISTORY_WINDOW_DAYS = 365
 FREE_HISTORY_LIMIT: int | None = None
 MAX_FREE_HISTORY_LIMIT: int | None = None
-MATCH_HISTORY_LIMIT = FREE_HISTORY_LIMIT
-RECENCY_HALF_LIFE_DAYS = 180.0
-DEFAULT_MAX_DEEP_MATCHES = 25
-DEFAULT_MAX_PARSE_REQUESTS = 25
-DEFAULT_MAX_DATA_COST_PER_REPORT = 160.0
-DEFAULT_MIN_MARGINAL_INFORMATION_GAIN = 0.05
-DEFAULT_MIN_PARSE_INFORMATION_GAIN = 0.10
-DEFAULT_MAX_PRIMARY_HYPOTHESES = 2
-DEFAULT_SESSION_GAP_MINUTES = 90
-DEFAULT_SUMMARY_HISTORY_CACHE_TTL_SECONDS = 120
-DEFAULT_REPORT_RETENTION_DAYS = 30
-DEFAULT_REPORT_INTERACTION_RETENTION_DAYS = 90
-DEFAULT_STEAM_RESOLVER_BASE_URL = "https://api.steampowered.com"
 DEFAULT_STRATZ_BASE_URL = "https://api.stratz.com/graphql"
 DEFAULT_STRATZ_USER_AGENT = "STRATZ_API"
 DEFAULT_STRATZ_TIMEOUT_SECONDS = 20.0
 DEFAULT_STRATZ_MAX_RETRIES = 3
 DEFAULT_STRATZ_MAX_HISTORY_PAGES = 25
-DEFAULT_CORS_ORIGINS = (
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-)
-
-SUPPORTED_OPENDOTA_SOURCES = frozenset({"fixture", "live"})
-SUPPORTED_DATA_PROVIDERS = frozenset({"opendota", "stratz"})
-
-
-def _as_bool(value: str | None, default: bool = False) -> bool:
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _optional_int(value: str | None, *, default: int | None) -> int | None:
@@ -60,80 +30,14 @@ def _optional_int(value: str | None, *, default: int | None) -> int | None:
     return parsed if parsed > 0 else None
 
 
-def _optional_bool(value: str | None, *, default: bool | None) -> bool | None:
-    if value is None or not value.strip():
-        return default
-    return _as_bool(value)
-
-
-def validate_runtime_configuration(settings: Settings) -> None:
-    if settings.data_provider not in SUPPORTED_DATA_PROVIDERS:
-        raise ValueError(
-            f"DATA_PROVIDER must be one of {sorted(SUPPORTED_DATA_PROVIDERS)}"
-        )
-    if settings.opendota_source not in SUPPORTED_OPENDOTA_SOURCES:
-        raise ValueError(f"OPENDOTA_SOURCE must be one of {sorted(SUPPORTED_OPENDOTA_SOURCES)}")
-    if settings.data_provider == "stratz":
-        if settings.stratz_user_agent != DEFAULT_STRATZ_USER_AGENT:
-            raise ValueError("STRATZ_USER_AGENT must be STRATZ_API")
-        if settings.free_dna_v6_enabled or settings.free_dna_v61_enabled:
-            raise ValueError(
-                "DATA_PROVIDER=stratz is V7-only; V6/V6.1 must remain on the OpenDota path"
-            )
-    if settings.app_env != "production":
-        return
-    if settings.opendota_source != "live":
-        raise ValueError("APP_ENV=production requires OPENDOTA_SOURCE=live")
-    if settings.data_provider == "stratz" and not settings.stratz_api_token:
-        raise ValueError("APP_ENV=production with DATA_PROVIDER=stratz requires STRATZ_API_TOKEN")
-    if settings.effective_storage_backend != "database":
-        raise ValueError("APP_ENV=production requires STORAGE_BACKEND=database")
-    if settings.effective_analysis_execution_backend != "celery":
-        raise ValueError("APP_ENV=production requires ANALYSIS_EXECUTION_BACKEND=celery")
-    if (
-        settings.release_commit_sha is None
-        or re.fullmatch(r"[0-9a-f]{40}", settings.release_commit_sha) is None
-    ):
-        raise ValueError("production requires a valid RELEASE_COMMIT_SHA")
-    if settings.release_worktree_dirty is not False:
-        raise ValueError("production requires RELEASE_WORKTREE_DIRTY=false")
-    if settings.free_dna_v61_enabled:
-        analytical_source_sha = settings.free_dna_v61_analytical_source_sha
-        if analytical_source_sha is None:
-            raise ValueError(
-                "production V6.1 requires FREE_DNA_V61_ANALYTICAL_SOURCE_SHA"
-            )
-        if re.fullmatch(r"[0-9a-f]{40}", analytical_source_sha) is None:
-            raise ValueError(
-                "FREE_DNA_V61_ANALYTICAL_SOURCE_SHA must be a valid 40-character commit"
-            )
-    elif (
-        settings.free_dna_v61_analytical_source_sha is not None
-        and re.fullmatch(r"[0-9a-f]{40}", settings.free_dna_v61_analytical_source_sha)
-        is None
-    ):
-        raise ValueError(
-            "FREE_DNA_V61_ANALYTICAL_SOURCE_SHA must be a valid 40-character commit"
-        )
-
-
 @dataclass(frozen=True)
 class Settings:
     app_env: str = "development"
     log_level: str = "INFO"
-    data_provider: str = "opendota"
-    opendota_source: str = "fixture"
     opendota_base_url: str = "https://api.opendota.com/api"
     opendota_api_key: str | None = None
-    steam_api_key: str | None = None
-    steam_resolver_base_url: str = DEFAULT_STEAM_RESOLVER_BASE_URL
-    fixture_dir: Path = Path("tests/fixtures/opendota")
     database_url: str = "postgresql+psycopg://dota:dota@localhost:5432/dota_report_card"
     redis_url: str = "redis://localhost:6379/0"
-    model_version: str = "free-dna-model-5.2.0"
-    template_version: str = "templates-1.0.0"
-    role_confidence_threshold: float = 0.60
-    analysis_max_concurrency: int = 4
     opendota_max_retries: int = 3
     opendota_timeout_seconds: float = 15.0
     stratz_base_url: str = DEFAULT_STRATZ_BASE_URL
@@ -142,83 +46,18 @@ class Settings:
     stratz_timeout_seconds: float = DEFAULT_STRATZ_TIMEOUT_SECONDS
     stratz_max_retries: int = DEFAULT_STRATZ_MAX_RETRIES
     stratz_max_history_pages: int = DEFAULT_STRATZ_MAX_HISTORY_PAGES
-    # Broad summary reads and deep evidence acquisition have independent
-    # budgets.  ``history_limit`` is a deprecated constructor alias kept for
-    # existing integrations; new code should use ``free_history_limit``.
     free_history_limit: int | None = FREE_HISTORY_LIMIT
-    history_limit: int | None = None
-    max_deep_matches: int = DEFAULT_MAX_DEEP_MATCHES
-    max_parse_requests: int = DEFAULT_MAX_PARSE_REQUESTS
-    max_data_cost_per_report: float = DEFAULT_MAX_DATA_COST_PER_REPORT
-    min_marginal_information_gain: float = DEFAULT_MIN_MARGINAL_INFORMATION_GAIN
-    min_parse_information_gain: float = DEFAULT_MIN_PARSE_INFORMATION_GAIN
-    max_primary_hypotheses: int = DEFAULT_MAX_PRIMARY_HYPOTHESES
-    session_gap_minutes: int = DEFAULT_SESSION_GAP_MINUTES
-    default_analysis_mode: str = "free"
-    compatible_analysis_ttl_seconds: int = 3600
-    summary_history_cache_ttl_seconds: int = DEFAULT_SUMMARY_HISTORY_CACHE_TTL_SECONDS
-    report_retention_days: int = DEFAULT_REPORT_RETENTION_DAYS
-    report_interaction_retention_days: int = DEFAULT_REPORT_INTERACTION_RETENTION_DAYS
-    free_dna_v6_enabled: bool = False
-    free_dna_v6_baseline_artifact_path: Path | None = None
-    free_dna_v6_threshold_artifact_path: Path | None = None
-    free_dna_v6_model_version: str = "free-dna-model-6.0.0"
-    free_dna_v61_enabled: bool = False
-    free_dna_v61_shadow_enabled: bool = False
-    free_dna_v61_experimental_evolution_enabled: bool = False
-    free_dna_v61_experimental_loops_enabled: bool = False
-    free_dna_v61_baseline_artifact_path: Path | None = None
-    free_dna_v61_threshold_artifact_path: Path | None = None
-    free_dna_v61_artifact_dir: Path | None = None
-    free_dna_v61_summary_prior_artifact_path: Path | None = None
-    free_dna_v61_distance_artifact_path: Path | None = None
-    free_dna_v61_session_reliability_artifact_path: Path | None = None
-    free_dna_v61_semantic_artifact_path: Path | None = None
-    free_dna_v61_build_manifest_path: Path | None = None
-    free_dna_v61_release_authorization_path: Path | None = None
-    free_dna_v61_model_version: str = "free-dna-model-6.1.0"
-    replay_coverage_threshold: float = 0.60
-    summary_coverage_threshold: float = 0.60
-    cors_origins: tuple[str, ...] = DEFAULT_CORS_ORIGINS
-    storage_backend: str = "auto"
-    analysis_execution_backend: str = "auto"
-    allow_local_deep_entitlement_bypass: bool = False
-    release_commit_sha: str | None = None
-    free_dna_v61_analytical_source_sha: str | None = None
-    release_worktree_dirty: bool | None = None
 
     @classmethod
     def from_env(cls) -> Settings:
         load_dotenv()
-        app_env = os.getenv("APP_ENV", "development").lower()
-        cors_origins = tuple(
-            origin.strip()
-            for origin in os.getenv("CORS_ORIGINS", ",".join(DEFAULT_CORS_ORIGINS)).split(",")
-            if origin.strip()
-        )
-        api_key = os.getenv("OPENDOTA_API_KEY") or None
         return cls(
-            app_env=app_env,
+            app_env=os.getenv("APP_ENV", "development").lower(),
             log_level=os.getenv("LOG_LEVEL", "INFO"),
-            data_provider=os.getenv("DATA_PROVIDER", "opendota").lower(),
-            opendota_source=os.getenv("OPENDOTA_SOURCE", "fixture").lower(),
             opendota_base_url=os.getenv("OPENDOTA_BASE_URL", cls.opendota_base_url),
-            opendota_api_key=api_key,
-            steam_api_key=os.getenv("STEAM_API_KEY") or None,
-            steam_resolver_base_url=os.getenv(
-                "STEAM_RESOLVER_BASE_URL", cls.steam_resolver_base_url
-            ),
-            fixture_dir=Path(os.getenv("OPENDOTA_FIXTURE_DIR", str(cls.fixture_dir))),
+            opendota_api_key=os.getenv("OPENDOTA_API_KEY") or None,
             database_url=os.getenv("DATABASE_URL", cls.database_url),
             redis_url=os.getenv("REDIS_URL", cls.redis_url),
-            model_version=os.getenv("MODEL_VERSION", cls.model_version),
-            template_version=os.getenv("TEMPLATE_VERSION", cls.template_version),
-            role_confidence_threshold=float(
-                os.getenv("ROLE_CONFIDENCE_THRESHOLD", str(cls.role_confidence_threshold))
-            ),
-            analysis_max_concurrency=int(
-                os.getenv("ANALYSIS_MAX_CONCURRENCY", str(cls.analysis_max_concurrency))
-            ),
             opendota_max_retries=int(
                 os.getenv("OPENDOTA_MAX_RETRIES", str(cls.opendota_max_retries))
             ),
@@ -243,204 +82,20 @@ class Settings:
                 os.getenv("FREE_HISTORY_LIMIT", os.getenv("HISTORY_LIMIT")),
                 default=cls.free_history_limit,
             ),
-            max_deep_matches=int(os.getenv("MAX_DEEP_MATCHES", str(cls.max_deep_matches))),
-            max_parse_requests=int(os.getenv("MAX_PARSE_REQUESTS", str(cls.max_parse_requests))),
-            max_data_cost_per_report=float(
-                os.getenv(
-                    "MAX_DATA_COST_PER_REPORT",
-                    str(cls.max_data_cost_per_report),
-                )
-            ),
-            min_marginal_information_gain=float(
-                os.getenv(
-                    "MIN_MARGINAL_INFORMATION_GAIN",
-                    str(cls.min_marginal_information_gain),
-                )
-            ),
-            min_parse_information_gain=float(
-                os.getenv(
-                    "MIN_PARSE_INFORMATION_GAIN",
-                    str(cls.min_parse_information_gain),
-                )
-            ),
-            max_primary_hypotheses=int(
-                os.getenv(
-                    "MAX_PRIMARY_HYPOTHESES",
-                    str(cls.max_primary_hypotheses),
-                )
-            ),
-            session_gap_minutes=int(os.getenv("SESSION_GAP_MINUTES", str(cls.session_gap_minutes))),
-            default_analysis_mode=os.getenv(
-                "DEFAULT_ANALYSIS_MODE", cls.default_analysis_mode
-            ).lower(),
-            compatible_analysis_ttl_seconds=int(
-                os.getenv(
-                    "COMPATIBLE_ANALYSIS_TTL_SECONDS",
-                    str(cls.compatible_analysis_ttl_seconds),
-                )
-            ),
-            summary_history_cache_ttl_seconds=int(
-                os.getenv(
-                    "SUMMARY_HISTORY_CACHE_TTL_SECONDS",
-                    str(cls.summary_history_cache_ttl_seconds),
-                )
-            ),
-            report_retention_days=int(
-                os.getenv("REPORT_RETENTION_DAYS", str(cls.report_retention_days))
-            ),
-            report_interaction_retention_days=int(
-                os.getenv(
-                    "REPORT_INTERACTION_RETENTION_DAYS",
-                    str(cls.report_interaction_retention_days),
-                )
-            ),
-            free_dna_v6_enabled=_as_bool(os.getenv("FREE_DNA_V6_ENABLED")),
-            free_dna_v6_baseline_artifact_path=(
-                Path(value) if (value := os.getenv("FREE_DNA_V6_BASELINE_ARTIFACT")) else None
-            ),
-            free_dna_v6_threshold_artifact_path=(
-                Path(value) if (value := os.getenv("FREE_DNA_V6_THRESHOLD_ARTIFACT")) else None
-            ),
-            free_dna_v6_model_version=os.getenv("FREE_DNA_V6_MODEL_VERSION", cls.free_dna_v6_model_version),
-            free_dna_v61_enabled=_as_bool(os.getenv("FREE_DNA_V61_ENABLED")),
-            free_dna_v61_shadow_enabled=_as_bool(os.getenv("FREE_DNA_V61_SHADOW_ENABLED")),
-            free_dna_v61_experimental_evolution_enabled=_as_bool(
-                os.getenv("FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED")
-            ),
-            free_dna_v61_experimental_loops_enabled=_as_bool(
-                os.getenv("FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED")
-            ),
-            free_dna_v61_baseline_artifact_path=(
-                Path(value) if (value := os.getenv("FREE_DNA_V61_BASELINE_ARTIFACT")) else None
-            ),
-            free_dna_v61_threshold_artifact_path=(
-                Path(value) if (value := os.getenv("FREE_DNA_V61_THRESHOLD_ARTIFACT")) else None
-            ),
-            free_dna_v61_artifact_dir=(
-                Path(value) if (value := os.getenv("FREE_DNA_V61_ARTIFACT_DIR")) else None
-            ),
-            free_dna_v61_summary_prior_artifact_path=(
-                Path(value) if (value := os.getenv("FREE_DNA_V61_SUMMARY_PRIOR_ARTIFACT")) else None
-            ),
-            free_dna_v61_distance_artifact_path=(
-                Path(value) if (value := os.getenv("FREE_DNA_V61_DISTANCE_ARTIFACT")) else None
-            ),
-            free_dna_v61_session_reliability_artifact_path=(
-                Path(value) if (value := os.getenv("FREE_DNA_V61_SESSION_RELIABILITY_ARTIFACT")) else None
-            ),
-            free_dna_v61_semantic_artifact_path=(
-                Path(value) if (value := os.getenv("FREE_DNA_V61_SEMANTIC_ARTIFACT")) else None
-            ),
-            free_dna_v61_build_manifest_path=(
-                Path(value) if (value := os.getenv("FREE_DNA_V61_BUILD_MANIFEST")) else None
-            ),
-            free_dna_v61_release_authorization_path=(
-                Path(value)
-                if (value := os.getenv("FREE_DNA_V61_RELEASE_AUTHORIZATION"))
-                else None
-            ),
-            free_dna_v61_model_version=os.getenv(
-                "FREE_DNA_V61_MODEL_VERSION", cls.free_dna_v61_model_version
-            ),
-            replay_coverage_threshold=float(
-                os.getenv("REPLAY_COVERAGE_THRESHOLD", str(cls.replay_coverage_threshold))
-            ),
-            summary_coverage_threshold=float(
-                os.getenv("SUMMARY_COVERAGE_THRESHOLD", str(cls.summary_coverage_threshold))
-            ),
-            cors_origins=cors_origins or DEFAULT_CORS_ORIGINS,
-            storage_backend=os.getenv("STORAGE_BACKEND", "auto").lower(),
-            analysis_execution_backend=os.getenv("ANALYSIS_EXECUTION_BACKEND", "auto").lower(),
-            allow_local_deep_entitlement_bypass=_as_bool(
-                os.getenv("ALLOW_LOCAL_DEEP_ENTITLEMENT_BYPASS")
-            ),
-            release_commit_sha=os.getenv("RELEASE_COMMIT_SHA") or None,
-            free_dna_v61_analytical_source_sha=(
-                os.getenv("FREE_DNA_V61_ANALYTICAL_SOURCE_SHA") or None
-            ),
-            release_worktree_dirty=_optional_bool(
-                os.getenv("RELEASE_WORKTREE_DIRTY"), default=cls.release_worktree_dirty
-            ),
         )
-
-    @property
-    def effective_fixture_dir(self) -> Path:
-        return self.fixture_dir if self.fixture_dir.is_absolute() else Path.cwd() / self.fixture_dir
-
-    @property
-    def effective_history_limit(self) -> int | None:
-        """Backward-compatible alias for the broad summary limit."""
-
-        return self.effective_free_history_limit
 
     @property
     def effective_free_history_limit(self) -> int | None:
-        requested = (
-            self.history_limit if self.history_limit is not None else self.free_history_limit
-        )
-        if requested is None:
-            return None
-        if requested <= 0:
+        requested = self.free_history_limit
+        if requested is None or requested <= 0:
             return None
         return (
             requested if MAX_FREE_HISTORY_LIMIT is None else min(requested, MAX_FREE_HISTORY_LIMIT)
         )
 
     @property
-    def effective_max_deep_matches(self) -> int:
-        return min(DEFAULT_MAX_DEEP_MATCHES, max(0, self.max_deep_matches))
-
-    @property
-    def effective_max_parse_requests(self) -> int:
-        return min(DEFAULT_MAX_PARSE_REQUESTS, max(0, self.max_parse_requests))
-
-    @property
-    def effective_max_data_cost_per_report(self) -> float:
-        return min(DEFAULT_MAX_DATA_COST_PER_REPORT, max(0.0, self.max_data_cost_per_report))
-
-    @property
-    def effective_min_marginal_information_gain(self) -> float:
-        return max(DEFAULT_MIN_MARGINAL_INFORMATION_GAIN, self.min_marginal_information_gain)
-
-    @property
-    def effective_min_parse_information_gain(self) -> float:
-        return max(DEFAULT_MIN_PARSE_INFORMATION_GAIN, self.min_parse_information_gain)
-
-    @property
-    def effective_max_primary_hypotheses(self) -> int:
-        return max(1, self.max_primary_hypotheses)
-
-    @property
-    def effective_session_gap_minutes(self) -> int:
-        return max(1, self.session_gap_minutes)
-
-    @property
-    def effective_summary_history_cache_ttl_seconds(self) -> int:
-        return max(1, self.summary_history_cache_ttl_seconds)
-
-    @property
     def effective_stratz_max_history_pages(self) -> int:
         return max(1, self.stratz_max_history_pages)
-
-    @property
-    def effective_report_retention_days(self) -> int:
-        return max(1, self.report_retention_days)
-
-    @property
-    def effective_report_interaction_retention_days(self) -> int:
-        return max(1, self.report_interaction_retention_days)
-
-    @property
-    def effective_storage_backend(self) -> str:
-        if self.storage_backend != "auto":
-            return self.storage_backend
-        return "database" if self.app_env == "production" else "memory"
-
-    @property
-    def effective_analysis_execution_backend(self) -> str:
-        if self.analysis_execution_backend != "auto":
-            return self.analysis_execution_backend
-        return "celery" if self.app_env == "production" else "in_process"
 
 
 @lru_cache(maxsize=1)

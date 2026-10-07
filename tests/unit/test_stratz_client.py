@@ -24,18 +24,9 @@ from app.stratz.queries import (
     GET_PLAYER_PROFILE,
     GET_ROLE_METRIC_MATCH_BATCH,
 )
-from report_card.player_analysis_v7.research.archetype import fight_style_axes
-from report_card.player_analysis_v7.research.pass2_features import (
-    fight_conversion,
-    lane_vs_jungle_share,
-    vision_coverage,
-)
-from report_card.player_analysis_v7.runtime import analyze_v7
-
-from legacy.tests.unit.test_v7_runtime_service import _history
 
 FIXTURE = (
-    Path(__file__).resolve().parents[2] / "legacy" / "tests" / "fixtures" / "stratz" / "get_player_history_page.json"
+    Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "stratz" / "get_player_history_page.json"
 )
 ACCOUNT_ID = 123456789
 
@@ -46,7 +37,6 @@ def _payload() -> dict[str, Any]:
 
 def _settings(**overrides: Any) -> Settings:
     values: dict[str, Any] = {
-        "data_provider": "stratz",
         "stratz_api_token": "stratz-test-secret",
         "stratz_max_retries": 1,
     }
@@ -142,7 +132,7 @@ async def test_role_metric_batch_uses_separate_progression_operation() -> None:
     assert rows[0]["match_id"] == 9
 
 
-def test_nullable_provider_shapes_remain_unavailable_through_feature_boundaries() -> None:
+def test_nullable_provider_shapes_remain_unavailable_after_normalization() -> None:
     payload = {"player": {"matches": [_deep_match(9)]}}
     match = payload["player"]["matches"][0]
     stats = match["players"][0]["stats"]
@@ -152,29 +142,11 @@ def test_nullable_provider_shapes_remain_unavailable_through_feature_boundaries(
     stats["deathEvents"] = None
     stats["farmDistributionReport"]["creepLocation"] = None
     match["towerDeaths"] = None
+    match["durationSeconds"] = None
 
     row = normalize_deep_matches(payload, requested_ids=[9])[0]
     assert row["self"]["events"]["wards"] is None
-    assert vision_coverage([row]) is None
-    assert lane_vs_jungle_share([row]) is None
-    assert fight_conversion([row]) is None
-    assert fight_style_axes([row]) == (None, None)
-
-
-def test_normalized_nullable_duration_does_not_abort_the_runtime() -> None:
-    payload = {"player": {"matches": [_deep_match(9)]}}
-    payload["player"]["matches"][0]["durationSeconds"] = None
-
-    row = normalize_deep_matches(payload, requested_ids=[9])[0]
-    report = analyze_v7(
-        history=_history(),
-        deep_rows=[row],
-        hero_metadata={1: {"display_name": "Anti-Mage"}},
-        generated_at="2026-09-08T00:00:00Z",
-    )
-
-    assert report.metadata.matches_total == 1
-    assert report.metadata.matches_analysed == 1
+    assert row["match_id"] == 9
 
 
 @pytest.mark.asyncio

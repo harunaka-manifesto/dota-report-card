@@ -1,0 +1,74 @@
+{
+  "data": {
+    "player": {
+      "steamAccountId": 123456789,
+      "steamAccount": {
+        "id": "stratz-fixture-account",
+        "name": "Fixture Player",
+        "avatar": "https://example.invalid/avatar.png",
+        "isAnonymous": false,
+        "isStratzPublic": true
+      },
+      "matches": [
+        {
+          "id": 9000000001,
+          "didRadiantWin": true,
+          "durationSeconds": 2400,
+          "startDateTime": 1999999900,
+          "endDateTime": 2000002300,
+          "lobbyType": "RANKED",
+          "gameMode": "ALL_PICK_RANKED",
+          "gameVersionId": 182,
+          "parsedDateTime": 2000002400,
+          "players": [
+            {
+              "steamAccountId": 123456789,
+              "playerSlot": 0,
+              "isRadiant": true,
+              "isVictory": true,
+              "heroId": 25,
+              "variant": 0,
+              "kills": 4,
+              "deaths": 2,
+              "assists": 18,
+              "leaverStatus": "NONE",
+              "partyId": 7,
+              "lane": "SAFE_LANE",
+              "position": "POSITION_5",
+              "role": "HARD_SUPPORT"
+            }
+          ]
+        },
+        {
+          "id": 9000000002,
+          "didRadiantWin": false,
+          "durationSeconds": 1800,
+          "startDateTime": 1999990000,
+          "endDateTime": 1999991800,
+          "lobbyType": "UNRANKED",
+          "gameMode": "TURBO",
+          "gameVersionId": 182,
+          "parsedDateTime": null,
+          "players": [
+            {
+              "steamAccountId": 123456789,
+              "playerSlot": 128,
+              "isRadiant": false,
+              "isVictory": false,
+              "heroId": 86,
+              "variant": null,
+              "kills": 1,
+              "deaths": 7,
+              "assists": 6,
+              "leaverStatus": "DISCONNECTED_TOO_LONG",
+              "partyId": null,
+              "lane": "OFF_LANE",
+              "position": "POSITION_4",
+              "role": "LIGHT_SUPPORT"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

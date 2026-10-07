@@ -7,7 +7,7 @@ Revises:
 from collections.abc import Sequence
 
 from alembic import op
-from app.storage.models import Base
+from migrations.historical_schema import Base
 
 revision: str = "0001_initial"
 down_revision: str | None = None

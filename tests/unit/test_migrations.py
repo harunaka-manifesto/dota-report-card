@@ -12,7 +12,7 @@ from alembic.script import ScriptDirectory
 from app.storage.database import EXPECTED_SCHEMA_REVISION, check_database_revision
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-EXPECTED_HEAD = "0018_tracker_play_session_names"
+EXPECTED_HEAD = "0019_drop_report_card_tables"
 MAX_VERSION_NUM_LENGTH = 64
 
 
@@ -43,6 +43,7 @@ def test_all_migration_ids_fit_the_widened_version_table() -> None:
         "0015_tracker_link_updated_at",
         "0016_tracker_role_mastery",
         "0017_tracker_context_2026_09",
+        "0018_tracker_play_session_names",
         EXPECTED_HEAD,
     }
 
@@ -70,3 +71,27 @@ def test_application_readiness_accepts_migration_head() -> None:
     engine.connect.return_value.__enter__.return_value = connection
 
     check_database_revision(engine)
+
+
+def test_report_card_tables_are_dropped_and_tracker_tables_untouched() -> None:
+    output = StringIO()
+    context = MigrationContext.configure(
+        dialect_name="postgresql",
+        opts={"as_sql": True, "output_buffer": output},
+    )
+    migration = import_module("migrations.versions.0019_drop_report_card_tables")
+
+    with Operations.context(context):
+        migration.upgrade()
+
+    rendered = output.getvalue()
+    assert len(migration.REPORT_CARD_TABLES) == 16
+    for name in migration.REPORT_CARD_TABLES:
+        assert not name.startswith("tracker_")
+        assert f'DROP TABLE IF EXISTS "{name}"' in rendered
+    assert "tracker_" not in rendered
+    # Children first: tables holding a foreign key to reports/matches drop before them.
+    order = migration.REPORT_CARD_TABLES
+    assert order.index("report_interaction_sessions") < order.index("reports")
+    assert order.index("evidence_objects") < order.index("reports")
+    assert order.index("match_participants") < order.index("matches")

@@ -1,9 +1,6 @@
-"""Shared STRATZ field policy: names that must never reach canonical data.
+"""STRATZ field policy: provider field names that must never reach canonical data.
 
-This lives in ``app.stratz`` (not the legacy V7 research corpus) because the
-fresh V7 runtime path (``app.stratz.deep``) enforces it independently of the
-legacy research corpus reader. ``report_card``'s corpus module re-exports
-``forbidden_fields_in`` from here so legacy callers keep working unchanged.
+Enforced by the deep-match normalizer (``app.stratz.deep``).
 """
 
 from __future__ import annotations

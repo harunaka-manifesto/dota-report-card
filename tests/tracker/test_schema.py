@@ -2,25 +2,19 @@ from __future__ import annotations
 
 import json
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from threading import Barrier
 from uuid import uuid4
 
 import pytest
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
-from app.core.config import Settings
-from app.main import create_app
 from app.storage.database import check_database_revision
-from app.storage.models import RawPayloadRecord, ReportRecord
 from app.tracker import schema as s
-from fastapi.testclient import TestClient
-from report_card.analysis.source import FixtureOpenDotaSource
-from report_card.storage.repository import SqlAlchemyRepository
 from sqlalchemy import Engine, delete, func, insert, inspect, select, text, update
 from sqlalchemy.exc import IntegrityError
 
-from .conftest import ROOT, migrate
+from .conftest import migrate
 
 NOW = datetime(2026, 9, 21, tzinfo=UTC)
 MATCH_ID = 9_000_000_001
@@ -67,45 +61,30 @@ def snapshot(database: Engine, provider: str, payload: dict, digest: str) -> str
     return ref
 
 
-def test_upgrade_preserves_current_and_historical_report_reads(postgres: Engine) -> None:
+REPORT_CARD_TABLES = {
+    "players", "matches", "match_participants", "match_time_series", "match_events", "teamfights",
+    "ward_events", "raw_payloads", "parse_coverage", "constant_snapshots", "derived_features",
+    "cohort_aggregates", "analysis_jobs", "reports", "report_interaction_sessions", "evidence_objects",
+}
+
+
+def test_head_drops_report_card_tables_and_keeps_tracker_rows(postgres: Engine) -> None:
     url = postgres.url.render_as_string(hide_password=False)
-    migrate(url, "0005_v6_interactions_deep")
-    assert not any(name.startswith("tracker_") for name in inspect(postgres).get_table_names())
-    report_ids: list[tuple[str, dict]] = []
-    for path in (
-        ROOT / "legacy/apps/web/tests/fixtures/persisted-reports/v61-historical-production.json",
-        ROOT / "tests/fixtures/v61/current-story-payload.json",
-    ):
-        report_id = str(uuid4())
-        document = json.loads(path.read_text())
-        report_ids.append((report_id, document))
-        with postgres.begin() as c:
-            c.execute(insert(ReportRecord).values(
-                report_id=report_id, account_id=1001, data_cutoff=1,
-                model_version="retained-fixture", template_version="retained-fixture",
-                report_json=document, created_at=datetime.now(UTC),
-            ))
-    settings = Settings(database_url=url, opendota_source="fixture", storage_backend="database")
-    source = FixtureOpenDotaSource("tests/fixtures/opendota")
-    repository = SqlAlchemyRepository(settings)
-    try:
-        client = TestClient(create_app(settings, source=source, repository=repository))
-        before = {ref: client.get(f"/v1/reports/{ref}").json() for ref, _ in report_ids}
-        for _ in range(2):
-            migrate(url, "head")
-        check_database_revision(postgres)
-        for ref, document in report_ids:
-            response = client.get(f"/v1/reports/{ref}")
-            assert response.status_code == 200
-            assert response.json() == before[ref] == {**document, "report_id": ref}
-        assert source.requests == []
-        migrate(url, "0005_v6_interactions_deep", "downgrade")
-        assert not any(name.startswith("tracker_") for name in inspect(postgres).get_table_names())
-        for ref, _ in report_ids:
-            assert client.get(f"/v1/reports/{ref}").json() == before[ref]
+    migrate(url, "0018_tracker_play_session_names")
+    assert REPORT_CARD_TABLES <= set(inspect(postgres).get_table_names())
+    snapshot(postgres, "opendota", {"version": 1}, "f" * 64)
+    for _ in range(2):
         migrate(url, "head")
-    finally:
-        repository.engine.dispose()
+    check_database_revision(postgres)
+    tables = set(inspect(postgres).get_table_names())
+    assert not tables & REPORT_CARD_TABLES
+    assert all(name.startswith("tracker_") for name in tables - {"alembic_version"})
+    with postgres.connect() as c:
+        assert c.scalar(select(func.count()).select_from(s.snapshots)) == 1
+    migrate(url, "0018_tracker_play_session_names", "downgrade")
+    assert REPORT_CARD_TABLES <= set(inspect(postgres).get_table_names())
+    migrate(url, "head")
+    assert not set(inspect(postgres).get_table_names()) & REPORT_CARD_TABLES
 
 
 def test_metadata_matches_migrated_schema(database: Engine) -> None:
@@ -179,26 +158,15 @@ def test_job_identity_is_unique_without_a_redis_lock(database: Engine) -> None:
         assert c.scalar(select(func.count()).select_from(s.ingest_jobs)) == 1
 
 
-def test_snapshots_coexist_are_immutable_and_survive_legacy_purge(database: Engine) -> None:
+def test_snapshots_coexist_and_are_immutable(database: Engine) -> None:
     snapshot(database, "opendota", {"version": None}, "a" * 64)
     raw = snapshot(database, "opendota", {"version": 22}, "b" * 64)
     snapshot(database, "stratz", {"statsDateTime": 123}, "c" * 64)
     with pytest.raises(IntegrityError, match="immutable tracker"):
         with database.begin() as c:
             c.execute(update(s.snapshots).where(s.snapshots.c.id == raw).values(payload={}))
-    with database.begin() as c:
-        c.execute(insert(RawPayloadRecord).values(
-            endpoint="legacy-fixture", source_id="fixture", payload_hash="d" * 64,
-            payload_json={}, metadata_json={}, fetched_at=NOW - timedelta(days=365),
-        ))
-    repository = SqlAlchemyRepository(Settings(database_url=database.url.render_as_string(hide_password=False)))
-    try:
-        repository.purge_expired(now=NOW)
-    finally:
-        repository.engine.dispose()
     with database.connect() as c:
         assert c.scalar(select(func.count()).select_from(s.snapshots)) == 3
-        assert c.scalar(select(func.count()).select_from(RawPayloadRecord)) == 0
 
 
 def test_analysis_retention_role_assertions_and_readiness_axes(database: Engine) -> None:
