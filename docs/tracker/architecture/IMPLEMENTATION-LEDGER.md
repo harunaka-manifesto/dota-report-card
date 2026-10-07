@@ -1340,3 +1340,12 @@ No player identifiers appear in the review, the artifact, or this ledger entry.
   solely so the `migration` CI job runs `tests/tracker` against PostgreSQL 16 + Redis 7; this
   machine still has neither. The PR is a draft and must not be merged without the owner's request.
   B13's "matches today" persona stays owner-gated (clock injection vs clock-relative seed).
+- CI result for PR #3 (run 37650770437): **`migration` job passed** — `alembic upgrade head`
+  plus `tests/tracker` on PostgreSQL 16 + Redis 7, which covers the new `test_mobile_api` /
+  `test_notifications` cases and the `mobile-v1-viewer-row-v1` golden comparison. The `backend`
+  job fails with the same 54 legacy failures `main` has shown since 2026-09-29 (run 37122480033):
+  53 × `VolatileCorpusRoot` because pytest's `tmp_path` on the GitHub runner resolves under
+  `/tmp`, and `test_v7_corpus_durability::test_a_symlink_into_volatile_storage_is_caught`.
+  Pre-existing, legacy-only, not introduced by this branch; left untouched (legacy release gate,
+  owner's call). `web` job passed. The Vercel preview build also fails on `main`'s history.
+  Branch is validated for merge pending the owner's explicit request.
