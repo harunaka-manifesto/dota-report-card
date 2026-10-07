@@ -1336,3 +1336,7 @@ No player identifiers appear in the review, the artifact, or this ledger entry.
   (294 database-backed tracker tests skipped). **Before merge, run `make test-tracker` against
   PostgreSQL/Redis**. It covers the new `test_mobile_api`/`test_notifications` cases and the
   `mobile-v1-viewer-row-v1` comparison. Provider calls: 0. Not deployed.
+- 2026-10-07, later: branch pushed and draft PR #3 opened (`harunaka-manifesto/dota-report-card#3`)
+  solely so the `migration` CI job runs `tests/tracker` against PostgreSQL 16 + Redis 7; this
+  machine still has neither. The PR is a draft and must not be merged without the owner's request.
+  B13's "matches today" persona stays owner-gated (clock injection vs clock-relative seed).
