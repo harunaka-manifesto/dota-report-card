@@ -1306,3 +1306,46 @@ No player identifiers appear in the review, the artifact, or this ledger entry.
   tests deselected, no skips. Repository Python lint, mypy (325 source files), docs and
   additive OpenAPI checks pass. Existing main CI has unrelated Linux temporary-corpus
   failures; this change does not modify that research tooling or its tests.
+
+### iOS backend asks B1, B2, B13 (2026-10-07, branch `feat/ios-backend-asks-b1-b2-b13`, unmerged)
+
+- Source: `dota-tracker-ios/docs/backend-asks.md`. Owner-approved, additive to `/mobile/v1`.
+- **B1 (done):** `MatchView`/`MatchDetailView` carry the viewer's `hero_id` and `player_slot`
+  (canonical 0–9, the index of the account's row in `players[]`), from the account-match link.
+  Present in every lifecycle; null only if the roster lacks the link's slot, which the link's
+  foreign key to the roster rules out today. OpenAPI re-exported. Goldens move to the new
+  versioned directory `tests/fixtures/tracker/mobile-v1-viewer-row-v1/`, produced by adding the
+  two fields to every Match Detail body of `mobile-v1-match-achievements-v1` (every seeded link
+  is slot 0); the bodies validate against the model, but the seed-backed golden comparison has
+  not been run yet (see below).
+- **B2 (done):** a READY push bundle with `count == 1` adds `match_ref` (the `/matches/{ref}`
+  reference). Coalesced bundles omit it. Event rows are unchanged.
+- **B13 (blocked):** regenerating goldens needs the seed on PostgreSQL 16 + Redis 7. This machine
+  has neither installed, and no Docker; the earlier `/tmp` services are gone. Installing them
+  means downloading binaries, which this task was not cleared to do. Separately, the documented
+  procedure keeps earlier golden directories as immutable records ("compared, never
+  overwritten"), so the retired ids in earlier directories are expected. The directory under test
+  (`mobile-v1-match-achievements-v1`, now `mobile-v1-viewer-row-v1`) has no retired metric ids.
+  The `ready_with_matches_today` persona is not added: `/home` takes "today" from the wall clock
+  (`datetime.now(zone)`), but the seed anchors every match to the fixed `LINKED_AT`
+  (2026-09-01). A today persona would need either a clock-relative seed, which makes goldens
+  depend on the time of day near midnight, or an injectable clock for `/home`. That design choice
+  belongs to the owner.
+- Validation without PostgreSQL: ruff, mypy (325 files), docs-check, OpenAPI drift/lint/vocabulary
+  (run directly), 1,425 unit/contract/legacy tests, and 248 tracker tests that need no database
+  (294 database-backed tracker tests skipped). **Before merge, run `make test-tracker` against
+  PostgreSQL/Redis**. It covers the new `test_mobile_api`/`test_notifications` cases and the
+  `mobile-v1-viewer-row-v1` comparison. Provider calls: 0. Not deployed.
+- 2026-10-07, later: branch pushed and draft PR #3 opened (`harunaka-manifesto/dota-report-card#3`)
+  solely so the `migration` CI job runs `tests/tracker` against PostgreSQL 16 + Redis 7; this
+  machine still has neither. The PR is a draft and must not be merged without the owner's request.
+  B13's "matches today" persona stays owner-gated (clock injection vs clock-relative seed).
+- CI result for PR #3 (run 37650770437): **`migration` job passed** — `alembic upgrade head`
+  plus `tests/tracker` on PostgreSQL 16 + Redis 7, which covers the new `test_mobile_api` /
+  `test_notifications` cases and the `mobile-v1-viewer-row-v1` golden comparison. The `backend`
+  job fails with the same 54 legacy failures `main` has shown since 2026-09-29 (run 37122480033):
+  53 × `VolatileCorpusRoot` because pytest's `tmp_path` on the GitHub runner resolves under
+  `/tmp`, and `test_v7_corpus_durability::test_a_symlink_into_volatile_storage_is_caught`.
+  Pre-existing, legacy-only, not introduced by this branch; left untouched (legacy release gate,
+  owner's call). `web` job passed. The Vercel preview build also fails on `main`'s history.
+  Branch is validated for merge pending the owner's explicit request.

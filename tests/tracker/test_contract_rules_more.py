@@ -178,7 +178,7 @@ def test_stage_one_facts_are_unchanged_after_ready(database):
                            .values(lifecycle="ANALYZING"))
     assert finalize(database, profile_id, match_id) == "READY"
     ready = client.get(f"/matches/{row['ref']}", headers=headers).json()
-    for key in ("players", "started_at", "duration_seconds", "won", "mode", "ref"):
+    for key in ("players", "hero_id", "player_slot", "started_at", "duration_seconds", "won", "mode", "ref"):
         assert ready[key] == stage_one[key]
 
 

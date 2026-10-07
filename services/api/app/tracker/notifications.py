@@ -11,19 +11,24 @@ from sqlalchemy import Connection, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from .achievement_catalog import rarity_key
-from .schema import devices, events, notification_outbox, profiles, users
+from .schema import account_matches, devices, events, notification_outbox, profiles, users
 
 
-def _ready_payload(match_count: int, awards: list[int]) -> dict[str, Any]:
+def _ready_payload(match_count: int, awards: list[int], match_ref: str | None = None) -> dict[str, Any]:
     """`awards` keeps one entry per earned badge per match, so a bundle spanning several
     matches reports the total. `achievement_ids` lists each badge once (rarest first) and
-    `achievement_top_id` is the one to name; the client localizes the name from the id."""
+    `achievement_top_id` is the one to name; the client localizes the name from the id.
+    A single-match bundle also names that match by its opaque `/matches/{ref}` reference;
+    a coalesced bundle omits it and the client lands on Home."""
     unique = sorted(set(awards), key=rarity_key)
-    return {"kind": "MATCH_READY", "count": match_count,
-            "achievement_awards": awards, "achievement_ids": unique,
-            "achievement_count": len(awards),
-            "achievement_top_id": unique[0] if unique else None,
-            "achievement_more": max(0, len(awards) - 1)}
+    payload: dict[str, Any] = {"kind": "MATCH_READY", "count": match_count,
+                               "achievement_awards": awards, "achievement_ids": unique,
+                               "achievement_count": len(awards),
+                               "achievement_top_id": unique[0] if unique else None,
+                               "achievement_more": max(0, len(awards) - 1)}
+    if match_count == 1 and match_ref is not None:
+        payload["match_ref"] = match_ref
+    return payload
 
 
 def record_ready(connection: Connection, *, profile_id: str, match_id: int, origin: str,
@@ -65,10 +70,12 @@ def record_ready(connection: Connection, *, profile_id: str, match_id: int, orig
             notification_outbox.c.id == pending["id"],
         ).values(event_refs=refs, payload=_ready_payload(len(refs), ids)))
     else:
+        match_ref = connection.scalar(select(account_matches.c.public_ref).where(
+            account_matches.c.profile_id == profile_id, account_matches.c.match_id == match_id))
         connection.execute(notification_outbox.insert().values(
             id=str(uuid4()), user_id=user["id"], profile_id=profile_id,
             user_generation=user["generation"], dedup_key=dedup_key,
-            event_refs=[event_id], payload=_ready_payload(1, achievement_ids or []),
+            event_refs=[event_id], payload=_ready_payload(1, achievement_ids or [], match_ref),
             state="PENDING", created_at=func.clock_timestamp(),
         ))
     return event_id
