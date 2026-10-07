@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dota-report-card"
+name = "dota-tracker-backend"
 version = "0.1.0"
-description = "Evidence-backed OpenDota player reports"
+description = "Dota Tracker backend: provider ingestion, match analysis and the mobile API"
 requires-python = ">=3.11"
 dependencies = [
   "alembic>=1.13,<2",
@@ -34,19 +34,10 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["services/api", "legacy/services/api"]
+where = ["services/api"]
 
 [tool.setuptools.package-dir]
 "" = "services/api"
-"report_card" = "legacy/services/api/report_card"
-
-# The frozen population parameters are data the runtime cannot start without,
-# so they must ship inside the installed package. Without this, packages.find
-# collects the modules and silently drops the .json beside them.
-[tool.setuptools.package-data]
-"report_card.player_analysis_v7" = ["data/*.json"]
-"report_card.stratz" = ["*.json"]
-"report_card.heroes" = ["data/*.json", "data/*/*.json"]
 
 [tool.ruff]
 line-length = 100
@@ -58,17 +49,16 @@ select = ["E", "F", "I", "B", "UP"]
 ignore = ["B008", "E501"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "legacy/tests"]
-pythonpath = ["services/api", "legacy/services/api", "."]
+testpaths = ["tests"]
+pythonpath = ["services/api", "."]
 asyncio_mode = "auto"
 markers = [
   "live: opt-in network smoke test",
-  "calibration: deterministic calibration-artifact and holdout gate checks",
 ]
 
 [tool.mypy]
 python_version = "3.11"
-files = ["services/api/app", "legacy/services/api/report_card"]
-mypy_path = ["services/api", "legacy/services/api"]
+files = ["services/api/app"]
+mypy_path = ["services/api"]
 ignore_missing_imports = true
 warn_unused_ignores = true

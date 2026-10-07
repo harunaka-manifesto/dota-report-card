@@ -7,19 +7,15 @@ Read `/AGENTS.md` first. These instructions extend the root rules for `services/
 [module map](app/tracker/README.md) and the
 [tracker architecture](../../docs/tracker/architecture/README.md) before changing it.
 
-`services/api/app/{core,storage,opendota,stratz,providers,ingestion,identity}` are shared
-modules. They serve the tracker AND the live legacy report-card API mounted from
-`legacy/services/api/report_card`. A change here can affect the live production product even on
-a tracker-only task — follow the production-safety rules in `/AGENTS.md` and, if the change
-could reach the legacy product, `/legacy/AGENTS.md`.
+`services/api/app/{core,storage,opendota,stratz,providers}` are shared runtime modules the
+tracker builds on: settings, logging and redaction, provider errors, caches, the database
+engine and schema-revision check, and the OpenDota and STRATZ transports.
 
-`app/main.py` is the composition root: it mounts the tracker, the `/mobile/v1` API, and the
-legacy `/v1` API into one FastAPI app. `app/workers/tasks.py` is the Celery worker entrypoint
-shim used by both products' deployments.
+`app/main.py` is the deploy composition root (`uvicorn app.main:app`): it serves `/health*` and
+mounts `/mobile/v1`, `/store` and `/internal/tracker`. `app/workers/tasks.py` is a fixed Railway
+entrypoint shim (`celery -A app.workers.tasks.celery_app`) that re-exports the tracker's Celery
+app.
 
-**Never import `report_card` from `app.tracker`.** The tracker must not depend on legacy
-analytical code; this is enforced by
+**Never import `app.main` from `app.tracker`.** The composition root depends on the tracker,
+never the reverse; this is enforced by
 [`tests/tracker/test_architecture_boundaries.py`](../../tests/tracker/test_architecture_boundaries.py).
-
-Legacy report-card code lives at `legacy/services/api/report_card`. For its rules, see
-[`legacy/services/api/AGENTS.md`](../../legacy/services/api/AGENTS.md).

@@ -49,7 +49,7 @@ def _live_settings() -> Settings:
     key = os.getenv("OPENDOTA_API_KEY")
     if not key:
         pytest.skip("OPENDOTA_API_KEY is required for live tracker smoke")
-    return Settings(opendota_source="live", opendota_api_key=key,
+    return Settings(opendota_api_key=key,
                     stratz_api_token=os.getenv("STRATZ_API_TOKEN") or os.getenv("STRATZ_API_KEY") or None)
 
 

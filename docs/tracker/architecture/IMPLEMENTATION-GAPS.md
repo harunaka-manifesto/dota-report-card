@@ -22,6 +22,8 @@ The existing backend was built for a **different product**: a one-shot, web-deli
 
 Where a gap is genuinely a defect in the current system, it is marked as such.
 
+**2026-10-07:** the report-card product and everything under `legacy/` were removed (owner decision: never live, no users). `legacy/…` paths cited below are historical and remain only in Git history.
+
 **Classification:**
 
 | Class | Meaning |
@@ -54,7 +56,7 @@ With an explicit page size the **unchanged** field selection returned 50 fully r
 ### G-2 — Replay parsing is entitlement-gated
 
 **Class:** BLOCKER
-**Where:** `legacy/services/api/report_card/analysis/deep_scan.py` (parse requests occur only inside the deep-scan path, behind `decision.allowed`); `legacy/services/api/report_card/analysis/service.py` (`analysis_mode`, `entitlement_decision`); `services/api/app/opendota/client.py` (docstring: the read client deliberately has *no* parse method, "which keeps the v1 no-auto-parse rule enforceable at the transport boundary"); [`../../../legacy/ARCHITECTURE.md`](../../../legacy/ARCHITECTURE.md) ("Free … never hydrates match details or requests replay parsing").
+**Where:** `legacy/services/api/report_card/analysis/deep_scan.py` (parse requests occur only inside the deep-scan path, behind `decision.allowed`); `legacy/services/api/report_card/analysis/service.py` (`analysis_mode`, `entitlement_decision`); `services/api/app/opendota/client.py` (docstring: the read client deliberately has *no* parse method, "which keeps the v1 no-auto-parse rule enforceable at the transport boundary"); `legacy/ARCHITECTURE.md` ("Free … never hydrates match details or requests replay parsing").
 
 **Conflicts with:** [ADR 0004](decisions/0004-entitlement-above-the-data-foundation.md), [ADR 0003](decisions/0003-progressive-post-match-readiness.md), [`FEATURE-DATA-DEPENDENCY-MATRIX.md`](FEATURE-DATA-DEPENDENCY-MATRIX.md) §3
 

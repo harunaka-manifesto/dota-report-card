@@ -15,7 +15,7 @@ from scripts.tracker_seed_demo import seed_demo
 TRACKER = Path(__file__).parents[2] / "services/api/app/tracker"
 LLM_SDKS = ("anthropic", "openai", "langchain", "google.generativeai", "google.genai", "cohere",
             "mistralai", "ollama", "transformers", "litellm")
-PROVIDER_PACKAGES = ("app.opendota", "report_card.stratz", "report_card.providers")
+PROVIDER_PACKAGES = ("app.opendota", "app.stratz", "app.providers")
 # The acquisition and derivation layers, which ADR 0004 places below entitlement.
 BELOW_ENTITLEMENT = ("acquisition.py", "replay_acquisition.py", "historical.py", "historical_summary.py",
                      "sync.py", "linking.py", "materialization.py", "normalization.py", "replay.py",
@@ -40,12 +40,10 @@ def _imports(path: Path) -> set[str]:
     return names
 
 
-def test_tracker_static_import_closure_never_reaches_report_card_or_app_main():
-    """The relocation goal's closure rule: report_card (the deprecated-but-live
-    Free DNA / legacy package) and app.main (the deploy composition root) must
-    never be pulled in by the tracker's own static import graph. If either
-    were reachable, app.tracker would no longer be safely deployable without
-    the legacy package.
+def test_tracker_static_import_closure_never_reaches_app_main():
+    """app.main (the deploy composition root) must never be pulled in by the
+    tracker's own static import graph: the composition root depends on the
+    tracker, never the reverse.
     """
     repo_root = Path(__file__).parents[2]
     app_dir = repo_root / "services/api/app"
@@ -99,9 +97,6 @@ def test_tracker_static_import_closure_never_reaches_report_card_or_app_main():
                 frontier.append(candidate)
 
     assert "app.main" not in visited
-    assert not any(m.startswith("report_card") for m in visited)
-    for mod in visited:
-        assert not mod.startswith("report_card"), mod
 
 
 def test_no_runtime_llm_sdk_is_imported_anywhere_in_the_tracker():

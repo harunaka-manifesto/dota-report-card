@@ -1,2 +1,1 @@
-Reusable hero reference data; consumed today by legacy tooling in `legacy/scripts`;
-not tracker product truth.
+Reusable hero reference data; not tracker product truth.

@@ -14,11 +14,10 @@ Related pages: [provider operations](providers.md) · [deployment notes](deploym
 | Boundary | Path |
 |---|---|
 | Tracker runtime (schema, pipeline, engines, mobile API, workers) | `services/api/app/tracker/` — see its [module map](../../../services/api/app/tracker/README.md) |
-| Tracker migrations | `migrations/versions/0006_…` to `0016_…` (additive; legacy tables untouched) |
+| Migrations | `migrations/versions/` — `0001`–`0005` built the removed report-card schema, `0006`–`0018` the tracker, `0019` drops the report-card tables (frozen schema in `migrations/historical_schema.py`) |
 | Tracker tests | `tests/tracker/` (PostgreSQL + Redis required), `tests/unit/test_migrations.py` |
 | Sanitized fixtures | `tests/fixtures/tracker/` (provider specimens, golden mobile responses) |
 | Local seed, OpenAPI export, traceability | `scripts/tracker_seed_demo.py`, `scripts/tracker_export_openapi.py`, `scripts/tracker_traceability.py` |
-| Live legacy report product (still in production) | `legacy/apps/web/`, legacy `/v1` routes, `legacy/services/api/report_card/` — see [legacy boundaries](../../../legacy/README.md) |
 
 ## Local dependencies
 
@@ -28,7 +27,7 @@ tracker tests refuse to run without both URLs.
 
 ```bash
 make infra-up            # docker compose: postgres + redis
-make db-migrate          # alembic upgrade head (legacy + tracker revisions)
+make db-migrate          # alembic upgrade head
 ```
 
 Without Docker, any local PostgreSQL 16 and Redis 7 work; point `DATABASE_URL`,
@@ -38,7 +37,7 @@ unless the database is at `EXPECTED_SCHEMA_REVISION` (`services/api/app/storage/
 ## Running
 
 ```bash
-make dev                              # FastAPI: legacy /v1, /mobile/v1, /store, /internal/tracker
+make dev                              # FastAPI: /health*, /mobile/v1, /store, /internal/tracker
 make tracker-worker PRIORITY=0        # one terminal per priority class: 0, 1, 2, 3
 make tracker-beat                     # wake signals only; PostgreSQL owns scheduling
 DATABASE_URL=… make seed-demo         # thirteen fixture-backed personas, prints bearer tokens
@@ -55,7 +54,7 @@ Empty identity/store/operations values keep their routes fail-closed (503), neve
 
 ```bash
 TEST_POSTGRES_URL=postgresql+psycopg://…/tracker_test TEST_REDIS_URL=redis://localhost:6379/0 make test-tracker
-uv run pytest -q tests/unit/test_migrations.py tests/contract          # migration units, legacy contracts
+uv run pytest -q tests/unit                                             # migration units, transports, composition root
 RUN_POSTGRES_MIGRATION_TEST=1 TEST_POSTGRES_URL=… uv run pytest -q tests/integration/test_postgres_migrations.py
 uv run python -m scripts.tracker_traceability --strict                 # SSOT acceptance coverage
 make lint typecheck docs-check                                         # repository gates
@@ -73,7 +72,7 @@ What the tracker suite proves, by file:
 | Corrections and deterministic rebuilds (run twice, zero provider calls) | `test_role_correction.py`, `test_rebuild.py` |
 | Identity, Steam, App Store, entitlement, switching, deletion | `test_authentication.py`, `test_steam_identity.py`, `test_app_store.py`, `test_entitlement.py`, `test_account_lifecycle.py` |
 | Mobile contract, golden fixtures, vocabulary scan, provider-free reads | `test_mobile_*.py`, `test_architecture_boundaries.py`, `test_contract_rules*.py` |
-| Schema, migrations, legacy report reads after upgrade | `test_schema.py`, `tests/unit/test_migrations.py` |
+| Schema, migrations, report-card table drop | `test_schema.py`, `tests/unit/test_migrations.py` |
 
 A skipped test is not a passing test. The tracker fixtures skip only when the
 PostgreSQL/Redis URLs are absent; CI provides both.

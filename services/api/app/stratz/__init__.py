@@ -1,8 +1,5 @@
-"""STRATZ transport, canonical models, GraphQL queries and the fail-closed
-deep-match normalizer shared by the fresh V7/tracker STRATZ path.
+"""STRATZ transport, canonical response models and versioned GraphQL queries.
 
-The legacy V7 provider aggregate (``StratzProvider`` and its re-exports,
-plus the batch-normalizer used only by that aggregate) lives in
-``report_card.stratz`` because it is reachable only from the legacy /v1 API
-composition root, not from ``app.tracker``.
+The tracker reaches STRATZ through ``app.stratz.client.StratzClient`` (see
+``app.tracker.historical`` and ``app.tracker.provider_transport``).
 """

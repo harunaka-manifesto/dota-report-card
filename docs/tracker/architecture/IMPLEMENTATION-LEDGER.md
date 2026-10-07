@@ -1349,3 +1349,36 @@ No player identifiers appear in the review, the artifact, or this ledger entry.
   Pre-existing, legacy-only, not introduced by this branch; left untouched (legacy release gate,
   owner's call). `web` job passed. The Vercel preview build also fails on `main`'s history.
   Branch is validated for merge pending the owner's explicit request.
+
+### Legacy product removed (2026-10-07, owner decision: never live, no users)
+
+Branch `chore/remove-legacy-product`, based on `feat/ios-backend-asks-b1-b2-b13`; unmerged.
+
+- Deleted the whole `legacy/` tree (803 tracked files: the Next.js web app, the `report_card`
+  package, packages, scripts, tests, V6.1 runtime artifacts, docs, `graphify-out`, research)
+  and the untracked root `apps/web/` build output. The frozen V6.1 analytical-artifact
+  invariant is retired with it.
+- `app/main.py` mounts only the tracker (`/mobile/v1`, `/store`, `/internal/tracker`) and
+  serves `/health`, `/health/live` and `/health/ready` (PostgreSQL schema revision + Redis).
+  `/health/release` and the `/v1` API are gone. `app/workers/tasks.py` keeps the fixed Railway
+  entrypoint and re-exports the tracker Celery app.
+- Shared modules that served only the report card were removed (`core/release.py`,
+  `identity/`, `ingestion/`, `OpenDotaClient.get_summary_history_once`, player-identifier
+  parsing, the `/v1` rate limiter, report error classes, Free DNA settings). The STRATZ client
+  is unchanged; some of its methods (profile, history, deep and role-metric batches) and V7
+  queries are no longer called by the tracker and can be pruned separately.
+- Migration `0019_drop_report_card_tables` drops the sixteen report-card tables created by
+  `0001`–`0005`; none are referenced by tracker tables or code. The frozen ORM schema moved to
+  `migrations/historical_schema.py` so history still replays from `0001`. Downgrade recreates
+  the tables empty. `EXPECTED_SCHEMA_REVISION` is `0019`. **Deploying this drops any rows in
+  those tables.**
+- CI drops the `web` job and the legacy backend steps; Makefile, pyproject (package renamed
+  `dota-tracker-backend`), Dockerfile, compose (legacy `worker` and `web` services removed) and
+  `.env.example` are tracker-only.
+- Validation without PostgreSQL: ruff, mypy (86 files), docs-check, traceability `--strict`,
+  `make test` **288 passed, 297 skipped**; `tests/tracker` **248 passed, 294 skipped**
+  (database-backed); `alembic heads` single head `0019`; `alembic upgrade
+  0018_tracker_play_session_names:head --sql` renders the drops. A full
+  `alembic upgrade head --sql` from empty still fails at `0002` (online-only inspection), as it
+  did before this change. The DB-backed `test_head_drops_report_card_tables_and_keeps_tracker_rows`
+  runs in the CI `migration` job. Provider calls: 0. Not deployed.

@@ -31,9 +31,9 @@ def policy_for(redis_client):
     return WorkerPolicy(namespace=namespace)
 
 
-def test_compose_tracker_profile_keeps_legacy_worker_and_separates_queues():
+def test_compose_tracker_profile_separates_queues():
     services = yaml.safe_load((ROOT / 'infra/compose.yaml').read_text())['services']
-    assert services['worker']['command'] == 'celery -A app.workers.tasks.celery_app worker --loglevel=INFO --concurrency=4'
+    assert 'worker' not in services and 'web' not in services
     assert services['tracker-beat']['profiles'] == ['tracker']
     assert 'app.tracker.worker:celery_app beat' in services['tracker-beat']['command']
     for priority in range(4):

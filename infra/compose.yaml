@@ -5,7 +5,6 @@ x-tracker-worker: &tracker-worker
   profiles: [tracker]
   environment:
     APP_ENV: production
-    OPENDOTA_SOURCE: live
     OPENDOTA_BASE_URL: ${OPENDOTA_BASE_URL-https://api.opendota.com/api}
     OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
     STRATZ_API_TOKEN: ${STRATZ_API_TOKEN-}
@@ -37,86 +36,13 @@ services:
       dockerfile: infra/docker/api.Dockerfile
     environment:
       APP_ENV: production
-      OPENDOTA_SOURCE: live
       OPENDOTA_BASE_URL: ${OPENDOTA_BASE_URL-https://api.opendota.com/api}
       OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
-      STEAM_API_KEY: ${STEAM_API_KEY-}
+      STRATZ_API_TOKEN: ${STRATZ_API_TOKEN-}
       DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
       REDIS_URL: redis://redis:6379/0
-      CORS_ORIGINS: ${CORS_ORIGINS-http://localhost:3000}
-      STORAGE_BACKEND: database
-      ANALYSIS_EXECUTION_BACKEND: celery
-      ANALYSIS_MAX_CONCURRENCY: ${ANALYSIS_MAX_CONCURRENCY-4}
-      FREE_DNA_V6_ENABLED: ${FREE_DNA_V6_ENABLED-false}
-      FREE_DNA_V6_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/context-baseline-2.0.0.json
-      FREE_DNA_V6_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/metric-thresholds-6.0.0.json
-      FREE_DNA_V6_MODEL_VERSION: free-dna-model-6.0.0
-      FREE_DNA_V61_ENABLED: ${FREE_DNA_V61_ENABLED-false}
-      FREE_DNA_V61_SHADOW_ENABLED: ${FREE_DNA_V61_SHADOW_ENABLED-false}
-      FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED-false}
-      FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED-false}
-      FREE_DNA_V61_ARTIFACT_DIR: /app/runtime-artifacts/free_dna_v61/6.1.0
-      FREE_DNA_V61_BASELINE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
-      FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
-      FREE_DNA_V61_RELEASE_AUTHORIZATION: /app/runtime-artifacts/free_dna_v61/6.1.0/production-beta-authorization-6.1.0.json
-      FREE_DNA_V61_SUMMARY_PRIOR_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/summary-priors-6.1.0.json
-      FREE_DNA_V61_DISTANCE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/portfolio-distance-calibration-1.0.0.json
-      FREE_DNA_V61_SESSION_RELIABILITY_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/session-reliability-calibration-1.0.0.json
-      FREE_DNA_V61_SEMANTIC_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/semantic-outcome-calibration-1.0.0.json
-      FREE_DNA_V61_BUILD_MANIFEST: /app/runtime-artifacts/free_dna_v61/6.1.0/build-manifest-6.1.0.json
-      FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
-      FREE_DNA_V61_ANALYTICAL_SOURCE_SHA: ${FREE_DNA_V61_ANALYTICAL_SOURCE_SHA-f85e88a277ffb365e76dd6eeac6f5009c7bd0165}
-      RELEASE_COMMIT_SHA: ${RELEASE_COMMIT_SHA-}
-      RELEASE_WORKTREE_DIRTY: ${RELEASE_WORKTREE_DIRTY-false}
-      REPORT_RETENTION_DAYS: 30
     ports:
       - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-
-  worker:
-    build:
-      context: ..
-      dockerfile: infra/docker/api.Dockerfile
-    command: celery -A app.workers.tasks.celery_app worker --loglevel=INFO --concurrency=4
-    environment:
-      APP_ENV: production
-      OPENDOTA_SOURCE: live
-      OPENDOTA_BASE_URL: ${OPENDOTA_BASE_URL-https://api.opendota.com/api}
-      OPENDOTA_API_KEY: ${OPENDOTA_API_KEY-}
-      STEAM_API_KEY: ${STEAM_API_KEY-}
-      DATABASE_URL: postgresql+psycopg://dota:dota@postgres:5432/dota_report_card
-      REDIS_URL: redis://redis:6379/0
-      FREE_DNA_V6_ENABLED: ${FREE_DNA_V6_ENABLED-false}
-      FREE_DNA_V6_BASELINE_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/context-baseline-2.0.0.json
-      FREE_DNA_V6_THRESHOLD_ARTIFACT: /app/services/api/artifacts/free_dna_v6/6.0.0/metric-thresholds-6.0.0.json
-      FREE_DNA_V6_MODEL_VERSION: free-dna-model-6.0.0
-      FREE_DNA_V61_ENABLED: ${FREE_DNA_V61_ENABLED-false}
-      FREE_DNA_V61_SHADOW_ENABLED: ${FREE_DNA_V61_SHADOW_ENABLED-false}
-      FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_EVOLUTION_ENABLED-false}
-      FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED: ${FREE_DNA_V61_EXPERIMENTAL_LOOPS_ENABLED-false}
-      FREE_DNA_V61_ARTIFACT_DIR: /app/runtime-artifacts/free_dna_v61/6.1.0
-      FREE_DNA_V61_BASELINE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/context-baseline-3.0.0.json
-      FREE_DNA_V61_THRESHOLD_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/metric-thresholds-6.1.0.json
-      FREE_DNA_V61_RELEASE_AUTHORIZATION: /app/runtime-artifacts/free_dna_v61/6.1.0/production-beta-authorization-6.1.0.json
-      FREE_DNA_V61_SUMMARY_PRIOR_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/summary-priors-6.1.0.json
-      FREE_DNA_V61_DISTANCE_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/portfolio-distance-calibration-1.0.0.json
-      FREE_DNA_V61_SESSION_RELIABILITY_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/session-reliability-calibration-1.0.0.json
-      FREE_DNA_V61_SEMANTIC_ARTIFACT: /app/runtime-artifacts/free_dna_v61/6.1.0/semantic-outcome-calibration-1.0.0.json
-      FREE_DNA_V61_BUILD_MANIFEST: /app/runtime-artifacts/free_dna_v61/6.1.0/build-manifest-6.1.0.json
-      FREE_DNA_V61_MODEL_VERSION: free-dna-model-6.1.0
-      FREE_DNA_V61_ANALYTICAL_SOURCE_SHA: ${FREE_DNA_V61_ANALYTICAL_SOURCE_SHA-f85e88a277ffb365e76dd6eeac6f5009c7bd0165}
-      RELEASE_COMMIT_SHA: ${RELEASE_COMMIT_SHA-}
-      RELEASE_WORKTREE_DIRTY: ${RELEASE_WORKTREE_DIRTY-false}
-      REPORT_RETENTION_DAYS: 30
-      STORAGE_BACKEND: database
-      ANALYSIS_EXECUTION_BACKEND: celery
-      ANALYSIS_MAX_CONCURRENCY: ${ANALYSIS_MAX_CONCURRENCY-4}
     depends_on:
       postgres:
         condition: service_healthy
@@ -144,19 +70,6 @@ services:
   tracker-p3:
     <<: *tracker-worker
     command: celery -A app.tracker.worker:celery_app worker -Q tracker-p3 -n tracker-p3@%h --concurrency=1 --loglevel=INFO
-
-  web:
-    build:
-      context: ..
-      dockerfile: infra/docker/web.Dockerfile
-      args:
-        API_BASE_URL: ${API_BASE_URL-http://api:8000}
-    environment:
-      API_BASE_URL: http://api:8000
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
 
   postgres:
     image: postgres:16-alpine

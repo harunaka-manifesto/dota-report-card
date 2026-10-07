@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check tracker documentation links and scan active source for the cancelled classifier domain."""
+"""Check that local links in the tracker and root documentation resolve."""
 
 from __future__ import annotations
 
@@ -17,14 +17,6 @@ ROOT_DOCS = (
     ROOT / "research" / "README.md",
 )
 LINK_RE = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
-ACTIVE_SOURCE_ROOTS = (
-    ROOT / "services",
-    ROOT / "legacy",
-    ROOT / "tests",
-    ROOT / "README.md",
-    ROOT / "ARCHITECTURE.md",
-    ROOT / "docs",
-)
 
 
 def _local_link_target(document: Path, raw: str) -> Path | None:
@@ -42,19 +34,6 @@ def _local_link_target(document: Path, raw: str) -> Path | None:
     if target.startswith("/"):
         return ROOT / target.lstrip("/")
     return (document.parent / target).resolve()
-
-
-def _legacy_classifier_surface(path: Path) -> bool:
-    """The cancelled report classifier does not prohibit tracker role inference."""
-    relative = path.relative_to(ROOT)
-    if any(part in {"archive", "_archive", "node_modules", ".next", "dist", "build"}
-           for part in relative.parts):
-        return False
-    exempt_roots = (
-        "docs/tracker", "docs/prompts",
-        "services/api/app/tracker", "tests/tracker",
-    )
-    return not any(relative.is_relative_to(prefix) for prefix in exempt_roots)
 
 
 def main() -> int:
@@ -75,22 +54,6 @@ def main() -> int:
                 tracker_links += 1
                 if not target.exists():
                     failures.append(f"broken tracker link in {path.relative_to(ROOT)}: {raw_target}")
-
-    # The cancelled domain is the CLASSIFIER work, not the archetype surface.
-    # V6.1 ships `archetype_contract` as a real, versioned, not-ready interface
-    # (`StoryArchetypeModuleV61Schema`, `STORY_ARCHETYPE_CONTRACT_VERSION`), and
-    # the story renders it, so the word is no longer evidence of a revival.
-    cancelled = re.compile(r"\b(?:classifier|classifiers)\b", re.IGNORECASE)
-    for root in ACTIVE_SOURCE_ROOTS:
-        paths = [root] if root.is_file() else root.rglob("*")
-        for path in paths:
-            if not path.is_file() or path.suffix not in {".py", ".ts", ".tsx", ".js", ".mjs", ".md"}:
-                continue
-            if not _legacy_classifier_surface(path):
-                continue
-            text = path.read_text(encoding="utf-8", errors="ignore")
-            if cancelled.search(text):
-                failures.append(f"cancelled classifier-domain reference in active source: {path.relative_to(ROOT)}")
 
     if failures:
         print("docs-check: failed")
